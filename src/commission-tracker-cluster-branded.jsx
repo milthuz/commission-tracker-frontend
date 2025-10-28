@@ -64,7 +64,7 @@ const CommissionTracker = () => {
         <div style={styles.loginContainer}>
           <div style={styles.loginCard}>
             <div style={styles.logoSection}>
-              <img src="/cluster-on-light.svg" alt="Cluster Logo" style={styles.logoImage} />
+              <img src="/cluster-on-dark.svg" alt="Cluster Logo" style={styles.logoImage} />
             </div>
             
             <h2 style={styles.subtitle}>Commission Tracker</h2>
