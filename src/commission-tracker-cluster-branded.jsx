@@ -8,38 +8,122 @@ const CommissionTracker = () => {
   const [commissions, setCommissions] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '2025-01-01', end: '2025-12-31' });
+  const [token, setToken] = useState(null);
+  
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-  // Mock data for demo
-  const mockCommissions = [
-    { repName: 'John Smith', invoices: 5, commission: 500, avgPerInvoice: 100 },
-    { repName: 'Sarah Johnson', invoices: 8, commission: 800, avgPerInvoice: 100 },
-    { repName: 'Mike Davis', invoices: 3, commission: 300, avgPerInvoice: 100 },
-  ];
+  // Check if user is authenticated via URL token (from Zoho OAuth)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlToken = params.get('token');
+    if (urlToken) {
+      setToken(urlToken);
+      localStorage.setItem('authToken', urlToken);
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Load commission data
+      fetchCommissions(urlToken);
+    } else {
+      const savedToken = localStorage.getItem('authToken');
+      if (savedToken) {
+        setToken(savedToken);
+      }
+    }
+  }, []);
 
+  // Fetch commissions from backend
+  const fetchCommissions = async (authToken = token) => {
+    if (!authToken) return;
+
+    try {
+      setRefreshing(true);
+      const response = await fetch(
+        `${API_URL}/api/commissions?start=${dateRange.start}&end=${dateRange.end}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Parse the commission data
+      if (data.commissions && Array.isArray(data.commissions)) {
+        setCommissions(data.commissions);
+        
+        // Set user info from response
+        if (data.user) {
+          setUser(data.user);
+        } else {
+          setUser({
+            name: 'Zoho User',
+            email: 'zoho@user.com',
+            isAdmin: true,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch commissions:', error);
+      alert('Failed to load commission data. Please try logging in again.');
+      handleLogout();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleZohoLogin = () => {
+    setLoading(true);
+    // Redirect to Zoho OAuth endpoint
+    window.location.href = `${API_URL}/api/auth/zoho`;
+  };
+
+  // Demo login (for testing without Zoho)
   const handleDemoLogin = (isAdmin = false) => {
     setLoading(true);
     setTimeout(() => {
+      const demoToken = 'demo-token-' + Date.now();
+      setToken(demoToken);
+      localStorage.setItem('authToken', demoToken);
+      
       setUser({
         email: isAdmin ? 'admin@cluster.com' : 'demo@cluster.com',
         name: isAdmin ? 'Admin' : 'Demo',
         isAdmin,
       });
-      setCommissions(mockCommissions);
+      
+      // Set demo data
+      setCommissions([
+        { repName: 'John Smith', invoices: 5, commission: 500, avgPerInvoice: 100 },
+        { repName: 'Sarah Johnson', invoices: 8, commission: 800, avgPerInvoice: 100 },
+        { repName: 'Mike Davis', invoices: 3, commission: 300, avgPerInvoice: 100 },
+      ]);
+      
       setLoading(false);
     }, 500);
   };
 
   const handleLogout = () => {
     setUser(null);
+    setToken(null);
     setCommissions([]);
+    localStorage.removeItem('authToken');
   };
 
   const handleRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setCommissions(mockCommissions);
-      setRefreshing(false);
-    }, 500);
+    if (token) {
+      fetchCommissions(token);
+    }
+  };
+
+  const handleDateChange = () => {
+    if (token) {
+      fetchCommissions(token);
+    }
   };
 
   const totalCommission = commissions.reduce((sum, rep) => sum + rep.commission, 0);
@@ -71,28 +155,12 @@ const CommissionTracker = () => {
             <p style={styles.description}>Track your sales commissions in real-time</p>
 
             <div style={styles.loginForm}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Email Address</label>
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  style={styles.input}
-                  disabled
-                />
-              </div>
-
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Password</label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  style={styles.input}
-                  disabled
-                />
-              </div>
-
-              <button style={styles.signInButton} disabled>
-                Sign In
+              <button
+                style={{ ...styles.demoButton, ...styles.demoButtonPrimary }}
+                onClick={handleZohoLogin}
+                disabled={loading}
+              >
+                🔗 Login with Zoho
               </button>
             </div>
 
@@ -102,7 +170,7 @@ const CommissionTracker = () => {
 
             <div style={styles.demoButtons}>
               <button
-                style={{ ...styles.demoButton, ...styles.demoButtonPrimary }}
+                style={{ ...styles.demoButton, ...styles.demoButtonSecondary }}
                 onClick={() => handleDemoLogin(false)}
                 disabled={loading}
               >
@@ -159,7 +227,11 @@ const CommissionTracker = () => {
               <input
                 type="date"
                 value={dateRange.start}
-                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                onChange={(e) => {
+                  const newRange = { ...dateRange, start: e.target.value };
+                  setDateRange(newRange);
+                  setTimeout(handleDateChange, 100);
+                }}
                 style={styles.dateInput}
               />
             </div>
@@ -168,7 +240,11 @@ const CommissionTracker = () => {
               <input
                 type="date"
                 value={dateRange.end}
-                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                onChange={(e) => {
+                  const newRange = { ...dateRange, end: e.target.value };
+                  setDateRange(newRange);
+                  setTimeout(handleDateChange, 100);
+                }}
                 style={styles.dateInput}
               />
             </div>
@@ -290,15 +366,20 @@ const CommissionTracker = () => {
                 {commissions.map((rep, idx) => (
                   <tr key={idx} style={styles.tableRow}>
                     <td style={styles.tableCell}>{rep.repName}</td>
-                    <td style={styles.tableCell}>{rep.invoices}</td>
-                    <td style={styles.tableCell} style={{ ...styles.tableCell, color: '#FF6B35', fontWeight: '600' }}>
+                    <td style={styles.tableCell}>{rep.invoices || 0}</td>
+                    <td style={{ ...styles.tableCell, color: '#FF6B35', fontWeight: '600' }}>
                       ${rep.commission.toFixed(2)}
                     </td>
-                    <td style={styles.tableCell}>${rep.avgPerInvoice.toFixed(2)}</td>
+                    <td style={styles.tableCell}>${rep.avgPerInvoice ? rep.avgPerInvoice.toFixed(2) : '0.00'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {commissions.length === 0 && (
+              <p style={{ ...styles.tableCell, textAlign: 'center', padding: '40px' }}>
+                No commission data available for the selected date range.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -307,7 +388,7 @@ const CommissionTracker = () => {
 };
 
 // ============================================================================
-// STYLES - Modern, Professional Design
+// STYLES
 // ============================================================================
 
 const styles = {
@@ -335,19 +416,6 @@ const styles = {
     marginBottom: '30px',
     justifyContent: 'center',
   },
-  logoIcon: {
-    width: '48px',
-    height: '48px',
-    borderRadius: '8px',
-    background: 'linear-gradient(135deg, #FF6B35, #FF8C42)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#FFFFFF',
-    fontSize: '24px',
-    fontWeight: 'bold',
-    marginRight: '12px',
-  },
   logoImage: {
     height: '48px',
     marginRight: '16px',
@@ -355,12 +423,6 @@ const styles = {
   headerLogoImage: {
     height: '40px',
     marginRight: '12px',
-  },
-  logoText: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: '#1F2937',
-    margin: '0',
   },
   subtitle: {
     fontSize: '20px',
@@ -378,50 +440,6 @@ const styles = {
   loginForm: {
     marginBottom: '24px',
   },
-  formGroup: {
-    marginBottom: '16px',
-  },
-  label: {
-    display: 'block',
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#1F2937',
-    marginBottom: '8px',
-  },
-  input: {
-    width: '100%',
-    padding: '12px',
-    border: '1px solid #E5E7EB',
-    borderRadius: '8px',
-    fontSize: '14px',
-    boxSizing: 'border-box',
-    transition: 'all 0.3s ease',
-  },
-  signInButton: {
-    width: '100%',
-    padding: '12px',
-    background: '#FF6B35',
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '8px',
-    fontSize: '14px',
-    fontWeight: '600',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-  },
-  divider: {
-    display: 'flex',
-    alignItems: 'center',
-    margin: '24px 0',
-    color: '#9CA3AF',
-    fontSize: '14px',
-  },
-  demoButtons: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '12px',
-    marginBottom: '24px',
-  },
   demoButton: {
     padding: '12px',
     border: '1px solid #E5E7EB',
@@ -435,10 +453,25 @@ const styles = {
     background: '#FF6B35',
     color: '#FFFFFF',
     border: 'none',
+    width: '100%',
+    marginBottom: '12px',
   },
   demoButtonSecondary: {
     background: '#F3F4F6',
     color: '#1F2937',
+  },
+  demoButtons: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '12px',
+    marginBottom: '24px',
+  },
+  divider: {
+    display: 'flex',
+    alignItems: 'center',
+    margin: '24px 0',
+    color: '#9CA3AF',
+    fontSize: '14px',
   },
   footer: {
     textAlign: 'center',
