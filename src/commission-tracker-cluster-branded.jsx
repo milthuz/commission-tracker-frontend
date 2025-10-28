@@ -159,6 +159,7 @@ const CommissionTracker = () => {
           <div style={styles.loginCard}>
             <div style={styles.logoSection}>
               <img src="/cluster-on-light.svg" alt="Cluster Logo" style={styles.logoImage} />
+              <span style={styles.alphaBadge}>ALPHA</span>
             </div>
             
             <h2 style={styles.subtitle}>Commission Tracker</h2>
@@ -195,7 +196,7 @@ const CommissionTracker = () => {
               </button>
             </div>
 
-            <p style={styles.footer}>Powered by Cluster POS</p>
+            <p style={styles.footer}>Powered by Cluster Systems</p>
           </div>
         </div>
       </div>
@@ -429,6 +430,18 @@ const styles = {
   logoImage: {
     height: '48px',
     marginRight: '16px',
+  },
+  alphaBadge: {
+    background: '#FF6B35',
+    color: '#FFFFFF',
+    fontSize: '10px',
+    fontWeight: '700',
+    padding: '4px 8px',
+    borderRadius: '4px',
+    position: 'absolute',
+    marginTop: '-8px',
+    marginLeft: '40px',
+    letterSpacing: '0.5px',
   },
   headerLogoImage: {
     height: '40px',
