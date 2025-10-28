@@ -148,7 +148,7 @@ const CommissionTracker = () => {
         <div style={styles.loginContainer}>
           <div style={styles.loginCard}>
             <div style={styles.logoSection}>
-              <img src="/cluster-on-dark.svg" alt="Cluster Logo" style={styles.logoImage} />
+              <img src="/cluster-on-light.svg" alt="Cluster Logo" style={styles.logoImage} />
             </div>
             
             <h2 style={styles.subtitle}>Commission Tracker</h2>
@@ -198,7 +198,7 @@ const CommissionTracker = () => {
       <div style={styles.header}>
         <div style={styles.headerContent}>
           <div style={styles.headerLeft}>
-            <img src="/cluster-on-dark.svg" alt="Cluster Logo" style={styles.headerLogoImage} />
+            <img src="/cluster-on-light.svg" alt="Cluster Logo" style={styles.headerLogoImage} />
             <div>
               <h1 style={styles.headerTitle}>Commission Tracker</h1>
               <p style={styles.headerSubtitle}>Sales Performance Dashboard</p>
