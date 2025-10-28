@@ -76,10 +76,20 @@ const CommissionTracker = () => {
     }
   };
 
-  const handleZohoLogin = () => {
+  const handleZohoLogin = async () => {
     setLoading(true);
-    // Redirect to Zoho OAuth endpoint
-    window.location.href = `${API_URL}/api/auth/zoho`;
+    try {
+      const response = await fetch(`${API_URL}/api/auth/zoho`);
+      const data = await response.json();
+      if (data.authUrl) {
+        // Redirect to Zoho auth URL
+        window.location.href = data.authUrl;
+      }
+    } catch (error) {
+      console.error('Failed to get auth URL:', error);
+      alert('Failed to connect to Zoho. Please try again.');
+      setLoading(false);
+    }
   };
 
   // Demo login (for testing without Zoho)
