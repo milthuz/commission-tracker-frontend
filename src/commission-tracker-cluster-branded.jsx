@@ -11,6 +11,7 @@ const CommissionTracker = () => {
   const [endDate, setEndDate] = useState('2025-12-31');
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedRep, setSelectedRep] = useState('all');
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4336';
 
@@ -27,6 +28,7 @@ const CommissionTracker = () => {
       const url = `${API_URL}/api/commissions?start=${startDate}&end=${endDate}&t=${timestamp}`;
       
       console.log('🔗 Fetching from:', url);
+      console.log('📅 Date range:', startDate, 'to', endDate);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -46,10 +48,15 @@ const CommissionTracker = () => {
       console.log('✅ Data received:', data);
 
       if (data.commissions && Array.isArray(data.commissions)) {
+        console.log('📈 Commissions:', data.commissions.length);
         setCommissions(data.commissions);
       }
       if (data.invoices && Array.isArray(data.invoices)) {
+        console.log('📋 Invoices:', data.invoices.length);
         setInvoices(data.invoices);
+      } else {
+        console.warn('⚠️ No invoices in response');
+        setInvoices([]);
       }
     } catch (error) {
       console.error('❌ Fetch error:', error);
@@ -146,8 +153,20 @@ const CommissionTracker = () => {
   const avgCommission = commissions.length > 0 ? (totalCommission / commissions.length).toFixed(2) : 0;
   const topPerformer = commissions.length > 0 ? commissions.reduce((max, rep) => rep.commission > max.commission ? rep : max) : null;
 
-  // Group invoices by rep
-  const invoicesByRep = invoices.reduce((acc, inv) => {
+  // Group invoices by rep and filter based on user role
+  let filteredInvoices = invoices;
+  
+  // If not admin, only show their own invoices
+  if (user && !user.isAdmin) {
+    filteredInvoices = invoices.filter(inv => inv.salesperson_name === user.name);
+  }
+  
+  // If admin selected a specific rep, filter by that rep
+  if (selectedRep !== 'all') {
+    filteredInvoices = filteredInvoices.filter(inv => (inv.salesperson_name || 'Unassigned') === selectedRep);
+  }
+
+  const invoicesByRep = filteredInvoices.reduce((acc, inv) => {
     const rep = inv.salesperson_name || 'Unassigned';
     if (!acc[rep]) acc[rep] = [];
     acc[rep].push(inv);
@@ -435,7 +454,31 @@ const CommissionTracker = () => {
 
         {activeTab === 'invoices' && (
           <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#1F2937', margin: '0 0 24px 0' }}>Invoices by Sales Rep</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#1F2937', margin: 0 }}>Invoices by Sales Rep</h2>
+              
+              {user && user.isAdmin && (
+                <div>
+                  <label style={{ fontSize: '14px', fontWeight: '500', color: '#1F2937', marginRight: '8px' }}>Filter by Rep:</label>
+                  <select
+                    value={selectedRep}
+                    onChange={(e) => setSelectedRep(e.target.value)}
+                    style={{
+                      padding: '8px 12px',
+                      border: '1px solid #E5E7EB',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="all">All Reps</option>
+                    {commissions.map((rep) => (
+                      <option key={rep.repName} value={rep.repName}>{rep.repName}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
             
             {Object.keys(invoicesByRep).length === 0 ? (
               <p style={{ color: '#6B7280', textAlign: 'center', padding: '24px' }}>No invoices found</p>
