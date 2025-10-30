@@ -157,7 +157,7 @@ const CommissionTracker = () => {
         {/* Version badge */}
         <div style={{ position: 'absolute', top: '24px', right: '24px', display: 'flex', gap: '8px', alignItems: 'center' }}>
           <span style={{ background: '#FF6B35', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase' }}>BETA</span>
-          <span style={{ color: '#9CA3AF', fontSize: '12px' }}>v0.1</span>
+          <span style={{ color: '#9CA3AF', fontSize: '12px' }}>v0.1.0</span>
         </div>
 
         <div style={{ textAlign: 'center', background: 'white', padding: '48px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', maxWidth: '400px' }}>
@@ -215,7 +215,11 @@ const CommissionTracker = () => {
               }}
             />
             <div>
-              <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', margin: 0 }}>Commission Tracker</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', margin: 0 }}>Commission Tracker</h1>
+                <span style={{ background: '#FF6B35', color: 'white', padding: '2px 6px', borderRadius: '3px', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase' }}>BETA</span>
+                <span style={{ color: '#9CA3AF', fontSize: '11px' }}>v0.1.0</span>
+              </div>
               <p style={{ fontSize: '14px', color: '#6B7280', margin: '4px 0 0 0' }}>Sales Performance Dashboard</p>
             </div>
           </div>
