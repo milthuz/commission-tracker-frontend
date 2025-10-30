@@ -164,7 +164,7 @@ const CommissionTracker = () => {
           {/* Logo */}
           <div style={{ marginBottom: '24px' }}>
             <img 
-              src="/cluster-on-dark.svg" 
+              src="/cluster-on-light.svg" 
               alt="Cluster Systems" 
               style={{ height: '40px', margin: '0 auto', display: 'block' }}
               onError={(e) => {
@@ -207,7 +207,7 @@ const CommissionTracker = () => {
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <img 
-              src="/cluster-on-dark.svg" 
+              src="/cluster-on-light.svg" 
               alt="Cluster Systems" 
               style={{ height: '32px' }}
               onError={(e) => {
