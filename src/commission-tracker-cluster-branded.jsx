@@ -40,26 +40,33 @@ const CommissionTracker = () => {
         },
       });
 
+      console.log('📊 Response status:', response.status);
+      console.log('📊 Response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Response error:', errorText);
+        throw new Error(`API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('✅ Data received:', data);
+      console.log('✅ Full data received:', data);
 
       if (data.commissions && Array.isArray(data.commissions)) {
-        console.log('📈 Commissions:', data.commissions.length);
+        console.log('📈 Setting commissions:', data.commissions.length);
         setCommissions(data.commissions);
       }
       if (data.invoices && Array.isArray(data.invoices)) {
-        console.log('📋 Invoices:', data.invoices.length);
+        console.log('📋 Setting invoices:', data.invoices.length);
         setInvoices(data.invoices);
       } else {
-        console.warn('⚠️ No invoices in response');
+        console.warn('⚠️ No invoices in response, setting empty array');
         setInvoices([]);
       }
     } catch (error) {
-      console.error('❌ Fetch error:', error);
+      console.error('❌ Fetch error details:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
       alert('Failed to load data: ' + error.message);
     } finally {
       setRefreshing(false);
