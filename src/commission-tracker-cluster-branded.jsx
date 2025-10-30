@@ -153,8 +153,26 @@ const CommissionTracker = () => {
 
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        {/* Version badge */}
+        <div style={{ position: 'absolute', top: '24px', right: '24px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <span style={{ background: '#FF6B35', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase' }}>BETA</span>
+          <span style={{ color: '#9CA3AF', fontSize: '12px' }}>v0.1</span>
+        </div>
+
         <div style={{ textAlign: 'center', background: 'white', padding: '48px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', maxWidth: '400px' }}>
+          {/* Logo */}
+          <div style={{ marginBottom: '24px' }}>
+            <img 
+              src="/cluster-on-dark.svg" 
+              alt="Cluster Systems" 
+              style={{ height: '40px', margin: '0 auto', display: 'block' }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
+
           <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '16px', color: '#1F2937' }}>Commission Tracker</h1>
           <p style={{ color: '#6B7280', marginBottom: '8px' }}>Track your sales commissions in real-time</p>
           <p style={{ color: '#9CA3AF', marginBottom: '32px', fontSize: '14px' }}>Powered by Cluster Systems</p>
@@ -171,6 +189,8 @@ const CommissionTracker = () => {
               fontSize: '16px',
               fontWeight: '600',
               cursor: 'pointer',
+              transition: 'opacity 0.2s',
+              opacity: loading ? 0.7 : 1,
             }}
           >
             {loading ? 'Logging in...' : '🔗 Login with Zoho'}
@@ -185,9 +205,19 @@ const CommissionTracker = () => {
       {/* Header */}
       <div style={{ background: 'white', borderBottom: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', margin: 0 }}>Commission Tracker</h1>
-            <p style={{ fontSize: '14px', color: '#6B7280', margin: '4px 0 0 0' }}>Sales Performance Dashboard</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <img 
+              src="/cluster-on-dark.svg" 
+              alt="Cluster Systems" 
+              style={{ height: '32px' }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+            <div>
+              <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', margin: 0 }}>Commission Tracker</h1>
+              <p style={{ fontSize: '14px', color: '#6B7280', margin: '4px 0 0 0' }}>Sales Performance Dashboard</p>
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
             <span style={{ fontSize: '14px', color: '#6B7280' }}>👤 {user.name}</span>
