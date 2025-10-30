@@ -110,9 +110,14 @@ const CommissionTracker = () => {
   };
 
   const handleRefresh = () => {
+    console.log('🔄 Refresh button clicked');
     const token = localStorage.getItem('authToken');
     if (token) {
+      console.log('🔄 Fetching with current dates:', startDate, endDate);
       fetchCommissions(token);
+    } else {
+      console.error('❌ No token found');
+      alert('Please login first');
     }
   };
 
