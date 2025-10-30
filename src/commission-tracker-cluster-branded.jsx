@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { LogOut, RefreshCw, Download, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { LogOut, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 const CommissionTracker = () => {
   const [user, setUser] = useState(null);
