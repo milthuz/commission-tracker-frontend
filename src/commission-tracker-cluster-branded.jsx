@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { LogOut, RefreshCw, Download } from 'lucide-react';
 
 const CommissionTracker = () => {
@@ -12,38 +12,7 @@ const CommissionTracker = () => {
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4336';
 
-  // Check authentication on mount
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlToken = params.get('token');
-    
-    if (urlToken) {
-      console.log('✅ Token found in URL');
-      localStorage.setItem('authToken', urlToken);
-      window.history.replaceState({}, document.title, window.location.pathname);
-      setUser({ name: 'Sales Rep', email: 'rep@cluster.local', isAdmin: true });
-      fetchCommissions(urlToken);
-    } else {
-      const savedToken = localStorage.getItem('authToken');
-      if (savedToken) {
-        console.log('✅ Token found in localStorage');
-        setUser({ name: 'Sales Rep', email: 'rep@cluster.local', isAdmin: true });
-        fetchCommissions(savedToken);
-      }
-    }
-  }, []);
-
-  // Fetch when dates change
-  useEffect(() => {
-    if (user) {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        console.log(`📅 Dates changed! Fetching with start=${startDate}, end=${endDate}`);
-        fetchCommissions(token);
-      }
-    }
-  }, [startDate, endDate]);
-
+  // Fetch commissions from API
   const fetchCommissions = async (authToken) => {
     if (!authToken) {
       console.error('❌ No auth token');
@@ -88,6 +57,40 @@ const CommissionTracker = () => {
     }
   };
 
+  // Check authentication on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlToken = params.get('token');
+    
+    if (urlToken) {
+      console.log('✅ Token found in URL');
+      localStorage.setItem('authToken', urlToken);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setUser({ name: 'Sales Rep', email: 'rep@cluster.local', isAdmin: true });
+      fetchCommissions(urlToken);
+    } else {
+      const savedToken = localStorage.getItem('authToken');
+      if (savedToken) {
+        console.log('✅ Token found in localStorage');
+        setUser({ name: 'Sales Rep', email: 'rep@cluster.local', isAdmin: true });
+        fetchCommissions(savedToken);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch when dates change
+  useEffect(() => {
+    if (user) {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        console.log(`📅 Dates changed! Fetching with start=${startDate}, end=${endDate}`);
+        fetchCommissions(token);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startDate, endDate]);
+
   const handleZohoLogin = async () => {
     setLoading(true);
     try {
@@ -110,14 +113,9 @@ const CommissionTracker = () => {
   };
 
   const handleRefresh = () => {
-    console.log('🔄 Refresh button clicked');
     const token = localStorage.getItem('authToken');
     if (token) {
-      console.log('🔄 Fetching with current dates:', startDate, endDate);
       fetchCommissions(token);
-    } else {
-      console.error('❌ No token found');
-      alert('Please login first');
     }
   };
 
