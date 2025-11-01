@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { LogOut, RefreshCw, Download, X } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LogOut, RefreshCw, Download } from 'lucide-react';
 
 const CommissionTracker = () => {
   const [user, setUser] = useState(null);
@@ -13,7 +13,7 @@ const CommissionTracker = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
-  const [showCustom, setShowCustom] = useState(false);
+  // showCustom state removed - not used
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4336';
 
@@ -97,6 +97,7 @@ const CommissionTracker = () => {
   };
 
   // Load dashboard data on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlToken = params.get('token');
