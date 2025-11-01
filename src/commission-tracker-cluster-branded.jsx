@@ -5,11 +5,14 @@ import { LogOut, RefreshCw, Download, X } from 'lucide-react';
 const CommissionTracker = () => {
   const [user, setUser] = useState(null);
   const [commissions, setCommissions] = useState([]);
+  const [invoices, setInvoices] = useState([]); // NEW: Track invoices
   const [loading, setLoading] = useState(false);
   const [startDate, setStartDate] = useState('2025-01-01');
   const [endDate, setEndDate] = useState('2025-12-31');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedRep, setSelectedRep] = useState(null); // Track selected rep filter
+  const [selectedReps, setSelectedReps] = useState([]); // NEW: Track multiple selected reps
+  const [activeTab, setActiveTab] = useState('commissions'); // NEW: Track active tab
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4336';
 
@@ -30,7 +33,7 @@ const CommissionTracker = () => {
         url += `&repName=${encodeURIComponent(repFilter)}`;
       }
       
-      console.log('🔗 Fetching from:', url);
+      console.log('🔗 Fetching commissions from:', url);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -63,6 +66,51 @@ const CommissionTracker = () => {
     }
   };
 
+  // Fetch invoices from API
+  const fetchInvoices = async (authToken, repFilter = null) => {
+    if (!authToken) {
+      console.error('❌ No auth token');
+      return;
+    }
+
+    try {
+      const timestamp = Date.now();
+      let url = `${API_URL}/api/invoices?start=${startDate}&end=${endDate}&t=${timestamp}`;
+      
+      // Add rep filter if selected
+      if (repFilter) {
+        url += `&salesperson=${encodeURIComponent(repFilter)}`;
+      }
+      
+      console.log('🔗 Fetching invoices from:', url);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      });
+
+      if (!response.ok) {
+        console.warn('Failed to fetch invoices:', response.status);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('✅ Invoices received:', data);
+
+      if (data.invoices && Array.isArray(data.invoices)) {
+        console.log(`📄 Setting ${data.invoices.length} invoices`);
+        setInvoices(data.invoices);
+      }
+    } catch (error) {
+      console.error('❌ Fetch invoices error:', error);
+    }
+  };
+
   // Check authentication on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -74,12 +122,14 @@ const CommissionTracker = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
       setUser({ name: 'Sales Rep', email: 'rep@cluster.local', isAdmin: true });
       fetchCommissions(urlToken);
+      fetchInvoices(urlToken);
     } else {
       const savedToken = localStorage.getItem('authToken');
       if (savedToken) {
         console.log('✅ Token found in localStorage');
         setUser({ name: 'Sales Rep', email: 'rep@cluster.local', isAdmin: true });
         fetchCommissions(savedToken);
+        fetchInvoices(savedToken);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,6 +142,7 @@ const CommissionTracker = () => {
       if (token) {
         console.log(`📅 Dates changed! Fetching with start=${startDate}, end=${endDate}`);
         fetchCommissions(token, selectedRep);
+        fetchInvoices(token, selectedRep);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -132,15 +183,53 @@ const CommissionTracker = () => {
     const token = localStorage.getItem('authToken');
     if (token) {
       fetchCommissions(token, repName);
+      fetchInvoices(token, repName);
+    }
+  };
+
+  // NEW: Handle multi-select toggle
+  const handleToggleRep = (repName) => {
+    setSelectedReps(prev => {
+      if (prev.includes(repName)) {
+        return prev.filter(r => r !== repName);
+      } else {
+        return [...prev, repName];
+      }
+    });
+  };
+
+  // NEW: Apply multi-select filter
+  const applyMultiSelectFilter = () => {
+    const token = localStorage.getItem('authToken');
+    if (token && selectedReps.length > 0) {
+      // Filter commissions to only selected reps
+      const filtered = commissions.filter(rep => selectedReps.includes(rep.repName));
+      setCommissions(filtered);
+      
+      // Filter invoices to only selected reps
+      const filteredInvoices = invoices.filter(inv => selectedReps.includes(inv.salesperson_name || 'Unassigned'));
+      setInvoices(filteredInvoices);
+    }
+  };
+
+  // NEW: Clear multi-select filter
+  const clearMultiSelectFilter = () => {
+    setSelectedReps([]);
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      fetchCommissions(token, null);
+      fetchInvoices(token, null);
     }
   };
 
   // Clear filter
   const handleClearFilter = () => {
     setSelectedRep(null);
+    setSelectedReps([]);
     const token = localStorage.getItem('authToken');
     if (token) {
       fetchCommissions(token, null);
+      fetchInvoices(token, null);
     }
   };
 
@@ -316,6 +405,39 @@ const CommissionTracker = () => {
                 }}
               />
             </div>
+            <div>
+              <label style={{ fontSize: '14px', fontWeight: '500', color: '#1F2937', marginBottom: '8px', display: 'block' }}>Filter by Salesperson</label>
+              <select
+                multiple
+                value={selectedReps}
+                onChange={(e) => {
+                  const options = e.target.options;
+                  const selected = [];
+                  for (let i = 0; i < options.length; i++) {
+                    if (options[i].selected) {
+                      selected.push(options[i].value);
+                    }
+                  }
+                  setSelectedReps(selected);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  minHeight: '100px',
+                  fontFamily: 'inherit',
+                }}
+              >
+                {commissions.map((rep) => (
+                  <option key={rep.repName} value={rep.repName}>
+                    {rep.repName} (${rep.commission.toFixed(2)})
+                  </option>
+                ))}
+              </select>
+              <small style={{ color: '#9CA3AF', marginTop: '4px', display: 'block' }}>Hold Ctrl/Cmd to select multiple</small>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
@@ -337,6 +459,40 @@ const CommissionTracker = () => {
               <RefreshCw size={18} style={{ marginRight: '8px' }} />
               Refresh
             </button>
+            {selectedReps.length > 0 && (
+              <button
+                onClick={applyMultiSelectFilter}
+                style={{
+                  padding: '10px 16px',
+                  background: '#8B5CF6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                }}
+              >
+                ✓ Apply Filter ({selectedReps.length})
+              </button>
+            )}
+            {selectedReps.length > 0 && (
+              <button
+                onClick={clearMultiSelectFilter}
+                style={{
+                  padding: '10px 16px',
+                  background: '#EF4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                }}
+              >
+                ✕ Clear Filter
+              </button>
+            )}
             <button
               onClick={downloadCSV}
               style={{
@@ -388,7 +544,42 @@ const CommissionTracker = () => {
           </div>
         )}
 
-        {/* Table */}
+        {/* Tabs */}
+        <div style={{ background: 'white', borderBottom: '2px solid #E5E7EB', marginBottom: '24px', display: 'flex', gap: '0' }}>
+          <button
+            onClick={() => setActiveTab('commissions')}
+            style={{
+              padding: '16px 24px',
+              background: activeTab === 'commissions' ? '#FF6B35' : 'white',
+              color: activeTab === 'commissions' ? 'white' : '#6B7280',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              borderBottom: activeTab === 'commissions' ? '3px solid #FF6B35' : 'none',
+            }}
+          >
+            📊 Commission Details
+          </button>
+          <button
+            onClick={() => setActiveTab('invoices')}
+            style={{
+              padding: '16px 24px',
+              background: activeTab === 'invoices' ? '#FF6B35' : 'white',
+              color: activeTab === 'invoices' ? 'white' : '#6B7280',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600',
+              borderBottom: activeTab === 'invoices' ? '3px solid #FF6B35' : 'none',
+            }}
+          >
+            📄 Invoices ({invoices.length})
+          </button>
+        </div>
+
+        {/* Commission Details Tab */}
+        {activeTab === 'commissions' && (
         <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <h2 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', margin: '0 0 16px 0' }}>Commission Details</h2>
           <div style={{ overflowX: 'auto' }}>
@@ -432,6 +623,74 @@ const CommissionTracker = () => {
             </table>
           </div>
         </div>
+        )}
+
+        {/* Invoices Tab */}
+        {activeTab === 'invoices' && (
+        <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', margin: '0 0 16px 0' }}>Invoices</h2>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #E5E7EB' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Invoice #</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Salesperson</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Date</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Total</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Commission</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Status</th>
+                  <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoices.map((invoice, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937', fontWeight: '500' }}>{invoice.invoice_number}</td>
+                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>{invoice.salesperson_name || 'Unassigned'}</td>
+                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>{new Date(invoice.date).toLocaleDateString()}</td>
+                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>${parseFloat(invoice.total).toFixed(2)}</td>
+                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937', fontWeight: '600', color: '#10B981' }}>${parseFloat(invoice.commission).toFixed(2)}</td>
+                    <td style={{ padding: '16px 12px', fontSize: '14px' }}>
+                      <span style={{
+                        background: invoice.status === 'paid' ? '#D1FAE5' : '#FEE2E2',
+                        color: invoice.status === 'paid' ? '#065F46' : '#7F1D1D',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                      }}>
+                        {invoice.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '16px 12px', fontSize: '14px' }}>
+                      <button
+                        onClick={() => handleSelectRep(invoice.salesperson_name || 'Unassigned')}
+                        style={{
+                          background: '#3B82F6',
+                          color: 'white',
+                          padding: '6px 12px',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                        }}
+                      >
+                        Filter
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {invoices.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#9CA3AF' }}>
+                No invoices found for the selected date range{selectedRep ? ` and salesperson: ${selectedRep}` : ''}
+              </div>
+            )}
+          </div>
+        </div>
+        )}
       </div>
     </div>
   );
