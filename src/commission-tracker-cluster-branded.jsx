@@ -188,15 +188,7 @@ const CommissionTracker = () => {
   };
 
   // NEW: Handle multi-select toggle
-  const handleToggleRep = (repName) => {
-    setSelectedReps(prev => {
-      if (prev.includes(repName)) {
-        return prev.filter(r => r !== repName);
-      } else {
-        return [...prev, repName];
-      }
-    });
-  };
+  // (removed - using onChange handler in select element instead)
 
   // NEW: Apply multi-select filter
   const applyMultiSelectFilter = () => {
@@ -649,7 +641,7 @@ const CommissionTracker = () => {
                     <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>{invoice.salesperson_name || 'Unassigned'}</td>
                     <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>{new Date(invoice.date).toLocaleDateString()}</td>
                     <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>${parseFloat(invoice.total).toFixed(2)}</td>
-                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937', fontWeight: '600', color: '#10B981' }}>${parseFloat(invoice.commission).toFixed(2)}</td>
+                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#10B981', fontWeight: '600' }}>${parseFloat(invoice.commission).toFixed(2)}</td>
                     <td style={{ padding: '16px 12px', fontSize: '14px' }}>
                       <span style={{
                         background: invoice.status === 'paid' ? '#D1FAE5' : '#FEE2E2',
