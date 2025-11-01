@@ -13,7 +13,6 @@ const CommissionTracker = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
-  // showCustom state removed - not used
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4336';
 
@@ -34,71 +33,70 @@ const CommissionTracker = () => {
     return { start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0] };
   };
 
-  // Fetch commissions for a date range
-  const fetchCommissionsForRange = async (authToken, startDate, endDate) => {
-    if (!authToken) {
-      console.error('❌ No auth token');
-      return [];
-    }
-
-    try {
-      const timestamp = Date.now();
-      const url = `${API_URL}/api/commissions?start=${startDate}&end=${endDate}&t=${timestamp}`;
-      
-      console.log('🔗 Fetching from:', url);
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+  // Load dashboard data on mount
+  useEffect(() => {
+    // Fetch commissions for a date range
+    const fetchCommissionsForRange = async (authToken, startDate, endDate) => {
+      if (!authToken) {
+        console.error('❌ No auth token');
+        return [];
       }
 
-      const data = await response.json();
-      return data.commissions || [];
-    } catch (error) {
-      console.error('❌ Fetch error:', error);
-      return [];
-    }
-  };
+      try {
+        const timestamp = Date.now();
+        const url = `${API_URL}/api/commissions?start=${startDate}&end=${endDate}&t=${timestamp}`;
+        
+        console.log('🔗 Fetching from:', url);
 
-  // Fetch invoices
-  const fetchInvoicesForRange = async (authToken, startDate, endDate) => {
-    if (!authToken) return [];
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        });
 
-    try {
-      const timestamp = Date.now();
-      const url = `${API_URL}/api/invoices?start=${startDate}&end=${endDate}&t=${timestamp}`;
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-        },
-      });
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
 
-      if (!response.ok) return [];
-      const data = await response.json();
-      return data.invoices || [];
-    } catch (error) {
-      console.error('❌ Fetch invoices error:', error);
-      return [];
-    }
-  };
+        const data = await response.json();
+        return data.commissions || [];
+      } catch (error) {
+        console.error('❌ Fetch error:', error);
+        return [];
+      }
+    };
 
-  // Load dashboard data on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
+    // Fetch invoices
+    const fetchInvoicesForRange = async (authToken, startDate, endDate) => {
+      if (!authToken) return [];
+
+      try {
+        const timestamp = Date.now();
+        const url = `${API_URL}/api/invoices?start=${startDate}&end=${endDate}&t=${timestamp}`;
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        });
+
+        if (!response.ok) return [];
+        const data = await response.json();
+        return data.invoices || [];
+      } catch (error) {
+        console.error('❌ Fetch invoices error:', error);
+        return [];
+      }
+    };
+
     const params = new URLSearchParams(window.location.search);
     const urlToken = params.get('token');
     
@@ -129,7 +127,7 @@ const CommissionTracker = () => {
         initializeDashboard(savedToken);
       }
     }
-  }, []);
+  }, [API_URL]);
 
   const handleZohoLogin = async () => {
     setLoading(true);
@@ -158,6 +156,45 @@ const CommissionTracker = () => {
       const currentMonth = getCurrentMonthDates();
       const previousMonth = getPreviousMonthDates();
 
+      const fetchCommissionsForRange = async (authToken, startDate, endDate) => {
+        try {
+          const timestamp = Date.now();
+          const url = `${API_URL}/api/commissions?start=${startDate}&end=${endDate}&t=${timestamp}`;
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+            },
+          });
+          if (!response.ok) return [];
+          const data = await response.json();
+          return data.commissions || [];
+        } catch (error) {
+          console.error('Fetch error:', error);
+          return [];
+        }
+      };
+
+      const fetchInvoicesForRange = async (authToken, startDate, endDate) => {
+        try {
+          const timestamp = Date.now();
+          const url = `${API_URL}/api/invoices?start=${startDate}&end=${endDate}&t=${timestamp}`;
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+            },
+          });
+          if (!response.ok) return [];
+          const data = await response.json();
+          return data.invoices || [];
+        } catch (error) {
+          return [];
+        }
+      };
+
       const current = await fetchCommissionsForRange(token, currentMonth.start, currentMonth.end);
       const previous = await fetchCommissionsForRange(token, previousMonth.start, previousMonth.end);
       const invs = await fetchInvoicesForRange(token, currentMonth.start, currentMonth.end);
@@ -178,8 +215,23 @@ const CommissionTracker = () => {
     setRefreshing(true);
     const token = localStorage.getItem('authToken');
     if (token) {
-      const data = await fetchCommissionsForRange(token, customStartDate, customEndDate);
-      setCustomData(data);
+      try {
+        const timestamp = Date.now();
+        const url = `${API_URL}/api/commissions?start=${customStartDate}&end=${customEndDate}&t=${timestamp}`;
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setCustomData(data.commissions || []);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
     }
     setRefreshing(false);
   };
