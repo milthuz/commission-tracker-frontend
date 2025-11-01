@@ -5,14 +5,14 @@ import { LogOut, RefreshCw, Download, X } from 'lucide-react';
 const CommissionTracker = () => {
   const [user, setUser] = useState(null);
   const [commissions, setCommissions] = useState([]);
-  const [invoices, setInvoices] = useState([]); // NEW: Track invoices
+  const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [startDate, setStartDate] = useState('2025-01-01');
   const [endDate, setEndDate] = useState('2025-12-31');
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedRep, setSelectedRep] = useState(null); // Track selected rep filter
-  const [selectedReps, setSelectedReps] = useState([]); // NEW: Track multiple selected reps
-  const [activeTab, setActiveTab] = useState('commissions'); // NEW: Track active tab
+  const [selectedRep, setSelectedRep] = useState(null);
+  const [selectedReps, setSelectedReps] = useState([]);
+  const [activeTab, setActiveTab] = useState('commissions');
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4336';
 
@@ -28,7 +28,6 @@ const CommissionTracker = () => {
       const timestamp = Date.now();
       let url = `${API_URL}/api/commissions?start=${startDate}&end=${endDate}&t=${timestamp}`;
       
-      // Add rep filter if selected
       if (repFilter) {
         url += `&repName=${encodeURIComponent(repFilter)}`;
       }
@@ -45,17 +44,12 @@ const CommissionTracker = () => {
         },
       });
 
-      console.log('📊 Response status:', response.status);
-
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('✅ Data received:', data);
-
       if (data.commissions && Array.isArray(data.commissions)) {
-        console.log(`📈 Setting ${data.commissions.length} commissions`);
         setCommissions(data.commissions);
       }
     } catch (error) {
@@ -69,7 +63,6 @@ const CommissionTracker = () => {
   // Fetch invoices from API
   const fetchInvoices = async (authToken, repFilter = null) => {
     if (!authToken) {
-      console.error('❌ No auth token');
       return;
     }
 
@@ -77,7 +70,6 @@ const CommissionTracker = () => {
       const timestamp = Date.now();
       let url = `${API_URL}/api/invoices?start=${startDate}&end=${endDate}&t=${timestamp}`;
       
-      // Add rep filter if selected
       if (repFilter) {
         url += `&salesperson=${encodeURIComponent(repFilter)}`;
       }
@@ -100,10 +92,7 @@ const CommissionTracker = () => {
       }
 
       const data = await response.json();
-      console.log('✅ Invoices received:', data);
-
       if (data.invoices && Array.isArray(data.invoices)) {
-        console.log(`📄 Setting ${data.invoices.length} invoices`);
         setInvoices(data.invoices);
       }
     } catch (error) {
@@ -117,7 +106,6 @@ const CommissionTracker = () => {
     const urlToken = params.get('token');
     
     if (urlToken) {
-      console.log('✅ Token found in URL');
       localStorage.setItem('authToken', urlToken);
       window.history.replaceState({}, document.title, window.location.pathname);
       setUser({ name: 'Sales Rep', email: 'rep@cluster.local', isAdmin: true });
@@ -126,7 +114,6 @@ const CommissionTracker = () => {
     } else {
       const savedToken = localStorage.getItem('authToken');
       if (savedToken) {
-        console.log('✅ Token found in localStorage');
         setUser({ name: 'Sales Rep', email: 'rep@cluster.local', isAdmin: true });
         fetchCommissions(savedToken);
         fetchInvoices(savedToken);
@@ -140,7 +127,6 @@ const CommissionTracker = () => {
     if (user) {
       const token = localStorage.getItem('authToken');
       if (token) {
-        console.log(`📅 Dates changed! Fetching with start=${startDate}, end=${endDate}`);
         fetchCommissions(token, selectedRep);
         fetchInvoices(token, selectedRep);
       }
@@ -168,12 +154,14 @@ const CommissionTracker = () => {
     setUser(null);
     setCommissions([]);
     setSelectedRep(null);
+    setSelectedReps([]);
   };
 
   const handleRefresh = () => {
     const token = localStorage.getItem('authToken');
     if (token) {
       fetchCommissions(token, selectedRep);
+      fetchInvoices(token, selectedRep);
     }
   };
 
@@ -187,24 +175,19 @@ const CommissionTracker = () => {
     }
   };
 
-  // NEW: Handle multi-select toggle
-  // (removed - using onChange handler in select element instead)
-
-  // NEW: Apply multi-select filter
+  // Apply multi-select filter
   const applyMultiSelectFilter = () => {
     const token = localStorage.getItem('authToken');
     if (token && selectedReps.length > 0) {
-      // Filter commissions to only selected reps
       const filtered = commissions.filter(rep => selectedReps.includes(rep.repName));
       setCommissions(filtered);
       
-      // Filter invoices to only selected reps
       const filteredInvoices = invoices.filter(inv => selectedReps.includes(inv.salesperson_name || 'Unassigned'));
       setInvoices(filteredInvoices);
     }
   };
 
-  // NEW: Clear multi-select filter
+  // Clear multi-select filter
   const clearMultiSelectFilter = () => {
     setSelectedReps([]);
     const token = localStorage.getItem('authToken');
@@ -349,7 +332,7 @@ const CommissionTracker = () => {
         {/* Active Rep Filter Badge */}
         {selectedRep && (
           <div style={{ background: '#FEE2E2', border: '1px solid #FECACA', padding: '12px 16px', borderRadius: '8px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ color: '#7F1D1D', fontWeight: '500' }}>📊 Filtered by: <strong>{selectedRep}</strong></span>
+            <span style={{ color: '#7F1D1D', fontWeight: '500' }}>📊 Showing data for: <strong>{selectedRep}</strong></span>
             <button
               onClick={handleClearFilter}
               style={{
@@ -424,7 +407,7 @@ const CommissionTracker = () => {
               >
                 {commissions.map((rep) => (
                   <option key={rep.repName} value={rep.repName}>
-                    {rep.repName} (${rep.commission.toFixed(2)})
+                    {rep.repName.length > 40 ? rep.repName.substring(0, 40) + '...' : rep.repName} (${rep.commission.toFixed(2)})
                   </option>
                 ))}
               </select>
@@ -465,7 +448,7 @@ const CommissionTracker = () => {
                   fontWeight: '500',
                 }}
               >
-                ✓ Apply Filter ({selectedReps.length})
+                ✓ Apply ({selectedReps.length})
               </button>
             )}
             {selectedReps.length > 0 && (
@@ -482,7 +465,7 @@ const CommissionTracker = () => {
                   fontWeight: '500',
                 }}
               >
-                ✕ Clear Filter
+                ✕ Clear
               </button>
             )}
             <button
@@ -516,7 +499,7 @@ const CommissionTracker = () => {
           </div>
           <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px 0', fontWeight: '500' }}>Top Performer</p>
-            <p style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', margin: 0 }}>{topPerformer?.repName || 'N/A'}</p>
+            <p style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', margin: 0 }}>{topPerformer?.repName ? (topPerformer.repName.length > 30 ? topPerformer.repName.substring(0, 30) + '...' : topPerformer.repName) : 'N/A'}</p>
           </div>
         </div>
 
@@ -537,7 +520,7 @@ const CommissionTracker = () => {
         )}
 
         {/* Tabs */}
-        <div style={{ background: 'white', borderBottom: '2px solid #E5E7EB', marginBottom: '24px', display: 'flex', gap: '0' }}>
+        <div style={{ background: 'white', borderBottom: '2px solid #E5E7EB', marginBottom: '24px', display: 'flex', gap: '0', borderRadius: '12px 12px 0 0' }}>
           <button
             onClick={() => setActiveTab('commissions')}
             style={{
@@ -548,7 +531,7 @@ const CommissionTracker = () => {
               cursor: 'pointer',
               fontSize: '14px',
               fontWeight: '600',
-              borderBottom: activeTab === 'commissions' ? '3px solid #FF6B35' : 'none',
+              borderRadius: activeTab === 'commissions' ? '12px 0 0 0' : '0',
             }}
           >
             📊 Commission Details
@@ -563,7 +546,7 @@ const CommissionTracker = () => {
               cursor: 'pointer',
               fontSize: '14px',
               fontWeight: '600',
-              borderBottom: activeTab === 'invoices' ? '3px solid #FF6B35' : 'none',
+              borderRadius: activeTab === 'invoices' ? '12px 0 0 0' : '0',
             }}
           >
             📄 Invoices ({invoices.length})
@@ -572,8 +555,7 @@ const CommissionTracker = () => {
 
         {/* Commission Details Tab */}
         {activeTab === 'commissions' && (
-        <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', margin: '0 0 16px 0' }}>Commission Details</h2>
+        <div style={{ background: 'white', padding: '24px', borderRadius: '0 0 12px 12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -588,7 +570,9 @@ const CommissionTracker = () => {
               <tbody>
                 {commissions.map((rep, idx) => (
                   <tr key={idx} style={{ borderBottom: '1px solid #E5E7EB' }}>
-                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>{rep.repName}</td>
+                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937', fontWeight: '500' }}>
+                      {rep.repName.length > 40 ? rep.repName.substring(0, 40) + '...' : rep.repName}
+                    </td>
                     <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>{rep.invoices}</td>
                     <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>${rep.commission.toFixed(2)}</td>
                     <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>${rep.avgPerInvoice.toFixed(2)}</td>
@@ -605,8 +589,9 @@ const CommissionTracker = () => {
                           fontSize: '12px',
                           fontWeight: '500',
                         }}
+                        title="View only this salesperson's data"
                       >
-                        Filter
+                        View
                       </button>
                     </td>
                   </tr>
@@ -619,8 +604,7 @@ const CommissionTracker = () => {
 
         {/* Invoices Tab */}
         {activeTab === 'invoices' && (
-        <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ fontSize: '16px', fontWeight: '600', color: '#1F2937', margin: '0 0 16px 0' }}>Invoices</h2>
+        <div style={{ background: 'white', padding: '24px', borderRadius: '0 0 12px 12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -638,7 +622,9 @@ const CommissionTracker = () => {
                 {invoices.map((invoice, idx) => (
                   <tr key={idx} style={{ borderBottom: '1px solid #E5E7EB' }}>
                     <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937', fontWeight: '500' }}>{invoice.invoice_number}</td>
-                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>{invoice.salesperson_name || 'Unassigned'}</td>
+                    <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>
+                      {invoice.salesperson_name ? (invoice.salesperson_name.length > 25 ? invoice.salesperson_name.substring(0, 25) + '...' : invoice.salesperson_name) : 'Unassigned'}
+                    </td>
                     <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>{new Date(invoice.date).toLocaleDateString()}</td>
                     <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>${parseFloat(invoice.total).toFixed(2)}</td>
                     <td style={{ padding: '16px 12px', fontSize: '14px', color: '#10B981', fontWeight: '600' }}>${parseFloat(invoice.commission).toFixed(2)}</td>
@@ -667,8 +653,9 @@ const CommissionTracker = () => {
                           fontSize: '12px',
                           fontWeight: '500',
                         }}
+                        title="View only this salesperson's data"
                       >
-                        Filter
+                        View
                       </button>
                     </td>
                   </tr>
@@ -677,7 +664,7 @@ const CommissionTracker = () => {
             </table>
             {invoices.length === 0 && (
               <div style={{ textAlign: 'center', padding: '40px', color: '#9CA3AF' }}>
-                No invoices found for the selected date range{selectedRep ? ` and salesperson: ${selectedRep}` : ''}
+                No invoices found for the selected date range{selectedRep ? ` for: ${selectedRep}` : ''}
               </div>
             )}
           </div>
