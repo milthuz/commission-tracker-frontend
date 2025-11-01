@@ -1,11 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import { ChakraProvider } from '@chakra-ui/react';
 import CommissionTracker from './commission-tracker-cluster-branded';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <CommissionTracker />
+    <ChakraProvider>
+      <CommissionTracker />
+    </ChakraProvider>
   </React.StrictMode>
 );

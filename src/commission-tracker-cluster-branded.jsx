@@ -1,6 +1,56 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Flex,
+  Grid,
+  GridItem,
+  Heading,
+  HStack,
+  Input,
+  SimpleGrid,
+  Stat,
+  StatLabel,
+  StatNumber,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Badge,
+  Text,
+  VStack,
+  Avatar,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  useColorMode,
+  Container,
+  Divider,
+  Center,
+  Image,
+  useToast,
+  Drawer,
+  DrawerBody,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  useDisclosure,
+  Icon,
+  Collapse,
+} from '@chakra-ui/react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { LogOut, RefreshCw, Download } from 'lucide-react';
+import { FiLogOut, FiRefreshCw, FiMenu, FiHome, FiFileText, FiSettings, FiMoon, FiSun, FiChevronDown, FiSearch } from 'react-icons/fi';
 
 const CommissionTracker = () => {
   const [user, setUser] = useState(null);
@@ -10,11 +60,18 @@ const CommissionTracker = () => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [expandMenu, setExpandMenu] = useState({});
+  const { colorMode, toggleColorMode } = useColorMode();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4336';
+  const bgColor = colorMode === 'dark' ? 'gray.800' : 'white';
+  const textColor = colorMode === 'dark' ? 'white' : 'gray.800';
+  const borderColor = colorMode === 'dark' ? 'gray.700' : 'gray.200';
 
   // Get current and previous month dates
   const getCurrentMonthDates = () => {
@@ -35,64 +92,42 @@ const CommissionTracker = () => {
 
   // Load dashboard data on mount
   useEffect(() => {
-    // Fetch commissions for a date range
     const fetchCommissionsForRange = async (authToken, startDate, endDate) => {
-      if (!authToken) {
-        console.error('❌ No auth token');
-        return [];
-      }
-
+      if (!authToken) return [];
       try {
         const timestamp = Date.now();
         const url = `${API_URL}/api/commissions?start=${startDate}&end=${endDate}&t=${timestamp}`;
-        
-        console.log('🔗 Fetching from:', url);
-
         const response = await fetch(url, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0',
           },
         });
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-
+        if (!response.ok) return [];
         const data = await response.json();
         return data.commissions || [];
       } catch (error) {
-        console.error('❌ Fetch error:', error);
         return [];
       }
     };
 
-    // Fetch invoices
     const fetchInvoicesForRange = async (authToken, startDate, endDate) => {
       if (!authToken) return [];
-
       try {
         const timestamp = Date.now();
         const url = `${API_URL}/api/invoices?start=${startDate}&end=${endDate}&t=${timestamp}`;
-        
         const response = await fetch(url, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${authToken}`,
             'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0',
           },
         });
-
         if (!response.ok) return [];
         const data = await response.json();
         return data.invoices || [];
       } catch (error) {
-        console.error('❌ Fetch invoices error:', error);
         return [];
       }
     };
@@ -138,8 +173,7 @@ const CommissionTracker = () => {
         window.location.href = data.authUrl;
       }
     } catch (error) {
-      console.error('Login error:', error);
-      alert('Failed to login');
+      toast({ title: 'Error', description: 'Failed to login', status: 'error', duration: 4000, isClosable: true });
       setLoading(false);
     }
   };
@@ -171,7 +205,6 @@ const CommissionTracker = () => {
           const data = await response.json();
           return data.commissions || [];
         } catch (error) {
-          console.error('Fetch error:', error);
           return [];
         }
       };
@@ -208,7 +241,7 @@ const CommissionTracker = () => {
 
   const handleCustomDateFilter = async () => {
     if (!customStartDate || !customEndDate) {
-      alert('Please select both start and end dates');
+      toast({ title: 'Error', description: 'Please select both dates', status: 'error', duration: 4000 });
       return;
     }
 
@@ -228,37 +261,15 @@ const CommissionTracker = () => {
         if (response.ok) {
           const data = await response.json();
           setCustomData(data.commissions || []);
+          toast({ title: 'Success', description: 'Filter applied', status: 'success', duration: 2000 });
         }
       } catch (error) {
-        console.error('Error:', error);
+        toast({ title: 'Error', description: 'Failed to fetch data', status: 'error', duration: 4000 });
       }
     }
     setRefreshing(false);
   };
 
-  const downloadCSV = (data, filename) => {
-    const headers = ['Rep Name', 'Invoices', 'Commission', 'Avg per Invoice'];
-    const rows = data.map(rep => [
-      rep.repName,
-      rep.invoices,
-      rep.commission.toFixed(2),
-      rep.avgPerInvoice.toFixed(2)
-    ]);
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-  };
-
-  // Format chart data
   const formatChartData = (data) => {
     return data.map(rep => ({
       name: rep.repName.length > 15 ? rep.repName.substring(0, 12) + '...' : rep.repName,
@@ -266,7 +277,6 @@ const CommissionTracker = () => {
     }));
   };
 
-  // Calculate metrics
   const calculateMetrics = (data) => {
     if (!data || data.length === 0) return { total: 0, avg: 0, top: null };
     const total = data.reduce((sum, rep) => sum + rep.commission, 0);
@@ -277,397 +287,419 @@ const CommissionTracker = () => {
 
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', background: '#F9FAFB', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: '24px', right: '24px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <span style={{ background: '#FF6B35', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase' }}>BETA</span>
-          <span style={{ color: '#9CA3AF', fontSize: '12px' }}>v0.1.0</span>
-        </div>
-
-        <div style={{ textAlign: 'center', background: 'white', padding: '48px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', maxWidth: '400px' }}>
-          <div style={{ marginBottom: '24px' }}>
-            <img 
-              src="/cluster-on-light.svg" 
-              alt="Cluster Systems" 
-              style={{ height: '40px', margin: '0 auto', display: 'block' }}
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-          </div>
-
-          <h1 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '16px', color: '#1F2937' }}>Commission Tracker</h1>
-          <p style={{ color: '#6B7280', marginBottom: '8px' }}>Track your sales commissions in real-time</p>
-          <p style={{ color: '#9CA3AF', marginBottom: '32px', fontSize: '14px' }}>Powered by Cluster Systems</p>
-          <button
-            onClick={handleZohoLogin}
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px 24px',
-              background: '#FF6B35',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              opacity: loading ? 0.7 : 1,
-            }}
-          >
-            {loading ? 'Logging in...' : '🔗 Login with Zoho'}
-          </button>
-        </div>
-      </div>
+      <Flex minH="100vh" align="center" justify="center" bg={colorMode === 'dark' ? 'gray.900' : 'gray.50'}>
+        <Card maxW="400px" boxShadow="2xl">
+          <CardBody>
+            <VStack spacing={6} align="center">
+              <Image src="/cluster-on-light.svg" alt="Cluster" h="50px" />
+              <VStack spacing={2} align="center">
+                <Heading size="lg">Commission Tracker</Heading>
+                <Text fontSize="sm" color="gray.600">Horizon UI - Powered by Chakra</Text>
+                <Badge colorScheme="orange">BETA v0.1.0</Badge>
+              </VStack>
+              <Button
+                w="100%"
+                bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                color="white"
+                size="lg"
+                onClick={handleZohoLogin}
+                isLoading={loading}
+              >
+                🔗 Login with Zoho
+              </Button>
+            </VStack>
+          </CardBody>
+        </Card>
+      </Flex>
     );
   }
 
-  const currentMonthMetrics = calculateMetrics(currentMonthData);
-  const previousMonthMetrics = calculateMetrics(previousMonthData);
+  const currentMetrics = calculateMetrics(currentMonthData);
+  const previousMetrics = calculateMetrics(previousMonthData);
   const customMetrics = calculateMetrics(customData);
 
+  // Sidebar Menu Items
+  const menuItems = [
+    { label: 'Dashboard', icon: FiHome },
+    { label: 'Invoices', icon: FiFileText },
+    { label: 'Settings', icon: FiSettings },
+  ];
+
   return (
-    <div style={{ minHeight: '100vh', background: '#F9FAFB' }}>
-      {/* Header */}
-      <div style={{ background: 'white', borderBottom: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <img 
-              src="/cluster-on-light.svg" 
-              alt="Cluster Systems" 
-              style={{ height: '32px' }}
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-            <div>
-              <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1F2937', margin: 0 }}>Commission Tracker</h1>
-              <p style={{ fontSize: '14px', color: '#6B7280', margin: '4px 0 0 0' }}>Sales Performance Dashboard</p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              style={{
-                padding: '8px 12px',
-                background: '#FF6B35',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                opacity: refreshing ? 0.6 : 1,
+    <Flex h="100vh" overflow="hidden" bg={colorMode === 'dark' ? 'gray.900' : 'gray.50'}>
+      {/* Sidebar */}
+      <Box
+        as="aside"
+        w={{ base: sidebarOpen ? '250px' : '0', md: '250px' }}
+        bg={bgColor}
+        borderRight="1px"
+        borderColor={borderColor}
+        h="100vh"
+        overflow="hidden"
+        transition="width 0.3s ease"
+        display={{ base: sidebarOpen ? 'flex' : 'none', md: 'flex' }}
+        flexDirection="column"
+      >
+        {/* Sidebar Header */}
+        <Box p={6} borderBottom="1px" borderColor={borderColor}>
+          <HStack spacing={3}>
+            <Image src="/cluster-on-light.svg" alt="Cluster" h="32px" />
+            <VStack spacing={0} align="start">
+              <Text fontWeight="700" fontSize="sm" color={textColor}>Cluster</Text>
+              <Text fontSize="xs" color="gray.500">Commission</Text>
+            </VStack>
+          </HStack>
+        </Box>
+
+        {/* Menu Items */}
+        <VStack as="nav" spacing={2} p={4} flex="1" align="stretch">
+          {menuItems.map((item, idx) => (
+            <Button
+              key={idx}
+              w="100%"
+              justifyContent="start"
+              variant="ghost"
+              leftIcon={<Icon as={item.icon} />}
+              _hover={{
+                bg: 'purple.50',
+                _dark: { bg: 'gray.700' },
               }}
             >
-              <RefreshCw size={18} />
-            </button>
-            <span style={{ fontSize: '14px', color: '#6B7280' }}>👤 {user.name}</span>
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: '8px 12px',
-                background: '#EF4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-              }}
-            >
-              <LogOut size={18} />
-            </button>
-          </div>
-        </div>
-      </div>
+              {item.label}
+            </Button>
+          ))}
+        </VStack>
+
+        {/* Logout Button */}
+        <Box p={4} borderTop="1px" borderColor={borderColor}>
+          <Button
+            w="100%"
+            colorScheme="red"
+            variant="ghost"
+            leftIcon={<FiLogOut />}
+            justifyContent="start"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </Box>
+      </Box>
 
       {/* Main Content */}
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px' }}>
-        {/* Tabs */}
-        <div style={{ background: 'white', borderBottom: '2px solid #E5E7EB', marginBottom: '24px', display: 'flex', gap: '0', borderRadius: '12px 12px 0 0' }}>
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            style={{
-              padding: '16px 24px',
-              background: activeTab === 'dashboard' ? '#FF6B35' : 'white',
-              color: activeTab === 'dashboard' ? 'white' : '#6B7280',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-            }}
-          >
-            📊 Dashboard
-          </button>
-          <button
-            onClick={() => setActiveTab('invoices')}
-            style={{
-              padding: '16px 24px',
-              background: activeTab === 'invoices' ? '#FF6B35' : 'white',
-              color: activeTab === 'invoices' ? 'white' : '#6B7280',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-            }}
-          >
-            📄 Invoices ({invoices.length})
-          </button>
-        </div>
+      <Flex direction="column" flex="1" overflow="hidden">
+        {/* Navbar */}
+        <Box
+          bg={bgColor}
+          borderBottom="1px"
+          borderColor={borderColor}
+          px={6}
+          py={4}
+          boxShadow="sm"
+        >
+          <Flex justify="space-between" align="center">
+            <HStack spacing={4}>
+              <Button
+                display={{ base: 'flex', md: 'none' }}
+                variant="ghost"
+                size="lg"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+              >
+                <FiMenu size={24} />
+              </Button>
+            </HStack>
 
-        {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && (
-          <div>
-            {/* Current Month Section */}
-            <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1F2937', marginBottom: '16px' }}>📅 Current Month</h2>
-              
-              {/* Metrics */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px 0', fontWeight: '500' }}>Total Commission</p>
-                  <p style={{ fontSize: '28px', fontWeight: '700', color: '#FF6B35', margin: 0 }}>${currentMonthMetrics.total}</p>
-                </div>
-                <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px 0', fontWeight: '500' }}>Average Commission</p>
-                  <p style={{ fontSize: '28px', fontWeight: '700', color: '#3B82F6', margin: 0 }}>${currentMonthMetrics.avg}</p>
-                </div>
-                <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px 0', fontWeight: '500' }}>Top Performer</p>
-                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#10B981', margin: 0 }}>{currentMonthMetrics.top || 'N/A'}</p>
-                </div>
-              </div>
+            <HStack spacing={6}>
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={toggleColorMode}
+              >
+                {colorMode === 'light' ? <FiMoon size={20} /> : <FiSun size={20} />}
+              </Button>
+              <Button
+                size="sm"
+                colorScheme="blue"
+                leftIcon={<FiRefreshCw />}
+                onClick={handleRefresh}
+                isLoading={refreshing}
+              >
+                Refresh
+              </Button>
+              <Menu>
+                <MenuButton as={Button} size="sm" variant="ghost" borderRadius="full" p={0}>
+                  <Avatar size="sm" name={user.name} />
+                </MenuButton>
+                <MenuList>
+                  <MenuItem icon={<FiLogOut />} onClick={handleLogout}>
+                    Logout
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+            </HStack>
+          </Flex>
+        </Box>
 
-              {/* Chart */}
-              {currentMonthData.length > 0 && (
-                <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={formatChartData(currentMonthData)}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="commission" fill="#FF6B35" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </div>
+        {/* Page Content */}
+        <Box flex="1" overflow="auto" p={6}>
+          <Container maxW="7xl">
+            <VStack spacing={8} align="stretch">
+              <Box>
+                <Heading size="lg" mb={6}>📊 Commission Dashboard</Heading>
 
-            {/* Previous Month Section */}
-            <div style={{ marginBottom: '40px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1F2937', marginBottom: '16px' }}>📅 Previous Month</h2>
-              
-              {/* Metrics */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px 0', fontWeight: '500' }}>Total Commission</p>
-                  <p style={{ fontSize: '28px', fontWeight: '700', color: '#FF6B35', margin: 0 }}>${previousMonthMetrics.total}</p>
-                </div>
-                <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px 0', fontWeight: '500' }}>Average Commission</p>
-                  <p style={{ fontSize: '28px', fontWeight: '700', color: '#3B82F6', margin: 0 }}>${previousMonthMetrics.avg}</p>
-                </div>
-                <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px 0', fontWeight: '500' }}>Top Performer</p>
-                  <p style={{ fontSize: '18px', fontWeight: '700', color: '#10B981', margin: 0 }}>{previousMonthMetrics.top || 'N/A'}</p>
-                </div>
-              </div>
+                <Tabs variant="soft-rounded" colorScheme="purple">
+                  <TabList mb={8} bg={bgColor} p={2} borderRadius="lg" boxShadow="sm">
+                    <Tab>Current Month</Tab>
+                    <Tab>Previous Month</Tab>
+                    <Tab>Custom Range</Tab>
+                    <Tab>Invoices ({invoices.length})</Tab>
+                  </TabList>
 
-              {/* Chart */}
-              {previousMonthData.length > 0 && (
-                <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={formatChartData(previousMonthData)}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="commission" fill="#8B5CF6" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-            </div>
+                  <TabPanels>
+                    {/* Current Month Tab */}
+                    <TabPanel>
+                      <VStack spacing={6} align="stretch">
+                        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
+                          <Card>
+                            <CardBody>
+                              <Stat>
+                                <StatLabel fontSize="sm" fontWeight="500">Total Commission</StatLabel>
+                                <StatNumber color="orange.500" fontSize="2xl" mt={2}>${currentMetrics.total}</StatNumber>
+                              </Stat>
+                            </CardBody>
+                          </Card>
+                          <Card>
+                            <CardBody>
+                              <Stat>
+                                <StatLabel fontSize="sm" fontWeight="500">Average Commission</StatLabel>
+                                <StatNumber color="blue.500" fontSize="2xl" mt={2}>${currentMetrics.avg}</StatNumber>
+                              </Stat>
+                            </CardBody>
+                          </Card>
+                          <Card>
+                            <CardBody>
+                              <Stat>
+                                <StatLabel fontSize="sm" fontWeight="500">Top Performer</StatLabel>
+                                <StatNumber color="green.500" fontSize="md" mt={2}>{currentMetrics.top || 'N/A'}</StatNumber>
+                              </Stat>
+                            </CardBody>
+                          </Card>
+                        </SimpleGrid>
 
-            {/* Custom Date Range Section */}
-            <div>
-              <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1F2937', marginBottom: '16px' }}>🔧 Custom Date Range</h2>
-              
-              <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '24px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-                  <div>
-                    <label style={{ fontSize: '14px', fontWeight: '500', color: '#1F2937', marginBottom: '8px', display: 'block' }}>Start Date</label>
-                    <input
-                      type="date"
-                      value={customStartDate}
-                      onChange={(e) => setCustomStartDate(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #E5E7EB',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '14px', fontWeight: '500', color: '#1F2937', marginBottom: '8px', display: 'block' }}>End Date</label>
-                    <input
-                      type="date"
-                      value={customEndDate}
-                      onChange={(e) => setCustomEndDate(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #E5E7EB',
-                        borderRadius: '6px',
-                        fontSize: '14px',
-                      }}
-                    />
-                  </div>
-                </div>
+                        {currentMonthData.length > 0 && (
+                          <Card>
+                            <CardBody>
+                              <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={formatChartData(currentMonthData)}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke={borderColor} />
+                                  <XAxis dataKey="name" />
+                                  <YAxis />
+                                  <Tooltip contentStyle={{ backgroundColor: bgColor, borderColor: borderColor }} />
+                                  <Bar dataKey="commission" fill="#667eea" radius={[8, 8, 0, 0]} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </CardBody>
+                          </Card>
+                        )}
+                      </VStack>
+                    </TabPanel>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '12px' }}>
-                  <button
-                    onClick={handleCustomDateFilter}
-                    disabled={refreshing}
-                    style={{
-                      padding: '10px 16px',
-                      background: '#8B5CF6',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '500',
-                      opacity: refreshing ? 0.6 : 1,
-                    }}
-                  >
-                    🔍 Apply Filter
-                  </button>
-                  {customData.length > 0 && (
-                    <button
-                      onClick={() => {
-                        setCustomData([]);
-                        setCustomStartDate('');
-                        setCustomEndDate('');
-                      }}
-                      style={{
-                        padding: '10px 16px',
-                        background: '#EF4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                      }}
-                    >
-                      ✕ Clear
-                    </button>
-                  )}
-                  {customData.length > 0 && (
-                    <button
-                      onClick={() => downloadCSV(customData, `commissions-${customStartDate}-to-${customEndDate}.csv`)}
-                      style={{
-                        padding: '10px 16px',
-                        background: '#10B981',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                      }}
-                    >
-                      <Download size={16} style={{ marginRight: '8px' }} />
-                      Export
-                    </button>
-                  )}
-                </div>
-              </div>
+                    {/* Previous Month Tab */}
+                    <TabPanel>
+                      <VStack spacing={6} align="stretch">
+                        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
+                          <Card>
+                            <CardBody>
+                              <Stat>
+                                <StatLabel fontSize="sm" fontWeight="500">Total Commission</StatLabel>
+                                <StatNumber color="orange.500" fontSize="2xl" mt={2}>${previousMetrics.total}</StatNumber>
+                              </Stat>
+                            </CardBody>
+                          </Card>
+                          <Card>
+                            <CardBody>
+                              <Stat>
+                                <StatLabel fontSize="sm" fontWeight="500">Average Commission</StatLabel>
+                                <StatNumber color="blue.500" fontSize="2xl" mt={2}>${previousMetrics.avg}</StatNumber>
+                              </Stat>
+                            </CardBody>
+                          </Card>
+                          <Card>
+                            <CardBody>
+                              <Stat>
+                                <StatLabel fontSize="sm" fontWeight="500">Top Performer</StatLabel>
+                                <StatNumber color="green.500" fontSize="md" mt={2}>{previousMetrics.top || 'N/A'}</StatNumber>
+                              </Stat>
+                            </CardBody>
+                          </Card>
+                        </SimpleGrid>
 
-              {customData.length > 0 && (
-                <div>
-                  {/* Metrics */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                    <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                      <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px 0', fontWeight: '500' }}>Total Commission</p>
-                      <p style={{ fontSize: '28px', fontWeight: '700', color: '#FF6B35', margin: 0 }}>${customMetrics.total}</p>
-                    </div>
-                    <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                      <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px 0', fontWeight: '500' }}>Average Commission</p>
-                      <p style={{ fontSize: '28px', fontWeight: '700', color: '#3B82F6', margin: 0 }}>${customMetrics.avg}</p>
-                    </div>
-                    <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                      <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 8px 0', fontWeight: '500' }}>Top Performer</p>
-                      <p style={{ fontSize: '18px', fontWeight: '700', color: '#10B981', margin: 0 }}>{customMetrics.top || 'N/A'}</p>
-                    </div>
-                  </div>
+                        {previousMonthData.length > 0 && (
+                          <Card>
+                            <CardBody>
+                              <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={formatChartData(previousMonthData)}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke={borderColor} />
+                                  <XAxis dataKey="name" />
+                                  <YAxis />
+                                  <Tooltip contentStyle={{ backgroundColor: bgColor, borderColor: borderColor }} />
+                                  <Bar dataKey="commission" fill="#764ba2" radius={[8, 8, 0, 0]} />
+                                </BarChart>
+                              </ResponsiveContainer>
+                            </CardBody>
+                          </Card>
+                        )}
+                      </VStack>
+                    </TabPanel>
 
-                  {/* Chart */}
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={formatChartData(customData)}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="commission" fill="#06B6D4" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+                    {/* Custom Range Tab */}
+                    <TabPanel>
+                      <VStack spacing={6} align="stretch">
+                        <Card>
+                          <CardBody>
+                            <VStack spacing={4} align="stretch">
+                              <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4}>
+                                <Box>
+                                  <Text fontSize="sm" fontWeight="600" mb={2}>Start Date</Text>
+                                  <Input
+                                    type="date"
+                                    value={customStartDate}
+                                    onChange={(e) => setCustomStartDate(e.target.value)}
+                                  />
+                                </Box>
+                                <Box>
+                                  <Text fontSize="sm" fontWeight="600" mb={2}>End Date</Text>
+                                  <Input
+                                    type="date"
+                                    value={customEndDate}
+                                    onChange={(e) => setCustomEndDate(e.target.value)}
+                                  />
+                                </Box>
+                              </Grid>
+                              <HStack spacing={4}>
+                                <Button
+                                  bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                                  color="white"
+                                  onClick={handleCustomDateFilter}
+                                  isLoading={refreshing}
+                                >
+                                  🔍 Apply Filter
+                                </Button>
+                                {customData.length > 0 && (
+                                  <Button
+                                    colorScheme="red"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setCustomData([]);
+                                      setCustomStartDate('');
+                                      setCustomEndDate('');
+                                    }}
+                                  >
+                                    ✕ Clear
+                                  </Button>
+                                )}
+                              </HStack>
+                            </VStack>
+                          </CardBody>
+                        </Card>
 
-        {/* Invoices Tab */}
-        {activeTab === 'invoices' && (
-          <div style={{ background: 'white', padding: '24px', borderRadius: '0 0 12px 12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '2px solid #E5E7EB' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Invoice #</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Salesperson</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Date</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Total</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Commission</th>
-                    <th style={{ padding: '12px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6B7280', textTransform: 'uppercase' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoices.map((invoice, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #E5E7EB' }}>
-                      <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937', fontWeight: '500' }}>{invoice.invoice_number}</td>
-                      <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>
-                        {invoice.salesperson_name ? (invoice.salesperson_name.length > 25 ? invoice.salesperson_name.substring(0, 25) + '...' : invoice.salesperson_name) : 'Unassigned'}
-                      </td>
-                      <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>{new Date(invoice.date).toLocaleDateString()}</td>
-                      <td style={{ padding: '16px 12px', fontSize: '14px', color: '#1F2937' }}>${parseFloat(invoice.total).toFixed(2)}</td>
-                      <td style={{ padding: '16px 12px', fontSize: '14px', color: '#10B981', fontWeight: '600' }}>${parseFloat(invoice.commission).toFixed(2)}</td>
-                      <td style={{ padding: '16px 12px', fontSize: '14px' }}>
-                        <span style={{
-                          background: invoice.status === 'paid' ? '#D1FAE5' : '#FEE2E2',
-                          color: invoice.status === 'paid' ? '#065F46' : '#7F1D1D',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                        }}>
-                          {invoice.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {invoices.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#9CA3AF' }}>
-                  No invoices found for current month
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+                        {customData.length > 0 && (
+                          <>
+                            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
+                              <Card>
+                                <CardBody>
+                                  <Stat>
+                                    <StatLabel fontSize="sm" fontWeight="500">Total Commission</StatLabel>
+                                    <StatNumber color="orange.500" fontSize="2xl" mt={2}>${customMetrics.total}</StatNumber>
+                                  </Stat>
+                                </CardBody>
+                              </Card>
+                              <Card>
+                                <CardBody>
+                                  <Stat>
+                                    <StatLabel fontSize="sm" fontWeight="500">Average Commission</StatLabel>
+                                    <StatNumber color="blue.500" fontSize="2xl" mt={2}>${customMetrics.avg}</StatNumber>
+                                  </Stat>
+                                </CardBody>
+                              </Card>
+                              <Card>
+                                <CardBody>
+                                  <Stat>
+                                    <StatLabel fontSize="sm" fontWeight="500">Top Performer</StatLabel>
+                                    <StatNumber color="green.500" fontSize="md" mt={2}>{customMetrics.top || 'N/A'}</StatNumber>
+                                  </Stat>
+                                </CardBody>
+                              </Card>
+                            </SimpleGrid>
+
+                            <Card>
+                              <CardBody>
+                                <ResponsiveContainer width="100%" height={300}>
+                                  <BarChart data={formatChartData(customData)}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke={borderColor} />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip contentStyle={{ backgroundColor: bgColor, borderColor: borderColor }} />
+                                    <Bar dataKey="commission" fill="#06b6d4" radius={[8, 8, 0, 0]} />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              </CardBody>
+                            </Card>
+                          </>
+                        )}
+                      </VStack>
+                    </TabPanel>
+
+                    {/* Invoices Tab */}
+                    <TabPanel>
+                      <Card>
+                        <CardBody>
+                          {invoices.length === 0 ? (
+                            <Center py={12}>
+                              <Text color="gray.500">No invoices found for current month</Text>
+                            </Center>
+                          ) : (
+                            <Box overflowX="auto">
+                              <Table size="sm" variant="striped">
+                                <Thead>
+                                  <Tr borderBottom="2px" borderColor={borderColor}>
+                                    <Th>Invoice #</Th>
+                                    <Th>Salesperson</Th>
+                                    <Th>Date</Th>
+                                    <Th>Total</Th>
+                                    <Th>Commission</Th>
+                                    <Th>Status</Th>
+                                  </Tr>
+                                </Thead>
+                                <Tbody>
+                                  {invoices.map((invoice, idx) => (
+                                    <Tr key={idx} borderBottom="1px" borderColor={borderColor}>
+                                      <Td fontWeight="600">{invoice.invoice_number}</Td>
+                                      <Td>{invoice.salesperson_name ? (invoice.salesperson_name.length > 25 ? invoice.salesperson_name.substring(0, 25) + '...' : invoice.salesperson_name) : 'Unassigned'}</Td>
+                                      <Td>{new Date(invoice.date).toLocaleDateString()}</Td>
+                                      <Td>${parseFloat(invoice.total).toFixed(2)}</Td>
+                                      <Td color="green.600" fontWeight="600">${parseFloat(invoice.commission).toFixed(2)}</Td>
+                                      <Td>
+                                        <Badge colorScheme={invoice.status === 'paid' ? 'green' : 'red'} borderRadius="full">
+                                          {invoice.status}
+                                        </Badge>
+                                      </Td>
+                                    </Tr>
+                                  ))}
+                                </Tbody>
+                              </Table>
+                            </Box>
+                          )}
+                        </CardBody>
+                      </Card>
+                    </TabPanel>
+                  </TabPanels>
+                </Tabs>
+              </Box>
+            </VStack>
+          </Container>
+        </Box>
+      </Flex>
+    </Flex>
   );
 };
 
