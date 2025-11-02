@@ -8,7 +8,6 @@ import ZohoCallback from './pages/Authentication/ZohoCallback';
 import ECommerce from './pages/Dashboard/ECommerce';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import CommissionTracker from './pages/CommissionTracker';
 import Versions from './pages/Versions';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -59,15 +58,6 @@ function AppContent() {
               <>
                 <PageTitle title="Dashboard | Commission Tracker" />
                 <ECommerce />
-              </>
-            }
-          />
-          <Route
-            path="/commission-tracker"
-            element={
-              <>
-                <PageTitle title="Commission Tracker" />
-                <CommissionTracker />
               </>
             }
           />
