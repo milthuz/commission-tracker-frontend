@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import ClusterLogo from '../../images/logo/cluster-on-light.svg';
+import ClusterLogo from '../../images/logo/cluster-on-dark.svg';
 
 interface SidebarProps {
   sidebarOpen: boolean;
