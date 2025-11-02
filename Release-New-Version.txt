@@ -1,0 +1,6 @@
+npm version 0.2.3 --no-git-tag-version
+git add package.json
+git commit -m "chore: bump version to 0.2.3"
+git push origin main
+git tag v0.2.3
+git push origin v0.2.3
