@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
+import packageJson from '../../../package.json';
 
 interface Release {
   id: number;
@@ -47,12 +48,12 @@ const Versions: React.FC = () => {
   // Default/sample release for testing
   const sampleRelease: Release = {
     id: 1,
-    tag_name: 'v0.2.0',
-    name: 'v0.2.0 - Cluster Branding',
+    tag_name: `v${packageJson.version}`,
+    name: `v${packageJson.version} - Cluster Branding`,
     body: `✨ **New Features:**
 - Added Cluster branding throughout the application
 - Implemented BETA badge in sidebar
-- Added version display (v0.2.0)
+- Added version display (v${packageJson.version})
 - Created Help/Settings dropdown
 - New Versions page showing release history
 
@@ -85,7 +86,7 @@ const Versions: React.FC = () => {
             Commission Tracker - Version History
           </h3>
           <p className="text-sm text-bodydark mt-2">
-            Current Version: <span className="font-semibold text-primary">v0.2.0 BETA</span>
+            Current Version: <span className="font-semibold text-primary">v{packageJson.version} BETA</span>
           </p>
         </div>
 
@@ -152,7 +153,7 @@ const Versions: React.FC = () => {
                         rel="noopener noreferrer"
                         className="inline-flex rounded-md bg-primary px-3 py-1.5 text-center text-sm font-medium text-white hover:bg-opacity-90"
                       >
-                        Create Release
+                        View Releases
                       </a>
                     </div>
 
@@ -162,7 +163,7 @@ const Versions: React.FC = () => {
 
                     <div className="mt-4 rounded-sm border border-warning bg-warning/10 p-3">
                       <p className="text-xs text-warning">
-                        <strong>Tip:</strong> Create a release on Github to display it here automatically!
+                        <strong>Tip:</strong> Push a version tag (e.g., git tag v0.2.3 && git push origin v0.2.3) to automatically create a release here!
                       </p>
                     </div>
                   </div>
