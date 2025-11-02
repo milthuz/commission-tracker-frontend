@@ -33,6 +33,18 @@ jobs:
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
+      - name: Get version from package.json
+        id: package_version
+        run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Verify version match
+        run: |
+          if [ "v${{ steps.package_version.outputs.PACKAGE_VERSION }}" != "${{ steps.get_version.outputs.VERSION }}" ]; then
+            echo "Error: Git tag (${{ steps.get_version.outputs.VERSION }}) doesn't match package.json version (v${{ steps.package_version.outputs.PACKAGE_VERSION }})"
+            exit 1
+          fi
+          echo "✅ Version match confirmed: ${{ steps.get_version.outputs.VERSION }}"
+
       - name: Generate release notes
         id: generate_notes
         uses: actions/github-script@v7
@@ -47,6 +59,7 @@ jobs:
           result-encoding: string
 
       - name: Create GitHub Release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -57,16 +70,23 @@ jobs:
           draft: false
           prerelease: ${{ contains(steps.get_version.outputs.VERSION, 'beta') || contains(steps.get_version.outputs.VERSION, 'alpha') }}
 
+      - name: Archive build artifacts
+        run: |
+          cd dist
+          zip -r ../commission-tracker-frontend-${{ steps.get_version.outputs.VERSION }}.zip .
+          cd ..
+
       - name: Upload build artifacts
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist
+          asset_path: ./commission-tracker-frontend-${{ steps.get_version.outputs.VERSION }}.zip
           asset_name: commission-tracker-frontend-${{ steps.get_version.outputs.VERSION }}.zip
           asset_content_type: application/zip
 
-      - name: Trigger Netlify Deploy
+      - name: Deployment notification
         run: |
-          echo "Build completed - Netlify will auto-deploy from main branch"
+          echo "✅ Build completed - Netlify will auto-deploy from main branch"
+          echo "🌐 Check deployment at your Netlify dashboard"

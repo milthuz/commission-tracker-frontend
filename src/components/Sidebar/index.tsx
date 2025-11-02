@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import ClusterLogo from '../../images/logo/cluster-on-dark.svg';
+import packageJson from '../../../package.json';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -71,7 +72,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white leading-none">
               BETA
             </span>
-            <span className="text-xs font-semibold text-white leading-none">v0.2.0</span>
+            <span className="text-xs font-semibold text-white leading-none">v{packageJson.version}</span>
           </div>
         </div>
 
