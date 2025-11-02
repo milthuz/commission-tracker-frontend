@@ -8,7 +8,7 @@ const options: ApexOptions = {
     position: 'top',
     horizontalAlign: 'left',
   },
-  colors: ['#3C50E0', '#80CAEE'],
+  colors: ['#F58346', '#D8CDFF'],
   chart: {
     fontFamily: 'Satoshi, sans-serif',
     height: 335,
@@ -70,7 +70,7 @@ const options: ApexOptions = {
   markers: {
     size: 4,
     colors: '#fff',
-    strokeColors: ['#3056D3', '#80CAEE'],
+    strokeColors: ['#F58346', '#D8CDFF'],
     strokeWidth: 3,
     strokeOpacity: 0.9,
     strokeDashArray: 0,

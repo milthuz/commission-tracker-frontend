@@ -11,7 +11,7 @@ const options: ApexOptions = {
     fontFamily: 'Satoshi, sans-serif',
     type: 'donut',
   },
-  colors: ['#3C50E0', '#6577F3', '#8FD0EF', '#0FADCF'],
+  colors: ['#F58346', '#D8CDFF', '#B7F0D1', '#FFD1E4'],
   labels: ['Desktop', 'Tablet', 'Mobile', 'Unknown'],
   legend: {
     show: false,
@@ -130,7 +130,7 @@ const ChartThree: React.FC = () => {
         </div>
         <div className="sm:w-1/2 w-full px-8">
           <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#6577F3]"></span>
+            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#D8CDFF]"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
               <span> Tablet </span>
               <span> 34% </span>
@@ -139,7 +139,7 @@ const ChartThree: React.FC = () => {
         </div>
         <div className="sm:w-1/2 w-full px-8">
           <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#8FD0EF]"></span>
+            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#B7F0D1]"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
               <span> Mobile </span>
               <span> 45% </span>
@@ -148,7 +148,7 @@ const ChartThree: React.FC = () => {
         </div>
         <div className="sm:w-1/2 w-full px-8">
           <div className="flex w-full items-center">
-            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#0FADCF]"></span>
+            <span className="mr-2 block h-3 w-full max-w-3 rounded-full bg-[#FFD1E4]"></span>
             <p className="flex w-full justify-between text-sm font-medium text-black dark:text-white">
               <span> Unknown </span>
               <span> 12% </span>
