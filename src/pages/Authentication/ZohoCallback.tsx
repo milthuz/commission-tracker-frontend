@@ -13,7 +13,7 @@ const ZohoCallback = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const code = searchParams.get('code');
+      const token = searchParams.get('token');
       const error = searchParams.get('error');
 
       if (error) {
@@ -22,29 +22,30 @@ const ZohoCallback = () => {
         return;
       }
 
-      if (!code) {
-        setError('No authorization code received.');
+      if (!token) {
+        setError('No authentication token received.');
         setTimeout(() => navigate('/auth/zoho-login'), 3000);
         return;
       }
 
       try {
-        // Exchange code for token with backend
-        const response = await fetch(`${API_URL}/api/auth/zoho/callback?code=${code}`, {
+        // Token is already a JWT from backend, just need to verify it
+        const response = await fetch(`${API_URL}/api/auth/verify`, {
           method: 'GET',
           headers: {
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
 
         if (!response.ok) {
-          throw new Error('Failed to authenticate');
+          throw new Error('Failed to verify token');
         }
 
         const data = await response.json();
 
         // Store user and token
-        login(data.user, data.token);
+        login(data.user, token);
 
         // Redirect to dashboard
         navigate('/', { replace: true });
