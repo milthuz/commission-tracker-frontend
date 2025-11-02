@@ -37,7 +37,7 @@ const DropdownHelp: React.FC<DropdownHelpProps> = () => {
   });
 
   return (
-    <li className="relative">
+    <div className="relative">
       <button
         ref={trigger}
         onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -159,7 +159,7 @@ const DropdownHelp: React.FC<DropdownHelpProps> = () => {
           </li>
         </ul>
       </div>
-    </li>
+    </div>
   );
 };
 
