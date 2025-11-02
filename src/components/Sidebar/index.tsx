@@ -64,14 +64,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       {/* <!-- SIDEBAR HEADER --> */}
       <div className="flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5">
         <div className="flex items-center gap-3">
-          <NavLink to="/">
+          <NavLink to="/" className="flex items-center">
             <img src={ClusterLogo} alt="Cluster" className="h-8 w-auto" />
           </NavLink>
           <div className="flex items-center gap-1.5">
-            <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white">
+            <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white leading-none">
               BETA
             </span>
-            <span className="text-xs font-semibold text-white">v0.2.0</span>
+            <span className="text-xs font-semibold text-white leading-none">v0.2.0</span>
           </div>
         </div>
 
