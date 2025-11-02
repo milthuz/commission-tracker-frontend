@@ -18,9 +18,21 @@ const ZohoLogin = () => {
     }
   }, [isAuthenticated, navigate, location]);
 
-  const handleZohoLogin = () => {
-    // Redirect to Zoho OAuth endpoint on backend
-    window.location.href = `${API_URL}/api/auth/zoho`;
+  const handleZohoLogin = async () => {
+    try {
+      // Fetch the auth URL from backend
+      const response = await fetch(`${API_URL}/api/auth/zoho`);
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        // Redirect to Zoho OAuth page
+        window.location.href = data.authUrl;
+      } else {
+        console.error('No auth URL received from backend');
+      }
+    } catch (error) {
+      console.error('Failed to initiate Zoho login:', error);
+    }
   };
 
   return (
