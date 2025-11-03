@@ -30,7 +30,18 @@ const DropdownUser = () => {
         </span>
 
         <span className="h-12 w-12 rounded-full overflow-hidden bg-gray-200 dark:bg-boxdark flex items-center justify-center">
-          {user?.name ? (
+          {user?.photo ? (
+            <img 
+              src={user.photo} 
+              alt={user.name} 
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                // Fallback to initials if image fails to load
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.innerHTML = `<span class="text-lg font-semibold text-black dark:text-white">${user.name.charAt(0).toUpperCase()}</span>`;
+              }}
+            />
+          ) : user?.name ? (
             <span className="text-lg font-semibold text-black dark:text-white">
               {user.name.charAt(0).toUpperCase()}
             </span>

@@ -4,6 +4,7 @@ interface User {
   email: string;
   name: string;
   zoho_id: string;
+  photo?: string | null;
 }
 
 interface AuthContextType {
