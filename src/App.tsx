@@ -4,9 +4,9 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Pages
-import Login from './pages/Login';
-import ZohoCallback from './pages/ZohoCallback';
-import Dashboard from './pages/Dashboard';
+import SignIn from './pages/Authentication/SignIn';
+import ZohoCallback from './pages/Authentication/ZohoCallback';
+import ECommerce from './pages/Dashboard/ECommerce';
 import Profile from './pages/Profile';
 import Versions from './pages/Versions';
 
@@ -24,14 +24,15 @@ function App() {
     <AuthProvider>
       <Routes>
         {/* Public routes */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<SignIn />} />
+        <Route path="/auth/signin" element={<SignIn />} />
         <Route path="/auth/zoho/callback" element={<ZohoCallback />} />
 
         {/* Protected routes with layout */}
         <Route element={<ProtectedRoute />}>
           <Route element={<DefaultLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route index element={<ECommerce />} />
+            <Route path="/dashboard" element={<ECommerce />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/versions" element={<Versions />} />
           </Route>
