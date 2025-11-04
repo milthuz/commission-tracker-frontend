@@ -114,9 +114,7 @@ const DropdownHelp = () => {
           <li>
             <a
               className="flex gap-4.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-              href="https://www.clustersystems.com/support"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="mailto:david@clustersystems.com?subject=Commission Tracker Support Request"
             >
               <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-5">
                 <svg
@@ -145,7 +143,7 @@ const DropdownHelp = () => {
                 <span className="font-medium text-black dark:text-white">
                   Support
                 </span>
-                <span className="text-sm">Contact Cluster Systems support</span>
+                <span className="text-sm">david@clustersystems.com</span>
               </div>
             </a>
           </li>
