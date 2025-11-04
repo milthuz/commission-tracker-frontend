@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import ClusterLogo from '../../images/logo/cluster-logo.svg';
 import packageJson from '../../../package.json';
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -26,11 +25,14 @@ const ZohoLogin = () => {
         {/* Logo and Title */}
         <div className="mb-8 text-center">
           <div className="mb-4 flex justify-center">
-            <img src={ClusterLogo} alt="Cluster" className="h-12 w-auto" />
+            <h1 className="text-4xl font-bold">
+              <span className="text-danger">c</span>
+              <span className="text-black dark:text-white">luster</span>
+            </h1>
           </div>
-          <h1 className="mb-2 text-2xl font-bold text-black dark:text-white">
+          <h2 className="mb-2 text-xl font-semibold text-black dark:text-white">
             Commission Tracker
-          </h1>
+          </h2>
           <div className="flex items-center justify-center gap-2">
             <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white">
               BETA
