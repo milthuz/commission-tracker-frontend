@@ -19,7 +19,7 @@ const Versions: React.FC = () => {
         </div>
         
         <div className="p-6.5">
-          {/* Version 0.2.3 - Current */}
+          {/* Version 0.2.4 - Current */}
           <div className="mb-8">
             <div className="mb-3 flex items-center gap-3">
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-success">
@@ -43,7 +43,7 @@ const Versions: React.FC = () => {
               </span>
               <div>
                 <h4 className="text-xl font-semibold text-black dark:text-white">
-                  Version 0.2.3
+                  Version 0.2.4
                 </h4>
                 <p className="text-sm text-body">Current Release • November 3, 2025</p>
               </div>
@@ -51,18 +51,65 @@ const Versions: React.FC = () => {
             <div className="ml-15 space-y-2">
               <div className="flex items-start gap-2">
                 <span className="mt-1 text-success">✓</span>
+                <p>Fixed user profile photo sync from Zoho</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-1 text-success">✓</span>
+                <p>Cleaned up header UI (removed dark mode toggle and help icon)</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-1 text-success">✓</span>
+                <p>Moved Help & Info section into user dropdown menu</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-1 text-success">✓</span>
+                <p>Added working Version History page with routing</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-1 text-success">✓</span>
+                <p>Fixed DefaultLayout to properly render nested routes</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Version 0.2.3 */}
+          <div className="mb-8">
+            <div className="mb-3 flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary">
+                <svg
+                  className="fill-white"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM10 18C5.59 18 2 14.41 2 10C2 5.59 5.59 2 10 2C14.41 2 18 5.59 18 10C18 14.41 14.41 18 10 18Z" fill=""/>
+                  <path d="M10.5 5H9.5V11H15.5V10H10.5V5Z" fill=""/>
+                </svg>
+              </span>
+              <div>
+                <h4 className="text-xl font-semibold text-black dark:text-white">
+                  Version 0.2.3
+                </h4>
+                <p className="text-sm text-body">November 3, 2025</p>
+              </div>
+            </div>
+            <div className="ml-15 space-y-2">
+              <div className="flex items-start gap-2">
+                <span className="mt-1">•</span>
                 <p>Full Zoho OAuth 2.0 authentication system</p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="mt-1 text-success">✓</span>
+                <span className="mt-1">•</span>
                 <p>User profile with photo sync from Zoho</p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="mt-1 text-success">✓</span>
+                <span className="mt-1">•</span>
                 <p>Protected routes with JWT token management</p>
               </div>
               <div className="flex items-start gap-2">
-                <span className="mt-1 text-success">✓</span>
+                <span className="mt-1">•</span>
                 <p>Secure login/logout functionality</p>
               </div>
             </div>
@@ -71,7 +118,7 @@ const Versions: React.FC = () => {
           {/* Version 0.2.2 */}
           <div className="mb-8">
             <div className="mb-3 flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-meta-3">
                 <svg
                   className="fill-white"
                   width="20"
@@ -115,7 +162,7 @@ const Versions: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-start gap-2">
                 <span className="mt-1 text-warning">→</span>
-                <p>Commission tracking dashboard</p>
+                <p>Commission tracking dashboard with real-time data</p>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-1 text-warning">→</span>
@@ -123,11 +170,11 @@ const Versions: React.FC = () => {
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-1 text-warning">→</span>
-                <p>Sales representative management</p>
+                <p>Sales representative management system</p>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-1 text-warning">→</span>
-                <p>Commission calculation engine</p>
+                <p>Commission calculation engine with custom rules</p>
               </div>
             </div>
           </div>
