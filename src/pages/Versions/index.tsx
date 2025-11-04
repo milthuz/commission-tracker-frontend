@@ -3,12 +3,14 @@ import React from 'react';
 const Versions: React.FC = () => {
   return (
     <div className="mx-auto max-w-270">
+      {/* Page Header */}
       <div className="mb-6">
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
           Version History
         </h2>
       </div>
 
+      {/* Version Cards */}
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
           <h3 className="font-medium text-black dark:text-white">
@@ -63,17 +65,13 @@ const Versions: React.FC = () => {
                 <span className="mt-1 text-success">✓</span>
                 <p>Secure login/logout functionality</p>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="mt-1 text-success">✓</span>
-                <p>Real-time user data synchronization</p>
-              </div>
             </div>
           </div>
 
           {/* Version 0.2.2 */}
           <div className="mb-8">
             <div className="mb-3 flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-meta-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary">
                 <svg
                   className="fill-white"
                   width="20"
@@ -104,7 +102,7 @@ const Versions: React.FC = () => {
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-1">•</span>
-                <p>PostgreSQL token storage implementation</p>
+                <p>PostgreSQL database setup</p>
               </div>
             </div>
           </div>
@@ -117,7 +115,7 @@ const Versions: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-start gap-2">
                 <span className="mt-1 text-warning">→</span>
-                <p>Commission tracking dashboard with real-time data</p>
+                <p>Commission tracking dashboard</p>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-1 text-warning">→</span>
@@ -125,11 +123,11 @@ const Versions: React.FC = () => {
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-1 text-warning">→</span>
-                <p>Sales representative management system</p>
+                <p>Sales representative management</p>
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-1 text-warning">→</span>
-                <p>Commission calculation engine with custom rules</p>
+                <p>Commission calculation engine</p>
               </div>
             </div>
           </div>

@@ -7,7 +7,6 @@ const DropdownHelp = () => {
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
 
-  // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
       if (!dropdown.current) return;
@@ -23,7 +22,6 @@ const DropdownHelp = () => {
     return () => document.removeEventListener('click', clickHandler);
   });
 
-  // close if the esc key is pressed
   useEffect(() => {
     const keyHandler = ({ keyCode }: KeyboardEvent) => {
       if (!dropdownOpen || keyCode !== 27) return;
@@ -64,7 +62,7 @@ const DropdownHelp = () => {
         ref={dropdown}
         onFocus={() => setDropdownOpen(true)}
         onBlur={() => setDropdownOpen(false)}
-        className={`absolute -right-16 mt-2.5 flex w-75 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark sm:right-0 sm:w-80 ${
+        className={`absolute -right-16 mt-2.5 flex w-56 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark sm:right-0 sm:w-56 ${
           dropdownOpen === true ? 'block' : 'hidden'
         }`}
       >
@@ -75,60 +73,46 @@ const DropdownHelp = () => {
         <ul className="flex h-auto flex-col overflow-y-auto">
           <li>
             <Link
-              className="flex gap-4.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
+              className="flex items-center gap-3.5 border-t border-stroke px-6 py-4 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
               to="/versions"
               onClick={() => setDropdownOpen(false)}
             >
-              <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-primary">
-                <svg
-                  className="fill-white"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M15.7499 2.9812H14.2874V2.36245C14.2874 2.02495 14.0062 1.71558 13.6405 1.71558C13.2749 1.71558 12.9937 1.99683 12.9937 2.36245V2.9812H4.97803V2.36245C4.97803 2.02495 4.69678 1.71558 4.33115 1.71558C3.96553 1.71558 3.68428 1.99683 3.68428 2.36245V2.9812H2.2499C1.29365 2.9812 0.478027 3.7687 0.478027 4.75308V14.5406C0.478027 15.4968 1.26553 16.3125 2.2499 16.3125H15.7499C16.7062 16.3125 17.5218 15.525 17.5218 14.5406V4.72495C17.5218 3.7687 16.7062 2.9812 15.7499 2.9812ZM1.77178 8.21245H4.1624V10.9968H1.77178V8.21245ZM5.42803 8.21245H8.38115V10.9968H5.42803V8.21245ZM8.38115 12.2625V15.0187H5.42803V12.2625H8.38115ZM9.64678 12.2625H12.5999V15.0187H9.64678V12.2625ZM9.64678 10.9968V8.21245H12.5999V10.9968H9.64678ZM13.8374 8.21245H16.228V10.9968H13.8374V8.21245ZM2.2499 4.24683H3.7124V4.83745C3.7124 5.17495 3.99365 5.48433 4.35928 5.48433C4.7249 5.48433 5.00615 5.20308 5.00615 4.83745V4.24683H13.0499V4.83745C13.0499 5.17495 13.3312 5.48433 13.6968 5.48433C14.0624 5.48433 14.3437 5.20308 14.3437 4.83745V4.24683H15.7499C16.0312 4.24683 16.2562 4.47183 16.2562 4.75308V6.94683H1.77178V4.75308C1.77178 4.47183 1.96865 4.24683 2.2499 4.24683ZM1.77178 14.5125V12.2343H4.1624V14.9906H2.2499C1.96865 15.0187 1.77178 14.7937 1.77178 14.5125ZM15.7499 15.0187H13.8374V12.2625H16.228V14.5406C16.2562 14.7937 16.0312 15.0187 15.7499 15.0187Z"
-                    fill=""
-                  />
-                </svg>
-              </div>
-              <div className="flex flex-1 flex-col">
-                <span className="font-medium text-black dark:text-white">
-                  Version History
-                </span>
-                <span className="text-sm">View release notes and updates</span>
-              </div>
+              <svg
+                className="fill-current"
+                width="22"
+                height="22"
+                viewBox="0 0 22 22"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M17.6687 1.44374C17.1187 0.893744 16.4312 0.618744 15.675 0.618744H7.42498C6.25623 0.618744 5.25935 1.58124 5.25935 2.78437V4.12499H4.29685C3.88435 4.12499 3.50623 4.46874 3.50623 4.91562C3.50623 5.36249 3.84998 5.70624 4.29685 5.70624H5.25935V10.2781H4.29685C3.88435 10.2781 3.50623 10.6219 3.50623 11.0687C3.50623 11.4812 3.84998 11.8594 4.29685 11.8594H5.25935V16.4312H4.29685C3.88435 16.4312 3.50623 16.775 3.50623 17.2219C3.50623 17.6687 3.84998 18.0125 4.29685 18.0125H5.25935V19.25C5.25935 20.4187 6.22185 21.4156 7.42498 21.4156H15.675C17.2218 21.4156 18.4937 20.1437 18.5281 18.5969V3.47187C18.4937 2.68124 18.2187 1.95937 17.6687 1.44374ZM16.9469 18.5625C16.9469 19.2844 16.3625 19.8344 15.6406 19.8344H7.3906C7.04685 19.8344 6.77185 19.5594 6.77185 19.2156V17.875H8.6281C9.0406 17.875 9.41873 17.5312 9.41873 17.0844C9.41873 16.6375 9.07498 16.2937 8.6281 16.2937H6.77185V11.7906H8.6281C9.0406 11.7906 9.41873 11.4469 9.41873 11C9.41873 10.5875 9.07498 10.2094 8.6281 10.2094H6.77185V5.63749H8.6281C9.0406 5.63749 9.41873 5.29374 9.41873 4.84687C9.41873 4.39999 9.07498 4.05624 8.6281 4.05624H6.77185V2.74999C6.77185 2.40624 7.04685 2.13124 7.3906 2.13124H15.6406C15.9844 2.13124 16.2937 2.26874 16.5687 2.50937C16.8094 2.74999 16.9469 3.09374 16.9469 3.43749V18.5625Z"
+                  fill=""
+                />
+              </svg>
+              <span className="text-sm font-medium">Version History</span>
             </Link>
           </li>
 
           <li>
             <a
-              className="flex gap-4.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
+              className="flex items-center gap-3.5 border-t border-stroke px-6 py-4 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
               href="mailto:david@clustersystems.com?subject=Commission Tracker Support Request"
             >
-              <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-6">
-                <svg
-                  className="fill-white"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 18 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M16.1999 14.95L15.6749 14.05C15.5249 13.7875 15.2999 13.6 14.9999 13.525L13.3499 13.1C12.9749 13.0125 12.5249 13.1375 12.2999 13.4L11.5499 14.2C9.2999 13.1875 7.37494 11.2625 6.3374 9.00004L7.1374 8.25004C7.3874 8.02504 7.5374 7.57504 7.4499 7.20004L7.02494 5.55004C6.94994 5.25004 6.73744 5.02504 6.5124 4.87504L5.6124 4.35004C5.3874 4.20004 5.0874 4.12504 4.8124 4.15004C4.5374 4.17504 4.2874 4.27504 4.0874 4.47504L3.0374 5.52504C2.8124 5.75004 2.7124 6.07504 2.7374 6.42504C2.8874 8.75004 3.8624 11.0125 5.5624 12.7375C7.2624 14.4375 9.5249 15.4375 11.8499 15.5875C12.1999 15.6125 12.5249 15.5125 12.7499 15.2875L13.7999 14.2375C13.9999 14.0375 14.0999 13.7875 14.1249 13.5125C14.1249 13.2375 14.0749 12.9375 13.9249 12.7125L16.1999 14.95Z"
-                    fill=""
-                  />
-                </svg>
-              </div>
-              <div className="flex flex-1 flex-col">
-                <span className="font-medium text-black dark:text-white">
-                  Support
-                </span>
-                <span className="text-sm">david@clustersystems.com</span>
-              </div>
+              <svg
+                className="fill-current"
+                width="22"
+                height="22"
+                viewBox="0 0 22 22"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M17.7778 1.77778H4.22222C2.98477 1.77778 1.97333 2.78922 1.97333 4.02667L1.96 17.7778C1.96 19.0152 2.98477 20.0267 4.22222 20.0267H17.7778C19.0152 20.0267 20.0267 19.0152 20.0267 17.7778V4.02667C20.0267 2.78922 19.0152 1.77778 17.7778 1.77778ZM17.7778 6.27556L11 10.8889L4.22222 6.27556V4.02667L11 8.64L17.7778 4.02667V6.27556Z"
+                  fill=""
+                />
+              </svg>
+              <span className="text-sm font-medium">Support</span>
             </a>
           </li>
         </ul>
