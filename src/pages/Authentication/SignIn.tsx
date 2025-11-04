@@ -5,7 +5,7 @@ import LogoDark from '../../images/logo/cluster-on-dark.svg';
 import LogoLight from '../../images/logo/cluster-on-light.svg';
 
 const SignIn = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, _setIsDarkMode] = useState(false);
 
   return (
     <>
