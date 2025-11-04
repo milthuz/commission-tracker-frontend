@@ -1,111 +1,83 @@
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import ClusterLogo from '../../images/logo/cluster-on-light.svg';
+import ClusterLogo from '../../images/logo/cluster-logo.svg';
+import packageJson from '../../../package.json';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const ZohoLogin = () => {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // If already authenticated, redirect to dashboard
   useEffect(() => {
-    if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/';
-      navigate(from, { replace: true });
+    if (user) {
+      navigate('/');
     }
-  }, [isAuthenticated, navigate, location]);
+  }, [user, navigate]);
 
-  const handleZohoLogin = async () => {
-    try {
-      // Fetch the auth URL from backend
-      const response = await fetch(`${API_URL}/api/auth/zoho`);
-      const data = await response.json();
-      
-      if (data.authUrl) {
-        // Redirect to Zoho OAuth page
-        window.location.href = data.authUrl;
-      } else {
-        console.error('No auth URL received from backend');
-      }
-    } catch (error) {
-      console.error('Failed to initiate Zoho login:', error);
-    }
+  const handleZohoLogin = () => {
+    window.location.href = `${apiUrl}/api/auth/zoho`;
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-boxdark-2 px-4">
-      <div className="w-full max-w-md">
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke px-6.5 py-5 dark:border-strokedark">
-            <div className="flex justify-center">
-              <img src={ClusterLogo} alt="Cluster" className="h-10 w-auto" />
-            </div>
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-boxdark-2">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg dark:bg-boxdark">
+        {/* Logo and Title */}
+        <div className="mb-8 text-center">
+          <div className="mb-4 flex justify-center">
+            <img src={ClusterLogo} alt="Cluster" className="h-12 w-auto" />
           </div>
-
-          <div className="p-6.5">
-            <div className="mb-6 text-center">
-              <h2 className="mb-2 text-2xl font-bold text-black dark:text-white">
-                Commission Tracker
-              </h2>
-              <div className="flex items-center justify-center gap-2">
-                <span className="rounded-full bg-warning px-3 py-1 text-xs font-bold text-white">
-                  BETA
-                </span>
-                <span className="text-sm font-semibold text-bodydark">
-                  v{import.meta.env.VITE_APP_VERSION || '0.2.2'}
-                </span>
-              </div>
-              <p className="mt-4 text-sm text-bodydark">
-                Sign in with your Zoho account to continue
-              </p>
-            </div>
-
-            <button
-              onClick={handleZohoLogin}
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-stroke bg-gray p-4 hover:bg-opacity-50 dark:border-strokedark dark:bg-meta-4 dark:hover:bg-opacity-50 transition-all duration-200"
-            >
-              <svg
-                className="h-6 w-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M23.5 12C23.5 5.649 18.351 0.5 12 0.5C5.649 0.5 0.5 5.649 0.5 12C0.5 18.351 5.649 23.5 12 23.5C18.351 23.5 23.5 18.351 23.5 12Z"
-                  fill="#1D8AC7"
-                />
-                <path
-                  d="M6 9H18V15H6V9Z"
-                  fill="white"
-                />
-              </svg>
-              <span className="text-base font-medium text-black dark:text-white">
-                Sign in with Zoho
-              </span>
-            </button>
-
-            <div className="mt-6 text-center">
-              <p className="text-xs text-bodydark">
-                Powered by <span className="font-semibold">Cluster Systems</span>
-              </p>
-            </div>
+          <h1 className="mb-2 text-2xl font-bold text-black dark:text-white">
+            Commission Tracker
+          </h1>
+          <div className="flex items-center justify-center gap-2">
+            <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white">
+              BETA
+            </span>
+            <span className="text-sm text-body">v{packageJson.version}</span>
           </div>
         </div>
 
-        <div className="mt-5 text-center">
-          <p className="text-sm text-bodydark">
-            By signing in, you agree to our{' '}
-            <a href="#" className="text-primary hover:underline">
-              Terms of Service
-            </a>{' '}
-            and{' '}
-            <a href="#" className="text-primary hover:underline">
-              Privacy Policy
-            </a>
-          </p>
+        {/* Description */}
+        <p className="mb-6 text-center text-sm text-body">
+          Sign in with your Zoho account to continue
+        </p>
+
+        {/* Zoho Login Button */}
+        <button
+          onClick={handleZohoLogin}
+          className="flex w-full items-center justify-center gap-3 rounded-lg bg-primary px-6 py-3 font-medium text-white transition hover:bg-opacity-90"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M10 0C4.477 0 0 4.477 0 10C0 15.523 4.477 20 10 20C15.523 20 20 15.523 20 10C20 4.477 15.523 0 10 0Z"
+              fill="currentColor"
+            />
+          </svg>
+          Sign in with Zoho
+        </button>
+
+        {/* Footer */}
+        <div className="mt-6 text-center text-xs text-body">
+          Powered by Cluster Systems
+        </div>
+
+        <div className="mt-4 text-center text-xs text-body">
+          By signing in, you agree to our{' '}
+          <a href="#" className="text-primary hover:underline">
+            Terms of Service
+          </a>{' '}
+          and{' '}
+          <a href="#" className="text-primary hover:underline">
+            Privacy Policy
+          </a>
         </div>
       </div>
     </div>
