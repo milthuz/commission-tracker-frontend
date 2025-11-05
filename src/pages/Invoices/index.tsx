@@ -27,7 +27,7 @@ interface InvoiceStats {
 }
 
 const Invoices = () => {
-  const { user } = useAuth();
+  useAuth(); // Ensure user is authenticated
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [stats, setStats] = useState<InvoiceStats | null>(null);
   const [loading, setLoading] = useState(true);
