@@ -9,6 +9,7 @@ import ECommerce from './pages/Dashboard/ECommerce';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Versions from './pages/Versions';
+import Invoices from './pages/Invoices';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -85,6 +86,15 @@ function AppContent() {
               <>
                 <PageTitle title="Versions | Commission Tracker" />
                 <Versions />
+              </>
+            }
+          />
+          <Route
+            path="/invoices"
+            element={
+              <>
+                <PageTitle title="Invoices | Commission Tracker" />
+                <Invoices />
               </>
             }
           />

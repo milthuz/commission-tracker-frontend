@@ -175,6 +175,44 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </li>
               {/* <!-- Menu Item Commission Tracker --> */}
 
+              {/* <!-- Menu Item Invoices --> */}
+              <li>
+                <NavLink
+                  to="/invoices"
+                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    pathname.includes('invoices') && 'bg-graydark dark:bg-meta-4'
+                  }`}
+                >
+                  <svg
+                    className="fill-current"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12.75 0.9375H5.25C4.00781 0.9375 3 1.94531 3 3.1875V14.8125C3 16.0547 4.00781 17.0625 5.25 17.0625H12.75C13.9922 17.0625 15 16.0547 15 14.8125V3.1875C15 1.94531 13.9922 0.9375 12.75 0.9375ZM13.875 14.8125C13.875 15.4336 13.3711 15.9375 12.75 15.9375H5.25C4.62891 15.9375 4.125 15.4336 4.125 14.8125V3.1875C4.125 2.56641 4.62891 2.0625 5.25 2.0625H12.75C13.3711 2.0625 13.875 2.56641 13.875 3.1875V14.8125Z"
+                      fill=""
+                    />
+                    <path
+                      d="M11.25 5.625H6.75C6.43359 5.625 6.1875 5.87109 6.1875 6.1875C6.1875 6.50391 6.43359 6.75 6.75 6.75H11.25C11.5664 6.75 11.8125 6.50391 11.8125 6.1875C11.8125 5.87109 11.5664 5.625 11.25 5.625Z"
+                      fill=""
+                    />
+                    <path
+                      d="M11.25 8.4375H6.75C6.43359 8.4375 6.1875 8.68359 6.1875 9C6.1875 9.31641 6.43359 9.5625 6.75 9.5625H11.25C11.5664 9.5625 11.8125 9.31641 11.8125 9C11.8125 8.68359 11.5664 8.4375 11.25 8.4375Z"
+                      fill=""
+                    />
+                    <path
+                      d="M11.25 11.25H6.75C6.43359 11.25 6.1875 11.4961 6.1875 11.8125C6.1875 12.1289 6.43359 12.375 6.75 12.375H11.25C11.5664 12.375 11.8125 12.1289 11.8125 11.8125C11.8125 11.4961 11.5664 11.25 11.25 11.25Z"
+                      fill=""
+                    />
+                  </svg>
+                  Invoices
+                </NavLink>
+              </li>
+              {/* <!-- Menu Item Invoices --> */}
+
               {/* <!-- Menu Item Profile --> */}
               <li>
                 <NavLink
