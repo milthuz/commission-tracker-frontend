@@ -84,19 +84,23 @@ const Invoices = () => {
       setSyncing(true);
       const token = localStorage.getItem('token');
       
-      await axios.post(`${API_URL}/api/invoices/sync`, {}, {
+      const response = await axios.post(`${API_URL}/api/invoices/sync`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Refresh data
-      await fetchInvoices();
-      await fetchStats();
+      alert('Sync started! The page will refresh in 10 seconds...');
       
-      alert('Invoices synced successfully!');
+      // Auto-refresh after 10 seconds to show new data
+      setTimeout(async () => {
+        await fetchInvoices();
+        await fetchStats();
+        setSyncing(false);
+        alert('Sync complete! Invoices updated.');
+      }, 10000);
+      
     } catch (error) {
       console.error('Error syncing invoices:', error);
       alert('Failed to sync invoices. Check console for details.');
-    } finally {
       setSyncing(false);
     }
   };
@@ -118,15 +122,45 @@ const Invoices = () => {
 
   const getStatusBadge = (status: string) => {
     const badges = {
-      paid: 'bg-success text-white',
-      overdue: 'bg-danger text-white',
-      pending: 'bg-warning text-white',
-      draft: 'bg-secondary text-white',
-      void: 'bg-meta-1 text-white'
+      paid: {
+        class: 'bg-success text-white',
+        icon: (
+          <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
+            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z"/>
+          </svg>
+        )
+      },
+      overdue: {
+        class: 'bg-danger text-white',
+        icon: (
+          <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
+            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm1 15H9v-2h2v2zm0-4H9V5h2v6z"/>
+          </svg>
+        )
+      },
+      pending: {
+        class: 'bg-warning text-white',
+        icon: (
+          <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
+            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm1 15H9v-2h2v2zm0-4H9V5h2v6z"/>
+          </svg>
+        )
+      },
+      draft: {
+        class: 'bg-secondary text-white',
+        icon: null
+      },
+      void: {
+        class: 'bg-meta-1 text-white',
+        icon: null
+      }
     };
 
+    const badge = badges[status as keyof typeof badges] || { class: 'bg-gray text-black', icon: null };
+
     return (
-      <span className={`rounded px-3 py-1 text-xs font-medium ${badges[status as keyof typeof badges] || 'bg-gray text-black'}`}>
+      <span className={`inline-flex items-center rounded px-3 py-1 text-xs font-medium ${badge.class}`}>
+        {badge.icon}
         {status.toUpperCase()}
       </span>
     );
