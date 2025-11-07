@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
 
       if (token && storedUser) {
@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(JSON.parse(storedUser));
         } else {
           // Token invalid, clear storage
-          localStorage.removeItem('authToken');
+          localStorage.removeItem('token');
           localStorage.removeItem('user');
           setUser(null);
         }
@@ -65,13 +65,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const login = (userData: User, token: string) => {
-    localStorage.setItem('authToken', token);
+    localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
   };
