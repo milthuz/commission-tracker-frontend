@@ -5,25 +5,18 @@ import { useAuth } from '../../context/AuthContext';
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface Invoice {
-  id: number;
   invoice_number: string;
-  customer_name: string;
-  invoice_date: string;
-  due_date: string;
+  salesperson_name: string;
+  date: string;
   total: number;
-  balance: number;
+  commission: number;
   status: 'paid' | 'overdue' | 'pending' | 'draft' | 'void';
-  sales_rep_name?: string;
-  zoho_url: string;
 }
 
 interface InvoiceStats {
-  total_invoices: number;
-  paid_count: number;
-  overdue_count: number;
-  pending_count: number;
-  total_amount: number;
-  outstanding_balance: number;
+  totalInvoices: number;
+  totalAmount: number;
+  totalCommission: number;
 }
 
 const Invoices = () => {
@@ -34,10 +27,15 @@ const Invoices = () => {
   const [syncing, setSyncing] = useState(false);
   
   // Filters
-  const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    return date.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return new Date().toISOString().split('T')[0];
+  });
 
   // Fetch invoices
   const fetchInvoices = async () => {
@@ -46,16 +44,14 @@ const Invoices = () => {
       const token = localStorage.getItem('token');
       
       const params = new URLSearchParams();
-      if (statusFilter) params.append('status', statusFilter);
-      if (searchTerm) params.append('search', searchTerm);
-      if (startDate) params.append('start_date', startDate);
-      if (endDate) params.append('end_date', endDate);
+      if (startDate) params.append('start', startDate);
+      if (endDate) params.append('end', endDate);
 
       const response = await axios.get(`${API_URL}/api/invoices?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      setInvoices(response.data.invoices);
+      setInvoices(response.data.invoices || []);
     } catch (error) {
       console.error('Error fetching invoices:', error);
     } finally {
@@ -67,10 +63,16 @@ const Invoices = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/invoices/stats`, {
+      
+      const params = new URLSearchParams();
+      if (startDate) params.append('start', startDate);
+      if (endDate) params.append('end', endDate);
+
+      const response = await axios.get(`${API_URL}/api/invoices/stats?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setStats(response.data.stats);
+      
+      setStats(response.data);
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -93,7 +95,7 @@ const Invoices = () => {
       alert('Invoices synced successfully!');
     } catch (error) {
       console.error('Error syncing invoices:', error);
-      alert('Failed to sync invoices');
+      alert('Failed to sync invoices. Check console for details.');
     } finally {
       setSyncing(false);
     }
@@ -102,7 +104,7 @@ const Invoices = () => {
   useEffect(() => {
     fetchInvoices();
     fetchStats();
-  }, [statusFilter, startDate, endDate]);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     const delaySearch = setTimeout(() => {
@@ -138,12 +140,25 @@ const Invoices = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-CA', {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    
+    return date.toLocaleDateString('en-CA', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
   };
+
+  // Filter invoices by search term
+  const filteredInvoices = invoices.filter(invoice => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      invoice.invoice_number.toLowerCase().includes(search) ||
+      invoice.salesperson_name.toLowerCase().includes(search)
+    );
+  });
 
   return (
     <div>
@@ -181,17 +196,18 @@ const Invoices = () => {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-3 2xl:gap-7.5">
           <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
               <svg className="fill-primary dark:fill-white" width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M21.1063 18.0469L19.3875 3.23126C19.2157 1.71876 17.9438 0.584381 16.3969 0.584381H5.56878C4.05628 0.584381 2.78441 1.71876 2.57816 3.23126L0.859406 18.0469C0.756281 18.9063 1.03128 19.7313 1.61566 20.3844C2.20003 21.0375 3.02816 21.3813 3.92191 21.3813H18.0157C18.8782 21.3813 19.7063 21.0031 20.2907 20.3844C20.875 19.7656 21.15 18.9063 21.1063 18.0469Z" />
+                <path d="M21.1063 18.0469L19.3875 3.23126C19.2157 1.71876 17.9438 0.584381 16.3969 0.584381H5.56878C4.05628 0.584381 2.78441 1.71876 2.57816 3.23126L0.859406 18.0469C0.756281 18.9063 1.03128 19.7313 1.61566 20.3844C2.20003 21.0375 3.02816 21.3813 3.92191 21.3813H18.0438C18.9375 21.3813 19.7657 21.0031 20.35 20.3844C20.9688 19.7656 21.2094 18.9063 21.1063 18.0469ZM19.2157 19.3531C18.9407 19.6625 18.5625 19.8344 18.1157 19.8344H3.92191C3.47504 19.8344 3.09691 19.6625 2.82191 19.3531C2.54691 19.0438 2.41566 18.6313 2.44691 18.2188L4.16566 3.40314C4.19691 3.02189 4.54066 2.71564 4.95628 2.71564H16.4313C16.8469 2.71564 17.1906 3.05314 17.2219 3.40314L18.9406 18.2531C18.9719 18.6656 18.8406 19.0438 19.2157 19.3531Z" />
+                <path d="M14.3345 5.29375C13.922 5.39688 13.647 5.80938 13.7501 6.22188C13.7845 6.42813 13.8189 6.63438 13.8189 6.80625C13.8189 8.35313 12.547 9.625 11.0001 9.625C9.45327 9.625 8.18139 8.35313 8.18139 6.80625C8.18139 6.6 8.21577 6.42813 8.25014 6.22188C8.35327 5.80938 8.07827 5.39688 7.66577 5.29375C7.25327 5.19063 6.84077 5.46563 6.73764 5.87813C6.66889 6.1875 6.63452 6.49688 6.63452 6.80625C6.63452 9.2125 8.5939 11.1719 11.0001 11.1719C13.4064 11.1719 15.3658 9.2125 15.3658 6.80625C15.3658 6.49688 15.3314 6.1875 15.2626 5.87813C15.1595 5.46563 14.747 5.225 14.3345 5.29375Z" />
               </svg>
             </div>
             <div className="mt-4 flex items-end justify-between">
               <div>
                 <h4 className="text-title-md font-bold text-black dark:text-white">
-                  {stats.total_invoices}
+                  {stats.totalInvoices}
                 </h4>
                 <span className="text-sm font-medium">Total Invoices</span>
               </div>
@@ -201,31 +217,15 @@ const Invoices = () => {
           <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-success">
               <svg className="fill-white" width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM14.9781 9.22656L10.2906 13.9141C10.1531 14.0516 9.97031 14.125 9.7875 14.125C9.60469 14.125 9.42188 14.0516 9.28438 13.9141L7.02188 11.6516C6.74688 11.3766 6.74688 10.9234 7.02188 10.6484C7.29688 10.3734 7.75 10.3734 8.025 10.6484L9.7875 12.4109L13.975 8.22344C14.25 7.94844 14.7031 7.94844 14.9781 8.22344C15.2531 8.49844 15.2531 8.95156 14.9781 9.22656Z" />
+                <path d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM15.3937 9.39062L10.7687 14.0156C10.6312 14.1531 10.4484 14.2219 10.2656 14.2219C10.0828 14.2219 9.9 14.1531 9.7625 14.0156L7.44375 11.6969C7.16875 11.4219 7.16875 10.9688 7.44375 10.6937C7.71875 10.4187 8.17188 10.4187 8.44688 10.6937L10.2656 12.5125L14.3906 8.3875C14.6656 8.1125 15.1187 8.1125 15.3937 8.3875C15.6687 8.6625 15.6687 9.11562 15.3937 9.39062Z" />
               </svg>
             </div>
             <div className="mt-4 flex items-end justify-between">
               <div>
                 <h4 className="text-title-md font-bold text-black dark:text-white">
-                  {stats.paid_count}
+                  {formatCurrency(stats.totalAmount)}
                 </h4>
-                <span className="text-sm font-medium">Paid</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-danger">
-              <svg className="fill-white" width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM14.2125 13.1656C14.4875 13.4406 14.4875 13.8937 14.2125 14.1687C14.075 14.3062 13.8922 14.375 13.7094 14.375C13.5266 14.375 13.3437 14.3062 13.2063 14.1687L11 11.9625L8.79375 14.1687C8.65625 14.3062 8.47344 14.375 8.29063 14.375C8.10781 14.375 7.925 14.3062 7.7875 14.1687C7.5125 13.8937 7.5125 13.4406 7.7875 13.1656L9.99375 10.9594L7.7875 8.75312C7.5125 8.47812 7.5125 8.025 7.7875 7.75C8.0625 7.475 8.51562 7.475 8.79063 7.75L11 9.95625L13.2063 7.75C13.4813 7.475 13.9344 7.475 14.2094 7.75C14.4844 8.025 14.4844 8.47812 14.2094 8.75312L11.9969 10.9594L14.2125 13.1656Z" />
-              </svg>
-            </div>
-            <div className="mt-4 flex items-end justify-between">
-              <div>
-                <h4 className="text-title-md font-bold text-black dark:text-white">
-                  {stats.overdue_count}
-                </h4>
-                <span className="text-sm font-medium">Overdue</span>
+                <span className="text-sm font-medium">Total Sales</span>
               </div>
             </div>
           </div>
@@ -233,15 +233,16 @@ const Invoices = () => {
           <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-warning">
               <svg className="fill-white" width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM11.6875 15.125C11.6875 15.4687 11.4125 15.7438 11.0687 15.7438H10.9313C10.5875 15.7438 10.3125 15.4687 10.3125 15.125V10.3125C10.3125 9.96875 10.5875 9.69375 10.9313 9.69375H11.0687C11.4125 9.69375 11.6875 9.96875 11.6875 10.3125V15.125ZM11 8.25C10.4469 8.25 10 7.80312 10 7.25C10 6.69688 10.4469 6.25 11 6.25C11.5531 6.25 12 6.69688 12 7.25C12 7.80312 11.5531 8.25 11 8.25Z" />
+                <path d="M16.2719 8.52812C15.8594 8.52812 15.5156 8.87187 15.5156 9.28437V14.625C15.5156 15.3469 14.9281 15.9344 14.2062 15.9344H4.125C3.40313 15.9344 2.81562 15.3469 2.81562 14.625V9.28437C2.81562 8.87187 2.47188 8.52812 2.05937 8.52812C1.64687 8.52812 1.30313 8.87187 1.30313 9.28437V14.625C1.30313 16.175 2.575 17.4469 4.125 17.4469H14.2062C15.7562 17.4469 17.0281 16.175 17.0281 14.625V9.28437C17.0281 8.87187 16.6844 8.52812 16.2719 8.52812Z" />
+                <path d="M8.40938 12.0719C8.68438 12.3469 9.1375 12.3469 9.4125 12.0719L12.8656 8.61875C13.1406 8.34375 13.1406 7.89063 12.8656 7.61563C12.5906 7.34063 12.1375 7.34063 11.8625 7.61563L9.66875 9.80938V1.51562C9.66875 1.10312 9.325 0.759375 8.9125 0.759375C8.5 0.759375 8.15625 1.10312 8.15625 1.51562V9.80938L5.9625 7.61563C5.6875 7.34063 5.23438 7.34063 4.95938 7.61563C4.68438 7.89063 4.68438 8.34375 4.95938 8.61875L8.4125 12.0719H8.40938Z" />
               </svg>
             </div>
             <div className="mt-4 flex items-end justify-between">
               <div>
                 <h4 className="text-title-md font-bold text-black dark:text-white">
-                  {formatCurrency(Number(stats.outstanding_balance))}
+                  {formatCurrency(stats.totalCommission)}
                 </h4>
-                <span className="text-sm font-medium">Outstanding</span>
+                <span className="text-sm font-medium">Total Commission</span>
               </div>
             </div>
           </div>
@@ -253,24 +254,12 @@ const Invoices = () => {
         <div className="flex-1">
           <input
             type="text"
-            placeholder="Search by invoice # or customer..."
+            placeholder="Search by invoice # or salesperson..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
         </div>
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-        >
-          <option value="">All Status</option>
-          <option value="paid">Paid</option>
-          <option value="pending">Pending</option>
-          <option value="overdue">Overdue</option>
-          <option value="draft">Draft</option>
-        </select>
 
         <input
           type="date"
@@ -299,46 +288,40 @@ const Invoices = () => {
                   Invoice #
                 </th>
                 <th className="min-w-[200px] px-4 py-4 font-medium text-black dark:text-white">
-                  Customer
+                  Salesperson
                 </th>
                 <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                   Date
                 </th>
                 <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                  Due Date
+                  Total
                 </th>
                 <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                  Amount
-                </th>
-                <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
-                  Balance
+                  Commission
                 </th>
                 <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                   Status
-                </th>
-                <th className="px-4 py-4 font-medium text-black dark:text-white">
-                  Actions
                 </th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-5">
+                  <td colSpan={6} className="text-center py-5">
                     <div className="flex justify-center">
                       <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
                     </div>
                   </td>
                 </tr>
-              ) : invoices.length === 0 ? (
+              ) : filteredInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-5">
+                  <td colSpan={6} className="text-center py-5">
                     <p className="text-body">No invoices found. Click "Sync from Zoho" to import invoices.</p>
                   </td>
                 </tr>
               ) : (
-                invoices.map((invoice) => (
-                  <tr key={invoice.id} className="border-b border-[#eee] dark:border-strokedark">
+                filteredInvoices.map((invoice, index) => (
+                  <tr key={index} className="border-b border-[#eee] dark:border-strokedark">
                     <td className="px-4 py-5">
                       <p className="text-black dark:text-white font-medium">
                         {invoice.invoice_number}
@@ -346,20 +329,12 @@ const Invoices = () => {
                     </td>
                     <td className="px-4 py-5">
                       <p className="text-black dark:text-white">
-                        {invoice.customer_name}
-                      </p>
-                      {invoice.sales_rep_name && (
-                        <p className="text-sm text-body">Rep: {invoice.sales_rep_name}</p>
-                      )}
-                    </td>
-                    <td className="px-4 py-5">
-                      <p className="text-black dark:text-white">
-                        {formatDate(invoice.invoice_date)}
+                        {invoice.salesperson_name || 'Unassigned'}
                       </p>
                     </td>
                     <td className="px-4 py-5">
                       <p className="text-black dark:text-white">
-                        {formatDate(invoice.due_date)}
+                        {formatDate(invoice.date)}
                       </p>
                     </td>
                     <td className="px-4 py-5">
@@ -368,22 +343,12 @@ const Invoices = () => {
                       </p>
                     </td>
                     <td className="px-4 py-5">
-                      <p className="text-black dark:text-white font-medium">
-                        {formatCurrency(invoice.balance)}
+                      <p className="text-success font-medium">
+                        {formatCurrency(invoice.commission)}
                       </p>
                     </td>
                     <td className="px-4 py-5">
                       {getStatusBadge(invoice.status)}
-                    </td>
-                    <td className="px-4 py-5">
-                      <a
-                        href={invoice.zoho_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center rounded-md border border-primary px-4 py-2 text-center font-medium text-primary hover:bg-opacity-90"
-                      >
-                        View in Zoho
-                      </a>
                     </td>
                   </tr>
                 ))
