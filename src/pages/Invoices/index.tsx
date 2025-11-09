@@ -84,7 +84,7 @@ const Invoices = () => {
       setSyncing(true);
       const token = localStorage.getItem('token');
       
-      const response = await axios.post(`${API_URL}/api/invoices/sync`, {}, {
+      await axios.post(`${API_URL}/api/invoices/sync`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
