@@ -25,6 +25,7 @@ const Invoices = () => {
   const [stats, setStats] = useState<InvoiceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,6 +37,47 @@ const Invoices = () => {
   const [endDate, setEndDate] = useState(() => {
     return new Date().toISOString().split('T')[0];
   });
+
+  // Background sync function
+  const backgroundSync = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Silent sync in background
+      await axios.post(`${API_URL}/api/invoices/sync`, { fullSync: false }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setLastSyncTime(new Date());
+      
+      // Wait 10 seconds then refresh data
+      setTimeout(async () => {
+        await fetchInvoices();
+        await fetchStats();
+      }, 10000);
+      
+    } catch (error) {
+      console.error('Background sync error:', error);
+    }
+  };
+
+  // Auto-sync on component mount
+  useEffect(() => {
+    // Initial load
+    fetchInvoices();
+    fetchStats();
+    
+    // Trigger background sync
+    backgroundSync();
+    
+    // Set up periodic sync every hour
+    const syncInterval = setInterval(() => {
+      console.log('🔄 Running automatic hourly sync...');
+      backgroundSync();
+    }, 60 * 60 * 1000); // Every hour
+
+    return () => clearInterval(syncInterval);
+  }, []);
 
   // Fetch invoices
   const fetchInvoices = async () => {
@@ -78,36 +120,55 @@ const Invoices = () => {
     }
   };
 
-  // Sync invoices from Zoho
-  const handleSync = async () => {
+  // Manual sync (for emergencies or forcing full sync)
+  const handleManualSync = async (fullSync = false) => {
     try {
       setSyncing(true);
       const token = localStorage.getItem('token');
       
-      await axios.post(`${API_URL}/api/invoices/sync`, {}, {
+      await axios.post(`${API_URL}/api/invoices/sync`, { fullSync }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      alert('Full sync started! This may take 2-3 minutes for thousands of invoices. The page will auto-refresh in 30 seconds...');
+      setLastSyncTime(new Date());
       
-      // Auto-refresh after 30 seconds to show new data
+      const waitTime = fullSync ? 30000 : 10000;
       setTimeout(async () => {
         await fetchInvoices();
         await fetchStats();
         setSyncing(false);
-        alert('Sync complete! All invoices updated. Check the stats at the top.');
-      }, 30000); // 30 seconds for large sync
+      }, waitTime);
       
     } catch (error) {
       console.error('Error syncing invoices:', error);
-      alert('Failed to sync invoices. Check console for details.');
+      alert('Sync failed. Check console for details.');
       setSyncing(false);
     }
   };
 
+  // Format last sync time
+  const formatLastSync = () => {
+    if (!lastSyncTime) return 'Never';
+    
+    const now = new Date();
+    const diffMs = now.getTime() - lastSyncTime.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins === 1) return '1 minute ago';
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours === 1) return '1 hour ago';
+    return `${diffHours} hours ago`;
+  };
+
   useEffect(() => {
-    fetchInvoices();
-    fetchStats();
+    // Only re-fetch when filters change, not on mount
+    if (startDate && endDate) {
+      fetchInvoices();
+      fetchStats();
+    }
   }, [startDate, endDate]);
 
   useEffect(() => {
@@ -202,30 +263,52 @@ const Invoices = () => {
           <h2 className="text-title-md2 font-semibold text-black dark:text-white">
             Invoices
           </h2>
-          <p className="text-sm text-body">Manage and track your invoices</p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-body">Manage and track your invoices</p>
+            <span className="text-xs text-body">
+              • Last synced: {formatLastSync()}
+            </span>
+          </div>
         </div>
-        <button
-          onClick={handleSync}
-          disabled={syncing}
-          className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-center font-medium text-white hover:bg-opacity-90 disabled:bg-opacity-50"
-        >
-          {syncing ? (
-            <>
-              <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Syncing...
-            </>
-          ) : (
-            <>
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Sync from Zoho
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="text-right mr-3">
+            <p className="text-xs text-body">Auto-sync: Every hour</p>
+            <p className="text-xs text-success">✓ Background sync active</p>
+          </div>
+          <button
+            onClick={() => handleManualSync(false)}
+            disabled={syncing}
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-stroke bg-white px-4 py-2 text-center text-sm font-medium text-body hover:bg-gray hover:text-primary disabled:opacity-50 dark:border-strokedark dark:bg-boxdark dark:text-white"
+          >
+            {syncing ? (
+              <>
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Syncing...
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Sync Now
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => {
+              if (confirm('Force a full sync? This will re-fetch ALL invoices and may take 2-3 minutes.')) {
+                handleManualSync(true);
+              }
+            }}
+            disabled={syncing}
+            className="inline-flex items-center justify-center gap-2 rounded-md bg-meta-5 px-4 py-2 text-center text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+          >
+            Full Sync
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
