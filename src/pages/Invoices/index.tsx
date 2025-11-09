@@ -88,15 +88,15 @@ const Invoices = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      alert('Sync started! The page will refresh in 10 seconds...');
+      alert('Full sync started! This may take 2-3 minutes for thousands of invoices. The page will auto-refresh in 30 seconds...');
       
-      // Auto-refresh after 10 seconds to show new data
+      // Auto-refresh after 30 seconds to show new data
       setTimeout(async () => {
         await fetchInvoices();
         await fetchStats();
         setSyncing(false);
-        alert('Sync complete! Invoices updated.');
-      }, 10000);
+        alert('Sync complete! All invoices updated. Check the stats at the top.');
+      }, 30000); // 30 seconds for large sync
       
     } catch (error) {
       console.error('Error syncing invoices:', error);
