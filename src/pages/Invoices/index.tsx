@@ -223,6 +223,8 @@ const Invoices = () => {
       if (selectedSalespeople.length > 0) {
         params.append('salesperson', selectedSalespeople.join(','));
       }
+      // Add timestamp to bust cache
+      params.append('_t', Date.now().toString());
 
       console.log('🔍 Fetching invoices with:', {
         startDate,
@@ -264,6 +266,8 @@ const Invoices = () => {
       if (selectedSalespeople.length > 0) {
         params.append('salesperson', selectedSalespeople.join(','));
       }
+      // Add timestamp to bust cache
+      params.append('_t', Date.now().toString());
 
       const response = await axios.get(`${API_URL}/api/invoices/stats?${params}`, {
         headers: { 
