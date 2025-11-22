@@ -397,22 +397,35 @@ const Invoices = () => {
           current: syncData.totalSynced,
           total: syncData.totalSynced,
           percentage: 100,
-          message: `Synced ${syncData.totalSynced} invoices successfully!`
+          message: fullSync 
+            ? `Full sync in progress! This may take 1-3 minutes. Data will auto-refresh.`
+            : `Quick sync completed! ${syncData.totalSynced} invoices synced.`
         });
       }
 
       setLastSyncTime(new Date());
       
-      // Refresh data after sync
+      // For full sync, wait longer before refreshing
+      const refreshDelay = fullSync ? 120000 : 5000; // 2 min for full, 5 sec for quick
+      
       setTimeout(async () => {
         await fetchInvoices();
         await fetchStats();
         setSyncing(false);
-        // Reset progress after a delay
+        
+        // Update success message
+        setSyncProgress({
+          current: syncData.totalSynced,
+          total: syncData.totalSynced,
+          percentage: 100,
+          message: `Sync complete! ${syncData.totalSynced} invoices synced successfully.`
+        });
+        
+        // Clear progress after showing success
         setTimeout(() => {
           setSyncProgress({ current: 0, total: 0, percentage: 0, message: '' });
-        }, 2000);
-      }, 1000);
+        }, 3000);
+      }, refreshDelay);
       
     } catch (error) {
       console.error('Error syncing invoices:', error);
