@@ -98,6 +98,11 @@ const Invoices = () => {
   const handleDownloadPDF = async (invoiceNumber: string) => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in again');
+        return;
+      }
+
       const response = await axios.get(
         `${API_URL}/api/invoices/${invoiceNumber}/pdf`,
         {
@@ -114,14 +119,26 @@ const Invoices = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (error) {
+      window.URL.revokeObjectURL(url);
+    } catch (error: any) {
       console.error('Error downloading PDF:', error);
-      alert('Failed to download PDF');
+      if (error.response?.status === 401) {
+        alert('Session expired. Please log in again.');
+      } else if (error.response?.status === 404) {
+        alert('Invoice not found. Please sync from Zoho.');
+      } else {
+        alert('Failed to download PDF. Please try again.');
+      }
     }
   };
 
   // Handle invoice preview
   const handlePreviewInvoice = (invoiceNumber: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in again');
+      return;
+    }
     setPreviewModal({
       isOpen: true,
       invoiceNumber,
