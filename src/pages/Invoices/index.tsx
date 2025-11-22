@@ -406,7 +406,17 @@ const Invoices = () => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // Don't use new Date() which converts timezones!
+    // Date is already in YYYY-MM-DD format from backend
+    if (!dateString) return 'N/A';
+    
+    // Parse date parts directly to avoid timezone issues
+    const parts = dateString.split('T')[0].split('-'); // Get YYYY-MM-DD part
+    if (parts.length !== 3) return 'N/A';
+    
+    const [year, month, day] = parts;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    
     if (isNaN(date.getTime())) return 'N/A';
     
     return date.toLocaleDateString('en-CA', {
