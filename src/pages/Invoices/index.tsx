@@ -35,13 +35,45 @@ const Invoices = () => {
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState(() => {
+    // Default to first day of current month
     const date = new Date();
-    date.setMonth(date.getMonth() - 1);
+    date.setDate(1);
     return date.toISOString().split('T')[0];
   });
   const [endDate, setEndDate] = useState(() => {
+    // Default to today
     return new Date().toISOString().split('T')[0];
   });
+  
+  // Quick filters
+  const [selectedYear, setSelectedYear] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  
+  // Available years (2023-current year)
+  const availableYears = Array.from(
+    { length: new Date().getFullYear() - 2022 },
+    (_, i) => (2023 + i).toString()
+  );
+  
+  // Months
+  const months = [
+    { value: '01', label: 'January' },
+    { value: '02', label: 'February' },
+    { value: '03', label: 'March' },
+    { value: '04', label: 'April' },
+    { value: '05', label: 'May' },
+    { value: '06', label: 'June' },
+    { value: '07', label: 'July' },
+    { value: '08', label: 'August' },
+    { value: '09', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' },
+  ];
+  
+  // Statuses
+  const statuses = ['paid', 'overdue', 'pending', 'draft', 'void'];
 
   // Decode JWT to get user role
   useEffect(() => {
@@ -56,15 +88,57 @@ const Invoices = () => {
     }
   }, []);
 
+  // Handle year selection - sets date range to entire year
+  const handleYearChange = (year: string) => {
+    setSelectedYear(year);
+    setSelectedMonth(''); // Clear month
+    if (year) {
+      setStartDate(`${year}-01-01`);
+      setEndDate(`${year}-12-31`);
+    }
+  };
+
+  // Handle month selection - sets date range to specific month
+  const handleMonthChange = (month: string) => {
+    setSelectedMonth(month);
+    if (month && selectedYear) {
+      const year = selectedYear;
+      const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+      setStartDate(`${year}-${month}-01`);
+      setEndDate(`${year}-${month}-${lastDay}`);
+    }
+  };
+
+  // Handle current month button
+  const handleCurrentMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear().toString();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    setSelectedYear(year);
+    setSelectedMonth(month);
+    setStartDate(`${year}-${month}-01`);
+    setEndDate(now.toISOString().split('T')[0]);
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const dropdown = document.getElementById('salesperson-dropdown');
-      const button = document.getElementById('salesperson-button');
+      const salespersonDropdown = document.getElementById('salesperson-dropdown');
+      const salespersonButton = document.getElementById('salesperson-button');
+      const statusDropdown = document.getElementById('status-dropdown');
+      const statusButton = document.getElementById('status-button');
       const target = event.target as HTMLElement;
       
-      if (dropdown && button && !dropdown.contains(target) && !button.contains(target)) {
-        dropdown.classList.add('hidden');
+      // Close salesperson dropdown
+      if (salespersonDropdown && salespersonButton && 
+          !salespersonDropdown.contains(target) && !salespersonButton.contains(target)) {
+        salespersonDropdown.classList.add('hidden');
+      }
+      
+      // Close status dropdown
+      if (statusDropdown && statusButton && 
+          !statusDropdown.contains(target) && !statusButton.contains(target)) {
+        statusDropdown.classList.add('hidden');
       }
     };
 
@@ -97,6 +171,11 @@ const Invoices = () => {
 
   // Auto-sync on component mount
   useEffect(() => {
+    // Set current year and month for quick filters
+    const now = new Date();
+    setSelectedYear(now.getFullYear().toString());
+    setSelectedMonth((now.getMonth() + 1).toString().padStart(2, '0'));
+    
     // Initial load
     fetchInvoices();
     fetchStats();
@@ -308,12 +387,21 @@ const Invoices = () => {
 
   // Filter invoices by search term
   const filteredInvoices = invoices.filter(invoice => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      invoice.invoice_number.toLowerCase().includes(search) ||
-      invoice.salesperson_name.toLowerCase().includes(search)
-    );
+    // Search filter
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      const matchesSearch = 
+        invoice.invoice_number.toLowerCase().includes(search) ||
+        invoice.salesperson_name.toLowerCase().includes(search);
+      if (!matchesSearch) return false;
+    }
+    
+    // Status filter
+    if (selectedStatuses.length > 0) {
+      if (!selectedStatuses.includes(invoice.status)) return false;
+    }
+    
+    return true;
   });
 
   return (
@@ -429,32 +517,163 @@ const Invoices = () => {
       )}
 
       {/* Filters */}
-      <div className="mb-6 flex flex-col gap-4 rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:flex-row sm:items-center">
-        <div className="flex-1">
-          <input
-            type="text"
-            placeholder="Search by invoice # or salesperson..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-          />
+      <div className="mb-6 rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+        {/* Quick Filter Buttons */}
+        <div className="mb-4 flex flex-wrap gap-2">
+          <button
+            onClick={handleCurrentMonth}
+            className="inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90"
+          >
+            Current Month
+          </button>
+          <button
+            onClick={() => {
+              const now = new Date();
+              const year = now.getFullYear().toString();
+              setSelectedYear(year);
+              setSelectedMonth('');
+              setStartDate(`${year}-01-01`);
+              setEndDate(`${year}-12-31`);
+            }}
+            className="inline-flex rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-white"
+          >
+            Current Year
+          </button>
         </div>
 
-        <input
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          placeholder="Start Date"
-          className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-        />
+        {/* Filter Row 1 - Search, Year, Month */}
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search by invoice # or salesperson..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+            />
+          </div>
 
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          placeholder="End Date"
-          className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-        />
+          {/* Year Filter */}
+          <select
+            value={selectedYear}
+            onChange={(e) => handleYearChange(e.target.value)}
+            className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+          >
+            <option value="">All Years</option>
+            {availableYears.map((year) => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+
+          {/* Month Filter */}
+          <select
+            value={selectedMonth}
+            onChange={(e) => handleMonthChange(e.target.value)}
+            disabled={!selectedYear}
+            className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+          >
+            <option value="">All Months</option>
+            {months.map((month) => (
+              <option key={month.value} value={month.value}>{month.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Filter Row 2 - Date Range, Status, Salesperson */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => {
+              setStartDate(e.target.value);
+              setSelectedYear('');
+              setSelectedMonth('');
+            }}
+            placeholder="Start Date"
+            className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+          />
+
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => {
+              setEndDate(e.target.value);
+              setSelectedYear('');
+              setSelectedMonth('');
+            }}
+            placeholder="End Date"
+            className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+          />
+
+          {/* Status Filter */}
+          <div className="relative">
+            <button
+              id="status-button"
+              type="button"
+              className="w-full min-w-[150px] rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary text-left flex items-center justify-between"
+              onClick={() => {
+                const dropdown = document.getElementById('status-dropdown');
+                if (dropdown) {
+                  dropdown.classList.toggle('hidden');
+                }
+              }}
+            >
+              <span>
+                {selectedStatuses.length === 0 
+                  ? 'All Status' 
+                  : `${selectedStatuses.length} Selected`}
+              </span>
+              <svg className="fill-current h-4 w-4" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
+            </button>
+            
+            <div
+              id="status-dropdown"
+              className="hidden absolute z-50 w-full mt-1 bg-white dark:bg-boxdark border border-stroke dark:border-strokedark rounded shadow-lg"
+            >
+              {/* Select All / Clear All */}
+              <div className="sticky top-0 bg-gray-2 dark:bg-meta-4 px-4 py-2 border-b border-stroke dark:border-strokedark flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedStatuses(statuses)}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Select All
+                </button>
+                <span className="text-xs text-body">|</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStatuses([])}
+                  className="text-xs text-danger hover:underline"
+                >
+                  Clear All
+                </button>
+              </div>
+              
+              {/* Checkboxes */}
+              {statuses.map((status) => (
+                <label
+                  key={status}
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray dark:hover:bg-meta-4 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedStatuses.includes(status)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedStatuses([...selectedStatuses, status]);
+                      } else {
+                        setSelectedStatuses(selectedStatuses.filter(s => s !== status));
+                      }
+                    }}
+                    className="h-4 w-4 flex-shrink-0 rounded border-stroke dark:border-strokedark"
+                  />
+                  <span className="text-sm text-black dark:text-white capitalize flex-1">{status}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
         {/* Salesperson Filter (Admin Only) */}
         {isAdmin && (
