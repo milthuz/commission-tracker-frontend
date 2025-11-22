@@ -35,11 +35,13 @@ const Invoices = () => {
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState(() => {
-    // Default to first day of current month (local timezone)
+    // Default to 30 days ago (so Current Month button will have effect)
     const date = new Date();
+    date.setDate(date.getDate() - 30);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}-01`;
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   });
   const [endDate, setEndDate] = useState(() => {
     // Default to today (local timezone)
@@ -120,6 +122,9 @@ const Invoices = () => {
     const year = now.getFullYear().toString();
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     const day = now.getDate().toString().padStart(2, '0');
+    
+    console.log(`📅 Setting to current month: ${year}-${month}-01 to ${year}-${month}-${day}`);
+    
     setSelectedYear(year);
     setSelectedMonth(month);
     setStartDate(`${year}-${month}-01`);
@@ -177,11 +182,6 @@ const Invoices = () => {
 
   // Auto-sync on component mount
   useEffect(() => {
-    // Set current year and month for quick filters
-    const now = new Date();
-    setSelectedYear(now.getFullYear().toString());
-    setSelectedMonth((now.getMonth() + 1).toString().padStart(2, '0'));
-    
     // Initial load
     fetchInvoices();
     fetchStats();
@@ -224,9 +224,22 @@ const Invoices = () => {
         params.append('salesperson', selectedSalespeople.join(','));
       }
 
+      console.log('🔍 Fetching invoices with:', {
+        startDate,
+        endDate,
+        salespeople: selectedSalespeople,
+        url: `${API_URL}/api/invoices?${params}`
+      });
+
       const response = await axios.get(`${API_URL}/api/invoices?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
+      console.log(`✅ Received ${response.data.invoices?.length || 0} invoices`);
+      if (response.data.invoices?.length > 0) {
+        console.log('📅 First invoice date:', response.data.invoices[0].date);
+        console.log('📅 Last invoice date:', response.data.invoices[response.data.invoices.length - 1].date);
+      }
 
       setInvoices(response.data.invoices || []);
     } catch (error) {
@@ -536,6 +549,9 @@ const Invoices = () => {
             onClick={() => {
               const now = new Date();
               const year = now.getFullYear().toString();
+              
+              console.log(`📅 Setting to current year: ${year}-01-01 to ${year}-12-31`);
+              
               setSelectedYear(year);
               setSelectedMonth('');
               setStartDate(`${year}-01-01`);
