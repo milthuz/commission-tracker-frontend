@@ -100,6 +100,30 @@ const Invoices = () => {
     loading: false
   });
 
+  // Email modal state
+  const [emailModal, setEmailModal] = useState<{
+    isOpen: boolean;
+    invoiceNumber: string;
+    email: string;
+    sending: boolean;
+  }>({
+    isOpen: false,
+    invoiceNumber: '',
+    email: '',
+    sending: false
+  });
+
+  // Success notification state
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
+
   // Handle invoice PDF download
   const handleDownloadPDF = async (invoiceNumber: string) => {
     try {
@@ -193,38 +217,93 @@ const Invoices = () => {
   };
 
   // Handle email invoice
-  const handleEmailInvoice = async (invoiceNumber: string) => {
+  const handleEmailInvoice = (invoiceNumber: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setNotification({
+        show: true,
+        message: 'Please log in again',
+        type: 'error'
+      });
+      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
+      return;
+    }
+    
+    setEmailModal({
+      isOpen: true,
+      invoiceNumber,
+      email: '',
+      sending: false
+    });
+  };
+
+  // Send email from modal
+  const handleSendEmail = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Please log in again');
+      const { invoiceNumber, email } = emailModal;
+      
+      if (!email) {
+        setNotification({
+          show: true,
+          message: 'Please enter an email address',
+          type: 'error'
+        });
+        setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
         return;
       }
-
-      const recipientEmail = prompt('Enter recipient email address:');
-      if (!recipientEmail) return;
 
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(recipientEmail)) {
-        alert('Please enter a valid email address');
+      if (!emailRegex.test(email)) {
+        setNotification({
+          show: true,
+          message: 'Please enter a valid email address',
+          type: 'error'
+        });
+        setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
         return;
       }
 
+      setEmailModal(prev => ({ ...prev, sending: true }));
+
+      const token = localStorage.getItem('token');
       await axios.post(
         `${API_URL}/api/invoices/${invoiceNumber}/email`,
-        { recipientEmail },
+        { recipientEmail: email },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert('Invoice sent successfully!');
+      // Close modal
+      setEmailModal({
+        isOpen: false,
+        invoiceNumber: '',
+        email: '',
+        sending: false
+      });
+
+      // Show success notification
+      setNotification({
+        show: true,
+        message: 'Invoice sent successfully!',
+        type: 'success'
+      });
+      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
+
     } catch (error: any) {
       console.error('Error emailing invoice:', error);
+      setEmailModal(prev => ({ ...prev, sending: false }));
+      
+      let errorMessage = 'Failed to send email. Please try again.';
       if (error.response?.status === 401) {
-        alert('Session expired. Please log in again.');
-      } else {
-        alert('Failed to send email. Please try again.');
+        errorMessage = 'Session expired. Please log in again.';
       }
+      
+      setNotification({
+        show: true,
+        message: errorMessage,
+        type: 'error'
+      });
+      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
     }
   };
 
@@ -1178,6 +1257,117 @@ const Invoices = () => {
                 onLoad={() => setPreviewModal(prev => ({ ...prev, loading: false }))}
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Invoice Modal */}
+      {emailModal.isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => !emailModal.sending && setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })}
+        >
+          <div 
+            className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-stroke dark:border-strokedark">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary bg-opacity-10">
+                  <svg className="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-black dark:text-white">
+                    Email Invoice
+                  </h3>
+                  <p className="text-sm text-body dark:text-bodydark">
+                    {emailModal.invoiceNumber}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => !emailModal.sending && setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })}
+                disabled={emailModal.sending}
+                className="text-black dark:text-white hover:text-primary dark:hover:text-primary transition-colors disabled:opacity-50"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="p-6">
+              <label className="mb-3 block text-sm font-medium text-black dark:text-white">
+                Recipient Email Address
+              </label>
+              <input
+                type="email"
+                value={emailModal.email}
+                onChange={(e) => setEmailModal(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="example@email.com"
+                disabled={emailModal.sending}
+                className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !emailModal.sending) {
+                    handleSendEmail();
+                  }
+                }}
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-stroke dark:border-strokedark">
+              <button
+                onClick={() => setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })}
+                disabled={emailModal.sending}
+                className="inline-flex items-center justify-center rounded-md border border-stroke dark:border-strokedark px-6 py-2.5 text-center font-medium text-black hover:shadow-1 dark:text-white disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendEmail}
+                disabled={emailModal.sending}
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-2.5 text-center font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+              >
+                {emailModal.sending ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-t-transparent"></div>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    Send Email
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success/Error Notification */}
+      {notification.show && (
+        <div className="fixed top-4 right-4 z-50 animate-fade-in">
+          <div className={`flex items-center gap-3 rounded-lg px-6 py-4 shadow-lg ${
+            notification.type === 'success' 
+              ? 'bg-success text-white' 
+              : 'bg-danger text-white'
+          }`}>
+            {notification.type === 'success' ? (
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+            <p className="font-medium">{notification.message}</p>
           </div>
         </div>
       )}
