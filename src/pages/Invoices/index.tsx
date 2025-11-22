@@ -507,7 +507,7 @@ const Invoices = () => {
               {salespeople.map((person) => (
                 <label
                   key={person}
-                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray dark:hover:bg-meta-4 cursor-pointer"
+                  className="flex items-start gap-3 px-4 py-2.5 hover:bg-gray dark:hover:bg-meta-4 cursor-pointer"
                 >
                   <input
                     type="checkbox"
@@ -519,9 +519,9 @@ const Invoices = () => {
                         setSelectedSalespeople(selectedSalespeople.filter(p => p !== person));
                       }
                     }}
-                    className="h-4 w-4 rounded border-stroke dark:border-strokedark"
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-stroke dark:border-strokedark"
                   />
-                  <span className="text-sm text-black dark:text-white">{person}</span>
+                  <span className="text-sm text-black dark:text-white flex-1">{person}</span>
                 </label>
               ))}
               
