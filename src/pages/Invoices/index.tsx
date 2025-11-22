@@ -232,7 +232,11 @@ const Invoices = () => {
       });
 
       const response = await axios.get(`${API_URL}/api/invoices?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
 
       console.log(`✅ Received ${response.data.invoices?.length || 0} invoices`);
@@ -262,7 +266,11 @@ const Invoices = () => {
       }
 
       const response = await axios.get(`${API_URL}/api/invoices/stats?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
 
       setStats(response.data);
