@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Download, Eye, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -81,6 +82,61 @@ const Invoices = () => {
   
   // Statuses
   const statuses = ['paid', 'overdue', 'pending', 'draft', 'void'];
+  
+  // Preview modal state
+  const [previewModal, setPreviewModal] = useState<{
+    isOpen: boolean;
+    invoiceNumber: string;
+    loading: boolean;
+  }>({
+    isOpen: false,
+    invoiceNumber: '',
+    loading: false
+  });
+
+  // Handle invoice PDF download
+  const handleDownloadPDF = async (invoiceNumber: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `${API_URL}/api/invoices/${invoiceNumber}/pdf`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          responseType: 'blob'
+        }
+      );
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${invoiceNumber}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF');
+    }
+  };
+
+  // Handle invoice preview
+  const handlePreviewInvoice = (invoiceNumber: string) => {
+    setPreviewModal({
+      isOpen: true,
+      invoiceNumber,
+      loading: true
+    });
+  };
+
+  // Close preview modal
+  const handleClosePreview = () => {
+    setPreviewModal({
+      isOpen: false,
+      invoiceNumber: '',
+      loading: false
+    });
+  };
 
   // Decode JWT to get user role
   useEffect(() => {
@@ -823,12 +879,15 @@ const Invoices = () => {
                 <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                   Status
                 </th>
+                <th className="min-w-[100px] px-4 py-4 font-medium text-black dark:text-white text-center">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-5">
+                  <td colSpan={7} className="text-center py-5">
                     <div className="flex justify-center">
                       <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
                     </div>
@@ -836,7 +895,7 @@ const Invoices = () => {
                 </tr>
               ) : filteredInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-5">
+                  <td colSpan={7} className="text-center py-5">
                     <p className="text-body">No invoices found. Click "Sync from Zoho" to import invoices.</p>
                   </td>
                 </tr>
@@ -871,6 +930,27 @@ const Invoices = () => {
                     <td className="px-4 py-5">
                       {getStatusBadge(invoice.status)}
                     </td>
+                    <td className="px-4 py-5">
+                      <div className="flex items-center justify-center space-x-3">
+                        {/* Preview Button */}
+                        <button
+                          onClick={() => handlePreviewInvoice(invoice.invoice_number)}
+                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                          title="Preview Invoice"
+                        >
+                          <Eye className="h-5 w-5" />
+                        </button>
+                        
+                        {/* Download PDF Button */}
+                        <button
+                          onClick={() => handleDownloadPDF(invoice.invoice_number)}
+                          className="text-success hover:text-green-700 dark:hover:text-green-500 transition-colors"
+                          title="Download PDF"
+                        >
+                          <Download className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -878,6 +958,52 @@ const Invoices = () => {
           </table>
         </div>
       </div>
+
+      {/* Invoice Preview Modal */}
+      {previewModal.isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={handleClosePreview}
+        >
+          <div 
+            className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-stroke dark:border-strokedark bg-gray-2 dark:bg-meta-4">
+              <h2 className="text-xl font-bold text-black dark:text-white">
+                Invoice Preview: {previewModal.invoiceNumber}
+              </h2>
+              <button
+                onClick={handleClosePreview}
+                className="text-black dark:text-white hover:text-primary dark:hover:text-primary transition-colors"
+                title="Close"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="relative overflow-auto" style={{ height: 'calc(90vh - 80px)' }}>
+              {previewModal.loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
+                  <div className="text-center">
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent mx-auto mb-4"></div>
+                    <p className="text-black dark:text-white">Loading preview...</p>
+                  </div>
+                </div>
+              )}
+              <iframe
+                src={`${API_URL}/api/invoices/${previewModal.invoiceNumber}/preview`}
+                className="w-full border-0"
+                style={{ minHeight: '600px', height: 'calc(90vh - 80px)' }}
+                title="Invoice Preview"
+                onLoad={() => setPreviewModal(prev => ({ ...prev, loading: false }))}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
