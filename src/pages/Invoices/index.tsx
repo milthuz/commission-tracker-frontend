@@ -161,6 +161,73 @@ const Invoices = () => {
     });
   };
 
+  // Handle print invoice
+  const handlePrintInvoice = async (invoiceNumber: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in again');
+        return;
+      }
+
+      // Open PDF in new window and trigger print
+      const pdfUrl = `${API_URL}/api/invoices/${invoiceNumber}/pdf`;
+      const response = await axios.get(pdfUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob'
+      });
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const printWindow = window.open(url, '_blank');
+      
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    } catch (error: any) {
+      console.error('Error printing invoice:', error);
+      alert('Failed to print invoice. Please try again.');
+    }
+  };
+
+  // Handle email invoice
+  const handleEmailInvoice = async (invoiceNumber: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in again');
+        return;
+      }
+
+      const recipientEmail = prompt('Enter recipient email address:');
+      if (!recipientEmail) return;
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(recipientEmail)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+
+      const response = await axios.post(
+        `${API_URL}/api/invoices/${invoiceNumber}/email`,
+        { recipientEmail },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert('Invoice sent successfully!');
+    } catch (error: any) {
+      console.error('Error emailing invoice:', error);
+      if (error.response?.status === 401) {
+        alert('Session expired. Please log in again.');
+      } else {
+        alert('Failed to send email. Please try again.');
+      }
+    }
+  };
+
   // Decode JWT to get user role
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -1057,13 +1124,40 @@ const Invoices = () => {
               <h2 className="text-xl font-bold text-black dark:text-white">
                 Invoice Preview: {previewModal.invoiceNumber}
               </h2>
-              <button
-                onClick={handleClosePreview}
-                className="text-black dark:text-white hover:text-primary dark:hover:text-primary transition-colors"
-                title="Close"
-              >
-                <X className="h-6 w-6" />
-              </button>
+              <div className="flex items-center gap-3">
+                {/* Print Button */}
+                <button
+                  onClick={() => handlePrintInvoice(previewModal.invoiceNumber)}
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 transition-colors"
+                  title="Print Invoice"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Print
+                </button>
+                
+                {/* Email Button */}
+                <button
+                  onClick={() => handleEmailInvoice(previewModal.invoiceNumber)}
+                  className="inline-flex items-center gap-2 rounded-md bg-success px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 transition-colors"
+                  title="Email Invoice"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  Email
+                </button>
+                
+                {/* Close Button */}
+                <button
+                  onClick={handleClosePreview}
+                  className="text-black dark:text-white hover:text-primary dark:hover:text-primary transition-colors"
+                  title="Close"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
             </div>
             
             {/* Modal Body */}
