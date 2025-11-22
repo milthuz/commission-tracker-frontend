@@ -994,7 +994,7 @@ const Invoices = () => {
                 </div>
               )}
               <iframe
-                src={`${API_URL}/api/invoices/${previewModal.invoiceNumber}/preview`}
+                src={`${API_URL}/api/invoices/${previewModal.invoiceNumber}/preview?token=${localStorage.getItem('token')}`}
                 className="w-full border-0"
                 style={{ minHeight: '600px', height: 'calc(90vh - 80px)' }}
                 title="Invoice Preview"
