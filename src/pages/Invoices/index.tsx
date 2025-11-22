@@ -30,7 +30,7 @@ const Invoices = () => {
   // User role and salesperson management
   const [isAdmin, setIsAdmin] = useState(false);
   const [salespeople, setSalespeople] = useState<string[]>([]);
-  const [selectedSalesperson, setSelectedSalesperson] = useState<string>('');
+  const [selectedSalespeople, setSelectedSalespeople] = useState<string[]>([]);
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,6 +54,22 @@ const Invoices = () => {
         console.error('Error decoding token:', error);
       }
     }
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const dropdown = document.getElementById('salesperson-dropdown');
+      const button = document.getElementById('salesperson-button');
+      const target = event.target as HTMLElement;
+      
+      if (dropdown && button && !dropdown.contains(target) && !button.contains(target)) {
+        dropdown.classList.add('hidden');
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   // Background sync function
@@ -108,7 +124,7 @@ const Invoices = () => {
       fetchInvoices();
       fetchStats();
     }
-  }, [startDate, endDate, selectedSalesperson]);
+  }, [startDate, endDate, selectedSalespeople]);
 
   // Fetch invoices
   const fetchInvoices = async () => {
@@ -119,7 +135,9 @@ const Invoices = () => {
       const params = new URLSearchParams();
       if (startDate) params.append('start', startDate);
       if (endDate) params.append('end', endDate);
-      if (selectedSalesperson) params.append('salesperson', selectedSalesperson);
+      if (selectedSalespeople.length > 0) {
+        params.append('salesperson', selectedSalespeople.join(','));
+      }
 
       const response = await axios.get(`${API_URL}/api/invoices?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -141,7 +159,9 @@ const Invoices = () => {
       const params = new URLSearchParams();
       if (startDate) params.append('start', startDate);
       if (endDate) params.append('end', endDate);
-      if (selectedSalesperson) params.append('salesperson', selectedSalesperson);
+      if (selectedSalespeople.length > 0) {
+        params.append('salesperson', selectedSalespeople.join(','));
+      }
 
       const response = await axios.get(`${API_URL}/api/invoices/stats?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -438,18 +458,80 @@ const Invoices = () => {
 
         {/* Salesperson Filter (Admin Only) */}
         {isAdmin && (
-          <select
-            value={selectedSalesperson}
-            onChange={(e) => setSelectedSalesperson(e.target.value)}
-            className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
-          >
-            <option value="">All Salespeople</option>
-            {salespeople.map((person) => (
-              <option key={person} value={person}>
-                {person}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <button
+              id="salesperson-button"
+              type="button"
+              className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary text-left flex items-center justify-between"
+              onClick={() => {
+                const dropdown = document.getElementById('salesperson-dropdown');
+                if (dropdown) {
+                  dropdown.classList.toggle('hidden');
+                }
+              }}
+            >
+              <span>
+                {selectedSalespeople.length === 0 
+                  ? 'All Salespeople' 
+                  : `${selectedSalespeople.length} Selected`}
+              </span>
+              <svg className="fill-current h-4 w-4" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
+            </button>
+            
+            <div
+              id="salesperson-dropdown"
+              className="hidden absolute z-50 w-full mt-1 bg-white dark:bg-boxdark border border-stroke dark:border-strokedark rounded shadow-lg max-h-60 overflow-y-auto"
+            >
+              {/* Select All / Clear All */}
+              <div className="sticky top-0 bg-gray-2 dark:bg-meta-4 px-4 py-2 border-b border-stroke dark:border-strokedark flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSalespeople(salespeople)}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Select All
+                </button>
+                <span className="text-xs text-body">|</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSalespeople([])}
+                  className="text-xs text-danger hover:underline"
+                >
+                  Clear All
+                </button>
+              </div>
+              
+              {/* Checkboxes */}
+              {salespeople.map((person) => (
+                <label
+                  key={person}
+                  className="flex items-center gap-2 px-4 py-2 hover:bg-gray dark:hover:bg-meta-4 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedSalespeople.includes(person)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedSalespeople([...selectedSalespeople, person]);
+                      } else {
+                        setSelectedSalespeople(selectedSalespeople.filter(p => p !== person));
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-stroke dark:border-strokedark"
+                  />
+                  <span className="text-sm text-black dark:text-white">{person}</span>
+                </label>
+              ))}
+              
+              {salespeople.length === 0 && (
+                <div className="px-4 py-3 text-sm text-body text-center">
+                  No salespeople found
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
