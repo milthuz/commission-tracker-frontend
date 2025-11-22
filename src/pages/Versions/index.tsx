@@ -58,31 +58,40 @@ const Versions: React.FC = () => {
     
     lines.forEach(line => {
       const trimmed = line.trim();
-      // Match markdown bullet points or emoji bullet points
-      if (trimmed.match(/^[-*•]/)) {
-        // Remove the bullet and trim
-        const feature = trimmed.replace(/^[-*•]\s*/, '').trim();
-        if (feature) {
-          features.push(feature);
-        }
+      
+      // Skip headers (##, ###, etc.)
+      if (trimmed.match(/^#+\s/)) {
+        return;
       }
-      // Also match lines with emojis like ✅, ✓
-      else if (trimmed.match(/^[✅✓]/)) {
-        const feature = trimmed.replace(/^[✅✓]\s*/, '').trim();
-        if (feature) {
-          features.push(feature);
-        }
+      
+      // Skip horizontal rules (---, ***, etc.)
+      if (trimmed.match(/^[-*_]{3,}$/)) {
+        return;
       }
-      // Match lines starting with "- **"
+      
+      let feature = '';
+      
+      // Match markdown bullet points (-, *, •)
+      if (trimmed.match(/^[-*•]\s+/)) {
+        feature = trimmed.replace(/^[-*•]\s+/, '').trim();
+      }
+      // Match emoji bullets (✅, ✓, 🎉, etc.)
+      else if (trimmed.match(/^[✅✓🎉🖨️📧📊🔔🐛⚠️]/)) {
+        feature = trimmed.replace(/^[✅✓🎉🖨️📧📊🔔🐛⚠️]+\s*/, '').trim();
+      }
+      // Match lines starting with "- **" (bold bullets)
       else if (trimmed.match(/^-\s*\*\*/)) {
-        const feature = trimmed.replace(/^-\s*\*\*/, '').replace(/\*\*:?\s*/, '').trim();
-        if (feature) {
-          features.push(feature);
-        }
+        feature = trimmed.replace(/^-\s*\*\*/, '').replace(/\*\*:?\s*/, '').trim();
+      }
+      
+      // Only add if feature has actual text and is longer than 3 characters
+      if (feature && feature.length > 3 && !feature.match(/^[-*•✅✓]+$/)) {
+        features.push(feature);
       }
     });
     
-    return features.length > 0 ? features : [body.substring(0, 200) + '...'];
+    // If no features found, return first 200 chars of body
+    return features.length > 0 ? features : [body.substring(0, 200).trim() + '...'];
   };
 
   const getBadgeColor = (index: number, isPrerelease: boolean) => {
