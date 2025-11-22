@@ -11,11 +11,13 @@ interface Invoice {
   date: string;
   total: number;
   commission: number;
-  status: 'paid' | 'overdue' | 'pending' | 'draft' | 'void';
+  status: 'paid' | 'overdue' | 'pending' | 'draft' | 'void' | 'partially_paid' | 'sent';
 }
 
 interface InvoiceStats {
   totalInvoices: number;
+  paidTotal: number;
+  overdueTotal: number;
   totalAmount: number;
   totalCommission: number;
 }
@@ -87,7 +89,7 @@ const Invoices = () => {
   ];
   
   // Statuses
-  const statuses = ['paid', 'overdue', 'pending', 'draft', 'void'];
+  const statuses = ['paid', 'overdue', 'partially_paid', 'sent', 'pending', 'draft', 'void'];
   
   // Preview modal state
   const [previewModal, setPreviewModal] = useState<{
@@ -618,11 +620,27 @@ const Invoices = () => {
           </svg>
         )
       },
+      partially_paid: {
+        class: 'bg-primary text-white',
+        icon: (
+          <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
+            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z"/>
+          </svg>
+        )
+      },
       overdue: {
         class: 'bg-danger text-white',
         icon: (
           <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
             <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm1 15H9v-2h2v2zm0-4H9V5h2v6z"/>
+          </svg>
+        )
+      },
+      sent: {
+        class: 'bg-meta-5 text-white',
+        icon: (
+          <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
+            <path d="M2.01 0L0 2.01l6.99 6.99L0 16l2.01 2.01L9 11.02l6.99 6.99L18 16l-6.99-6.99L18 2.01 15.99 0 9 6.99z"/>
           </svg>
         )
       },
@@ -649,7 +667,7 @@ const Invoices = () => {
     return (
       <span className={`inline-flex items-center rounded px-3 py-1 text-xs font-medium ${badge.class}`}>
         {badge.icon}
-        {status.toUpperCase()}
+        {status.replace('_', ' ').toUpperCase()}
       </span>
     );
   };
@@ -789,28 +807,49 @@ const Invoices = () => {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-3 2xl:gap-7.5">
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 md:gap-6 2xl:gap-7.5">
+          {/* Paid Invoice Total */}
           <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-meta-2 dark:bg-meta-4">
-              <svg className="fill-primary dark:fill-white" width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M21.1063 18.0469L19.3875 3.23126C19.2157 1.71876 17.9438 0.584381 16.3969 0.584381H5.56878C4.05628 0.584381 2.78441 1.71876 2.57816 3.23126L0.859406 18.0469C0.756281 18.9063 1.03128 19.7313 1.61566 20.3844C2.20003 21.0375 3.02816 21.3813 3.92191 21.3813H18.0438C18.9375 21.3813 19.7657 21.0031 20.35 20.3844C20.9688 19.7656 21.2094 18.9063 21.1063 18.0469ZM19.2157 19.3531C18.9407 19.6625 18.5625 19.8344 18.1157 19.8344H3.92191C3.47504 19.8344 3.09691 19.6625 2.82191 19.3531C2.54691 19.0438 2.41566 18.6313 2.44691 18.2188L4.16566 3.40314C4.19691 3.02189 4.54066 2.71564 4.95628 2.71564H16.4313C16.8469 2.71564 17.1906 3.05314 17.2219 3.40314L18.9406 18.2531C18.9719 18.6656 18.8406 19.0438 19.2157 19.3531Z" />
-                <path d="M14.3345 5.29375C13.922 5.39688 13.647 5.80938 13.7501 6.22188C13.7845 6.42813 13.8189 6.63438 13.8189 6.80625C13.8189 8.35313 12.547 9.625 11.0001 9.625C9.45327 9.625 8.18139 8.35313 8.18139 6.80625C8.18139 6.6 8.21577 6.42813 8.25014 6.22188C8.35327 5.80938 8.07827 5.39688 7.66577 5.29375C7.25327 5.19063 6.84077 5.46563 6.73764 5.87813C6.66889 6.1875 6.63452 6.49688 6.63452 6.80625C6.63452 9.2125 8.5939 11.1719 11.0001 11.1719C13.4064 11.1719 15.3658 9.2125 15.3658 6.80625C15.3658 6.49688 15.3314 6.1875 15.2626 5.87813C15.1595 5.46563 14.747 5.225 14.3345 5.29375Z" />
+            <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-success">
+              <svg className="fill-white" width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <path d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM15.3937 9.39062L10.7687 14.0156C10.6312 14.1531 10.4484 14.2219 10.2656 14.2219C10.0828 14.2219 9.9 14.1531 9.7625 14.0156L7.44375 11.6969C7.16875 11.4219 7.16875 10.9688 7.44375 10.6937C7.71875 10.4187 8.17188 10.4187 8.44688 10.6937L10.2656 12.5125L14.3906 8.3875C14.6656 8.1125 15.1187 8.1125 15.3937 8.3875C15.6687 8.6625 15.6687 9.11562 15.3937 9.39062Z" />
               </svg>
             </div>
             <div className="mt-4 flex items-end justify-between">
               <div>
                 <h4 className="text-title-md font-bold text-black dark:text-white">
-                  {stats.totalInvoices}
+                  {formatCurrency(stats.paidTotal || 0)}
                 </h4>
-                <span className="text-sm font-medium">Total Invoices</span>
+                <span className="text-sm font-medium">Paid Invoice Total</span>
               </div>
             </div>
           </div>
 
+          {/* Overdue Total */}
           <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-success">
+            <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-danger">
               <svg className="fill-white" width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM15.3937 9.39062L10.7687 14.0156C10.6312 14.1531 10.4484 14.2219 10.2656 14.2219C10.0828 14.2219 9.9 14.1531 9.7625 14.0156L7.44375 11.6969C7.16875 11.4219 7.16875 10.9688 7.44375 10.6937C7.71875 10.4187 8.17188 10.4187 8.44688 10.6937L10.2656 12.5125L14.3906 8.3875C14.6656 8.1125 15.1187 8.1125 15.3937 8.3875C15.6687 8.6625 15.6687 9.11562 15.3937 9.39062Z" />
+                <path d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM11 19.9375C6.04219 19.9375 2.0625 15.9578 2.0625 11C2.0625 6.04219 6.04219 2.0625 11 2.0625C15.9578 2.0625 19.9375 6.04219 19.9375 11C19.9375 15.9578 15.9578 19.9375 11 19.9375Z"/>
+                <path d="M11 5.3125C10.5875 5.3125 10.25 5.65 10.25 6.0625V11.6875C10.25 12.1 10.5875 12.4375 11 12.4375C11.4125 12.4375 11.75 12.1 11.75 11.6875V6.0625C11.75 5.65 11.4125 5.3125 11 5.3125Z"/>
+                <path d="M11 14.4375C10.4812 14.4375 10.0625 14.8562 10.0625 15.375C10.0625 15.8938 10.4812 16.3125 11 16.3125C11.5188 16.3125 11.9375 15.8938 11.9375 15.375C11.9375 14.8562 11.5188 14.4375 11 14.4375Z"/>
+              </svg>
+            </div>
+            <div className="mt-4 flex items-end justify-between">
+              <div>
+                <h4 className="text-title-md font-bold text-black dark:text-white">
+                  {formatCurrency(stats.overdueTotal || 0)}
+                </h4>
+                <span className="text-sm font-medium">Overdue Total</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Total Sales */}
+          <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-primary">
+              <svg className="fill-white" width="22" height="22" viewBox="0 0 22 22" fill="none">
+                <path d="M21.1063 18.0469L19.3875 3.23126C19.2157 1.71876 17.9438 0.584381 16.3969 0.584381H5.56878C4.05628 0.584381 2.78441 1.71876 2.57816 3.23126L0.859406 18.0469C0.756281 18.9063 1.03128 19.7313 1.61566 20.3844C2.20003 21.0375 3.02816 21.3813 3.92191 21.3813H18.0438C18.9375 21.3813 19.7657 21.0031 20.35 20.3844C20.9688 19.7656 21.2094 18.9063 21.1063 18.0469ZM19.2157 19.3531C18.9407 19.6625 18.5625 19.8344 18.1157 19.8344H3.92191C3.47504 19.8344 3.09691 19.6625 2.82191 19.3531C2.54691 19.0438 2.41566 18.6313 2.44691 18.2188L4.16566 3.40314C4.19691 3.02189 4.54066 2.71564 4.95628 2.71564H16.4313C16.8469 2.71564 17.1906 3.05314 17.2219 3.40314L18.9406 18.2531C18.9719 18.6656 18.8406 19.0438 19.2157 19.3531Z" />
+                <path d="M14.3345 5.29375C13.922 5.39688 13.647 5.80938 13.7501 6.22188C13.7845 6.42813 13.8189 6.63438 13.8189 6.80625C13.8189 8.35313 12.547 9.625 11.0001 9.625C9.45327 9.625 8.18139 8.35313 8.18139 6.80625C8.18139 6.6 8.21577 6.42813 8.25014 6.22188C8.35327 5.80938 8.07827 5.39688 7.66577 5.29375C7.25327 5.19063 6.84077 5.46563 6.73764 5.87813C6.66889 6.1875 6.63452 6.49688 6.63452 6.80625C6.63452 9.2125 8.5939 11.1719 11.0001 11.1719C13.4064 11.1719 15.3658 9.2125 15.3658 6.80625C15.3658 6.49688 15.3314 6.1875 15.2626 5.87813C15.1595 5.46563 14.747 5.225 14.3345 5.29375Z" />
               </svg>
             </div>
             <div className="mt-4 flex items-end justify-between">
@@ -823,6 +862,7 @@ const Invoices = () => {
             </div>
           </div>
 
+          {/* Total Commission */}
           <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-warning">
               <svg className="fill-white" width="22" height="22" viewBox="0 0 22 22" fill="none">
