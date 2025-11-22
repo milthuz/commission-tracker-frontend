@@ -675,9 +675,9 @@ const Invoices = () => {
             </div>
           </div>
 
-        {/* Salesperson Filter (Admin Only) */}
-        {isAdmin && (
-          <div className="relative">
+          {/* Salesperson Filter (Admin Only) */}
+          {isAdmin && (
+            <div className="relative">
             <button
               id="salesperson-button"
               type="button"
@@ -752,6 +752,7 @@ const Invoices = () => {
             </div>
           </div>
         )}
+        </div> {/* Close Filter Row 2 */}
       </div>
 
       {/* Invoice Table */}
