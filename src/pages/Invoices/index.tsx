@@ -27,6 +27,11 @@ const Invoices = () => {
   const [syncing, setSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   
+  // User role and salesperson management
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [salespeople, setSalespeople] = useState<string[]>([]);
+  const [selectedSalesperson, setSelectedSalesperson] = useState<string>('');
+  
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState(() => {
@@ -37,6 +42,19 @@ const Invoices = () => {
   const [endDate, setEndDate] = useState(() => {
     return new Date().toISOString().split('T')[0];
   });
+
+  // Decode JWT to get user role
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setIsAdmin(payload.isAdmin || false);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
+    }
+  }, []);
 
   // Background sync function
   const backgroundSync = async () => {
@@ -67,6 +85,11 @@ const Invoices = () => {
     fetchInvoices();
     fetchStats();
     
+    // Fetch salespeople if admin
+    if (isAdmin) {
+      fetchSalespeople();
+    }
+    
     // Trigger background sync
     backgroundSync();
     
@@ -77,7 +100,15 @@ const Invoices = () => {
     }, 60 * 60 * 1000); // Every hour
 
     return () => clearInterval(syncInterval);
-  }, []);
+  }, [isAdmin]);
+
+  // Re-fetch when filters change
+  useEffect(() => {
+    if (startDate && endDate) {
+      fetchInvoices();
+      fetchStats();
+    }
+  }, [startDate, endDate, selectedSalesperson]);
 
   // Fetch invoices
   const fetchInvoices = async () => {
@@ -88,6 +119,7 @@ const Invoices = () => {
       const params = new URLSearchParams();
       if (startDate) params.append('start', startDate);
       if (endDate) params.append('end', endDate);
+      if (selectedSalesperson) params.append('salesperson', selectedSalesperson);
 
       const response = await axios.get(`${API_URL}/api/invoices?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -109,14 +141,31 @@ const Invoices = () => {
       const params = new URLSearchParams();
       if (startDate) params.append('start', startDate);
       if (endDate) params.append('end', endDate);
+      if (selectedSalesperson) params.append('salesperson', selectedSalesperson);
 
       const response = await axios.get(`${API_URL}/api/invoices/stats?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       setStats(response.data);
     } catch (error) {
       console.error('Error fetching stats:', error);
+    }
+  };
+
+  // Fetch salespeople list (admin only)
+  const fetchSalespeople = async () => {
+    if (!isAdmin) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/salespeople`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setSalespeople(response.data.salespeople || []);
+    } catch (error) {
+      console.error('Error fetching salespeople:', error);
     }
   };
 
@@ -162,14 +211,6 @@ const Invoices = () => {
     if (diffHours === 1) return '1 hour ago';
     return `${diffHours} hours ago`;
   };
-
-  useEffect(() => {
-    // Only re-fetch when filters change, not on mount
-    if (startDate && endDate) {
-      fetchInvoices();
-      fetchStats();
-    }
-  }, [startDate, endDate]);
 
   useEffect(() => {
     const delaySearch = setTimeout(() => {
@@ -275,6 +316,7 @@ const Invoices = () => {
             <p className="text-xs text-body">Auto-sync: Every hour</p>
             <p className="text-xs text-success">✓ Background sync active</p>
           </div>
+          
           <button
             onClick={() => handleManualSync(false)}
             disabled={syncing}
@@ -393,6 +435,22 @@ const Invoices = () => {
           placeholder="End Date"
           className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
         />
+
+        {/* Salesperson Filter (Admin Only) */}
+        {isAdmin && (
+          <select
+            value={selectedSalesperson}
+            onChange={(e) => setSelectedSalesperson(e.target.value)}
+            className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+          >
+            <option value="">All Salespeople</option>
+            {salespeople.map((person) => (
+              <option key={person} value={person}>
+                {person}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Invoice Table */}
