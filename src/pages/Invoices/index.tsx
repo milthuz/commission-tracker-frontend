@@ -26,6 +26,12 @@ const Invoices = () => {
   const [stats, setStats] = useState<InvoiceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState({
+    current: 0,
+    total: 0,
+    percentage: 0,
+    message: ''
+  });
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   
   // User role and salesperson management
@@ -376,23 +382,41 @@ const Invoices = () => {
   const handleManualSync = async (fullSync = false) => {
     try {
       setSyncing(true);
+      setSyncProgress({ current: 0, total: 0, percentage: 0, message: 'Starting sync...' });
+      
       const token = localStorage.getItem('token');
       
-      await axios.post(`${API_URL}/api/invoices/sync`, { fullSync }, {
+      const response = await axios.post(`${API_URL}/api/invoices/sync`, { fullSync }, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
+      // Update progress with sync results
+      const syncData = response.data;
+      if (syncData.totalSynced) {
+        setSyncProgress({
+          current: syncData.totalSynced,
+          total: syncData.totalSynced,
+          percentage: 100,
+          message: `Synced ${syncData.totalSynced} invoices successfully!`
+        });
+      }
+
       setLastSyncTime(new Date());
       
-      const waitTime = fullSync ? 30000 : 10000;
+      // Refresh data after sync
       setTimeout(async () => {
         await fetchInvoices();
         await fetchStats();
         setSyncing(false);
-      }, waitTime);
+        // Reset progress after a delay
+        setTimeout(() => {
+          setSyncProgress({ current: 0, total: 0, percentage: 0, message: '' });
+        }, 2000);
+      }, 1000);
       
     } catch (error) {
       console.error('Error syncing invoices:', error);
+      setSyncProgress({ current: 0, total: 0, percentage: 0, message: 'Sync failed!' });
       alert('Sync failed. Check console for details.');
       setSyncing(false);
     }
@@ -550,7 +574,7 @@ const Invoices = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Syncing...
+                {syncProgress.percentage > 0 ? `${syncProgress.percentage}%` : 'Syncing...'}
               </>
             ) : (
               <>
@@ -574,6 +598,35 @@ const Invoices = () => {
           </button>
         </div>
       </div>
+
+      {/* Sync Progress Bar */}
+      {syncing && syncProgress.percentage > 0 && (
+        <div className="mb-6 rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-sm font-medium text-black dark:text-white">
+              {syncProgress.message}
+            </span>
+            <span className="text-sm font-medium text-primary">
+              {syncProgress.percentage}%
+            </span>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="relative h-2.5 w-full rounded-full bg-stroke dark:bg-strokedark">
+            <div
+              className="absolute left-0 h-full rounded-full bg-primary transition-all duration-300"
+              style={{ width: `${syncProgress.percentage}%` }}
+            ></div>
+          </div>
+          
+          {/* Count */}
+          {syncProgress.total > 0 && (
+            <p className="mt-2 text-xs text-body">
+              Synced {syncProgress.current} of {syncProgress.total} invoices
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Stats Cards */}
       {stats && (
