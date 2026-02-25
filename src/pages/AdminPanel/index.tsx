@@ -21,6 +21,19 @@ interface Release {
   url: string;
 }
 
+interface ExcludedCustomer {
+  id: number;
+  customer_name: string;
+  excluded_by: string;
+  created_at: string;
+}
+
+interface CustomerSearchResult {
+  name: string;
+  invoiceCount: number;
+  totalSpent: number;
+}
+
 const AdminPanel = () => {
   useAuth();
   const navigate = useNavigate();
@@ -41,6 +54,12 @@ const AdminPanel = () => {
   const [generatingNotes, setGeneratingNotes] = useState(false);
   const [commitCount, setCommitCount] = useState(0);
   const [sinceTag, setSinceTag] = useState('');
+
+  // Excluded customers state
+  const [excludedCustomers, setExcludedCustomers] = useState<ExcludedCustomer[]>([]);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [customerResults, setCustomerResults] = useState<CustomerSearchResult[]>([]);
+  const [searchingCustomers, setSearchingCustomers] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
@@ -85,8 +104,83 @@ const AdminPanel = () => {
       fetchSalespeople();
       fetchSyncStatus();
       fetchReleases();
+      fetchExcludedCustomers();
     }
   }, [isAdmin]);
+
+  // Fetch excluded customers
+  const fetchExcludedCustomers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/excluded-customers`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setExcludedCustomers(response.data.excludedCustomers || []);
+    } catch (err) {
+      console.error('Error fetching excluded customers:', err);
+    }
+  };
+
+  // Search customers API call
+  const doCustomerSearch = async (query: string) => {
+    if (query.length < 2) {
+      setCustomerResults([]);
+      return;
+    }
+    try {
+      setSearchingCustomers(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/customers/search?q=${encodeURIComponent(query)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCustomerResults(response.data.customers || []);
+    } catch (err) {
+      console.error('Error searching customers:', err);
+    } finally {
+      setSearchingCustomers(false);
+    }
+  };
+
+  // Exclude a customer
+  const excludeCustomer = async (name: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/excluded-customers`,
+        { customerName: name },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchExcludedCustomers();
+      setCustomerSearch('');
+      setCustomerResults([]);
+    } catch (err) {
+      console.error('Error excluding customer:', err);
+    }
+  };
+
+  // Re-include a customer
+  const reincludeCustomer = async (id: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/excluded-customers/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchExcludedCustomers();
+    } catch (err) {
+      console.error('Error re-including customer:', err);
+    }
+  };
+
+  // Debounce customer search
+  useEffect(() => {
+    if (customerSearch.length < 2) {
+      setCustomerResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      doCustomerSearch(customerSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [customerSearch]);
 
   // Fetch releases from GitHub
   const fetchReleases = async () => {
@@ -655,6 +749,99 @@ const AdminPanel = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Excluded Customers */}
+      <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+          <h3 className="font-medium text-black dark:text-white">
+            Top Customers — Exclusions
+          </h3>
+          <p className="text-sm text-body mt-1">
+            Exclude customers from appearing in the dashboard Top Customers list
+          </p>
+        </div>
+
+        <div className="p-7">
+          {/* Search to add exclusion */}
+          <div className="mb-5 relative">
+            <label className="mb-2 block text-sm font-medium text-black dark:text-white">
+              Search & Exclude a Customer
+            </label>
+            <input
+              type="text"
+              value={customerSearch}
+              onChange={(e) => {
+                setCustomerSearch(e.target.value);
+              }}
+              placeholder="Type customer name to search..."
+              className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
+            />
+            {searchingCustomers && (
+              <div className="absolute right-4 top-[42px]">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+              </div>
+            )}
+
+            {/* Search Results Dropdown */}
+            {customerResults.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full rounded-md border border-stroke bg-white shadow-lg dark:border-strokedark dark:bg-boxdark max-h-60 overflow-y-auto">
+                {customerResults.map((customer) => (
+                  <div
+                    key={customer.name}
+                    className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-meta-4 cursor-pointer border-b border-stroke dark:border-strokedark last:border-b-0"
+                    onClick={() => excludeCustomer(customer.name)}
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-black dark:text-white">{customer.name}</p>
+                      <p className="text-xs text-body">{customer.invoiceCount} invoices · ${customer.totalSpent.toLocaleString('en-CA', { minimumFractionDigits: 2 })}</p>
+                    </div>
+                    <span className="text-xs font-medium text-danger">Exclude</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Excluded Customers List */}
+          {excludedCustomers.length === 0 ? (
+            <p className="text-sm text-body py-4">No customers excluded. All customers are visible in the Top Customers list.</p>
+          ) : (
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-black dark:text-white">
+                Excluded ({excludedCustomers.length})
+              </h4>
+              <div className="space-y-2">
+                {excludedCustomers.map((customer) => (
+                  <div
+                    key={customer.id}
+                    className="flex items-center justify-between rounded-md border border-stroke px-4 py-3 dark:border-strokedark"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-danger bg-opacity-10">
+                        <svg className="h-4 w-4 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium text-black dark:text-white">{customer.customer_name}</p>
+                        <p className="text-xs text-body">
+                          Excluded {new Date(customer.created_at).toLocaleDateString('en-CA')}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => reincludeCustomer(customer.id)}
+                      className="inline-flex items-center gap-1 rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-50 hover:text-success dark:border-strokedark dark:hover:bg-meta-4"
+                    >
+                      Re-include
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
