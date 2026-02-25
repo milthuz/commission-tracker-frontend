@@ -1,92 +1,69 @@
 name: Create Release
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'  # Triggers on version tags like v0.2.1, v1.0.0, etc.
+  # Triggered from Admin Panel via GitHub API
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g. 0.2.6)'
+        required: true
+      release_notes:
+        description: 'Release notes (markdown)'
+        required: true
 
 jobs:
   create-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for changelog generation
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build project
-        run: npm run build
-
-      - name: Extract version from tag
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
-      - name: Get version from package.json
-        id: package_version
-        run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Verify version match
+      - name: Bump version in package.json
         run: |
-          if [ "v${{ steps.package_version.outputs.PACKAGE_VERSION }}" != "${{ steps.get_version.outputs.VERSION }}" ]; then
-            echo "Error: Git tag (${{ steps.get_version.outputs.VERSION }}) doesn't match package.json version (v${{ steps.package_version.outputs.PACKAGE_VERSION }})"
-            exit 1
-          fi
-          echo "✅ Version match confirmed: ${{ steps.get_version.outputs.VERSION }}"
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          npm install --package-lock-only
 
-      - name: Generate release notes
-        id: generate_notes
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data } = await github.rest.repos.generateReleaseNotes({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: '${{ steps.get_version.outputs.VERSION }}'
-            });
-            return data.body;
-          result-encoding: string
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: bump version to v${{ github.event.inputs.version }}"
+          git push origin main
+
+      - name: Create and push tag
+        run: |
+          git tag v${{ github.event.inputs.version }}
+          git push origin v${{ github.event.inputs.version }}
 
       - name: Create GitHub Release
-        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          release_name: Release ${{ steps.get_version.outputs.VERSION }}
-          body: ${{ steps.generate_notes.outputs.result }}
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: v${{ github.event.inputs.version }}
+          body: ${{ github.event.inputs.release_notes }}
           draft: false
-          prerelease: ${{ contains(steps.get_version.outputs.VERSION, 'beta') || contains(steps.get_version.outputs.VERSION, 'alpha') }}
+          prerelease: false
 
-      - name: Archive build artifacts
+      - name: Build project
         run: |
-          cd dist
-          zip -r ../commission-tracker-frontend-${{ steps.get_version.outputs.VERSION }}.zip .
-          cd ..
-
-      - name: Upload build artifacts
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./commission-tracker-frontend-${{ steps.get_version.outputs.VERSION }}.zip
-          asset_name: commission-tracker-frontend-${{ steps.get_version.outputs.VERSION }}.zip
-          asset_content_type: application/zip
+          npm ci
+          npm run build
 
       - name: Deployment notification
         run: |
-          echo "✅ Build completed - Netlify will auto-deploy from main branch"
-          echo "🌐 Check deployment at your Netlify dashboard"
+          echo "✅ Release v${{ github.event.inputs.version }} created"
+          echo "🌐 Netlify will auto-deploy from main branch"
