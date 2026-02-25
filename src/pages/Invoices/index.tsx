@@ -622,10 +622,11 @@ const Invoices = () => {
         )
       },
       partially_paid: {
-        class: 'bg-primary text-white',
+        class: 'bg-[#F59E0B] text-white',
         icon: (
           <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
-            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z"/>
+            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+            <path d="M10 2c-4.41 0-8 3.59-8 8s3.59 8 8 8V2z"/>
           </svg>
         )
       },
@@ -638,10 +639,10 @@ const Invoices = () => {
         )
       },
       sent: {
-        class: 'bg-meta-5 text-white',
+        class: 'bg-[#3B82F6] text-white',
         icon: (
           <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
-            <path d="M2.01 0L0 2.01l6.99 6.99L0 16l2.01 2.01L9 11.02l6.99 6.99L18 16l-6.99-6.99L18 2.01 15.99 0 9 6.99z"/>
+            <path d="M1.946.342a.5.5 0 01.54-.05l16 8a.5.5 0 010 .894l-16 8a.5.5 0 01-.712-.526L3.58 10 1.774 3.34a.5.5 0 01.172-.998zM4.42 9.5L2.89 3.94 16.236 10 2.89 16.06 4.42 10.5H10a.5.5 0 000-1H4.42z"/>
           </svg>
         )
       },
@@ -655,11 +656,19 @@ const Invoices = () => {
       },
       draft: {
         class: 'bg-secondary text-white',
-        icon: null
+        icon: (
+          <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
+            <path d="M15.5 2l2.5 2.5L6.5 16H4v-2.5L15.5 2zM12.9 4.5l2.1 2.1-1.4 1.4-2.1-2.1 1.4-1.4z"/>
+          </svg>
+        )
       },
       void: {
-        class: 'bg-meta-1 text-white',
-        icon: null
+        class: 'bg-danger text-white',
+        icon: (
+          <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
+            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm5 13.59L13.59 15 10 11.41 6.41 15 5 13.59 8.59 10 5 6.41 6.41 5 10 8.59 13.59 5 15 6.41 11.41 10 15 13.59z"/>
+          </svg>
+        )
       }
     };
 
