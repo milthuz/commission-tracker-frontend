@@ -149,29 +149,6 @@ const ECommerce: React.FC = () => {
     { name: 'Commission', data: data?.monthlyTrend.map(m => m.commission) || [] },
   ];
 
-  const repChartOptions: ApexOptions = {
-    chart: { type: 'bar', height: 350, fontFamily: 'Satoshi, sans-serif', toolbar: { show: false } },
-    colors: ['#3C50E0', '#10B981'],
-    plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 4 } },
-    dataLabels: { enabled: false },
-    xaxis: {
-      categories: data?.commissionsByRep.map(r => {
-        const name = r.name;
-        return name.length > 12 ? name.substring(0, 12) + '...' : name;
-      }) || [],
-      labels: { rotate: -45, style: { fontSize: '11px' } },
-    },
-    yaxis: { labels: { formatter: (val: number) => formatCurrency(val) } },
-    legend: { position: 'top' },
-    tooltip: { y: { formatter: (val: number) => formatCurrencyFull(val) } },
-    grid: { borderColor: '#e7e7e7', strokeDashArray: 4 },
-  };
-
-  const repChartSeries = [
-    { name: 'Sales', data: data?.commissionsByRep.map(r => r.sales) || [] },
-    { name: 'Commission', data: data?.commissionsByRep.map(r => r.commission) || [] },
-  ];
-
   const statusChartOptions: ApexOptions = {
     chart: { type: 'donut', fontFamily: 'Satoshi, sans-serif' },
     colors: data?.statusBreakdown.map(s => statusPieColor(s.status)) || [],
@@ -233,9 +210,12 @@ const ECommerce: React.FC = () => {
     <>
       {/* Header with year selector and sync */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold text-black dark:text-white">
-          Dashboard
-        </h2>
+        <div>
+          <h2 className="text-2xl font-bold text-black dark:text-white">
+            Sales Hub
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Revenue overview, invoices, and customer insights</p>
+        </div>
         <div className="flex items-center gap-3">
           {/* Sync Button */}
           <button
@@ -287,18 +267,19 @@ const ECommerce: React.FC = () => {
           </div>
         </div>
 
-        {/* Total Commissions */}
+        {/* Total Sales Volume */}
         <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-500/20">
-            <svg className="fill-blue-600 dark:fill-blue-400" width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M5 8h14V6H5v2zm0 4h14v-2H5v2zm0 4h8v-2H5v2zm14.99-1.29l-2.83 2.83-1.41-1.41L14.34 17.54l2.83-2.83 1.41 1.41 2.83-2.83 1.41 1.42-2.83 2.83z" />
+            <svg className="stroke-blue-600 dark:stroke-blue-400" width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+              <polyline points="16 7 22 7 22 13"/>
             </svg>
           </div>
           <div className="mt-4">
             <h4 className="text-2xl font-bold text-black dark:text-white">
-              {formatCurrency(data.cards.totalCommission)}
+              {formatCurrency(data.cards.paidRevenue + data.cards.overdueAmount)}
             </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Commissions</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Sales</span>
           </div>
         </div>
 
@@ -371,29 +352,14 @@ const ECommerce: React.FC = () => {
         </div>
       </div>
 
-      {/* ====== Charts Row 2: Reps + Top Customers ====== */}
+      {/* ====== Charts Row 2: Top Customers (full width) ====== */}
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:gap-7.5">
-        {/* Commissions by Sales Rep */}
-        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-7">
-          <h5 className="mb-3 text-xl font-semibold text-black dark:text-white">
-            Sales Rep Performance
-          </h5>
-          <div>
-            <ReactApexChart
-              options={repChartOptions}
-              series={repChartSeries}
-              type="bar"
-              height={350}
-            />
-          </div>
-        </div>
-
         {/* Top Customers */}
-        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-5">
+        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-12">
           <h5 className="mb-4 text-xl font-semibold text-black dark:text-white">
             Top Customers
           </h5>
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {data.topCustomers.map((customer, index) => {
               const maxTotal = data.topCustomers[0]?.total || 1;
               const percentage = (customer.total / maxTotal) * 100;

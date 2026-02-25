@@ -6,6 +6,7 @@ import PageTitle from './components/PageTitle';
 import ZohoLogin from './pages/Authentication/ZohoLogin';
 import ZohoCallback from './pages/Authentication/ZohoCallback';
 import ECommerce from './pages/Dashboard/ECommerce';
+import CommissionTracker from './pages/CommissionTracker';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Versions from './pages/Versions';
@@ -58,8 +59,17 @@ function AppContent() {
             index
             element={
               <>
-                <PageTitle title="Dashboard | Commission Tracker" />
+                <PageTitle title="Sales Hub | Commission Tracker" />
                 <ECommerce />
+              </>
+            }
+          />
+          <Route
+            path="/commission-tracker"
+            element={
+              <>
+                <PageTitle title="Commission Tracker" />
+                <CommissionTracker />
               </>
             }
           />
