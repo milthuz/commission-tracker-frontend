@@ -852,8 +852,8 @@ const Invoices = () => {
           <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#3B82F6] bg-opacity-20">
               <svg className="stroke-[#3B82F6]" width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="1" x2="12" y2="23"/>
-                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+                <polyline points="16 7 22 7 22 13"/>
               </svg>
             </div>
             <div className="mt-4 flex items-end justify-between">
@@ -870,9 +870,12 @@ const Invoices = () => {
           <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#8B5CF6] bg-opacity-20">
               <svg className="stroke-[#8B5CF6]" width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="5" x2="5" y2="19"/>
-                <circle cx="6.5" cy="6.5" r="2.5"/>
-                <circle cx="17.5" cy="17.5" r="2.5"/>
+                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M2 10h2"/>
+                <path d="M20 10h2"/>
+                <path d="M2 14h2"/>
+                <path d="M20 14h2"/>
               </svg>
             </div>
             <div className="mt-4 flex items-end justify-between">
