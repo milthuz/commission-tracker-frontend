@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import packageJson from '../../../package.json';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -9,6 +10,15 @@ interface Salesperson {
   name: string;
   isActive: boolean;
   invoiceCount: number;
+}
+
+interface Release {
+  id: number;
+  version: string;
+  name: string;
+  notes: string;
+  date: string;
+  url: string;
 }
 
 const AdminPanel = () => {
@@ -20,6 +30,17 @@ const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const [syncInfo, setSyncInfo] = useState<any>(null);
+
+  // Release management state
+  const [releases, setReleases] = useState<Release[]>([]);
+  const [newVersion, setNewVersion] = useState('');
+  const [releaseNotes, setReleaseNotes] = useState('');
+  const [releaseStatus, setReleaseStatus] = useState<string | null>(null);
+  const [workflowStatus, setWorkflowStatus] = useState<any>(null);
+  const [showReleaseForm, setShowReleaseForm] = useState(false);
+  const [generatingNotes, setGeneratingNotes] = useState(false);
+  const [commitCount, setCommitCount] = useState(0);
+  const [sinceTag, setSinceTag] = useState('');
 
   // Check if user is admin
   useEffect(() => {
@@ -63,8 +84,120 @@ const AdminPanel = () => {
     if (isAdmin) {
       fetchSalespeople();
       fetchSyncStatus();
+      fetchReleases();
     }
   }, [isAdmin]);
+
+  // Fetch releases from GitHub
+  const fetchReleases = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/releases`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setReleases(response.data.releases || []);
+
+      // Suggest next version based on latest
+      if (response.data.releases?.length > 0) {
+        const latest = response.data.releases[0].version.replace('v', '');
+        const parts = latest.split('.').map(Number);
+        parts[2] = (parts[2] || 0) + 1;
+        setNewVersion(parts.join('.'));
+      } else {
+        // Fallback to package.json version + 1
+        const parts = packageJson.version.split('.').map(Number);
+        parts[2] = (parts[2] || 0) + 1;
+        setNewVersion(parts.join('.'));
+      }
+    } catch (err) {
+      console.error('Error fetching releases:', err);
+    }
+  };
+
+  // Check workflow status
+  const checkWorkflowStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/releases/workflow-status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setWorkflowStatus(response.data);
+    } catch (err) {
+      console.error('Error checking workflow:', err);
+    }
+  };
+
+  // Auto-generate release notes from commits
+  const generateNotes = async () => {
+    try {
+      setGeneratingNotes(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/releases/generate-notes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setReleaseNotes(response.data.notes || '');
+      setCommitCount(response.data.commitCount || 0);
+      setSinceTag(response.data.sinceTag || '');
+    } catch (err) {
+      console.error('Error generating notes:', err);
+      setReleaseNotes('## ✨ New Features\n- \n\n## 🎨 UI Improvements\n- \n\n## 🔧 Bug Fixes\n- \n');
+    } finally {
+      setGeneratingNotes(false);
+    }
+  };
+
+  // Open release form and auto-generate notes
+  const openReleaseForm = async () => {
+    setShowReleaseForm(true);
+    await generateNotes();
+  };
+
+  // Push a new release
+  const pushRelease = async () => {
+    if (!newVersion.trim() || !releaseNotes.trim()) {
+      alert('Please enter a version number and release notes.');
+      return;
+    }
+    if (!confirm(`Push release v${newVersion}? This will:\n\n• Bump package.json to v${newVersion}\n• Create a git tag\n• Create a GitHub Release\n• Trigger Netlify deployment\n\nContinue?`)) return;
+
+    try {
+      setReleaseStatus('pushing');
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/releases/create`,
+        { version: newVersion, releaseNotes },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setReleaseStatus('triggered');
+      setShowReleaseForm(false);
+      setReleaseNotes('');
+
+      // Poll workflow status
+      const pollInterval = setInterval(async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const statusRes = await axios.get(`${API_URL}/api/releases/workflow-status`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setWorkflowStatus(statusRes.data);
+          if (statusRes.data.status === 'completed') {
+            clearInterval(pollInterval);
+            setReleaseStatus(statusRes.data.conclusion === 'success' ? 'success' : 'failed');
+            fetchReleases();
+            setTimeout(() => setReleaseStatus(null), 8000);
+          }
+        } catch (e) { /* keep polling */ }
+      }, 10000);
+
+      // Stop polling after 10 minutes
+      setTimeout(() => clearInterval(pollInterval), 600000);
+    } catch (err: any) {
+      console.error('Release error:', err);
+      setReleaseStatus('error');
+      alert(err.response?.data?.error || 'Failed to create release');
+      setTimeout(() => setReleaseStatus(null), 5000);
+    }
+  };
 
   // Fetch sync status
   const fetchSyncStatus = async () => {
@@ -351,6 +484,190 @@ const AdminPanel = () => {
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Release Management */}
+      <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
+          <div>
+            <h3 className="font-medium text-black dark:text-white">
+              Release Management
+            </h3>
+            <p className="text-sm text-body mt-1">
+              Current version: <span className="font-semibold text-primary">v{packageJson.version}</span>
+            </p>
+          </div>
+          <button
+            onClick={showReleaseForm ? () => setShowReleaseForm(false) : openReleaseForm}
+            className="inline-flex items-center gap-2 rounded-md bg-[#8B5CF6] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            New Release
+          </button>
+        </div>
+
+        <div className="p-7">
+          {/* Status Banners */}
+          {releaseStatus === 'triggered' && (
+            <div className="mb-4 rounded-md bg-[#8B5CF6] bg-opacity-10 p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
+                <p className="text-sm font-medium text-[#8B5CF6]">
+                  Release workflow triggered! GitHub Actions is building v{newVersion}. Netlify will auto-deploy when done.
+                </p>
+              </div>
+            </div>
+          )}
+          {releaseStatus === 'success' && (
+            <div className="mb-4 rounded-md bg-success bg-opacity-10 p-4">
+              <p className="text-sm font-medium text-success">✓ Release created and deployed successfully!</p>
+            </div>
+          )}
+          {releaseStatus === 'failed' && (
+            <div className="mb-4 rounded-md bg-danger bg-opacity-10 p-4">
+              <p className="text-sm font-medium text-danger">✕ Release workflow failed. Check GitHub Actions for details.</p>
+            </div>
+          )}
+
+          {/* New Release Form */}
+          {showReleaseForm && (
+            <div className="mb-6 rounded-lg border border-[#8B5CF6] border-opacity-30 bg-[#8B5CF6] bg-opacity-5 p-6">
+              <h4 className="mb-4 text-sm font-semibold text-black dark:text-white">Push New Release</h4>
+
+              <div className="mb-4">
+                <label className="mb-2 block text-sm font-medium text-black dark:text-white">
+                  Version Number
+                </label>
+                <input
+                  type="text"
+                  value={newVersion}
+                  onChange={(e) => setNewVersion(e.target.value)}
+                  placeholder="e.g. 0.2.6"
+                  className="w-full max-w-xs rounded border-[1.5px] border-stroke bg-transparent px-4 py-2.5 text-sm font-medium outline-none transition focus:border-[#8B5CF6] dark:border-form-strokedark dark:bg-form-input"
+                />
+              </div>
+
+              <div className="mb-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-sm font-medium text-black dark:text-white">
+                    Release Notes <span className="text-xs text-body">(auto-generated from commits, editable)</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {commitCount > 0 && sinceTag && (
+                      <span className="text-xs text-body">
+                        {commitCount} commits since {sinceTag}
+                      </span>
+                    )}
+                    <button
+                      onClick={generateNotes}
+                      disabled={generatingNotes}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-[#8B5CF6] hover:underline disabled:opacity-50"
+                    >
+                      <svg className={`h-3 w-3 ${generatingNotes ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      {generatingNotes ? 'Generating...' : 'Regenerate'}
+                    </button>
+                  </div>
+                </div>
+                {generatingNotes ? (
+                  <div className="flex items-center justify-center py-8 rounded border-[1.5px] border-stroke dark:border-form-strokedark">
+                    <div className="flex items-center gap-3">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
+                      <span className="text-sm text-body">Fetching commits and generating notes...</span>
+                    </div>
+                  </div>
+                ) : (
+                  <textarea
+                    value={releaseNotes}
+                    onChange={(e) => setReleaseNotes(e.target.value)}
+                    rows={12}
+                    placeholder={"## ✨ New Features\n- Feature one\n- Feature two\n\n## 🎨 UI Improvements\n- Improvement one\n\n## 🔧 Bug Fixes\n- Fix one"}
+                    className="w-full rounded border-[1.5px] border-stroke bg-transparent px-4 py-3 text-sm outline-none transition focus:border-[#8B5CF6] dark:border-form-strokedark dark:bg-form-input font-mono"
+                  />
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={pushRelease}
+                  disabled={releaseStatus === 'pushing' || !newVersion.trim() || !releaseNotes.trim()}
+                  className="inline-flex items-center gap-2 rounded-md bg-[#8B5CF6] px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                >
+                  {releaseStatus === 'pushing' ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      Pushing...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Push Release v{newVersion}
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowReleaseForm(false)}
+                  className="rounded-md border border-stroke px-5 py-2.5 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Release History */}
+          <div>
+            <h4 className="mb-3 text-sm font-semibold text-black dark:text-white">Release History</h4>
+            {releases.length === 0 ? (
+              <p className="text-sm text-body py-4">No releases found. Push your first release above!</p>
+            ) : (
+              <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                {releases.map((release) => (
+                  <div
+                    key={release.id}
+                    className="flex items-start justify-between rounded-md border border-stroke p-4 dark:border-strokedark"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex rounded-full bg-[#8B5CF6] bg-opacity-10 px-3 py-0.5 text-xs font-bold text-[#8B5CF6]">
+                          {release.version}
+                        </span>
+                        <span className="text-xs text-body">
+                          {new Date(release.date).toLocaleDateString('en-CA', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                      {release.notes && (
+                        <p className="mt-1.5 text-xs text-body line-clamp-2 whitespace-pre-line">
+                          {release.notes.replace(/^#+\s/gm, '').replace(/\*\*/g, '').substring(0, 150)}
+                          {release.notes.length > 150 ? '...' : ''}
+                        </p>
+                      )}
+                    </div>
+                    <a
+                      href={release.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-3 flex-shrink-0 text-xs font-medium text-primary hover:underline"
+                    >
+                      View →
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
