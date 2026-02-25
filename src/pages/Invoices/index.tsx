@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 interface Invoice {
   invoice_number: string;
   salesperson_name: string;
+  customer_name: string;
   date: string;
   total: number;
   commission: number;
@@ -1125,6 +1126,9 @@ const Invoices = () => {
                 <th className="min-w-[200px] px-4 py-4 font-medium text-black dark:text-white">
                   Salesperson
                 </th>
+                <th className="min-w-[200px] px-4 py-4 font-medium text-black dark:text-white">
+                  Customer
+                </th>
                 <th className="min-w-[120px] px-4 py-4 font-medium text-black dark:text-white">
                   Date
                 </th>
@@ -1145,7 +1149,7 @@ const Invoices = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-5">
+                  <td colSpan={8} className="text-center py-5">
                     <div className="flex justify-center">
                       <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
                     </div>
@@ -1153,7 +1157,7 @@ const Invoices = () => {
                 </tr>
               ) : filteredInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-5">
+                  <td colSpan={8} className="text-center py-5">
                     <p className="text-body">No invoices found. Click "Sync from Zoho" to import invoices.</p>
                   </td>
                 </tr>
@@ -1168,6 +1172,11 @@ const Invoices = () => {
                     <td className="px-4 py-5">
                       <p className="text-black dark:text-white">
                         {invoice.salesperson_name || 'Unassigned'}
+                      </p>
+                    </td>
+                    <td className="px-4 py-5">
+                      <p className="text-black dark:text-white">
+                        {invoice.customer_name || '—'}
                       </p>
                     </td>
                     <td className="px-4 py-5">
