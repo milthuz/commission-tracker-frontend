@@ -762,17 +762,6 @@ const Invoices = () => {
               </>
             )}
           </button>
-          <button
-            onClick={() => {
-              if (confirm('Force a full sync? This will re-fetch ALL invoices and may take 2-3 minutes.')) {
-                handleManualSync(true);
-              }
-            }}
-            disabled={syncing}
-            className="inline-flex items-center justify-center gap-2 rounded-md bg-meta-5 px-4 py-2 text-center text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
-          >
-            Full Sync
-          </button>
         </div>
       </div>
 
