@@ -36,7 +36,7 @@ const AdminPanel = () => {
   const [newVersion, setNewVersion] = useState('');
   const [releaseNotes, setReleaseNotes] = useState('');
   const [releaseStatus, setReleaseStatus] = useState<string | null>(null);
-  const [workflowStatus, setWorkflowStatus] = useState<any>(null);
+  const [_workflowStatus, setWorkflowStatus] = useState<any>(null);
   const [showReleaseForm, setShowReleaseForm] = useState(false);
   const [generatingNotes, setGeneratingNotes] = useState(false);
   const [commitCount, setCommitCount] = useState(0);
@@ -114,19 +114,6 @@ const AdminPanel = () => {
     }
   };
 
-  // Check workflow status
-  const checkWorkflowStatus = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/releases/workflow-status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWorkflowStatus(response.data);
-    } catch (err) {
-      console.error('Error checking workflow:', err);
-    }
-  };
-
   // Auto-generate release notes from commits
   const generateNotes = async () => {
     try {
@@ -163,7 +150,7 @@ const AdminPanel = () => {
     try {
       setReleaseStatus('pushing');
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_URL}/api/releases/create`,
+      await axios.post(`${API_URL}/api/releases/create`,
         { version: newVersion, releaseNotes },
         { headers: { Authorization: `Bearer ${token}` } }
       );
