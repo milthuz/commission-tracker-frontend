@@ -248,6 +248,7 @@ const ECommerce: React.FC = () => {
             </svg>
             {syncStatus === 'syncing' ? 'Syncing...' : 
              syncStatus?.startsWith('done_') ? `✓ ${syncStatus.split('_')[1]} synced` :
+             syncStatus === 'needs_import' ? 'Full import needed (Admin Panel)' :
              syncStatus === 'error' ? 'Sync failed' :
              'Sync Now'}
           </button>

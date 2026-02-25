@@ -18,6 +18,8 @@ const AdminPanel = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
+  const [syncInfo, setSyncInfo] = useState<any>(null);
 
   // Check if user is admin
   useEffect(() => {
@@ -60,8 +62,99 @@ const AdminPanel = () => {
   useEffect(() => {
     if (isAdmin) {
       fetchSalespeople();
+      fetchSyncStatus();
     }
   }, [isAdmin]);
+
+  // Fetch sync status
+  const fetchSyncStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/sync/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSyncInfo(response.data);
+      if (response.data.syncStatus === 'syncing') {
+        setSyncStatus('bulk_started');
+        startPolling();
+      }
+    } catch (err) {
+      console.error('Error fetching sync status:', err);
+    }
+  };
+
+  // Poll for sync completion
+  const startPolling = () => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const statusRes = await axios.get(`${API_URL}/api/sync/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSyncInfo(statusRes.data);
+        if (statusRes.data.syncStatus !== 'syncing') {
+          clearInterval(pollInterval);
+          setSyncStatus('bulk_done');
+          fetchSalespeople();
+          setTimeout(() => setSyncStatus(null), 5000);
+        }
+      } catch (e) { /* keep polling */ }
+    }, 15000);
+  };
+
+  // Full bulk import
+  const triggerBulkImport = async () => {
+    if (!confirm('This will re-import ALL invoices from Zoho Books. This runs in the background and may take 10-20 minutes. Continue?')) return;
+    try {
+      setSyncStatus('bulk_importing');
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/invoices/bulk-import`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.status === 'already_syncing') {
+        setSyncStatus('already_syncing');
+        setTimeout(() => setSyncStatus(null), 3000);
+      } else {
+        setSyncStatus('bulk_started');
+        startPolling();
+      }
+    } catch (err) {
+      setSyncStatus('error');
+      setTimeout(() => setSyncStatus(null), 3000);
+    }
+  };
+
+  // Quick incremental sync
+  const triggerQuickSync = async () => {
+    try {
+      setSyncStatus('syncing');
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/invoices/incremental-sync`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.needsBulkImport) {
+        setSyncStatus('needs_import');
+        setTimeout(() => setSyncStatus(null), 3000);
+      } else {
+        setSyncStatus(`done_${response.data.totalSynced || 0}`);
+        fetchSyncStatus();
+        fetchSalespeople();
+        setTimeout(() => setSyncStatus(null), 3000);
+      }
+    } catch (err) {
+      setSyncStatus('error');
+      setTimeout(() => setSyncStatus(null), 3000);
+    }
+  };
+
+  // Format date helper
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return 'Never';
+    const d = new Date(dateStr);
+    return d.toLocaleString();
+  };
 
   // Toggle salesperson active status
   const toggleSalesperson = async (name: string, currentStatus: boolean) => {
@@ -161,6 +254,103 @@ const AdminPanel = () => {
               <span className="text-sm font-medium">Inactive</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Zoho Sync Section */}
+      <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+          <h3 className="font-medium text-black dark:text-white">
+            Zoho Books Sync
+          </h3>
+          <p className="text-sm text-body mt-1">
+            Import and sync invoices from Zoho Books
+          </p>
+        </div>
+
+        <div className="p-7">
+          {/* Sync Status Info */}
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
+              <p className="text-xs font-medium uppercase text-body">Status</p>
+              <p className="mt-1 text-sm font-semibold text-black dark:text-white">
+                {syncInfo?.syncStatus === 'syncing' ? (
+                  <span className="inline-flex items-center gap-1.5 text-warning">
+                    <span className="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
+                    Syncing...
+                  </span>
+                ) : syncInfo?.syncStatus === 'error' ? (
+                  <span className="text-danger">Error</span>
+                ) : (
+                  <span className="text-success">Idle</span>
+                )}
+              </p>
+            </div>
+            <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
+              <p className="text-xs font-medium uppercase text-body">Invoices in Database</p>
+              <p className="mt-1 text-sm font-semibold text-black dark:text-white">
+                {syncInfo?.totalInvoicesInDb?.toLocaleString() || '—'}
+              </p>
+            </div>
+            <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
+              <p className="text-xs font-medium uppercase text-body">Last Sync</p>
+              <p className="mt-1 text-sm font-semibold text-black dark:text-white">
+                {formatDate(syncInfo?.lastIncrementalSync || syncInfo?.lastFullSync)}
+              </p>
+            </div>
+          </div>
+
+          {/* Sync Buttons */}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={triggerBulkImport}
+              disabled={syncStatus === 'bulk_importing' || syncStatus === 'bulk_started' || syncStatus === 'syncing'}
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+            >
+              <svg className={`h-4 w-4 ${syncStatus === 'bulk_started' ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              {syncStatus === 'bulk_started' ? 'Importing...' :
+               syncStatus === 'bulk_importing' ? 'Starting...' :
+               syncStatus === 'already_syncing' ? 'Already running' :
+               syncStatus === 'bulk_done' ? '✓ Import complete' :
+               'Full Import'}
+            </button>
+
+            <button
+              onClick={triggerQuickSync}
+              disabled={syncStatus === 'syncing' || syncStatus === 'bulk_started'}
+              className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-5 py-2.5 text-sm font-medium text-black shadow-sm hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:text-white dark:hover:bg-meta-4 disabled:opacity-50"
+            >
+              <svg className={`h-4 w-4 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {syncStatus === 'syncing' ? 'Syncing...' :
+               syncStatus?.startsWith('done_') ? `✓ ${syncStatus.split('_')[1]} synced` :
+               syncStatus === 'needs_import' ? 'Run Full Import first' :
+               syncStatus === 'error' ? 'Sync failed' :
+               'Quick Sync'}
+            </button>
+
+            <button
+              onClick={fetchSyncStatus}
+              className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-5 py-2.5 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4"
+            >
+              Refresh Status
+            </button>
+          </div>
+
+          {/* Progress indicator when importing */}
+          {syncStatus === 'bulk_started' && (
+            <div className="mt-4 rounded-md bg-warning bg-opacity-10 p-4">
+              <div className="flex items-center gap-3">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-warning border-t-transparent"></div>
+                <p className="text-sm font-medium text-warning">
+                  Full import is running in the background. This may take 10-20 minutes. You can leave this page — the import will continue.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
