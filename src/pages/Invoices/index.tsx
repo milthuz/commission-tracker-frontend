@@ -631,7 +631,7 @@ const Invoices = () => {
         )
       },
       overdue: {
-        class: 'bg-danger text-white',
+        class: 'bg-[#DC2626] text-white',
         icon: (
           <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
             <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm1 15H9v-2h2v2zm0-4H9V5h2v6z"/>
@@ -663,7 +663,7 @@ const Invoices = () => {
         )
       },
       void: {
-        class: 'bg-danger text-white',
+        class: 'bg-[#DC2626] text-white',
         icon: (
           <svg className="mr-1.5 h-4 w-4 fill-current" viewBox="0 0 20 20">
             <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm5 13.59L13.59 15 10 11.41 6.41 15 5 13.59 8.59 10 5 6.41 6.41 5 10 8.59 13.59 5 15 6.41 11.41 10 15 13.59z"/>
@@ -674,10 +674,15 @@ const Invoices = () => {
 
     const badge = badges[status as keyof typeof badges] || { class: 'bg-gray text-black', icon: null };
 
+    const labels: Record<string, string> = {
+      partially_paid: 'PARTIAL',
+    };
+    const label = labels[status] || status.replace('_', ' ').toUpperCase();
+
     return (
-      <span className={`inline-flex items-center rounded px-3 py-1 text-xs font-medium ${badge.class}`}>
+      <span className={`inline-flex items-center rounded px-3 py-1 text-xs font-medium whitespace-nowrap ${badge.class}`}>
         {badge.icon}
-        {status.replace('_', ' ').toUpperCase()}
+        {label}
       </span>
     );
   };
