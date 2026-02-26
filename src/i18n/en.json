@@ -45,6 +45,7 @@
     "print": "Print",
     "send": "Send",
     "retry": "Retry",
+    "refreshStatus": "Refresh Status",
     "TOTAL": "TOTAL"
   },
   "sidebar": {
@@ -244,7 +245,7 @@
       "noSalespeople": "No salespeople found"
     },
     "customers": {
-      "title": "Customers",
+      "title": "Top Customers — Exclusions",
       "subtitle": "Exclude customers from appearing in the dashboard Top Customers list",
       "searchPlaceholder": "Search customers to exclude...",
       "excluded": "Excluded",

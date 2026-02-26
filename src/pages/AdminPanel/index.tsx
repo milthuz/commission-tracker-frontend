@@ -375,7 +375,7 @@ const AdminPanel = () => {
 
   // Format date helper
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return 'Never';
+    if (!dateStr) return t('common.never');
     const d = new Date(dateStr);
     return d.toLocaleString();
   };
@@ -528,7 +528,7 @@ const AdminPanel = () => {
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            New Release
+            {t('admin.releases.newRelease')}
           </button>
         )}
       </div>
@@ -538,8 +538,8 @@ const AdminPanel = () => {
             <>
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">Zoho Books Sync</h3>
-                <p className="text-sm text-body mt-1">Import and sync invoices from Zoho Books</p>
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.zohoSync.title')}</h3>
+                <p className="text-sm text-body mt-1">{t('admin.zohoSync.subtitle')}</p>
               </div>
               <div className="p-7">
                 {/* Sync Status Info */}
@@ -550,12 +550,12 @@ const AdminPanel = () => {
                       {syncInfo?.syncStatus === 'syncing' ? (
                         <span className="inline-flex items-center gap-1.5 text-warning">
                           <span className="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
-                          Syncing...
+                          {t('admin.zohoSync.syncing')}
                         </span>
                       ) : syncInfo?.syncStatus === 'error' ? (
-                        <span className="text-danger">Error</span>
+                        <span className="text-danger">{t('admin.zohoSync.error')}</span>
                       ) : (
-                        <span className="text-success">Idle</span>
+                        <span className="text-success">{t('common.idle')}</span>
                       )}
                     </p>
                   </div>
@@ -584,9 +584,9 @@ const AdminPanel = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
                     {syncStatus === 'bulk_started' ? t('admin.zohoSync.importing') :
-                     syncStatus === 'bulk_importing' ? 'Starting...' :
+                     syncStatus === 'bulk_importing' ? t('admin.zohoSync.starting') :
                      syncStatus === 'already_syncing' ? t('admin.zohoSync.alreadyRunning') :
-                     syncStatus === 'bulk_done' ? '✓ Import complete' :
+                     syncStatus === 'bulk_done' ? t('admin.zohoSync.importComplete') :
                      t('admin.zohoSync.fullImport')}
                   </button>
 
@@ -599,9 +599,9 @@ const AdminPanel = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                     {syncStatus === 'syncing' ? t('admin.zohoSync.syncing') :
-                     syncStatus?.startsWith('done_') ? `✓ ${syncStatus.split('_')[1]} synced` :
-                     syncStatus === 'needs_import' ? 'Run Full Import first' :
-                     syncStatus === 'error' ? 'Sync failed' :
+                     syncStatus?.startsWith('done_') ? `✓ ${syncStatus.split('_')[1]} ${t('dashboard.synced')}` :
+                     syncStatus === 'needs_import' ? t('admin.zohoSync.runFullImportFirst') :
+                     syncStatus === 'error' ? t('admin.zohoSync.syncFailed') :
                      t('admin.zohoSync.quickSync')}
                   </button>
 
@@ -609,7 +609,7 @@ const AdminPanel = () => {
                     onClick={fetchSyncStatus}
                     className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-5 py-2.5 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4"
                   >
-                    Refresh Status
+                    {t('common.refreshStatus')}
                   </button>
                 </div>
 
@@ -618,7 +618,7 @@ const AdminPanel = () => {
                     <div className="flex items-center gap-3">
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-warning border-t-transparent"></div>
                       <p className="text-sm font-medium text-warning">
-                        Full import is running in the background. This may take 10-20 minutes. You can leave this page — the import will continue.
+                        {t('admin.zohoSync.fullImportRunning')}
                       </p>
                     </div>
                   </div>
@@ -644,7 +644,7 @@ const AdminPanel = () => {
                           {t('admin.recalculate.recalculating')} ({recalcStatus.total.toLocaleString()} {t('admin.recalculate.paidInvoices')})
                         </span>
                       ) : (
-                        <span className="text-success">Idle</span>
+                        <span className="text-success">{t('common.idle')}</span>
                       )}
                     </p>
                   </div>
@@ -654,7 +654,7 @@ const AdminPanel = () => {
                       {recalcStatus?.lastRecalcProcessed ? (
                         <span>{recalcStatus.lastRecalcProcessed.toLocaleString()} {t('admin.recalculate.processed').toLowerCase()} · <span className="text-success">{recalcStatus.lastRecalcUpdated.toLocaleString()} {t('admin.recalculate.updated').toLowerCase()}</span>{recalcStatus.lastRecalcErrors > 0 && <span className="text-danger"> · {recalcStatus.lastRecalcErrors} {t('admin.recalculate.errors').toLowerCase()}</span>}</span>
                       ) : (
-                        <span className="text-body">Never run</span>
+                        <span className="text-body">{t('common.neverRun')}</span>
                       )}
                     </p>
                   </div>
@@ -731,8 +731,8 @@ const AdminPanel = () => {
           {activeTab === 'salespeople' && (
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">Manage Salespeople</h3>
-                <p className="text-sm text-body mt-1">Toggle salespeople on/off to control who appears in invoice filters and commission reports</p>
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.salespeople.title')}</h3>
+                <p className="text-sm text-body mt-1">{t('admin.salespeople.subtitle')}</p>
               </div>
 
               {/* Stats Row */}
@@ -740,15 +740,15 @@ const AdminPanel = () => {
                 <div className="flex flex-wrap gap-6">
                   <div>
                     <span className="text-2xl font-bold text-black dark:text-white">{salespeople.length}</span>
-                    <span className="ml-2 text-sm text-body">Total</span>
+                    <span className="ml-2 text-sm text-body">{t('admin.salespeople.totalSalespeople')}</span>
                   </div>
                   <div>
                     <span className="text-2xl font-bold text-success">{activePeople.length}</span>
-                    <span className="ml-2 text-sm text-body">Active</span>
+                    <span className="ml-2 text-sm text-body">{t('admin.salespeople.activeSalespeople')}</span>
                   </div>
                   <div>
                     <span className="text-2xl font-bold text-danger">{inactivePeople.length}</span>
-                    <span className="ml-2 text-sm text-body">Inactive</span>
+                    <span className="ml-2 text-sm text-body">{t('admin.salespeople.inactiveSalespeople')}</span>
                   </div>
                 </div>
               </div>
@@ -774,11 +774,11 @@ const AdminPanel = () => {
                     <table className="w-full table-auto">
                       <thead>
                         <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">Name</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">Invoices</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.name')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.invoices')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.commissionPercent')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.zohoSync.status')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">Action</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.status')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.actions')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -788,7 +788,7 @@ const AdminPanel = () => {
                               <p className="text-black dark:text-white">{person.name}</p>
                             </td>
                             <td className="px-4 py-5">
-                              <p className="text-body">{person.invoiceCount} invoices</p>
+                              <p className="text-body">{person.invoiceCount} {t('common.invoices').toLowerCase()}</p>
                             </td>
                             <td className="px-4 py-5">
                               <div className="flex items-center gap-1.5">
@@ -813,15 +813,15 @@ const AdminPanel = () => {
                                 />
                                 <span className="text-xs text-body">%</span>
                                 {person.commissionRate !== 10 && (
-                                  <span className="text-xs text-[#8B5CF6] font-medium">Override</span>
+                                  <span className="text-xs text-[#8B5CF6] font-medium">{t('admin.salespeople.override')}</span>
                                 )}
                               </div>
                             </td>
                             <td className="px-4 py-5">
                               {person.isActive ? (
-                                <span className="inline-flex rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-medium text-success">Active</span>
+                                <span className="inline-flex rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-medium text-success">{t('common.active')}</span>
                               ) : (
-                                <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-3 py-1 text-sm font-medium text-danger">Inactive</span>
+                                <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-3 py-1 text-sm font-medium text-danger">{t('common.inactive')}</span>
                               )}
                             </td>
                             <td className="px-4 py-5">
@@ -855,20 +855,20 @@ const AdminPanel = () => {
           {activeTab === 'customers' && (
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">Top Customers — Exclusions</h3>
-                <p className="text-sm text-body mt-1">Exclude customers from appearing in the dashboard Top Customers list</p>
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.customers.title')}</h3>
+                <p className="text-sm text-body mt-1">{t('admin.customers.subtitle')}</p>
               </div>
               <div className="p-7">
                 {/* Search to add exclusion */}
                 <div className="mb-5 relative">
                   <label className="mb-2 block text-sm font-medium text-black dark:text-white">
-                    Search & Exclude a Customer
+                    {t('admin.customers.searchPlaceholder')}
                   </label>
                   <input
                     type="text"
                     value={customerSearch}
                     onChange={(e) => setCustomerSearch(e.target.value)}
-                    placeholder="Type customer name to search..."
+                    placeholder={t('admin.customers.searchPlaceholder')}
                     className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
                   />
                   {searchingCustomers && (
@@ -888,7 +888,7 @@ const AdminPanel = () => {
                         >
                           <div>
                             <p className="text-sm font-medium text-black dark:text-white">{customer.name}</p>
-                            <p className="text-xs text-body">{customer.invoiceCount} invoices · ${customer.totalSpent.toLocaleString('en-CA', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xs text-body">{customer.invoiceCount} {t('common.invoices').toLowerCase()} · ${customer.totalSpent.toLocaleString('en-CA', { minimumFractionDigits: 2 })}</p>
                           </div>
                           <span className="text-xs font-medium text-danger">{t('admin.customers.exclude')}</span>
                         </div>
@@ -899,11 +899,11 @@ const AdminPanel = () => {
 
                 {/* Excluded Customers List */}
                 {excludedCustomers.length === 0 ? (
-                  <p className="text-sm text-body py-4">No customers excluded. All customers are visible in the Top Customers list.</p>
+                  <p className="text-sm text-body py-4">{t('admin.customers.noExcluded')}</p>
                 ) : (
                   <div>
                     <h4 className="mb-3 text-sm font-semibold text-black dark:text-white">
-                      Excluded ({excludedCustomers.length})
+                      {t('admin.customers.excluded')} ({excludedCustomers.length})
                     </h4>
                     <div className="space-y-2">
                       {excludedCustomers.map((customer) => (
@@ -919,14 +919,14 @@ const AdminPanel = () => {
                             </span>
                             <div>
                               <p className="text-sm font-medium text-black dark:text-white">{customer.customer_name}</p>
-                              <p className="text-xs text-body">Excluded {new Date(customer.created_at).toLocaleDateString('en-CA')}</p>
+                              <p className="text-xs text-body">{t('admin.customers.excluded')} {new Date(customer.created_at).toLocaleDateString('en-CA')}</p>
                             </div>
                           </div>
                           <button
                             onClick={() => reincludeCustomer(customer.id)}
                             className="inline-flex items-center gap-1 rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-50 hover:text-success dark:border-strokedark dark:hover:bg-meta-4"
                           >
-                            Re-include
+                            {t('admin.customers.reinclude')}
                           </button>
                         </div>
                       ))}
@@ -947,7 +947,7 @@ const AdminPanel = () => {
                     <div className="flex items-center gap-3">
                       <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
                       <p className="text-sm font-medium text-[#8B5CF6]">
-                        Release workflow triggered! GitHub Actions is building v{newVersion}. Netlify will auto-deploy when done.
+                        {t('admin.releases.workflowTriggered')} v{newVersion}.
                       </p>
                     </div>
                   </div>
@@ -959,7 +959,7 @@ const AdminPanel = () => {
                 )}
                 {releaseStatus === 'failed' && (
                   <div className="mb-4 rounded-md bg-danger bg-opacity-10 p-4">
-                    <p className="text-sm font-medium text-danger">✕ Release workflow failed. Check GitHub Actions for details.</p>
+                    <p className="text-sm font-medium text-danger">{t('admin.releases.releaseFailed')}</p>
                   </div>
                 )}
 
@@ -969,7 +969,7 @@ const AdminPanel = () => {
                     <h4 className="mb-4 text-sm font-semibold text-black dark:text-white">{t('admin.releases.newRelease')}</h4>
 
                     <div className="mb-4">
-                      <label className="mb-2 block text-sm font-medium text-black dark:text-white">Version Number</label>
+                      <label className="mb-2 block text-sm font-medium text-black dark:text-white">{t('admin.releases.version')}</label>
                       <input
                         type="text"
                         value={newVersion}
@@ -982,7 +982,7 @@ const AdminPanel = () => {
                     <div className="mb-4">
                       <div className="mb-2 flex items-center justify-between">
                         <label className="text-sm font-medium text-black dark:text-white">
-                          Release Notes <span className="text-xs text-body">(auto-generated from commits, editable)</span>
+                          {t('admin.releases.releaseNotes')}
                         </label>
                         <div className="flex items-center gap-2">
                           {commitCount > 0 && sinceTag && (
@@ -1027,14 +1027,14 @@ const AdminPanel = () => {
                         {releaseStatus === 'pushing' ? (
                           <>
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                            Pushing...
+                            {t('admin.releases.pushing')}
                           </>
                         ) : (
                           <>
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                             </svg>
-                            Push Release v{newVersion}
+                            {t('admin.releases.pushRelease')} v{newVersion}
                           </>
                         )}
                       </button>
@@ -1042,7 +1042,7 @@ const AdminPanel = () => {
                         onClick={() => setShowReleaseForm(false)}
                         className="rounded-md border border-stroke px-5 py-2.5 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </button>
                     </div>
                   </div>
@@ -1050,7 +1050,7 @@ const AdminPanel = () => {
 
                 {/* Release History */}
                 <div>
-                  <h4 className="mb-3 text-sm font-semibold text-black dark:text-white">Release History</h4>
+                  <h4 className="mb-3 text-sm font-semibold text-black dark:text-white">{t('admin.releases.previousReleases')}</h4>
                   {releases.length === 0 ? (
                     <p className="text-sm text-body py-4">{t('admin.releases.noReleases')}</p>
                   ) : (
@@ -1084,7 +1084,7 @@ const AdminPanel = () => {
                             rel="noopener noreferrer"
                             className="ml-3 flex-shrink-0 text-xs font-medium text-primary hover:underline"
                           >
-                            View →
+                            {t('admin.releases.view')}
                           </a>
                         </div>
                       ))}

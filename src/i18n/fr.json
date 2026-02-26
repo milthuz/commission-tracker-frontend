@@ -26,7 +26,7 @@
     "role": "Rôle",
     "active": "Actif",
     "inactive": "Inactif",
-    "idle": "Inactif",
+    "idle": "En attente",
     "never": "Jamais",
     "neverRun": "Jamais exécuté",
     "processing": "Traitement...",
@@ -45,6 +45,7 @@
     "print": "Imprimer",
     "send": "Envoyer",
     "retry": "Réessayer",
+    "refreshStatus": "Actualiser le statut",
     "TOTAL": "TOTAL"
   },
   "sidebar": {
@@ -244,7 +245,7 @@
       "noSalespeople": "Aucun vendeur trouvé"
     },
     "customers": {
-      "title": "Clients",
+      "title": "Meilleurs clients — Exclusions",
       "subtitle": "Exclure des clients de la liste des meilleurs clients du tableau de bord",
       "searchPlaceholder": "Rechercher des clients à exclure...",
       "excluded": "Exclus",
