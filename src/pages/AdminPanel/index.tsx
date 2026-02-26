@@ -65,6 +65,10 @@ const AdminPanel = () => {
   const [customerResults, setCustomerResults] = useState<CustomerSearchResult[]>([]);
   const [searchingCustomers, setSearchingCustomers] = useState(false);
 
+  // Recalculate commissions state
+  const [recalcStatus, setRecalcStatus] = useState<any>(null);
+  const [recalcPolling, setRecalcPolling] = useState(false);
+
   // Check if user is admin
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -374,6 +378,67 @@ const AdminPanel = () => {
     return d.toLocaleString();
   };
 
+  // Recalculate commissions
+  const triggerRecalculate = async () => {
+    if (!confirm('Recalculate commissions for ALL paid invoices?\n\nThis fetches full invoice details from Zoho and applies subscription rules:\n• First subscription month → 100% commission\n• Renewal months → 0% commission\n• Regular items → rep rate\n\nThis runs in the background and may take a while (~5 invoices/sec).')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/commissions/recalculate`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.started === false) {
+        alert('Recalculation already in progress');
+        return;
+      }
+
+      setRecalcPolling(true);
+      startRecalcPolling();
+    } catch (err) {
+      alert('Failed to start recalculation');
+    }
+  };
+
+  const startRecalcPolling = () => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_URL}/api/commissions/recalculate/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setRecalcStatus(res.data);
+
+        if (!res.data.running) {
+          clearInterval(pollInterval);
+          setRecalcPolling(false);
+        }
+      } catch (e) {
+        clearInterval(pollInterval);
+        setRecalcPolling(false);
+      }
+    }, 3000);
+  };
+
+  // Check recalc status on mount
+  useEffect(() => {
+    if (isAdmin && activeTab === 'sync') {
+      const checkRecalc = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const res = await axios.get(`${API_URL}/api/commissions/recalculate/status`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setRecalcStatus(res.data);
+          if (res.data.running) {
+            setRecalcPolling(true);
+            startRecalcPolling();
+          }
+        } catch (_) {}
+      };
+      checkRecalc();
+    }
+  }, [isAdmin, activeTab]);
+
   // Toggle salesperson active status
   const toggleSalesperson = async (name: string, currentStatus: boolean) => {
     try {
@@ -555,6 +620,87 @@ const AdminPanel = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Recalculate Commissions */}
+                <div className="mt-6 pt-6 border-t border-stroke dark:border-strokedark">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h4 className="text-sm font-semibold text-black dark:text-white">Recalculate Commissions</h4>
+                      <p className="text-xs text-body mt-1">
+                        Fetches full invoice details from Zoho and applies subscription rules: first month at 100%, renewals at 0%, regular items at rep rate.
+                      </p>
+                    </div>
+                    <button
+                      onClick={triggerRecalculate}
+                      disabled={recalcPolling || syncStatus === 'bulk_started'}
+                      className="inline-flex items-center gap-2 rounded-md bg-warning px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50 flex-shrink-0"
+                    >
+                      {recalcPolling ? (
+                        <>
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                          Recalculating...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                          </svg>
+                          Recalculate All
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Recalculate Progress */}
+                  {recalcStatus && (recalcStatus.running || recalcStatus.completedAt) && (
+                    <div className={`rounded-md p-4 ${recalcStatus.running ? 'bg-warning bg-opacity-10' : 'bg-success bg-opacity-10'}`}>
+                      {recalcStatus.running && (
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-warning border-t-transparent"></div>
+                              <span className="text-sm font-medium text-warning">Processing invoices...</span>
+                            </div>
+                            <span className="text-xs text-body">
+                              {recalcStatus.processed} / {recalcStatus.total}
+                            </span>
+                          </div>
+                          <div className="w-full bg-stroke rounded-full h-2 dark:bg-strokedark">
+                            <div
+                              className="bg-warning h-2 rounded-full transition-all duration-500"
+                              style={{ width: `${recalcStatus.total > 0 ? (recalcStatus.processed / recalcStatus.total * 100) : 0}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-4 gap-3">
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-black dark:text-white">{recalcStatus.processed.toLocaleString()}</p>
+                          <p className="text-[10px] uppercase text-body">Processed</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-success">{recalcStatus.updated.toLocaleString()}</p>
+                          <p className="text-[10px] uppercase text-body">Updated</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-body">{recalcStatus.unchanged.toLocaleString()}</p>
+                          <p className="text-[10px] uppercase text-body">Unchanged</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-lg font-bold text-danger">{recalcStatus.errors.toLocaleString()}</p>
+                          <p className="text-[10px] uppercase text-body">Errors</p>
+                        </div>
+                      </div>
+
+                      {!recalcStatus.running && recalcStatus.completedAt && (
+                        <p className="mt-3 text-xs text-success font-medium text-center">
+                          ✓ Completed at {new Date(recalcStatus.completedAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
