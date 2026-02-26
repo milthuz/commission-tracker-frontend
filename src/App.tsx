@@ -118,6 +118,15 @@ function AppContent() {
               </>
             }
           />
+          <Route
+            path="/admin/:section"
+            element={
+              <>
+                <PageTitle title="Admin Panel | Commission Tracker" />
+                <AdminPanel />
+              </>
+            }
+          />
         </Route>
       </Route>
 

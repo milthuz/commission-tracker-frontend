@@ -231,27 +231,83 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               {/* <!-- Menu Item Admin Panel (Admin Only) --> */}
               {isAdmin && (
                 <li>
-                  <NavLink
-                    to="/admin"
-                    className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('admin-submenu');
+                      if (el) el.classList.toggle('hidden');
+                    }}
+                    className={`group relative flex w-full items-center justify-between gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
                       pathname.includes('admin') && 'bg-graydark dark:bg-meta-4'
                     }`}
                   >
+                    <div className="flex items-center gap-2.5">
+                      <svg
+                        className="fill-current"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z" />
+                      </svg>
+                      Admin Panel
+                    </div>
                     <svg
-                      className="fill-current"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+                      className={`fill-current transition ${pathname.includes('admin') ? 'rotate-180' : ''}`}
+                      width="12"
+                      height="8"
+                      viewBox="0 0 12 8"
                     >
-                      <path
-                        d="M16.1999 5.4375H12.5999V3.9375C12.5999 2.14219 11.1327 0.675 9.33743 0.675H8.66243C6.86712 0.675 5.39993 2.14219 5.39993 3.9375V5.4375H1.79993C1.34368 5.4375 0.974934 5.80625 0.974934 6.2625V15.4125C0.974934 16.3875 1.76243 17.175 2.73743 17.175H15.2624C16.2374 17.175 17.0249 16.3875 17.0249 15.4125V6.2625C17.0249 5.80625 16.6562 5.4375 16.1999 5.4375ZM6.59993 3.9375C6.59993 2.80312 7.52805 1.875 8.66243 1.875H9.33743C10.4718 1.875 11.3999 2.80312 11.3999 3.9375V5.4375H6.59993V3.9375ZM15.8249 15.4125C15.8249 15.7266 15.5765 15.975 15.2624 15.975H2.73743C2.42337 15.975 2.17493 15.7266 2.17493 15.4125V6.6375H5.39993V7.5C5.39993 7.95625 5.76868 8.325 6.22493 8.325C6.68118 8.325 7.04993 7.95625 7.04993 7.5V6.6375H10.9499V7.5C10.9499 7.95625 11.3187 8.325 11.7749 8.325C12.2312 8.325 12.5999 7.95625 12.5999 7.5V6.6375H15.8249V15.4125Z"
-                        fill=""
-                      />
+                      <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" />
                     </svg>
-                    Admin Panel
-                  </NavLink>
+                  </button>
+                  <ul
+                    id="admin-submenu"
+                    className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 ${
+                      pathname.includes('admin') ? '' : 'hidden'
+                    }`}
+                  >
+                    <li>
+                      <NavLink
+                        to="/admin/sync"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/sync' || pathname === '/admin' ? 'text-white' : ''
+                        }`}
+                      >
+                        Zoho Sync
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/admin/salespeople"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/salespeople' ? 'text-white' : ''
+                        }`}
+                      >
+                        Salespeople
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/admin/customers"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/customers' ? 'text-white' : ''
+                        }`}
+                      >
+                        Customer Exclusions
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/admin/releases"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/releases' ? 'text-white' : ''
+                        }`}
+                      >
+                        Releases
+                      </NavLink>
+                    </li>
+                  </ul>
                 </li>
               )}
               {/* <!-- Menu Item Admin Panel --> */}

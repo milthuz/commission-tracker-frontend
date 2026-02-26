@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import packageJson from '../../../package.json';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -43,7 +43,9 @@ const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const [syncInfo, setSyncInfo] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState('sync');
+  const location = useLocation();
+  const pathParts = location.pathname.split('/');
+  const activeTab = pathParts[2] || 'sync'; // /admin/sync, /admin/salespeople, etc.
 
   // Release management state
   const [releases, setReleases] = useState<Release[]>([]);
@@ -408,67 +410,40 @@ const AdminPanel = () => {
     return null; // Will redirect via useEffect
   }
 
-  const menuItems = [
-    { id: 'sync', label: 'Zoho Sync', icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-      </svg>
-    )},
-    { id: 'salespeople', label: 'Salespeople', icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    )},
-    { id: 'customers', label: 'Customer Exclusions', icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-      </svg>
-    )},
-    { id: 'releases', label: 'Release Management', icon: (
-      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-      </svg>
-    )},
-  ];
-
   return (
     <div>
       {/* Page Header */}
-      <div className="mb-6">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">
-          Admin Panel
-        </h2>
-        <p className="text-sm text-body">Manage system settings and configurations</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+            {activeTab === 'sync' ? 'Zoho Books Sync' :
+             activeTab === 'salespeople' ? 'Manage Salespeople' :
+             activeTab === 'customers' ? 'Customer Exclusions' :
+             activeTab === 'releases' ? 'Release Management' :
+             'Admin Panel'}
+          </h2>
+          <p className="text-sm text-body">
+            {activeTab === 'sync' ? 'Import and sync invoices from Zoho Books' :
+             activeTab === 'salespeople' ? 'Toggle salespeople on/off to control who appears in invoice filters and commission reports' :
+             activeTab === 'customers' ? 'Exclude customers from appearing in the dashboard Top Customers list' :
+             activeTab === 'releases' ? `Current version: v${packageJson.version}` :
+             'Manage system settings and configurations'}
+          </p>
+        </div>
+        {activeTab === 'releases' && (
+          <button
+            onClick={showReleaseForm ? () => setShowReleaseForm(false) : openReleaseForm}
+            className="inline-flex items-center gap-2 rounded-md bg-[#8B5CF6] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            New Release
+          </button>
+        )}
       </div>
 
-      {/* Side Nav + Content Layout */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Side Navigation */}
-        <div className="w-full lg:w-64 flex-shrink-0">
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-            <nav className="p-3 flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-visible">
-              {menuItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium transition whitespace-nowrap w-full text-left ${
-                    activeTab === item.id
-                      ? 'bg-primary bg-opacity-10 text-primary'
-                      : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'
-                  }`}
-                >
-                  <span className={activeTab === item.id ? 'text-primary' : 'text-body'}>{item.icon}</span>
-                  {item.label}
-                </button>
-              ))}
-            </nav>
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="flex-1 min-w-0">
-
-          {/* ==================== ZOHO SYNC ==================== */}
+      {/* Content */}
           {activeTab === 'sync' && (
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
@@ -746,24 +721,6 @@ const AdminPanel = () => {
           {/* ==================== RELEASE MANAGEMENT ==================== */}
           {activeTab === 'releases' && (
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-black dark:text-white">Release Management</h3>
-                  <p className="text-sm text-body mt-1">
-                    Current version: <span className="font-semibold text-primary">v{packageJson.version}</span>
-                  </p>
-                </div>
-                <button
-                  onClick={showReleaseForm ? () => setShowReleaseForm(false) : openReleaseForm}
-                  className="inline-flex items-center gap-2 rounded-md bg-[#8B5CF6] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  New Release
-                </button>
-              </div>
-
               <div className="p-7">
                 {/* Status Banners */}
                 {releaseStatus === 'triggered' && (
@@ -918,8 +875,6 @@ const AdminPanel = () => {
               </div>
             </div>
           )}
-        </div>
-      </div>
     </div>
   );
 };
