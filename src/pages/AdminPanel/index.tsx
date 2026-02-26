@@ -840,25 +840,65 @@ const AdminPanel = () => {
                 {/* Progress Bar (while running) */}
                 {recalcStatus?.running && (
                   <div className="mt-4 rounded-md bg-warning bg-opacity-10 p-4">
+                    {/* Phase indicator */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className={`h-4 w-4 animate-spin rounded-full border-2 ${recalcStopping ? 'border-danger border-t-transparent' : 'border-warning border-t-transparent'}`}></div>
                         <span className={`text-sm font-medium ${recalcStopping ? 'text-danger' : 'text-warning'}`}>
-                          {recalcStopping ? t('admin.recalculate.stoppingMessage') : t('admin.recalculate.processingPaid')}
+                          {recalcStopping ? t('admin.recalculate.stoppingMessage') :
+                           recalcStatus.phase === 'fetching' ? t('admin.recalculate.fetchingFromZoho') :
+                           recalcStatus.phase === 'calculating' ? t('admin.recalculate.calculatingCommissions') :
+                           recalcStatus.phase === 'saving' ? t('admin.recalculate.savingUpdates') :
+                           t('admin.recalculate.processingPaid')}
                         </span>
                       </div>
                       <span className="text-xs font-medium text-body">
-                        {recalcStatus.processed.toLocaleString()} / {recalcStatus.total.toLocaleString()}
-                        {recalcStatus.total > 0 && ` (${Math.round(recalcStatus.processed / recalcStatus.total * 100)}%)`}
+                        {recalcStatus.phase === 'fetching' && recalcStatus.fetchTotal > 0 ? (
+                          <>{(recalcStatus.fetchProgress || 0).toLocaleString()} / {recalcStatus.fetchTotal.toLocaleString()} ({Math.round((recalcStatus.fetchProgress || 0) / recalcStatus.fetchTotal * 100)}%)</>
+                        ) : (
+                          <>{recalcStatus.processed.toLocaleString()} / {recalcStatus.total.toLocaleString()}
+                          {recalcStatus.total > 0 && ` (${Math.round(recalcStatus.processed / recalcStatus.total * 100)}%)`}</>
+                        )}
                       </span>
                     </div>
+
+                    {/* Progress bar */}
                     <div className="w-full bg-stroke rounded-full h-2.5 dark:bg-strokedark">
                       <div
                         className="bg-warning h-2.5 rounded-full transition-all duration-500"
-                        style={{ width: `${recalcStatus.total > 0 ? (recalcStatus.processed / recalcStatus.total * 100) : 0}%` }}
+                        style={{ width: `${
+                          recalcStatus.phase === 'fetching' && recalcStatus.fetchTotal > 0
+                            ? ((recalcStatus.fetchProgress || 0) / recalcStatus.fetchTotal * 100)
+                            : recalcStatus.total > 0 ? (recalcStatus.processed / recalcStatus.total * 100) : 0
+                        }%` }}
                       ></div>
                     </div>
-                    <p className="mt-1.5 text-[10px] text-body">{t('admin.recalculate.paidOnlyNote')}</p>
+
+                    {/* Phase steps */}
+                    <div className="mt-2 flex items-center gap-1">
+                      {['fetching', 'calculating', 'saving'].map((phase, idx) => (
+                        <div key={phase} className="flex items-center gap-1">
+                          {idx > 0 && <span className="text-[10px] text-body mx-1">→</span>}
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                            recalcStatus.phase === phase
+                              ? 'bg-warning text-white font-bold'
+                              : ['fetching', 'calculating', 'saving'].indexOf(recalcStatus.phase || '') > idx
+                              ? 'bg-success bg-opacity-20 text-success'
+                              : 'bg-stroke text-body dark:bg-strokedark'
+                          }`}>
+                            {phase === 'fetching' ? t('admin.recalculate.phaseFetch') :
+                             phase === 'calculating' ? t('admin.recalculate.phaseCalc') :
+                             t('admin.recalculate.phaseSave')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="mt-1.5 text-[10px] text-body">
+                      {recalcStatus.phase === 'fetching'
+                        ? t('admin.recalculate.fetchNote')
+                        : t('admin.recalculate.paidOnlyNote')}
+                    </p>
                     <div className="mt-3 grid grid-cols-4 gap-3">
                       <div className="text-center">
                         <p className="text-lg font-bold text-black dark:text-white">{recalcStatus.processed.toLocaleString()}</p>
