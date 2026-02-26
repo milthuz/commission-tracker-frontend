@@ -64,7 +64,7 @@ const Profile = () => {
   useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, set{t('common.saving')} useState(false);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   // Editable fields
@@ -102,7 +102,7 @@ const Profile = () => {
   }, []);
 
   const handleSave = async () => {
-    set{t('common.saving')}ue);
+    setSaving(true);
     try {
       const token = localStorage.getItem('token');
       await axios.put(`${API_URL}/api/user/preferences`, {
@@ -123,7 +123,7 @@ const Profile = () => {
       console.error('Error saving preferences:', e);
       alert('Failed to save preferences');
     } finally {
-      set{t('common.saving')}lse);
+      setSaving(false);
     }
   };
 

@@ -652,7 +652,7 @@ const AdminPanel = () => {
                     <p className="text-xs font-medium uppercase text-body">{t('admin.recalculate.lastResult')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
                       {recalcStatus?.lastRecalcProcessed ? (
-                        <span>{recalcStatus.lastRecalcProcessed.toLocaleString()} {t('admin.recalculate.processed').toLowerCase()} · <span className="text-success">{recalcStatus.lastRecalcUpdated.toLocaleString()} {t('admin.recalculate.updated').toLowerCase()}</span>{recalcStatus.lastRecalcErrors > 0 && <span className="text-danger"> · {recalcStatus.lastRecalcErrors} errors</span>}</span>
+                        <span>{recalcStatus.lastRecalcProcessed.toLocaleString()} {t('admin.recalculate.processed').toLowerCase()} · <span className="text-success">{recalcStatus.lastRecalcUpdated.toLocaleString()} {t('admin.recalculate.updated').toLowerCase()}</span>{recalcStatus.lastRecalcErrors > 0 && <span className="text-danger"> · {recalcStatus.lastRecalcErrors} {t('admin.recalculate.errors').toLowerCase()}</span>}</span>
                       ) : (
                         <span className="text-body">Never run</span>
                       )}
@@ -676,7 +676,7 @@ const AdminPanel = () => {
                     <svg className={`h-4 w-4 ${recalcPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
-                    {recalcPolling ? `Recalculating... ${recalcStatus?.{t('admin.recalculate.processed').toLowerCase()}?.toLocaleString() || 0} / ${recalcStatus?.total?.toLocaleString() || '?'}` :
+                    {recalcPolling ? `${t('admin.recalculate.recalculating')}... ${recalcStatus?.processed?.toLocaleString() || 0} / ${recalcStatus?.total?.toLocaleString() || '?'}` :
                      recalcStatus?.completedAt && !recalcStatus?.lastRecalcAt ? t('admin.recalculate.complete') :
                      t('admin.recalculate.recalculateAll')}
                   </button>
@@ -691,20 +691,20 @@ const AdminPanel = () => {
                         <span className="text-sm font-medium text-warning">{t('admin.recalculate.processingPaid')}</span>
                       </div>
                       <span className="text-xs font-medium text-body">
-                        {recalcStatus.{t('admin.recalculate.processed').toLowerCase()}.toLocaleString()} / {recalcStatus.total.toLocaleString()}
-                        {recalcStatus.total > 0 && ` (${Math.round(recalcStatus.{t('admin.recalculate.processed').toLowerCase()} / recalcStatus.total * 100)}%)`}
+                        {recalcStatus.processed.toLocaleString()} / {recalcStatus.total.toLocaleString()}
+                        {recalcStatus.total > 0 && ` (${Math.round(recalcStatus.processed / recalcStatus.total * 100)}%)`}
                       </span>
                     </div>
                     <div className="w-full bg-stroke rounded-full h-2.5 dark:bg-strokedark">
                       <div
                         className="bg-warning h-2.5 rounded-full transition-all duration-500"
-                        style={{ width: `${recalcStatus.total > 0 ? (recalcStatus.{t('admin.recalculate.processed').toLowerCase()} / recalcStatus.total * 100) : 0}%` }}
+                        style={{ width: `${recalcStatus.total > 0 ? (recalcStatus.processed / recalcStatus.total * 100) : 0}%` }}
                       ></div>
                     </div>
                     <p className="mt-1.5 text-[10px] text-body">{t('admin.recalculate.paidOnlyNote')}</p>
                     <div className="mt-3 grid grid-cols-4 gap-3">
                       <div className="text-center">
-                        <p className="text-lg font-bold text-black dark:text-white">{recalcStatus.{t('admin.recalculate.processed').toLowerCase()}.toLocaleString()}</p>
+                        <p className="text-lg font-bold text-black dark:text-white">{recalcStatus.processed.toLocaleString()}</p>
                         <p className="text-[10px] uppercase text-body">{t('admin.recalculate.processed')}</p>
                       </div>
                       <div className="text-center">
