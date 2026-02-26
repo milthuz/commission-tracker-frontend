@@ -1,10 +1,21 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { Eye, Download, X } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL;
+
+interface DrillInvoice {
+  invoiceNumber: string;
+  customerName: string;
+  date: string;
+  total: number;
+  commission: number;
+  status: string;
+  commissionPaid: boolean;
+}
 
 interface MonthData {
   month: number;
@@ -49,6 +60,24 @@ const CommissionReport = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [approvingMonth, setApprovingMonth] = useState<number | null>(null);
 
+  // Drill-down state
+  const [expandedMonth, setExpandedMonth] = useState<number | null>(null);
+  const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
+  const [drillInvoices, setDrillInvoices] = useState<DrillInvoice[]>([]);
+  const [loadingDrill, setLoadingDrill] = useState(false);
+
+  // Preview modal
+  const [previewModal, setPreviewModal] = useState<{ isOpen: boolean; invoiceNumber: string; loading: boolean }>({
+    isOpen: false, invoiceNumber: '', loading: false,
+  });
+  // Email modal
+  const [emailModal, setEmailModal] = useState<{ isOpen: boolean; invoiceNumber: string; email: string; sending: boolean }>({
+    isOpen: false, invoiceNumber: '', email: '', sending: false,
+  });
+  const [notification, setNotification] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
+    show: false, message: '', type: 'success',
+  });
+
   // Check admin status
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -79,6 +108,11 @@ const CommissionReport = () => {
 
   // Fetch report data
   useEffect(() => {
+    // Reset drill-downs when filters change
+    setExpandedMonth(null);
+    setExpandedCustomer(null);
+    setDrillInvoices([]);
+
     const fetchReport = async () => {
       setLoading(true);
       try {
@@ -164,6 +198,182 @@ const CommissionReport = () => {
       setApprovingMonth(null);
     }
   };
+
+  // Drill-down: fetch invoices for a month
+  const toggleMonthDrill = async (month: number) => {
+    if (expandedMonth === month) {
+      setExpandedMonth(null);
+      setDrillInvoices([]);
+      return;
+    }
+    setExpandedMonth(month);
+    setExpandedCustomer(null);
+    setLoadingDrill(true);
+    try {
+      const token = localStorage.getItem('token');
+      const params: Record<string, string> = { year: selectedYear, month: String(month) };
+      if (report) params.repName = report.repName;
+      const res = await axios.get(`${API_URL}/api/commissions/invoices`, {
+        headers: { Authorization: `Bearer ${token}` }, params,
+      });
+      setDrillInvoices(res.data.invoices || []);
+    } catch (e) {
+      console.error('Error fetching drill invoices:', e);
+    } finally {
+      setLoadingDrill(false);
+    }
+  };
+
+  // Drill-down: fetch invoices for a customer
+  const toggleCustomerDrill = async (customerName: string) => {
+    if (expandedCustomer === customerName) {
+      setExpandedCustomer(null);
+      setDrillInvoices([]);
+      return;
+    }
+    setExpandedCustomer(customerName);
+    setExpandedMonth(null);
+    setLoadingDrill(true);
+    try {
+      const token = localStorage.getItem('token');
+      const params: Record<string, string> = {
+        year: selectedYear,
+        customer: customerName,
+        repName: report?.repName || '',
+      };
+      if (selectedMonth !== 'all') params.month = selectedMonth;
+      const res = await axios.get(`${API_URL}/api/commissions/invoices`, {
+        headers: { Authorization: `Bearer ${token}` }, params,
+      });
+      setDrillInvoices(res.data.invoices || []);
+    } catch (e) {
+      console.error('Error fetching customer invoices:', e);
+    } finally {
+      setLoadingDrill(false);
+    }
+  };
+
+  // Invoice preview
+  const handlePreview = (invoiceNumber: string) => {
+    setPreviewModal({ isOpen: true, invoiceNumber, loading: true });
+  };
+  const handleClosePreview = () => {
+    setPreviewModal({ isOpen: false, invoiceNumber: '', loading: false });
+  };
+
+  // Print
+  const handlePrint = async (invoiceNumber: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/invoices/${invoiceNumber}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` }, responseType: 'blob',
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const printWindow = window.open(url, '_blank');
+      if (printWindow) printWindow.onload = () => printWindow.print();
+    } catch (_e) {
+      alert('Failed to print invoice.');
+    }
+  };
+
+  // Download PDF
+  const handleDownload = async (invoiceNumber: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/invoices/${invoiceNumber}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` }, responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${invoiceNumber}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (_e) {
+      alert('Failed to download PDF.');
+    }
+  };
+
+  // Email
+  const handleEmail = (invoiceNumber: string) => {
+    setEmailModal({ isOpen: true, invoiceNumber, email: '', sending: false });
+  };
+  const handleSendEmail = async () => {
+    const { invoiceNumber, email } = emailModal;
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setNotification({ show: true, message: 'Please enter a valid email', type: 'error' });
+      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
+      return;
+    }
+    setEmailModal(prev => ({ ...prev, sending: true }));
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/invoices/${invoiceNumber}/email`,
+        { recipientEmail: email },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false });
+      setNotification({ show: true, message: 'Invoice sent successfully!', type: 'success' });
+      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
+    } catch (_e) {
+      setEmailModal(prev => ({ ...prev, sending: false }));
+      setNotification({ show: true, message: 'Failed to send email', type: 'error' });
+      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
+    }
+  };
+
+  // Reusable invoice sub-table for drill-downs
+  const renderInvoiceTable = (invoices: DrillInvoice[]) => (
+    <table className="w-full table-auto">
+      <thead>
+        <tr className="bg-gray-50 dark:bg-meta-4/50">
+          <th className="px-3 py-2 text-xs font-medium text-body text-left">Invoice #</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-left">Customer</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-left">Date</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-right">Total</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-right">Commission</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-center">Comm. Status</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {invoices.map((inv) => (
+          <tr key={inv.invoiceNumber} className="border-b border-stroke/50 dark:border-strokedark/50 hover:bg-gray-50 dark:hover:bg-meta-4/30">
+            <td className="px-3 py-2.5 text-xs font-medium text-primary">{inv.invoiceNumber}</td>
+            <td className="px-3 py-2.5 text-xs text-black dark:text-white truncate max-w-[160px]">{inv.customerName}</td>
+            <td className="px-3 py-2.5 text-xs text-body">{new Date(inv.date).toLocaleDateString('en-CA')}</td>
+            <td className="px-3 py-2.5 text-xs text-right text-body">{formatCurrency(inv.total)}</td>
+            <td className="px-3 py-2.5 text-xs text-right font-medium text-black dark:text-white">{formatCurrency(inv.commission)}</td>
+            <td className="px-3 py-2.5 text-center">
+              {inv.commissionPaid ? (
+                <span className="inline-flex rounded-full bg-success bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-success">PAID</span>
+              ) : (
+                <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-warning">PENDING</span>
+              )}
+            </td>
+            <td className="px-3 py-2.5">
+              <div className="flex items-center justify-center gap-2">
+                <button onClick={() => handlePreview(inv.invoiceNumber)} className="text-primary hover:text-primary/70 transition" title="Preview">
+                  <Eye className="h-4 w-4" />
+                </button>
+                <button onClick={() => handleDownload(inv.invoiceNumber)} className="text-success hover:text-success/70 transition" title="Download">
+                  <Download className="h-4 w-4" />
+                </button>
+                <button onClick={() => handleEmail(inv.invoiceNumber)} className="text-body hover:text-primary transition" title="Email">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                </button>
+                <button onClick={() => handlePrint(inv.invoiceNumber)} className="text-body hover:text-primary transition" title="Print">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -404,15 +614,22 @@ const CommissionReport = () => {
                   const isHighlighted = selectedMonth !== 'all'
                     ? m.month === parseInt(selectedMonth)
                     : m.month - 1 === currentMonthIndex && selectedYear === new Date().getFullYear().toString();
+                  const isExpanded = expandedMonth === m.month;
                   return (
+                  <React.Fragment key={m.month}>
                   <tr
-                    key={m.month}
-                    className={`border-b border-stroke dark:border-strokedark ${
+                    className={`border-b border-stroke dark:border-strokedark cursor-pointer hover:bg-gray-50 dark:hover:bg-meta-4/30 transition ${
                       isHighlighted ? 'bg-[#8B5CF6] bg-opacity-5' : ''
-                    }`}
+                    } ${isExpanded ? 'bg-[#8B5CF6] bg-opacity-5' : ''}`}
+                    onClick={() => m.paidCommission > 0 && toggleMonthDrill(m.month)}
                   >
                     <td className="px-3 py-3.5">
                       <div className="flex items-center gap-2">
+                        {m.paidCommission > 0 && (
+                          <svg className={`h-3.5 w-3.5 text-body transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        )}
                         <span className="text-sm font-medium text-black dark:text-white">
                           {MONTH_NAMES[m.month - 1]}
                         </span>
@@ -477,6 +694,26 @@ const CommissionReport = () => {
                       </td>
                     )}
                   </tr>
+                  {/* Expanded invoice drill-down */}
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={isAdmin ? 5 : 4} className="p-0">
+                        <div className="bg-[#8B5CF6] bg-opacity-[0.03] border-b border-[#8B5CF6] border-opacity-20 px-4 py-3">
+                          {loadingDrill ? (
+                            <div className="flex items-center justify-center py-4">
+                              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
+                              <span className="ml-2 text-xs text-body">Loading invoices...</span>
+                            </div>
+                          ) : drillInvoices.length === 0 ? (
+                            <p className="text-xs text-body py-2">No qualifying invoices found</p>
+                          ) : (
+                            renderInvoiceTable(drillInvoices)
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
                   );
                 })}
                 {/* Totals Row */}
@@ -508,7 +745,7 @@ const CommissionReport = () => {
             {report.customers.length === 0 ? (
               <p className="text-sm text-body py-8 text-center">No paid commissions for this period</p>
             ) : (
-              <div className="max-h-[500px] overflow-y-auto">
+              <div className="max-h-[600px] overflow-y-auto">
                 <table className="w-full table-auto">
                   <thead>
                     <tr className="bg-gray-2 text-left dark:bg-meta-4">
@@ -518,11 +755,20 @@ const CommissionReport = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {report.customers.map((customer, idx) => (
-                      <tr key={customer.customerName} className="border-b border-stroke dark:border-strokedark">
+                    {report.customers.map((customer, idx) => {
+                      const isExpanded = expandedCustomer === customer.customerName;
+                      return (
+                      <React.Fragment key={customer.customerName}>
+                      <tr
+                        className={`border-b border-stroke dark:border-strokedark cursor-pointer hover:bg-gray-50 dark:hover:bg-meta-4/30 transition ${isExpanded ? 'bg-[#8B5CF6] bg-opacity-5' : ''}`}
+                        onClick={() => toggleCustomerDrill(customer.customerName)}
+                      >
                         <td className="px-3 py-3">
                           <div className="flex items-center gap-2.5">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-2 dark:bg-meta-4 text-xs font-bold text-body">
+                            <svg className={`h-3.5 w-3.5 text-body transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-2 dark:bg-meta-4 text-xs font-bold text-body flex-shrink-0">
                               {idx + 1}
                             </span>
                             <div>
@@ -540,7 +786,28 @@ const CommissionReport = () => {
                           {formatCurrency(customer.commission)}
                         </td>
                       </tr>
-                    ))}
+                      {/* Expanded invoice drill-down */}
+                      {isExpanded && (
+                        <tr>
+                          <td colSpan={3} className="p-0">
+                            <div className="bg-[#8B5CF6] bg-opacity-[0.03] border-b border-[#8B5CF6] border-opacity-20 px-4 py-3">
+                              {loadingDrill ? (
+                                <div className="flex items-center justify-center py-4">
+                                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
+                                  <span className="ml-2 text-xs text-body">Loading invoices...</span>
+                                </div>
+                              ) : drillInvoices.length === 0 ? (
+                                <p className="text-xs text-body py-2">No qualifying invoices found</p>
+                              ) : (
+                                renderInvoiceTable(drillInvoices)
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      </React.Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -548,6 +815,92 @@ const CommissionReport = () => {
           </div>
         </div>
       </div>
+
+      {/* Preview Modal */}
+      {previewModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleClosePreview}>
+          <div className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-stroke dark:border-strokedark">
+              <h3 className="text-lg font-semibold text-black dark:text-white">Invoice {previewModal.invoiceNumber}</h3>
+              <div className="flex items-center gap-3">
+                <button onClick={() => handlePrint(previewModal.invoiceNumber)} className="inline-flex items-center gap-1.5 rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                  Print
+                </button>
+                <button onClick={() => handleDownload(previewModal.invoiceNumber)} className="inline-flex items-center gap-1.5 rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4">
+                  <Download className="h-4 w-4" />
+                  Download
+                </button>
+                <button onClick={() => handleEmail(previewModal.invoiceNumber)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  Email
+                </button>
+                <button onClick={handleClosePreview} className="text-black dark:text-white hover:text-primary transition">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+            <div className="relative overflow-auto" style={{ height: 'calc(90vh - 80px)' }}>
+              {previewModal.loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+                </div>
+              )}
+              <iframe
+                src={`${API_URL}/api/invoices/${previewModal.invoiceNumber}/preview?token=${localStorage.getItem('token')}`}
+                className="w-full border-0"
+                style={{ minHeight: '600px', height: 'calc(90vh - 80px)' }}
+                title="Invoice Preview"
+                onLoad={() => setPreviewModal(prev => ({ ...prev, loading: false }))}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Modal */}
+      {emailModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => !emailModal.sending && setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })}>
+          <div className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-stroke dark:border-strokedark">
+              <div>
+                <h3 className="text-lg font-bold text-black dark:text-white">Email Invoice</h3>
+                <p className="text-sm text-body">{emailModal.invoiceNumber}</p>
+              </div>
+              <button onClick={() => !emailModal.sending && setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })} className="text-black dark:text-white hover:text-primary transition">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="p-6">
+              <label className="mb-3 block text-sm font-medium text-black dark:text-white">Recipient Email</label>
+              <input
+                type="email"
+                value={emailModal.email}
+                onChange={(e) => setEmailModal(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="example@email.com"
+                disabled={emailModal.sending}
+                className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                onKeyDown={(e) => { if (e.key === 'Enter' && !emailModal.sending) handleSendEmail(); }}
+              />
+            </div>
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-stroke dark:border-strokedark">
+              <button onClick={() => setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })} disabled={emailModal.sending} className="rounded-md border border-stroke px-6 py-2.5 text-sm font-medium text-black dark:border-strokedark dark:text-white disabled:opacity-50">Cancel</button>
+              <button onClick={handleSendEmail} disabled={emailModal.sending} className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                {emailModal.sending ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>Sending...</>) : (<>Send Email</>)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification */}
+      {notification.show && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className={`flex items-center gap-3 rounded-lg px-6 py-4 shadow-lg ${notification.type === 'success' ? 'bg-success text-white' : 'bg-danger text-white'}`}>
+            <p className="font-medium">{notification.message}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
