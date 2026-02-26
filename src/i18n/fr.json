@@ -314,5 +314,15 @@
     "activeRep": "Vendeur actif",
     "inactiveRep": "Vendeur inactif",
     "failedToLoad": "Impossible de charger le profil"
+  },
+  "versions": {
+    "title": "Historique des versions",
+    "subtitle": "Versions du Suivi des commissions",
+    "noReleases": "Aucune version trouvée.",
+    "retry": "Réessayer",
+    "errorLoading": "Impossible de charger l'historique des versions. Veuillez réessayer plus tard.",
+    "version": "Version",
+    "currentRelease": "Version actuelle",
+    "preRelease": "Pré-version"
   }
 }

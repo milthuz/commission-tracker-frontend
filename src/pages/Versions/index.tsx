@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface GitHubRelease {
   id: number;
@@ -10,6 +11,7 @@ interface GitHubRelease {
 }
 
 const Versions: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const [releases, setReleases] = useState<GitHubRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +36,7 @@ const Versions: React.FC = () => {
       setError(null);
     } catch (err) {
       console.error('Error fetching releases:', err);
-      setError('Failed to load release history. Please try again later.');
+      setError(t('versions.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -42,7 +44,8 @@ const Versions: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    const locale = i18n.language === 'fr' ? 'fr-CA' : 'en-US';
+    return date.toLocaleDateString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -106,13 +109,13 @@ const Versions: React.FC = () => {
       <div className="mx-auto max-w-270">
         <div className="mb-6">
           <h2 className="text-title-md2 font-semibold text-black dark:text-white">
-            Version History
+            {t('versions.title')}
           </h2>
         </div>
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
             <h3 className="font-medium text-black dark:text-white">
-              Commission Tracker Releases
+              {t('versions.subtitle')}
             </h3>
           </div>
           <div className="p-6.5 flex items-center justify-center">
@@ -128,13 +131,13 @@ const Versions: React.FC = () => {
       <div className="mx-auto max-w-270">
         <div className="mb-6">
           <h2 className="text-title-md2 font-semibold text-black dark:text-white">
-            Version History
+            {t('versions.title')}
           </h2>
         </div>
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
             <h3 className="font-medium text-black dark:text-white">
-              Commission Tracker Releases
+              {t('versions.subtitle')}
             </h3>
           </div>
           <div className="p-6.5">
@@ -158,7 +161,7 @@ const Versions: React.FC = () => {
               onClick={fetchReleases}
               className="mt-4 rounded-md bg-primary px-6 py-2 text-white hover:bg-opacity-90"
             >
-              Retry
+              {t('versions.retry')}
             </button>
           </div>
         </div>
@@ -171,7 +174,7 @@ const Versions: React.FC = () => {
       {/* Page Header */}
       <div className="mb-6">
         <h2 className="text-title-md2 font-semibold text-black dark:text-white">
-          Version History
+          {t('versions.title')}
         </h2>
       </div>
 
@@ -179,14 +182,14 @@ const Versions: React.FC = () => {
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
           <h3 className="font-medium text-black dark:text-white">
-            Commission Tracker Releases
+            {t('versions.subtitle')}
           </h3>
         </div>
         
         <div className="p-6.5">
           {releases.length === 0 ? (
             <div className="text-center py-10">
-              <p className="text-body dark:text-bodydark">No releases found.</p>
+              <p className="text-body dark:text-bodydark">{t('versions.noReleases')}</p>
             </div>
           ) : (
             releases.map((release, index) => {
@@ -228,11 +231,11 @@ const Versions: React.FC = () => {
                     </span>
                     <div>
                       <h4 className="text-xl font-semibold text-black dark:text-white">
-                        Version {version}
+                        {t('versions.version')} {version}
                       </h4>
                       <p className="text-sm text-body">
-                        {isCurrent && 'Current Release • '}
-                        {release.prerelease && 'Pre-release • '}
+                        {isCurrent && t('versions.currentRelease') + ' • '}
+                        {release.prerelease && t('versions.preRelease') + ' • '}
                         {formatDate(release.published_at)}
                       </p>
                     </div>

@@ -314,5 +314,15 @@
     "activeRep": "Active Rep",
     "inactiveRep": "Inactive Rep",
     "failedToLoad": "Failed to load profile"
+  },
+  "versions": {
+    "title": "Version History",
+    "subtitle": "Commission Tracker Releases",
+    "noReleases": "No releases found.",
+    "retry": "Retry",
+    "errorLoading": "Failed to load release history. Please try again later.",
+    "version": "Version",
+    "currentRelease": "Current Release",
+    "preRelease": "Pre-release"
   }
 }
