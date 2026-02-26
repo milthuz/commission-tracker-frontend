@@ -422,9 +422,9 @@ const AdminPanel = () => {
   };
 
   // Filter salespeople by search
-  const filteredSalespeople = salespeople.filter(person =>
-    person.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredSalespeople = salespeople
+    .filter(person => person.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => Number(b.isActive) - Number(a.isActive) || a.name.localeCompare(b.name));
 
   const activePeople = filteredSalespeople.filter(p => p.isActive);
   const inactivePeople = filteredSalespeople.filter(p => !p.isActive);
