@@ -13,6 +13,8 @@ interface MonthData {
   commission: number;
   paidCommission: number;
   paidRevenue: number;
+  commissionPaidCount: number;
+  commissionQualifyingCount: number;
 }
 
 interface CustomerData {
@@ -45,6 +47,7 @@ const CommissionReport = () => {
   const [selectedRep, setSelectedRep] = useState('');
   const [salespeople, setSalespeople] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [approvingMonth, setApprovingMonth] = useState<number | null>(null);
 
   // Check admin status
   useEffect(() => {
@@ -97,6 +100,70 @@ const CommissionReport = () => {
     };
     fetchReport();
   }, [selectedYear, selectedMonth, selectedRep]);
+
+  const refreshReport = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const params: Record<string, string> = { year: selectedYear };
+      if (selectedRep) params.repName = selectedRep;
+      if (selectedMonth !== 'all') params.month = selectedMonth;
+      const res = await axios.get(`${API_URL}/api/commissions/report`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      });
+      setReport(res.data);
+    } catch (e) {
+      console.error('Error refreshing report:', e);
+    }
+  };
+
+  const approveMonth = async (month: number) => {
+    if (!report) return;
+    const monthName = MONTH_NAMES[month - 1];
+    if (!confirm(`Approve commission for ${report.repName} — ${monthName} ${selectedYear}? This marks all qualifying invoices as commission paid.`)) return;
+    
+    setApprovingMonth(month);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/commissions/approve`, {
+        repName: report.repName,
+        year: selectedYear,
+        month,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      alert(`✓ Approved! ${res.data.invoicesUpdated} invoices marked as commission paid.`);
+      await refreshReport();
+    } catch (e) {
+      console.error('Error approving:', e);
+      alert('Failed to approve commission');
+    } finally {
+      setApprovingMonth(null);
+    }
+  };
+
+  const unapproveMonth = async (month: number) => {
+    if (!report) return;
+    const monthName = MONTH_NAMES[month - 1];
+    if (!confirm(`Undo approval for ${report.repName} — ${monthName} ${selectedYear}? This will revert commission paid status.`)) return;
+    
+    setApprovingMonth(month);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/commissions/unapprove`, {
+        repName: report.repName,
+        year: selectedYear,
+        month,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      alert(`↩ Reverted! ${res.data.invoicesUpdated} invoices unmarked.`);
+      await refreshReport();
+    } catch (e) {
+      console.error('Error unapproving:', e);
+      alert('Failed to unapprove commission');
+    } finally {
+      setApprovingMonth(null);
+    }
+  };
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -329,6 +396,7 @@ const CommissionReport = () => {
                   <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">Revenue</th>
                   <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">Commission</th>
                   <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">Invoices</th>
+                  {isAdmin && <th className="px-3 py-3 text-sm font-medium text-center text-black dark:text-white">Status</th>}
                 </tr>
               </thead>
               <tbody>
@@ -362,6 +430,52 @@ const CommissionReport = () => {
                     <td className="px-3 py-3.5 text-right text-sm text-body">
                       {m.invoices > 0 ? m.invoices : '—'}
                     </td>
+                    {isAdmin && (
+                      <td className="px-3 py-3.5 text-center">
+                        {m.commissionQualifyingCount === 0 ? (
+                          <span className="text-xs text-body">—</span>
+                        ) : m.commissionPaidCount === m.commissionQualifyingCount ? (
+                          <div className="flex items-center justify-center gap-1.5">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-success bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-success">
+                              ✓ Paid
+                            </span>
+                            <button
+                              onClick={() => unapproveMonth(m.month)}
+                              disabled={approvingMonth === m.month}
+                              className="text-xs text-body hover:text-danger transition"
+                              title="Undo approval"
+                            >
+                              ↩
+                            </button>
+                          </div>
+                        ) : m.commissionPaidCount > 0 ? (
+                          <div className="flex items-center justify-center gap-1.5">
+                            <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-warning">
+                              {m.commissionPaidCount}/{m.commissionQualifyingCount}
+                            </span>
+                            <button
+                              onClick={() => approveMonth(m.month)}
+                              disabled={approvingMonth === m.month}
+                              className="text-xs font-medium text-primary hover:underline"
+                            >
+                              {approvingMonth === m.month ? '...' : 'Approve rest'}
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => approveMonth(m.month)}
+                            disabled={approvingMonth === m.month}
+                            className="inline-flex items-center gap-1 rounded-md border border-stroke px-3 py-1 text-xs font-medium text-body hover:bg-gray-50 hover:text-primary dark:border-strokedark dark:hover:bg-meta-4 transition disabled:opacity-50"
+                          >
+                            {approvingMonth === m.month ? (
+                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                            ) : (
+                              'Approve'
+                            )}
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                   );
                 })}
@@ -377,6 +491,7 @@ const CommissionReport = () => {
                   <td className="px-3 py-3.5 text-right text-sm font-bold text-black dark:text-white">
                     {report.summary.ytd.invoices}
                   </td>
+                  {isAdmin && <td></td>}
                 </tr>
               </tbody>
             </table>

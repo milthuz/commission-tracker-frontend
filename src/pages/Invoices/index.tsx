@@ -13,6 +13,7 @@ interface Invoice {
   total: number;
   commission: number;
   status: 'paid' | 'overdue' | 'pending' | 'draft' | 'void' | 'partially_paid' | 'sent';
+  commissionPaid: boolean;
 }
 
 interface InvoiceStats {
@@ -1208,9 +1209,16 @@ const Invoices = () => {
                       </p>
                     </td>
                     <td className="px-4 py-5">
-                      <p className="text-success font-medium">
-                        {formatCurrency(invoice.commission)}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-success font-medium">
+                          {formatCurrency(invoice.commission)}
+                        </p>
+                        {invoice.commissionPaid && (
+                          <span className="inline-flex rounded-full bg-success bg-opacity-10 px-1.5 py-0.5 text-[10px] font-bold text-success" title="Commission paid to rep">
+                            PAID
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-5">
                       {getStatusBadge(invoice.status)}
