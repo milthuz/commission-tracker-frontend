@@ -506,7 +506,7 @@ const CommissionReport = () => {
             onChange={(e) => setSelectedYear(e.target.value)}
             className="rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
           >
-            {[2022, 2023, 2024, 2025, 2026].map(y => (
+            {[2026, 2025, 2024, 2023, 2022].map(y => (
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
