@@ -84,6 +84,18 @@ const AdminPanel = () => {
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [adminLoading, setAdminLoading] = useState(false);
 
+  // Salespeople tab and edit lock state
+  const [salespeopleTab, setSalespeopleTab] = useState<'active' | 'inactive'>('active');
+  const [unlockedFields, setUnlockedFields] = useState<Record<string, boolean>>({});
+  const [confirmModal, setConfirmModal] = useState<{
+    show: boolean;
+    name: string;
+    field: string;
+    oldValue: number;
+    newValue: number;
+    onConfirm: () => void;
+  } | null>(null);
+
   // Check if user is admin
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -535,6 +547,7 @@ const AdminPanel = () => {
     }
   };
 
+  // Update commission rate (called after confirmation)
   const updateCommissionRate = async (name: string, rate: number) => {
     try {
       const token = localStorage.getItem('token');
@@ -552,13 +565,30 @@ const AdminPanel = () => {
             : person
         )
       );
+      // Re-lock the field after save
+      setUnlockedFields(prev => ({ ...prev, [`${name}_commission`]: false }));
     } catch (error) {
       console.error('Error updating commission rate:', error);
       alert('Failed to update commission rate');
     }
   };
 
-  // Update base salary
+  // Show confirmation for commission rate change
+  const confirmCommissionRate = (name: string, oldValue: number, newValue: number) => {
+    setConfirmModal({
+      show: true,
+      name,
+      field: t('admin.salespeople.commissionPercent'),
+      oldValue,
+      newValue,
+      onConfirm: () => {
+        updateCommissionRate(name, newValue);
+        setConfirmModal(null);
+      },
+    });
+  };
+
+  // Update base salary (called after confirmation)
   const updateBaseSalary = async (name: string, salary: number) => {
     try {
       const token = localStorage.getItem('token');
@@ -576,10 +606,27 @@ const AdminPanel = () => {
             : person
         )
       );
+      // Re-lock the field after save
+      setUnlockedFields(prev => ({ ...prev, [`${name}_salary`]: false }));
     } catch (error) {
       console.error('Error updating base salary:', error);
       alert(t('admin.salespeople.failedUpdateSalary'));
     }
+  };
+
+  // Show confirmation for base salary change
+  const confirmBaseSalary = (name: string, oldValue: number, newValue: number) => {
+    setConfirmModal({
+      show: true,
+      name,
+      field: t('admin.salespeople.baseSalary'),
+      oldValue,
+      newValue,
+      onConfirm: () => {
+        updateBaseSalary(name, newValue);
+        setConfirmModal(null);
+      },
+    });
   };
 
   // Filter salespeople by search
@@ -839,6 +886,54 @@ const AdminPanel = () => {
 
           {/* ==================== SALESPEOPLE ==================== */}
           {activeTab === 'salespeople' && (
+            <>
+            {/* Confirmation Modal */}
+            {confirmModal?.show && (
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50">
+                <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning bg-opacity-10">
+                      <svg className="h-5 w-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.salespeople.confirmChange')}</h3>
+                      <p className="text-sm text-body">{confirmModal.name}</p>
+                    </div>
+                  </div>
+                  <div className="mb-5 rounded-md bg-gray-2 p-4 dark:bg-meta-4">
+                    <p className="text-sm text-body mb-2">{confirmModal.field}</p>
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-bold text-danger line-through">
+                        {confirmModal.field.includes('%') ? `${confirmModal.oldValue}%` : `$${confirmModal.oldValue.toLocaleString()}`}
+                      </span>
+                      <svg className="h-4 w-4 text-body" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                      <span className="text-lg font-bold text-success">
+                        {confirmModal.field.includes('%') ? `${confirmModal.newValue}%` : `$${confirmModal.newValue.toLocaleString()}`}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setConfirmModal(null)}
+                      className="rounded-md border border-stroke px-5 py-2.5 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
+                    >
+                      {t('common.cancel')}
+                    </button>
+                    <button
+                      onClick={confirmModal.onConfirm}
+                      className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90"
+                    >
+                      {t('admin.salespeople.confirmSave')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
                 <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.salespeople.title')}</h3>
@@ -861,6 +956,30 @@ const AdminPanel = () => {
                     <span className="ml-2 text-sm text-body">{t('admin.salespeople.inactiveSalespeople')}</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Active / Inactive Tabs */}
+              <div className="flex border-b border-stroke dark:border-strokedark">
+                <button
+                  onClick={() => setSalespeopleTab('active')}
+                  className={`flex-1 py-3.5 text-center text-sm font-medium transition ${
+                    salespeopleTab === 'active'
+                      ? 'border-b-2 border-success text-success'
+                      : 'text-body hover:text-black dark:hover:text-white'
+                  }`}
+                >
+                  {t('common.active')} ({activePeople.length})
+                </button>
+                <button
+                  onClick={() => setSalespeopleTab('inactive')}
+                  className={`flex-1 py-3.5 text-center text-sm font-medium transition ${
+                    salespeopleTab === 'inactive'
+                      ? 'border-b-2 border-danger text-danger'
+                      : 'text-body hover:text-black dark:hover:text-white'
+                  }`}
+                >
+                  {t('common.inactive')} ({inactivePeople.length})
+                </button>
               </div>
 
               {/* Search Bar */}
@@ -888,12 +1007,14 @@ const AdminPanel = () => {
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.invoices')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.commissionPercent')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.baseSalary')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.status')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.actions')}</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredSalespeople.map((person) => (
+                        {(salespeopleTab === 'active' ? activePeople : inactivePeople).map((person) => {
+                          const commissionUnlocked = unlockedFields[`${person.name}_commission`] || false;
+                          const salaryUnlocked = unlockedFields[`${person.name}_salary`] || false;
+                          return (
                           <tr key={person.name} className="border-b border-stroke dark:border-strokedark">
                             <td className="px-4 py-5">
                               <p className="text-black dark:text-white">{person.name}</p>
@@ -901,62 +1022,97 @@ const AdminPanel = () => {
                             <td className="px-4 py-5">
                               <p className="text-body">{person.invoiceCount} {t('common.invoices').toLowerCase()}</p>
                             </td>
+                            {/* Commission % with lock */}
                             <td className="px-4 py-5">
                               <div className="flex items-center gap-1.5">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  max="100"
-                                  step="0.5"
-                                  defaultValue={person.commissionRate}
-                                  onBlur={(e) => {
-                                    const val = parseFloat(e.target.value);
-                                    if (!isNaN(val) && val !== person.commissionRate) {
-                                      updateCommissionRate(person.name, val);
-                                    }
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                                  }}
-                                  className={`w-16 rounded border border-stroke bg-transparent px-2 py-1 text-center text-sm font-medium outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input ${
-                                    person.commissionRate !== 10 ? 'text-[#8B5CF6] border-[#8B5CF6] border-opacity-50' : 'text-black dark:text-white'
-                                  }`}
-                                />
-                                <span className="text-xs text-body">%</span>
-                                {person.commissionRate !== 10 && (
-                                  <span className="text-xs text-[#8B5CF6] font-medium">{t('admin.salespeople.override')}</span>
+                                {commissionUnlocked ? (
+                                  <>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      step="0.5"
+                                      autoFocus
+                                      defaultValue={person.commissionRate}
+                                      onBlur={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        if (!isNaN(val) && val !== person.commissionRate) {
+                                          confirmCommissionRate(person.name, person.commissionRate, val);
+                                        } else {
+                                          setUnlockedFields(prev => ({ ...prev, [`${person.name}_commission`]: false }));
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                        if (e.key === 'Escape') setUnlockedFields(prev => ({ ...prev, [`${person.name}_commission`]: false }));
+                                      }}
+                                      className={`w-16 rounded border border-primary bg-transparent px-2 py-1 text-center text-sm font-medium outline-none dark:bg-form-input ${
+                                        person.commissionRate !== 10 ? 'text-[#8B5CF6]' : 'text-black dark:text-white'
+                                      }`}
+                                    />
+                                    <span className="text-xs text-body">%</span>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={() => setUnlockedFields(prev => ({ ...prev, [`${person.name}_commission`]: true }))}
+                                    className="group flex items-center gap-2 rounded-md border border-stroke px-3 py-1.5 text-sm transition hover:border-primary dark:border-strokedark"
+                                  >
+                                    <span className={`font-medium ${person.commissionRate !== 10 ? 'text-[#8B5CF6]' : 'text-black dark:text-white'}`}>
+                                      {person.commissionRate}%
+                                    </span>
+                                    <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                    {person.commissionRate !== 10 && (
+                                      <span className="text-xs text-[#8B5CF6] font-medium">{t('admin.salespeople.override')}</span>
+                                    )}
+                                  </button>
                                 )}
                               </div>
                             </td>
+                            {/* Base Salary with lock */}
                             <td className="px-4 py-5">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-xs text-body">$</span>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="100"
-                                  defaultValue={person.baseSalary || 0}
-                                  onBlur={(e) => {
-                                    const val = parseFloat(e.target.value);
-                                    if (!isNaN(val) && val !== (person.baseSalary || 0)) {
-                                      updateBaseSalary(person.name, val);
-                                    }
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                                  }}
-                                  className={`w-24 rounded border border-stroke bg-transparent px-2 py-1 text-center text-sm font-medium outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input ${
-                                    (person.baseSalary || 0) > 0 ? 'text-primary border-primary border-opacity-50' : 'text-black dark:text-white'
-                                  }`}
-                                />
+                                {salaryUnlocked ? (
+                                  <>
+                                    <span className="text-xs text-body">$</span>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="100"
+                                      autoFocus
+                                      defaultValue={person.baseSalary || 0}
+                                      onBlur={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        if (!isNaN(val) && val !== (person.baseSalary || 0)) {
+                                          confirmBaseSalary(person.name, person.baseSalary || 0, val);
+                                        } else {
+                                          setUnlockedFields(prev => ({ ...prev, [`${person.name}_salary`]: false }));
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                        if (e.key === 'Escape') setUnlockedFields(prev => ({ ...prev, [`${person.name}_salary`]: false }));
+                                      }}
+                                      className={`w-24 rounded border border-primary bg-transparent px-2 py-1 text-center text-sm font-medium outline-none dark:bg-form-input ${
+                                        (person.baseSalary || 0) > 0 ? 'text-primary' : 'text-black dark:text-white'
+                                      }`}
+                                    />
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={() => setUnlockedFields(prev => ({ ...prev, [`${person.name}_salary`]: true }))}
+                                    className="group flex items-center gap-2 rounded-md border border-stroke px-3 py-1.5 text-sm transition hover:border-primary dark:border-strokedark"
+                                  >
+                                    <span className={`font-medium ${(person.baseSalary || 0) > 0 ? 'text-primary' : 'text-black dark:text-white'}`}>
+                                      ${(person.baseSalary || 0).toLocaleString()}
+                                    </span>
+                                    <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                  </button>
+                                )}
                               </div>
-                            </td>
-                            <td className="px-4 py-5">
-                              {person.isActive ? (
-                                <span className="inline-flex rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-medium text-success">{t('common.active')}</span>
-                              ) : (
-                                <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-3 py-1 text-sm font-medium text-danger">{t('common.inactive')}</span>
-                              )}
                             </td>
                             <td className="px-4 py-5">
                               <button
@@ -971,18 +1127,20 @@ const AdminPanel = () => {
                               </button>
                             </td>
                           </tr>
-                        ))}
+                          );
+                        })}
                       </tbody>
                     </table>
-                    {filteredSalespeople.length === 0 && (
+                    {(salespeopleTab === 'active' ? activePeople : inactivePeople).length === 0 && (
                       <div className="py-12 text-center">
-                        <p className="text-body">No salespeople found</p>
+                        <p className="text-body">{salespeopleTab === 'active' ? t('admin.salespeople.noActive') : t('admin.salespeople.noInactive')}</p>
                       </div>
                     )}
                   </div>
                 </div>
               )}
             </div>
+            </>
           )}
 
           {/* ==================== CUSTOMER EXCLUSIONS ==================== */}
