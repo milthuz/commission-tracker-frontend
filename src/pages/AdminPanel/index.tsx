@@ -639,7 +639,7 @@ const AdminPanel = () => {
                       {recalcStatus?.running ? (
                         <span className="inline-flex items-center gap-1.5 text-warning">
                           <span className="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
-                          Recalculating...
+                          Recalculating ({recalcStatus.total.toLocaleString()} paid invoices)
                         </span>
                       ) : (
                         <span className="text-success">Idle</span>
@@ -674,7 +674,7 @@ const AdminPanel = () => {
                     <svg className={`h-4 w-4 ${recalcPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
-                    {recalcPolling ? 'Recalculating...' :
+                    {recalcPolling ? `Recalculating... ${recalcStatus?.processed?.toLocaleString() || 0} / ${recalcStatus?.total?.toLocaleString() || '?'}` :
                      recalcStatus?.completedAt && !recalcStatus?.lastRecalcAt ? '✓ Complete' :
                      'Recalculate All'}
                   </button>
@@ -686,7 +686,7 @@ const AdminPanel = () => {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-warning border-t-transparent"></div>
-                        <span className="text-sm font-medium text-warning">Processing invoices...</span>
+                        <span className="text-sm font-medium text-warning">Processing paid invoices...</span>
                       </div>
                       <span className="text-xs font-medium text-body">
                         {recalcStatus.processed.toLocaleString()} / {recalcStatus.total.toLocaleString()}
@@ -699,6 +699,7 @@ const AdminPanel = () => {
                         style={{ width: `${recalcStatus.total > 0 ? (recalcStatus.processed / recalcStatus.total * 100) : 0}%` }}
                       ></div>
                     </div>
+                    <p className="mt-1.5 text-[10px] text-body">Only paid invoices are recalculated — unpaid, void, and draft invoices are skipped.</p>
                     <div className="mt-3 grid grid-cols-4 gap-3">
                       <div className="text-center">
                         <p className="text-lg font-bold text-black dark:text-white">{recalcStatus.processed.toLocaleString()}</p>
