@@ -41,6 +41,7 @@ const CommissionReport = () => {
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [selectedMonth, setSelectedMonth] = useState('all');
   const [selectedRep, setSelectedRep] = useState('');
   const [salespeople, setSalespeople] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -81,6 +82,7 @@ const CommissionReport = () => {
         const token = localStorage.getItem('token');
         const params: Record<string, string> = { year: selectedYear };
         if (selectedRep) params.repName = selectedRep;
+        if (selectedMonth !== 'all') params.month = selectedMonth;
 
         const res = await axios.get(`${API_URL}/api/commissions/report`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -94,7 +96,7 @@ const CommissionReport = () => {
       }
     };
     fetchReport();
-  }, [selectedYear, selectedRep]);
+  }, [selectedYear, selectedMonth, selectedRep]);
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -126,9 +128,10 @@ const CommissionReport = () => {
         distributed: true,
       },
     },
-    colors: report.months.map((_, i) =>
-      i === currentMonthIndex ? '#8B5CF6' : '#C4B5FD'
-    ),
+    colors: report.months.map((_, i) => {
+      const highlightMonth = selectedMonth !== 'all' ? parseInt(selectedMonth) - 1 : currentMonthIndex;
+      return i === highlightMonth ? '#8B5CF6' : '#C4B5FD';
+    }),
     dataLabels: { enabled: false },
     legend: { show: false },
     xaxis: {
@@ -161,6 +164,25 @@ const CommissionReport = () => {
     data: report.months.map(m => m.paidCommission),
   }];
 
+  // Compute display stats based on month filter
+  const displayStats = (() => {
+    if (selectedMonth === 'all') {
+      return {
+        commission: report.summary.ytd.commission,
+        revenue: report.summary.ytd.revenue,
+        invoices: report.summary.ytd.invoices,
+        label: 'YTD',
+      };
+    }
+    const m = report.months.find(m => m.month === parseInt(selectedMonth));
+    return {
+      commission: m?.paidCommission || 0,
+      revenue: m?.paidRevenue || 0,
+      invoices: m?.invoices || 0,
+      label: MONTH_NAMES[parseInt(selectedMonth) - 1],
+    };
+  })();
+
   return (
     <div>
       {/* Header */}
@@ -170,7 +192,7 @@ const CommissionReport = () => {
             Commission Report
           </h2>
           <p className="text-sm text-body">
-            {report.repName} · {report.commissionRate}% rate · {selectedYear}
+            {report.repName} · {report.commissionRate}% rate · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ` : ''}{selectedYear}
           </p>
         </div>
 
@@ -189,6 +211,18 @@ const CommissionReport = () => {
             </select>
           )}
 
+          {/* Month Selector */}
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
+          >
+            <option value="all">All Months</option>
+            {MONTH_NAMES.map((name, i) => (
+              <option key={i} value={i + 1}>{name}</option>
+            ))}
+          </select>
+
           {/* Year Selector */}
           <select
             value={selectedYear}
@@ -204,7 +238,7 @@ const CommissionReport = () => {
 
       {/* Summary Cards */}
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
-        {/* This Month Commission */}
+        {/* Period Commission */}
         <div className="rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center gap-3 mb-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: '#8B5CF620' }}>
@@ -212,15 +246,31 @@ const CommissionReport = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </span>
-            <p className="text-sm font-medium text-body">This Month</p>
+            <p className="text-sm font-medium text-body">{displayStats.label} Commission</p>
           </div>
           <h4 className="text-2xl font-bold text-black dark:text-white">
-            {formatCurrency(report.summary.currentMonth.commission)}
+            {formatCurrency(displayStats.commission)}
           </h4>
-          <p className="text-xs text-body mt-1">{report.summary.currentMonth.invoices} paid invoices</p>
+          <p className="text-xs text-body mt-1">{displayStats.invoices} paid invoices</p>
         </div>
 
-        {/* YTD Commission */}
+        {/* Period Revenue */}
+        <div className="rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: '#3B82F620' }}>
+              <svg className="h-5 w-5" style={{ color: '#3B82F6' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+              </svg>
+            </span>
+            <p className="text-sm font-medium text-body">{displayStats.label} Revenue</p>
+          </div>
+          <h4 className="text-2xl font-bold text-black dark:text-white">
+            {formatCurrency(displayStats.revenue)}
+          </h4>
+          <p className="text-xs text-body mt-1">Paid invoices total</p>
+        </div>
+
+        {/* YTD Commission (always show for context) */}
         <div className="rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center gap-3 mb-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: '#10B98120' }}>
@@ -234,22 +284,6 @@ const CommissionReport = () => {
             {formatCurrency(report.summary.ytd.commission)}
           </h4>
           <p className="text-xs text-body mt-1">{report.summary.ytd.invoices} total invoices</p>
-        </div>
-
-        {/* YTD Revenue */}
-        <div className="rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: '#3B82F620' }}>
-              <svg className="h-5 w-5" style={{ color: '#3B82F6' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-              </svg>
-            </span>
-            <p className="text-sm font-medium text-body">YTD Revenue</p>
-          </div>
-          <h4 className="text-2xl font-bold text-black dark:text-white">
-            {formatCurrency(report.summary.ytd.revenue)}
-          </h4>
-          <p className="text-xs text-body mt-1">Paid invoices total</p>
         </div>
 
         {/* Commission Rate */}
@@ -298,13 +332,15 @@ const CommissionReport = () => {
                 </tr>
               </thead>
               <tbody>
-                {report.months.map((m) => (
+                {report.months.map((m) => {
+                  const isHighlighted = selectedMonth !== 'all'
+                    ? m.month === parseInt(selectedMonth)
+                    : m.month - 1 === currentMonthIndex && selectedYear === new Date().getFullYear().toString();
+                  return (
                   <tr
                     key={m.month}
                     className={`border-b border-stroke dark:border-strokedark ${
-                      m.month - 1 === currentMonthIndex && selectedYear === new Date().getFullYear().toString()
-                        ? 'bg-[#8B5CF6] bg-opacity-5'
-                        : ''
+                      isHighlighted ? 'bg-[#8B5CF6] bg-opacity-5' : ''
                     }`}
                   >
                     <td className="px-3 py-3.5">
@@ -327,7 +363,8 @@ const CommissionReport = () => {
                       {m.invoices > 0 ? m.invoices : '—'}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
                 {/* Totals Row */}
                 <tr className="bg-gray-2 dark:bg-meta-4">
                   <td className="px-3 py-3.5 text-sm font-bold text-black dark:text-white">Total</td>
@@ -350,7 +387,7 @@ const CommissionReport = () => {
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
             <h3 className="text-lg font-semibold text-black dark:text-white">Commission by Customer</h3>
-            <p className="text-sm text-body">Paid invoices only · Top 50</p>
+            <p className="text-sm text-body">Paid invoices only · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ${selectedYear}` : `${selectedYear} YTD`} · Top 50</p>
           </div>
           <div className="p-6">
             {report.customers.length === 0 ? (
