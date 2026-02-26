@@ -620,87 +620,104 @@ const AdminPanel = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
 
-                {/* Recalculate Commissions */}
-                <div className="mt-6 pt-6 border-t border-stroke dark:border-strokedark">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h4 className="text-sm font-semibold text-black dark:text-white">Recalculate Commissions</h4>
-                      <p className="text-xs text-body mt-1">
-                        Fetches full invoice details from Zoho and applies subscription rules: first month at 100%, renewals at 0%, regular items at rep rate.
-                      </p>
-                    </div>
-                    <button
-                      onClick={triggerRecalculate}
-                      disabled={recalcPolling || syncStatus === 'bulk_started'}
-                      className="inline-flex items-center gap-2 rounded-md bg-warning px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50 flex-shrink-0"
-                    >
-                      {recalcPolling ? (
-                        <>
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            {/* ==================== RECALCULATE COMMISSIONS ==================== */}
+            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <h3 className="text-lg font-semibold text-black dark:text-white">Commission Recalculation</h3>
+                <p className="text-sm text-body mt-1">Fetch full invoice details from Zoho and apply subscription rules (first month 100%, renewals 0%)</p>
+              </div>
+              <div className="p-7">
+                {/* Status Cards */}
+                <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
+                    <p className="text-xs font-medium uppercase text-body">Status</p>
+                    <p className="mt-1 text-sm font-semibold text-black dark:text-white">
+                      {recalcStatus?.running ? (
+                        <span className="inline-flex items-center gap-1.5 text-warning">
+                          <span className="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
                           Recalculating...
-                        </>
+                        </span>
                       ) : (
-                        <>
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                          </svg>
-                          Recalculate All
-                        </>
+                        <span className="text-success">Idle</span>
                       )}
-                    </button>
+                    </p>
                   </div>
-
-                  {/* Recalculate Progress */}
-                  {recalcStatus && (recalcStatus.running || recalcStatus.completedAt) && (
-                    <div className={`rounded-md p-4 ${recalcStatus.running ? 'bg-warning bg-opacity-10' : 'bg-success bg-opacity-10'}`}>
-                      {recalcStatus.running && (
-                        <div className="mb-3">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-warning border-t-transparent"></div>
-                              <span className="text-sm font-medium text-warning">Processing invoices...</span>
-                            </div>
-                            <span className="text-xs text-body">
-                              {recalcStatus.processed} / {recalcStatus.total}
-                            </span>
-                          </div>
-                          <div className="w-full bg-stroke rounded-full h-2 dark:bg-strokedark">
-                            <div
-                              className="bg-warning h-2 rounded-full transition-all duration-500"
-                              style={{ width: `${recalcStatus.total > 0 ? (recalcStatus.processed / recalcStatus.total * 100) : 0}%` }}
-                            ></div>
-                          </div>
-                        </div>
+                  <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
+                    <p className="text-xs font-medium uppercase text-body">Last Result</p>
+                    <p className="mt-1 text-sm font-semibold text-black dark:text-white">
+                      {recalcStatus?.lastRecalcProcessed ? (
+                        <span>{recalcStatus.lastRecalcProcessed.toLocaleString()} processed · <span className="text-success">{recalcStatus.lastRecalcUpdated.toLocaleString()} updated</span>{recalcStatus.lastRecalcErrors > 0 && <span className="text-danger"> · {recalcStatus.lastRecalcErrors} errors</span>}</span>
+                      ) : (
+                        <span className="text-body">Never run</span>
                       )}
-
-                      <div className="grid grid-cols-4 gap-3">
-                        <div className="text-center">
-                          <p className="text-lg font-bold text-black dark:text-white">{recalcStatus.processed.toLocaleString()}</p>
-                          <p className="text-[10px] uppercase text-body">Processed</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-lg font-bold text-success">{recalcStatus.updated.toLocaleString()}</p>
-                          <p className="text-[10px] uppercase text-body">Updated</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-lg font-bold text-body">{recalcStatus.unchanged.toLocaleString()}</p>
-                          <p className="text-[10px] uppercase text-body">Unchanged</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-lg font-bold text-danger">{recalcStatus.errors.toLocaleString()}</p>
-                          <p className="text-[10px] uppercase text-body">Errors</p>
-                        </div>
-                      </div>
-
-                      {!recalcStatus.running && recalcStatus.completedAt && (
-                        <p className="mt-3 text-xs text-success font-medium text-center">
-                          ✓ Completed at {new Date(recalcStatus.completedAt).toLocaleString()}
-                        </p>
-                      )}
-                    </div>
-                  )}
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
+                    <p className="text-xs font-medium uppercase text-body">Last Recalculation</p>
+                    <p className="mt-1 text-sm font-semibold text-black dark:text-white">
+                      {formatDate(recalcStatus?.lastRecalcAt)}
+                    </p>
+                  </div>
                 </div>
+
+                {/* Button */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={triggerRecalculate}
+                    disabled={recalcPolling || syncStatus === 'bulk_started'}
+                    className="inline-flex items-center gap-2 rounded-md bg-warning px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                  >
+                    <svg className={`h-4 w-4 ${recalcPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    {recalcPolling ? 'Recalculating...' :
+                     recalcStatus?.completedAt && !recalcStatus?.lastRecalcAt ? '✓ Complete' :
+                     'Recalculate All'}
+                  </button>
+                </div>
+
+                {/* Progress Bar (while running) */}
+                {recalcStatus?.running && (
+                  <div className="mt-4 rounded-md bg-warning bg-opacity-10 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-warning border-t-transparent"></div>
+                        <span className="text-sm font-medium text-warning">Processing invoices...</span>
+                      </div>
+                      <span className="text-xs font-medium text-body">
+                        {recalcStatus.processed.toLocaleString()} / {recalcStatus.total.toLocaleString()}
+                        {recalcStatus.total > 0 && ` (${Math.round(recalcStatus.processed / recalcStatus.total * 100)}%)`}
+                      </span>
+                    </div>
+                    <div className="w-full bg-stroke rounded-full h-2.5 dark:bg-strokedark">
+                      <div
+                        className="bg-warning h-2.5 rounded-full transition-all duration-500"
+                        style={{ width: `${recalcStatus.total > 0 ? (recalcStatus.processed / recalcStatus.total * 100) : 0}%` }}
+                      ></div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-4 gap-3">
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-black dark:text-white">{recalcStatus.processed.toLocaleString()}</p>
+                        <p className="text-[10px] uppercase text-body">Processed</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-success">{recalcStatus.updated.toLocaleString()}</p>
+                        <p className="text-[10px] uppercase text-body">Updated</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-body">{recalcStatus.unchanged.toLocaleString()}</p>
+                        <p className="text-[10px] uppercase text-body">Unchanged</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-danger">{recalcStatus.errors.toLocaleString()}</p>
+                        <p className="text-[10px] uppercase text-body">Errors</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
