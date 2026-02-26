@@ -22,6 +22,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
   // Check if user is admin
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminMenuOpen, setAdminMenuOpen] = useState(pathname.includes('admin'));
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -232,10 +233,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               {isAdmin && (
                 <li>
                   <button
-                    onClick={() => {
-                      const el = document.getElementById('admin-submenu');
-                      if (el) el.classList.toggle('hidden');
-                    }}
+                    onClick={() => setAdminMenuOpen(!adminMenuOpen)}
                     className={`group relative flex w-full items-center justify-between gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
                       pathname.includes('admin') && 'bg-graydark dark:bg-meta-4'
                     }`}
@@ -253,7 +251,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       Admin Panel
                     </div>
                     <svg
-                      className={`fill-current transition ${pathname.includes('admin') ? 'rotate-180' : ''}`}
+                      className={`fill-current transition-transform duration-200 ${adminMenuOpen ? 'rotate-180' : ''}`}
                       width="12"
                       height="8"
                       viewBox="0 0 12 8"
@@ -262,9 +260,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </svg>
                   </button>
                   <ul
-                    id="admin-submenu"
-                    className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 ${
-                      pathname.includes('admin') ? '' : 'hidden'
+                    className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 overflow-hidden transition-all duration-200 ${
+                      adminMenuOpen ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
                     <li>
@@ -294,7 +291,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/customers' ? 'text-white' : ''
                         }`}
                       >
-                        Customer Exclusions
+                        Customers
                       </NavLink>
                     </li>
                     <li>

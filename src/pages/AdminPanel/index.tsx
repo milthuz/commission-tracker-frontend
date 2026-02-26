@@ -418,7 +418,7 @@ const AdminPanel = () => {
           <h2 className="text-title-md2 font-semibold text-black dark:text-white">
             {activeTab === 'sync' ? 'Zoho Books Sync' :
              activeTab === 'salespeople' ? 'Manage Salespeople' :
-             activeTab === 'customers' ? 'Customer Exclusions' :
+             activeTab === 'customers' ? 'Customers' :
              activeTab === 'releases' ? 'Release Management' :
              'Admin Panel'}
           </h2>
