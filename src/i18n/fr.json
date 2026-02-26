@@ -60,6 +60,7 @@
     "salespeople": "Vendeurs",
     "customers": "Clients",
     "releases": "Versions",
+    "admins": "Administrateurs",
     "profile": "Profil"
   },
   "dashboard": {
@@ -275,6 +276,24 @@
       "previousReleases": "Versions précédentes",
       "noReleases": "Aucune version trouvée",
       "view": "Voir →"
+    },
+    "admins": {
+      "title": "Accès administrateur",
+      "subtitle": "Gérer les accès administrateur de l'application",
+      "description": "Les utilisateurs ayant ouvert une session via Zoho apparaissent ici. Accordez ou révoquez les privilèges d'administrateur selon les besoins. Les administrateurs peuvent accéder à toutes les données, gérer les vendeurs, exécuter des synchronisations et modifier les paramètres.",
+      "totalUsers": "Total des utilisateurs",
+      "adminCount": "Administrateurs",
+      "email": "Courriel",
+      "lastLogin": "Dernière connexion",
+      "role": "Rôle",
+      "admin": "Administrateur",
+      "user": "Utilisateur",
+      "grantAdmin": "Accorder l'accès",
+      "revokeAdmin": "Révoquer l'accès",
+      "confirmGrant": "Accorder l'accès administrateur à",
+      "confirmRevoke": "Révoquer l'accès administrateur de",
+      "failedUpdate": "Échec de la mise à jour du statut administrateur",
+      "noUsers": "Aucun utilisateur trouvé"
     }
   },
   "header": {

@@ -60,6 +60,7 @@
     "salespeople": "Salespeople",
     "customers": "Customers",
     "releases": "Releases",
+    "admins": "Admins",
     "profile": "Profile"
   },
   "dashboard": {
@@ -275,6 +276,24 @@
       "previousReleases": "Previous Releases",
       "noReleases": "No releases found",
       "view": "View →"
+    },
+    "admins": {
+      "title": "Admin Access",
+      "subtitle": "Manage who has admin access to the application",
+      "description": "Users who have logged in via Zoho appear here. Grant or revoke admin privileges as needed. Admins can access all data, manage salespeople, run syncs, and modify settings.",
+      "totalUsers": "Total Users",
+      "adminCount": "Admins",
+      "email": "Email",
+      "lastLogin": "Last Login",
+      "role": "Role",
+      "admin": "Admin",
+      "user": "User",
+      "grantAdmin": "Grant Admin",
+      "revokeAdmin": "Revoke Admin",
+      "confirmGrant": "Grant admin access to",
+      "confirmRevoke": "Revoke admin access from",
+      "failedUpdate": "Failed to update admin status",
+      "noUsers": "No users found"
     }
   },
   "header": {

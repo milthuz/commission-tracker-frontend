@@ -11,7 +11,15 @@ interface Salesperson {
   name: string;
   isActive: boolean;
   commissionRate: number;
+  baseSalary: number;
   invoiceCount: number;
+}
+
+interface AdminUser {
+  email: string;
+  isAdmin: boolean;
+  createdAt: string;
+  lastLogin: string;
 }
 
 interface Release {
@@ -72,6 +80,10 @@ const AdminPanel = () => {
   const [recalcPolling, setRecalcPolling] = useState(false);
   const [recalcStopping, setRecalcStopping] = useState(false);
 
+  // Admin users state
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+
   // Check if user is admin
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -110,12 +122,52 @@ const AdminPanel = () => {
     }
   };
 
+  // Fetch admin users
+  const fetchAdminUsers = async () => {
+    try {
+      setAdminLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAdminUsers(response.data.users || []);
+    } catch (error) {
+      console.error('Error fetching admin users:', error);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // Toggle admin status
+  const toggleAdminStatus = async (email: string, currentStatus: boolean) => {
+    const action = currentStatus ? t('admin.admins.confirmRevoke') : t('admin.admins.confirmGrant');
+    if (!confirm(`${action} ${email}?`)) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/admin/users/${encodeURIComponent(email)}/admin`,
+        { makeAdmin: !currentStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAdminUsers(prev =>
+        prev.map(user =>
+          user.email === email ? { ...user, isAdmin: !currentStatus } : user
+        )
+      );
+    } catch (error: any) {
+      const msg = error.response?.data?.error || t('admin.admins.failedUpdate');
+      alert(msg);
+    }
+  };
+
   useEffect(() => {
     if (isAdmin) {
       fetchSalespeople();
       fetchSyncStatus();
       fetchReleases();
       fetchExcludedCustomers();
+      fetchAdminUsers();
     }
   }, [isAdmin]);
 
@@ -552,6 +604,7 @@ const AdminPanel = () => {
              activeTab === 'salespeople' ? t('admin.salespeople.title') :
              activeTab === 'customers' ? t('admin.customers.title') :
              activeTab === 'releases' ? t('admin.releases.title') :
+             activeTab === 'admins' ? t('admin.admins.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -559,6 +612,7 @@ const AdminPanel = () => {
              activeTab === 'salespeople' ? t('admin.salespeople.subtitle') :
              activeTab === 'customers' ? t('admin.customers.subtitle') :
              activeTab === 'releases' ? `${t('admin.releases.currentVersion')}: v${packageJson.version}` :
+             activeTab === 'admins' ? t('admin.admins.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -1172,6 +1226,97 @@ const AdminPanel = () => {
                   )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ==================== ADMIN USERS ==================== */}
+          {activeTab === 'admins' && (
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.admins.title')}</h3>
+                <p className="text-sm text-body mt-1">{t('admin.admins.subtitle')}</p>
+              </div>
+
+              {/* Stats */}
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <div className="flex flex-wrap gap-6">
+                  <div>
+                    <span className="text-2xl font-bold text-black dark:text-white">{adminUsers.length}</span>
+                    <span className="ml-2 text-sm text-body">{t('admin.admins.totalUsers')}</span>
+                  </div>
+                  <div>
+                    <span className="text-2xl font-bold text-success">{adminUsers.filter(u => u.isAdmin).length}</span>
+                    <span className="ml-2 text-sm text-body">{t('admin.admins.adminCount')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {adminLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+                </div>
+              ) : (
+                <div className="p-7">
+                  <p className="mb-4 text-sm text-body">{t('admin.admins.description')}</p>
+                  <div className="max-h-[600px] overflow-y-auto">
+                    <table className="w-full table-auto">
+                      <thead>
+                        <tr className="bg-gray-2 text-left dark:bg-meta-4">
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.email')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.lastLogin')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.role')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.actions')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {adminUsers.map((user) => (
+                          <tr key={user.email} className="border-b border-stroke dark:border-strokedark">
+                            <td className="px-4 py-5">
+                              <p className="text-black dark:text-white font-medium">{user.email}</p>
+                            </td>
+                            <td className="px-4 py-5">
+                              <p className="text-sm text-body">
+                                {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('en-CA', {
+                                  year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+                                }) : t('common.never')}
+                              </p>
+                            </td>
+                            <td className="px-4 py-5">
+                              {user.isAdmin ? (
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-medium text-success">
+                                  <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" /></svg>
+                                  {t('admin.admins.admin')}
+                                </span>
+                              ) : (
+                                <span className="inline-flex rounded-full bg-gray-2 px-3 py-1 text-sm font-medium text-body dark:bg-meta-4">
+                                  {t('admin.admins.user')}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-5">
+                              <button
+                                onClick={() => toggleAdminStatus(user.email, user.isAdmin)}
+                                className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-center text-sm font-medium transition ${
+                                  user.isAdmin
+                                    ? 'bg-danger text-white hover:bg-opacity-90'
+                                    : 'bg-success text-white hover:bg-opacity-90'
+                                }`}
+                              >
+                                {user.isAdmin ? t('admin.admins.revokeAdmin') : t('admin.admins.grantAdmin')}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {adminUsers.length === 0 && (
+                      <div className="py-12 text-center">
+                        <p className="text-body">{t('admin.admins.noUsers')}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
     </div>
