@@ -9,6 +9,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 interface Salesperson {
   name: string;
   isActive: boolean;
+  commissionRate: number;
   invoiceCount: number;
 }
 
@@ -384,7 +385,6 @@ const AdminPanel = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Update local state
       setSalespeople(prev =>
         prev.map(person =>
           person.name === name
@@ -395,6 +395,29 @@ const AdminPanel = () => {
     } catch (error) {
       console.error('Error updating salesperson status:', error);
       alert('Failed to update salesperson status');
+    }
+  };
+
+  const updateCommissionRate = async (name: string, rate: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/commission-rate`,
+        { commissionRate: rate },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSalespeople(prev =>
+        prev.map(person =>
+          person.name === name
+            ? { ...person, commissionRate: rate }
+            : person
+        )
+      );
+    } catch (error) {
+      console.error('Error updating commission rate:', error);
+      alert('Failed to update commission rate');
     }
   };
 
@@ -585,6 +608,7 @@ const AdminPanel = () => {
                         <tr className="bg-gray-2 text-left dark:bg-meta-4">
                           <th className="px-4 py-4 font-medium text-black dark:text-white">Name</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">Invoices</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">Commission %</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">Status</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">Action</th>
                         </tr>
@@ -597,6 +621,33 @@ const AdminPanel = () => {
                             </td>
                             <td className="px-4 py-5">
                               <p className="text-body">{person.invoiceCount} invoices</p>
+                            </td>
+                            <td className="px-4 py-5">
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  step="0.5"
+                                  defaultValue={person.commissionRate}
+                                  onBlur={(e) => {
+                                    const val = parseFloat(e.target.value);
+                                    if (!isNaN(val) && val !== person.commissionRate) {
+                                      updateCommissionRate(person.name, val);
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                  }}
+                                  className={`w-16 rounded border border-stroke bg-transparent px-2 py-1 text-center text-sm font-medium outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input ${
+                                    person.commissionRate !== 10 ? 'text-[#8B5CF6] border-[#8B5CF6] border-opacity-50' : 'text-black dark:text-white'
+                                  }`}
+                                />
+                                <span className="text-xs text-body">%</span>
+                                {person.commissionRate !== 10 && (
+                                  <span className="text-xs text-[#8B5CF6] font-medium">Override</span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-4 py-5">
                               {person.isActive ? (

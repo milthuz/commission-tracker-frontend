@@ -7,6 +7,7 @@ import ZohoLogin from './pages/Authentication/ZohoLogin';
 import ZohoCallback from './pages/Authentication/ZohoCallback';
 import ECommerce from './pages/Dashboard/ECommerce';
 import CommissionTracker from './pages/CommissionTracker';
+import CommissionReport from './pages/CommissionReport';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Versions from './pages/Versions';
@@ -70,6 +71,15 @@ function AppContent() {
               <>
                 <PageTitle title="Commission Tracker" />
                 <CommissionTracker />
+              </>
+            }
+          />
+          <Route
+            path="/commission-report"
+            element={
+              <>
+                <PageTitle title="Commission Report" />
+                <CommissionReport />
               </>
             }
           />
