@@ -46,6 +46,7 @@
     "send": "Envoyer",
     "retry": "Réessayer",
     "refreshStatus": "Actualiser le statut",
+    "managedByZoho": "Géré par Zoho",
     "TOTAL": "TOTAL"
   },
   "sidebar": {
@@ -270,6 +271,13 @@
       "noReleases": "Aucune version trouvée",
       "view": "Voir →"
     }
+  },
+  "header": {
+    "myProfile": "Mon profil",
+    "helpInfo": "Aide et info",
+    "versionHistory": "Historique des versions",
+    "support": "Soutien",
+    "logOut": "Déconnexion"
   },
   "profile": {
     "title": "Profil",

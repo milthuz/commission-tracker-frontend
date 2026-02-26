@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 
 const DropdownUser = () => {
+  const { t } = useTranslation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { user, logout } = useAuth();
 
@@ -115,14 +117,14 @@ const DropdownUser = () => {
                   fill=""
                 />
               </svg>
-              My Profile
+              {t('header.myProfile')}
             </Link>
           </li>
         </ul>
 
         {/* Help & Info Section */}
         <div className="px-4.5 py-3 border-b border-stroke dark:border-strokedark">
-          <h5 className="text-sm font-medium text-bodydark2">Help & Info</h5>
+          <h5 className="text-sm font-medium text-bodydark2">{t('header.helpInfo')}</h5>
         </div>
 
         <ul className="flex flex-col overflow-y-hidden border-b border-stroke dark:border-strokedark">
@@ -145,7 +147,7 @@ const DropdownUser = () => {
                   fill=""
                 />
               </svg>
-              Version History
+              {t('header.versionHistory')}
             </Link>
           </li>
           <li>
@@ -166,7 +168,7 @@ const DropdownUser = () => {
                   fill=""
                 />
               </svg>
-              Support
+              {t('header.support')}
             </a>
           </li>
         </ul>
@@ -192,7 +194,7 @@ const DropdownUser = () => {
               fill=""
             />
           </svg>
-          Log Out
+          {t('header.logOut')}
         </button>
       </div>
       {/* <!-- Dropdown End --> */}
