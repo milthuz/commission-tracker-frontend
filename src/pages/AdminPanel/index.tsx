@@ -506,6 +506,30 @@ const AdminPanel = () => {
     }
   };
 
+  // Update base salary
+  const updateBaseSalary = async (name: string, salary: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/base-salary`,
+        { baseSalary: salary },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSalespeople(prev =>
+        prev.map(person =>
+          person.name === name
+            ? { ...person, baseSalary: salary }
+            : person
+        )
+      );
+    } catch (error) {
+      console.error('Error updating base salary:', error);
+      alert(t('admin.salespeople.failedUpdateSalary'));
+    }
+  };
+
   // Filter salespeople by search
   const filteredSalespeople = salespeople
     .filter(person => person.name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -809,6 +833,7 @@ const AdminPanel = () => {
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.name')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.invoices')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.commissionPercent')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.baseSalary')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.status')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.actions')}</th>
                         </tr>
@@ -847,6 +872,29 @@ const AdminPanel = () => {
                                 {person.commissionRate !== 10 && (
                                   <span className="text-xs text-[#8B5CF6] font-medium">{t('admin.salespeople.override')}</span>
                                 )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs text-body">$</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="100"
+                                  defaultValue={person.baseSalary || 0}
+                                  onBlur={(e) => {
+                                    const val = parseFloat(e.target.value);
+                                    if (!isNaN(val) && val !== (person.baseSalary || 0)) {
+                                      updateBaseSalary(person.name, val);
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                  }}
+                                  className={`w-24 rounded border border-stroke bg-transparent px-2 py-1 text-center text-sm font-medium outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input ${
+                                    (person.baseSalary || 0) > 0 ? 'text-primary border-primary border-opacity-50' : 'text-black dark:text-white'
+                                  }`}
+                                />
                               </div>
                             </td>
                             <td className="px-4 py-5">
