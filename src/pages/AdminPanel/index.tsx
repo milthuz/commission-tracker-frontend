@@ -533,6 +533,7 @@ const AdminPanel = () => {
 
       {/* Content */}
           {activeTab === 'sync' && (
+            <>
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
                 <h3 className="text-lg font-semibold text-black dark:text-white">Zoho Books Sync</h3>
@@ -720,6 +721,7 @@ const AdminPanel = () => {
                 )}
               </div>
             </div>
+            </>
           )}
 
           {/* ==================== SALESPEOPLE ==================== */}
