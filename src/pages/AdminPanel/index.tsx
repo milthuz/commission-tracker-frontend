@@ -70,6 +70,7 @@ const AdminPanel = () => {
   // Recalculate commissions state
   const [recalcStatus, setRecalcStatus] = useState<any>(null);
   const [recalcPolling, setRecalcPolling] = useState(false);
+  const [recalcStopping, setRecalcStopping] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
@@ -394,10 +395,25 @@ const AdminPanel = () => {
         return;
       }
 
+      setRecalcStopping(false);
       setRecalcPolling(true);
       startRecalcPolling();
     } catch (err) {
       alert('Failed to start recalculation');
+    }
+  };
+
+  // Stop recalculation
+  const stopRecalculate = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      setRecalcStopping(true);
+      await axios.post(`${API_URL}/api/commissions/recalculate/stop`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (err) {
+      setRecalcStopping(false);
+      alert('Failed to stop recalculation');
     }
   };
 
@@ -413,10 +429,12 @@ const AdminPanel = () => {
         if (!res.data.running) {
           clearInterval(pollInterval);
           setRecalcPolling(false);
+          setRecalcStopping(false);
         }
       } catch (e) {
         clearInterval(pollInterval);
         setRecalcPolling(false);
+        setRecalcStopping(false);
       }
     }, 3000);
   };
@@ -666,7 +684,7 @@ const AdminPanel = () => {
                   </div>
                 </div>
 
-                {/* Button */}
+                {/* Buttons */}
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     onClick={triggerRecalculate}
@@ -680,6 +698,18 @@ const AdminPanel = () => {
                      recalcStatus?.completedAt && !recalcStatus?.lastRecalcAt ? t('admin.recalculate.complete') :
                      t('admin.recalculate.recalculateAll')}
                   </button>
+                  {recalcPolling && (
+                    <button
+                      onClick={stopRecalculate}
+                      disabled={recalcStopping}
+                      className="inline-flex items-center gap-2 rounded-md bg-danger px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                    >
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                        <rect x="6" y="6" width="12" height="12" rx="1" />
+                      </svg>
+                      {recalcStopping ? t('admin.recalculate.stopping') : t('admin.recalculate.stop')}
+                    </button>
+                  )}
                 </div>
 
                 {/* Progress Bar (while running) */}
@@ -687,8 +717,10 @@ const AdminPanel = () => {
                   <div className="mt-4 rounded-md bg-warning bg-opacity-10 p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-warning border-t-transparent"></div>
-                        <span className="text-sm font-medium text-warning">{t('admin.recalculate.processingPaid')}</span>
+                        <div className={`h-4 w-4 animate-spin rounded-full border-2 ${recalcStopping ? 'border-danger border-t-transparent' : 'border-warning border-t-transparent'}`}></div>
+                        <span className={`text-sm font-medium ${recalcStopping ? 'text-danger' : 'text-warning'}`}>
+                          {recalcStopping ? t('admin.recalculate.stoppingMessage') : t('admin.recalculate.processingPaid')}
+                        </span>
                       </div>
                       <span className="text-xs font-medium text-body">
                         {recalcStatus.processed.toLocaleString()} / {recalcStatus.total.toLocaleString()}

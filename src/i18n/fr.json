@@ -226,6 +226,9 @@
       "updated": "Mises à jour",
       "unchanged": "Inchangées",
       "errors": "Erreurs",
+      "stop": "Arrêter",
+      "stopping": "Arrêt en cours...",
+      "stoppingMessage": "Arrêt après la facture en cours...",
       "confirmRecalculate": "Recalculer les commissions pour TOUTES les factures payées ?\n\nCette opération récupère les détails complets des factures depuis Zoho et applique les règles d'abonnement :\n• 1er mois d'abonnement → 100 % de commission\n• Mois de renouvellement → 0 % de commission\n• Articles réguliers → taux du vendeur\n\nCela s'exécute en arrière-plan et peut prendre un moment (~5 factures/sec)."
     },
     "salespeople": {

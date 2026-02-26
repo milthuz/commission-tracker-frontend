@@ -226,6 +226,9 @@
       "updated": "Updated",
       "unchanged": "Unchanged",
       "errors": "Errors",
+      "stop": "Stop",
+      "stopping": "Stopping...",
+      "stoppingMessage": "Stopping after current invoice...",
       "confirmRecalculate": "Recalculate commissions for ALL paid invoices?\n\nThis fetches full invoice details from Zoho and applies subscription rules:\n• First subscription month → 100% commission\n• Renewal months → 0% commission\n• Regular items → rep rate\n\nThis runs in the background and may take a while (~5 invoices/sec)."
     },
     "salespeople": {
