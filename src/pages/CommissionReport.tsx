@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
@@ -50,6 +51,7 @@ interface ReportData {
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const CommissionReport = () => {
+  const { t } = useTranslation();
   useAuth();
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -329,12 +331,12 @@ const CommissionReport = () => {
     <table className="w-full table-auto">
       <thead>
         <tr className="bg-gray-50 dark:bg-meta-4/50">
-          <th className="px-3 py-2 text-xs font-medium text-body text-left">Invoice #</th>
-          <th className="px-3 py-2 text-xs font-medium text-body text-left">Customer</th>
-          <th className="px-3 py-2 text-xs font-medium text-body text-left">Date</th>
-          <th className="px-3 py-2 text-xs font-medium text-body text-right">Total</th>
-          <th className="px-3 py-2 text-xs font-medium text-body text-right">Commission</th>
-          <th className="px-3 py-2 text-xs font-medium text-body text-center">Comm. Status</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-left">{t('commissionReport.invoiceNumber')}</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-left">{t('commissionReport.customer')}</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-left">{t('commissionReport.date')}</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-right">{t('commissionReport.total')}</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-right">{t('commissionReport.commission')}</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-center">{t('commissionReport.commStatus')}</th>
           <th className="px-3 py-2 text-xs font-medium text-body text-center">Actions</th>
         </tr>
       </thead>
@@ -448,7 +450,7 @@ const CommissionReport = () => {
         commission: report.summary.ytd.commission,
         revenue: report.summary.ytd.revenue,
         invoices: report.summary.ytd.invoices,
-        label: 'YTD',
+        label: t('commissionReport.ytd'),
       };
     }
     const m = report.months.find(m => m.month === parseInt(selectedMonth));
@@ -523,12 +525,12 @@ const CommissionReport = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </span>
-            <p className="text-sm font-medium text-body">{displayStats.label} Commission</p>
+            <p className="text-sm font-medium text-body">{displayStats.label} {t('commissionReport.commission')}</p>
           </div>
           <h4 className="text-2xl font-bold text-black dark:text-white">
             {formatCurrency(displayStats.commission)}
           </h4>
-          <p className="text-xs text-body mt-1">{displayStats.invoices} paid invoices</p>
+          <p className="text-xs text-body mt-1">{displayStats.invoices} {t('commissionReport.paidInvoices')}</p>
         </div>
 
         {/* Period Revenue */}
@@ -539,7 +541,7 @@ const CommissionReport = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
               </svg>
             </span>
-            <p className="text-sm font-medium text-body">{displayStats.label} Revenue</p>
+            <p className="text-sm font-medium text-body">{displayStats.label} {t('commissionReport.revenue')}</p>
           </div>
           <h4 className="text-2xl font-bold text-black dark:text-white">
             {formatCurrency(displayStats.revenue)}
@@ -555,12 +557,12 @@ const CommissionReport = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </span>
-            <p className="text-sm font-medium text-body">YTD Commission</p>
+            <p className="text-sm font-medium text-body">{t('commissionReport.ytdCommission')}</p>
           </div>
           <h4 className="text-2xl font-bold text-black dark:text-white">
             {formatCurrency(report.summary.ytd.commission)}
           </h4>
-          <p className="text-xs text-body mt-1">{report.summary.ytd.invoices} total invoices</p>
+          <p className="text-xs text-body mt-1">{report.summary.ytd.invoices} {t('commissionReport.totalInvoices')}</p>
         </div>
 
         {/* Commission Rate */}
@@ -571,19 +573,19 @@ const CommissionReport = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
               </svg>
             </span>
-            <p className="text-sm font-medium text-body">Commission Rate</p>
+            <p className="text-sm font-medium text-body">{t('commissionReport.commissionRate')}</p>
           </div>
           <h4 className="text-2xl font-bold text-black dark:text-white">
             {report.commissionRate}%
           </h4>
-          <p className="text-xs text-body mt-1">{report.commissionRate !== 10 ? 'Custom override' : 'Standard rate'}</p>
+          <p className="text-xs text-body mt-1">{report.commissionRate !== 10 ? t('commissionReport.standardRate') : t('commissionReport.standardRate')}</p>
         </div>
       </div>
 
       {/* Monthly Commission Chart */}
       <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">Monthly Commission</h3>
+          <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.monthlyCommission')}</h3>
           <p className="text-sm text-body">Paid commission earned per month</p>
         </div>
         <div className="p-6">
@@ -596,17 +598,17 @@ const CommissionReport = () => {
         {/* Monthly Breakdown Table */}
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">Monthly Breakdown</h3>
+            <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.monthlyBreakdown')}</h3>
           </div>
           <div className="p-6">
             <table className="w-full table-auto">
               <thead>
                 <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                  <th className="px-3 py-3 text-sm font-medium text-black dark:text-white">Month</th>
-                  <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">Revenue</th>
-                  <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">Commission</th>
-                  <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">Invoices</th>
-                  {isAdmin && <th className="px-3 py-3 text-sm font-medium text-center text-black dark:text-white">Status</th>}
+                  <th className="px-3 py-3 text-sm font-medium text-black dark:text-white">{t('commissionReport.month')}</th>
+                  <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.revenue')}</th>
+                  <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.commission')}</th>
+                  <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.invoiceCount')}</th>
+                  {isAdmin && <th className="px-3 py-3 text-sm font-medium text-center text-black dark:text-white">{t('commissionReport.status')}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -634,7 +636,7 @@ const CommissionReport = () => {
                           {MONTH_NAMES[m.month - 1]}
                         </span>
                         {m.month - 1 === currentMonthIndex && selectedYear === new Date().getFullYear().toString() && (
-                          <span className="inline-flex rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-[10px] font-bold text-[#8B5CF6]">NOW</span>
+                          <span className="inline-flex rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-[10px] font-bold text-[#8B5CF6]">{t('commissionReport.now')}</span>
                         )}
                       </div>
                     </td>
@@ -675,7 +677,7 @@ const CommissionReport = () => {
                               disabled={approvingMonth === m.month}
                               className="text-xs font-medium text-primary hover:underline"
                             >
-                              {approvingMonth === m.month ? '...' : 'Approve rest'}
+                              {approvingMonth === m.month ? '...' : t('commissionReport.approveRest')}
                             </button>
                           </div>
                         ) : (
@@ -702,10 +704,10 @@ const CommissionReport = () => {
                           {loadingDrill ? (
                             <div className="flex items-center justify-center py-4">
                               <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
-                              <span className="ml-2 text-xs text-body">Loading invoices...</span>
+                              <span className="ml-2 text-xs text-body">{t('commissionReport.loadingInvoices')}</span>
                             </div>
                           ) : drillInvoices.length === 0 ? (
-                            <p className="text-xs text-body py-2">No qualifying invoices found</p>
+                            <p className="text-xs text-body py-2">{t('commissionReport.noQualifyingInvoices')}</p>
                           ) : (
                             renderInvoiceTable(drillInvoices)
                           )}
@@ -718,7 +720,7 @@ const CommissionReport = () => {
                 })}
                 {/* Totals Row */}
                 <tr className="bg-gray-2 dark:bg-meta-4">
-                  <td className="px-3 py-3.5 text-sm font-bold text-black dark:text-white">Total</td>
+                  <td className="px-3 py-3.5 text-sm font-bold text-black dark:text-white">{t('commissionReport.total')}</td>
                   <td className="px-3 py-3.5 text-right text-sm font-bold text-black dark:text-white">
                     {formatCurrency(report.summary.ytd.revenue)}
                   </td>
@@ -738,20 +740,20 @@ const CommissionReport = () => {
         {/* Commission by Customer */}
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">Commission by Customer</h3>
-            <p className="text-sm text-body">Paid invoices only · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ${selectedYear}` : `${selectedYear} YTD`} · Top 50</p>
+            <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.commByCustomer')}</h3>
+            <p className="text-sm text-body">{t('commissionReport.paidInvoicesOnly')} · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ${selectedYear}` : `${selectedYear} ${t('commissionReport.ytd')}`} · {t('commissionReport.top50')}</p>
           </div>
           <div className="p-6">
             {report.customers.length === 0 ? (
-              <p className="text-sm text-body py-8 text-center">No paid commissions for this period</p>
+              <p className="text-sm text-body py-8 text-center">{t('commissionReport.noPaidCommissions')}</p>
             ) : (
               <div className="max-h-[600px] overflow-y-auto">
                 <table className="w-full table-auto">
                   <thead>
                     <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                      <th className="px-3 py-3 text-sm font-medium text-black dark:text-white">Customer</th>
-                      <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">Revenue</th>
-                      <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">Commission</th>
+                      <th className="px-3 py-3 text-sm font-medium text-black dark:text-white">{t('commissionReport.customer')}</th>
+                      <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.revenue')}</th>
+                      <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.commission')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -794,10 +796,10 @@ const CommissionReport = () => {
                               {loadingDrill ? (
                                 <div className="flex items-center justify-center py-4">
                                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
-                                  <span className="ml-2 text-xs text-body">Loading invoices...</span>
+                                  <span className="ml-2 text-xs text-body">{t('commissionReport.loadingInvoices')}</span>
                                 </div>
                               ) : drillInvoices.length === 0 ? (
-                                <p className="text-xs text-body py-2">No qualifying invoices found</p>
+                                <p className="text-xs text-body py-2">{t('commissionReport.noQualifyingInvoices')}</p>
                               ) : (
                                 renderInvoiceTable(drillInvoices)
                               )}

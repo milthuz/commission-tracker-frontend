@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import packageJson from '../../../package.json';
@@ -36,6 +37,7 @@ interface CustomerSearchResult {
 }
 
 const AdminPanel = () => {
+  const { t } = useTranslation();
   useAuth();
   const navigate = useNavigate();
   const [salespeople, setSalespeople] = useState<Salesperson[]>([]);
@@ -504,18 +506,18 @@ const AdminPanel = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-title-md2 font-semibold text-black dark:text-white">
-            {activeTab === 'sync' ? 'Zoho Books Sync' :
-             activeTab === 'salespeople' ? 'Manage Salespeople' :
-             activeTab === 'customers' ? 'Customers' :
-             activeTab === 'releases' ? 'Release Management' :
-             'Admin Panel'}
+            {activeTab === 'sync' ? t('admin.zohoSync.title') :
+             activeTab === 'salespeople' ? t('admin.salespeople.title') :
+             activeTab === 'customers' ? t('admin.customers.title') :
+             activeTab === 'releases' ? t('admin.releases.title') :
+             t('admin.title')}
           </h2>
           <p className="text-sm text-body">
-            {activeTab === 'sync' ? 'Import and sync invoices from Zoho Books' :
-             activeTab === 'salespeople' ? 'Toggle salespeople on/off to control who appears in invoice filters and commission reports' :
-             activeTab === 'customers' ? 'Exclude customers from appearing in the dashboard Top Customers list' :
-             activeTab === 'releases' ? `Current version: v${packageJson.version}` :
-             'Manage system settings and configurations'}
+            {activeTab === 'sync' ? t('admin.zohoSync.subtitle') :
+             activeTab === 'salespeople' ? t('admin.salespeople.subtitle') :
+             activeTab === 'customers' ? t('admin.customers.subtitle') :
+             activeTab === 'releases' ? `${t('admin.releases.currentVersion')}: v${packageJson.version}` :
+             t('admin.title')}
           </p>
         </div>
         {activeTab === 'releases' && (
@@ -543,7 +545,7 @@ const AdminPanel = () => {
                 {/* Sync Status Info */}
                 <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
-                    <p className="text-xs font-medium uppercase text-body">Status</p>
+                    <p className="text-xs font-medium uppercase text-body">{t('admin.zohoSync.status')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
                       {syncInfo?.syncStatus === 'syncing' ? (
                         <span className="inline-flex items-center gap-1.5 text-warning">
@@ -558,13 +560,13 @@ const AdminPanel = () => {
                     </p>
                   </div>
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
-                    <p className="text-xs font-medium uppercase text-body">Invoices in Database</p>
+                    <p className="text-xs font-medium uppercase text-body">{t('admin.zohoSync.invoicesInDb')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
                       {syncInfo?.totalInvoicesInDb?.toLocaleString() || '—'}
                     </p>
                   </div>
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
-                    <p className="text-xs font-medium uppercase text-body">Last Sync</p>
+                    <p className="text-xs font-medium uppercase text-body">{t('admin.zohoSync.lastSync')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
                       {formatDate(syncInfo?.lastIncrementalSync || syncInfo?.lastFullSync)}
                     </p>
@@ -581,11 +583,11 @@ const AdminPanel = () => {
                     <svg className={`h-4 w-4 ${syncStatus === 'bulk_started' ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
-                    {syncStatus === 'bulk_started' ? 'Importing...' :
+                    {syncStatus === 'bulk_started' ? t('admin.zohoSync.importing') :
                      syncStatus === 'bulk_importing' ? 'Starting...' :
-                     syncStatus === 'already_syncing' ? 'Already running' :
+                     syncStatus === 'already_syncing' ? t('admin.zohoSync.alreadyRunning') :
                      syncStatus === 'bulk_done' ? '✓ Import complete' :
-                     'Full Import'}
+                     t('admin.zohoSync.fullImport')}
                   </button>
 
                   <button
@@ -596,11 +598,11 @@ const AdminPanel = () => {
                     <svg className={`h-4 w-4 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    {syncStatus === 'syncing' ? 'Syncing...' :
+                    {syncStatus === 'syncing' ? t('admin.zohoSync.syncing') :
                      syncStatus?.startsWith('done_') ? `✓ ${syncStatus.split('_')[1]} synced` :
                      syncStatus === 'needs_import' ? 'Run Full Import first' :
                      syncStatus === 'error' ? 'Sync failed' :
-                     'Quick Sync'}
+                     t('admin.zohoSync.quickSync')}
                   </button>
 
                   <button
@@ -627,19 +629,19 @@ const AdminPanel = () => {
             {/* ==================== RECALCULATE COMMISSIONS ==================== */}
             <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">Commission Recalculation</h3>
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.recalculate.title')}</h3>
                 <p className="text-sm text-body mt-1">Fetch full invoice details from Zoho and apply subscription rules (first month 100%, renewals 0%)</p>
               </div>
               <div className="p-7">
                 {/* Status Cards */}
                 <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
-                    <p className="text-xs font-medium uppercase text-body">Status</p>
+                    <p className="text-xs font-medium uppercase text-body">{t('admin.zohoSync.status')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
                       {recalcStatus?.running ? (
                         <span className="inline-flex items-center gap-1.5 text-warning">
                           <span className="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
-                          Recalculating ({recalcStatus.total.toLocaleString()} paid invoices)
+                          {t('admin.recalculate.recalculating')} ({recalcStatus.total.toLocaleString()} {t('admin.recalculate.paidInvoices')})
                         </span>
                       ) : (
                         <span className="text-success">Idle</span>
@@ -647,17 +649,17 @@ const AdminPanel = () => {
                     </p>
                   </div>
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
-                    <p className="text-xs font-medium uppercase text-body">Last Result</p>
+                    <p className="text-xs font-medium uppercase text-body">{t('admin.recalculate.lastResult')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
                       {recalcStatus?.lastRecalcProcessed ? (
-                        <span>{recalcStatus.lastRecalcProcessed.toLocaleString()} processed · <span className="text-success">{recalcStatus.lastRecalcUpdated.toLocaleString()} updated</span>{recalcStatus.lastRecalcErrors > 0 && <span className="text-danger"> · {recalcStatus.lastRecalcErrors} errors</span>}</span>
+                        <span>{recalcStatus.lastRecalcProcessed.toLocaleString()} {t('admin.recalculate.processed').toLowerCase()} · <span className="text-success">{recalcStatus.lastRecalcUpdated.toLocaleString()} {t('admin.recalculate.updated').toLowerCase()}</span>{recalcStatus.lastRecalcErrors > 0 && <span className="text-danger"> · {recalcStatus.lastRecalcErrors} errors</span>}</span>
                       ) : (
                         <span className="text-body">Never run</span>
                       )}
                     </p>
                   </div>
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
-                    <p className="text-xs font-medium uppercase text-body">Last Recalculation</p>
+                    <p className="text-xs font-medium uppercase text-body">{t('admin.recalculate.lastRecalculation')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
                       {formatDate(recalcStatus?.lastRecalcAt)}
                     </p>
@@ -674,9 +676,9 @@ const AdminPanel = () => {
                     <svg className={`h-4 w-4 ${recalcPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
-                    {recalcPolling ? `Recalculating... ${recalcStatus?.processed?.toLocaleString() || 0} / ${recalcStatus?.total?.toLocaleString() || '?'}` :
-                     recalcStatus?.completedAt && !recalcStatus?.lastRecalcAt ? '✓ Complete' :
-                     'Recalculate All'}
+                    {recalcPolling ? `Recalculating... ${recalcStatus?.{t('admin.recalculate.processed').toLowerCase()}?.toLocaleString() || 0} / ${recalcStatus?.total?.toLocaleString() || '?'}` :
+                     recalcStatus?.completedAt && !recalcStatus?.lastRecalcAt ? t('admin.recalculate.complete') :
+                     t('admin.recalculate.recalculateAll')}
                   </button>
                 </div>
 
@@ -686,36 +688,36 @@ const AdminPanel = () => {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className="h-4 w-4 animate-spin rounded-full border-2 border-warning border-t-transparent"></div>
-                        <span className="text-sm font-medium text-warning">Processing paid invoices...</span>
+                        <span className="text-sm font-medium text-warning">{t('admin.recalculate.processingPaid')}</span>
                       </div>
                       <span className="text-xs font-medium text-body">
-                        {recalcStatus.processed.toLocaleString()} / {recalcStatus.total.toLocaleString()}
-                        {recalcStatus.total > 0 && ` (${Math.round(recalcStatus.processed / recalcStatus.total * 100)}%)`}
+                        {recalcStatus.{t('admin.recalculate.processed').toLowerCase()}.toLocaleString()} / {recalcStatus.total.toLocaleString()}
+                        {recalcStatus.total > 0 && ` (${Math.round(recalcStatus.{t('admin.recalculate.processed').toLowerCase()} / recalcStatus.total * 100)}%)`}
                       </span>
                     </div>
                     <div className="w-full bg-stroke rounded-full h-2.5 dark:bg-strokedark">
                       <div
                         className="bg-warning h-2.5 rounded-full transition-all duration-500"
-                        style={{ width: `${recalcStatus.total > 0 ? (recalcStatus.processed / recalcStatus.total * 100) : 0}%` }}
+                        style={{ width: `${recalcStatus.total > 0 ? (recalcStatus.{t('admin.recalculate.processed').toLowerCase()} / recalcStatus.total * 100) : 0}%` }}
                       ></div>
                     </div>
-                    <p className="mt-1.5 text-[10px] text-body">Only paid invoices are recalculated — unpaid, void, and draft invoices are skipped.</p>
+                    <p className="mt-1.5 text-[10px] text-body">{t('admin.recalculate.paidOnlyNote')}</p>
                     <div className="mt-3 grid grid-cols-4 gap-3">
                       <div className="text-center">
-                        <p className="text-lg font-bold text-black dark:text-white">{recalcStatus.processed.toLocaleString()}</p>
-                        <p className="text-[10px] uppercase text-body">Processed</p>
+                        <p className="text-lg font-bold text-black dark:text-white">{recalcStatus.{t('admin.recalculate.processed').toLowerCase()}.toLocaleString()}</p>
+                        <p className="text-[10px] uppercase text-body">{t('admin.recalculate.processed')}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-lg font-bold text-success">{recalcStatus.updated.toLocaleString()}</p>
-                        <p className="text-[10px] uppercase text-body">Updated</p>
+                        <p className="text-[10px] uppercase text-body">{t('admin.recalculate.updated')}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-lg font-bold text-body">{recalcStatus.unchanged.toLocaleString()}</p>
-                        <p className="text-[10px] uppercase text-body">Unchanged</p>
+                        <p className="text-[10px] uppercase text-body">{t('admin.recalculate.unchanged')}</p>
                       </div>
                       <div className="text-center">
                         <p className="text-lg font-bold text-danger">{recalcStatus.errors.toLocaleString()}</p>
-                        <p className="text-[10px] uppercase text-body">Errors</p>
+                        <p className="text-[10px] uppercase text-body">{t('admin.recalculate.errors')}</p>
                       </div>
                     </div>
                   </div>
@@ -755,7 +757,7 @@ const AdminPanel = () => {
               <div className="px-7 py-4 border-b border-stroke dark:border-strokedark">
                 <input
                   type="text"
-                  placeholder="Search salespeople..."
+                  placeholder={t('admin.salespeople.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
@@ -774,8 +776,8 @@ const AdminPanel = () => {
                         <tr className="bg-gray-2 text-left dark:bg-meta-4">
                           <th className="px-4 py-4 font-medium text-black dark:text-white">Name</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">Invoices</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">Commission %</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">Status</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.commissionPercent')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.zohoSync.status')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">Action</th>
                         </tr>
                       </thead>
@@ -831,7 +833,7 @@ const AdminPanel = () => {
                                     : 'bg-success text-white hover:bg-opacity-90'
                                 }`}
                               >
-                                {person.isActive ? 'Deactivate' : 'Activate'}
+                                {person.isActive ? t('admin.salespeople.deactivate') : t('admin.salespeople.activate')}
                               </button>
                             </td>
                           </tr>
@@ -888,7 +890,7 @@ const AdminPanel = () => {
                             <p className="text-sm font-medium text-black dark:text-white">{customer.name}</p>
                             <p className="text-xs text-body">{customer.invoiceCount} invoices · ${customer.totalSpent.toLocaleString('en-CA', { minimumFractionDigits: 2 })}</p>
                           </div>
-                          <span className="text-xs font-medium text-danger">Exclude</span>
+                          <span className="text-xs font-medium text-danger">{t('admin.customers.exclude')}</span>
                         </div>
                       ))}
                     </div>
@@ -964,7 +966,7 @@ const AdminPanel = () => {
                 {/* New Release Form */}
                 {showReleaseForm && (
                   <div className="mb-6 rounded-lg border border-[#8B5CF6] border-opacity-30 bg-[#8B5CF6] bg-opacity-5 p-6">
-                    <h4 className="mb-4 text-sm font-semibold text-black dark:text-white">Push New Release</h4>
+                    <h4 className="mb-4 text-sm font-semibold text-black dark:text-white">{t('admin.releases.newRelease')}</h4>
 
                     <div className="mb-4">
                       <label className="mb-2 block text-sm font-medium text-black dark:text-white">Version Number</label>
@@ -994,7 +996,7 @@ const AdminPanel = () => {
                             <svg className={`h-3 w-3 ${generatingNotes ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
-                            {generatingNotes ? 'Generating...' : 'Regenerate'}
+                            {generatingNotes ? t('admin.releases.generating') : t('admin.releases.autoGenerate')}
                           </button>
                         </div>
                       </div>
@@ -1050,7 +1052,7 @@ const AdminPanel = () => {
                 <div>
                   <h4 className="mb-3 text-sm font-semibold text-black dark:text-white">Release History</h4>
                   {releases.length === 0 ? (
-                    <p className="text-sm text-body py-4">No releases found. Push your first release above!</p>
+                    <p className="text-sm text-body py-4">{t('admin.releases.noReleases')}</p>
                   ) : (
                     <div className="space-y-3 max-h-[500px] overflow-y-auto">
                       {releases.map((release) => (

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
-
+import { useTranslation } from 'react-i18next';
 const API_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 interface DashboardData {
@@ -65,6 +65,7 @@ const statusPieColor = (status: string) => {
 };
 
 const ECommerce: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -144,9 +145,9 @@ const ECommerce: React.FC = () => {
   };
 
   const revenueChartSeries = [
-    { name: 'Paid Revenue', data: data?.monthlyTrend.map(m => m.revenue) || [] },
-    { name: 'Overdue', data: data?.monthlyTrend.map(m => m.overdue) || [] },
-    { name: 'Commission', data: data?.monthlyTrend.map(m => m.commission) || [] },
+    { name: t('dashboard.paidRevenueSeries'), data: data?.monthlyTrend.map(m => m.revenue) || [] },
+    { name: t('dashboard.overdueSeries'), data: data?.monthlyTrend.map(m => m.overdue) || [] },
+    { name: t('dashboard.commissionSeries'), data: data?.monthlyTrend.map(m => m.commission) || [] },
   ];
 
   const statusChartOptions: ApexOptions = {
@@ -182,7 +183,7 @@ const ECommerce: React.FC = () => {
       <div className="flex h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading dashboard...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.loadingDashboard')}</p>
         </div>
       </div>
     );
@@ -212,9 +213,9 @@ const ECommerce: React.FC = () => {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-black dark:text-white">
-            Sales Hub
+            {t('dashboard.title')}
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Revenue overview, invoices, and customer insights</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('dashboard.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Sync Button */}
@@ -226,11 +227,11 @@ const ECommerce: React.FC = () => {
             <svg className={`h-4 w-4 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            {syncStatus === 'syncing' ? 'Syncing...' : 
-             syncStatus?.startsWith('done_') ? `✓ ${syncStatus.split('_')[1]} synced` :
-             syncStatus === 'needs_import' ? 'Full import needed (Admin Panel)' :
-             syncStatus === 'error' ? 'Sync failed' :
-             'Sync Now'}
+            {syncStatus === 'syncing' ? t('dashboard.syncing') : 
+             syncStatus?.startsWith('done_') ? `✓ ${syncStatus.split('_')[1]} ${t('dashboard.synced')}` :
+             syncStatus === 'needs_import' ? t('dashboard.fullImportNeeded') :
+             syncStatus === 'error' ? t('dashboard.syncFailed') :
+             t('dashboard.syncNow')}
           </button>
 
           {/* Year Selector */}
@@ -260,7 +261,7 @@ const ECommerce: React.FC = () => {
             <h4 className="text-2xl font-bold text-black dark:text-white">
               {formatCurrency(data.cards.paidRevenue)}
             </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Paid Revenue</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.paidRevenue')}</span>
             <span className="ml-2 text-xs font-medium text-emerald-600">
               {data.cards.paidCount} invoices
             </span>
@@ -279,7 +280,7 @@ const ECommerce: React.FC = () => {
             <h4 className="text-2xl font-bold text-black dark:text-white">
               {formatCurrency(data.cards.paidRevenue + data.cards.overdueAmount)}
             </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Sales</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.totalSales')}</span>
           </div>
         </div>
 
@@ -294,7 +295,7 @@ const ECommerce: React.FC = () => {
             <h4 className="text-2xl font-bold text-black dark:text-white">
               {data.cards.totalInvoices.toLocaleString()}
             </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Invoices</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.totalInvoices')}</span>
           </div>
         </div>
 
@@ -309,9 +310,9 @@ const ECommerce: React.FC = () => {
             <h4 className="text-2xl font-bold text-red-600 dark:text-red-400">
               {formatCurrency(data.cards.overdueAmount)}
             </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Overdue</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.overdueAmount')}</span>
             <span className="ml-2 text-xs font-medium text-red-500">
-              {data.cards.overdueCount} invoices
+              {data.cards.overdueCount} {t('dashboard.invoices')}
             </span>
           </div>
         </div>
@@ -323,7 +324,7 @@ const ECommerce: React.FC = () => {
         <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-8">
           <div className="mb-3 flex items-center justify-between">
             <h5 className="text-xl font-semibold text-black dark:text-white">
-              Monthly Revenue Trend — {selectedYear}
+              {t('dashboard.monthlyRevenueTrend')} — {selectedYear}
             </h5>
           </div>
           <div>
@@ -336,10 +337,10 @@ const ECommerce: React.FC = () => {
           </div>
         </div>
 
-        {/* Invoice Status Breakdown - Donut */}
+        {/* {t('dashboard.invoiceStatus')} Breakdown - Donut */}
         <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
           <h5 className="mb-3 text-xl font-semibold text-black dark:text-white">
-            Invoice Status
+            {t('dashboard.invoiceStatus')}
           </h5>
           <div className="flex items-center justify-center">
             <ReactApexChart
@@ -352,12 +353,12 @@ const ECommerce: React.FC = () => {
         </div>
       </div>
 
-      {/* ====== Charts Row 2: Top Customers (full width) ====== */}
+      {/* ====== Charts Row 2: {t('dashboard.topCustomers')} (full width) ====== */}
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:gap-7.5">
-        {/* Top Customers */}
+        {/* {t('dashboard.topCustomers')} */}
         <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-12">
           <h5 className="mb-4 text-xl font-semibold text-black dark:text-white">
-            Top Customers
+            {t('dashboard.topCustomers')}
           </h5>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             {data.topCustomers.map((customer, index) => {
@@ -380,49 +381,49 @@ const ECommerce: React.FC = () => {
                     ></div>
                   </div>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {customer.invoices} invoice{customer.invoices !== 1 ? 's' : ''}
+                    {customer.invoices} {t('dashboard.invoices')}
                   </span>
                 </div>
               );
             })}
             {data.topCustomers.length === 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">No customer data available</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">{t('dashboard.noCustomerData')}</p>
             )}
           </div>
         </div>
       </div>
 
-      {/* ====== Recent Invoices Table ====== */}
+      {/* ====== {t('dashboard.recentInvoices')} Table ====== */}
       <div className="mt-4 md:mt-6 2xl:mt-7.5">
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="px-4 py-6 md:px-6 xl:px-7.5">
             <h4 className="text-xl font-semibold text-black dark:text-white">
-              Recent Invoices
+              {t('dashboard.recentInvoices')}
             </h4>
           </div>
 
           {/* Table Header */}
           <div className="grid grid-cols-7 border-t border-stroke px-4 py-4.5 dark:border-strokedark md:px-6 2xl:px-7.5">
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">Invoice #</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('dashboard.invoiceNumber')}</p>
             </div>
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">Customer</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('dashboard.customer')}</p>
             </div>
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">Sales Rep</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('dashboard.salesRep')}</p>
             </div>
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">Date</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('dashboard.date')}</p>
             </div>
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">Total</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">{t('dashboard.total')}</p>
             </div>
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">Commission</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">{t('dashboard.commission')}</p>
             </div>
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-center">Status</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-center">{t('dashboard.status')}</p>
             </div>
           </div>
 
@@ -468,7 +469,7 @@ const ECommerce: React.FC = () => {
 
           {data.recentInvoices.length === 0 && (
             <div className="border-t border-stroke px-4 py-8 text-center dark:border-strokedark">
-              <p className="text-sm text-gray-500 dark:text-gray-400">No invoices found for {selectedYear}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.noInvoicesFor')} {selectedYear}</p>
             </div>
           )}
         </div>

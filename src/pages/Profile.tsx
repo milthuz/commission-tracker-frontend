@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -59,10 +60,11 @@ const TIMEZONES = [
 ];
 
 const Profile = () => {
+  const { t, i18n } = useTranslation();
   useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [saving, set{t('common.saving')} useState(false);
   const [saved, setSaved] = useState(false);
 
   // Editable fields
@@ -85,6 +87,11 @@ const Profile = () => {
         setCurrency(res.data.preferences.currency);
         setDateFormat(res.data.preferences.dateFormat);
         setTimezone(res.data.preferences.timezone);
+        // Sync i18n language with saved preference
+        if (res.data.preferences.language !== i18n.language) {
+          i18n.changeLanguage(res.data.preferences.language);
+          localStorage.setItem('language', res.data.preferences.language);
+        }
       } catch (e) {
         console.error('Error fetching profile:', e);
       } finally {
@@ -95,7 +102,7 @@ const Profile = () => {
   }, []);
 
   const handleSave = async () => {
-    setSaving(true);
+    set{t('common.saving')}ue);
     try {
       const token = localStorage.getItem('token');
       await axios.put(`${API_URL}/api/user/preferences`, {
@@ -107,13 +114,16 @@ const Profile = () => {
       }, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      // Switch app language immediately
+      i18n.changeLanguage(language);
+      localStorage.setItem('language', language);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (e) {
       console.error('Error saving preferences:', e);
       alert('Failed to save preferences');
     } finally {
-      setSaving(false);
+      set{t('common.saving')}lse);
     }
   };
 
@@ -130,15 +140,15 @@ const Profile = () => {
   }
 
   if (!profile) {
-    return <p className="text-body text-center py-12">Failed to load profile</p>;
+    return <p className="text-body text-center py-12">{t('profile.failedToLoad')}</p>;
   }
 
   return (
     <div>
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">Profile</h2>
-        <p className="text-sm text-body">Manage your account and preferences</p>
+        <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('profile.title')}</h2>
+        <p className="text-sm text-body">{t('profile.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -177,7 +187,7 @@ const Profile = () => {
                       ? 'bg-success bg-opacity-10 text-success' 
                       : 'bg-danger bg-opacity-10 text-danger'
                   }`}>
-                    {profile.salesperson.isActive ? 'Active Rep' : 'Inactive Rep'}
+                    {profile.salesperson.isActive ? t('profile.activeRep') : t('profile.inactiveRep')}
                   </span>
                 )}
               </div>
@@ -191,20 +201,20 @@ const Profile = () => {
                   <p className="text-2xl font-bold text-black dark:text-white">
                     {profile.stats.paidInvoices.toLocaleString()}
                   </p>
-                  <p className="text-xs text-body">Paid Invoices</p>
+                  <p className="text-xs text-body">{t('profile.paidInvoices')}</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-[#8B5CF6]">
                     {formatCurrency(profile.stats.totalCommission)}
                   </p>
-                  <p className="text-xs text-body">Total Commission</p>
+                  <p className="text-xs text-body">{t('profile.totalCommission')}</p>
                 </div>
               </div>
 
               {/* Commission Rate */}
               {profile.salesperson && (
                 <div className="mt-4 rounded-md bg-gray-2 dark:bg-meta-4 p-3">
-                  <p className="text-xs text-body">Commission Rate</p>
+                  <p className="text-xs text-body">{t('profile.commissionRate')}</p>
                   <p className="text-lg font-bold text-black dark:text-white">{profile.salesperson.commissionRate}%</p>
                 </div>
               )}
@@ -212,7 +222,7 @@ const Profile = () => {
               {/* Member Since */}
               {profile.memberSince && (
                 <p className="mt-5 text-xs text-body">
-                  Member since {new Date(profile.memberSince).toLocaleDateString('en-CA', { year: 'numeric', month: 'long' })}
+                  {t('profile.memberSince')} {new Date(profile.memberSince).toLocaleDateString('en-CA', { year: 'numeric', month: 'long' })}
                 </p>
               )}
             </div>
@@ -225,15 +235,15 @@ const Profile = () => {
           {/* Account Information */}
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-              <h3 className="text-lg font-semibold text-black dark:text-white">Account Information</h3>
-              <p className="text-sm text-body mt-1">Your personal details</p>
+              <h3 className="text-lg font-semibold text-black dark:text-white">{t('profile.accountInfo')}</h3>
+              <p className="text-sm text-body mt-1">{t('profile.accountInfoSubtitle')}</p>
             </div>
             <div className="p-7">
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 {/* Display Name */}
                 <div>
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
-                    Display Name
+                    {t('profile.displayName')}
                   </label>
                   <input
                     type="text"
@@ -246,7 +256,7 @@ const Profile = () => {
                 {/* Email (read only) */}
                 <div>
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
-                    Email
+                    {t('profile.email')}
                   </label>
                   <input
                     type="email"
@@ -254,17 +264,17 @@ const Profile = () => {
                     disabled
                     className="w-full rounded-lg border border-stroke bg-whiter py-3 px-5 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white cursor-not-allowed opacity-70"
                   />
-                  <p className="mt-1 text-xs text-body">Managed by Zoho</p>
+                  <p className="mt-1 text-xs text-body">{t('common.managedByZoho')}</p>
                 </div>
 
                 {/* Role (read only) */}
                 <div>
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
-                    Role
+                    {t('profile.role')}
                   </label>
                   <input
                     type="text"
-                    value={profile.isAdmin ? 'Administrator' : 'Sales Representative'}
+                    value={profile.isAdmin ? t('profile.administrator') : t('profile.salesRepresentative')}
                     disabled
                     className="w-full rounded-lg border border-stroke bg-whiter py-3 px-5 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white cursor-not-allowed opacity-70"
                   />
@@ -273,15 +283,15 @@ const Profile = () => {
                 {/* Salesperson Name (read only if linked) */}
                 <div>
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
-                    Salesperson Name
+                    {t('profile.salespersonName')}
                   </label>
                   <input
                     type="text"
-                    value={profile.salesperson?.name || 'Not linked'}
+                    value={profile.salesperson?.name || t('profile.notLinked')}
                     disabled
                     className="w-full rounded-lg border border-stroke bg-whiter py-3 px-5 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white cursor-not-allowed opacity-70"
                   />
-                  <p className="mt-1 text-xs text-body">Matched from Zoho Books invoices</p>
+                  <p className="mt-1 text-xs text-body">{t('profile.matchedFromZoho')}</p>
                 </div>
               </div>
             </div>
@@ -290,15 +300,15 @@ const Profile = () => {
           {/* Preferences */}
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-              <h3 className="text-lg font-semibold text-black dark:text-white">Preferences</h3>
-              <p className="text-sm text-body mt-1">Customize your experience</p>
+              <h3 className="text-lg font-semibold text-black dark:text-white">{t('profile.preferences')}</h3>
+              <p className="text-sm text-body mt-1">{t('profile.preferencesSubtitle')}</p>
             </div>
             <div className="p-7">
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 {/* Language */}
                 <div>
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
-                    Language
+                    {t('profile.language')}
                   </label>
                   <select
                     value={language}
@@ -314,7 +324,7 @@ const Profile = () => {
                 {/* Currency */}
                 <div>
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
-                    Currency
+                    {t('profile.currency')}
                   </label>
                   <select
                     value={currency}
@@ -330,7 +340,7 @@ const Profile = () => {
                 {/* Date Format */}
                 <div>
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
-                    Date Format
+                    {t('profile.dateFormat')}
                   </label>
                   <select
                     value={dateFormat}
@@ -346,7 +356,7 @@ const Profile = () => {
                 {/* Timezone */}
                 <div>
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
-                    Timezone
+                    {t('profile.timezone')}
                   </label>
                   <select
                     value={timezone}
@@ -370,21 +380,21 @@ const Profile = () => {
                   {saving ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                      Saving...
+                      {t('common.saving')}
                     </>
                   ) : (
                     <>
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
-                      Save Changes
+                      {t('common.save')}
                     </>
                   )}
                 </button>
 
                 {saved && (
                   <span className="text-sm font-medium text-success animate-fade-in">
-                    ✓ Preferences saved
+                    {t('profile.preferencesSaved')}
                   </span>
                 )}
               </div>
@@ -394,8 +404,8 @@ const Profile = () => {
           {/* Session & Security */}
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-              <h3 className="text-lg font-semibold text-black dark:text-white">Session & Security</h3>
-              <p className="text-sm text-body mt-1">Manage your active session</p>
+              <h3 className="text-lg font-semibold text-black dark:text-white">{t('profile.session')}</h3>
+              <p className="text-sm text-body mt-1">{t('profile.sessionSubtitle')}</p>
             </div>
             <div className="p-7">
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -408,8 +418,8 @@ const Profile = () => {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-black dark:text-white">Zoho OAuth</p>
-                      <p className="text-xs text-body">Connected via Zoho Books</p>
+                      <p className="text-sm font-medium text-black dark:text-white">{t('profile.authProvider')}</p>
+                      <p className="text-xs text-body">{t('profile.connectedViaZoho')}</p>
                     </div>
                   </div>
                 </div>
@@ -423,18 +433,18 @@ const Profile = () => {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-black dark:text-white">Session Active</p>
-                      <p className="text-xs text-body">Token valid for 7 days</p>
+                      <p className="text-sm font-medium text-black dark:text-white">{t('profile.sessionActive')}</p>
+                      <p className="text-xs text-body">{t('profile.tokenValid')}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Sign Out */}
+              {/* {t('profile.signOut')} */}
               <div className="mt-5">
                 <button
                   onClick={() => {
-                    if (confirm('Are you sure you want to sign out?')) {
+                    if (confirm(t('profile.signOutConfirm'))) {
                       localStorage.removeItem('token');
                       window.location.href = '/auth/zoho-login';
                     }
@@ -444,7 +454,7 @@ const Profile = () => {
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
-                  Sign Out
+                  {t('profile.signOut')}
                 </button>
               </div>
             </div>

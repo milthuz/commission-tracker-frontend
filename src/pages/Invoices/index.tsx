@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Download, Eye, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -25,6 +26,7 @@ interface InvoiceStats {
 }
 
 const Invoices = () => {
+  const { t } = useTranslation();
   useAuth(); // Ensure user is authenticated
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [stats, setStats] = useState<InvoiceStats | null>(null);
@@ -288,7 +290,7 @@ const Invoices = () => {
       // Show success notification
       setNotification({
         show: true,
-        message: 'Invoice sent successfully!',
+        message: t('invoices.sentSuccess'),
         type: 'success'
       });
       setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
@@ -884,7 +886,7 @@ const Invoices = () => {
                 <h4 className="text-title-md font-bold text-black dark:text-white">
                   {formatCurrency(stats.totalCommission)}
                 </h4>
-                <span className="text-sm font-medium">Total Commission</span>
+                <span className="text-sm font-medium">{t('invoices.totalCommission')}</span>
               </div>
             </div>
           </div>
@@ -924,7 +926,7 @@ const Invoices = () => {
           <div className="flex-1">
             <input
               type="text"
-              placeholder="Search by invoice # or salesperson..."
+              placeholder={t('invoices.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
@@ -967,7 +969,7 @@ const Invoices = () => {
               setSelectedYear('');
               setSelectedMonth('');
             }}
-            placeholder="Start Date"
+            placeholder={t('invoices.startDate')}
             className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
 
@@ -979,7 +981,7 @@ const Invoices = () => {
               setSelectedYear('');
               setSelectedMonth('');
             }}
-            placeholder="End Date"
+            placeholder={t('invoices.endDate')}
             className="rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"
           />
 
@@ -1069,7 +1071,7 @@ const Invoices = () => {
             >
               <span>
                 {selectedSalespeople.length === 0 
-                  ? 'All Salespeople' 
+                  ? t('invoices.allSalespeople') 
                   : `${selectedSalespeople.length} Selected`}
               </span>
               <svg className="fill-current h-4 w-4" viewBox="0 0 20 20">
@@ -1309,7 +1311,7 @@ const Invoices = () => {
                 <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
                   <div className="text-center">
                     <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent mx-auto mb-4"></div>
-                    <p className="text-black dark:text-white">Loading preview...</p>
+                    <p className="text-black dark:text-white">{t('invoices.loadingPreview')}</p>
                   </div>
                 </div>
               )}
@@ -1398,7 +1400,7 @@ const Invoices = () => {
                 {emailModal.sending ? (
                   <>
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-t-transparent"></div>
-                    Sending...
+                    {t('invoices.sending')}
                   </>
                 ) : (
                   <>

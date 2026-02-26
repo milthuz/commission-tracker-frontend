@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ClusterLogo from '../../images/logo/cluster-on-dark.svg';
 import packageJson from '../../../package.json';
 
@@ -9,6 +10,7 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
+  const { t } = useTranslation();
   const location = useLocation();
   const { pathname } = location;
 
@@ -122,7 +124,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
           {/* <!-- Menu Group --> */}
           <div>
             <h3 className="mb-4 ml-4 text-sm font-semibold text-bodydark2">
-              MENU
+              {t('sidebar.menu')}
             </h3>
 
             <ul className="mb-6 flex flex-col gap-1.5">
@@ -159,7 +161,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       fill=""
                     />
                   </svg>
-                  Home
+                  {t('sidebar.dashboard')}
                 </NavLink>
               </li>
               {/* <!-- Menu Item Dashboard --> */}
@@ -186,7 +188,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       fill=""
                     />
                   </svg>
-                  Commission Tracker
+                  {t('sidebar.commissionTracker')}
                 </NavLink>
               </li>
               {/* <!-- Menu Item Commission Tracker --> */}
@@ -209,7 +211,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   >
                     <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z" />
                   </svg>
-                  Commission Report
+                  {t('sidebar.commissionReport')}
                 </NavLink>
               </li>
               {/* <!-- Menu Item Commission Report --> */}
@@ -247,7 +249,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       fill=""
                     />
                   </svg>
-                  Invoices
+                  {t('sidebar.invoices')}
                 </NavLink>
               </li>
               {/* <!-- Menu Item Invoices --> */}
@@ -271,7 +273,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       >
                         <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z" />
                       </svg>
-                      Admin Panel
+                      {t('sidebar.adminPanel')}
                     </div>
                     <svg
                       className={`fill-current transition-transform duration-200 ${adminMenuOpen ? 'rotate-180' : ''}`}
@@ -294,7 +296,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/sync' || pathname === '/admin' ? 'text-white' : ''
                         }`}
                       >
-                        Zoho Sync
+                        {t('sidebar.zohoSync')}
                       </NavLink>
                     </li>
                     <li>
@@ -304,7 +306,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/salespeople' ? 'text-white' : ''
                         }`}
                       >
-                        Salespeople
+                        {t('sidebar.salespeople')}
                       </NavLink>
                     </li>
                     <li>
@@ -314,7 +316,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/customers' ? 'text-white' : ''
                         }`}
                       >
-                        Customers
+                        {t('sidebar.customers')}
                       </NavLink>
                     </li>
                     <li>
@@ -324,7 +326,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/releases' ? 'text-white' : ''
                         }`}
                       >
-                        Releases
+                        {t('sidebar.releases')}
                       </NavLink>
                     </li>
                   </ul>
@@ -357,7 +359,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       fill=""
                     />
                   </svg>
-                  Profile
+                  {t('sidebar.profile')}
                 </NavLink>
               </li>
               {/* <!-- Menu Item Profile --> */}

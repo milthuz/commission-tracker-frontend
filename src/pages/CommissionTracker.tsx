@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { useTranslation } from 'react-i18next';
 
 const API_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -41,6 +42,7 @@ const formatCurrencyFull = (val: number) => {
 };
 
 const CommissionTracker: React.FC = () => {
+  const { t } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -101,11 +103,11 @@ const CommissionTracker: React.FC = () => {
   };
 
   const commissionTrendSeries = [
-    { name: 'Commission', data: data?.monthlyTrend.map(m => m.commission) || [] },
-    { name: 'Revenue (ref)', data: data?.monthlyTrend.map(m => m.revenue) || [] },
+    { name: t('commissionTracker.commission'), data: data?.monthlyTrend.map(m => m.commission) || [] },
+    { name: t('commissionTracker.revenueRef'), data: data?.monthlyTrend.map(m => m.revenue) || [] },
   ];
 
-  // --- Commission by Rep Chart ---
+  // --- {t('commissionTracker.commissionByRep')} Chart ---
   const repChartOptions: ApexOptions = {
     chart: { type: 'bar', height: 350, fontFamily: 'Satoshi, sans-serif', toolbar: { show: false } },
     colors: ['#8B5CF6', '#10B981'],
@@ -125,8 +127,8 @@ const CommissionTracker: React.FC = () => {
   };
 
   const repChartSeries = [
-    { name: 'Commission', data: data?.commissionsByRep.map(r => r.commission) || [] },
-    { name: 'Sales', data: data?.commissionsByRep.map(r => r.sales) || [] },
+    { name: t('commissionTracker.commission'), data: data?.commissionsByRep.map(r => r.commission) || [] },
+    { name: t('commissionTracker.sales'), data: data?.commissionsByRep.map(r => r.sales) || [] },
   ];
 
   if (loading) {
@@ -134,7 +136,7 @@ const CommissionTracker: React.FC = () => {
       <div className="flex h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#8B5CF6] border-t-transparent"></div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading commissions...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{t('commissionTracker.loadingCommissions')}</p>
         </div>
       </div>
     );
@@ -160,8 +162,8 @@ const CommissionTracker: React.FC = () => {
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-black dark:text-white">Commission Tracker</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Track earnings, commissions by rep, and payout trends</p>
+          <h2 className="text-2xl font-bold text-black dark:text-white">{t('commissionTracker.title')}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('commissionTracker.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -195,7 +197,7 @@ const CommissionTracker: React.FC = () => {
             <h4 className="text-2xl font-bold text-black dark:text-white">
               {formatCurrency(totalCommission)}
             </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Commission</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('commissionTracker.totalCommission')}</span>
             <span className="ml-2 text-xs font-medium text-[#8B5CF6]">{selectedYear}</span>
           </div>
         </div>
@@ -213,7 +215,7 @@ const CommissionTracker: React.FC = () => {
             <h4 className="text-2xl font-bold text-black dark:text-white">
               {avgRate}%
             </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg Commission Rate</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('commissionTracker.averageRate')}</span>
           </div>
         </div>
 
@@ -228,7 +230,7 @@ const CommissionTracker: React.FC = () => {
             <h4 className="text-2xl font-bold text-black dark:text-white truncate">
               {topEarner?.name || 'N/A'}
             </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Top Earner</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('commissionTracker.topEarner')}</span>
             {topEarner && (
               <span className="ml-2 text-xs font-medium text-[#10B981]">
                 {formatCurrency(topEarner.commission)}
@@ -251,7 +253,7 @@ const CommissionTracker: React.FC = () => {
             <h4 className="text-2xl font-bold text-black dark:text-white">
               {formatCurrency(currentMonthCommission)}
             </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">This Month</span>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('commissionTracker.thisMonth')}</span>
           </div>
         </div>
       </div>
@@ -262,7 +264,7 @@ const CommissionTracker: React.FC = () => {
         <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-7">
           <div className="mb-3 flex items-center justify-between">
             <h5 className="text-xl font-semibold text-black dark:text-white">
-              Commission Trend — {selectedYear}
+              {t('commissionTracker.commissionTrend')} — {selectedYear}
             </h5>
           </div>
           <div>
@@ -275,10 +277,10 @@ const CommissionTracker: React.FC = () => {
           </div>
         </div>
 
-        {/* Commission by Rep Chart */}
+        {/* {t('commissionTracker.commissionByRep')} Chart */}
         <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-5">
           <h5 className="mb-3 text-xl font-semibold text-black dark:text-white">
-            Commission by Rep
+            {t('commissionTracker.commissionByRep')}
           </h5>
           <div>
             <ReactApexChart
@@ -296,26 +298,26 @@ const CommissionTracker: React.FC = () => {
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="px-4 py-6 md:px-6 xl:px-7.5">
             <h4 className="text-xl font-semibold text-black dark:text-white">
-              Sales Rep Breakdown
+              {t('commissionTracker.salesRepBreakdown')}
             </h4>
           </div>
 
           {/* Table Header */}
           <div className="grid grid-cols-5 border-t border-stroke px-4 py-4.5 dark:border-strokedark md:px-6 2xl:px-7.5">
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">Sales Rep</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('commissionTracker.salesRep')}</p>
             </div>
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-center">Invoices</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-center">{t('commissionTracker.invoicesCol')}</p>
             </div>
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">Total Sales</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">{t('commissionTracker.totalSales')}</p>
             </div>
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">Commission</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">{t('commissionTracker.commission')}</p>
             </div>
             <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">Rate</p>
+              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">{t('commissionTracker.rate')}</p>
             </div>
           </div>
 
@@ -361,7 +363,7 @@ const CommissionTracker: React.FC = () => {
 
           {data.commissionsByRep.length === 0 && (
             <div className="border-t border-stroke px-4 py-8 text-center dark:border-strokedark">
-              <p className="text-sm text-gray-500 dark:text-gray-400">No commission data for {selectedYear}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('commissionTracker.noCommissionData')} {selectedYear}</p>
             </div>
           )}
 
@@ -369,7 +371,7 @@ const CommissionTracker: React.FC = () => {
           {data.commissionsByRep.length > 0 && (
             <div className="grid grid-cols-5 border-t-2 border-stroke px-4 py-4 dark:border-strokedark md:px-6 2xl:px-7.5 bg-gray-50 dark:bg-meta-4/30">
               <div className="col-span-1 flex items-center">
-                <p className="text-sm font-bold text-black dark:text-white">TOTAL</p>
+                <p className="text-sm font-bold text-black dark:text-white">{t('common.TOTAL')}</p>
               </div>
               <div className="col-span-1 flex items-center justify-center">
                 <p className="text-sm font-bold text-black dark:text-white">
