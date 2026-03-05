@@ -378,7 +378,7 @@ const CommissionReport = () => {
   );
 
   const formatCurrency = (val: number) => {
-    return val.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    return val.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
   const currentMonthIndex = new Date().getMonth();
