@@ -10,7 +10,7 @@ import ECommerce from './pages/Dashboard/ECommerce';
 import CommissionTracker from './pages/CommissionTracker';
 import CommissionReport from './pages/CommissionReport';
 import Profile from './pages/Profile';
-import Settings from './pages/Settings';
+import { Navigate } from 'react-router-dom';
 import Versions from './pages/Versions';
 import Invoices from './pages/Invoices';
 import AdminPanel from './pages/AdminPanel';
@@ -95,12 +95,7 @@ function AppContent() {
           />
           <Route
             path="/settings"
-            element={
-              <>
-                <PageTitle title="Settings | Commission Tracker" />
-                <Settings />
-              </>
-            }
+            element={<Navigate to="/profile" replace />}
           />
           <Route
             path="/versions"
