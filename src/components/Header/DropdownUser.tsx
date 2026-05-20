@@ -59,7 +59,18 @@ const DropdownUser = () => {
 
         <span className="h-12 w-12 rounded-full overflow-hidden">
           {user?.photo ? (
-            <img src={user.photo} alt="User" className="h-full w-full object-cover" />
+            <img
+              src={user.photo}
+              alt="User"
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                const parent = (e.target as HTMLImageElement).parentElement;
+                if (parent) {
+                  parent.innerHTML = `<div class="flex h-full w-full items-center justify-center bg-primary text-white text-lg font-semibold">${user?.name?.charAt(0).toUpperCase() || 'U'}</div>`;
+                }
+              }}
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-primary text-white text-lg font-semibold">
               {user?.name?.charAt(0).toUpperCase() || 'U'}

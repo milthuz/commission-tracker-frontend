@@ -158,9 +158,20 @@ const Profile = () => {
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="p-7 text-center">
               {/* Avatar */}
-              <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-primary bg-opacity-10">
+              <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-primary bg-opacity-10 overflow-hidden">
                 {profile.photo ? (
-                  <img src={profile.photo} alt={profile.name} className="h-24 w-24 rounded-full object-cover" />
+                  <img
+                    src={profile.photo}
+                    alt={profile.name}
+                    className="h-24 w-24 rounded-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      const parent = (e.target as HTMLImageElement).parentElement;
+                      if (parent) {
+                        parent.innerHTML = `<span class="text-3xl font-bold text-primary">${(profile.name || profile.email).charAt(0).toUpperCase()}</span>`;
+                      }
+                    }}
+                  />
                 ) : (
                   <span className="text-3xl font-bold text-primary">
                     {(profile.name || profile.email).charAt(0).toUpperCase()}
