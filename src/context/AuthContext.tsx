@@ -48,7 +48,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         );
 
         if (response.ok) {
-          setUser(JSON.parse(storedUser));
+          const data = await response.json();
+          // Use fresh user data from server (includes latest photo, name, etc.)
+          const freshUser = data.user || JSON.parse(storedUser);
+          localStorage.setItem('user', JSON.stringify(freshUser));
+          setUser(freshUser);
         } else {
           // Token invalid, clear storage
           localStorage.removeItem('token');
