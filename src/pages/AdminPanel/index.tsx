@@ -58,6 +58,16 @@ const AdminPanel = () => {
   const pathParts = location.pathname.split('/');
   const activeTab = pathParts[2] || 'sync'; // /admin/sync, /admin/salespeople, etc.
 
+  // Handle redirect back from CRM OAuth
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('crm') === 'connected') {
+      fetchCrmStatus();
+      // Clean up the URL
+      window.history.replaceState({}, '', '/admin/sync');
+    }
+  }, [location.search]);
+
   // Release management state
   const [releases, setReleases] = useState<Release[]>([]);
   const [newVersion, setNewVersion] = useState('');
@@ -74,6 +84,10 @@ const AdminPanel = () => {
   const [customerSearch, setCustomerSearch] = useState('');
   const [customerResults, setCustomerResults] = useState<CustomerSearchResult[]>([]);
   const [searchingCustomers, setSearchingCustomers] = useState(false);
+
+  // CRM connection state
+  const [crmStatus, setCrmStatus] = useState<{ connected: boolean; expired: boolean } | null>(null);
+  const [crmConnecting, setCrmConnecting] = useState(false);
 
   // Recalculate commissions state
   const [recalcStatus, setRecalcStatus] = useState<any>(null);
@@ -177,6 +191,7 @@ const AdminPanel = () => {
     if (isAdmin) {
       fetchSalespeople();
       fetchSyncStatus();
+      fetchCrmStatus();
       fetchReleases();
       fetchExcludedCustomers();
       fetchAdminUsers();
@@ -352,6 +367,35 @@ const AdminPanel = () => {
       setReleaseStatus('error');
       alert(err.response?.data?.error || 'Failed to create release');
       setTimeout(() => setReleaseStatus(null), 5000);
+    }
+  };
+
+  // Fetch CRM connection status
+  const fetchCrmStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/auth/crm-status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCrmStatus(res.data);
+    } catch (e) {
+      console.error('Failed to fetch CRM status:', e);
+    }
+  };
+
+  // Initiate CRM OAuth
+  const connectCRM = async () => {
+    try {
+      setCrmConnecting(true);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/auth/zoho-crm`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Redirect user to Zoho consent screen
+      window.location.href = res.data.authUrl;
+    } catch (e) {
+      console.error('Failed to initiate CRM OAuth:', e);
+      setCrmConnecting(false);
     }
   };
 
@@ -766,6 +810,80 @@ const AdminPanel = () => {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* ==================== CRM CONNECTION ==================== */}
+            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-black dark:text-white">Zoho CRM Connection</h3>
+                  <p className="text-sm text-body mt-1">Connect your Zoho CRM account to track deals, points, and quota attainment.</p>
+                </div>
+                {crmStatus?.connected && !crmStatus?.expired && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-success bg-opacity-10 px-3 py-1 text-xs font-semibold text-success">
+                    <span className="h-2 w-2 rounded-full bg-success"></span>
+                    Connected
+                  </span>
+                )}
+              </div>
+              <div className="p-7">
+                <div className="flex items-start gap-6">
+                  {/* CRM Icon */}
+                  <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-[#E8542A] bg-opacity-10">
+                    <svg className="h-7 w-7 text-[#E8542A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    {crmStatus === null ? (
+                      <p className="text-sm text-body">Checking connection status...</p>
+                    ) : crmStatus.connected && !crmStatus.expired ? (
+                      <div>
+                        <p className="text-sm font-medium text-black dark:text-white mb-1">CRM is connected and active.</p>
+                        <p className="text-sm text-body mb-4">Deals, points, and quota data will be pulled from Zoho CRM automatically.</p>
+                        <button
+                          onClick={connectCRM}
+                          disabled={crmConnecting}
+                          className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 disabled:opacity-50"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Reconnect CRM
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm font-medium text-black dark:text-white mb-1">
+                          {crmStatus.connected ? 'CRM token has expired.' : 'CRM is not connected yet.'}
+                        </p>
+                        <p className="text-sm text-body mb-4">
+                          Connect your Zoho CRM account to enable deal tracking, points calculation, and monthly quota monitoring per the compensation plan.
+                        </p>
+                        <button
+                          onClick={connectCRM}
+                          disabled={crmConnecting}
+                          className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                        >
+                          {crmConnecting ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                              Redirecting to Zoho...
+                            </>
+                          ) : (
+                            <>
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                              </svg>
+                              Connect Zoho CRM
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
