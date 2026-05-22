@@ -817,19 +817,18 @@ const AdminPanel = () => {
             <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-black dark:text-white">Zoho CRM Connection</h3>
-                  <p className="text-sm text-body mt-1">Connect your Zoho CRM account to track deals, points, and quota attainment.</p>
+                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.crm.title')}</h3>
+                  <p className="text-sm text-body mt-1">{t('admin.crm.subtitle')}</p>
                 </div>
                 {crmStatus?.connected && !crmStatus?.expired && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-success bg-opacity-10 px-3 py-1 text-xs font-semibold text-success">
                     <span className="h-2 w-2 rounded-full bg-success"></span>
-                    Connected
+                    {t('admin.crm.connected')}
                   </span>
                 )}
               </div>
               <div className="p-7">
                 <div className="flex items-start gap-6">
-                  {/* CRM Icon */}
                   <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-[#E8542A] bg-opacity-10">
                     <svg className="h-7 w-7 text-[#E8542A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -837,11 +836,11 @@ const AdminPanel = () => {
                   </div>
                   <div className="flex-1">
                     {crmStatus === null ? (
-                      <p className="text-sm text-body">Checking connection status...</p>
+                      <p className="text-sm text-body">{t('admin.crm.checking')}</p>
                     ) : crmStatus.connected && !crmStatus.expired ? (
                       <div>
-                        <p className="text-sm font-medium text-black dark:text-white mb-1">CRM is connected and active.</p>
-                        <p className="text-sm text-body mb-4">Deals, points, and quota data will be pulled from Zoho CRM automatically.</p>
+                        <p className="text-sm font-medium text-black dark:text-white mb-1">{t('admin.crm.connectedMsg')}</p>
+                        <p className="text-sm text-body mb-4">{t('admin.crm.connectedDesc')}</p>
                         <button
                           onClick={connectCRM}
                           disabled={crmConnecting}
@@ -850,17 +849,15 @@ const AdminPanel = () => {
                           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                           </svg>
-                          Reconnect CRM
+                          {t('admin.crm.reconnect')}
                         </button>
                       </div>
                     ) : (
                       <div>
                         <p className="text-sm font-medium text-black dark:text-white mb-1">
-                          {crmStatus.connected ? 'CRM token has expired.' : 'CRM is not connected yet.'}
+                          {crmStatus?.connected ? t('admin.crm.expired') : t('admin.crm.notConnected')}
                         </p>
-                        <p className="text-sm text-body mb-4">
-                          Connect your Zoho CRM account to enable deal tracking, points calculation, and monthly quota monitoring per the compensation plan.
-                        </p>
+                        <p className="text-sm text-body mb-4">{t('admin.crm.notConnectedDesc')}</p>
                         <button
                           onClick={connectCRM}
                           disabled={crmConnecting}
@@ -869,14 +866,14 @@ const AdminPanel = () => {
                           {crmConnecting ? (
                             <>
                               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                              Redirecting to Zoho...
+                              {t('admin.crm.redirecting')}
                             </>
                           ) : (
                             <>
                               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                               </svg>
-                              Connect Zoho CRM
+                              {t('admin.crm.connect')}
                             </>
                           )}
                         </button>

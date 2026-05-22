@@ -212,6 +212,20 @@
       "syncFailed": "Sync failed",
       "fullImportRunning": "Full import is running in the background. This may take 10-20 minutes. You can leave this page — the import will continue."
     },
+    "crm": {
+      "title": "Zoho CRM Connection",
+      "subtitle": "Connect your Zoho CRM account to track deals, points, and quota attainment.",
+      "connected": "Connected",
+      "connectedMsg": "CRM is connected and active.",
+      "connectedDesc": "Deals, points, and quota data will be pulled from Zoho CRM automatically.",
+      "notConnected": "CRM is not connected yet.",
+      "expired": "CRM token has expired.",
+      "notConnectedDesc": "Connect your Zoho CRM account to enable deal tracking, points calculation, and monthly quota monitoring per the compensation plan.",
+      "checking": "Checking connection status...",
+      "connect": "Connect Zoho CRM",
+      "reconnect": "Reconnect CRM",
+      "redirecting": "Redirecting to Zoho..."
+    },
     "recalculate": {
       "title": "Commission Recalculation",
       "subtitle": "Fetch full invoice details from Zoho and apply subscription rules (first month 100%, renewals 0%)",

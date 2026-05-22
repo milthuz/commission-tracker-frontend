@@ -212,6 +212,20 @@
       "syncFailed": "La sync. a échoué",
       "fullImportRunning": "L'importation complète s'exécute en arrière-plan. Cela peut prendre 10 à 20 minutes. Vous pouvez quitter cette page — l'importation continuera."
     },
+    "crm": {
+      "title": "Connexion Zoho CRM",
+      "subtitle": "Connectez votre compte Zoho CRM pour suivre les opportunités, les points et l'atteinte des quotas.",
+      "connected": "Connecté",
+      "connectedMsg": "Le CRM est connecté et actif.",
+      "connectedDesc": "Les opportunités, les points et les données de quota seront automatiquement extraits de Zoho CRM.",
+      "notConnected": "Le CRM n'est pas encore connecté.",
+      "expired": "Le jeton CRM a expiré.",
+      "notConnectedDesc": "Connectez votre compte Zoho CRM pour activer le suivi des opportunités, le calcul des points et le suivi mensuel des quotas selon le plan de rémunération.",
+      "checking": "Vérification du statut de connexion...",
+      "connect": "Connecter Zoho CRM",
+      "reconnect": "Reconnecter le CRM",
+      "redirecting": "Redirection vers Zoho..."
+    },
     "recalculate": {
       "title": "Recalcul des commissions",
       "subtitle": "Récupérer les détails complets des factures depuis Zoho et appliquer les règles d'abonnement (1er mois 100 %, renouvellements 0 %)",
