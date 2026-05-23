@@ -1,177 +1,141 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import ReactApexChart from 'react-apexcharts';
-import { ApexOptions } from 'apexcharts';
 import { useTranslation } from 'react-i18next';
 
-const API_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-interface DashboardData {
-  cards: {
-    paidRevenue: number;
-    totalCommission: number;
-    totalInvoices: number;
-    overdueAmount: number;
-    paidCount: number;
-    overdueCount: number;
-  };
-  monthlyTrend: { month: string; revenue: number; overdue: number; commission: number }[];
-  commissionsByRep: { name: string; invoices: number; sales: number; commission: number }[];
-  statusBreakdown: { status: string; count: number; total: number }[];
-  topCustomers: { name: string; invoices: number; total: number }[];
-  recentInvoices: {
-    invoiceNumber: string;
-    customer: string;
-    salesperson: string;
-    total: number;
-    commission: number;
-    status: string;
-    date: string;
-  }[];
-  year: number;
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const QUOTA = 15;
+
+interface Deal {
+  crm_deal_id: string;
+  deal_name: string;
+  account_name: string;
+  lead_source_group: string;
+  points: number;
+  close_date: string;
 }
 
-const formatCurrency = (val: number) => {
-  if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
-  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`;
-  return `$${val.toFixed(2)}`;
-};
+interface RepData {
+  repName: string;
+  totalPoints: number;
+  quota: number;
+  quotaMet: boolean;
+  pointsToQuota: number;
+  monthlyBonus: number;
+  bonusTier: { points: number; bonus: number } | null;
+  nextBonusTier: { points: number; bonus: number } | null;
+  annualPoints: number;
+  annualBonus: number;
+  deals: Deal[];
+}
 
-const formatCurrencyFull = (val: number) => {
-  return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(val);
-};
+interface PointsData {
+  year: number;
+  month: number;
+  quota: number;
+  totalDeals: number;
+  reps: RepData[];
+}
 
 const CommissionTracker: React.FC = () => {
   const { t } = useTranslation();
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [data, setData] = useState<PointsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [expandedRep, setExpandedRep] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchDashboard();
-  }, [selectedYear]);
+    fetchPoints();
+  }, [selectedYear, selectedMonth]);
 
-  const fetchDashboard = async () => {
+  const fetchPoints = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/dashboard?year=${selectedYear}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setData(response.data);
       setError('');
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/crm/points`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { year: selectedYear, month: selectedMonth },
+      });
+      setData(res.data);
     } catch (err: any) {
-      console.error('Commission Tracker error:', err);
-      setError(err.response?.data?.error || 'Failed to load commission data');
+      setError(err.response?.data?.error || 'Failed to load points data');
     } finally {
       setLoading(false);
     }
   };
 
-  // Derived stats
-  const totalCommission = data?.cards.totalCommission || 0;
-  const totalSales = data?.cards.paidRevenue || 0;
-  const avgRate = totalSales > 0 ? ((totalCommission / totalSales) * 100).toFixed(1) : '0.0';
-  const topEarner = data?.commissionsByRep?.length
-    ? data.commissionsByRep.reduce((a, b) => (a.commission > b.commission ? a : b))
-    : null;
-  const currentMonth = new Date().getMonth(); // 0-indexed
-  const currentMonthCommission = data?.monthlyTrend?.[currentMonth]?.commission || 0;
-
-  // --- Commission Trend Chart ---
-  const commissionTrendOptions: ApexOptions = {
-    chart: { type: 'area', height: 350, fontFamily: 'Satoshi, sans-serif', toolbar: { show: false } },
-    colors: ['#8B5CF6', '#3B82F6'],
-    dataLabels: { enabled: false },
-    stroke: { curve: 'smooth', width: [3, 2] },
-    fill: {
-      type: 'gradient',
-      gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05, stops: [0, 95, 100] },
-    },
-    xaxis: {
-      categories: data?.monthlyTrend.map(m => m.month) || [],
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      labels: { formatter: (val: number) => formatCurrency(val) },
-    },
-    legend: { position: 'top', horizontalAlign: 'left' },
-    tooltip: { y: { formatter: (val: number) => formatCurrencyFull(val) } },
-    grid: { borderColor: '#e7e7e7', strokeDashArray: 4 },
+  const getSourceBadgeColor = (sourceGroup: string) => {
+    const s = sourceGroup.toLowerCase();
+    if (s.includes('outbound')) return 'bg-[#8B5CF6] text-white';
+    if (s.includes('partner')) return 'bg-[#F59E0B] text-white';
+    return 'bg-[#3B82F6] text-white';
   };
 
-  const commissionTrendSeries = [
-    { name: t('commissionTracker.commission'), data: data?.monthlyTrend.map(m => m.commission) || [] },
-    { name: t('commissionTracker.revenueRef'), data: data?.monthlyTrend.map(m => m.revenue) || [] },
-  ];
-
-  // --- {t('commissionTracker.commissionByRep')} Chart ---
-  const repChartOptions: ApexOptions = {
-    chart: { type: 'bar', height: 350, fontFamily: 'Satoshi, sans-serif', toolbar: { show: false } },
-    colors: ['#8B5CF6', '#10B981'],
-    plotOptions: { bar: { horizontal: false, columnWidth: '55%', borderRadius: 4 } },
-    dataLabels: { enabled: false },
-    xaxis: {
-      categories: data?.commissionsByRep.map(r => {
-        const name = r.name;
-        return name.length > 12 ? name.substring(0, 12) + '...' : name;
-      }) || [],
-      labels: { rotate: -45, style: { fontSize: '11px' } },
-    },
-    yaxis: { labels: { formatter: (val: number) => formatCurrency(val) } },
-    legend: { position: 'top' },
-    tooltip: { y: { formatter: (val: number) => formatCurrencyFull(val) } },
-    grid: { borderColor: '#e7e7e7', strokeDashArray: 4 },
+  const getQuotaBarColor = (points: number) => {
+    const pct = (points / QUOTA) * 100;
+    if (pct >= 100) return 'bg-success';
+    if (pct >= 60) return 'bg-warning';
+    return 'bg-danger';
   };
 
-  const repChartSeries = [
-    { name: t('commissionTracker.commission'), data: data?.commissionsByRep.map(r => r.commission) || [] },
-    { name: t('commissionTracker.sales'), data: data?.commissionsByRep.map(r => r.sales) || [] },
-  ];
-
-  if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#8B5CF6] border-t-transparent"></div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('commissionTracker.loadingCommissions')}</p>
-        </div>
+  if (loading) return (
+    <div className="flex h-[60vh] items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#8B5CF6] border-t-transparent"></div>
+        <p className="text-sm text-gray-500">Loading points data from CRM...</p>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (error) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <p className="mb-4 text-red-500">{error}</p>
-          <button onClick={fetchDashboard} className="rounded-lg bg-primary px-5 py-2.5 text-white hover:bg-opacity-90">
-            Retry
-          </button>
-        </div>
+  if (error) return (
+    <div className="flex h-[60vh] items-center justify-center">
+      <div className="text-center">
+        <p className="mb-4 text-red-500">{error}</p>
+        <button onClick={fetchPoints} className="rounded-lg bg-primary px-5 py-2.5 text-white hover:bg-opacity-90">
+          Retry
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 
   if (!data) return null;
+
+  const totalPoints = data.reps.reduce((s, r) => s + r.totalPoints, 0);
+  const repsMetQuota = data.reps.filter(r => r.quotaMet).length;
+  const totalDeals = data.totalDeals;
 
   return (
     <>
       {/* Header */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-black dark:text-white">{t('commissionTracker.title')}</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('commissionTracker.subtitle')}</p>
+          <h2 className="text-2xl font-bold text-black dark:text-white">
+            {t('commissionTracker.title')}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {MONTH_NAMES[selectedMonth - 1]} {selectedYear} · {totalDeals} SOLD deals · Quota: {QUOTA} pts
+          </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <select
+            value={selectedMonth}
+            onChange={e => setSelectedMonth(parseInt(e.target.value))}
+            className="rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white"
+          >
+            {MONTH_NAMES.map((m, i) => (
+              <option key={i} value={i + 1}>{m}</option>
+            ))}
+          </select>
           <select
             value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white"
+            onChange={e => setSelectedYear(parseInt(e.target.value))}
+            className="rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white"
           >
-            {[...Array(5)].map((_, i) => {
+            {[...Array(4)].map((_, i) => {
               const y = new Date().getFullYear() - i;
               return <option key={y} value={y}>{y}</option>;
             })}
@@ -179,223 +143,176 @@ const CommissionTracker: React.FC = () => {
         </div>
       </div>
 
-      {/* ====== Commission Stats Cards ====== */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 2xl:gap-7.5">
-        {/* Total Commission */}
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 2xl:gap-7.5 mb-6">
+        {/* Total Points */}
         <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#8B5CF6] bg-opacity-20">
-            <svg className="stroke-[#8B5CF6]" width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="6" width="20" height="12" rx="2"/>
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M2 10h2"/>
-              <path d="M20 10h2"/>
-              <path d="M2 14h2"/>
-              <path d="M20 14h2"/>
+            <svg className="h-6 w-6 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
             </svg>
           </div>
           <div className="mt-4">
-            <h4 className="text-2xl font-bold text-black dark:text-white">
-              {formatCurrency(totalCommission)}
-            </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('commissionTracker.totalCommission')}</span>
-            <span className="ml-2 text-xs font-medium text-[#8B5CF6]">{selectedYear}</span>
+            <h4 className="text-2xl font-bold text-black dark:text-white">{totalPoints} pts</h4>
+            <span className="text-sm font-medium text-gray-500">Total team points</span>
           </div>
         </div>
 
-        {/* Avg Commission Rate */}
-        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#3B82F6] bg-opacity-20">
-            <svg className="stroke-[#3B82F6]" width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="5" x2="5" y2="19"/>
-              <circle cx="6.5" cy="6.5" r="2.5"/>
-              <circle cx="17.5" cy="17.5" r="2.5"/>
-            </svg>
-          </div>
-          <div className="mt-4">
-            <h4 className="text-2xl font-bold text-black dark:text-white">
-              {avgRate}%
-            </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('commissionTracker.averageRate')}</span>
-          </div>
-        </div>
-
-        {/* Top Earner */}
+        {/* Deals Closed */}
         <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#10B981] bg-opacity-20">
-            <svg className="stroke-[#10B981]" width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 15l-2 5l9-11h-5l2-5l-9 11h5z"/>
+            <svg className="h-6 w-6 text-[#10B981]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <div className="mt-4">
-            <h4 className="text-2xl font-bold text-black dark:text-white truncate">
-              {topEarner?.name || 'N/A'}
-            </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('commissionTracker.topEarner')}</span>
-            {topEarner && (
-              <span className="ml-2 text-xs font-medium text-[#10B981]">
-                {formatCurrency(topEarner.commission)}
-              </span>
-            )}
+            <h4 className="text-2xl font-bold text-black dark:text-white">{totalDeals}</h4>
+            <span className="text-sm font-medium text-gray-500">SOLD deals this month</span>
           </div>
         </div>
 
-        {/* This Month Commission */}
+        {/* Quota Attainment */}
         <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#F59E0B] bg-opacity-20">
-            <svg className="stroke-[#F59E0B]" width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
+            <svg className="h-6 w-6 text-[#F59E0B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </div>
           <div className="mt-4">
             <h4 className="text-2xl font-bold text-black dark:text-white">
-              {formatCurrency(currentMonthCommission)}
+              {repsMetQuota}/{data.reps.length}
             </h4>
-            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('commissionTracker.thisMonth')}</span>
+            <span className="text-sm font-medium text-gray-500">Reps met quota ({QUOTA} pts)</span>
           </div>
         </div>
       </div>
 
-      {/* ====== Charts Row: Commission Trend + By Rep ====== */}
-      <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
-        {/* Commission Trend */}
-        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-7">
-          <div className="mb-3 flex items-center justify-between">
-            <h5 className="text-xl font-semibold text-black dark:text-white">
-              {t('commissionTracker.commissionTrend')} — {selectedYear}
-            </h5>
+      {/* Rep Cards */}
+      <div className="space-y-4">
+        {data.reps.length === 0 ? (
+          <div className="rounded-sm border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark">
+            <p className="text-gray-500">No SOLD deals found for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}</p>
           </div>
-          <div>
-            <ReactApexChart
-              options={commissionTrendOptions}
-              series={commissionTrendSeries}
-              type="area"
-              height={350}
-            />
-          </div>
-        </div>
+        ) : data.reps.map(rep => {
+          const quotaPct = Math.min(100, (rep.totalPoints / QUOTA) * 100);
+          const isExpanded = expandedRep === rep.repName;
 
-        {/* {t('commissionTracker.commissionByRep')} Chart */}
-        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-5">
-          <h5 className="mb-3 text-xl font-semibold text-black dark:text-white">
-            {t('commissionTracker.commissionByRep')}
-          </h5>
-          <div>
-            <ReactApexChart
-              options={repChartOptions}
-              series={repChartSeries}
-              type="bar"
-              height={350}
-            />
-          </div>
-        </div>
-      </div>
+          return (
+            <div key={rep.repName} className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              {/* Rep Header */}
+              <div
+                className="flex cursor-pointer items-center justify-between px-6 py-5"
+                onClick={() => setExpandedRep(isExpanded ? null : rep.repName)}
+              >
+                <div className="flex items-center gap-4 flex-1">
+                  {/* Avatar */}
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#8B5CF6] text-sm font-bold text-white">
+                    {rep.repName.charAt(0)}
+                  </div>
 
-      {/* ====== Detailed Rep Table ====== */}
-      <div className="mt-4 md:mt-6 2xl:mt-7.5">
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="px-4 py-6 md:px-6 xl:px-7.5">
-            <h4 className="text-xl font-semibold text-black dark:text-white">
-              {t('commissionTracker.salesRepBreakdown')}
-            </h4>
-          </div>
-
-          {/* Table Header */}
-          <div className="grid grid-cols-5 border-t border-stroke px-4 py-4.5 dark:border-strokedark md:px-6 2xl:px-7.5">
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('commissionTracker.salesRep')}</p>
-            </div>
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-center">{t('commissionTracker.invoicesCol')}</p>
-            </div>
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">{t('commissionTracker.totalSales')}</p>
-            </div>
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">{t('commissionTracker.commission')}</p>
-            </div>
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">{t('commissionTracker.rate')}</p>
-            </div>
-          </div>
-
-          {/* Table Body */}
-          {data.commissionsByRep
-            .sort((a, b) => b.commission - a.commission)
-            .map((rep, index) => {
-              const rate = rep.sales > 0 ? ((rep.commission / rep.sales) * 100).toFixed(1) : '0.0';
-              return (
-                <div
-                  key={rep.name}
-                  className={`grid grid-cols-5 border-t border-stroke px-4 py-4 dark:border-strokedark md:px-6 2xl:px-7.5 ${
-                    index % 2 === 0 ? '' : 'bg-gray-50 dark:bg-meta-4/30'
-                  }`}
-                >
-                  <div className="col-span-1 flex items-center">
-                    <div className="flex items-center gap-3">
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white ${
-                        index === 0 ? 'bg-[#F59E0B]' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-amber-700' : 'bg-gray-300'
-                      }`}>
-                        {index + 1}
-                      </div>
-                      <p className="text-sm font-medium text-black dark:text-white truncate">{rep.name}</p>
+                  {/* Name + quota bar */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <p className="font-semibold text-black dark:text-white">{rep.repName}</p>
+                      {rep.quotaMet ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-success bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-success">
+                          ✓ Quota Met
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-danger bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-danger">
+                          {rep.pointsToQuota} pts to quota
+                        </span>
+                      )}
+                      {rep.bonusTier && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#F59E0B] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#F59E0B]">
+                          🎯 ${rep.monthlyBonus.toLocaleString()} bonus
+                        </span>
+                      )}
+                    </div>
+                    {/* Progress bar */}
+                    <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">
+                      <div
+                        className={`h-2 rounded-full transition-all ${getQuotaBarColor(rep.totalPoints)}`}
+                        style={{ width: `${quotaPct}%` }}
+                      />
                     </div>
                   </div>
-                  <div className="col-span-1 flex items-center justify-center">
-                    <p className="text-sm text-black dark:text-white">{rep.invoices.toLocaleString()}</p>
-                  </div>
-                  <div className="col-span-1 flex items-center justify-end">
-                    <p className="text-sm text-black dark:text-white">{formatCurrencyFull(rep.sales)}</p>
-                  </div>
-                  <div className="col-span-1 flex items-center justify-end">
-                    <p className="text-sm font-semibold text-[#8B5CF6]">{formatCurrencyFull(rep.commission)}</p>
-                  </div>
-                  <div className="col-span-1 flex items-center justify-end">
-                    <span className="inline-block rounded-full bg-[#8B5CF6] bg-opacity-10 px-3 py-1 text-xs font-medium text-[#8B5CF6]">
-                      {rate}%
-                    </span>
-                  </div>
                 </div>
-              );
-            })}
 
-          {data.commissionsByRep.length === 0 && (
-            <div className="border-t border-stroke px-4 py-8 text-center dark:border-strokedark">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('commissionTracker.noCommissionData')} {selectedYear}</p>
-            </div>
-          )}
+                {/* Points + deals count */}
+                <div className="flex items-center gap-6 ml-4">
+                  <div className="text-right">
+                    <p className="text-xl font-bold text-black dark:text-white">{rep.totalPoints}<span className="text-sm font-normal text-gray-500"> / {QUOTA} pts</span></p>
+                    <p className="text-xs text-gray-500">{rep.deals.length} deal{rep.deals.length !== 1 ? 's' : ''}</p>
+                  </div>
+                  <svg className={`h-5 w-5 text-body transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
 
-          {/* Totals Row */}
-          {data.commissionsByRep.length > 0 && (
-            <div className="grid grid-cols-5 border-t-2 border-stroke px-4 py-4 dark:border-strokedark md:px-6 2xl:px-7.5 bg-gray-50 dark:bg-meta-4/30">
-              <div className="col-span-1 flex items-center">
-                <p className="text-sm font-bold text-black dark:text-white">{t('common.TOTAL')}</p>
+              {/* Annual summary bar */}
+              <div className="border-t border-stroke px-6 py-2 dark:border-strokedark flex items-center gap-6 text-xs text-gray-500">
+                <span>YTD {selectedYear}: <strong className="text-black dark:text-white">{rep.annualPoints} pts</strong></span>
+                {rep.annualBonus > 0 && (
+                  <span className="text-success font-semibold">Annual bonus: ${rep.annualBonus.toLocaleString()}</span>
+                )}
+                {rep.nextBonusTier && rep.quotaMet && (
+                  <span>{rep.nextBonusTier.points - rep.totalPoints} more pts → ${rep.nextBonusTier.bonus.toLocaleString()} bonus</span>
+                )}
               </div>
-              <div className="col-span-1 flex items-center justify-center">
-                <p className="text-sm font-bold text-black dark:text-white">
-                  {data.commissionsByRep.reduce((sum, r) => sum + r.invoices, 0).toLocaleString()}
-                </p>
-              </div>
-              <div className="col-span-1 flex items-center justify-end">
-                <p className="text-sm font-bold text-black dark:text-white">
-                  {formatCurrencyFull(data.commissionsByRep.reduce((sum, r) => sum + r.sales, 0))}
-                </p>
-              </div>
-              <div className="col-span-1 flex items-center justify-end">
-                <p className="text-sm font-bold text-[#8B5CF6]">
-                  {formatCurrencyFull(data.commissionsByRep.reduce((sum, r) => sum + r.commission, 0))}
-                </p>
-              </div>
-              <div className="col-span-1 flex items-center justify-end">
-                <span className="inline-block rounded-full bg-[#8B5CF6] bg-opacity-10 px-3 py-1 text-xs font-bold text-[#8B5CF6]">
-                  {avgRate}%
-                </span>
-              </div>
+
+              {/* Expanded deals table */}
+              {isExpanded && (
+                <div className="border-t border-stroke dark:border-strokedark">
+                  <table className="w-full table-auto">
+                    <thead>
+                      <tr className="bg-gray-50 dark:bg-meta-4/50">
+                        <th className="px-6 py-3 text-left text-xs font-medium text-body">Deal / Account</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-body">Source</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-body">Close Date</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-body">Points</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rep.deals.map(deal => (
+                        <tr key={deal.crm_deal_id} className="border-t border-stroke/50 dark:border-strokedark/50 hover:bg-gray-50 dark:hover:bg-meta-4/20">
+                          <td className="px-6 py-3">
+                            <p className="text-sm font-medium text-black dark:text-white">{deal.deal_name}</p>
+                            <p className="text-xs text-gray-500">{deal.account_name}</p>
+                          </td>
+                          <td className="px-6 py-3">
+                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getSourceBadgeColor(deal.lead_source_group)}`}>
+                              {deal.lead_source_group || '—'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-3 text-sm text-body">
+                            {deal.close_date ? new Date(deal.close_date).toLocaleDateString('en-CA') : '—'}
+                          </td>
+                          <td className="px-6 py-3 text-right">
+                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#8B5CF6] text-xs font-bold text-white">
+                              {deal.points}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-stroke bg-gray-50 dark:border-strokedark dark:bg-meta-4/30">
+                        <td colSpan={3} className="px-6 py-3 text-sm font-semibold text-black dark:text-white">Total</td>
+                        <td className="px-6 py-3 text-right">
+                          <span className="inline-flex h-7 w-auto min-w-7 items-center justify-center rounded-full bg-[#8B5CF6] px-2 text-xs font-bold text-white">
+                            {rep.totalPoints} pts
+                          </span>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })}
       </div>
     </>
   );
