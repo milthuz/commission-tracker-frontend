@@ -98,6 +98,11 @@ const AdminPanel = () => {
   } | null>(null);
   const [zentactSyncing, setZentactSyncing] = useState(false);
   const [zentactSyncMsg, setZentactSyncMsg] = useState<string | null>(null);
+  const [unassignedMerchants, setUnassignedMerchants] = useState<{
+    merchant_account_id: string; business_name: string;
+    raw_attributes: any; activated_at: string | null;
+  }[]>([]);
+  const [showUnassigned, setShowUnassigned] = useState(false);
 
   // Recalculate commissions state
   const [recalcStatus, setRecalcStatus] = useState<any>(null);
@@ -424,6 +429,37 @@ const AdminPanel = () => {
     } catch (e: any) {
       setZentactSyncing(false);
       setZentactSyncMsg(`✕ ${e.response?.data?.error || e.message}`);
+    }
+  };
+
+  // Fetch unassigned Zentact merchants
+  const fetchUnassignedMerchants = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/zentact/merchants?unassigned=true&active=true`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUnassignedMerchants(res.data.merchants || []);
+    } catch (e) {
+      console.error('Failed to fetch unassigned merchants:', e);
+    }
+  };
+
+  // Assign a rep to one Zentact merchant
+  const assignMerchantRep = async (merchantId: string, repName: string) => {
+    if (!repName) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(
+        `${API_URL}/api/zentact/merchants/${encodeURIComponent(merchantId)}/rep`,
+        { repName },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Drop the merchant from the local unassigned list
+      setUnassignedMerchants(prev => prev.filter(m => m.merchant_account_id !== merchantId));
+    } catch (e) {
+      console.error('Failed to assign rep:', e);
+      alert('Failed to assign rep');
     }
   };
 
@@ -1042,6 +1078,70 @@ const AdminPanel = () => {
                           )}
                         </button>
 
+                        {/* Unassigned merchants manager */}
+                        <div className="mt-5 border-t border-stroke pt-4 dark:border-strokedark">
+                          <button
+                            onClick={() => {
+                              const next = !showUnassigned;
+                              setShowUnassigned(next);
+                              if (next) fetchUnassignedMerchants();
+                            }}
+                            className="inline-flex items-center gap-2 text-sm font-medium text-[#6366F1] hover:underline"
+                          >
+                            <svg className={`h-4 w-4 transition-transform ${showUnassigned ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                            {t('admin.zentact.manageUnassigned')}
+                          </button>
+
+                          {showUnassigned && (
+                            <div className="mt-3">
+                              {unassignedMerchants.length === 0 ? (
+                                <p className="text-sm text-body italic">{t('admin.zentact.noUnassigned')}</p>
+                              ) : (
+                                <div className="overflow-x-auto rounded-md border border-stroke dark:border-strokedark">
+                                  <table className="w-full table-auto">
+                                    <thead>
+                                      <tr className="bg-gray-2 text-left text-xs dark:bg-meta-4">
+                                        <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.zentact.merchant')}</th>
+                                        <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.zentact.zentactRep')}</th>
+                                        <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.zentact.activated')}</th>
+                                        <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.zentact.assignTo')}</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {unassignedMerchants.map(m => {
+                                        const attrs = Array.isArray(m.raw_attributes) ? m.raw_attributes : [];
+                                        const zRep = attrs.find((a: any) => a.name === 'sales_rep' || a.name === 'Salesrep_email')?.value || '—';
+                                        return (
+                                          <tr key={m.merchant_account_id} className="border-t border-stroke text-sm dark:border-strokedark">
+                                            <td className="px-3 py-2 text-black dark:text-white">{m.business_name}</td>
+                                            <td className="px-3 py-2 text-body">{zRep}</td>
+                                            <td className="px-3 py-2 text-body">
+                                              {m.activated_at ? new Date(m.activated_at).toLocaleDateString() : '—'}
+                                            </td>
+                                            <td className="px-3 py-2">
+                                              <select
+                                                defaultValue=""
+                                                onChange={(e) => assignMerchantRep(m.merchant_account_id, e.target.value)}
+                                                className="rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white"
+                                              >
+                                                <option value="" disabled>{t('admin.zentact.selectRep')}</option>
+                                                {salespeople.filter(sp => sp.isActive).map(sp => (
+                                                  <option key={sp.name} value={sp.name}>{sp.name}</option>
+                                                ))}
+                                              </select>
+                                            </td>
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

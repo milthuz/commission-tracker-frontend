@@ -267,7 +267,14 @@
       "activeMerchants": "Marchands actifs",
       "totalBonus": "Total primes 100 $",
       "syncNow": "Synchroniser les marchands",
-      "syncing": "Synchronisation..."
+      "syncing": "Synchronisation...",
+      "manageUnassigned": "Gérer les marchands non assignés",
+      "noUnassigned": "Tous les marchands actifs sont assignés à un vendeur.",
+      "merchant": "Marchand",
+      "zentactRep": "Valeur Zentact",
+      "activated": "Activé le",
+      "assignTo": "Assigner à",
+      "selectRep": "Choisir un vendeur..."
     },
     "recalculate": {
       "title": "Recalcul des commissions",

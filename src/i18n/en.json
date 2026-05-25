@@ -267,7 +267,14 @@
       "activeMerchants": "Active merchants",
       "totalBonus": "Total $100 bonuses",
       "syncNow": "Sync Merchants",
-      "syncing": "Syncing..."
+      "syncing": "Syncing...",
+      "manageUnassigned": "Manage unassigned merchants",
+      "noUnassigned": "All active merchants are assigned to a rep.",
+      "merchant": "Merchant",
+      "zentactRep": "Zentact value",
+      "activated": "Activated",
+      "assignTo": "Assign to",
+      "selectRep": "Select rep..."
     },
     "recalculate": {
       "title": "Commission Recalculation",
