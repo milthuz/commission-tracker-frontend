@@ -123,7 +123,9 @@
     "activatedDate": "Activated",
     "activation$100": "$100 Bonus",
     "linkedDeal": "Linked deal",
-    "ytdZentact": "{{count}} activation(s) · ${{amount}} bonus"
+    "ytdZentact": "{{count}} activation(s) · ${{amount}} bonus",
+    "assignTo": "Assign to",
+    "selectRep": "Select rep..."
   },
   "commissionReport": {
     "title": "Commission Report",

@@ -63,11 +63,56 @@ const CommissionTracker: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [expandedRep, setExpandedRep] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [activeReps, setActiveReps] = useState<string[]>([]);
 
   // Locale-aware month names (short), e.g. "Jan" / "Jan." / "janv."
   const MONTH_NAMES = Array.from({ length: 12 }, (_, i) =>
     new Intl.DateTimeFormat(i18n.language, { month: 'short' }).format(new Date(2000, i, 1))
   );
+
+  // Detect admin from JWT
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setIsAdmin(payload.isAdmin || false);
+      } catch { /* */ }
+    }
+  }, []);
+
+  // Fetch active salespeople (for the Assign dropdown when isAdmin)
+  useEffect(() => {
+    if (!isAdmin) return;
+    const fetchReps = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_URL}/api/salespeople`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setActiveReps(res.data.salespeople || []);
+      } catch (e) { console.error('Failed to fetch reps', e); }
+    };
+    fetchReps();
+  }, [isAdmin]);
+
+  // Assign a merchant to a rep (admins only). After save, refetch the tracker.
+  const assignMerchant = async (merchantId: string, repName: string) => {
+    if (!repName) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(
+        `${API_URL}/api/zentact/merchants/${encodeURIComponent(merchantId)}/rep`,
+        { repName },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchPoints(); // refresh totals
+    } catch (e) {
+      console.error('Failed to assign rep', e);
+      alert('Failed to assign rep');
+    }
+  };
 
   useEffect(() => {
     fetchPoints();
@@ -393,6 +438,9 @@ const CommissionTracker: React.FC = () => {
                             <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.activatedDate')}</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.activation$100')}</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-body">{t('commissionTracker.points')}</th>
+                            {isAdmin && rep.repName === 'Unassigned' && (
+                              <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.assignTo')}</th>
+                            )}
                           </tr>
                         </thead>
                         <tbody>
@@ -417,6 +465,20 @@ const CommissionTracker: React.FC = () => {
                                   {m.points}
                                 </span>
                               </td>
+                              {isAdmin && rep.repName === 'Unassigned' && (
+                                <td className="px-6 py-3">
+                                  <select
+                                    defaultValue=""
+                                    onChange={(e) => assignMerchant(m.merchant_account_id, e.target.value)}
+                                    className="rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white"
+                                  >
+                                    <option value="" disabled>{t('commissionTracker.selectRep')}</option>
+                                    {activeReps.map(name => (
+                                      <option key={name} value={name}>{name}</option>
+                                    ))}
+                                  </select>
+                                </td>
+                              )}
                             </tr>
                           ))}
                         </tbody>
