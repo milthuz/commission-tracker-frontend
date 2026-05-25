@@ -29,6 +29,35 @@ interface MonthData {
   commissionQualifyingCount: number;
 }
 
+interface MonthPoints {
+  month: number;
+  crmPoints: number;
+  zentactPoints: number;
+  zentactActivations: number;
+  zentactBonus: number;
+  totalPoints: number;
+  quotaMet: boolean;
+  monthlyBonus: number;
+}
+
+interface AnnualPoints {
+  totalPoints: number;
+  crmPoints: number;
+  zentactPoints: number;
+  zentactBonus: number;
+  annualBonus: number;
+  nextTier: { points: number; bonus: number } | null;
+  ptsToNextTier: number;
+  tiers: { points: number; bonus: number }[];
+}
+
+interface PointsAnnualData {
+  repName: string;
+  year: number;
+  months: MonthPoints[];
+  annual: AnnualPoints;
+}
+
 interface CustomerData {
   customerName: string;
   invoices: number;
@@ -50,10 +79,13 @@ interface ReportData {
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+const MONTHLY_QUOTA = 15;
+
 const CommissionReport = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   useAuth();
   const [report, setReport] = useState<ReportData | null>(null);
+  const [pointsData, setPointsData] = useState<PointsAnnualData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState('all');
@@ -136,6 +168,25 @@ const CommissionReport = () => {
     };
     fetchReport();
   }, [selectedYear, selectedMonth, selectedRep]);
+
+  // Fetch points/bonus data whenever repName or year changes
+  useEffect(() => {
+    if (!report?.repName) return;
+    const fetchPoints = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_URL}/api/crm/points/annual`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { year: selectedYear, repName: report.repName },
+        });
+        setPointsData(res.data);
+      } catch (e) {
+        console.error('Error fetching points annual data:', e);
+        setPointsData(null);
+      }
+    };
+    fetchPoints();
+  }, [report?.repName, selectedYear]);
 
   const refreshReport = async () => {
     try {
@@ -383,6 +434,15 @@ const CommissionReport = () => {
 
   const currentMonthIndex = new Date().getMonth();
 
+  // Locale-aware short month names
+  const monthNames = Array.from({ length: 12 }, (_, i) =>
+    new Intl.DateTimeFormat(i18n.language, { month: 'short' }).format(new Date(2000, i, 1))
+  );
+
+  // Look up points for a given month number (1-based)
+  const getMonthPoints = (month: number): MonthPoints | null =>
+    pointsData?.months.find(m => m.month === month) || null;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -582,6 +642,153 @@ const CommissionReport = () => {
         </div>
       </div>
 
+      {/* Points & Bonus Summary */}
+      {pointsData && (
+        <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.pointsBonuses')}</h3>
+              <p className="text-sm text-body">{t('commissionReport.pointsBonusesSubtitle')}</p>
+            </div>
+            {/* Annual bonus badge */}
+            {pointsData.annual.annualBonus > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-semibold text-success">
+                🏆 {t('commissionReport.annualBonusEarned', { amount: pointsData.annual.annualBonus.toLocaleString() })}
+              </span>
+            )}
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+              {/* Left — selected month or current month points */}
+              {(() => {
+                const mNum = selectedMonth !== 'all' ? parseInt(selectedMonth) : new Date().getMonth() + 1;
+                const mp = getMonthPoints(mNum);
+                const label = monthNames[mNum - 1];
+                return (
+                  <div>
+                    <p className="mb-3 text-sm font-semibold text-black dark:text-white">
+                      {label} {selectedYear} — {t('commissionReport.monthlyPoints')}
+                    </p>
+                    <div className="flex flex-wrap gap-4">
+                      {/* Points */}
+                      <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
+                        <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.totalPoints')}</p>
+                        <p className="text-2xl font-bold text-black dark:text-white">{mp?.totalPoints ?? 0}</p>
+                        {(mp?.zentactPoints ?? 0) > 0 && (
+                          <p className="text-xs text-[#6366F1] mt-1">
+                            {mp!.crmPoints} CRM + {mp!.zentactPoints} 💳
+                          </p>
+                        )}
+                      </div>
+                      {/* Quota */}
+                      <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
+                        <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.quota')}</p>
+                        <div className="flex items-baseline gap-1">
+                          <p className="text-2xl font-bold text-black dark:text-white">{mp?.totalPoints ?? 0}</p>
+                          <p className="text-sm text-body">/ {MONTHLY_QUOTA}</p>
+                        </div>
+                        {mp?.quotaMet ? (
+                          <p className="text-xs text-success font-semibold mt-1">✓ {t('commissionReport.quotaMet')}</p>
+                        ) : (
+                          <p className="text-xs text-danger mt-1">{MONTHLY_QUOTA - (mp?.totalPoints ?? 0)} {t('commissionReport.ptsNeeded')}</p>
+                        )}
+                      </div>
+                      {/* Monthly bonus */}
+                      <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
+                        <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.monthlyBonus')}</p>
+                        <p className={`text-2xl font-bold ${(mp?.monthlyBonus ?? 0) > 0 ? 'text-success' : 'text-black dark:text-white'}`}>
+                          ${(mp?.monthlyBonus ?? 0).toLocaleString()}
+                        </p>
+                        {(mp?.zentactBonus ?? 0) > 0 && (
+                          <p className="text-xs text-[#6366F1] mt-1">+${mp!.zentactBonus.toLocaleString()} {t('commissionReport.zentactBonus')}</p>
+                        )}
+                      </div>
+                    </div>
+                    {/* Quota progress bar */}
+                    {mp && (
+                      <div className="mt-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-body">{t('commissionReport.quotaProgress')}</span>
+                          <span className="text-xs font-medium text-black dark:text-white">
+                            {Math.min(100, Math.round((mp.totalPoints / MONTHLY_QUOTA) * 100))}%
+                          </span>
+                        </div>
+                        <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">
+                          <div
+                            className={`h-2 rounded-full transition-all ${mp.quotaMet ? 'bg-success' : mp.totalPoints >= 10 ? 'bg-warning' : 'bg-danger'}`}
+                            style={{ width: `${Math.min(100, (mp.totalPoints / MONTHLY_QUOTA) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Right — annual bonus progress */}
+              <div>
+                <p className="mb-3 text-sm font-semibold text-black dark:text-white">
+                  {t('commissionReport.annualBonusProgress')} ({selectedYear})
+                </p>
+                <div className="flex flex-wrap gap-4 mb-4">
+                  <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
+                    <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.ytdPoints')}</p>
+                    <p className="text-2xl font-bold text-black dark:text-white">{pointsData.annual.totalPoints}</p>
+                    {pointsData.annual.zentactPoints > 0 && (
+                      <p className="text-xs text-[#6366F1] mt-1">incl. {pointsData.annual.zentactPoints} 💳</p>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
+                    <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.annualBonus')}</p>
+                    <p className={`text-2xl font-bold ${pointsData.annual.annualBonus > 0 ? 'text-success' : 'text-black dark:text-white'}`}>
+                      ${pointsData.annual.annualBonus.toLocaleString()}
+                    </p>
+                  </div>
+                  {pointsData.annual.zentactBonus > 0 && (
+                    <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
+                      <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.zentactBonusYtd')}</p>
+                      <p className="text-2xl font-bold text-[#6366F1]">${pointsData.annual.zentactBonus.toLocaleString()}</p>
+                    </div>
+                  )}
+                </div>
+                {/* Annual tier ladder */}
+                <div className="space-y-2">
+                  {pointsData.annual.tiers.map(tier => {
+                    const reached = pointsData.annual.totalPoints >= tier.points;
+                    const pct = Math.min(100, Math.round((pointsData.annual.totalPoints / tier.points) * 100));
+                    return (
+                      <div key={tier.points} className={`rounded-md border p-3 ${reached ? 'border-success bg-success bg-opacity-5' : 'border-stroke dark:border-strokedark'}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-xs font-semibold ${reached ? 'text-success' : 'text-body'}`}>
+                            {reached ? '✓' : ''} {tier.points} {t('commissionReport.pts')} → ${tier.bonus.toLocaleString()}
+                          </span>
+                          <span className="text-xs text-body">{pct}%</span>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-meta-4">
+                          <div
+                            className={`h-1.5 rounded-full ${reached ? 'bg-success' : 'bg-[#8B5CF6]'}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {pointsData.annual.nextTier && !pointsData.annual.annualBonus && (
+                  <p className="mt-3 text-xs text-body">
+                    {t('commissionReport.ptsToNextTier', {
+                      count: pointsData.annual.ptsToNextTier,
+                      amount: pointsData.annual.nextTier.bonus.toLocaleString(),
+                    })}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Monthly Commission Chart */}
       <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
@@ -608,6 +815,8 @@ const CommissionReport = () => {
                   <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.revenue')}</th>
                   <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.commission')}</th>
                   <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.invoiceCount')}</th>
+                  {pointsData && <th className="px-3 py-3 text-sm font-medium text-right text-[#8B5CF6]">{t('commissionReport.pts')}</th>}
+                  {pointsData && <th className="px-3 py-3 text-sm font-medium text-right text-[#8B5CF6]">{t('commissionReport.bonus')}</th>}
                   {isAdmin && <th className="px-3 py-3 text-sm font-medium text-center text-black dark:text-white">{t('commissionReport.status')}</th>}
                 </tr>
               </thead>
@@ -649,6 +858,27 @@ const CommissionReport = () => {
                     <td className="px-3 py-3.5 text-right text-sm text-body">
                       {m.invoices > 0 ? m.invoices : '—'}
                     </td>
+                    {pointsData && (() => {
+                      const mp = getMonthPoints(m.month);
+                      return (
+                        <>
+                          <td className="px-3 py-3.5 text-right text-sm">
+                            {mp && mp.totalPoints > 0 ? (
+                              <span className={`font-semibold ${mp.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>
+                                {mp.totalPoints}
+                              </span>
+                            ) : <span className="text-body">—</span>}
+                          </td>
+                          <td className="px-3 py-3.5 text-right text-sm">
+                            {mp && mp.monthlyBonus > 0 ? (
+                              <span className="font-semibold text-success">${mp.monthlyBonus.toLocaleString()}</span>
+                            ) : mp && mp.zentactBonus > 0 ? (
+                              <span className="font-semibold text-[#6366F1]">${mp.zentactBonus.toLocaleString()}</span>
+                            ) : <span className="text-body">—</span>}
+                          </td>
+                        </>
+                      );
+                    })()}
                     {isAdmin && (
                       <td className="px-3 py-3.5 text-center">
                         {m.commissionQualifyingCount === 0 ? (
@@ -730,6 +960,19 @@ const CommissionReport = () => {
                   <td className="px-3 py-3.5 text-right text-sm font-bold text-black dark:text-white">
                     {report.summary.ytd.invoices}
                   </td>
+                  {pointsData && (
+                    <td className="px-3 py-3.5 text-right text-sm font-bold text-[#8B5CF6]">
+                      {pointsData.months.reduce((s, m) => s + m.totalPoints, 0)}
+                    </td>
+                  )}
+                  {pointsData && (
+                    <td className="px-3 py-3.5 text-right text-sm font-bold text-success">
+                      {(() => {
+                        const total = pointsData.months.reduce((s, m) => s + m.monthlyBonus + m.zentactBonus, 0);
+                        return total > 0 ? `$${total.toLocaleString()}` : '—';
+                      })()}
+                    </td>
+                  )}
                   {isAdmin && <td></td>}
                 </tr>
               </tbody>
