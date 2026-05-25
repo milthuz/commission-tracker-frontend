@@ -89,6 +89,13 @@ const AdminPanel = () => {
   const [crmStatus, setCrmStatus] = useState<{ connected: boolean; expired: boolean } | null>(null);
   const [crmConnecting, setCrmConnecting] = useState(false);
 
+  // Zentact state
+  const [zentactStatus, setZentactStatus] = useState<{
+    connected: boolean; total: number; active: number; lastSync: string | null; reason?: string;
+  } | null>(null);
+  const [zentactSyncing, setZentactSyncing] = useState(false);
+  const [zentactSyncMsg, setZentactSyncMsg] = useState<string | null>(null);
+
   // Recalculate commissions state
   const [recalcStatus, setRecalcStatus] = useState<any>(null);
   const [recalcPolling, setRecalcPolling] = useState(false);
@@ -192,6 +199,7 @@ const AdminPanel = () => {
       fetchSalespeople();
       fetchSyncStatus();
       fetchCrmStatus();
+      fetchZentactStatus();
       fetchReleases();
       fetchExcludedCustomers();
       fetchAdminUsers();
@@ -367,6 +375,52 @@ const AdminPanel = () => {
       setReleaseStatus('error');
       alert(err.response?.data?.error || 'Failed to create release');
       setTimeout(() => setReleaseStatus(null), 5000);
+    }
+  };
+
+  // Fetch Zentact status
+  const fetchZentactStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/zentact/status`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setZentactStatus(res.data);
+    } catch (e) {
+      console.error('Failed to fetch Zentact status:', e);
+    }
+  };
+
+  // Trigger Zentact sync
+  const syncZentact = async () => {
+    try {
+      setZentactSyncing(true);
+      setZentactSyncMsg(null);
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/zentact/sync`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Poll for completion
+      const poll = setInterval(async () => {
+        try {
+          const statusRes = await axios.get(`${API_URL}/api/zentact/sync-status`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!statusRes.data.running) {
+            clearInterval(poll);
+            setZentactSyncing(false);
+            if (statusRes.data.result) {
+              setZentactSyncMsg(`✓ ${statusRes.data.result.total} merchants · ${statusRes.data.result.active} active`);
+              fetchZentactStatus();
+            } else if (statusRes.data.error) {
+              setZentactSyncMsg(`✕ ${statusRes.data.error}`);
+            }
+          }
+        } catch { clearInterval(poll); setZentactSyncing(false); }
+      }, 3000);
+    } catch (e: any) {
+      setZentactSyncing(false);
+      setZentactSyncMsg(`✕ ${e.response?.data?.error || e.message}`);
     }
   };
 
@@ -874,6 +928,94 @@ const AdminPanel = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                               </svg>
                               {t('admin.crm.connect')}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ==================== ZENTACT CONNECTION ==================== */}
+            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.zentact.title')}</h3>
+                  <p className="text-sm text-body mt-1">{t('admin.zentact.subtitle')}</p>
+                </div>
+                {zentactStatus?.connected && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-success bg-opacity-10 px-3 py-1 text-xs font-semibold text-success">
+                    <span className="h-2 w-2 rounded-full bg-success"></span>
+                    {t('admin.zentact.connected')}
+                  </span>
+                )}
+              </div>
+              <div className="p-7">
+                <div className="flex items-start gap-6">
+                  {/* Icon */}
+                  <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-[#6366F1] bg-opacity-10">
+                    <svg className="h-7 w-7 text-[#6366F1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    {zentactStatus === null ? (
+                      <p className="text-sm text-body">{t('admin.zentact.checking')}</p>
+                    ) : !zentactStatus.connected ? (
+                      <div>
+                        <p className="text-sm font-medium text-black dark:text-white mb-1">{t('admin.zentact.notConnected')}</p>
+                        <p className="text-sm text-body">{zentactStatus.reason}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        {/* Stats row */}
+                        <div className="mb-4 flex flex-wrap gap-6">
+                          <div>
+                            <p className="text-xs uppercase text-body font-medium">{t('admin.zentact.totalMerchants')}</p>
+                            <p className="text-2xl font-bold text-black dark:text-white">{zentactStatus.total}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase text-body font-medium">{t('admin.zentact.activeMerchants')}</p>
+                            <p className="text-2xl font-bold text-success">{zentactStatus.active}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase text-body font-medium">{t('admin.zentact.totalBonus')}</p>
+                            <p className="text-2xl font-bold text-[#6366F1]">${(zentactStatus.active * 100).toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase text-body font-medium">{t('admin.zohoSync.lastSync')}</p>
+                            <p className="text-sm font-semibold text-black dark:text-white">
+                              {zentactStatus.lastSync
+                                ? new Date(zentactStatus.lastSync).toLocaleDateString()
+                                : t('common.never')}
+                            </p>
+                          </div>
+                        </div>
+
+                        {zentactSyncMsg && (
+                          <p className={`mb-3 text-sm font-medium ${zentactSyncMsg.startsWith('✓') ? 'text-success' : 'text-danger'}`}>
+                            {zentactSyncMsg}
+                          </p>
+                        )}
+
+                        <button
+                          onClick={syncZentact}
+                          disabled={zentactSyncing}
+                          className="inline-flex items-center gap-2 rounded-md bg-[#6366F1] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                        >
+                          {zentactSyncing ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                              {t('admin.zentact.syncing')}
+                            </>
+                          ) : (
+                            <>
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              {t('admin.zentact.syncNow')}
                             </>
                           )}
                         </button>

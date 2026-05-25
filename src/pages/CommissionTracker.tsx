@@ -15,9 +15,23 @@ interface Deal {
   close_date: string;
 }
 
+interface ZentactMerchant {
+  merchant_account_id: string;
+  business_name: string;
+  sales_rep_name: string;
+  opportunity_id: string | null;
+  points: number;
+  bonus_amount: number;
+  activated_at: string;
+}
+
 interface RepData {
   repName: string;
   totalPoints: number;
+  crmPoints: number;
+  zentactPoints: number;
+  zentactActivations: number;
+  zentactBonus: number;
   quota: number;
   quotaMet: boolean;
   pointsToQuota: number;
@@ -26,7 +40,10 @@ interface RepData {
   nextBonusTier: { points: number; bonus: number } | null;
   annualPoints: number;
   annualBonus: number;
+  annualZentactActivations: number;
+  annualZentactBonus: number;
   deals: Deal[];
+  zentactMerchants: ZentactMerchant[];
 }
 
 interface PointsData {
@@ -34,6 +51,7 @@ interface PointsData {
   month: number;
   quota: number;
   totalDeals: number;
+  totalZentactActivations: number;
   reps: RepData[];
 }
 
@@ -111,6 +129,7 @@ const CommissionTracker: React.FC = () => {
   const totalPoints = data.reps.reduce((s, r) => s + r.totalPoints, 0);
   const repsMetQuota = data.reps.filter(r => r.quotaMet).length;
   const totalDeals = data.totalDeals;
+  const totalZentact = data.totalZentactActivations || 0;
   const currentMonthName = MONTH_NAMES[selectedMonth - 1];
 
   return (
@@ -154,7 +173,7 @@ const CommissionTracker: React.FC = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 2xl:gap-7.5 mb-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4 2xl:gap-7.5 mb-6">
         {/* Total Points */}
         <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#8B5CF6] bg-opacity-20">
@@ -195,6 +214,19 @@ const CommissionTracker: React.FC = () => {
             <span className="text-sm font-medium text-gray-500">
               {t('commissionTracker.repsMetQuota', { quota: QUOTA })}
             </span>
+          </div>
+        </div>
+
+        {/* Zentact Activations */}
+        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#6366F1] bg-opacity-20">
+            <svg className="h-6 w-6 text-[#6366F1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+          <div className="mt-4">
+            <h4 className="text-2xl font-bold text-black dark:text-white">{totalZentact}</h4>
+            <span className="text-sm font-medium text-gray-500">{t('commissionTracker.zentactActivations')}</span>
           </div>
         </div>
       </div>
@@ -242,6 +274,11 @@ const CommissionTracker: React.FC = () => {
                           🎯 {t('commissionTracker.monthlyBonus', { amount: rep.monthlyBonus.toLocaleString() })}
                         </span>
                       )}
+                      {rep.zentactActivations > 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[#6366F1] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#6366F1]">
+                          💳 {t('commissionTracker.zentactBonusBadge', { count: rep.zentactActivations, amount: rep.zentactBonus.toLocaleString() })}
+                        </span>
+                      )}
                     </div>
                     {/* Progress bar */}
                     <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">
@@ -272,11 +309,19 @@ const CommissionTracker: React.FC = () => {
               </div>
 
               {/* Annual summary bar */}
-              <div className="border-t border-stroke px-6 py-2 dark:border-strokedark flex items-center gap-6 text-xs text-gray-500">
+              <div className="border-t border-stroke px-6 py-2 dark:border-strokedark flex flex-wrap items-center gap-4 text-xs text-gray-500">
                 <span>
                   {t('commissionTracker.ytd', { year: selectedYear })}{' '}
                   <strong className="text-black dark:text-white">{rep.annualPoints} pts</strong>
                 </span>
+                {rep.annualZentactActivations > 0 && (
+                  <span className="text-[#6366F1] font-medium">
+                    💳 {t('commissionTracker.ytdZentact', {
+                      count: rep.annualZentactActivations,
+                      amount: rep.annualZentactBonus.toLocaleString(),
+                    })}
+                  </span>
+                )}
                 {rep.annualBonus > 0 && (
                   <span className="text-success font-semibold">
                     {t('commissionTracker.annualBonus', { amount: rep.annualBonus.toLocaleString() })}
@@ -295,51 +340,104 @@ const CommissionTracker: React.FC = () => {
               {/* Expanded deals table */}
               {isExpanded && (
                 <div className="border-t border-stroke dark:border-strokedark">
-                  <table className="w-full table-auto">
-                    <thead>
-                      <tr className="bg-gray-50 dark:bg-meta-4/50">
-                        <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.dealAccount')}</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.source')}</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.closeDate')}</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-body">{t('commissionTracker.points')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rep.deals.map(deal => (
-                        <tr key={deal.crm_deal_id} className="border-t border-stroke/50 dark:border-strokedark/50 hover:bg-gray-50 dark:hover:bg-meta-4/20">
-                          <td className="px-6 py-3">
-                            <p className="text-sm font-medium text-black dark:text-white">{deal.deal_name}</p>
-                            <p className="text-xs text-gray-500">{deal.account_name}</p>
-                          </td>
-                          <td className="px-6 py-3">
-                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getSourceBadgeColor(deal.lead_source_group)}`}>
-                              {deal.lead_source_group || '—'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-3 text-sm text-body">
-                            {deal.close_date ? new Date(deal.close_date).toLocaleDateString(i18n.language) : '—'}
-                          </td>
-                          <td className="px-6 py-3 text-right">
-                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#8B5CF6] text-xs font-bold text-white">
-                              {deal.points}
-                            </span>
-                          </td>
+                  {/* CRM Deals */}
+                  {rep.deals.length > 0 && (
+                    <table className="w-full table-auto">
+                      <thead>
+                        <tr className="bg-gray-50 dark:bg-meta-4/50">
+                          <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.dealAccount')}</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.source')}</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.closeDate')}</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-body">{t('commissionTracker.points')}</th>
                         </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr className="border-t border-stroke bg-gray-50 dark:border-strokedark dark:bg-meta-4/30">
-                        <td colSpan={3} className="px-6 py-3 text-sm font-semibold text-black dark:text-white">
-                          {t('commissionTracker.total')}
-                        </td>
-                        <td className="px-6 py-3 text-right">
-                          <span className="inline-flex h-7 w-auto min-w-7 items-center justify-center rounded-full bg-[#8B5CF6] px-2 text-xs font-bold text-white">
-                            {rep.totalPoints} pts
-                          </span>
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {rep.deals.map(deal => (
+                          <tr key={deal.crm_deal_id} className="border-t border-stroke/50 dark:border-strokedark/50 hover:bg-gray-50 dark:hover:bg-meta-4/20">
+                            <td className="px-6 py-3">
+                              <p className="text-sm font-medium text-black dark:text-white">{deal.deal_name}</p>
+                              <p className="text-xs text-gray-500">{deal.account_name}</p>
+                            </td>
+                            <td className="px-6 py-3">
+                              <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getSourceBadgeColor(deal.lead_source_group)}`}>
+                                {deal.lead_source_group || '—'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-3 text-sm text-body">
+                              {deal.close_date ? new Date(deal.close_date).toLocaleDateString(i18n.language) : '—'}
+                            </td>
+                            <td className="px-6 py-3 text-right">
+                              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#8B5CF6] text-xs font-bold text-white">
+                                {deal.points}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+
+                  {/* Zentact Payment Activations */}
+                  {rep.zentactMerchants && rep.zentactMerchants.length > 0 && (
+                    <div className="border-t border-stroke dark:border-strokedark">
+                      <div className="flex items-center gap-2 px-6 py-2 bg-[#6366F1] bg-opacity-5">
+                        <svg className="h-4 w-4 text-[#6366F1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        <span className="text-xs font-semibold text-[#6366F1]">{t('commissionTracker.zentactSection')}</span>
+                      </div>
+                      <table className="w-full table-auto">
+                        <thead>
+                          <tr className="bg-[#6366F1] bg-opacity-5">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.merchant')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.activatedDate')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.activation$100')}</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-body">{t('commissionTracker.points')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rep.zentactMerchants.map(m => (
+                            <tr key={m.merchant_account_id} className="border-t border-stroke/50 dark:border-strokedark/50 hover:bg-[#6366F1]/5">
+                              <td className="px-6 py-3">
+                                <p className="text-sm font-medium text-black dark:text-white">{m.business_name}</p>
+                                {m.opportunity_id && (
+                                  <p className="text-xs text-gray-400">{t('commissionTracker.linkedDeal')}: {m.opportunity_id}</p>
+                                )}
+                              </td>
+                              <td className="px-6 py-3 text-sm text-body">
+                                {m.activated_at ? new Date(m.activated_at).toLocaleDateString(i18n.language) : '—'}
+                              </td>
+                              <td className="px-6 py-3">
+                                <span className="inline-flex items-center rounded-full bg-[#6366F1] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#6366F1]">
+                                  ${m.bonus_amount.toLocaleString()}
+                                </span>
+                              </td>
+                              <td className="px-6 py-3 text-right">
+                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#6366F1] text-xs font-bold text-white">
+                                  {m.points}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Combined Total */}
+                  <div className="border-t border-stroke bg-gray-50 dark:border-strokedark dark:bg-meta-4/30 flex items-center justify-between px-6 py-3">
+                    <span className="text-sm font-semibold text-black dark:text-white">{t('commissionTracker.total')}</span>
+                    <div className="flex items-center gap-3">
+                      {rep.zentactBonus > 0 && (
+                        <span className="text-xs font-semibold text-[#6366F1]">
+                          +${rep.zentactBonus.toLocaleString()} {t('commissionTracker.zentactBonusLabel')}
+                        </span>
+                      )}
+                      <span className="inline-flex h-7 w-auto min-w-7 items-center justify-center rounded-full bg-[#8B5CF6] px-2 text-xs font-bold text-white">
+                        {rep.totalPoints} pts
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

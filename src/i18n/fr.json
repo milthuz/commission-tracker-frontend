@@ -114,7 +114,16 @@
     "closeDate": "Date de clôture",
     "points": "Points",
     "total": "Total",
-    "noDealsFound": "Aucune vente conclue trouvée pour {{month}} {{year}}"
+    "noDealsFound": "Aucune vente conclue trouvée pour {{month}} {{year}}",
+    "zentactActivations": "Activations paiement (Zentact)",
+    "zentactBonusBadge": "💳 {{count}} activation(s) · {{amount}} $",
+    "zentactBonusLabel": "Prime Zentact",
+    "zentactSection": "Activations paiement Zentact",
+    "merchant": "Marchand",
+    "activatedDate": "Activé le",
+    "activation$100": "Prime 100 $",
+    "linkedDeal": "Opportunité liée",
+    "ytdZentact": "{{count}} activation(s) · {{amount}} $ de prime"
   },
   "commissionReport": {
     "title": "Rapport de commissions",
@@ -225,6 +234,18 @@
       "connect": "Connecter Zoho CRM",
       "reconnect": "Reconnecter le CRM",
       "redirecting": "Redirection vers Zoho..."
+    },
+    "zentact": {
+      "title": "Intégration paiement Zentact",
+      "subtitle": "Synchroniser les activations marchands depuis Zentact — chaque marchand actif rapporte 1 point + 100 $ de prime au représentant",
+      "connected": "Connecté",
+      "notConnected": "Clé API Zentact non configurée",
+      "checking": "Vérification de la connexion Zentact...",
+      "totalMerchants": "Total marchands",
+      "activeMerchants": "Marchands actifs",
+      "totalBonus": "Total primes 100 $",
+      "syncNow": "Synchroniser les marchands",
+      "syncing": "Synchronisation..."
     },
     "recalculate": {
       "title": "Recalcul des commissions",
