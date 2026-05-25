@@ -118,7 +118,7 @@
     "zentactActivations": "Payment activations (Zentact)",
     "zentactBonusBadge": "💳 {{count}} activation(s) · ${{amount}}",
     "zentactBonusLabel": "Zentact bonus",
-    "zentactSection": "Zentact Payment Activations",
+    "zentactSection": "Payment Activations",
     "merchant": "Merchant",
     "activatedDate": "Activated",
     "activation$100": "$100 Bonus",

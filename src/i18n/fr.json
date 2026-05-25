@@ -118,7 +118,7 @@
     "zentactActivations": "Activations paiement (Zentact)",
     "zentactBonusBadge": "💳 {{count}} activation(s) · {{amount}} $",
     "zentactBonusLabel": "Prime Zentact",
-    "zentactSection": "Activations paiement Zentact",
+    "zentactSection": "Activations de paiement",
     "merchant": "Marchand",
     "activatedDate": "Activé le",
     "activation$100": "Prime 100 $",
