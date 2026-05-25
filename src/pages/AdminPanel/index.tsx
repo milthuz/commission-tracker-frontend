@@ -745,7 +745,7 @@ const AdminPanel = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-title-md2 font-semibold text-black dark:text-white">
-            {activeTab === 'sync' ? t('admin.zohoSync.title') :
+            {activeTab === 'sync' ? t('admin.integrations.title') :
              activeTab === 'salespeople' ? t('admin.salespeople.title') :
              activeTab === 'customers' ? t('admin.customers.title') :
              activeTab === 'releases' ? t('admin.releases.title') :
@@ -753,7 +753,7 @@ const AdminPanel = () => {
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
-            {activeTab === 'sync' ? t('admin.zohoSync.subtitle') :
+            {activeTab === 'sync' ? t('admin.integrations.subtitle') :
              activeTab === 'salespeople' ? t('admin.salespeople.subtitle') :
              activeTab === 'customers' ? t('admin.customers.subtitle') :
              activeTab === 'releases' ? `${t('admin.releases.currentVersion')}: v${packageJson.version}` :

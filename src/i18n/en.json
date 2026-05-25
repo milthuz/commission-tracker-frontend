@@ -56,7 +56,7 @@
     "commissionReport": "Commission Report",
     "invoices": "Invoices",
     "adminPanel": "Admin Panel",
-    "zohoSync": "Zoho Sync",
+    "zohoSync": "Integrations",
     "salespeople": "Salespeople",
     "customers": "Customers",
     "releases": "Releases",
@@ -203,6 +203,10 @@
   },
   "admin": {
     "title": "Admin Panel",
+    "integrations": {
+      "title": "Integrations",
+      "subtitle": "Manage your Zoho Books and Zentact connections"
+    },
     "zohoSync": {
       "title": "Zoho Books Sync",
       "subtitle": "Import and sync invoices from Zoho Books",

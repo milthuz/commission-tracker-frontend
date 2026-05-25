@@ -56,7 +56,7 @@
     "commissionReport": "Rapport de commissions",
     "invoices": "Factures",
     "adminPanel": "Panneau d'admin",
-    "zohoSync": "Sync. Zoho",
+    "zohoSync": "Intégrations",
     "salespeople": "Vendeurs",
     "customers": "Clients",
     "releases": "Versions",
@@ -203,6 +203,10 @@
   },
   "admin": {
     "title": "Panneau d'administration",
+    "integrations": {
+      "title": "Intégrations",
+      "subtitle": "Gérer vos connexions Zoho Books et Zentact"
+    },
     "zohoSync": {
       "title": "Synchronisation Zoho Books",
       "subtitle": "Importer et synchroniser les factures depuis Zoho Books",
