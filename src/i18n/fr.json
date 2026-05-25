@@ -115,7 +115,7 @@
     "points": "Points",
     "total": "Total",
     "noDealsFound": "Aucune vente conclue trouvée pour {{month}} {{year}}",
-    "zentactActivations": "Activations paiement (Zentact)",
+    "zentactActivations": "Activations de paiement",
     "zentactBonusBadge": "💳 {{count}} activation(s) · {{amount}} $",
     "zentactBonusLabel": "Prime Zentact",
     "zentactSection": "Activations de paiement",
