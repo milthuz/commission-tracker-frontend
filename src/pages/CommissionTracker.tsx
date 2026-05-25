@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const QUOTA = 15;
 
 interface Deal {
@@ -39,13 +38,18 @@ interface PointsData {
 }
 
 const CommissionTracker: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [data, setData] = useState<PointsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [expandedRep, setExpandedRep] = useState<string | null>(null);
+
+  // Locale-aware month names (short), e.g. "Jan" / "Jan." / "janv."
+  const MONTH_NAMES = Array.from({ length: 12 }, (_, i) =>
+    new Intl.DateTimeFormat(i18n.language, { month: 'short' }).format(new Date(2000, i, 1))
+  );
 
   useEffect(() => {
     fetchPoints();
@@ -86,7 +90,7 @@ const CommissionTracker: React.FC = () => {
     <div className="flex h-[60vh] items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#8B5CF6] border-t-transparent"></div>
-        <p className="text-sm text-gray-500">Loading points data from CRM...</p>
+        <p className="text-sm text-gray-500">{t('commissionTracker.loadingPoints')}</p>
       </div>
     </div>
   );
@@ -96,7 +100,7 @@ const CommissionTracker: React.FC = () => {
       <div className="text-center">
         <p className="mb-4 text-red-500">{error}</p>
         <button onClick={fetchPoints} className="rounded-lg bg-primary px-5 py-2.5 text-white hover:bg-opacity-90">
-          Retry
+          {t('common.retry')}
         </button>
       </div>
     </div>
@@ -107,6 +111,7 @@ const CommissionTracker: React.FC = () => {
   const totalPoints = data.reps.reduce((s, r) => s + r.totalPoints, 0);
   const repsMetQuota = data.reps.filter(r => r.quotaMet).length;
   const totalDeals = data.totalDeals;
+  const currentMonthName = MONTH_NAMES[selectedMonth - 1];
 
   return (
     <>
@@ -117,7 +122,12 @@ const CommissionTracker: React.FC = () => {
             {t('commissionTracker.title')}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {MONTH_NAMES[selectedMonth - 1]} {selectedYear} · {totalDeals} SOLD deals · Quota: {QUOTA} pts
+            {t('commissionTracker.subtitle', {
+              month: currentMonthName,
+              year: selectedYear,
+              count: totalDeals,
+              quota: QUOTA,
+            })}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -154,7 +164,7 @@ const CommissionTracker: React.FC = () => {
           </div>
           <div className="mt-4">
             <h4 className="text-2xl font-bold text-black dark:text-white">{totalPoints} pts</h4>
-            <span className="text-sm font-medium text-gray-500">Total team points</span>
+            <span className="text-sm font-medium text-gray-500">{t('commissionTracker.totalTeamPoints')}</span>
           </div>
         </div>
 
@@ -167,7 +177,7 @@ const CommissionTracker: React.FC = () => {
           </div>
           <div className="mt-4">
             <h4 className="text-2xl font-bold text-black dark:text-white">{totalDeals}</h4>
-            <span className="text-sm font-medium text-gray-500">SOLD deals this month</span>
+            <span className="text-sm font-medium text-gray-500">{t('commissionTracker.soldDealsMonth')}</span>
           </div>
         </div>
 
@@ -182,7 +192,9 @@ const CommissionTracker: React.FC = () => {
             <h4 className="text-2xl font-bold text-black dark:text-white">
               {repsMetQuota}/{data.reps.length}
             </h4>
-            <span className="text-sm font-medium text-gray-500">Reps met quota ({QUOTA} pts)</span>
+            <span className="text-sm font-medium text-gray-500">
+              {t('commissionTracker.repsMetQuota', { quota: QUOTA })}
+            </span>
           </div>
         </div>
       </div>
@@ -191,7 +203,9 @@ const CommissionTracker: React.FC = () => {
       <div className="space-y-4">
         {data.reps.length === 0 ? (
           <div className="rounded-sm border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-            <p className="text-gray-500">No SOLD deals found for {MONTH_NAMES[selectedMonth - 1]} {selectedYear}</p>
+            <p className="text-gray-500">
+              {t('commissionTracker.noDealsFound', { month: currentMonthName, year: selectedYear })}
+            </p>
           </div>
         ) : data.reps.map(rep => {
           const quotaPct = Math.min(100, (rep.totalPoints / QUOTA) * 100);
@@ -216,16 +230,16 @@ const CommissionTracker: React.FC = () => {
                       <p className="font-semibold text-black dark:text-white">{rep.repName}</p>
                       {rep.quotaMet ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-success bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-success">
-                          ✓ Quota Met
+                          {t('commissionTracker.quotaMet')}
                         </span>
                       ) : (
                         <span className="inline-flex items-center rounded-full bg-danger bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-danger">
-                          {rep.pointsToQuota} pts to quota
+                          {t('commissionTracker.ptsToQuota', { count: rep.pointsToQuota })}
                         </span>
                       )}
                       {rep.bonusTier && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-[#F59E0B] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#F59E0B]">
-                          🎯 ${rep.monthlyBonus.toLocaleString()} bonus
+                          🎯 {t('commissionTracker.monthlyBonus', { amount: rep.monthlyBonus.toLocaleString() })}
                         </span>
                       )}
                     </div>
@@ -242,8 +256,14 @@ const CommissionTracker: React.FC = () => {
                 {/* Points + deals count */}
                 <div className="flex items-center gap-6 ml-4">
                   <div className="text-right">
-                    <p className="text-xl font-bold text-black dark:text-white">{rep.totalPoints}<span className="text-sm font-normal text-gray-500"> / {QUOTA} pts</span></p>
-                    <p className="text-xs text-gray-500">{rep.deals.length} deal{rep.deals.length !== 1 ? 's' : ''}</p>
+                    <p className="text-xl font-bold text-black dark:text-white">
+                      {rep.totalPoints}<span className="text-sm font-normal text-gray-500"> / {QUOTA} pts</span>
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {rep.deals.length} {rep.deals.length !== 1
+                        ? t('commissionTracker.deals')
+                        : t('commissionTracker.deal')}
+                    </p>
                   </div>
                   <svg className={`h-5 w-5 text-body transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -253,12 +273,22 @@ const CommissionTracker: React.FC = () => {
 
               {/* Annual summary bar */}
               <div className="border-t border-stroke px-6 py-2 dark:border-strokedark flex items-center gap-6 text-xs text-gray-500">
-                <span>YTD {selectedYear}: <strong className="text-black dark:text-white">{rep.annualPoints} pts</strong></span>
+                <span>
+                  {t('commissionTracker.ytd', { year: selectedYear })}{' '}
+                  <strong className="text-black dark:text-white">{rep.annualPoints} pts</strong>
+                </span>
                 {rep.annualBonus > 0 && (
-                  <span className="text-success font-semibold">Annual bonus: ${rep.annualBonus.toLocaleString()}</span>
+                  <span className="text-success font-semibold">
+                    {t('commissionTracker.annualBonus', { amount: rep.annualBonus.toLocaleString() })}
+                  </span>
                 )}
                 {rep.nextBonusTier && rep.quotaMet && (
-                  <span>{rep.nextBonusTier.points - rep.totalPoints} more pts → ${rep.nextBonusTier.bonus.toLocaleString()} bonus</span>
+                  <span>
+                    {t('commissionTracker.morePtsToBonus', {
+                      count: rep.nextBonusTier.points - rep.totalPoints,
+                      amount: rep.nextBonusTier.bonus.toLocaleString(),
+                    })}
+                  </span>
                 )}
               </div>
 
@@ -268,10 +298,10 @@ const CommissionTracker: React.FC = () => {
                   <table className="w-full table-auto">
                     <thead>
                       <tr className="bg-gray-50 dark:bg-meta-4/50">
-                        <th className="px-6 py-3 text-left text-xs font-medium text-body">Deal / Account</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-body">Source</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-body">Close Date</th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-body">Points</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.dealAccount')}</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.source')}</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.closeDate')}</th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-body">{t('commissionTracker.points')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -287,7 +317,7 @@ const CommissionTracker: React.FC = () => {
                             </span>
                           </td>
                           <td className="px-6 py-3 text-sm text-body">
-                            {deal.close_date ? new Date(deal.close_date).toLocaleDateString('en-CA') : '—'}
+                            {deal.close_date ? new Date(deal.close_date).toLocaleDateString(i18n.language) : '—'}
                           </td>
                           <td className="px-6 py-3 text-right">
                             <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#8B5CF6] text-xs font-bold text-white">
@@ -299,7 +329,9 @@ const CommissionTracker: React.FC = () => {
                     </tbody>
                     <tfoot>
                       <tr className="border-t border-stroke bg-gray-50 dark:border-strokedark dark:bg-meta-4/30">
-                        <td colSpan={3} className="px-6 py-3 text-sm font-semibold text-black dark:text-white">Total</td>
+                        <td colSpan={3} className="px-6 py-3 text-sm font-semibold text-black dark:text-white">
+                          {t('commissionTracker.total')}
+                        </td>
                         <td className="px-6 py-3 text-right">
                           <span className="inline-flex h-7 w-auto min-w-7 items-center justify-center rounded-full bg-[#8B5CF6] px-2 text-xs font-bold text-white">
                             {rep.totalPoints} pts
