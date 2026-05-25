@@ -276,7 +276,12 @@
       "zentactRep": "Valeur Zentact",
       "activated": "Activé le",
       "assignTo": "Assigner à",
-      "selectRep": "Choisir un vendeur..."
+      "selectRep": "Choisir un vendeur...",
+      "status": "Statut",
+      "importCsv": "Importer assignations historiques (CSV)",
+      "csvHint": "Téléversez un fichier CSV avec les colonnes : merchant, sales_rep, activated_at. Les noms de marchands doivent correspondre exactement à ceux dans Zentact. Format de date : AAAA-MM-JJ ou MM/JJ/AAAA.",
+      "preview": "Aperçu",
+      "apply": "Appliquer"
     },
     "recalculate": {
       "title": "Recalcul des commissions",

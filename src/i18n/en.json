@@ -276,7 +276,12 @@
       "zentactRep": "Zentact value",
       "activated": "Activated",
       "assignTo": "Assign to",
-      "selectRep": "Select rep..."
+      "selectRep": "Select rep...",
+      "status": "Status",
+      "importCsv": "Import historical assignments (CSV)",
+      "csvHint": "Upload a CSV file with columns: merchant, sales_rep, activated_at. Merchant names must match the business names in Zentact. Date format: YYYY-MM-DD or MM/DD/YYYY.",
+      "preview": "Preview",
+      "apply": "Apply changes"
     },
     "recalculate": {
       "title": "Commission Recalculation",

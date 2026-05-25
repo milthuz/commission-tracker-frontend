@@ -104,6 +104,15 @@ const AdminPanel = () => {
   }[]>([]);
   const [showUnassigned, setShowUnassigned] = useState(false);
 
+  // CSV import state
+  const [csvImport, setCsvImport] = useState<{
+    showing: boolean;
+    rows: { merchant: string; salesRep: string; activatedAt: string }[];
+    preview: any | null;
+    applying: boolean;
+    message: string | null;
+  }>({ showing: false, rows: [], preview: null, applying: false, message: null });
+
   // Recalculate commissions state
   const [recalcStatus, setRecalcStatus] = useState<any>(null);
   const [recalcPolling, setRecalcPolling] = useState(false);
@@ -460,6 +469,88 @@ const AdminPanel = () => {
     } catch (e) {
       console.error('Failed to assign rep:', e);
       alert('Failed to assign rep');
+    }
+  };
+
+  // Parse a CSV file uploaded by the admin. Expected headers (case-insensitive):
+  //   merchant (or business_name) | sales_rep (or rep, salesrep) | activated_at (or date, activation_date)
+  const handleCsvFile = async (file: File) => {
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if (lines.length < 2) {
+      setCsvImport(prev => ({ ...prev, message: 'CSV must have header + at least one row' }));
+      return;
+    }
+    const splitLine = (line: string) => {
+      // Simple CSV split — handles quoted fields with commas
+      const out: string[] = [];
+      let cur = '', q = false;
+      for (let i = 0; i < line.length; i++) {
+        const c = line[i];
+        if (c === '"' && line[i+1] === '"') { cur += '"'; i++; continue; }
+        if (c === '"') { q = !q; continue; }
+        if (c === ',' && !q) { out.push(cur); cur = ''; continue; }
+        cur += c;
+      }
+      out.push(cur);
+      return out;
+    };
+    const headers = splitLine(lines[0]).map(h => h.trim().toLowerCase());
+    const merchantIdx = headers.findIndex(h => ['merchant', 'business_name', 'business name', 'name'].includes(h));
+    const repIdx      = headers.findIndex(h => ['sales_rep', 'salesrep', 'rep', 'sales rep', 'vendeur', 'representant'].includes(h));
+    const dateIdx     = headers.findIndex(h => ['activated_at', 'activated', 'date', 'activation_date', 'activation date', 'boarded', 'boarded_at'].includes(h));
+    if (merchantIdx === -1) {
+      setCsvImport(prev => ({ ...prev, message: `Missing 'merchant' column. Found: ${headers.join(', ')}` }));
+      return;
+    }
+    const rows = lines.slice(1).map(line => {
+      const cells = splitLine(line);
+      return {
+        merchant:    (cells[merchantIdx] || '').trim(),
+        salesRep:    repIdx  !== -1 ? (cells[repIdx]  || '').trim() : '',
+        activatedAt: dateIdx !== -1 ? normalizeDate(cells[dateIdx] || '') : '',
+      };
+    }).filter(r => r.merchant);
+    setCsvImport(prev => ({ ...prev, rows, message: `Parsed ${rows.length} rows. Click 'Preview' to match against the database.` }));
+  };
+
+  const normalizeDate = (s: string): string => {
+    const trimmed = s.trim();
+    if (!trimmed) return '';
+    // Accept YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY, etc.
+    const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (isoMatch) return `${isoMatch[1]}-${isoMatch[2].padStart(2,'0')}-${isoMatch[3].padStart(2,'0')}`;
+    // MM/DD/YYYY or DD/MM/YYYY — assume MM/DD/YYYY (most common in NA exports)
+    const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (slashMatch) {
+      const [_, p1, p2, y] = slashMatch;
+      const mm = p1.padStart(2, '0'), dd = p2.padStart(2, '0');
+      return `${y}-${mm}-${dd}`;
+    }
+    return trimmed;
+  };
+
+  const runImportPreview = async (apply: boolean) => {
+    if (csvImport.rows.length === 0) return;
+    setCsvImport(prev => ({ ...prev, applying: true, message: null }));
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(
+        `${API_URL}/api/zentact/import-assignments`,
+        { rows: csvImport.rows, dryRun: !apply },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setCsvImport(prev => ({
+        ...prev,
+        applying: false,
+        preview: res.data,
+        message: apply
+          ? `✓ Applied: ${res.data.updated} merchants updated, ${res.data.unmatched.length} unmatched`
+          : `Preview: ${res.data.matched.length} will be updated, ${res.data.unmatched.length} unmatched`,
+      }));
+      if (apply) fetchZentactStatus();
+    } catch (e: any) {
+      setCsvImport(prev => ({ ...prev, applying: false, message: `✕ ${e.response?.data?.error || e.message}` }));
     }
   };
 
@@ -1077,6 +1168,96 @@ const AdminPanel = () => {
                             </>
                           )}
                         </button>
+
+                        {/* CSV import for historical assignments */}
+                        <div className="mt-5 border-t border-stroke pt-4 dark:border-strokedark">
+                          <button
+                            onClick={() => setCsvImport(prev => ({ ...prev, showing: !prev.showing }))}
+                            className="inline-flex items-center gap-2 text-sm font-medium text-[#6366F1] hover:underline"
+                          >
+                            <svg className={`h-4 w-4 transition-transform ${csvImport.showing ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                            {t('admin.zentact.importCsv')}
+                          </button>
+
+                          {csvImport.showing && (
+                            <div className="mt-3 space-y-3">
+                              <p className="text-xs text-body">
+                                {t('admin.zentact.csvHint')}
+                              </p>
+                              <pre className="rounded bg-gray-50 dark:bg-meta-4 p-2 text-xs font-mono text-body overflow-x-auto">
+{`merchant,sales_rep,activated_at
+Plante Cuisine,Dora Housseau-Kurtin,2024-03-15
+Joker Pub,Jay Daoust,2024-04-01`}
+                              </pre>
+                              <input
+                                type="file"
+                                accept=".csv,text/csv"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) handleCsvFile(f);
+                                }}
+                                className="block w-full text-sm text-body file:mr-3 file:rounded file:border-0 file:bg-[#6366F1] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-opacity-90"
+                              />
+                              {csvImport.message && (
+                                <p className={`text-sm ${csvImport.message.startsWith('✓') ? 'text-success' : csvImport.message.startsWith('✕') ? 'text-danger' : 'text-body'}`}>
+                                  {csvImport.message}
+                                </p>
+                              )}
+                              {csvImport.rows.length > 0 && (
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => runImportPreview(false)}
+                                    disabled={csvImport.applying}
+                                    className="rounded border border-stroke px-4 py-1.5 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4 disabled:opacity-50"
+                                  >
+                                    {t('admin.zentact.preview')}
+                                  </button>
+                                  <button
+                                    onClick={() => runImportPreview(true)}
+                                    disabled={csvImport.applying || !csvImport.preview}
+                                    className="rounded bg-[#6366F1] px-4 py-1.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                                  >
+                                    {t('admin.zentact.apply')}
+                                  </button>
+                                </div>
+                              )}
+                              {csvImport.preview && (
+                                <div className="mt-3 max-h-80 overflow-y-auto rounded border border-stroke text-xs dark:border-strokedark">
+                                  <table className="w-full table-auto">
+                                    <thead className="sticky top-0 bg-gray-2 dark:bg-meta-4">
+                                      <tr>
+                                        <th className="px-3 py-2 text-left font-medium text-black dark:text-white">{t('admin.zentact.merchant')}</th>
+                                        <th className="px-3 py-2 text-left font-medium text-black dark:text-white">{t('admin.zentact.zentactRep')}</th>
+                                        <th className="px-3 py-2 text-left font-medium text-black dark:text-white">{t('admin.zentact.activated')}</th>
+                                        <th className="px-3 py-2 text-left font-medium text-black dark:text-white">{t('admin.zentact.status')}</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {csvImport.preview.matched?.map((m: any) => (
+                                        <tr key={m.merchant_account_id} className="border-t border-stroke dark:border-strokedark">
+                                          <td className="px-3 py-1.5 text-black dark:text-white">{m.merchant}</td>
+                                          <td className="px-3 py-1.5 text-body">{m.newSalesRep || '—'}</td>
+                                          <td className="px-3 py-1.5 text-body">{m.newActivatedAt || '—'}</td>
+                                          <td className="px-3 py-1.5"><span className="rounded-full bg-success bg-opacity-10 px-2 py-0.5 text-xs font-medium text-success">✓ matched</span></td>
+                                        </tr>
+                                      ))}
+                                      {csvImport.preview.unmatched?.map((m: any, i: number) => (
+                                        <tr key={`u${i}`} className="border-t border-stroke dark:border-strokedark">
+                                          <td className="px-3 py-1.5 text-black dark:text-white">{m.merchant}</td>
+                                          <td className="px-3 py-1.5 text-body">{m.salesRep || '—'}</td>
+                                          <td className="px-3 py-1.5 text-body">{m.activatedAt || '—'}</td>
+                                          <td className="px-3 py-1.5"><span className="rounded-full bg-danger bg-opacity-10 px-2 py-0.5 text-xs font-medium text-danger">✕ {m.reason}</span></td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
 
                         {/* Unassigned merchants manager */}
                         <div className="mt-5 border-t border-stroke pt-4 dark:border-strokedark">
