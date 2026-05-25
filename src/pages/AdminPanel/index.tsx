@@ -1042,39 +1042,6 @@ const AdminPanel = () => {
                           )}
                         </button>
 
-                        {/* Rep assignment debug panel */}
-                        {zentactStatus.total > 0 && (
-                          <div className="mt-4 rounded-md border border-stroke p-4 dark:border-strokedark">
-                            <p className="text-xs font-semibold uppercase text-body mb-2">Rep Assignment Diagnostic</p>
-                            <div className="flex flex-wrap gap-4 mb-3">
-                              <div>
-                                <p className="text-xs text-body">With rep email (from Zentact)</p>
-                                <p className={`text-lg font-bold ${(zentactStatus.withRepEmail ?? 0) > 0 ? 'text-success' : 'text-danger'}`}>
-                                  {zentactStatus.withRepEmail ?? 0} / {zentactStatus.total}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-body">Assigned to a rep</p>
-                                <p className={`text-lg font-bold ${(zentactStatus.assigned ?? 0) > 0 ? 'text-success' : 'text-danger'}`}>
-                                  {zentactStatus.assigned ?? 0} / {zentactStatus.total}
-                                </p>
-                              </div>
-                            </div>
-                            {zentactStatus.debugSamples && zentactStatus.debugSamples.length > 0 && (
-                              <div>
-                                <p className="text-xs text-body mb-1">Sample merchant attributes (raw from DB):</p>
-                                {zentactStatus.debugSamples.slice(0, 2).map(s => (
-                                  <div key={s.merchant_account_id} className="mb-2 rounded bg-gray-50 dark:bg-meta-4 p-2 text-xs font-mono">
-                                    <p className="font-semibold text-black dark:text-white">{s.business_name}</p>
-                                    <p>rep_email: <span className={s.sales_rep_email ? 'text-success' : 'text-danger'}>{s.sales_rep_email || 'null'}</span></p>
-                                    <p>rep_name: <span className={s.sales_rep_name ? 'text-success' : 'text-danger'}>{s.sales_rep_name || 'null'}</span></p>
-                                    <p className="text-body mt-1 break-all">attrs: {JSON.stringify(s.raw_attributes).slice(0, 200)}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
