@@ -13,6 +13,7 @@ interface Salesperson {
   commissionRate: number;
   baseSalary: number;
   invoiceCount: number;
+  aliases: string[];
 }
 
 interface AdminUser {
@@ -692,7 +693,7 @@ const AdminPanel = () => {
   const updateBaseSalary = async (name: string, salary: number) => {
     try {
       const token = localStorage.getItem('token');
-      
+
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/base-salary`,
         { baseSalary: salary },
@@ -711,6 +712,25 @@ const AdminPanel = () => {
     } catch (error) {
       console.error('Error updating base salary:', error);
       alert(t('admin.salespeople.failedUpdateSalary'));
+    }
+  };
+
+  // Update aliases (e.g. ["Gaby", "Gabi"] for Gabriella Daly)
+  const updateAliases = async (name: string, aliases: string[]) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/aliases`,
+        { aliases },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSalespeople(prev =>
+        prev.map(person => person.name === name ? { ...person, aliases } : person)
+      );
+      setUnlockedFields(prev => ({ ...prev, [`${name}_aliases`]: false }));
+    } catch (error) {
+      console.error('Error updating aliases:', error);
+      alert('Failed to update aliases');
     }
   };
 
@@ -1340,6 +1360,7 @@ const AdminPanel = () => {
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.invoices')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.commissionPercent')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.baseSalary')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.aliases')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.actions')}</th>
                         </tr>
                       </thead>
@@ -1446,6 +1467,45 @@ const AdminPanel = () => {
                                   </button>
                                 )}
                               </div>
+                            </td>
+                            {/* Aliases */}
+                            <td className="px-4 py-5">
+                              {unlockedFields[`${person.name}_aliases`] ? (
+                                <input
+                                  type="text"
+                                  autoFocus
+                                  defaultValue={(person.aliases || []).join(', ')}
+                                  placeholder="Gaby, Gabi"
+                                  onBlur={(e) => {
+                                    const list = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                                    updateAliases(person.name, list);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                    if (e.key === 'Escape') setUnlockedFields(prev => ({ ...prev, [`${person.name}_aliases`]: false }));
+                                  }}
+                                  className="w-44 rounded border border-primary bg-transparent px-2 py-1 text-sm outline-none dark:bg-form-input text-black dark:text-white"
+                                />
+                              ) : (
+                                <button
+                                  onClick={() => setUnlockedFields(prev => ({ ...prev, [`${person.name}_aliases`]: true }))}
+                                  className="group flex items-center gap-1.5 rounded-md border border-stroke px-2.5 py-1.5 text-sm transition hover:border-primary dark:border-strokedark flex-wrap max-w-[220px]"
+                                  title={t('admin.salespeople.aliasesHint')}
+                                >
+                                  {(person.aliases || []).length === 0 ? (
+                                    <span className="text-xs text-body italic">{t('admin.salespeople.addAlias')}</span>
+                                  ) : (
+                                    (person.aliases || []).map(a => (
+                                      <span key={a} className="inline-block rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-xs font-medium text-[#8B5CF6]">
+                                        {a}
+                                      </span>
+                                    ))
+                                  )}
+                                  <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                  </svg>
+                                </button>
+                              )}
                             </td>
                             <td className="px-4 py-5">
                               <button
