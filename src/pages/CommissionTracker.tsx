@@ -42,13 +42,17 @@ interface RepData {
   annualBonus: number;
   annualZentactActivations: number;
   annualZentactBonus: number;
+  dealsCount: number;
   deals: Deal[];
   zentactMerchants: ZentactMerchant[];
+  restricted?: boolean;   // backend flag — true when current user can't see this rep's details
 }
 
 interface PointsData {
   year: number;
   month: number;
+  isAdmin?: boolean;
+  viewerName?: string;
   quota: number;
   totalDeals: number;
   totalZentactActivations: number;
@@ -287,13 +291,15 @@ const CommissionTracker: React.FC = () => {
         ) : data.reps.map(rep => {
           const quotaPct = Math.min(100, (rep.totalPoints / QUOTA) * 100);
           const isExpanded = expandedRep === rep.repName;
+          const canViewDetails = !rep.restricted; // backend flagged this row
 
           return (
             <div key={rep.repName} className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               {/* Rep Header */}
               <div
-                className="flex cursor-pointer items-center justify-between px-6 py-5"
-                onClick={() => setExpandedRep(isExpanded ? null : rep.repName)}
+                className={`flex items-center justify-between px-6 py-5 ${canViewDetails ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                onClick={() => canViewDetails && setExpandedRep(isExpanded ? null : rep.repName)}
+                title={canViewDetails ? '' : t('commissionTracker.restrictedDetails')}
               >
                 <div className="flex items-center gap-4 flex-1">
                   {/* Avatar */}
@@ -342,14 +348,20 @@ const CommissionTracker: React.FC = () => {
                       {rep.totalPoints}<span className="text-sm font-normal text-gray-500"> / {QUOTA} pts</span>
                     </p>
                     <p className="text-xs text-gray-500">
-                      {rep.deals.length} {rep.deals.length !== 1
+                      {rep.dealsCount ?? rep.deals.length} {(rep.dealsCount ?? rep.deals.length) !== 1
                         ? t('commissionTracker.deals')
                         : t('commissionTracker.deal')}
                     </p>
                   </div>
-                  <svg className={`h-5 w-5 text-body transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
+                  {canViewDetails ? (
+                    <svg className={`h-5 w-5 text-body transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  )}
                 </div>
               </div>
 

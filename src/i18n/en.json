@@ -125,7 +125,8 @@
     "linkedDeal": "Linked deal",
     "ytdZentact": "{{count}} activation(s) · ${{amount}} bonus",
     "assignTo": "Assign to",
-    "selectRep": "Select rep..."
+    "selectRep": "Select rep...",
+    "restrictedDetails": "Details restricted — only visible to admins or your own row"
   },
   "commissionReport": {
     "title": "Commission Report",

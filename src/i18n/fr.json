@@ -125,7 +125,8 @@
     "linkedDeal": "Opportunité liée",
     "ytdZentact": "{{count}} activation(s) · {{amount}} $ de prime",
     "assignTo": "Assigner à",
-    "selectRep": "Choisir un vendeur..."
+    "selectRep": "Choisir un vendeur...",
+    "restrictedDetails": "Détails restreints — visibles uniquement par les admins ou pour votre propre ligne"
   },
   "commissionReport": {
     "title": "Rapport de commissions",
