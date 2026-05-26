@@ -365,6 +365,15 @@
       "noReleases": "No releases found",
       "view": "View →"
     },
+    "impersonate": {
+      "title": "Impersonate a User",
+      "subtitle": "Test the app as if you were a specific salesperson (for debugging permissions and visibility).",
+      "selectLabel": "Impersonate as",
+      "noImpersonation": "— Not impersonating —",
+      "active": "Active: {{name}}",
+      "stop": "Stop impersonating",
+      "hint": "While impersonating, you'll see the app exactly as that salesperson does (no admin tools, restricted detail views). A yellow banner stays at the top until you stop."
+    },
     "admins": {
       "title": "Admin Access",
       "subtitle": "Manage who has admin access to the application",
@@ -426,6 +435,10 @@
     "activeRep": "Active Rep",
     "inactiveRep": "Inactive Rep",
     "failedToLoad": "Failed to load profile"
+  },
+  "impersonation": {
+    "banner": "You are impersonating: {{name}}",
+    "stop": "Stop"
   },
   "versions": {
     "title": "Version History",

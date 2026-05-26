@@ -365,6 +365,15 @@
       "noReleases": "Aucune version trouvée",
       "view": "Voir →"
     },
+    "impersonate": {
+      "title": "Personnification d'un utilisateur",
+      "subtitle": "Tester l'app comme si vous étiez un vendeur spécifique (pour déboguer les permissions et la visibilité).",
+      "selectLabel": "Personnifier comme",
+      "noImpersonation": "— Aucune personnification —",
+      "active": "Actif : {{name}}",
+      "stop": "Arrêter la personnification",
+      "hint": "Pendant la personnification, vous verrez l'app exactement comme ce vendeur (pas d'outils admin, vues de détails restreintes). Une bannière jaune reste en haut jusqu'à ce que vous l'arrêtiez."
+    },
     "admins": {
       "title": "Accès administrateur",
       "subtitle": "Gérer les accès administrateur de l'application",
@@ -426,6 +435,10 @@
     "activeRep": "Vendeur actif",
     "inactiveRep": "Vendeur inactif",
     "failedToLoad": "Impossible de charger le profil"
+  },
+  "impersonation": {
+    "banner": "Vous personnifiez : {{name}}",
+    "stop": "Arrêter"
   },
   "versions": {
     "title": "Historique des versions",
