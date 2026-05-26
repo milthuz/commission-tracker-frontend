@@ -88,6 +88,8 @@ const AdminPanel = () => {
 
   // CRM connection state
   const [crmStatus, setCrmStatus] = useState<{ connected: boolean; expired: boolean } | null>(null);
+  const [crmSyncing, setCrmSyncing] = useState(false);
+  const [crmSyncMsg, setCrmSyncMsg] = useState<string | null>(null);
   const [crmConnecting, setCrmConnecting] = useState(false);
 
   // Zentact state
@@ -583,6 +585,38 @@ const AdminPanel = () => {
     }
   };
 
+  // Trigger non-destructive manual CRM sync (preserves sold_date)
+  const syncCRM = async () => {
+    try {
+      setCrmSyncing(true);
+      setCrmSyncMsg(null);
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/crm/sync`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // Poll for completion
+      const poll = setInterval(async () => {
+        try {
+          const statusRes = await axios.get(`${API_URL}/api/crm/sync-status`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!statusRes.data.running) {
+            clearInterval(poll);
+            setCrmSyncing(false);
+            if (statusRes.data.result) {
+              setCrmSyncMsg(`✓ ${statusRes.data.result.total} deals · ${statusRes.data.result.newCount} new`);
+            } else if (statusRes.data.error) {
+              setCrmSyncMsg(`✕ ${statusRes.data.error}`);
+            }
+          }
+        } catch { clearInterval(poll); setCrmSyncing(false); }
+      }, 3000);
+    } catch (e: any) {
+      setCrmSyncing(false);
+      setCrmSyncMsg(`✕ ${e.response?.data?.error || e.message}`);
+    }
+  };
+
   // Fetch sync status
   const fetchSyncStatus = async () => {
     try {
@@ -1044,16 +1078,39 @@ const AdminPanel = () => {
                       <div>
                         <p className="text-sm font-medium text-black dark:text-white mb-1">{t('admin.crm.connectedMsg')}</p>
                         <p className="text-sm text-body mb-4">{t('admin.crm.connectedDesc')}</p>
-                        <button
-                          onClick={connectCRM}
-                          disabled={crmConnecting}
-                          className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 disabled:opacity-50"
-                        >
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          {t('admin.crm.reconnect')}
-                        </button>
+                        {crmSyncMsg && (
+                          <p className={`mb-3 text-sm font-medium ${crmSyncMsg.startsWith('✓') ? 'text-success' : 'text-danger'}`}>
+                            {crmSyncMsg}
+                          </p>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={syncCRM}
+                            disabled={crmSyncing}
+                            className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                          >
+                            {crmSyncing ? (
+                              <>
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                {t('admin.crm.syncing')}
+                              </>
+                            ) : (
+                              <>
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                {t('admin.crm.syncNow')}
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={connectCRM}
+                            disabled={crmConnecting}
+                            className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 disabled:opacity-50"
+                          >
+                            {t('admin.crm.reconnect')}
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div>

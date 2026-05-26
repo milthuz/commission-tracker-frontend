@@ -257,7 +257,9 @@
       "checking": "Vérification du statut de connexion...",
       "connect": "Connecter Zoho CRM",
       "reconnect": "Reconnecter le CRM",
-      "redirecting": "Redirection vers Zoho..."
+      "redirecting": "Redirection vers Zoho...",
+      "syncNow": "Synchroniser les ventes",
+      "syncing": "Synchronisation..."
     },
     "zentact": {
       "title": "Intégration paiement Zentact",
