@@ -378,7 +378,7 @@
     "roles": {
       "title": "Rôles et permissions",
       "subtitle": "Créez des rôles personnalisés et assignez des permissions granulaires pour contrôler ce que chaque utilisateur peut voir et faire.",
-      "newRole": "+ Nouveau rôle",
+      "newRole": "Nouveau rôle",
       "editRole": "Modifier le rôle",
       "noRoles": "Aucun rôle défini — cliquez sur 'Nouveau rôle' pour commencer.",
       "nameField": "Nom du rôle",
@@ -387,7 +387,11 @@
       "systemRole": "Système",
       "user": "utilisateur",
       "users": "utilisateurs",
-      "allPermissions": "Toutes les permissions"
+      "allPermissions": "Toutes les permissions",
+      "moreCount": "+{{count}} de plus",
+      "descAdmin": "Accès complet à tout",
+      "descManager": "Gestionnaire d'équipe — visibilité complète de l'équipe, peut approuver les commissions",
+      "descSalesRep": "Vendeur standard — voit uniquement ses propres données"
     },
     "admins": {
       "title": "Accès administrateur",

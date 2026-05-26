@@ -378,7 +378,7 @@
     "roles": {
       "title": "Roles & Permissions",
       "subtitle": "Create custom roles and assign granular permissions to control what each user can see and do.",
-      "newRole": "+ New Role",
+      "newRole": "New Role",
       "editRole": "Edit Role",
       "noRoles": "No roles defined yet — click 'New Role' to get started.",
       "nameField": "Role Name",
@@ -387,7 +387,11 @@
       "systemRole": "System",
       "user": "user",
       "users": "users",
-      "allPermissions": "All permissions"
+      "allPermissions": "All permissions",
+      "moreCount": "+{{count}} more",
+      "descAdmin": "Full access to everything",
+      "descManager": "Team manager — full team visibility, can approve commissions",
+      "descSalesRep": "Standard salesperson — sees own data only"
     },
     "admins": {
       "title": "Admin Access",

@@ -2380,7 +2380,16 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   {role.userCount} {role.userCount === 1 ? t('admin.roles.user') : t('admin.roles.users')}
                                 </span>
                               </div>
-                              {role.description && <p className="text-sm text-body mb-2">{role.description}</p>}
+                              {(() => {
+                                // System roles get translated descriptions by name; custom roles use the DB value.
+                                const sysKey = ({
+                                  'Administrator': 'admin.roles.descAdmin',
+                                  'Manager':       'admin.roles.descManager',
+                                  'Sales Rep':     'admin.roles.descSalesRep',
+                                } as Record<string, string>)[role.name];
+                                const desc = sysKey ? t(sysKey) : role.description;
+                                return desc ? <p className="text-sm text-body mb-2">{desc}</p> : null;
+                              })()}
                               <div className="flex flex-wrap gap-1">
                                 {role.permissions.includes('*') ? (
                                   <span className="inline-flex rounded-full bg-success bg-opacity-10 px-2 py-0.5 text-xs font-medium text-success">
@@ -2394,7 +2403,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                       </span>
                                     ))}
                                     {role.permissions.length > 5 && (
-                                      <span className="text-xs text-body italic">+{role.permissions.length - 5} more</span>
+                                      <span className="text-xs text-body italic">{t('admin.roles.moreCount', { count: role.permissions.length - 5 })}</span>
                                     )}
                                   </>
                                 )}
