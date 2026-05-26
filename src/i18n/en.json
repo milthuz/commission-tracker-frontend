@@ -61,6 +61,7 @@
     "customers": "Customers",
     "releases": "Releases",
     "admins": "Admins",
+    "roles": "Roles & Permissions",
     "profile": "Profile"
   },
   "dashboard": {
@@ -374,6 +375,20 @@
       "stop": "Stop impersonating",
       "hint": "While impersonating, you'll see the app exactly as that salesperson does (no admin tools, restricted detail views). A yellow banner stays at the top until you stop."
     },
+    "roles": {
+      "title": "Roles & Permissions",
+      "subtitle": "Create custom roles and assign granular permissions to control what each user can see and do.",
+      "newRole": "+ New Role",
+      "editRole": "Edit Role",
+      "noRoles": "No roles defined yet — click 'New Role' to get started.",
+      "nameField": "Role Name",
+      "descField": "Description",
+      "permissionsField": "Permissions",
+      "systemRole": "System",
+      "user": "user",
+      "users": "users",
+      "allPermissions": "All permissions"
+    },
     "admins": {
       "title": "Admin Access",
       "subtitle": "Manage who has admin access to the application",
@@ -390,7 +405,11 @@
       "confirmGrant": "Grant admin access to",
       "confirmRevoke": "Revoke admin access from",
       "failedUpdate": "Failed to update admin status",
-      "noUsers": "No users found"
+      "noUsers": "No users found",
+      "rolesColumn": "Roles",
+      "noRoles": "No roles",
+      "editRoles": "Edit Roles",
+      "assignRoles": "Assign Roles"
     }
   },
   "header": {

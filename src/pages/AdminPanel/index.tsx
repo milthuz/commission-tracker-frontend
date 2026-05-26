@@ -21,6 +21,7 @@ interface AdminUser {
   isAdmin: boolean;
   createdAt: string;
   lastLogin: string;
+  roles?: { id: number; name: string }[];
 }
 
 interface Release {
@@ -85,6 +86,22 @@ const AdminPanel = () => {
   const [customerSearch, setCustomerSearch] = useState('');
   const [customerResults, setCustomerResults] = useState<CustomerSearchResult[]>([]);
   const [searchingCustomers, setSearchingCustomers] = useState(false);
+
+  // Roles state
+  interface PermDef { key: string; label: string; category: string; }
+  interface Role {
+    id: number; name: string; description: string;
+    permissions: string[]; isSystem: boolean; userCount: number;
+  }
+  const [permCatalog, setPermCatalog] = useState<PermDef[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [showNewRole, setShowNewRole] = useState(false);
+  const [savingRole, setSavingRole] = useState(false);
+
+  // User roles editing
+  const [editingUserRoles, setEditingUserRoles] = useState<string | null>(null); // user email being edited
+  const [editingUserRoleIds, setEditingUserRoleIds] = useState<number[]>([]);
 
   // CRM connection state
   const [crmStatus, setCrmStatus] = useState<{ connected: boolean; expired: boolean } | null>(null);
@@ -190,6 +207,70 @@ const AdminPanel = () => {
     }
   };
 
+  // ============================ ROLES ============================
+
+  const fetchPermCatalog = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const r = await axios.get(`${API_URL}/api/permissions/catalog`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPermCatalog(r.data.catalog || []);
+    } catch (e) { console.error('catalog', e); }
+  };
+
+  const fetchRoles = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const r = await axios.get(`${API_URL}/api/roles`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRoles(r.data.roles || []);
+    } catch (e) { console.error('roles', e); }
+  };
+
+  const saveRole = async (role: Partial<Role>, isNew: boolean) => {
+    setSavingRole(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (isNew) {
+        await axios.post(`${API_URL}/api/roles`, role, { headers: { Authorization: `Bearer ${token}` } });
+      } else {
+        await axios.put(`${API_URL}/api/roles/${role.id}`, role, { headers: { Authorization: `Bearer ${token}` } });
+      }
+      setEditingRole(null);
+      setShowNewRole(false);
+      fetchRoles();
+    } catch (e: any) {
+      alert(e.response?.data?.error || 'Failed to save role');
+    } finally {
+      setSavingRole(false);
+    }
+  };
+
+  const deleteRole = async (role: Role) => {
+    if (!confirm(`Delete role "${role.name}"? Users assigned to this role will lose its permissions.`)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/roles/${role.id}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchRoles();
+    } catch (e: any) {
+      alert(e.response?.data?.error || 'Failed to delete role');
+    }
+  };
+
+  const saveUserRoles = async (email: string, roleIds: number[]) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/users/${encodeURIComponent(email)}/roles`,
+        { roleIds }, { headers: { Authorization: `Bearer ${token}` } });
+      setEditingUserRoles(null);
+      fetchAdminUsers();
+    } catch (e: any) {
+      alert(e.response?.data?.error || 'Failed to save user roles');
+    }
+  };
+
   // Toggle admin status
   const toggleAdminStatus = async (email: string, currentStatus: boolean) => {
     const action = currentStatus ? t('admin.admins.confirmRevoke') : t('admin.admins.confirmGrant');
@@ -222,6 +303,8 @@ const AdminPanel = () => {
       fetchReleases();
       fetchExcludedCustomers();
       fetchAdminUsers();
+      fetchPermCatalog();
+      fetchRoles();
     }
   }, [isAdmin]);
 
@@ -933,6 +1016,7 @@ const AdminPanel = () => {
              activeTab === 'customers' ? t('admin.customers.title') :
              activeTab === 'releases' ? t('admin.releases.title') :
              activeTab === 'admins' ? t('admin.admins.title') :
+             activeTab === 'roles' ? t('admin.roles.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -941,6 +1025,7 @@ const AdminPanel = () => {
              activeTab === 'customers' ? t('admin.customers.subtitle') :
              activeTab === 'releases' ? `${t('admin.releases.currentVersion')}: v${packageJson.version}` :
              activeTab === 'admins' ? t('admin.admins.subtitle') :
+             activeTab === 'roles' ? t('admin.roles.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -2176,6 +2261,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.email')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.lastLogin')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.role')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.rolesColumn')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.actions')}</th>
                         </tr>
                       </thead>
@@ -2205,9 +2291,31 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               )}
                             </td>
                             <td className="px-4 py-5">
+                              <div className="flex flex-wrap gap-1">
+                                {(user.roles || []).map(r => (
+                                  <span key={r.id} className="inline-flex rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-xs font-medium text-[#8B5CF6]">
+                                    {r.name}
+                                  </span>
+                                ))}
+                                {(!user.roles || user.roles.length === 0) && (
+                                  <span className="text-xs text-body italic">{t('admin.admins.noRoles')}</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-5">
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingUserRoles(user.email);
+                                    setEditingUserRoleIds((user.roles || []).map(r => r.id));
+                                  }}
+                                  className="inline-flex items-center justify-center rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
+                                >
+                                  {t('admin.admins.editRoles')}
+                                </button>
                               <button
                                 onClick={() => toggleAdminStatus(user.email, user.isAdmin)}
-                                className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-center text-sm font-medium transition ${
+                                className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
                                   user.isAdmin
                                     ? 'bg-danger text-white hover:bg-opacity-90'
                                     : 'bg-success text-white hover:bg-opacity-90'
@@ -2215,6 +2323,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               >
                                 {user.isAdmin ? t('admin.admins.revokeAdmin') : t('admin.admins.grantAdmin')}
                               </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -2230,6 +2339,237 @@ Joker Pub,Jay Daoust,2024-04-01`}
               )}
             </div>
             </>
+          )}
+
+          {/* ==================== ROLES TAB ==================== */}
+          {activeTab === 'roles' && (
+            <div className="space-y-6">
+              <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.roles.title')}</h3>
+                    <p className="text-sm text-body mt-1">{t('admin.roles.subtitle')}</p>
+                  </div>
+                  <button
+                    onClick={() => { setShowNewRole(true); setEditingRole({ id: 0, name: '', description: '', permissions: [], isSystem: false, userCount: 0 }); }}
+                    className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-opacity-90"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    {t('admin.roles.newRole')}
+                  </button>
+                </div>
+                <div className="p-7">
+                  {roles.length === 0 ? (
+                    <p className="text-center text-body py-8">{t('admin.roles.noRoles')}</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {roles.map(role => (
+                        <div key={role.id} className="rounded-md border border-stroke p-4 dark:border-strokedark">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold text-black dark:text-white">{role.name}</h4>
+                                {role.isSystem && (
+                                  <span className="inline-flex rounded-full bg-gray-2 px-2 py-0.5 text-xs font-medium text-body dark:bg-meta-4">
+                                    {t('admin.roles.systemRole')}
+                                  </span>
+                                )}
+                                <span className="inline-flex rounded-full bg-primary bg-opacity-10 px-2 py-0.5 text-xs font-medium text-primary">
+                                  {role.userCount} {role.userCount === 1 ? t('admin.roles.user') : t('admin.roles.users')}
+                                </span>
+                              </div>
+                              {role.description && <p className="text-sm text-body mb-2">{role.description}</p>}
+                              <div className="flex flex-wrap gap-1">
+                                {role.permissions.includes('*') ? (
+                                  <span className="inline-flex rounded-full bg-success bg-opacity-10 px-2 py-0.5 text-xs font-medium text-success">
+                                    {t('admin.roles.allPermissions')}
+                                  </span>
+                                ) : (
+                                  <>
+                                    {role.permissions.slice(0, 5).map(p => (
+                                      <span key={p} className="inline-flex rounded-full bg-gray-100 dark:bg-meta-4 px-2 py-0.5 text-xs font-mono text-body">
+                                        {p}
+                                      </span>
+                                    ))}
+                                    {role.permissions.length > 5 && (
+                                      <span className="text-xs text-body italic">+{role.permissions.length - 5} more</span>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => setEditingRole(role)}
+                                className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
+                              >
+                                {t('common.edit')}
+                              </button>
+                              {!role.isSystem && (
+                                <button
+                                  onClick={() => deleteRole(role)}
+                                  className="rounded-md border border-danger px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger hover:bg-opacity-10"
+                                >
+                                  {t('common.delete')}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ==================== ROLE EDIT MODAL ==================== */}
+          {editingRole && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => { setEditingRole(null); setShowNewRole(false); }}>
+              <div className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+                  <h3 className="text-lg font-semibold text-black dark:text-white">
+                    {showNewRole ? t('admin.roles.newRole') : t('admin.roles.editRole')}: {editingRole.name || '(new)'}
+                  </h3>
+                </div>
+                <div className="p-6 overflow-y-auto flex-1">
+                  <label className="block text-sm font-medium text-black dark:text-white mb-1">{t('admin.roles.nameField')}</label>
+                  <input
+                    type="text"
+                    value={editingRole.name}
+                    onChange={(e) => setEditingRole({ ...editingRole, name: e.target.value })}
+                    placeholder="e.g. Team Lead"
+                    className="w-full mb-4 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white"
+                  />
+                  <label className="block text-sm font-medium text-black dark:text-white mb-1">{t('admin.roles.descField')}</label>
+                  <input
+                    type="text"
+                    value={editingRole.description}
+                    onChange={(e) => setEditingRole({ ...editingRole, description: e.target.value })}
+                    placeholder="What is this role for?"
+                    className="w-full mb-4 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white"
+                  />
+
+                  <label className="block text-sm font-medium text-black dark:text-white mb-2">{t('admin.roles.permissionsField')}</label>
+                  {/* Wildcard toggle for super admin */}
+                  <label className="flex items-center gap-2 mb-3 p-2 rounded border border-success bg-success bg-opacity-5">
+                    <input
+                      type="checkbox"
+                      checked={editingRole.permissions.includes('*')}
+                      onChange={(e) => {
+                        setEditingRole({
+                          ...editingRole,
+                          permissions: e.target.checked ? ['*'] : [],
+                        });
+                      }}
+                    />
+                    <span className="text-sm font-semibold text-success">{t('admin.roles.allPermissions')} (*)</span>
+                  </label>
+
+                  {!editingRole.permissions.includes('*') && (() => {
+                    const byCategory: Record<string, PermDef[]> = {};
+                    permCatalog.forEach(p => {
+                      if (!byCategory[p.category]) byCategory[p.category] = [];
+                      byCategory[p.category].push(p);
+                    });
+                    return Object.entries(byCategory).map(([category, perms]) => (
+                      <div key={category} className="mb-4">
+                        <p className="text-xs font-bold uppercase text-body mb-2">{category}</p>
+                        <div className="space-y-1">
+                          {perms.map(p => (
+                            <label key={p.key} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-meta-4 px-2 py-1 rounded">
+                              <input
+                                type="checkbox"
+                                checked={editingRole.permissions.includes(p.key)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setEditingRole({ ...editingRole, permissions: [...editingRole.permissions, p.key] });
+                                  } else {
+                                    setEditingRole({ ...editingRole, permissions: editingRole.permissions.filter(x => x !== p.key) });
+                                  }
+                                }}
+                              />
+                              <span className="text-sm text-black dark:text-white">{p.label}</span>
+                              <span className="text-xs text-body font-mono ml-auto">{p.key}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+                <div className="border-t border-stroke px-6 py-3 dark:border-strokedark flex justify-end gap-3">
+                  <button
+                    onClick={() => { setEditingRole(null); setShowNewRole(false); }}
+                    className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    onClick={() => saveRole(editingRole, showNewRole)}
+                    disabled={savingRole || !editingRole.name.trim()}
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                  >
+                    {savingRole ? t('common.saving') : t('common.save')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ==================== USER ROLES EDIT MODAL ==================== */}
+          {editingUserRoles && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setEditingUserRoles(null)}>
+              <div className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+                  <h3 className="text-lg font-semibold text-black dark:text-white">
+                    {t('admin.admins.assignRoles')}
+                  </h3>
+                  <p className="text-sm text-body mt-1">{editingUserRoles}</p>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-2">
+                    {roles.map(role => (
+                      <label key={role.id} className="flex items-start gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-meta-4 px-3 py-2 rounded">
+                        <input
+                          type="checkbox"
+                          checked={editingUserRoleIds.includes(role.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setEditingUserRoleIds([...editingUserRoleIds, role.id]);
+                            } else {
+                              setEditingUserRoleIds(editingUserRoleIds.filter(id => id !== role.id));
+                            }
+                          }}
+                          className="mt-0.5"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-black dark:text-white">{role.name}</p>
+                          {role.description && <p className="text-xs text-body">{role.description}</p>}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="border-t border-stroke px-6 py-3 dark:border-strokedark flex justify-end gap-3">
+                  <button
+                    onClick={() => setEditingUserRoles(null)}
+                    className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    onClick={() => saveUserRoles(editingUserRoles, editingUserRoleIds)}
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90"
+                  >
+                    {t('common.save')}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
     </div>
   );

@@ -61,6 +61,7 @@
     "customers": "Clients",
     "releases": "Versions",
     "admins": "Administrateurs",
+    "roles": "Rôles et permissions",
     "profile": "Profil"
   },
   "dashboard": {
@@ -374,6 +375,20 @@
       "stop": "Arrêter la personnification",
       "hint": "Pendant la personnification, vous verrez l'app exactement comme ce vendeur (pas d'outils admin, vues de détails restreintes). Une bannière jaune reste en haut jusqu'à ce que vous l'arrêtiez."
     },
+    "roles": {
+      "title": "Rôles et permissions",
+      "subtitle": "Créez des rôles personnalisés et assignez des permissions granulaires pour contrôler ce que chaque utilisateur peut voir et faire.",
+      "newRole": "+ Nouveau rôle",
+      "editRole": "Modifier le rôle",
+      "noRoles": "Aucun rôle défini — cliquez sur 'Nouveau rôle' pour commencer.",
+      "nameField": "Nom du rôle",
+      "descField": "Description",
+      "permissionsField": "Permissions",
+      "systemRole": "Système",
+      "user": "utilisateur",
+      "users": "utilisateurs",
+      "allPermissions": "Toutes les permissions"
+    },
     "admins": {
       "title": "Accès administrateur",
       "subtitle": "Gérer les accès administrateur de l'application",
@@ -390,7 +405,11 @@
       "confirmGrant": "Accorder l'accès administrateur à",
       "confirmRevoke": "Révoquer l'accès administrateur de",
       "failedUpdate": "Échec de la mise à jour du statut administrateur",
-      "noUsers": "Aucun utilisateur trouvé"
+      "noUsers": "Aucun utilisateur trouvé",
+      "rolesColumn": "Rôles",
+      "noRoles": "Aucun rôle",
+      "editRoles": "Modifier les rôles",
+      "assignRoles": "Assigner des rôles"
     }
   },
   "header": {
