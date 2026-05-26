@@ -2428,8 +2428,8 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
           {/* ==================== ROLE EDIT MODAL ==================== */}
           {editingRole && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => { setEditingRole(null); setShowNewRole(false); }}>
-              <div className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[99999] p-4" onClick={() => { setEditingRole(null); setShowNewRole(false); }}>
+              <div className="bg-white dark:bg-boxdark rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
                   <h3 className="text-lg font-semibold text-black dark:text-white">
                     {showNewRole ? t('admin.roles.newRole') : t('admin.roles.editRole')}: {editingRole.name || '(new)'}
@@ -2522,8 +2522,8 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
           {/* ==================== USER ROLES EDIT MODAL ==================== */}
           {editingUserRoles && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setEditingUserRoles(null)}>
-              <div className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[99999] p-4" onClick={() => setEditingUserRoles(null)}>
+              <div className="bg-white dark:bg-boxdark rounded-lg shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
                 <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
                   <h3 className="text-lg font-semibold text-black dark:text-white">
                     {t('admin.admins.assignRoles')}
