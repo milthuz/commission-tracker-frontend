@@ -46,7 +46,7 @@ const SyncStatusIndicator = () => {
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [open, setOpen] = useState(false);
   const [now, setNow] = useState(new Date());
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLLIElement>(null);
 
   // Fetch on mount + every 60s
   useEffect(() => {
