@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import packageJson from '../../../package.json';
+import { useAppVersion } from '../../hooks/useAppVersion';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -48,6 +49,7 @@ interface CustomerSearchResult {
 
 const AdminPanel = () => {
   const { t } = useTranslation();
+  const appVersion = useAppVersion();
   useAuth();
   const navigate = useNavigate();
   const [salespeople, setSalespeople] = useState<Salesperson[]>([]);
@@ -1023,7 +1025,7 @@ const AdminPanel = () => {
             {activeTab === 'sync' ? t('admin.integrations.subtitle') :
              activeTab === 'salespeople' ? t('admin.salespeople.subtitle') :
              activeTab === 'customers' ? t('admin.customers.subtitle') :
-             activeTab === 'releases' ? `${t('admin.releases.currentVersion')}: v${packageJson.version}` :
+             activeTab === 'releases' ? `${t('admin.releases.currentVersion')}: v${appVersion}` :
              activeTab === 'admins' ? t('admin.admins.subtitle') :
              activeTab === 'roles' ? t('admin.roles.subtitle') :
              t('admin.title')}

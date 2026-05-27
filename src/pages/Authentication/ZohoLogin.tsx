@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ClusterLogo from '../../images/logo/cluster-on-light.svg';
-import packageJson from '../../../package.json';
+import { useAppVersion } from '../../hooks/useAppVersion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -10,6 +10,7 @@ const ZohoLogin = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const appVersion = useAppVersion();
 
   // If already authenticated, redirect to dashboard
   useEffect(() => {
@@ -56,7 +57,7 @@ const ZohoLogin = () => {
                   BETA
                 </span>
                 <span className="text-sm font-semibold text-bodydark">
-                  v{packageJson.version}
+                  v{appVersion}
                 </span>
               </div>
               <p className="mt-4 text-sm text-bodydark">

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ClusterLogo from '../../images/logo/cluster-on-dark.svg';
-import packageJson from '../../../package.json';
+import { useAppVersion } from '../../hooks/useAppVersion';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -11,6 +11,7 @@ interface SidebarProps {
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const { t } = useTranslation();
+  const appVersion = useAppVersion();
   const location = useLocation();
   const { pathname } = location;
 
@@ -90,7 +91,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white leading-none">
               BETA
             </span>
-            <span className="text-xs font-semibold text-white leading-none">v{packageJson.version}</span>
+            <span className="text-xs font-semibold text-white leading-none">v{appVersion}</span>
           </div>
         </div>
 
