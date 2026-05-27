@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import DropdownNotification from './DropdownNotification';
 import DropdownUser from './DropdownUser';
+import SyncStatusIndicator from './SyncStatusIndicator';
 
 const Header = (props: {
   sidebarOpen: string | boolean | undefined;
@@ -90,6 +91,10 @@ const Header = (props: {
 
         <div className="flex items-center gap-3 2xsm:gap-7">
           <ul className="flex items-center gap-2 2xsm:gap-4">
+            {/* <!-- Sync Status Indicator --> */}
+            <SyncStatusIndicator />
+            {/* <!-- Sync Status Indicator --> */}
+
             {/* <!-- Dark Mode Toggle --> */}
             <li>
               <button
