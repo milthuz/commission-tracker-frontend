@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { formatDateOnly } from '../utils/date';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -421,7 +422,7 @@ const CommissionTracker: React.FC = () => {
                               </span>
                             </td>
                             <td className="px-6 py-3 text-sm text-body">
-                              {deal.close_date ? new Date(deal.close_date).toLocaleDateString(i18n.language) : '—'}
+                              {formatDateOnly(deal.close_date, i18n.language)}
                             </td>
                             <td className="px-6 py-3 text-right">
                               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#8B5CF6] text-xs font-bold text-white">
@@ -465,7 +466,7 @@ const CommissionTracker: React.FC = () => {
                                 )}
                               </td>
                               <td className="px-6 py-3 text-sm text-body">
-                                {m.activated_at ? new Date(m.activated_at).toLocaleDateString(i18n.language) : '—'}
+                                {formatDateOnly(m.activated_at, i18n.language)}
                               </td>
                               <td className="px-6 py-3">
                                 <span className="inline-flex items-center rounded-full bg-[#6366F1] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#6366F1]">

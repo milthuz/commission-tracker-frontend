@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import packageJson from '../../../package.json';
 import { useAppVersion } from '../../hooks/useAppVersion';
+import { formatDateOnly } from '../../utils/date';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -1443,7 +1444,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                             <td className="px-3 py-2 text-black dark:text-white">{m.business_name}</td>
                                             <td className="px-3 py-2 text-body">{zRep}</td>
                                             <td className="px-3 py-2 text-body">
-                                              {m.activated_at ? new Date(m.activated_at).toLocaleDateString() : '—'}
+                                              {formatDateOnly(m.activated_at)}
                                             </td>
                                             <td className="px-3 py-2">
                                               <select
