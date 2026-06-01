@@ -23,6 +23,11 @@ interface DrillInvoice {
   saasAmount: number;
   subscriptionActivationDate: string | null;
   paidDate: string | null;
+  approvalStatus: 'pending' | 'approved' | 'paid' | 'rejected';
+  approvedBy: string | null;
+  approvedAt: string | null;
+  payoutPaidBy: string | null;
+  payoutPaidAt: string | null;
 }
 
 // Map commission_status → { i18n key, color classes }
@@ -44,7 +49,9 @@ interface MonthData {
   paidCommission: number;
   paidRevenue: number;
   commissionPaidCount: number;
+  commissionApprovedCount: number;
   commissionQualifyingCount: number;
+  approvedCommission: number;
 }
 
 interface MonthPoints {
@@ -112,7 +119,11 @@ const CommissionReport = () => {
   const [selectedRep, setSelectedRep] = useState('');
   const [salespeople, setSalespeople] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [perms, setPerms] = useState<string[]>([]);
+  const canApprove = isAdmin || perms.includes('*') || perms.includes('report:approve');
+  const canMarkPaid = isAdmin || perms.includes('*') || perms.includes('report:mark_paid');
   const [approvingMonth, setApprovingMonth] = useState<number | null>(null);
+  const [markingPaidMonth, setMarkingPaidMonth] = useState<number | null>(null);
 
   // Drill-down state
   const [expandedMonth, setExpandedMonth] = useState<number | null>(null);
@@ -132,15 +143,23 @@ const CommissionReport = () => {
     show: false, message: '', type: 'success',
   });
 
-  // Check admin status
+  // Check admin status + load effective permissions
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
+    if (!token) return;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setIsAdmin(payload.isAdmin || false);
+    } catch (e) { /* */ }
+    // Permissions come from /api/auth/verify — JWT only carries isAdmin
+    (async () => {
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setIsAdmin(payload.isAdmin || false);
-      } catch (e) { /* */ }
-    }
+        const res = await axios.get(`${API_URL}/api/auth/verify`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (Array.isArray(res.data?.permissions)) setPerms(res.data.permissions);
+      } catch (_e) { /* fallback to isAdmin only */ }
+    })();
   }, []);
 
   // Fetch salespeople list (admin only)
@@ -245,6 +264,30 @@ const CommissionReport = () => {
       alert('Failed to approve commission');
     } finally {
       setApprovingMonth(null);
+    }
+  };
+
+  const markPaidMonth = async (month: number) => {
+    if (!report) return;
+    const monthName = MONTH_NAMES[month - 1];
+    if (!confirm(`Mark approved commissions as paid for ${report.repName} — ${monthName} ${selectedYear}? This records the final payout.`)) return;
+
+    setMarkingPaidMonth(month);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/commissions/mark-paid`, {
+        repName: report.repName,
+        year: selectedYear,
+        month,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+
+      alert(`✓ Marked paid! ${res.data.invoicesUpdated} invoices.`);
+      await refreshReport();
+    } catch (e) {
+      console.error('Error marking paid:', e);
+      alert('Failed to mark commissions as paid');
+    } finally {
+      setMarkingPaidMonth(null);
     }
   };
 
@@ -434,8 +477,10 @@ const CommissionReport = () => {
             <td className="px-3 py-2.5 text-xs text-right text-body">{formatCurrency(inv.total)}</td>
             <td className="px-3 py-2.5 text-xs text-right font-medium text-black dark:text-white">{formatCurrency(inv.commission)}</td>
             <td className="px-3 py-2.5 text-center">
-              {inv.commissionPaid ? (
-                <span className="inline-flex rounded-full bg-success bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-success">PAID</span>
+              {inv.approvalStatus === 'paid' ? (
+                <span className="inline-flex rounded-full bg-success bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-success" title={inv.payoutPaidAt ? `Paid ${formatDateOnly(inv.payoutPaidAt, i18n.language)}` : ''}>PAID</span>
+              ) : inv.approvalStatus === 'approved' ? (
+                <span className="inline-flex rounded-full bg-primary bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-primary" title={inv.approvedAt ? `Approved ${formatDateOnly(inv.approvedAt, i18n.language)}` : ''}>APPROVED</span>
               ) : (
                 <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-warning">PENDING</span>
               )}
@@ -875,7 +920,7 @@ const CommissionReport = () => {
                   <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.invoiceCount')}</th>
                   {pointsData && <th className="px-3 py-3 text-sm font-medium text-right text-[#8B5CF6]">{t('commissionReport.pts')}</th>}
                   {pointsData && <th className="px-3 py-3 text-sm font-medium text-right text-[#8B5CF6]">{t('commissionReport.bonus')}</th>}
-                  {isAdmin && <th className="px-3 py-3 text-sm font-medium text-center text-black dark:text-white">{t('commissionReport.status')}</th>}
+                  {(canApprove || canMarkPaid) && <th className="px-3 py-3 text-sm font-medium text-center text-black dark:text-white">{t('commissionReport.status')}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -937,57 +982,88 @@ const CommissionReport = () => {
                         </>
                       );
                     })()}
-                    {isAdmin && (
+                    {(canApprove || canMarkPaid) && (
                       <td className="px-3 py-3.5 text-center">
-                        {m.commissionQualifyingCount === 0 ? (
-                          <span className="text-xs text-body">—</span>
-                        ) : m.commissionPaidCount === m.commissionQualifyingCount ? (
-                          <div className="flex items-center justify-center gap-1.5">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-success bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-success">
-                              ✓ Paid
-                            </span>
+                        {(() => {
+                          const qualifying = m.commissionQualifyingCount;
+                          const approved   = m.commissionApprovedCount;
+                          const paid       = m.commissionPaidCount;
+                          const pending    = Math.max(0, qualifying - approved - paid);
+                          const busy = approvingMonth === m.month || markingPaidMonth === m.month;
+
+                          if (qualifying === 0) {
+                            return <span className="text-xs text-body">—</span>;
+                          }
+                          // All paid
+                          if (paid === qualifying) {
+                            return (
+                              <div className="flex items-center justify-center gap-1.5">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-success bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-success">
+                                  ✓ {t('commissionReport.paidBadge')}
+                                </span>
+                                {canApprove && (
+                                  <button onClick={(e) => { e.stopPropagation(); unapproveMonth(m.month); }} disabled={busy} className="text-xs text-body hover:text-danger transition" title={t('commissionReport.undoApproval') as string}>↩</button>
+                                )}
+                              </div>
+                            );
+                          }
+                          // All approved (none paid yet) — show Mark Paid
+                          if (approved === qualifying && paid === 0) {
+                            return (
+                              <div className="flex items-center justify-center gap-1.5">
+                                <span className="inline-flex rounded-full bg-primary bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                                  ✓ {t('commissionReport.approvedBadge')}
+                                </span>
+                                {canMarkPaid && (
+                                  <button onClick={(e) => { e.stopPropagation(); markPaidMonth(m.month); }} disabled={busy} className="text-xs font-medium text-success hover:underline">
+                                    {markingPaidMonth === m.month ? '...' : t('commissionReport.markPaid')}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          }
+                          // Mixed state — show counts + Approve rest
+                          if (approved > 0 || paid > 0) {
+                            return (
+                              <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                                <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-warning" title={`${pending} pending · ${approved} approved · ${paid} paid`}>
+                                  {pending}/{approved}/{paid}
+                                </span>
+                                {canApprove && pending > 0 && (
+                                  <button onClick={(e) => { e.stopPropagation(); approveMonth(m.month); }} disabled={busy} className="text-xs font-medium text-primary hover:underline">
+                                    {approvingMonth === m.month ? '...' : t('commissionReport.approveRest')}
+                                  </button>
+                                )}
+                                {canMarkPaid && approved > 0 && (
+                                  <button onClick={(e) => { e.stopPropagation(); markPaidMonth(m.month); }} disabled={busy} className="text-xs font-medium text-success hover:underline">
+                                    {markingPaidMonth === m.month ? '...' : t('commissionReport.markPaid')}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          }
+                          // All pending — show Approve button
+                          return canApprove ? (
                             <button
-                              onClick={() => unapproveMonth(m.month)}
-                              disabled={approvingMonth === m.month}
-                              className="text-xs text-body hover:text-danger transition"
-                              title="Undo approval"
+                              onClick={(e) => { e.stopPropagation(); approveMonth(m.month); }}
+                              disabled={busy}
+                              className="inline-flex items-center gap-1 rounded-md border border-stroke px-3 py-1 text-xs font-medium text-body hover:bg-gray-50 hover:text-primary dark:border-strokedark dark:hover:bg-meta-4 transition disabled:opacity-50"
                             >
-                              ↩
+                              {approvingMonth === m.month ? (
+                                <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                              ) : t('commissionReport.approve')}
                             </button>
-                          </div>
-                        ) : m.commissionPaidCount > 0 ? (
-                          <div className="flex items-center justify-center gap-1.5">
-                            <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-warning">
-                              {m.commissionPaidCount}/{m.commissionQualifyingCount}
-                            </span>
-                            <button
-                              onClick={() => approveMonth(m.month)}
-                              disabled={approvingMonth === m.month}
-                              className="text-xs font-medium text-primary hover:underline"
-                            >
-                              {approvingMonth === m.month ? '...' : t('commissionReport.approveRest')}
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => approveMonth(m.month)}
-                            disabled={approvingMonth === m.month}
-                            className="inline-flex items-center gap-1 rounded-md border border-stroke px-3 py-1 text-xs font-medium text-body hover:bg-gray-50 hover:text-primary dark:border-strokedark dark:hover:bg-meta-4 transition disabled:opacity-50"
-                          >
-                            {approvingMonth === m.month ? (
-                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                            ) : (
-                              'Approve'
-                            )}
-                          </button>
-                        )}
+                          ) : (
+                            <span className="text-xs text-body">{qualifying} {t('commissionReport.pending')}</span>
+                          );
+                        })()}
                       </td>
                     )}
                   </tr>
                   {/* Expanded invoice drill-down */}
                   {isExpanded && (
                     <tr>
-                      <td colSpan={isAdmin ? 5 : 4} className="p-0">
+                      <td colSpan={(canApprove || canMarkPaid) ? 5 : 4} className="p-0">
                         <div className="bg-[#8B5CF6] bg-opacity-[0.03] border-b border-[#8B5CF6] border-opacity-20 px-4 py-3">
                           {loadingDrill ? (
                             <div className="flex items-center justify-center py-4">
@@ -1031,7 +1107,7 @@ const CommissionReport = () => {
                       })()}
                     </td>
                   )}
-                  {isAdmin && <td></td>}
+                  {(canApprove || canMarkPaid) && <td></td>}
                 </tr>
               </tbody>
             </table>

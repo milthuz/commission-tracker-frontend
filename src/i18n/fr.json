@@ -196,7 +196,13 @@
     "csPendingPayment": "Paiement à venir",
     "csTooLate": "Hors délai",
     "csNotEligible": "Non admissible",
-    "type": "Type"
+    "type": "Type",
+    "approve": "Approuver",
+    "markPaid": "Marquer payé",
+    "approvedBadge": "Approuvée",
+    "paidBadge": "Payée",
+    "pending": "en attente",
+    "undoApproval": "Annuler l'approbation"
   },
   "invoices": {
     "title": "Factures",

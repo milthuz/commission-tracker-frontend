@@ -196,7 +196,13 @@
     "csPendingPayment": "Pending payment",
     "csTooLate": "Too late",
     "csNotEligible": "Not eligible",
-    "type": "Type"
+    "type": "Type",
+    "approve": "Approve",
+    "markPaid": "Mark Paid",
+    "approvedBadge": "Approved",
+    "paidBadge": "Paid",
+    "pending": "pending",
+    "undoApproval": "Undo approval"
   },
   "invoices": {
     "title": "Invoices",
