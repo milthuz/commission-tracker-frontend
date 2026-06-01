@@ -580,7 +580,7 @@ const CommissionReport = () => {
 
   const chartSeries = [{
     name: 'Commission',
-    data: report.months.map(m => m.paidCommission),
+    data: report.months.map(m => m.commission),
   }];
 
   // Compute display stats based on month filter
@@ -935,11 +935,11 @@ const CommissionReport = () => {
                     className={`border-b border-stroke dark:border-strokedark cursor-pointer hover:bg-gray-50 dark:hover:bg-meta-4/30 transition ${
                       isHighlighted ? 'bg-[#8B5CF6] bg-opacity-5' : ''
                     } ${isExpanded ? 'bg-[#8B5CF6] bg-opacity-5' : ''}`}
-                    onClick={() => m.paidCommission > 0 && toggleMonthDrill(m.month)}
+                    onClick={() => m.commission > 0 && toggleMonthDrill(m.month)}
                   >
                     <td className="px-3 py-3.5">
                       <div className="flex items-center gap-2">
-                        {m.paidCommission > 0 && (
+                        {m.commission > 0 && (
                           <svg className={`h-3.5 w-3.5 text-body transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                           </svg>
@@ -956,7 +956,7 @@ const CommissionReport = () => {
                       {m.paidRevenue > 0 ? formatCurrency(m.paidRevenue) : '—'}
                     </td>
                     <td className="px-3 py-3.5 text-right text-sm font-medium text-black dark:text-white">
-                      {m.paidCommission > 0 ? formatCurrency(m.paidCommission) : '—'}
+                      {m.commission > 0 ? formatCurrency(m.commission) : '—'}
                     </td>
                     <td className="px-3 py-3.5 text-right text-sm text-body">
                       {m.invoices > 0 ? m.invoices : '—'}
