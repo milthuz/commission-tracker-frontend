@@ -431,12 +431,13 @@ const CommissionReport = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false });
-      setNotification({ show: true, message: 'Invoice sent successfully!', type: 'success' });
-      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
-    } catch (_e) {
+      setNotification({ show: true, message: `Invoice ${invoiceNumber} sent to ${email}`, type: 'success' });
+      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 4000);
+    } catch (e: any) {
       setEmailModal(prev => ({ ...prev, sending: false }));
-      setNotification({ show: true, message: 'Failed to send email', type: 'error' });
-      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
+      const msg = e?.response?.data?.error || e?.response?.data?.details || 'Failed to send email';
+      setNotification({ show: true, message: String(msg), type: 'error' });
+      setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 5000);
     }
   };
 
@@ -1274,7 +1275,7 @@ const CommissionReport = () => {
 
       {/* Notification */}
       {notification.show && (
-        <div className="fixed top-4 right-4 z-50">
+        <div className="fixed top-4 right-4 z-[999999]">
           <div className={`flex items-center gap-3 rounded-lg px-6 py-4 shadow-lg ${notification.type === 'success' ? 'bg-success text-white' : 'bg-danger text-white'}`}>
             <p className="font-medium">{notification.message}</p>
           </div>
