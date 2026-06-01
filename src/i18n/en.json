@@ -62,7 +62,9 @@
     "releases": "Releases",
     "admins": "Admins",
     "roles": "Roles & Permissions",
-    "profile": "Profile"
+    "profile": "Profile",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar"
   },
   "dashboard": {
     "title": "Sales Hub",

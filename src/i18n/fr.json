@@ -62,7 +62,9 @@
     "releases": "Versions",
     "admins": "Administrateurs",
     "roles": "Rôles et permissions",
-    "profile": "Profil"
+    "profile": "Profil",
+    "collapse": "Réduire la barre latérale",
+    "expand": "Agrandir la barre latérale"
   },
   "dashboard": {
     "title": "Centre de ventes",

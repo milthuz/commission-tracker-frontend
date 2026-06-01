@@ -27,6 +27,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminMenuOpen, setAdminMenuOpen] = useState(pathname.includes('admin'));
 
+  // Desktop collapse — independent from the mobile drawer (sidebarOpen).
+  // When collapsed, only icons are visible; labels and section headers hide.
+  const storedCollapsed = localStorage.getItem('sidebar-collapsed');
+  const [collapsed, setCollapsed] = useState(storedCollapsed === 'true');
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', String(collapsed));
+    // Auto-close the admin submenu when collapsing so it doesn't pop into the
+    // narrow rail awkwardly.
+    if (collapsed) setAdminMenuOpen(false);
+  }, [collapsed]);
+
+  // CSS helpers for collapsed mode — applied to every NavLink and the label spans.
+  const navLinkCls = (active: boolean) =>
+    `group relative flex items-center rounded-sm py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+      collapsed ? 'justify-center px-2' : 'gap-2.5 px-4'
+    } ${active ? 'bg-graydark dark:bg-meta-4' : ''}`;
+  const labelCls = collapsed ? 'sr-only' : '';
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -77,22 +95,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}
+      className={`absolute left-0 top-0 z-9999 flex h-screen flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
+        collapsed ? 'w-20' : 'w-72.5'
+      } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
     >
       {/* <!-- SIDEBAR HEADER --> */}
-      <div className="flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5">
-        <div className="flex items-center gap-3">
-          <NavLink to="/" className="flex items-center">
+      <div className={`flex items-center gap-2 py-5.5 lg:py-6.5 ${collapsed ? 'justify-center px-2' : 'justify-between px-6'}`}>
+        <div className={`flex items-center ${collapsed ? '' : 'gap-3'}`}>
+          <NavLink to="/" className="flex items-center" title={collapsed ? `Cluster v${appVersion}` : undefined}>
             <img src={ClusterLogo} alt="Cluster" className="h-8 w-auto" />
           </NavLink>
-          <div className="flex items-center gap-1.5">
-            <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white leading-none">
-              BETA
-            </span>
-            <span className="text-xs font-semibold text-white leading-none">v{appVersion}</span>
-          </div>
+          {!collapsed && (
+            <div className="flex items-center gap-1.5">
+              <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white leading-none">
+                BETA
+              </span>
+              <span className="text-xs font-semibold text-white leading-none">v{appVersion}</span>
+            </div>
+          )}
         </div>
 
         <button
@@ -124,18 +144,19 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
           {/* <!-- Menu Group --> */}
           <div>
-            <h3 className="mb-4 ml-4 text-sm font-semibold text-bodydark2">
-              {t('sidebar.menu')}
-            </h3>
+            {!collapsed && (
+              <h3 className="mb-4 ml-4 text-sm font-semibold text-bodydark2">
+                {t('sidebar.menu')}
+              </h3>
+            )}
 
             <ul className="mb-6 flex flex-col gap-1.5">
               {/* <!-- Menu Item Dashboard --> */}
               <li>
                 <NavLink
                   to="/"
-                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                    pathname === '/' && 'bg-graydark dark:bg-meta-4'
-                  }`}
+                  title={collapsed ? t('sidebar.dashboard') as string : undefined}
+                  className={navLinkCls(pathname === '/')}
                 >
                   <svg
                     className="fill-current"
@@ -162,7 +183,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       fill=""
                     />
                   </svg>
-                  {t('sidebar.dashboard')}
+                  <span className={labelCls}>{t('sidebar.dashboard')}</span>
                 </NavLink>
               </li>
               {/* <!-- Menu Item Dashboard --> */}
@@ -171,10 +192,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/commission-tracker"
-                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                    pathname.includes('commission-tracker') &&
-                    'bg-graydark dark:bg-meta-4'
-                  }`}
+                  title={collapsed ? t('sidebar.commissionTracker') as string : undefined}
+                  className={navLinkCls(pathname.includes('commission-tracker'))}
                 >
                   <svg
                     className="fill-current"
@@ -189,7 +208,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       fill=""
                     />
                   </svg>
-                  {t('sidebar.commissionTracker')}
+                  <span className={labelCls}>{t('sidebar.commissionTracker')}</span>
                 </NavLink>
               </li>
               {/* <!-- Menu Item Commission Tracker --> */}
@@ -198,10 +217,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/commission-report"
-                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                    pathname.includes('commission-report') &&
-                    'bg-graydark dark:bg-meta-4'
-                  }`}
+                  title={collapsed ? t('sidebar.commissionReport') as string : undefined}
+                  className={navLinkCls(pathname.includes('commission-report'))}
                 >
                   <svg
                     className="fill-current"
@@ -212,7 +229,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   >
                     <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z" />
                   </svg>
-                  {t('sidebar.commissionReport')}
+                  <span className={labelCls}>{t('sidebar.commissionReport')}</span>
                 </NavLink>
               </li>
               {/* <!-- Menu Item Commission Report --> */}
@@ -221,9 +238,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/invoices"
-                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                    pathname.includes('invoices') && 'bg-graydark dark:bg-meta-4'
-                  }`}
+                  title={collapsed ? t('sidebar.invoices') as string : undefined}
+                  className={navLinkCls(pathname.includes('invoices'))}
                 >
                   <svg
                     className="fill-current"
@@ -250,7 +266,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       fill=""
                     />
                   </svg>
-                  {t('sidebar.invoices')}
+                  <span className={labelCls}>{t('sidebar.invoices')}</span>
                 </NavLink>
               </li>
               {/* <!-- Menu Item Invoices --> */}
@@ -259,12 +275,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               {isAdmin && (
                 <li>
                   <button
-                    onClick={() => setAdminMenuOpen(!adminMenuOpen)}
-                    className={`group relative flex w-full items-center justify-between gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                      pathname.includes('admin') && 'bg-graydark dark:bg-meta-4'
-                    }`}
+                    onClick={() => {
+                      if (collapsed) setCollapsed(false);
+                      setAdminMenuOpen(!adminMenuOpen);
+                    }}
+                    title={collapsed ? t('sidebar.adminPanel') as string : undefined}
+                    className={`group relative flex w-full items-center rounded-sm py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                      collapsed ? 'justify-center px-2' : 'justify-between gap-2.5 px-4'
+                    } ${pathname.includes('admin') ? 'bg-graydark dark:bg-meta-4' : ''}`}
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className={`flex items-center ${collapsed ? '' : 'gap-2.5'}`}>
                       <svg
                         className="fill-current"
                         width="18"
@@ -274,20 +294,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       >
                         <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z" />
                       </svg>
-                      {t('sidebar.adminPanel')}
+                      <span className={labelCls}>{t('sidebar.adminPanel')}</span>
                     </div>
-                    <svg
-                      className={`fill-current transition-transform duration-200 ${adminMenuOpen ? 'rotate-180' : ''}`}
-                      width="12"
-                      height="8"
-                      viewBox="0 0 12 8"
-                    >
-                      <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" />
-                    </svg>
+                    {!collapsed && (
+                      <svg
+                        className={`fill-current transition-transform duration-200 ${adminMenuOpen ? 'rotate-180' : ''}`}
+                        width="12"
+                        height="8"
+                        viewBox="0 0 12 8"
+                      >
+                        <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" />
+                      </svg>
+                    )}
                   </button>
                   <ul
                     className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 overflow-hidden transition-all duration-200 ${
-                      adminMenuOpen ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'
+                      adminMenuOpen && !collapsed ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
                     <li>
@@ -359,9 +381,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/profile"
-                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                    pathname.includes('profile') && 'bg-graydark dark:bg-meta-4'
-                  }`}
+                  title={collapsed ? t('sidebar.profile') as string : undefined}
+                  className={navLinkCls(pathname.includes('profile'))}
                 >
                   <svg
                     className="fill-current"
@@ -380,7 +401,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       fill=""
                     />
                   </svg>
-                  {t('sidebar.profile')}
+                  <span className={labelCls}>{t('sidebar.profile')}</span>
                 </NavLink>
               </li>
               {/* <!-- Menu Item Profile --> */}
@@ -389,6 +410,27 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         </nav>
         {/* <!-- Sidebar Menu --> */}
       </div>
+
+      {/* <!-- Desktop collapse toggle (Zoho-style, bottom-right) — hidden on mobile --> */}
+      <button
+        type="button"
+        onClick={() => setCollapsed(!collapsed)}
+        title={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
+        aria-label={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
+        className={`hidden lg:flex mt-auto mb-3 mx-3 items-center justify-center h-9 w-9 rounded-md border border-bodydark2/30 bg-black/30 text-bodydark2 hover:bg-graydark hover:text-white transition-all self-end ${
+          collapsed ? 'self-center' : ''
+        }`}
+      >
+        <svg
+          className={`h-4 w-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
     </aside>
   );
 };
