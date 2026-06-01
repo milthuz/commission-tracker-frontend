@@ -913,14 +913,14 @@ const CommissionReport = () => {
           <div className="p-6">
             <table className="w-full table-auto">
               <thead>
-                <tr className="bg-gray-100 text-left dark:bg-meta-4">
-                  <th className="px-3 py-3 text-sm font-semibold whitespace-nowrap text-black dark:text-white">{t('commissionReport.unlockMonth')}</th>
-                  <th className="px-3 py-3 text-sm font-semibold text-right whitespace-nowrap text-black dark:text-white">{t('commissionReport.revenue')}</th>
-                  <th className="px-3 py-3 text-sm font-semibold text-right whitespace-nowrap text-black dark:text-white">{t('commissionReport.commission')}</th>
-                  <th className="px-3 py-3 text-sm font-semibold text-right whitespace-nowrap text-black dark:text-white">{t('commissionReport.invoiceCount')}</th>
-                  {pointsData && <th className="px-3 py-3 text-sm font-semibold text-right whitespace-nowrap text-[#8B5CF6]">{t('commissionReport.pts')}</th>}
-                  {pointsData && <th className="px-3 py-3 text-sm font-semibold text-right whitespace-nowrap text-[#8B5CF6]">{t('commissionReport.bonus')}</th>}
-                  {(canApprove || canMarkPaid) && <th className="px-3 py-3 text-sm font-semibold text-center whitespace-nowrap text-black dark:text-white">{t('commissionReport.status')}</th>}
+                <tr className="border-b-2 border-stroke text-left dark:border-strokedark">
+                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-body">{t('commissionReport.unlockMonth')}</th>
+                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-body">{t('commissionReport.revenue')}</th>
+                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-body">{t('commissionReport.commission')}</th>
+                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-body">{t('commissionReport.invoiceCount')}</th>
+                  {pointsData && <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-[#8B5CF6]">{t('commissionReport.pts')}</th>}
+                  {pointsData && <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-[#8B5CF6]">{t('commissionReport.bonus')}</th>}
+                  {(canApprove || canMarkPaid) && <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-center whitespace-nowrap text-body">{t('commissionReport.status')}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -1083,7 +1083,7 @@ const CommissionReport = () => {
                   );
                 })}
                 {/* Totals Row */}
-                <tr className="bg-gray-2 dark:bg-meta-4">
+                <tr className="border-t-2 border-stroke dark:border-strokedark">
                   <td className="px-3 py-3.5 text-sm font-bold text-black dark:text-white">{t('commissionReport.total')}</td>
                   <td className="px-3 py-3.5 text-right text-sm font-bold text-black dark:text-white">
                     {formatCurrency(report.summary.ytd.revenue)}
@@ -1127,10 +1127,10 @@ const CommissionReport = () => {
               <div className="max-h-[600px] overflow-y-auto">
                 <table className="w-full table-auto">
                   <thead>
-                    <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                      <th className="px-3 py-3 text-sm font-medium text-black dark:text-white">{t('commissionReport.customer')}</th>
-                      <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.revenue')}</th>
-                      <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.commission')}</th>
+                    <tr className="border-b-2 border-stroke text-left dark:border-strokedark">
+                      <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-body">{t('commissionReport.customer')}</th>
+                      <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right text-body">{t('commissionReport.revenue')}</th>
+                      <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right text-body">{t('commissionReport.commission')}</th>
                     </tr>
                   </thead>
                   <tbody>
