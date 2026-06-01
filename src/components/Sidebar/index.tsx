@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ClusterLogo from '../../images/logo/cluster-on-dark.svg';
+import ClusterMark from '../../images/logo/cluster-mark.svg';
 import { useAppVersion } from '../../hooks/useAppVersion';
 
 interface SidebarProps {
@@ -103,7 +104,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       <div className={`flex items-center gap-2 py-5.5 lg:py-6.5 ${collapsed ? 'justify-center px-2' : 'justify-between px-6'}`}>
         <div className={`flex items-center ${collapsed ? '' : 'gap-3'}`}>
           <NavLink to="/" className="flex items-center" title={collapsed ? `Cluster v${appVersion}` : undefined}>
-            <img src={ClusterLogo} alt="Cluster" className="h-8 w-auto" />
+            <img
+              src={collapsed ? ClusterMark : ClusterLogo}
+              alt="Cluster"
+              className={collapsed ? 'h-9 w-9' : 'h-8 w-auto'}
+            />
           </NavLink>
           {!collapsed && (
             <div className="flex items-center gap-1.5">
