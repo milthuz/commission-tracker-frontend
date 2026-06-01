@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { Eye, Download, X } from 'lucide-react';
+import { formatDateOnly } from '../utils/date';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -16,7 +17,24 @@ interface DrillInvoice {
   commission: number;
   status: string;
   commissionPaid: boolean;
+  commissionStatus: string | null;
+  commissionPayableDate: string | null;
+  hardwareAmount: number;
+  saasAmount: number;
+  subscriptionActivationDate: string | null;
+  paidDate: string | null;
 }
+
+// Map commission_status → { i18n key, color classes }
+const COMMISSION_STATUS_STYLES: Record<string, { key: string; cls: string }> = {
+  hardware:         { key: 'commissionReport.csHardware',       cls: 'bg-primary bg-opacity-10 text-primary' },
+  saas_first:       { key: 'commissionReport.csSaasFirst',      cls: 'bg-success bg-opacity-10 text-success' },
+  saas_renewal:     { key: 'commissionReport.csSaasRenewal',    cls: 'bg-gray-200 text-body dark:bg-meta-4' },
+  pending_saas:     { key: 'commissionReport.csPendingSaas',    cls: 'bg-warning bg-opacity-10 text-warning' },
+  pending_payment:  { key: 'commissionReport.csPendingPayment', cls: 'bg-warning bg-opacity-10 text-warning' },
+  too_late:         { key: 'commissionReport.csTooLate',        cls: 'bg-danger bg-opacity-10 text-danger' },
+  not_eligible:     { key: 'commissionReport.csNotEligible',    cls: 'bg-gray-200 text-body dark:bg-meta-4' },
+};
 
 interface MonthData {
   month: number;
@@ -74,7 +92,9 @@ interface ReportData {
   summary: {
     currentMonth: { commission: number; revenue: number; invoices: number };
     ytd: { commission: number; revenue: number; invoices: number };
+    pending?: { count: number; commission: number };
   };
+  groupBy?: string;
 }
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -385,6 +405,8 @@ const CommissionReport = () => {
           <th className="px-3 py-2 text-xs font-medium text-body text-left">{t('commissionReport.invoiceNumber')}</th>
           <th className="px-3 py-2 text-xs font-medium text-body text-left">{t('commissionReport.customer')}</th>
           <th className="px-3 py-2 text-xs font-medium text-body text-left">{t('commissionReport.date')}</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-left">{t('commissionReport.unlockMonth')}</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-center">{t('commissionReport.type')}</th>
           <th className="px-3 py-2 text-xs font-medium text-body text-right">{t('commissionReport.total')}</th>
           <th className="px-3 py-2 text-xs font-medium text-body text-right">{t('commissionReport.commission')}</th>
           <th className="px-3 py-2 text-xs font-medium text-body text-center">{t('commissionReport.commStatus')}</th>
@@ -392,11 +414,23 @@ const CommissionReport = () => {
         </tr>
       </thead>
       <tbody>
-        {invoices.map((inv) => (
+        {invoices.map((inv) => {
+          const cs = inv.commissionStatus && COMMISSION_STATUS_STYLES[inv.commissionStatus];
+          return (
           <tr key={inv.invoiceNumber} className="border-b border-stroke/50 dark:border-strokedark/50 hover:bg-gray-50 dark:hover:bg-meta-4/30">
             <td className="px-3 py-2.5 text-xs font-medium text-primary">{inv.invoiceNumber}</td>
             <td className="px-3 py-2.5 text-xs text-black dark:text-white truncate max-w-[160px]">{inv.customerName}</td>
-            <td className="px-3 py-2.5 text-xs text-body">{new Date(inv.date).toLocaleDateString('en-CA')}</td>
+            <td className="px-3 py-2.5 text-xs text-body">{formatDateOnly(inv.date, i18n.language)}</td>
+            <td className="px-3 py-2.5 text-xs text-body">
+              {inv.commissionPayableDate ? formatDateOnly(inv.commissionPayableDate, i18n.language) : '—'}
+            </td>
+            <td className="px-3 py-2.5 text-center">
+              {cs ? (
+                <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${cs.cls}`}>
+                  {t(cs.key)}
+                </span>
+              ) : <span className="text-xs text-body">—</span>}
+            </td>
             <td className="px-3 py-2.5 text-xs text-right text-body">{formatCurrency(inv.total)}</td>
             <td className="px-3 py-2.5 text-xs text-right font-medium text-black dark:text-white">{formatCurrency(inv.commission)}</td>
             <td className="px-3 py-2.5 text-center">
@@ -423,7 +457,8 @@ const CommissionReport = () => {
               </div>
             </td>
           </tr>
-        ))}
+          );
+        })}
       </tbody>
     </table>
   );
@@ -789,11 +824,34 @@ const CommissionReport = () => {
         </div>
       )}
 
+      {/* Pending Commissions */}
+      {report.summary.pending && report.summary.pending.commission > 0 && (
+        <div className="mb-6 rounded-sm border border-warning border-opacity-40 bg-warning bg-opacity-5 px-6 py-5 dark:bg-warning dark:bg-opacity-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-warning bg-opacity-15">
+                <svg className="h-5 w-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </span>
+              <div>
+                <h4 className="text-base font-semibold text-black dark:text-white">{t('commissionReport.pendingTitle')}</h4>
+                <p className="text-xs text-body">{t('commissionReport.pendingSubtitle')} — {t('commissionReport.pendingHelp')}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-warning">{formatCurrency(report.summary.pending.commission)}</p>
+              <p className="text-xs text-body">{report.summary.pending.count} {t('commissionReport.invoiceCount').toLowerCase()}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Monthly Commission Chart */}
       <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
           <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.monthlyCommission')}</h3>
-          <p className="text-sm text-body">Paid commission earned per month</p>
+          <p className="text-sm text-body">{t('commissionReport.monthlyCommissionByUnlock')}</p>
         </div>
         <div className="p-6">
           <ReactApexChart options={chartOptions} series={chartSeries} type="bar" height={320} />
@@ -811,7 +869,7 @@ const CommissionReport = () => {
             <table className="w-full table-auto">
               <thead>
                 <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                  <th className="px-3 py-3 text-sm font-medium text-black dark:text-white">{t('commissionReport.month')}</th>
+                  <th className="px-3 py-3 text-sm font-medium text-black dark:text-white">{t('commissionReport.unlockMonth')}</th>
                   <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.revenue')}</th>
                   <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.commission')}</th>
                   <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.invoiceCount')}</th>

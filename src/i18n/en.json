@@ -183,7 +183,20 @@
     "zentactBonusYtd": "Zentact Bonus YTD",
     "pts": "pts",
     "ptsToNextTier": "{{count}} more pts → ${{amount}} annual bonus",
-    "bonus": "Bonus"
+    "bonus": "Bonus",
+    "unlockMonth": "Unlock Month",
+    "monthlyCommissionByUnlock": "Monthly commissions unlocked",
+    "pendingTitle": "Pending Commissions",
+    "pendingSubtitle": "Earned but not yet unlocked",
+    "pendingHelp": "Hardware sales waiting for first SaaS invoice, or paid invoices outside the 3-month window.",
+    "csHardware": "Hardware",
+    "csSaasFirst": "SaaS 1st month",
+    "csSaasRenewal": "Renewal",
+    "csPendingSaas": "Pending SaaS",
+    "csPendingPayment": "Pending payment",
+    "csTooLate": "Too late",
+    "csNotEligible": "Not eligible",
+    "type": "Type"
   },
   "invoices": {
     "title": "Invoices",

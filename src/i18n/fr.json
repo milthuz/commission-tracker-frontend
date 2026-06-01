@@ -183,7 +183,20 @@
     "zentactBonusYtd": "Prime Zentact cumulative",
     "pts": "pts",
     "ptsToNextTier": "{{count}} pts de plus → {{amount}} $ de prime annuelle",
-    "bonus": "Prime"
+    "bonus": "Prime",
+    "unlockMonth": "Mois de déblocage",
+    "monthlyCommissionByUnlock": "Commissions débloquées par mois",
+    "pendingTitle": "Commissions en attente",
+    "pendingSubtitle": "Gagnées mais pas encore débloquées",
+    "pendingHelp": "Ventes hardware en attente de la 1re facture SaaS, ou factures payées hors fenêtre de 3 mois.",
+    "csHardware": "Hardware",
+    "csSaasFirst": "SaaS 1er mois",
+    "csSaasRenewal": "Renouvellement",
+    "csPendingSaas": "SaaS à venir",
+    "csPendingPayment": "Paiement à venir",
+    "csTooLate": "Hors délai",
+    "csNotEligible": "Non admissible",
+    "type": "Type"
   },
   "invoices": {
     "title": "Factures",
