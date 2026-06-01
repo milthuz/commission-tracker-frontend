@@ -202,7 +202,9 @@
     "approvedBadge": "Approuvée",
     "paidBadge": "Payée",
     "pending": "en attente",
-    "undoApproval": "Annuler l'approbation"
+    "undoApproval": "Annuler l'approbation",
+    "unlockedOnly": "Commissions débloquées seulement",
+    "noUnlockedCommissions": "Aucune commission débloquée pour cette période"
   },
   "invoices": {
     "title": "Factures",

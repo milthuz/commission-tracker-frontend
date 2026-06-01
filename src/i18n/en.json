@@ -202,7 +202,9 @@
     "approvedBadge": "Approved",
     "paidBadge": "Paid",
     "pending": "pending",
-    "undoApproval": "Undo approval"
+    "undoApproval": "Undo approval",
+    "unlockedOnly": "Unlocked commissions only",
+    "noUnlockedCommissions": "No unlocked commissions for this period"
   },
   "invoices": {
     "title": "Invoices",

@@ -913,14 +913,14 @@ const CommissionReport = () => {
           <div className="p-6">
             <table className="w-full table-auto">
               <thead>
-                <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                  <th className="px-3 py-3 text-sm font-medium text-black dark:text-white">{t('commissionReport.unlockMonth')}</th>
-                  <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.revenue')}</th>
-                  <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.commission')}</th>
-                  <th className="px-3 py-3 text-sm font-medium text-right text-black dark:text-white">{t('commissionReport.invoiceCount')}</th>
-                  {pointsData && <th className="px-3 py-3 text-sm font-medium text-right text-[#8B5CF6]">{t('commissionReport.pts')}</th>}
-                  {pointsData && <th className="px-3 py-3 text-sm font-medium text-right text-[#8B5CF6]">{t('commissionReport.bonus')}</th>}
-                  {(canApprove || canMarkPaid) && <th className="px-3 py-3 text-sm font-medium text-center text-black dark:text-white">{t('commissionReport.status')}</th>}
+                <tr className="bg-gray-100 text-left dark:bg-meta-4">
+                  <th className="px-3 py-3 text-sm font-semibold whitespace-nowrap text-black dark:text-white">{t('commissionReport.unlockMonth')}</th>
+                  <th className="px-3 py-3 text-sm font-semibold text-right whitespace-nowrap text-black dark:text-white">{t('commissionReport.revenue')}</th>
+                  <th className="px-3 py-3 text-sm font-semibold text-right whitespace-nowrap text-black dark:text-white">{t('commissionReport.commission')}</th>
+                  <th className="px-3 py-3 text-sm font-semibold text-right whitespace-nowrap text-black dark:text-white">{t('commissionReport.invoiceCount')}</th>
+                  {pointsData && <th className="px-3 py-3 text-sm font-semibold text-right whitespace-nowrap text-[#8B5CF6]">{t('commissionReport.pts')}</th>}
+                  {pointsData && <th className="px-3 py-3 text-sm font-semibold text-right whitespace-nowrap text-[#8B5CF6]">{t('commissionReport.bonus')}</th>}
+                  {(canApprove || canMarkPaid) && <th className="px-3 py-3 text-sm font-semibold text-center whitespace-nowrap text-black dark:text-white">{t('commissionReport.status')}</th>}
                 </tr>
               </thead>
               <tbody>
@@ -1118,11 +1118,11 @@ const CommissionReport = () => {
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
             <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.commByCustomer')}</h3>
-            <p className="text-sm text-body">{t('commissionReport.paidInvoicesOnly')} · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ${selectedYear}` : `${selectedYear} ${t('commissionReport.ytd')}`} · {t('commissionReport.top50')}</p>
+            <p className="text-sm text-body">{t('commissionReport.unlockedOnly')} · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ${selectedYear}` : `${selectedYear} ${t('commissionReport.ytd')}`} · {t('commissionReport.top50')}</p>
           </div>
           <div className="p-6">
             {report.customers.length === 0 ? (
-              <p className="text-sm text-body py-8 text-center">{t('commissionReport.noPaidCommissions')}</p>
+              <p className="text-sm text-body py-8 text-center">{t('commissionReport.noUnlockedCommissions')}</p>
             ) : (
               <div className="max-h-[600px] overflow-y-auto">
                 <table className="w-full table-auto">
