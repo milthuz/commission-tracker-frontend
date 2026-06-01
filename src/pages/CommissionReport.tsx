@@ -904,13 +904,13 @@ const CommissionReport = () => {
       </div>
 
       {/* Two Column: Monthly Table + Top Customers */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 min-w-0">
         {/* Monthly Breakdown Table */}
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark min-w-0 overflow-hidden">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
             <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.monthlyBreakdown')}</h3>
           </div>
-          <div className="p-6">
+          <div className="p-6 overflow-x-auto">
             <table className="w-full table-auto">
               <thead>
                 <tr className="border-b-2 border-stroke text-left dark:border-strokedark">
@@ -1115,7 +1115,7 @@ const CommissionReport = () => {
         </div>
 
         {/* Commission by Customer */}
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark min-w-0 overflow-hidden">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
             <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.commByCustomer')}</h3>
             <p className="text-sm text-body">{t('commissionReport.unlockedOnly')} · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ${selectedYear}` : `${selectedYear} ${t('commissionReport.ytd')}`} · {t('commissionReport.top50')}</p>
