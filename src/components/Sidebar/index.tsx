@@ -101,8 +101,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
     >
       {/* <!-- SIDEBAR HEADER --> */}
-      <div className={`flex items-center gap-2 py-5.5 lg:py-6.5 ${collapsed ? 'justify-center px-2' : 'justify-between px-6'}`}>
-        <div className={`flex items-center ${collapsed ? '' : 'gap-3'}`}>
+      <div className={`flex items-center gap-2 py-5.5 lg:py-6.5 ${collapsed ? 'flex-col justify-center px-2 gap-1.5' : 'justify-between px-6'}`}>
+        <div className={`flex items-center ${collapsed ? 'flex-col gap-1.5' : 'gap-3'}`}>
           <NavLink to="/" className="flex items-center" title={collapsed ? `Cluster v${appVersion}` : undefined}>
             <img
               src={collapsed ? ClusterMark : ClusterLogo}
@@ -110,7 +110,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               className={collapsed ? 'h-9 w-9' : 'h-8 w-auto'}
             />
           </NavLink>
-          {!collapsed && (
+          {collapsed ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="rounded-full bg-warning px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
+                BETA
+              </span>
+              <span className="text-[10px] font-semibold text-white leading-none">v{appVersion}</span>
+            </div>
+          ) : (
             <div className="flex items-center gap-1.5">
               <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white leading-none">
                 BETA
