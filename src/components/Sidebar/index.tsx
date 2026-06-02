@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import ClusterLogo from '../../images/logo/cluster-on-dark.svg';
 import ClusterMark from '../../images/logo/cluster-mark.svg';
 import { useAppVersion } from '../../hooks/useAppVersion';
-import { useUnseenRelease } from '../../hooks/useUnseenRelease';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -14,7 +13,6 @@ interface SidebarProps {
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const { t } = useTranslation();
   const appVersion = useAppVersion();
-  const hasUnseenRelease = useUnseenRelease();
   const location = useLocation();
   const { pathname } = location;
 
@@ -113,24 +111,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             />
           </NavLink>
           {collapsed ? (
-            <NavLink to="/versions" className="relative flex flex-col items-center gap-0.5" title={hasUnseenRelease ? (t('versions.newReleaseAvailable') as string) : `v${appVersion}`}>
+            <NavLink to="/versions" className="flex flex-col items-center gap-0.5 hover:opacity-80 transition" title={`v${appVersion}`}>
               <span className="rounded-full bg-warning px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
                 BETA
               </span>
               <span className="text-[10px] font-semibold text-white leading-none">v{appVersion}</span>
-              {hasUnseenRelease && (
-                <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-danger ring-2 ring-black dark:ring-boxdark" aria-label="new" />
-              )}
             </NavLink>
           ) : (
-            <NavLink to="/versions" className="relative flex items-center gap-1.5 hover:opacity-80 transition" title={hasUnseenRelease ? (t('versions.newReleaseAvailable') as string) : `v${appVersion}`}>
+            <NavLink to="/versions" className="flex items-center gap-1.5 hover:opacity-80 transition" title={`v${appVersion}`}>
               <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white leading-none">
                 BETA
               </span>
               <span className="text-xs font-semibold text-white leading-none">v{appVersion}</span>
-              {hasUnseenRelease && (
-                <span className="ml-1 h-2 w-2 rounded-full bg-danger ring-2 ring-black dark:ring-boxdark" aria-label="new" />
-              )}
             </NavLink>
           )}
         </div>

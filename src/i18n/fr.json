@@ -1,4 +1,10 @@
 {
+  "notifications": {
+    "title": "Notifications",
+    "viewAll": "Tout voir",
+    "empty": "Aucune notification pour le moment",
+    "versionPrefix": "Version"
+  },
   "common": {
     "save": "Enregistrer",
     "saving": "Enregistrement...",
