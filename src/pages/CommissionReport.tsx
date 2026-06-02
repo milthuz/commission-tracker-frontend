@@ -119,6 +119,7 @@ const CommissionReport = () => {
   const [selectedRep, setSelectedRep] = useState('');
   const [salespeople, setSalespeople] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSalesperson, setIsSalesperson] = useState(false);
   const [perms, setPerms] = useState<string[]>([]);
   const canApprove = isAdmin || perms.includes('*') || perms.includes('report:approve');
   const canMarkPaid = isAdmin || perms.includes('*') || perms.includes('report:mark_paid');
@@ -151,13 +152,15 @@ const CommissionReport = () => {
       const payload = JSON.parse(atob(token.split('.')[1]));
       setIsAdmin(payload.isAdmin || false);
     } catch (e) { /* */ }
-    // Permissions come from /api/auth/verify — JWT only carries isAdmin
+    // Permissions + isSalesperson come from /api/auth/verify — JWT only carries isAdmin
     (async () => {
       try {
         const res = await axios.get(`${API_URL}/api/auth/verify`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (Array.isArray(res.data?.permissions)) setPerms(res.data.permissions);
+        if (Array.isArray(res.data?.user?.permissions)) setPerms(res.data.user.permissions);
+        else if (Array.isArray(res.data?.permissions)) setPerms(res.data.permissions);
+        setIsSalesperson(!!res.data?.user?.isSalesperson);
       } catch (_e) { /* fallback to isAdmin only */ }
     })();
   }, []);
@@ -171,13 +174,20 @@ const CommissionReport = () => {
         const res = await axios.get(`${API_URL}/api/salespeople`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setSalespeople(res.data.salespeople || []);
+        const reps: string[] = res.data.salespeople || [];
+        setSalespeople(reps);
+        // If admin is not themselves a salesperson, auto-select the first one
+        // (otherwise the default empty selection falls back to admin's own name,
+        // which produces an empty report since they have no commissions)
+        if (!isSalesperson && !selectedRep && reps.length > 0) {
+          setSelectedRep(reps[0]);
+        }
       } catch (e) {
         console.error('Error fetching salespeople:', e);
       }
     };
     fetchReps();
-  }, [isAdmin]);
+  }, [isAdmin, isSalesperson]);
 
   // Fetch report data
   useEffect(() => {
@@ -624,7 +634,7 @@ const CommissionReport = () => {
               onChange={(e) => setSelectedRep(e.target.value)}
               className="rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
             >
-              <option value="">My Report</option>
+              {isSalesperson && <option value="">{t('commissionReport.myReport')}</option>}
               {salespeople.map(rep => (
                 <option key={rep} value={rep}>{rep}</option>
               ))}
