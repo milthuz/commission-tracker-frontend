@@ -1,12 +1,83 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
+interface ReleaseRow {
+  id?: number;
+  version: string;
+  name?: string | null;
+  notes?: string | null;
+  body?: string | null;
+  date: string;
+}
+
+interface ReleaseDisplay {
+  id: number | string;
+  version: string;
+  title: string;
+  preview: string;
+  date: string;
+}
+
+// First non-empty, non-heading line — strips markdown bullets.
+function previewLine(body: string): string {
+  if (!body) return '';
+  const lines = body.split('\n').map(l => l.trim()).filter(Boolean);
+  for (const l of lines) {
+    if (l.match(/^#+\s/)) continue;
+    if (l.match(/^[-*_]{3,}$/)) continue;
+    return l.replace(/^[-*•]\s*/, '').replace(/^\*\*/, '').replace(/\*\*$/, '').trim();
+  }
+  return '';
+}
+
 const DropdownUser = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [releases, setReleases] = useState<ReleaseDisplay[]>([]);
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_URL}/api/releases`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (cancelled) return;
+        const list: ReleaseRow[] = res.data?.releases || [];
+        setReleases(list.slice(0, 3).map((r, i) => ({
+          id:      r.id ?? i,
+          version: r.version,
+          title:   r.name || r.version,
+          preview: previewLine(r.notes || r.body || ''),
+          date:    r.date,
+        })));
+      } catch { /* keep empty */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const formatDate = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+      });
+    } catch { return iso; }
+  };
+
+  const goToVersion = (version: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setDropdownOpen(false);
+    const anchor = `v${String(version).replace(/^v/i, '')}`;
+    navigate(`/versions#${anchor}`);
+  };
 
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
@@ -100,7 +171,7 @@ const DropdownUser = () => {
         ref={dropdown}
         onFocus={() => setDropdownOpen(true)}
         onBlur={() => setDropdownOpen(false)}
-        className={`absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ${
+        className={`absolute right-0 mt-4 flex w-80 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ${
           dropdownOpen === true ? 'block' : 'hidden'
         }`}
       >
@@ -133,34 +204,48 @@ const DropdownUser = () => {
           </li>
         </ul>
 
-        {/* Help & Info Section */}
-        <div className="px-4.5 py-3 border-b border-stroke dark:border-strokedark">
+        {/* Help & Info Section — recent releases (rich list) + support link */}
+        <div className="flex items-center justify-between px-4.5 py-3 border-b border-stroke dark:border-strokedark">
           <h5 className="text-sm font-medium text-bodydark2">{t('header.helpInfo')}</h5>
+          <Link
+            to="/versions"
+            onClick={() => setDropdownOpen(false)}
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            {t('notifications.viewAll')}
+          </Link>
         </div>
 
-        <ul className="flex flex-col overflow-y-hidden border-b border-stroke dark:border-strokedark">
-          <li>
-            <Link
-              to="/versions"
-              className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
-              onClick={() => setDropdownOpen(false)}
-            >
-              <svg
-                className="fill-current"
-                width="22"
-                height="22"
-                viewBox="0 0 22 22"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
+        <ul className="flex flex-col overflow-y-auto border-b border-stroke dark:border-strokedark max-h-72">
+          {releases.length === 0 ? (
+            <li className="px-4.5 py-3 text-center text-xs text-body">
+              {t('notifications.empty')}
+            </li>
+          ) : releases.map((r) => (
+            <li key={r.id}>
+              <a
+                href={`/versions#v${r.version.replace(/^v/i, '')}`}
+                onClick={goToVersion(r.version)}
+                className="flex flex-col gap-1 border-b border-stroke last:border-b-0 px-4.5 py-3 hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
               >
-                <path
-                  d="M17.6687 1.44374C17.1187 0.893744 16.4312 0.618744 15.675 0.618744H7.42498C6.25623 0.618744 5.25935 1.58124 5.25935 2.78437V4.12499H4.29685C3.88435 4.12499 3.50623 4.46874 3.50623 4.91562C3.50623 5.36249 3.84998 5.70624 4.29685 5.70624H5.25935V10.2781H4.29685C3.88435 10.2781 3.50623 10.6219 3.50623 11.0687C3.50623 11.4812 3.84998 11.8594 4.29685 11.8594H5.25935V16.4312H4.29685C3.88435 16.4312 3.50623 16.775 3.50623 17.2219C3.50623 17.6687 3.84998 18.0125 4.29685 18.0125H5.25935V19.25C5.25935 20.4187 6.22185 21.4156 7.42498 21.4156H15.675C17.2218 21.4156 18.4937 20.1437 18.5281 18.5969V3.47187C18.4937 2.68124 18.2187 1.95937 17.6687 1.44374ZM16.9469 18.5625C16.9469 19.2844 16.3625 19.8344 15.6406 19.8344H7.3906C7.04685 19.8344 6.77185 19.5594 6.77185 19.2156V17.875H8.6281C9.0406 17.875 9.41873 17.5312 9.41873 17.0844C9.41873 16.6375 9.07498 16.2937 8.6281 16.2937H6.77185V11.7906H8.6281C9.0406 11.7906 9.41873 11.4469 9.41873 11C9.41873 10.5875 9.07498 10.2094 8.6281 10.2094H6.77185V5.63749H8.6281C9.0406 5.63749 9.41873 5.29374 9.41873 4.84687C9.41873 4.39999 9.07498 4.05624 8.6281 4.05624H6.77185V2.74999C6.77185 2.40624 7.04685 2.13124 7.3906 2.13124H15.6406C15.9844 2.13124 16.2937 2.26874 16.5687 2.50937C16.8094 2.74999 16.9469 3.09374 16.9469 3.43749V18.5625Z"
-                  fill=""
-                />
-              </svg>
-              {t('header.versionHistory')}
-            </Link>
-          </li>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-black dark:text-white truncate">
+                    {t('notifications.versionPrefix')} {r.version.replace(/^v/i, '')}
+                  </span>
+                  <span className="text-[10px] text-body whitespace-nowrap">{formatDate(r.date)}</span>
+                </div>
+                {r.title && r.title !== r.version && (
+                  <p className="text-xs font-medium text-body truncate">{r.title}</p>
+                )}
+                {r.preview && (
+                  <p className="text-xs text-body line-clamp-2">{r.preview}</p>
+                )}
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <ul className="flex flex-col overflow-y-hidden border-b border-stroke dark:border-strokedark">
           <li>
             <a
               href="mailto:david@clustersystems.com?subject=Commission Tracker Support Request"
