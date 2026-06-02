@@ -5,6 +5,12 @@
     "empty": "No notifications yet",
     "versionPrefix": "Version"
   },
+  "help": {
+    "title": "Help & Info",
+    "recentReleases": "Recent Releases",
+    "getHelp": "Get Help",
+    "contactSupport": "Contact Support"
+  },
   "common": {
     "save": "Save Changes",
     "saving": "Saving...",

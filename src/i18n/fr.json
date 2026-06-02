@@ -5,6 +5,12 @@
     "empty": "Aucune notification pour le moment",
     "versionPrefix": "Version"
   },
+  "help": {
+    "title": "Aide et infos",
+    "recentReleases": "Versions récentes",
+    "getHelp": "Obtenir de l'aide",
+    "contactSupport": "Contacter le support"
+  },
   "common": {
     "save": "Enregistrer",
     "saving": "Enregistrement...",
