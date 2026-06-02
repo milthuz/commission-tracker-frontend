@@ -115,7 +115,10 @@ const CommissionReport = () => {
   const [pointsData, setPointsData] = useState<PointsAnnualData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
-  const [selectedMonth, setSelectedMonth] = useState('all');
+  // Default to the current month (1-12) so users land on what matters now.
+  // Year defaults match — if user changes the year to a past one, they can
+  // switch to 'All Months' manually for an annual view.
+  const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1));
   const [selectedRep, setSelectedRep] = useState('');
   const [salespeople, setSalespeople] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
