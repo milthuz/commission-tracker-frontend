@@ -6,11 +6,13 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 // Releases now come from our backend (table `releases`, populated by
 // Admin Panel → Releases → Create). This shape matches what /api/releases returns.
+// Note: the DB column is `notes`, not `body` — we accept either for safety.
 interface Release {
   id?: number;
   version: string;        // shown as tag_name
   name?: string | null;
-  body?: string | null;
+  notes?: string | null;  // the actual column name in the DB
+  body?: string | null;   // legacy alias (kept in case the backend ever renames it)
   date: string;           // ISO date
   url?: string | null;
   prerelease?: boolean;
@@ -49,7 +51,7 @@ const Versions: React.FC = () => {
         id:           r.id ?? i,
         tag_name:     r.version,
         name:         r.name || r.version,
-        body:         r.body || '',
+        body:         r.notes || r.body || '',
         published_at: r.date,
         prerelease:   r.prerelease || false,
         url:          r.url || null,
@@ -121,8 +123,11 @@ const Versions: React.FC = () => {
       }
     });
     
-    // If no features found, return first 200 chars of body
-    return features.length > 0 ? features : [body.substring(0, 200).trim() + '...'];
+    // If no markdown bullets were found, fall back to non-empty text lines so
+    // releases that were typed in free-form prose still display something useful.
+    if (features.length > 0) return features;
+    const plainLines = body.split('\n').map(l => l.trim()).filter(l => l && !l.match(/^#+\s/) && !l.match(/^[-*_]{3,}$/));
+    return plainLines.length > 0 ? plainLines : [];
   };
 
   const getBadgeColor = (index: number, isPrerelease: boolean) => {
