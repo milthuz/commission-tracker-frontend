@@ -85,11 +85,15 @@ const DropdownNotification = () => {
     }
   };
 
-  const openItem = (e: React.MouseEvent) => {
+  const openItem = (version: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     markSeen();
     setDropdownOpen(false);
-    navigate('/versions');
+    // Use a URL hash so the Versions page can scroll to (and highlight) the
+    // specific release the user just clicked on, instead of always landing
+    // at the top with only the latest visible.
+    const anchor = `v${String(version).replace(/^v/i, '')}`;
+    navigate(`/versions#${anchor}`);
   };
 
   return (
@@ -151,8 +155,8 @@ const DropdownNotification = () => {
               ) : releases.map((r) => (
                 <li key={r.id}>
                   <a
-                    href="/versions"
-                    onClick={openItem}
+                    href={`/versions#v${r.version.replace(/^v/i, '')}`}
+                    onClick={openItem(r.version)}
                     className="flex flex-col gap-1 border-t border-stroke px-4.5 py-3 hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
                   >
                     <div className="flex items-center justify-between gap-2">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
@@ -31,13 +32,33 @@ interface DisplayRelease {
 
 const Versions: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const location = useLocation();
   const [releases, setReleases] = useState<DisplayRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // The anchor we should scroll to after releases finish loading. Strip leading 'v'
+  // for the comparison (DOM ids are 'v0.3.0' regardless of how the URL was written).
+  const targetVersion = location.hash.replace(/^#v?/i, '').trim();
 
   useEffect(() => {
     fetchReleases();
   }, []);
+
+  // After releases are rendered, scroll the URL-hash-targeted card into view.
+  useEffect(() => {
+    if (!targetVersion || releases.length === 0) return;
+    const id = `v${targetVersion}`;
+    // Defer a tick so the DOM has flushed the new cards
+    const t = setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        el.classList.add('ring-2', 'ring-primary', 'ring-offset-2', 'dark:ring-offset-boxdark');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-primary', 'ring-offset-2', 'dark:ring-offset-boxdark'), 2500);
+      }
+    }, 100);
+    return () => clearTimeout(t);
+  }, [targetVersion, releases]);
 
   const fetchReleases = async () => {
     try {
@@ -235,7 +256,11 @@ const Versions: React.FC = () => {
               const isCurrent = index === 0 && !release.prerelease;
               
               return (
-                <div key={release.id} className={index < releases.length - 1 ? 'mb-8' : ''}>
+                <div
+                  key={release.id}
+                  id={`v${release.tag_name.replace(/^v/i, '')}`}
+                  className={`scroll-mt-24 rounded transition-shadow ${index < releases.length - 1 ? 'mb-8' : ''}`}
+                >
                   <div className="mb-3 flex items-center gap-3">
                     <span className={`flex h-12 w-12 items-center justify-center rounded-full ${badgeColor}`}>
                       <svg
