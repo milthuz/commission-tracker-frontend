@@ -518,6 +518,7 @@
     "errorLoading": "Failed to load release history. Please try again later.",
     "version": "Version",
     "currentRelease": "Current Release",
-    "preRelease": "Pre-release"
+    "preRelease": "Pre-release",
+    "newReleaseAvailable": "New release available — click to see what's new"
   }
 }

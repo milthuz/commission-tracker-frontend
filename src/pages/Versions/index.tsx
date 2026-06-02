@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 
-interface GitHubRelease {
-  id: number;
+const API_URL = import.meta.env.VITE_API_URL;
+
+// Releases now come from our backend (table `releases`, populated by
+// Admin Panel → Releases → Create). This shape matches what /api/releases returns.
+interface Release {
+  id?: number;
+  version: string;        // shown as tag_name
+  name?: string | null;
+  body?: string | null;
+  date: string;           // ISO date
+  url?: string | null;
+  prerelease?: boolean;
+}
+
+// Adapter shape so the rest of the component (which used to read GitHub release fields) keeps working.
+interface DisplayRelease {
+  id: number | string;
   tag_name: string;
   name: string;
   body: string;
   published_at: string;
   prerelease: boolean;
+  url?: string | null;
 }
 
 const Versions: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const [releases, setReleases] = useState<GitHubRelease[]>([]);
+  const [releases, setReleases] = useState<DisplayRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,16 +40,27 @@ const Versions: React.FC = () => {
   const fetchReleases = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        'https://api.github.com/repos/milthuz/commission-tracker-frontend/releases'
-      );
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch releases');
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/releases`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const list: Release[] = response.data?.releases || [];
+      const mapped: DisplayRelease[] = list.map((r, i) => ({
+        id:           r.id ?? i,
+        tag_name:     r.version,
+        name:         r.name || r.version,
+        body:         r.body || '',
+        published_at: r.date,
+        prerelease:   r.prerelease || false,
+        url:          r.url || null,
+      }));
+      setReleases(mapped);
+      // Mark the latest release as seen for this user — clears any red-dot indicators.
+      if (mapped.length > 0) {
+        localStorage.setItem('last-seen-release-version', mapped[0].tag_name);
+        // Notify other tabs/components (sidebar badge) that the seen state changed
+        window.dispatchEvent(new Event('release-seen'));
       }
-      
-      const data = await response.json();
-      setReleases(data);
       setError(null);
     } catch (err) {
       console.error('Error fetching releases:', err);

@@ -518,6 +518,7 @@
     "errorLoading": "Impossible de charger l'historique des versions. Veuillez réessayer plus tard.",
     "version": "Version",
     "currentRelease": "Version actuelle",
-    "preRelease": "Pré-version"
+    "preRelease": "Pré-version",
+    "newReleaseAvailable": "Nouvelle version disponible — cliquez pour voir les nouveautés"
   }
 }
