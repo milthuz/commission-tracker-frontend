@@ -154,13 +154,6 @@ const Versions: React.FC = () => {
     return plainLines.length > 0 ? plainLines : [];
   };
 
-  const getBadgeColor = (index: number, isPrerelease: boolean) => {
-    if (isPrerelease) return 'bg-warning';
-    if (index === 0) return 'bg-success';
-    if (index === 1) return 'bg-primary';
-    return 'bg-meta-3';
-  };
-
   if (loading) {
     return (
       <div className="mx-auto max-w-270">
@@ -249,71 +242,50 @@ const Versions: React.FC = () => {
               <p className="text-body dark:text-bodydark">{t('versions.noReleases')}</p>
             </div>
           ) : (
-            releases.map((release, index) => {
-              const features = parseReleaseBody(release.body);
-              const version = release.tag_name.replace('v', '');
-              const badgeColor = getBadgeColor(index, release.prerelease);
-              const isCurrent = index === 0 && !release.prerelease;
-              
-              return (
-                <div
-                  key={release.id}
-                  id={`v${release.tag_name.replace(/^v/i, '')}`}
-                  className={`scroll-mt-24 rounded transition-shadow ${index < releases.length - 1 ? 'mb-8' : ''}`}
-                >
-                  <div className="mb-3 flex items-center gap-3">
-                    <span className={`flex h-12 w-12 items-center justify-center rounded-full ${badgeColor}`}>
-                      <svg
-                        className="fill-white"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 20 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        {isCurrent ? (
-                          <>
-                            <path
-                              d="M10 0.5625C4.78125 0.5625 0.5625 4.78125 0.5625 10C0.5625 15.2188 4.78125 19.4375 10 19.4375C15.2188 19.4375 19.4375 15.2188 19.4375 10C19.4375 4.78125 15.2188 0.5625 10 0.5625ZM10 17.8125C5.65625 17.8125 2.1875 14.3438 2.1875 10C2.1875 5.65625 5.65625 2.1875 10 2.1875C14.3438 2.1875 17.8125 5.65625 17.8125 10C17.8125 14.3438 14.3438 17.8125 10 17.8125Z"
-                              fill=""
-                            />
-                            <path
-                              d="M13.2812 7.34375L8.84375 11.7812L6.71875 9.65625C6.4375 9.375 5.96875 9.375 5.6875 9.65625C5.40625 9.9375 5.40625 10.4062 5.6875 10.6875L8.34375 13.3438C8.46875 13.4688 8.65625 13.5625 8.84375 13.5625C9.03125 13.5625 9.21875 13.5 9.34375 13.3438L14.3125 8.375C14.5938 8.09375 14.5938 7.625 14.3125 7.34375C14.0312 7.0625 13.5625 7.0625 13.2812 7.34375Z"
-                              fill=""
-                            />
-                          </>
-                        ) : (
-                          <>
-                            <path d="M10 0C4.48 0 0 4.48 0 10C0 15.52 4.48 20 10 20C15.52 20 20 15.52 20 10C20 4.48 15.52 0 10 0ZM10 18C5.59 18 2 14.41 2 10C2 5.59 5.59 2 10 2C14.41 2 18 5.59 18 10C18 14.41 14.41 18 10 18Z" fill=""/>
-                            <path d="M10.5 5H9.5V11H15.5V10H10.5V5Z" fill=""/>
-                          </>
-                        )}
-                      </svg>
-                    </span>
-                    <div>
-                      <h4 className="text-xl font-semibold text-black dark:text-white">
-                        {t('versions.version')} {version}
-                      </h4>
-                      <p className="text-sm text-body">
-                        {isCurrent && t('versions.currentRelease') + ' • '}
-                        {release.prerelease && t('versions.preRelease') + ' • '}
-                        {formatDate(release.published_at)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="ml-15 space-y-2">
-                    {features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-2">
-                        <span className={`mt-1 ${isCurrent ? 'text-success' : ''}`}>
-                          {isCurrent ? '✓' : '•'}
+            <div className="space-y-3">
+              {releases.map((release, index) => {
+                const features = parseReleaseBody(release.body);
+                const version = release.tag_name.replace(/^v/i, '');
+                const isCurrent = index === 0 && !release.prerelease;
+                return (
+                  <div
+                    key={release.id}
+                    id={`v${version}`}
+                    className="scroll-mt-24 rounded-md border border-stroke p-4 transition-shadow dark:border-strokedark"
+                  >
+                    {/* Header row — purple version pill + date + current/prerelease badges */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex rounded-full bg-[#8B5CF6] bg-opacity-10 px-3 py-0.5 text-xs font-bold text-[#8B5CF6]">
+                        v{version}
+                      </span>
+                      {isCurrent && (
+                        <span className="inline-flex rounded-full bg-success bg-opacity-10 px-2 py-0.5 text-[10px] font-bold text-success">
+                          {t('versions.currentRelease')}
                         </span>
-                        <p className="text-body dark:text-bodydark">{feature}</p>
-                      </div>
-                    ))}
+                      )}
+                      {release.prerelease && (
+                        <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-2 py-0.5 text-[10px] font-bold text-warning">
+                          {t('versions.preRelease')}
+                        </span>
+                      )}
+                      <span className="text-xs text-body">{formatDate(release.published_at)}</span>
+                    </div>
+
+                    {/* Notes — full content rendered as a compact bullet list */}
+                    {features.length > 0 && (
+                      <ul className="mt-2.5 space-y-1">
+                        {features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-xs text-body">
+                            <span className="mt-0.5 text-[#8B5CF6]">•</span>
+                            <span className="flex-1 whitespace-pre-line">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
