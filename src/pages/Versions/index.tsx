@@ -58,8 +58,11 @@ const Versions: React.FC = () => {
       }));
       setReleases(mapped);
       // Mark the latest release as seen for this user — clears any red-dot indicators.
+      // Normalize to strip a leading 'v' so we match useAppVersion (which also strips it),
+      // otherwise 'v0.3.0' vs '0.3.0' would mis-compare.
       if (mapped.length > 0) {
-        localStorage.setItem('last-seen-release-version', mapped[0].tag_name);
+        const normalized = mapped[0].tag_name.replace(/^v/i, '').trim();
+        localStorage.setItem('last-seen-release-version', normalized);
         // Notify other tabs/components (sidebar badge) that the seen state changed
         window.dispatchEvent(new Event('release-seen'));
       }

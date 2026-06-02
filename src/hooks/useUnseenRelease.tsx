@@ -12,16 +12,18 @@ export function useUnseenRelease(): boolean {
   const [unseen, setUnseen] = useState(false);
 
   useEffect(() => {
+    const norm = (v: string | null | undefined) => (v || '').replace(/^v/i, '').trim();
+    const latestN = norm(latest);
     const check = () => {
-      const seen = localStorage.getItem('last-seen-release-version');
+      const seen = norm(localStorage.getItem('last-seen-release-version'));
       // First-time visitors: don't immediately yell — only flag after they've
       // seen *something* once. We treat 'no record' as already-seen.
       if (!seen) {
-        localStorage.setItem('last-seen-release-version', latest);
+        localStorage.setItem('last-seen-release-version', latestN);
         setUnseen(false);
         return;
       }
-      setUnseen(seen !== latest);
+      setUnseen(seen !== latestN);
     };
     check();
     const onSeen = () => check();
