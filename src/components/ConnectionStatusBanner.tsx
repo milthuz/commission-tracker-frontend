@@ -55,12 +55,24 @@ const ConnectionStatusBanner = () => {
     sessionStorage.setItem('conn-banner-dismissed', JSON.stringify(next));
   };
 
-  const reconnect = (url: string) => {
-    // The OAuth start endpoints redirect via 302 to Zoho's authorize URL,
-    // then back to /auth/zoho/callback?token=… which finishes the flow.
-    // Pass the JWT so the backend can correlate the reconnect to a user.
-    const token = localStorage.getItem('token');
-    window.location.href = `${API_URL}${url}${token ? `?token=${token}` : ''}`;
+  const reconnect = async (url: string) => {
+    // The OAuth start endpoints return JSON { authUrl, state } rather than
+    // doing a 302 — we have to fetch the authUrl and then redirect the
+    // browser to it ourselves.
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}${url}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const authUrl = res.data?.authUrl;
+      if (authUrl) {
+        window.location.href = authUrl;
+      } else {
+        console.error('Reconnect: no authUrl in response', res.data);
+      }
+    } catch (e: any) {
+      console.error('Reconnect failed:', e?.response?.data || e?.message);
+    }
   };
 
   const fmt = (iso: string | null) => {
