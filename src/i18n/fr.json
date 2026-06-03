@@ -79,7 +79,7 @@
     "releases": "Versions",
     "admins": "Administrateurs",
     "roles": "Rôles et permissions",
-    "importPayments": "Importer paiements",
+    "importPayments": "Importer commissions",
     "profile": "Profil",
     "collapse": "Réduire la barre latérale",
     "expand": "Agrandir la barre latérale"
@@ -379,7 +379,7 @@
       "hint": "Pendant la personnification, vous verrez l'app exactement comme ce vendeur (pas d'outils admin, vues de détails restreintes). Une bannière jaune reste en haut jusqu'à ce que vous l'arrêtiez."
     },
     "commissionImport": {
-      "title": "Importer les paiements de commission",
+      "title": "Importer les commissions",
       "subtitle": "Téléversez les rapports mensuels de commissions pour marquer les factures comme payées et enregistrer les primes signup/mensuelles.",
       "uploadTitle": "Téléverser un fichier Excel",
       "uploadSubtitle": "Un fichier .xlsx par vendeur par mois. Le fichier est analysé et prévisualisé avant tout changement.",

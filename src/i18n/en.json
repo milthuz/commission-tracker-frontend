@@ -79,7 +79,7 @@
     "releases": "Releases",
     "admins": "Admins",
     "roles": "Roles & Permissions",
-    "importPayments": "Import Payments",
+    "importPayments": "Import Commissions",
     "profile": "Profile",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar"
@@ -379,7 +379,7 @@
       "hint": "While impersonating, you'll see the app exactly as that salesperson does (no admin tools, restricted detail views). A yellow banner stays at the top until you stop."
     },
     "commissionImport": {
-      "title": "Import Commission Payments",
+      "title": "Import Commissions",
       "subtitle": "Upload monthly commission reports to mark invoices as paid and record signup/monthly bonuses.",
       "uploadTitle": "Upload Excel Report",
       "uploadSubtitle": "One .xlsx per rep per month. The file is parsed and previewed before any changes are applied.",
