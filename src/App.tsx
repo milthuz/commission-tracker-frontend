@@ -12,7 +12,6 @@ import CommissionReport from './pages/CommissionReport';
 import Profile from './pages/Profile';
 import { Navigate } from 'react-router-dom';
 import Versions from './pages/Versions';
-import Invoices from './pages/Invoices';
 import AdminPanel from './pages/AdminPanel';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -103,15 +102,6 @@ function AppContent() {
               <>
                 <PageTitle title="Versions | Commission Tracker" />
                 <Versions />
-              </>
-            }
-          />
-          <Route
-            path="/invoices"
-            element={
-              <>
-                <PageTitle title="Invoices | Commission Tracker" />
-                <Invoices />
               </>
             }
           />
