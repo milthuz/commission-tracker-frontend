@@ -103,7 +103,7 @@ const CommissionImport: React.FC = () => {
       fd.append('file', entry.file);
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/admin/commission-import/preview`, fd, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+        headers: { Authorization: `Bearer ${token}` },
       });
       updateEntry(entry.id, { status: 'previewed', preview: res.data });
     } catch (e: any) {
@@ -131,7 +131,7 @@ const CommissionImport: React.FC = () => {
       fd.append('file', entry.file);
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/admin/commission-import/commit`, fd, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const result = {
         invoices_to_mark: res.data.summary.invoices_to_mark,
