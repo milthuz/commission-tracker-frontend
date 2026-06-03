@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import packageJson from '../../../package.json';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import { formatDateOnly } from '../../utils/date';
+import CommissionImport from './CommissionImport';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -1020,6 +1021,7 @@ const AdminPanel = () => {
              activeTab === 'releases' ? t('admin.releases.title') :
              activeTab === 'admins' ? t('admin.admins.title') :
              activeTab === 'roles' ? t('admin.roles.title') :
+             activeTab === 'import-payments' ? t('admin.commissionImport.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1029,6 +1031,7 @@ const AdminPanel = () => {
              activeTab === 'releases' ? `${t('admin.releases.currentVersion')}: v${appVersion}` :
              activeTab === 'admins' ? t('admin.admins.subtitle') :
              activeTab === 'roles' ? t('admin.roles.subtitle') :
+             activeTab === 'import-payments' ? t('admin.commissionImport.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -2343,6 +2346,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
             </div>
             </>
           )}
+
+          {/* ==================== COMMISSION IMPORT TAB ==================== */}
+          {activeTab === 'import-payments' && <CommissionImport />}
 
           {/* ==================== ROLES TAB ==================== */}
           {activeTab === 'roles' && (
