@@ -1,4 +1,10 @@
 {
+  "connectionBanner": {
+    "title": "Zoho {{service}} connection lost",
+    "subtitle": "{{service}} sync is paused until you reconnect.",
+    "reconnect": "Reconnect",
+    "dismiss": "Dismiss"
+  },
   "notifications": {
     "title": "Notifications",
     "viewAll": "View all",

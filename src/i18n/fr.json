@@ -1,4 +1,10 @@
 {
+  "connectionBanner": {
+    "title": "Connexion Zoho {{service}} perdue",
+    "subtitle": "La synchronisation {{service}} est en pause jusqu'à la reconnexion.",
+    "reconnect": "Reconnecter",
+    "dismiss": "Fermer"
+  },
   "notifications": {
     "title": "Notifications",
     "viewAll": "Tout voir",

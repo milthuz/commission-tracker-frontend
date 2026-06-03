@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Header from '../components/Header/index';
 import Sidebar from '../components/Sidebar/index';
 import ImpersonationBanner from '../components/ImpersonationBanner';
+import ConnectionStatusBanner from '../components/ConnectionStatusBanner';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,6 +18,7 @@ const DefaultLayout: React.FC = () => {
 
         {/* <!-- ===== Content Area Start ===== --> */}
         <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
+          <ConnectionStatusBanner />
           <ImpersonationBanner />
           {/* <!-- ===== Header Start ===== --> */}
           <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
