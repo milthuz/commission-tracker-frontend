@@ -290,9 +290,20 @@
       "preview": "Aperçu",
       "apply": "Appliquer"
     },
+    "enrich": {
+      "title": "Enrichissement des factures",
+      "subtitle": "Récupère les lignes de détail depuis Zoho Books et classe chaque facture en hardware ou SaaS (avec dates d'activation d'abonnement). Requis avant de pouvoir calculer les commissions.",
+      "enrichAll": "Enrichir les factures",
+      "enriching": "Enrichissement",
+      "note": "~2 appels Zoho par facture non enrichie — peut prendre un moment sur les gros imports et se mettre en pause sur les limites de l'API Zoho (reprend là où il s'est arrêté).",
+      "confirm": "Enrichir toutes les factures sans classification de lignes ?\n\nRécupère les détails depuis Zoho Books (~2 appels par facture) et s'exécute en arrière-plan. Peut prendre un moment sur les gros imports.",
+      "startFailed": "Échec du démarrage de l'enrichissement"
+    },
     "recalculate": {
       "title": "Recalcul des commissions",
-      "subtitle": "Récupérer les détails complets des factures depuis Zoho et appliquer les règles d'abonnement (1er mois 100 %, renouvellements 0 %)",
+      "subtitle": "Applique le modèle de commission à toutes les factures (SaaS 1er mois 100 %, renouvellements 0 %, hardware 10 % dans les 3 mois après le 1er SaaS). Utilise les données déjà enrichies — lancez l'Enrichissement d'abord.",
+      "totalCommission": "Commissions totales",
+      "startFailed": "Échec du démarrage du recalcul",
       "lastResult": "Dernier résultat",
       "lastRecalculation": "Dernier recalcul",
       "recalculating": "Recalcul en cours",
@@ -315,7 +326,7 @@
       "stop": "Arrêter",
       "stopping": "Arrêt en cours...",
       "stoppingMessage": "Arrêt après la facture en cours...",
-      "confirmRecalculate": "Recalculer les commissions pour TOUTES les factures payées ?\n\nCette opération récupère les détails complets des factures depuis Zoho et applique les règles d'abonnement :\n• 1er mois d'abonnement → 100 % de commission\n• Mois de renouvellement → 0 % de commission\n• Articles réguliers → taux du vendeur\n\nCela s'exécute en arrière-plan et peut prendre un moment (~5 factures/sec)."
+      "confirmRecalculate": "Recalculer les commissions pour TOUTES les factures avec le modèle actuel ?\n\n• SaaS 1er mois → 100 %\n• Renouvellements SaaS → 0 %\n• Hardware → 10 % dans les 3 mois après le 1er SaaS\n\nS'exécute en arrière-plan. Assurez-vous que l'Enrichissement soit terminé d'abord, pour que les factures soient classées."
     },
     "salespeople": {
       "title": "Gérer les vendeurs",

@@ -140,6 +140,10 @@ const AdminPanel = () => {
   const [recalcStatus, setRecalcStatus] = useState<any>(null);
   const [recalcPolling, setRecalcPolling] = useState(false);
   const [recalcStopping, setRecalcStopping] = useState(false);
+  // Enrich invoices state
+  const [enrichStatus, setEnrichStatus] = useState<any>(null);
+  const [enrichPolling, setEnrichPolling] = useState(false);
+  const [enrichStopping, setEnrichStopping] = useState(false);
 
   // Admin users state
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
@@ -794,39 +798,35 @@ const AdminPanel = () => {
     return d.toLocaleString();
   };
 
-  // Recalculate commissions
+  // Helper: a job is "active" while running or in the process of stopping.
+  const jobActive = (s: any) => s?.status === 'running' || s?.status === 'stopping';
+
+  // ---- Recalculate commissions (recalc-v2 — the real subscription-rule model) ----
   const triggerRecalculate = async () => {
-    if (!confirm('Recalculate commissions for ALL paid invoices?\n\nThis fetches full invoice details from Zoho and applies subscription rules:\n• First subscription month → 100% commission\n• Renewal months → 0% commission\n• Regular items → rep rate\n\nThis runs in the background and may take a while (~5 invoices/sec).')) return;
+    if (!confirm(t('admin.recalculate.confirmRecalculate'))) return;
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_URL}/api/commissions/recalculate`, {}, {
+      await axios.post(`${API_URL}/api/commissions/recalc-v2/start`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (response.data.started === false) {
-        alert('Recalculation already in progress');
-        return;
-      }
-
       setRecalcStopping(false);
       setRecalcPolling(true);
       startRecalcPolling();
-    } catch (err) {
-      alert('Failed to start recalculation');
+    } catch (err: any) {
+      if (err?.response?.status === 409) { setRecalcPolling(true); startRecalcPolling(); return; }
+      alert(t('admin.recalculate.startFailed'));
     }
   };
 
-  // Stop recalculation
   const stopRecalculate = async () => {
     try {
       const token = localStorage.getItem('token');
       setRecalcStopping(true);
-      await axios.post(`${API_URL}/api/commissions/recalculate/stop`, {}, {
+      await axios.post(`${API_URL}/api/commissions/recalc-v2/stop`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
     } catch (err) {
       setRecalcStopping(false);
-      alert('Failed to stop recalculation');
     }
   };
 
@@ -834,12 +834,11 @@ const AdminPanel = () => {
     const pollInterval = setInterval(async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_URL}/api/commissions/recalculate/status`, {
+        const res = await axios.get(`${API_URL}/api/commissions/recalc-v2/status`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setRecalcStatus(res.data);
-
-        if (!res.data.running) {
+        if (!jobActive(res.data)) {
           clearInterval(pollInterval);
           setRecalcPolling(false);
           setRecalcStopping(false);
@@ -852,23 +851,74 @@ const AdminPanel = () => {
     }, 3000);
   };
 
-  // Check recalc status on mount
+  // ---- Enrich invoices (fetch line items + classify hardware/SaaS — prerequisite to recalc) ----
+  const triggerEnrich = async () => {
+    if (!confirm(t('admin.enrich.confirm'))) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/invoices/enrich/start`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setEnrichStopping(false);
+      setEnrichPolling(true);
+      startEnrichPolling();
+    } catch (err: any) {
+      if (err?.response?.status === 409) { setEnrichPolling(true); startEnrichPolling(); return; }
+      alert(t('admin.enrich.startFailed'));
+    }
+  };
+
+  const stopEnrich = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      setEnrichStopping(true);
+      await axios.post(`${API_URL}/api/invoices/enrich/stop`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (err) {
+      setEnrichStopping(false);
+    }
+  };
+
+  const startEnrichPolling = () => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_URL}/api/invoices/enrich/status`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setEnrichStatus(res.data);
+        if (!jobActive(res.data)) {
+          clearInterval(pollInterval);
+          setEnrichPolling(false);
+          setEnrichStopping(false);
+        }
+      } catch (e) {
+        clearInterval(pollInterval);
+        setEnrichPolling(false);
+        setEnrichStopping(false);
+      }
+    }, 3000);
+  };
+
+  // Check enrich + recalc-v2 status on mount (and resume polling if a job is already running)
   useEffect(() => {
     if (isAdmin && activeTab === 'sync') {
-      const checkRecalc = async () => {
+      const check = async () => {
         try {
           const token = localStorage.getItem('token');
-          const res = await axios.get(`${API_URL}/api/commissions/recalculate/status`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setRecalcStatus(res.data);
-          if (res.data.running) {
-            setRecalcPolling(true);
-            startRecalcPolling();
-          }
+          const headers = { Authorization: `Bearer ${token}` };
+          const [rc, en] = await Promise.all([
+            axios.get(`${API_URL}/api/commissions/recalc-v2/status`, { headers }),
+            axios.get(`${API_URL}/api/invoices/enrich/status`, { headers }),
+          ]);
+          setRecalcStatus(rc.data);
+          if (jobActive(rc.data)) { setRecalcPolling(true); startRecalcPolling(); }
+          setEnrichStatus(en.data);
+          if (jobActive(en.data)) { setEnrichPolling(true); startEnrichPolling(); }
         } catch (_) {}
       };
-      checkRecalc();
+      check();
     }
   }, [isAdmin, activeTab]);
 
@@ -1478,22 +1528,21 @@ Joker Pub,Jay Daoust,2024-04-01`}
               </div>
             </div>
 
-            {/* ==================== RECALCULATE COMMISSIONS ==================== */}
+            {/* ==================== ENRICH INVOICES ==================== */}
             <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.recalculate.title')}</h3>
-                <p className="text-sm text-body mt-1">Fetch full invoice details from Zoho and apply subscription rules (first month 100%, renewals 0%)</p>
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.enrich.title')}</h3>
+                <p className="text-sm text-body mt-1">{t('admin.enrich.subtitle')}</p>
               </div>
               <div className="p-7">
-                {/* Status Cards */}
-                <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
                     <p className="text-xs font-medium uppercase text-body">{t('admin.zohoSync.status')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
-                      {recalcStatus?.running ? (
+                      {jobActive(enrichStatus) ? (
                         <span className="inline-flex items-center gap-1.5 text-warning">
                           <span className="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
-                          {t('admin.recalculate.recalculating')} ({recalcStatus.total.toLocaleString()} {t('admin.recalculate.paidInvoices')})
+                          {t('admin.enrich.enriching')}{enrichStatus?.total ? ` (${(enrichStatus.processed || 0).toLocaleString()} / ${enrichStatus.total.toLocaleString()})` : ''}
                         </span>
                       ) : (
                         <span className="text-success">{t('common.idle')}</span>
@@ -1503,17 +1552,78 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
                     <p className="text-xs font-medium uppercase text-body">{t('admin.recalculate.lastResult')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
-                      {recalcStatus?.lastRecalcProcessed ? (
-                        <span>{recalcStatus.lastRecalcProcessed.toLocaleString()} {t('admin.recalculate.processed').toLowerCase()} · <span className="text-success">{recalcStatus.lastRecalcUpdated.toLocaleString()} {t('admin.recalculate.updated').toLowerCase()}</span>{recalcStatus.lastRecalcErrors > 0 && <span className="text-danger"> · {recalcStatus.lastRecalcErrors} {t('admin.recalculate.errors').toLowerCase()}</span>}</span>
+                      {enrichStatus?.message ? <span>{enrichStatus.message}</span> : <span className="text-body">{t('common.neverRun')}</span>}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={triggerEnrich}
+                    disabled={enrichPolling || syncStatus === 'bulk_started'}
+                    className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                  >
+                    <svg className={`h-4 w-4 ${enrichPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    {enrichPolling ? `${t('admin.enrich.enriching')}... ${(enrichStatus?.processed || 0).toLocaleString()} / ${(enrichStatus?.total || 0).toLocaleString()}` : t('admin.enrich.enrichAll')}
+                  </button>
+                  {enrichPolling && (
+                    <button
+                      onClick={stopEnrich}
+                      disabled={enrichStopping}
+                      className="inline-flex items-center gap-2 rounded-md bg-danger px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                    >
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1" /></svg>
+                      {enrichStopping ? t('admin.recalculate.stopping') : t('admin.recalculate.stop')}
+                    </button>
+                  )}
+                </div>
+
+                {jobActive(enrichStatus) && (
+                  <div className="mt-4 rounded-md bg-warning bg-opacity-10 p-4">
+                    <div className="w-full bg-stroke rounded-full h-2.5 dark:bg-strokedark">
+                      <div className="bg-warning h-2.5 rounded-full transition-all duration-500"
+                        style={{ width: `${enrichStatus?.total > 0 ? Math.round((enrichStatus.processed || 0) / enrichStatus.total * 100) : 0}%` }}></div>
+                    </div>
+                    <p className="mt-2 text-xs text-body">{t('admin.enrich.note')}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ==================== RECALCULATE COMMISSIONS (v2) ==================== */}
+            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.recalculate.title')}</h3>
+                <p className="text-sm text-body mt-1">{t('admin.recalculate.subtitle')}</p>
+              </div>
+              <div className="p-7">
+                {/* Status Cards */}
+                <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
+                    <p className="text-xs font-medium uppercase text-body">{t('admin.zohoSync.status')}</p>
+                    <p className="mt-1 text-sm font-semibold text-black dark:text-white">
+                      {jobActive(recalcStatus) ? (
+                        <span className="inline-flex items-center gap-1.5 text-warning">
+                          <span className="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
+                          {t('admin.recalculate.recalculating')} ({(recalcStatus?.processed || 0).toLocaleString()} / {(recalcStatus?.total || 0).toLocaleString()})
+                        </span>
                       ) : (
-                        <span className="text-body">{t('common.neverRun')}</span>
+                        <span className="text-success">{t('common.idle')}</span>
                       )}
                     </p>
                   </div>
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
-                    <p className="text-xs font-medium uppercase text-body">{t('admin.recalculate.lastRecalculation')}</p>
+                    <p className="text-xs font-medium uppercase text-body">{t('admin.recalculate.lastResult')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
-                      {formatDate(recalcStatus?.lastRecalcAt)}
+                      {recalcStatus?.message ? <span>{recalcStatus.message}</span> : <span className="text-body">{t('common.neverRun')}</span>}
+                    </p>
+                  </div>
+                  <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
+                    <p className="text-xs font-medium uppercase text-body">{t('admin.recalculate.totalCommission')}</p>
+                    <p className="mt-1 text-sm font-semibold text-black dark:text-white">
+                      {recalcStatus?.stats?.total_commission != null ? `$${Number(recalcStatus.stats.total_commission).toLocaleString()}` : '—'}
                     </p>
                   </div>
                 </div>
@@ -1528,9 +1638,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     <svg className={`h-4 w-4 ${recalcPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
-                    {recalcPolling ? `${t('admin.recalculate.recalculating')}... ${recalcStatus?.processed?.toLocaleString() || 0} / ${recalcStatus?.total?.toLocaleString() || '?'}` :
-                     recalcStatus?.completedAt && !recalcStatus?.lastRecalcAt ? t('admin.recalculate.complete') :
-                     t('admin.recalculate.recalculateAll')}
+                    {recalcPolling ? `${t('admin.recalculate.recalculating')}... ${(recalcStatus?.processed || 0).toLocaleString()} / ${(recalcStatus?.total || 0).toLocaleString()}` : t('admin.recalculate.recalculateAll')}
                   </button>
                   {recalcPolling && (
                     <button
@@ -1546,86 +1654,26 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   )}
                 </div>
 
-                {/* Progress Bar (while running) */}
-                {recalcStatus?.running && (
+                {/* Progress (while running) */}
+                {jobActive(recalcStatus) && (
                   <div className="mt-4 rounded-md bg-warning bg-opacity-10 p-4">
-                    {/* Phase indicator */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <div className={`h-4 w-4 animate-spin rounded-full border-2 ${recalcStopping ? 'border-danger border-t-transparent' : 'border-warning border-t-transparent'}`}></div>
                         <span className={`text-sm font-medium ${recalcStopping ? 'text-danger' : 'text-warning'}`}>
-                          {recalcStopping ? t('admin.recalculate.stoppingMessage') :
-                           recalcStatus.phase === 'fetching' ? t('admin.recalculate.fetchingFromZoho') :
-                           recalcStatus.phase === 'calculating' ? t('admin.recalculate.calculatingCommissions') :
-                           recalcStatus.phase === 'saving' ? t('admin.recalculate.savingUpdates') :
-                           t('admin.recalculate.processingPaid')}
+                          {recalcStopping ? t('admin.recalculate.stoppingMessage') : t('admin.recalculate.processingPaid')}
                         </span>
                       </div>
                       <span className="text-xs font-medium text-body">
-                        {recalcStatus.phase === 'fetching' && recalcStatus.fetchTotal > 0 ? (
-                          <>{(recalcStatus.fetchProgress || 0).toLocaleString()} / {recalcStatus.fetchTotal.toLocaleString()} ({Math.round((recalcStatus.fetchProgress || 0) / recalcStatus.fetchTotal * 100)}%)</>
-                        ) : (
-                          <>{recalcStatus.processed.toLocaleString()} / {recalcStatus.total.toLocaleString()}
-                          {recalcStatus.total > 0 && ` (${Math.round(recalcStatus.processed / recalcStatus.total * 100)}%)`}</>
-                        )}
+                        {(recalcStatus?.processed || 0).toLocaleString()} / {(recalcStatus?.total || 0).toLocaleString()}
+                        {recalcStatus?.total > 0 && ` (${Math.round((recalcStatus.processed || 0) / recalcStatus.total * 100)}%)`}
                       </span>
                     </div>
-
-                    {/* Progress bar */}
                     <div className="w-full bg-stroke rounded-full h-2.5 dark:bg-strokedark">
-                      <div
-                        className="bg-warning h-2.5 rounded-full transition-all duration-500"
-                        style={{ width: `${
-                          recalcStatus.phase === 'fetching' && recalcStatus.fetchTotal > 0
-                            ? ((recalcStatus.fetchProgress || 0) / recalcStatus.fetchTotal * 100)
-                            : recalcStatus.total > 0 ? (recalcStatus.processed / recalcStatus.total * 100) : 0
-                        }%` }}
-                      ></div>
+                      <div className="bg-warning h-2.5 rounded-full transition-all duration-500"
+                        style={{ width: `${recalcStatus?.total > 0 ? Math.round((recalcStatus.processed || 0) / recalcStatus.total * 100) : 0}%` }}></div>
                     </div>
-
-                    {/* Phase steps */}
-                    <div className="mt-2 flex items-center gap-1">
-                      {['fetching', 'calculating', 'saving'].map((phase, idx) => (
-                        <div key={phase} className="flex items-center gap-1">
-                          {idx > 0 && <span className="text-[10px] text-body mx-1">→</span>}
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                            recalcStatus.phase === phase
-                              ? 'bg-warning text-white font-bold'
-                              : ['fetching', 'calculating', 'saving'].indexOf(recalcStatus.phase || '') > idx
-                              ? 'bg-success bg-opacity-20 text-success'
-                              : 'bg-stroke text-body dark:bg-strokedark'
-                          }`}>
-                            {phase === 'fetching' ? t('admin.recalculate.phaseFetch') :
-                             phase === 'calculating' ? t('admin.recalculate.phaseCalc') :
-                             t('admin.recalculate.phaseSave')}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <p className="mt-1.5 text-[10px] text-body">
-                      {recalcStatus.phase === 'fetching'
-                        ? t('admin.recalculate.fetchNote')
-                        : t('admin.recalculate.paidOnlyNote')}
-                    </p>
-                    <div className="mt-3 grid grid-cols-4 gap-3">
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-black dark:text-white">{recalcStatus.processed.toLocaleString()}</p>
-                        <p className="text-[10px] uppercase text-body">{t('admin.recalculate.processed')}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-success">{recalcStatus.updated.toLocaleString()}</p>
-                        <p className="text-[10px] uppercase text-body">{t('admin.recalculate.updated')}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-body">{recalcStatus.unchanged.toLocaleString()}</p>
-                        <p className="text-[10px] uppercase text-body">{t('admin.recalculate.unchanged')}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-lg font-bold text-danger">{recalcStatus.errors.toLocaleString()}</p>
-                        <p className="text-[10px] uppercase text-body">{t('admin.recalculate.errors')}</p>
-                      </div>
-                    </div>
+                    <p className="mt-2 text-xs text-body">{t('admin.recalculate.paidOnlyNote')}</p>
                   </div>
                 )}
               </div>

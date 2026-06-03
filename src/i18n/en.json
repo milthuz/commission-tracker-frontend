@@ -290,9 +290,20 @@
       "preview": "Preview",
       "apply": "Apply changes"
     },
+    "enrich": {
+      "title": "Invoice Enrichment",
+      "subtitle": "Fetch line items from Zoho Books and classify each invoice as hardware or SaaS (with subscription activation dates). Required before commissions can be calculated.",
+      "enrichAll": "Enrich Invoices",
+      "enriching": "Enriching",
+      "note": "Makes ~2 Zoho calls per un-enriched invoice — this can take a while for large imports and may pause on Zoho API limits (it resumes where it left off).",
+      "confirm": "Enrich all invoices that are missing line-item classification?\n\nThis fetches details from Zoho Books (~2 calls per invoice) and runs in the background. It may take a while for large imports.",
+      "startFailed": "Failed to start enrichment"
+    },
     "recalculate": {
       "title": "Commission Recalculation",
-      "subtitle": "Fetch full invoice details from Zoho and apply subscription rules (first month 100%, renewals 0%)",
+      "subtitle": "Apply the commission model to every invoice (SaaS first month 100%, renewals 0%, hardware 10% within 3 months of first SaaS). Uses already-enriched data — run Enrich first.",
+      "totalCommission": "Total Commissions",
+      "startFailed": "Failed to start recalculation",
       "lastResult": "Last Result",
       "lastRecalculation": "Last Recalculation",
       "recalculating": "Recalculating",
@@ -315,7 +326,7 @@
       "stop": "Stop",
       "stopping": "Stopping...",
       "stoppingMessage": "Stopping after current invoice...",
-      "confirmRecalculate": "Recalculate commissions for ALL paid invoices?\n\nThis fetches full invoice details from Zoho and applies subscription rules:\n• First subscription month → 100% commission\n• Renewal months → 0% commission\n• Regular items → rep rate\n\nThis runs in the background and may take a while (~5 invoices/sec)."
+      "confirmRecalculate": "Recalculate commissions for ALL invoices using the current model?\n\n• SaaS first month → 100%\n• SaaS renewals → 0%\n• Hardware → 10% within 3 months of first SaaS\n\nRuns in the background. Make sure Enrich has finished first so invoices are classified."
     },
     "salespeople": {
       "title": "Manage Salespeople",
