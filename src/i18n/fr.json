@@ -304,6 +304,7 @@
       "subtitle": "Applique le modèle de commission à toutes les factures (SaaS 1er mois 100 %, renouvellements 0 %, hardware 10 % dans les 3 mois après le 1er SaaS). Utilise les données déjà enrichies — lancez l'Enrichissement d'abord.",
       "totalCommission": "Commissions totales",
       "startFailed": "Échec du démarrage du recalcul",
+      "waitForEnrich": "En attente de la fin de l'enrichissement — le recalcul utilisera les données classées une fois l'Enrichissement terminé.",
       "lastResult": "Dernier résultat",
       "lastRecalculation": "Dernier recalcul",
       "recalculating": "Recalcul en cours",

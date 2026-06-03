@@ -1560,7 +1560,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     onClick={triggerEnrich}
-                    disabled={enrichPolling || syncStatus === 'bulk_started'}
+                    disabled={enrichPolling}
                     className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
                   >
                     <svg className={`h-4 w-4 ${enrichPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1632,7 +1632,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 <div className="flex flex-wrap items-center gap-3">
                   <button
                     onClick={triggerRecalculate}
-                    disabled={recalcPolling || syncStatus === 'bulk_started'}
+                    disabled={recalcPolling || enrichPolling}
                     className="inline-flex items-center gap-2 rounded-md bg-warning px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
                   >
                     <svg className={`h-4 w-4 ${recalcPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -1653,6 +1653,10 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     </button>
                   )}
                 </div>
+
+                {enrichPolling && !recalcPolling && (
+                  <p className="mt-2 text-xs text-warning">{t('admin.recalculate.waitForEnrich')}</p>
+                )}
 
                 {/* Progress (while running) */}
                 {jobActive(recalcStatus) && (

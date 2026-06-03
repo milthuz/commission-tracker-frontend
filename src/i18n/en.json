@@ -304,6 +304,7 @@
       "subtitle": "Apply the commission model to every invoice (SaaS first month 100%, renewals 0%, hardware 10% within 3 months of first SaaS). Uses already-enriched data — run Enrich first.",
       "totalCommission": "Total Commissions",
       "startFailed": "Failed to start recalculation",
+      "waitForEnrich": "Waiting for enrichment to finish — recalculation will use the classified data once Enrich completes.",
       "lastResult": "Last Result",
       "lastRecalculation": "Last Recalculation",
       "recalculating": "Recalculating",
