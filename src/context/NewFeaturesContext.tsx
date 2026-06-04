@@ -1,31 +1,36 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { NEW_FEATURES, type NewFeature } from '../config/newFeatures';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const SEEN_DELAY_MS = 3000; // time on the page before a feature counts as "seen"
+const DEFAULT_NEW_DAYS = 7;
 
 interface NewFeaturesCtx {
-  isNew: (path: string) => boolean;       // exact path match (a sidebar item)
-  anyNewUnder: (prefix: string) => boolean; // any unseen feature whose path starts with prefix
+  showBadge: (path: string) => boolean;     // time-based "New" pill (stays a few days)
+  hasDot: (path: string) => boolean;        // per-user unseen dot (clears immediately on visit)
+  anyDotUnder: (prefix: string) => boolean; // any unseen-in-window feature under a path prefix
 }
 
-const Ctx = createContext<NewFeaturesCtx>({ isNew: () => false, anyNewUnder: () => false });
+const Ctx = createContext<NewFeaturesCtx>({ showBadge: () => false, hasDot: () => false, anyDotUnder: () => false });
 export const useNewFeatures = () => useContext(Ctx);
 
 const token = () => localStorage.getItem('token');
-const notExpired = (f: NewFeature) => !f.until || new Date() <= new Date(f.until);
+
+// The "New" badge is visible while now <= since + days.
+function windowOpen(f: NewFeature) {
+  const end = new Date(f.since);
+  end.setDate(end.getDate() + (f.days ?? DEFAULT_NEW_DAYS));
+  return new Date() <= end;
+}
 const matchesPath = (f: NewFeature, pathname: string) =>
   pathname === f.path || pathname.startsWith(f.path + '/');
 
 export function NewFeaturesProvider({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
-  // null = not loaded yet (or load failed) → render no badges to avoid false-flagging.
+  // null = not loaded (or load failed) → render no dots to avoid false-flagging.
   const [seen, setSeen] = useState<string[] | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load the user's already-seen feature ids.
   useEffect(() => {
     if (!token()) { setSeen([]); return; }
     let cancelled = false;
@@ -45,27 +50,27 @@ export function NewFeaturesProvider({ children }: { children: ReactNode }) {
     }).catch(() => {});
   }, []);
 
-  // After SEEN_DELAY on an unseen feature's page, mark it seen → the dot disappears.
+  // Clear the DOT immediately when the user opens a feature's page (no delay).
   useEffect(() => {
-    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     if (seen === null) return;
-    const f = NEW_FEATURES.find((f) => matchesPath(f, pathname) && notExpired(f) && !seen.includes(f.id));
-    if (!f) return;
-    timerRef.current = setTimeout(() => markSeen(f.id), SEEN_DELAY_MS);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    const f = NEW_FEATURES.find((f) => matchesPath(f, pathname) && !seen.includes(f.id));
+    if (f) markSeen(f.id);
   }, [pathname, seen, markSeen]);
 
-  const isNew = useCallback(
-    (path: string) =>
-      !!seen && NEW_FEATURES.some((f) => f.path === path && notExpired(f) && !seen.includes(f.id)),
+  // Badge = time-based only (shows even after seen, for the whole window).
+  const showBadge = useCallback(
+    (path: string) => NEW_FEATURES.some((f) => f.path === path && windowOpen(f)),
+    [],
+  );
+  // Dot = per-user unseen, and only while still within the badge window.
+  const hasDot = useCallback(
+    (path: string) => !!seen && NEW_FEATURES.some((f) => f.path === path && windowOpen(f) && !seen.includes(f.id)),
+    [seen],
+  );
+  const anyDotUnder = useCallback(
+    (prefix: string) => !!seen && NEW_FEATURES.some((f) => f.path.startsWith(prefix) && windowOpen(f) && !seen.includes(f.id)),
     [seen],
   );
 
-  const anyNewUnder = useCallback(
-    (prefix: string) =>
-      !!seen && NEW_FEATURES.some((f) => f.path.startsWith(prefix) && notExpired(f) && !seen.includes(f.id)),
-    [seen],
-  );
-
-  return <Ctx.Provider value={{ isNew, anyNewUnder }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ showBadge, hasDot, anyDotUnder }}>{children}</Ctx.Provider>;
 }

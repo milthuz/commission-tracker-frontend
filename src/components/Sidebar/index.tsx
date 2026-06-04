@@ -15,7 +15,7 @@ interface SidebarProps {
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const { t } = useTranslation();
   const appVersion = useAppVersion();
-  const { anyNewUnder } = useNewFeatures();
+  const { anyDotUnder } = useNewFeatures();
   const location = useLocation();
   const { pathname } = location;
 
@@ -273,11 +273,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z" />
                       </svg>
                       <span className={labelCls}>{t('sidebar.adminPanel')}</span>
-                      {anyNewUnder('/admin') && !collapsed && (
+                      {anyDotUnder('/admin') && !collapsed && (
                         <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
                       )}
                     </div>
-                    {anyNewUnder('/admin') && collapsed && (
+                    {anyDotUnder('/admin') && collapsed && (
                       <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" aria-hidden />
                     )}
                     {!collapsed && (
