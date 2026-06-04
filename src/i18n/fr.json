@@ -109,6 +109,7 @@
     "roles": "Rôles et permissions",
     "importPayments": "Importer commissions",
     "reseller": "Revendeurs",
+    "resellersAdmin": "Gestion revendeurs",
     "profile": "Profil",
     "collapse": "Réduire la barre latérale",
     "expand": "Agrandir la barre latérale"
@@ -327,6 +328,23 @@
       "note": "~2 appels Zoho par facture non enrichie — peut prendre un moment sur les gros imports et se mettre en pause sur les limites de l'API Zoho (reprend là où il s'est arrêté).",
       "confirm": "Enrichir toutes les factures sans classification de lignes ?\n\nRécupère les détails depuis Zoho Books (~2 appels par facture) et s'exécute en arrière-plan. Peut prendre un moment sur les gros imports.",
       "startFailed": "Échec du démarrage de l'enrichissement"
+    },
+    "resellers": {
+      "title": "Revendeurs",
+      "subtitle": "Associez les emails des revendeurs à leur nom exact, définissez leur clé Zentact, et rattachez les données de chaque système.",
+      "newPlaceholder": "Nom du nouveau revendeur",
+      "add": "Ajouter un revendeur",
+      "name": "Nom",
+      "emails": "Emails du form (séparés par virgule)",
+      "zentactKey": "Clé Zentact",
+      "active": "Actif",
+      "save": "Enregistrer",
+      "delete": "Supprimer",
+      "confirmDelete": "Supprimer le revendeur « {{name}} » ? Ses associations d'emails seront retirées (les activations restent).",
+      "none": "Aucun revendeur pour l'instant.",
+      "unassignedTitle": "Emails de revendeurs non assignés",
+      "unassignedHint": "Ces emails apparaissent dans les activations POS mais ne sont rattachés à aucun revendeur. Assignez-les.",
+      "assignTo": "Assigner à…"
     },
     "recalculate": {
       "title": "Recalcul des commissions",

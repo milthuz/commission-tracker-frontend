@@ -389,6 +389,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         {t('sidebar.importPayments')}
                       </NavLink>
                     </li>
+                    <li>
+                      <NavLink
+                        to="/admin/resellers"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/resellers' ? 'text-white' : ''
+                        }`}
+                      >
+                        {t('sidebar.resellersAdmin')}
+                      </NavLink>
+                    </li>
                   </ul>
                 </li>
               )}

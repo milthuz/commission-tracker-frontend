@@ -109,6 +109,7 @@
     "roles": "Roles & Permissions",
     "importPayments": "Import Commissions",
     "reseller": "Reseller",
+    "resellersAdmin": "Manage Resellers",
     "profile": "Profile",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar"
@@ -327,6 +328,23 @@
       "note": "Makes ~2 Zoho calls per un-enriched invoice — this can take a while for large imports and may pause on Zoho API limits (it resumes where it left off).",
       "confirm": "Enrich all invoices that are missing line-item classification?\n\nThis fetches details from Zoho Books (~2 calls per invoice) and runs in the background. It may take a while for large imports.",
       "startFailed": "Failed to start enrichment"
+    },
+    "resellers": {
+      "title": "Resellers",
+      "subtitle": "Map reseller emails to their exact name, set their Zentact key, and assign data from each system.",
+      "newPlaceholder": "New reseller name",
+      "add": "Add reseller",
+      "name": "Name",
+      "emails": "Form emails (comma-separated)",
+      "zentactKey": "Zentact key",
+      "active": "Active",
+      "save": "Save",
+      "delete": "Delete",
+      "confirmDelete": "Delete reseller \"{{name}}\"? Its email mappings will be removed (activations stay).",
+      "none": "No resellers yet.",
+      "unassignedTitle": "Unassigned reseller emails",
+      "unassignedHint": "These emails appear in POS activations but aren't mapped to any reseller. Assign each to a reseller.",
+      "assignTo": "Assign to…"
     },
     "recalculate": {
       "title": "Commission Recalculation",
