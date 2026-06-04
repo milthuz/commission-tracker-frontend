@@ -315,7 +315,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </button>
                   <ul
                     className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 overflow-hidden transition-all duration-200 ${
-                      adminMenuOpen && !collapsed ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'
+                      adminMenuOpen && !collapsed ? 'max-h-[32rem] opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
                     <li>
