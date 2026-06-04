@@ -206,6 +206,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     />
                   </svg>
                   <span className={labelCls}>{t('sidebar.dashboard')}</span>
+                  <NewBadge path="/" collapsed={collapsed} />
                 </NavLink>
               </li>
               {/* <!-- Menu Item Dashboard --> */}
@@ -231,6 +232,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     />
                   </svg>
                   <span className={labelCls}>{t('sidebar.commissionTracker')}</span>
+                  <NewBadge path="/commission-tracker" collapsed={collapsed} />
                 </NavLink>
               </li>
               {/* <!-- Menu Item Commission Tracker --> */}
@@ -252,6 +254,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z" />
                   </svg>
                   <span className={labelCls}>{t('sidebar.commissionReport')}</span>
+                  <NewBadge path="/commission-report" collapsed={collapsed} />
                 </NavLink>
               </li>
               {/* <!-- Menu Item Commission Report --> */}
@@ -268,6 +271,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z" />
                     </svg>
                     <span className={labelCls}>{t('sidebar.reseller')}</span>
+                    <NewBadge path="/reseller" collapsed={collapsed} />
                   </NavLink>
                 </li>
               )}
@@ -336,7 +340,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/salespeople' ? 'text-white' : ''
                         }`}
                       >
-                        {t('sidebar.salespeople')}
+                        {t('sidebar.salespeople')}<NewBadge path="/admin/salespeople" />
                       </NavLink>
                     </li>
                     <li>
@@ -346,7 +350,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/customers' ? 'text-white' : ''
                         }`}
                       >
-                        {t('sidebar.customers')}
+                        {t('sidebar.customers')}<NewBadge path="/admin/customers" />
                       </NavLink>
                     </li>
                     <li>
@@ -356,7 +360,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/releases' ? 'text-white' : ''
                         }`}
                       >
-                        {t('sidebar.releases')}
+                        {t('sidebar.releases')}<NewBadge path="/admin/releases" />
                       </NavLink>
                     </li>
                     <li>
@@ -366,7 +370,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/admins' ? 'text-white' : ''
                         }`}
                       >
-                        {t('sidebar.admins')}
+                        {t('sidebar.admins')}<NewBadge path="/admin/admins" />
                       </NavLink>
                     </li>
                     <li>
@@ -376,7 +380,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/roles' ? 'text-white' : ''
                         }`}
                       >
-                        {t('sidebar.roles')}
+                        {t('sidebar.roles')}<NewBadge path="/admin/roles" />
                       </NavLink>
                     </li>
                     <li>
@@ -386,7 +390,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/import-payments' ? 'text-white' : ''
                         }`}
                       >
-                        {t('sidebar.importPayments')}
+                        {t('sidebar.importPayments')}<NewBadge path="/admin/import-payments" />
                       </NavLink>
                     </li>
                     <li>
@@ -396,7 +400,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           pathname === '/admin/resellers' ? 'text-white' : ''
                         }`}
                       >
-                        {t('sidebar.resellersAdmin')}
+                        {t('sidebar.resellersAdmin')}<NewBadge path="/admin/resellers" />
                       </NavLink>
                     </li>
                   </ul>
