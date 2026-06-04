@@ -17,6 +17,60 @@ function NotConnected({ source }: { source: string }) {
   );
 }
 
+function ActivationsTab({ data }: { data: any }) {
+  const { t } = useTranslation();
+  if (!data) return <p className="text-sm text-body">…</p>;
+  if (!data.connected) return <NotConnected source="Zoho Forms" />;
+  const activations = data.activations || [];
+  const byReseller = data.byReseller || [];
+  if (activations.length === 0) {
+    return (
+      <div className="rounded-md border border-dashed border-stroke p-10 text-center dark:border-strokedark">
+        <p className="text-sm font-medium text-black dark:text-white">{t('reseller.activations.emptyTitle')}</p>
+        <p className="mt-1 text-sm text-body">{t('reseller.activations.emptyDesc')}</p>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {byReseller.map((r: any) => (
+          <div key={r.reseller_name} className="rounded-md border border-stroke p-4 dark:border-strokedark">
+            <p className="text-sm font-semibold text-black dark:text-white">{r.reseller_name}</p>
+            <p className="mt-1 text-xs text-body">
+              {r.licenses} {t('reseller.activations.licenses')} · {r.submissions} {t('reseller.activations.submissions')}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full table-auto text-sm">
+          <thead>
+            <tr className="bg-gray-2 text-left dark:bg-meta-4">
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.reseller')}</th>
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.license')}</th>
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.qty')}</th>
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.customer')}</th>
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.date')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {activations.map((a: any) => (
+              <tr key={a.id} className="border-b border-stroke dark:border-strokedark">
+                <td className="px-4 py-3 text-black dark:text-white">{a.reseller_name || '—'}</td>
+                <td className="px-4 py-3 text-body">{a.license_type || '—'}</td>
+                <td className="px-4 py-3 text-body">{a.quantity}</td>
+                <td className="px-4 py-3 text-body">{a.customer_name || '—'}</td>
+                <td className="px-4 py-3 text-body">{a.submitted_at ? new Date(a.submitted_at).toLocaleDateString() : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export default function Reseller() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>('activations');
@@ -59,11 +113,7 @@ export default function Reseller() {
         </div>
 
         <div className="p-6">
-          {tab === 'activations' && (
-            activations?.connected
-              ? <div className="text-sm text-body">{/* phase 2: activations table */}</div>
-              : <NotConnected source="Zoho Forms" />
-          )}
+          {tab === 'activations' && <ActivationsTab data={activations} />}
           {tab === 'payments' && (
             residuals?.connected
               ? <div className="text-sm text-body">{/* phase 3: residuals table */}</div>

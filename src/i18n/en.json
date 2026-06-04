@@ -4,7 +4,20 @@
     "subtitle": "POS license activations (Zoho) and residual payments (Zentact).",
     "tabs": { "activations": "POS Activations", "payments": "Payments" },
     "notConnectedTitle": "Data source not connected yet",
-    "notConnectedDesc": "{{source}} integration is coming in the next phase."
+    "notConnectedDesc": "{{source}} integration is coming in the next phase.",
+    "activations": {
+      "emptyTitle": "No POS activations yet",
+      "emptyDesc": "Once the Zoho Form webhook is configured, license-order submissions will appear here.",
+      "licenses": "licenses",
+      "submissions": "submissions"
+    },
+    "cols": {
+      "reseller": "Reseller",
+      "license": "License type",
+      "qty": "Qty",
+      "customer": "Customer",
+      "date": "Date"
+    }
   },
   "newFeatures": {
     "adminDataTools": {
