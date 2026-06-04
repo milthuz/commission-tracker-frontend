@@ -16,6 +16,7 @@ import AdminPanel from './pages/AdminPanel';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import { NewFeaturesProvider } from './context/NewFeaturesContext';
 
 function AppContent() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -143,7 +144,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <NewFeaturesProvider>
+        <AppContent />
+      </NewFeaturesProvider>
     </AuthProvider>
   );
 }
