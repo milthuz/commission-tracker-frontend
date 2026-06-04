@@ -6,6 +6,7 @@ import ClusterMark from '../../images/logo/cluster-mark.svg';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import NewBadge from '../NewBadge';
 import { useNewFeatures } from '../../context/NewFeaturesContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -16,6 +17,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const { t } = useTranslation();
   const appVersion = useAppVersion();
   const { anyDotUnder } = useNewFeatures();
+  const { user } = useAuth();
+  // Permission check from the user's effective permissions ('*' = admin wildcard).
+  const can = (p: string) => {
+    const perms = user?.permissions || [];
+    return perms.includes('*') || perms.includes(p) || perms.includes(`${p.split(':')[0]}:*`);
+  };
   const location = useLocation();
   const { pathname } = location;
 
@@ -249,8 +256,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </li>
               {/* <!-- Menu Item Commission Report --> */}
 
-              {/* <!-- Menu Item Reseller (Admin Only) --> */}
-              {isAdmin && (
+              {/* <!-- Menu Item Reseller (perm: reseller:view) --> */}
+              {can('reseller:view') && (
                 <li>
                   <NavLink
                     to="/reseller"

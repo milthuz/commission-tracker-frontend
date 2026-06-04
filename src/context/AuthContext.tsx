@@ -5,6 +5,9 @@ interface User {
   name: string;
   zoho_id: string;
   photo?: string | null;
+  isAdmin?: boolean;
+  isSalesperson?: boolean;
+  permissions?: string[]; // effective permission keys ('*' for admins) from /api/auth/verify
 }
 
 interface AuthContextType {
