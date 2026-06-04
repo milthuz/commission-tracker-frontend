@@ -9,13 +9,13 @@
       "emptyTitle": "Aucune activation POS pour l'instant",
       "emptyDesc": "Une fois le webhook du formulaire Zoho configuré, les commandes de licence apparaîtront ici.",
       "licenses": "licences",
+      "locations": "emplacements",
       "submissions": "soumissions"
     },
     "cols": {
       "reseller": "Revendeur",
-      "license": "Type de licence",
-      "qty": "Qté",
-      "customer": "Client",
+      "licenses": "Licences",
+      "customer": "Client (emplacement)",
       "date": "Date"
     }
   },

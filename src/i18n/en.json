@@ -9,13 +9,13 @@
       "emptyTitle": "No POS activations yet",
       "emptyDesc": "Once the Zoho Form webhook is configured, license-order submissions will appear here.",
       "licenses": "licenses",
+      "locations": "locations",
       "submissions": "submissions"
     },
     "cols": {
       "reseller": "Reseller",
-      "license": "License type",
-      "qty": "Qty",
-      "customer": "Customer",
+      "licenses": "Licenses",
+      "customer": "Customer (location)",
       "date": "Date"
     }
   },

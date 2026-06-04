@@ -38,7 +38,7 @@ function ActivationsTab({ data }: { data: any }) {
           <div key={r.reseller_name} className="rounded-md border border-stroke p-4 dark:border-strokedark">
             <p className="text-sm font-semibold text-black dark:text-white">{r.reseller_name}</p>
             <p className="mt-1 text-xs text-body">
-              {r.licenses} {t('reseller.activations.licenses')} · {r.submissions} {t('reseller.activations.submissions')}
+              {r.locations} {t('reseller.activations.locations')} · {r.licenses} {t('reseller.activations.licenses')}
             </p>
           </div>
         ))}
@@ -48,9 +48,8 @@ function ActivationsTab({ data }: { data: any }) {
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.reseller')}</th>
-              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.license')}</th>
-              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.qty')}</th>
               <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.customer')}</th>
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.licenses')}</th>
               <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.date')}</th>
             </tr>
           </thead>
@@ -58,9 +57,8 @@ function ActivationsTab({ data }: { data: any }) {
             {activations.map((a: any) => (
               <tr key={a.id} className="border-b border-stroke dark:border-strokedark">
                 <td className="px-4 py-3 text-black dark:text-white">{a.reseller_name || '—'}</td>
-                <td className="px-4 py-3 text-body">{a.license_type || '—'}</td>
-                <td className="px-4 py-3 text-body">{a.quantity}</td>
                 <td className="px-4 py-3 text-body">{a.customer_name || '—'}</td>
+                <td className="px-4 py-3 text-body">{a.quantity}</td>
                 <td className="px-4 py-3 text-body">{a.submitted_at ? new Date(a.submitted_at).toLocaleDateString() : '—'}</td>
               </tr>
             ))}
