@@ -1,4 +1,10 @@
 {
+  "newFeatures": {
+    "adminDataTools": {
+      "title": "Invoice Enrichment & Recalculation",
+      "desc": "New tools to enrich invoices (classify hardware vs SaaS) and recalculate commissions with the subscription model."
+    }
+  },
   "connectionBanner": {
     "title": "Zoho {{service}} connection lost",
     "subtitle": "{{service}} sync is paused until you reconnect.",
@@ -48,6 +54,7 @@
     "never": "Never",
     "neverRun": "Never run",
     "new": "New",
+    "dismiss": "Dismiss",
     "processing": "Processing...",
     "yes": "Yes",
     "no": "No",

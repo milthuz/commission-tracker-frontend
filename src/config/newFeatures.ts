@@ -1,20 +1,29 @@
-// Catalog of "new" features. Two independent indicators in the sidebar:
-//   • a DOT  — per-user "not seen yet"; clears immediately when the user opens the page.
-//   • a "New" BADGE — time-based; shows for `days` after `since` for everyone (stays a few days).
+// Catalog of "new" features. Indicators:
+//   • sidebar DOT   — per-user "not seen yet"; clears immediately when the user opens the page.
+//   • sidebar "New" BADGE — time-based; shows for `days` after `since` (stays a few days).
+//   • on-page BANNER — shown on the feature's own page during the same window, dismissible per-user.
 //
-//   id    – stable id persisted server-side once seen (never reuse).
-//   path  – the route that reveals the feature (must match the sidebar NavLink `to`).
-//   since – ISO date the feature shipped (drives the badge window).
-//   days  – how many days to show the "New" badge (default 7).
+//   id       – stable id persisted server-side once seen/dismissed (never reuse).
+//   path     – the route that reveals the feature (must match the sidebar NavLink `to`).
+//   since    – ISO date the feature shipped (drives the badge/banner window).
+//   days     – how many days to show the badge/banner (default 7).
+//   titleKey / descKey – i18n keys for the on-page banner text.
 
 export interface NewFeature {
   id: string;
   path: string;
   since: string;
   days?: number;
+  titleKey?: string;
+  descKey?: string;
 }
 
 export const NEW_FEATURES: NewFeature[] = [
-  // Invoice Enrichment + recalc-v2 controls added to the Integrations admin tab.
-  { id: 'admin-data-tools-2026-06', path: '/admin/sync', since: '2026-06-04' },
+  {
+    id: 'admin-data-tools-2026-06',
+    path: '/admin/sync',
+    since: '2026-06-04',
+    titleKey: 'newFeatures.adminDataTools.title',
+    descKey: 'newFeatures.adminDataTools.desc',
+  },
 ];

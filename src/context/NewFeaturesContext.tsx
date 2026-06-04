@@ -10,9 +10,19 @@ interface NewFeaturesCtx {
   showBadge: (path: string) => boolean;     // time-based "New" pill (stays a few days)
   hasDot: (path: string) => boolean;        // per-user unseen dot (clears immediately on visit)
   anyDotUnder: (prefix: string) => boolean; // any unseen-in-window feature under a path prefix
+  currentBanner: () => NewFeature | null;   // in-window, non-dismissed feature for the current page
+  dismissBanner: (id: string) => void;      // hide the on-page banner for this user
 }
 
-const Ctx = createContext<NewFeaturesCtx>({ showBadge: () => false, hasDot: () => false, anyDotUnder: () => false });
+const bannerKey = (id: string) => `${id}::banner`;
+
+const Ctx = createContext<NewFeaturesCtx>({
+  showBadge: () => false,
+  hasDot: () => false,
+  anyDotUnder: () => false,
+  currentBanner: () => null,
+  dismissBanner: () => {},
+});
 export const useNewFeatures = () => useContext(Ctx);
 
 const token = () => localStorage.getItem('token');
@@ -72,5 +82,19 @@ export function NewFeaturesProvider({ children }: { children: ReactNode }) {
     [seen],
   );
 
-  return <Ctx.Provider value={{ showBadge, hasDot, anyDotUnder }}>{children}</Ctx.Provider>;
+  // On-page banner for the current route: in-window and not dismissed by this user.
+  const currentBanner = useCallback((): NewFeature | null => {
+    if (seen === null) return null;
+    return NEW_FEATURES.find(
+      (f) => matchesPath(f, pathname) && windowOpen(f) && !seen.includes(bannerKey(f.id)),
+    ) || null;
+  }, [seen, pathname]);
+
+  const dismissBanner = useCallback((id: string) => markSeen(bannerKey(id)), [markSeen]);
+
+  return (
+    <Ctx.Provider value={{ showBadge, hasDot, anyDotUnder, currentBanner, dismissBanner }}>
+      {children}
+    </Ctx.Provider>
+  );
 }

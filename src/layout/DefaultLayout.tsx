@@ -4,6 +4,7 @@ import Header from '../components/Header/index';
 import Sidebar from '../components/Sidebar/index';
 import ImpersonationBanner from '../components/ImpersonationBanner';
 import ConnectionStatusBanner from '../components/ConnectionStatusBanner';
+import NewFeatureBanner from '../components/NewFeatureBanner';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,6 +28,7 @@ const DefaultLayout: React.FC = () => {
           {/* <!-- ===== Main Content Start ===== --> */}
           <main>
             <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
+              <NewFeatureBanner />
               <Outlet />
             </div>
           </main>

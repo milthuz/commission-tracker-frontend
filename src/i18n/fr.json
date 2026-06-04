@@ -1,4 +1,10 @@
 {
+  "newFeatures": {
+    "adminDataTools": {
+      "title": "Enrichissement & recalcul des commissions",
+      "desc": "Nouveaux outils pour enrichir les factures (classer hardware/SaaS) et recalculer les commissions selon le modèle d'abonnement."
+    }
+  },
   "connectionBanner": {
     "title": "Connexion Zoho {{service}} perdue",
     "subtitle": "La synchronisation {{service}} est en pause jusqu'à la reconnexion.",
@@ -48,6 +54,7 @@
     "never": "Jamais",
     "neverRun": "Jamais exécuté",
     "new": "Nouveau",
+    "dismiss": "Fermer",
     "processing": "Traitement...",
     "yes": "Oui",
     "no": "Non",
