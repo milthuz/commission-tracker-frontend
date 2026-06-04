@@ -16,11 +16,11 @@ export default function NewFeatureBanner() {
         {t('common.new')}
       </span>
       <div className="flex-1">
-        {feature.titleKey && (
-          <p className="text-sm font-semibold text-black dark:text-white">{t(feature.titleKey)}</p>
+        {feature.title && (
+          <p className="text-sm font-semibold text-black dark:text-white">{feature.title}</p>
         )}
-        {feature.descKey && (
-          <p className="mt-0.5 text-sm text-body">{t(feature.descKey)}</p>
+        {feature.description && (
+          <p className="mt-0.5 text-sm text-body">{feature.description}</p>
         )}
       </div>
       <button

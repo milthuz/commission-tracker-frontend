@@ -78,6 +78,20 @@ const AdminPanel = () => {
   const [releases, setReleases] = useState<Release[]>([]);
   const [newVersion, setNewVersion] = useState('');
   const [releaseNotes, setReleaseNotes] = useState('');
+  // "What's New" menu tags chosen at publish time → drive the sidebar dot/badge + banner.
+  const [newFeatureTags, setNewFeatureTags] = useState<{ path: string; title: string; description: string; days: number }[]>([]);
+  const RESELLER_MENU_ITEMS = [
+    { path: '/', label: 'Dashboard' },
+    { path: '/commission-tracker', label: 'Commission Tracker' },
+    { path: '/commission-report', label: 'Commission Report' },
+    { path: '/reseller', label: 'Reseller' },
+    { path: '/admin/sync', label: 'Admin → Integrations' },
+    { path: '/admin/salespeople', label: 'Admin → Salespeople' },
+    { path: '/admin/customers', label: 'Admin → Customers' },
+    { path: '/admin/releases', label: 'Admin → Releases' },
+    { path: '/admin/roles', label: 'Admin → Roles & Permissions' },
+    { path: '/admin/import-payments', label: 'Admin → Import Commissions' },
+  ];
   const [releaseStatus, setReleaseStatus] = useState<string | null>(null);
   const [_workflowStatus, setWorkflowStatus] = useState<any>(null);
   const [showReleaseForm, setShowReleaseForm] = useState(false);
@@ -453,13 +467,14 @@ const AdminPanel = () => {
       setReleaseStatus('pushing');
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/api/releases/create`,
-        { version: newVersion, releaseNotes },
+        { version: newVersion, releaseNotes, newFeatures: newFeatureTags.filter(f => f.path) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setReleaseStatus('triggered');
       setShowReleaseForm(false);
       setReleaseNotes('');
+      setNewFeatureTags([]);
 
       // Poll workflow status
       const pollInterval = setInterval(async () => {
@@ -2149,6 +2164,61 @@ Joker Pub,Jay Daoust,2024-04-01`}
                           className="w-full rounded border-[1.5px] border-stroke bg-transparent px-4 py-3 text-sm outline-none transition focus:border-[#8B5CF6] dark:border-form-strokedark dark:bg-form-input font-mono"
                         />
                       )}
+                    </div>
+
+                    {/* What's New — mark menu items as new for this release */}
+                    <div className="mb-4">
+                      <div className="mb-1 flex items-center justify-between">
+                        <label className="text-sm font-medium text-black dark:text-white">{t('admin.releases.newTagsLabel')}</label>
+                        <button
+                          type="button"
+                          onClick={() => setNewFeatureTags([...newFeatureTags, { path: '', title: '', description: '', days: 7 }])}
+                          className="text-xs font-medium text-[#8B5CF6] hover:underline"
+                        >
+                          + {t('admin.releases.addNewTag')}
+                        </button>
+                      </div>
+                      <p className="mb-2 text-xs text-body">{t('admin.releases.newTagsHint')}</p>
+                      {newFeatureTags.map((tag, i) => (
+                        <div key={i} className="mb-2 grid grid-cols-1 gap-2 rounded border border-stroke p-3 dark:border-strokedark sm:grid-cols-12">
+                          <select
+                            value={tag.path}
+                            onChange={(e) => { const c = [...newFeatureTags]; c[i] = { ...c[i], path: e.target.value }; setNewFeatureTags(c); }}
+                            className="rounded border-[1.5px] border-stroke bg-transparent px-2 py-1.5 text-sm dark:border-form-strokedark dark:bg-form-input sm:col-span-3"
+                          >
+                            <option value="">{t('admin.releases.selectItem')}</option>
+                            {RESELLER_MENU_ITEMS.map((m) => <option key={m.path} value={m.path}>{m.label}</option>)}
+                          </select>
+                          <input
+                            value={tag.title}
+                            onChange={(e) => { const c = [...newFeatureTags]; c[i] = { ...c[i], title: e.target.value }; setNewFeatureTags(c); }}
+                            placeholder={t('admin.releases.tagTitle') as string}
+                            className="rounded border-[1.5px] border-stroke bg-transparent px-2 py-1.5 text-sm dark:border-form-strokedark dark:bg-form-input sm:col-span-3"
+                          />
+                          <input
+                            value={tag.description}
+                            onChange={(e) => { const c = [...newFeatureTags]; c[i] = { ...c[i], description: e.target.value }; setNewFeatureTags(c); }}
+                            placeholder={t('admin.releases.tagDesc') as string}
+                            className="rounded border-[1.5px] border-stroke bg-transparent px-2 py-1.5 text-sm dark:border-form-strokedark dark:bg-form-input sm:col-span-4"
+                          />
+                          <input
+                            type="number"
+                            min={1}
+                            value={tag.days}
+                            onChange={(e) => { const c = [...newFeatureTags]; c[i] = { ...c[i], days: parseInt(e.target.value) || 7 }; setNewFeatureTags(c); }}
+                            title={t('admin.releases.tagDays') as string}
+                            className="rounded border-[1.5px] border-stroke bg-transparent px-2 py-1.5 text-sm dark:border-form-strokedark dark:bg-form-input sm:col-span-1"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setNewFeatureTags(newFeatureTags.filter((_, j) => j !== i))}
+                            className="text-sm font-bold text-danger sm:col-span-1"
+                            aria-label="Remove"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
                     </div>
 
                     <div className="flex items-center gap-3">

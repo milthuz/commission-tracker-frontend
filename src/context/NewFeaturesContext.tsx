@@ -1,10 +1,20 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { NEW_FEATURES, type NewFeature } from '../config/newFeatures';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const DEFAULT_NEW_DAYS = 7;
+
+// A "new feature" announcement, now sourced from the backend (/api/features/new),
+// which admins populate when publishing a release.
+export interface NewFeature {
+  id: string;          // stable feature_id (per-user "seen" key)
+  path: string;        // sidebar route the announcement points at
+  title?: string;      // on-page banner title (free text, set at publish time)
+  description?: string;
+  since: string;       // ISO date the feature shipped
+  days?: number;       // window length (defaults to 7)
+}
 
 interface NewFeaturesCtx {
   showBadge: (path: string) => boolean;     // time-based "New" pill (stays a few days)
@@ -27,7 +37,7 @@ export const useNewFeatures = () => useContext(Ctx);
 
 const token = () => localStorage.getItem('token');
 
-// The "New" badge is visible while now <= since + days.
+// The badge/banner is visible while now <= since + days.
 function windowOpen(f: NewFeature) {
   const end = new Date(f.since);
   end.setDate(end.getDate() + (f.days ?? DEFAULT_NEW_DAYS));
@@ -38,9 +48,22 @@ const matchesPath = (f: NewFeature, pathname: string) =>
 
 export function NewFeaturesProvider({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
-  // null = not loaded (or load failed) → render no dots to avoid false-flagging.
+  // null = seen not loaded yet (or failed) → render no dots to avoid false-flagging.
   const [seen, setSeen] = useState<string[] | null>(null);
+  const [features, setFeatures] = useState<NewFeature[]>([]);
 
+  // Load the active "what's new" catalog from the backend.
+  useEffect(() => {
+    if (!token()) return;
+    let cancelled = false;
+    fetch(`${API_URL}/api/features/new`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('failed'))))
+      .then((d) => { if (!cancelled) setFeatures(Array.isArray(d.features) ? d.features : []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  // Load the user's already-seen ids.
   useEffect(() => {
     if (!token()) { setSeen([]); return; }
     let cancelled = false;
@@ -63,32 +86,28 @@ export function NewFeaturesProvider({ children }: { children: ReactNode }) {
   // Clear the DOT immediately when the user opens a feature's page (no delay).
   useEffect(() => {
     if (seen === null) return;
-    const f = NEW_FEATURES.find((f) => matchesPath(f, pathname) && !seen.includes(f.id));
+    const f = features.find((f) => matchesPath(f, pathname) && !seen.includes(f.id));
     if (f) markSeen(f.id);
-  }, [pathname, seen, markSeen]);
+  }, [pathname, seen, features, markSeen]);
 
-  // Badge = time-based only (shows even after seen, for the whole window).
   const showBadge = useCallback(
-    (path: string) => NEW_FEATURES.some((f) => f.path === path && windowOpen(f)),
-    [],
+    (path: string) => features.some((f) => f.path === path && windowOpen(f)),
+    [features],
   );
-  // Dot = per-user unseen, and only while still within the badge window.
   const hasDot = useCallback(
-    (path: string) => !!seen && NEW_FEATURES.some((f) => f.path === path && windowOpen(f) && !seen.includes(f.id)),
-    [seen],
+    (path: string) => !!seen && features.some((f) => f.path === path && windowOpen(f) && !seen.includes(f.id)),
+    [seen, features],
   );
   const anyDotUnder = useCallback(
-    (prefix: string) => !!seen && NEW_FEATURES.some((f) => f.path.startsWith(prefix) && windowOpen(f) && !seen.includes(f.id)),
-    [seen],
+    (prefix: string) => !!seen && features.some((f) => f.path.startsWith(prefix) && windowOpen(f) && !seen.includes(f.id)),
+    [seen, features],
   );
-
-  // On-page banner for the current route: in-window and not dismissed by this user.
   const currentBanner = useCallback((): NewFeature | null => {
     if (seen === null) return null;
-    return NEW_FEATURES.find(
+    return features.find(
       (f) => matchesPath(f, pathname) && windowOpen(f) && !seen.includes(bannerKey(f.id)),
     ) || null;
-  }, [seen, pathname]);
+  }, [seen, features, pathname]);
 
   const dismissBanner = useCallback((id: string) => markSeen(bannerKey(id)), [markSeen]);
 
