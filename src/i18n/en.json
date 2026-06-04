@@ -1,4 +1,11 @@
 {
+  "reseller": {
+    "title": "Resellers",
+    "subtitle": "POS license activations (Zoho) and residual payments (Zentact).",
+    "tabs": { "activations": "POS Activations", "payments": "Payments" },
+    "notConnectedTitle": "Data source not connected yet",
+    "notConnectedDesc": "{{source}} integration is coming in the next phase."
+  },
   "newFeatures": {
     "adminDataTools": {
       "title": "Invoice Enrichment & Recalculation",
@@ -88,6 +95,7 @@
     "admins": "Admins",
     "roles": "Roles & Permissions",
     "importPayments": "Import Commissions",
+    "reseller": "Reseller",
     "profile": "Profile",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar"

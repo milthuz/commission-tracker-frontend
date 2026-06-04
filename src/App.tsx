@@ -13,6 +13,7 @@ import Profile from './pages/Profile';
 import { Navigate } from 'react-router-dom';
 import Versions from './pages/Versions';
 import AdminPanel from './pages/AdminPanel';
+import Reseller from './pages/Reseller';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -103,6 +104,15 @@ function AppContent() {
               <>
                 <PageTitle title="Versions | Commission Tracker" />
                 <Versions />
+              </>
+            }
+          />
+          <Route
+            path="/reseller"
+            element={
+              <>
+                <PageTitle title="Reseller | Commission Tracker" />
+                <Reseller />
               </>
             }
           />

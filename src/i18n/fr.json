@@ -1,4 +1,11 @@
 {
+  "reseller": {
+    "title": "Revendeurs",
+    "subtitle": "Activations de licences POS (Zoho) et paiements résiduels (Zentact).",
+    "tabs": { "activations": "Activations POS", "payments": "Paiements" },
+    "notConnectedTitle": "Source de données pas encore connectée",
+    "notConnectedDesc": "L'intégration {{source}} arrive à la prochaine phase."
+  },
   "newFeatures": {
     "adminDataTools": {
       "title": "Enrichissement & recalcul des commissions",
@@ -88,6 +95,7 @@
     "admins": "Administrateurs",
     "roles": "Rôles et permissions",
     "importPayments": "Importer commissions",
+    "reseller": "Revendeurs",
     "profile": "Profil",
     "collapse": "Réduire la barre latérale",
     "expand": "Agrandir la barre latérale"
