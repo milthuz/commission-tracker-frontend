@@ -17,6 +17,15 @@
       "licenses": "Licenses",
       "customer": "Customer (location)",
       "date": "Date"
+    },
+    "payments": {
+      "emptyTitle": "No Zentact sales yet",
+      "emptyDesc": "Set a reseller's Zentact key in Admin → Manage Resellers to see the merchants they activated.",
+      "merchants": "merchants",
+      "active": "active",
+      "merchant": "Merchant",
+      "status": "Status",
+      "activatedAt": "Activated"
     }
   },
   "newFeatures": {

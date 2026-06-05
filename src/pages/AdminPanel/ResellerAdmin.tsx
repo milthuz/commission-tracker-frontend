@@ -10,18 +10,21 @@ export default function ResellerAdmin() {
   const { t } = useTranslation();
   const [resellers, setResellers] = useState<any[]>([]);
   const [unassigned, setUnassigned] = useState<any[]>([]);
+  const [zentactNames, setZentactNames] = useState<any[]>([]);
   const [newName, setNewName] = useState('');
   const [savingId, setSavingId] = useState<number | null>(null);
 
   const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
   const load = async () => {
-    const [r, u] = await Promise.all([
+    const [r, u, z] = await Promise.all([
       axios.get(`${API_URL}/api/resellers`, { headers: headers() }),
       axios.get(`${API_URL}/api/resellers/unassigned-emails`, { headers: headers() }),
+      axios.get(`${API_URL}/api/resellers/zentact-names`, { headers: headers() }),
     ]);
     setResellers((r.data.resellers || []).map((x: any) => ({ ...x, emailsText: (x.emails || []).join(', ') })));
     setUnassigned(u.data.emails || []);
+    setZentactNames(z.data.names || []);
   };
   useEffect(() => { load().catch(() => {}); }, []);
 
@@ -64,6 +67,9 @@ export default function ResellerAdmin() {
 
   return (
     <div className="space-y-6">
+      <datalist id="zentact-names">
+        {zentactNames.map((z) => <option key={z.name} value={z.name}>{`${z.name} (${z.merchants})`}</option>)}
+      </datalist>
       {/* Unassigned emails */}
       {unassigned.length > 0 && (
         <div className="rounded-md border border-warning/40 bg-warning/10 p-4">
@@ -116,7 +122,7 @@ export default function ResellerAdmin() {
               <tr key={r.id} className="border-b border-stroke align-top dark:border-strokedark">
                 <td className="px-3 py-2"><input value={r.name} onChange={(e) => patchLocal(r.id, { name: e.target.value })} className={inputCls} /></td>
                 <td className="px-3 py-2"><input value={r.emailsText} onChange={(e) => patchLocal(r.id, { emailsText: e.target.value })} placeholder="a@b.com, c@d.com" className={inputCls + ' min-w-[14rem]'} /></td>
-                <td className="px-3 py-2"><input value={r.zentact_key || ''} onChange={(e) => patchLocal(r.id, { zentact_key: e.target.value })} className={inputCls} /></td>
+                <td className="px-3 py-2"><input list="zentact-names" value={r.zentact_key || ''} onChange={(e) => patchLocal(r.id, { zentact_key: e.target.value })} placeholder="Lirette MG" className={inputCls} /></td>
                 <td className="px-3 py-2 text-body">{r.locations}</td>
                 <td className="px-3 py-2 text-body">{r.licenses}</td>
                 <td className="px-3 py-2">

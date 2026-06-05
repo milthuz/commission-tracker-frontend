@@ -69,6 +69,58 @@ function ActivationsTab({ data }: { data: any }) {
   );
 }
 
+function PaymentsTab({ data }: { data: any }) {
+  const { t } = useTranslation();
+  if (!data) return <p className="text-sm text-body">…</p>;
+  if (!data.connected) return <NotConnected source="Zentact" />;
+  const byReseller = data.byReseller || [];
+  const sales = data.sales || [];
+  if (sales.length === 0) {
+    return (
+      <div className="rounded-md border border-dashed border-stroke p-10 text-center dark:border-strokedark">
+        <p className="text-sm font-medium text-black dark:text-white">{t('reseller.payments.emptyTitle')}</p>
+        <p className="mt-1 text-sm text-body">{t('reseller.payments.emptyDesc')}</p>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {byReseller.map((r: any) => (
+          <div key={r.reseller_name} className="rounded-md border border-stroke p-4 dark:border-strokedark">
+            <p className="text-sm font-semibold text-black dark:text-white">{r.reseller_name}</p>
+            <p className="mt-1 text-xs text-body">
+              {r.merchants} {t('reseller.payments.merchants')} · {r.active} {t('reseller.payments.active')}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full table-auto text-sm">
+          <thead>
+            <tr className="bg-gray-2 text-left dark:bg-meta-4">
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.reseller')}</th>
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.payments.merchant')}</th>
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.payments.status')}</th>
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.payments.activatedAt')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sales.map((s: any, i: number) => (
+              <tr key={i} className="border-b border-stroke dark:border-strokedark">
+                <td className="px-4 py-3 text-black dark:text-white">{s.reseller_name}</td>
+                <td className="px-4 py-3 text-body">{s.business_name || '—'}</td>
+                <td className="px-4 py-3 text-body">{s.status || '—'}</td>
+                <td className="px-4 py-3 text-body">{s.activated_at ? new Date(s.activated_at).toLocaleDateString() : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 export default function Reseller() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>('activations');
@@ -112,11 +164,7 @@ export default function Reseller() {
 
         <div className="p-6">
           {tab === 'activations' && <ActivationsTab data={activations} />}
-          {tab === 'payments' && (
-            residuals?.connected
-              ? <div className="text-sm text-body">{/* phase 3: residuals table */}</div>
-              : <NotConnected source="Zentact" />
-          )}
+          {tab === 'payments' && <PaymentsTab data={residuals} />}
         </div>
       </div>
     </>

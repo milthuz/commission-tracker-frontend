@@ -17,6 +17,15 @@
       "licenses": "Licences",
       "customer": "Client (emplacement)",
       "date": "Date"
+    },
+    "payments": {
+      "emptyTitle": "Aucune vente Zentact pour l'instant",
+      "emptyDesc": "Renseignez la clé Zentact d'un revendeur dans Admin → Gestion revendeurs pour voir les marchands qu'il a activés.",
+      "merchants": "marchands",
+      "active": "actifs",
+      "merchant": "Marchand",
+      "status": "Statut",
+      "activatedAt": "Activé le"
     }
   },
   "newFeatures": {
