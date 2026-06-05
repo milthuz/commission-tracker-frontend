@@ -94,7 +94,10 @@
     "noReseller": "(pas un revendeur)",
     "emptyTitle": "Aucune donnée de revenu pour l'instant",
     "emptyDesc": "L'import du revenu Zentact est en cours ou non connecté — réessayez bientôt.",
-    "others": "Autres"
+    "others": "Autres",
+    "viewAccounts": "Voir les comptes",
+    "accountsSubtitle_one": "{{count}} compte",
+    "accountsSubtitle_other": "{{count}} comptes"
   },
   "newFeatures": {
     "adminDataTools": {

@@ -94,7 +94,10 @@
     "noReseller": "(not a reseller)",
     "emptyTitle": "No revenue data yet",
     "emptyDesc": "The Zentact revenue import is still running or not connected — check back shortly.",
-    "others": "Others"
+    "others": "Others",
+    "viewAccounts": "View accounts",
+    "accountsSubtitle_one": "{{count}} account",
+    "accountsSubtitle_other": "{{count}} accounts"
   },
   "newFeatures": {
     "adminDataTools": {

@@ -123,6 +123,7 @@ export default function Revenue() {
   const [filter, setFilter] = useState<Filter>({ month: String(now.getMonth() + 1), search: '' });
   const [data, setData] = useState<Row[] | null>(null);
   const [error, setError] = useState(false);
+  const [drill, setDrill] = useState<string | null>(null); // dimension name being drilled into
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -180,6 +181,21 @@ export default function Revenue() {
     }
     return [...map.values()].map((g) => ({ name: g.name, profit: g.profit, volume: g.volume, merchants: g.merchants.size })).sort((a, b) => b.profit - a.profit);
   }, [filtered, tab]);
+
+  // Drill-down: per-merchant breakdown for the clicked dimension (same filtered period).
+  const drillMerchants = useMemo(() => {
+    if (!drill) return [];
+    const map = new Map<string, { name: string; profit: number; volume: number }>();
+    for (const r of filtered) {
+      if ((dimOf(r) || t('revenue.unassigned')) !== drill) continue;
+      const key = r.merchant_account_id;
+      if (!map.has(key)) map.set(key, { name: r.business_name || r.merchant_account_id, profit: 0, volume: 0 });
+      const m = map.get(key)!;
+      m.profit += r.transaction_profit; m.volume += r.volume;
+    }
+    return [...map.values()].sort((a, b) => b.profit - a.profit);
+  }, [drill, filtered, tab]);
+  const drillTotal = useMemo(() => drillMerchants.reduce((s, m) => s + m.profit, 0), [drillMerchants]);
 
   // Chart points: full year (ignores month filter), respects search + tab.
   const chartPoints = useMemo(() => {
@@ -283,7 +299,15 @@ export default function Revenue() {
                     <tbody>
                       {grouped.map((g) => (
                         <tr key={g.name} className="border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
-                          <td className="px-4 py-3 font-medium text-black dark:text-white">{g.name}</td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => setDrill(g.name)}
+                              className="font-medium text-primary hover:underline"
+                              title={t('revenue.viewAccounts')}
+                            >
+                              {g.name}
+                            </button>
+                          </td>
                           <td className="px-4 py-3 text-right font-semibold text-primary">{money(g.profit)}</td>
                           <td className="px-4 py-3 text-right text-body">{money(g.volume)}</td>
                           <td className="px-4 py-3 text-right text-body">{g.merchants}</td>
@@ -297,6 +321,53 @@ export default function Revenue() {
           )}
         </div>
       </div>
+
+      {/* Drill-down modal: per-merchant accounts for the clicked rep/reseller */}
+      {drill && (
+        <div
+          className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setDrill(null)}
+        >
+          <div
+            className="max-h-[80vh] w-full max-w-3xl overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
+              <div>
+                <h3 className="text-lg font-semibold text-black dark:text-white">{drill}</h3>
+                <p className="text-sm text-body">
+                  {t('revenue.accountsSubtitle', { count: drillMerchants.length })} · {money(drillTotal)}
+                </p>
+              </div>
+              <button onClick={() => setDrill(null)} className="text-body hover:text-black dark:hover:text-white" aria-label="Close">
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="max-h-[calc(80vh-5rem)] overflow-auto">
+              <table className="w-full table-auto text-sm">
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-gray-2 text-left dark:bg-meta-4">
+                    <th className="px-6 py-3 font-medium text-black dark:text-white">{t('revenue.cols.merchant')}</th>
+                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.profit')}</th>
+                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.volume')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {drillMerchants.map((m) => (
+                    <tr key={m.name} className="border-t border-stroke dark:border-strokedark">
+                      <td className="px-6 py-3 text-black dark:text-white">{m.name}</td>
+                      <td className="px-6 py-3 text-right font-semibold text-primary">{money(m.profit)}</td>
+                      <td className="px-6 py-3 text-right text-body">{money(m.volume)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
