@@ -48,12 +48,12 @@ const money = (n: number) => '$' + (n || 0).toLocaleString(undefined, { minimumF
 function KpiCard({ label, value, color, iconD }: { label: string; value: number | string; color: string; iconD: string }) {
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-      <div className="flex items-center gap-4">
-        <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${color}`}>
+      <div className="flex items-center gap-3">
+        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${color}`}>
           <Icon d={iconD} />
         </span>
-        <div>
-          <p className="text-title-md font-bold leading-tight text-black dark:text-white">
+        <div className="min-w-0">
+          <p title={String(value)} className="truncate text-2xl font-bold leading-tight text-black dark:text-white">
             {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
           <p className="text-sm font-medium text-body">{label}</p>
