@@ -21,7 +21,9 @@ type Filter = { month: string; search: string };
 
 const CHART_PALETTE = ['#3C50E0', '#80CAEE', '#0FADCF', '#F58346', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#6366F1', '#22C55E'];
 const money = (n: number) => '$' + (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const money0 = (n: number) => '$' + Math.round(n || 0).toLocaleString(); // whole dollars, for large volumes
+// Compact for large headline numbers (e.g. volume): $2.87M, $9.6K. Exact value goes in a tooltip.
+const moneyCompact = (n: number) =>
+  '$' + new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 }).format(n || 0);
 
 function Icon({ d, className = 'h-5 w-5' }: { d: string; className?: string }) {
   return (
@@ -38,7 +40,7 @@ const ICONS = {
   search: 'M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z',
 };
 
-function KpiCard({ label, value, color, iconD }: { label: string; value: string; color: string; iconD: string }) {
+function KpiCard({ label, value, color, iconD, title }: { label: string; value: string; color: string; iconD: string; title?: string }) {
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
       <div className="flex items-center gap-3">
@@ -46,7 +48,7 @@ function KpiCard({ label, value, color, iconD }: { label: string; value: string;
           <Icon d={iconD} />
         </span>
         <div className="min-w-0">
-          <p title={value} className="truncate text-2xl font-bold leading-tight text-black dark:text-white">{value}</p>
+          <p title={title || value} className="truncate text-xl font-bold leading-tight text-black dark:text-white">{value}</p>
           <p className="text-sm font-medium text-body">{label}</p>
         </div>
       </div>
@@ -257,8 +259,8 @@ export default function Revenue() {
 
               {/* KPI cards */}
               <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <KpiCard label={t('revenue.kpi.profit')} value={money(kpis.profit)} color="bg-primary bg-opacity-10 text-primary" iconD={ICONS.profit} />
-                <KpiCard label={t('revenue.kpi.volume')} value={money0(kpis.volume)} color="bg-success bg-opacity-10 text-success" iconD={ICONS.volume} />
+                <KpiCard label={t('revenue.kpi.profit')} value={moneyCompact(kpis.profit)} title={money(kpis.profit)} color="bg-primary bg-opacity-10 text-primary" iconD={ICONS.profit} />
+                <KpiCard label={t('revenue.kpi.volume')} value={moneyCompact(kpis.volume)} title={money(kpis.volume)} color="bg-success bg-opacity-10 text-success" iconD={ICONS.volume} />
                 <KpiCard label={t('revenue.kpi.merchants')} value={String(kpis.merchants)} color="bg-warning bg-opacity-10 text-warning" iconD={ICONS.merchants} />
                 <KpiCard label={tab === 'byRep' ? t('revenue.kpi.reps') : t('revenue.kpi.resellers')} value={String(kpis.dims)} color="bg-[#6366F1] bg-opacity-10 text-[#6366F1]" iconD={ICONS.reps} />
               </div>
