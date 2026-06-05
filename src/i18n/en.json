@@ -250,7 +250,7 @@
     "zentactSection": "Payment Activations",
     "merchant": "Merchant",
     "activatedDate": "Activated",
-    "activation$100": "$100 Bonus",
+    "activation$100": "Signup Payment",
     "linkedDeal": "Linked deal",
     "ytdZentact": "{{count}} activation(s) · ${{amount}} bonus",
     "assignTo": "Assign to",

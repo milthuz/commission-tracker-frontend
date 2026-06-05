@@ -469,9 +469,13 @@ const CommissionTracker: React.FC = () => {
                                 {formatDateOnly(m.activated_at, i18n.language)}
                               </td>
                               <td className="px-6 py-3">
-                                <span className="inline-flex items-center rounded-full bg-[#6366F1] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#6366F1]">
-                                  ${m.bonus_amount.toLocaleString()}
-                                </span>
+                                {m.bonus_amount > 0 ? (
+                                  <span className="inline-flex items-center rounded-full bg-[#6366F1] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#6366F1]">
+                                    ${m.bonus_amount.toLocaleString()}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-body">—</span>
+                                )}
                               </td>
                               <td className="px-6 py-3 text-right">
                                 <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#6366F1] text-xs font-bold text-white">
