@@ -18,6 +18,8 @@ interface Salesperson {
   baseSalary: number;
   invoiceCount: number;
   aliases: string[];
+  signupBonusAmount: number;
+  signupBonusEnabled: boolean;
 }
 
 interface AdminUser {
@@ -1029,6 +1031,27 @@ const AdminPanel = () => {
     }
   };
 
+  // Update per-salesperson signup-bonus amount (per activation) and/or on-off toggle.
+  const updateSignupBonus = async (name: string, amount: number, enabled: boolean) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/signup-bonus`,
+        { amount, enabled },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSalespeople(prev =>
+        prev.map(person =>
+          person.name === name ? { ...person, signupBonusAmount: amount, signupBonusEnabled: enabled } : person
+        )
+      );
+      setUnlockedFields(prev => ({ ...prev, [`${name}_signup`]: false }));
+    } catch (error) {
+      console.error('Error updating signup bonus:', error);
+      alert(t('admin.salespeople.failedUpdateSignup'));
+    }
+  };
+
   // Update aliases (e.g. ["Gaby", "Gabi"] for Gabriella Daly)
   const updateAliases = async (name: string, aliases: string[]) => {
     try {
@@ -1826,6 +1849,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.invoices')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.commissionPercent')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.baseSalary')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.signupBonus')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.aliases')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.actions')}</th>
                         </tr>
@@ -1931,6 +1955,56 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                     </svg>
                                   </button>
+                                )}
+                              </div>
+                            </td>
+                            {/* Signup bonus: on/off toggle + per-activation amount */}
+                            <td className="px-4 py-5">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => updateSignupBonus(person.name, person.signupBonusAmount ?? 100, !person.signupBonusEnabled)}
+                                  title={t('admin.salespeople.signupToggleHint')}
+                                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.signupBonusEnabled ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
+                                >
+                                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.signupBonusEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                                </button>
+                                {person.signupBonusEnabled ? (
+                                  unlockedFields[`${person.name}_signup`] ? (
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      step="10"
+                                      autoFocus
+                                      defaultValue={person.signupBonusAmount ?? 100}
+                                      onBlur={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        if (!isNaN(val) && val !== (person.signupBonusAmount ?? 100)) {
+                                          updateSignupBonus(person.name, val, true);
+                                        } else {
+                                          setUnlockedFields(prev => ({ ...prev, [`${person.name}_signup`]: false }));
+                                        }
+                                      }}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                        if (e.key === 'Escape') setUnlockedFields(prev => ({ ...prev, [`${person.name}_signup`]: false }));
+                                      }}
+                                      className="w-20 rounded border border-primary bg-transparent px-2 py-1 text-center text-sm font-medium outline-none dark:bg-form-input text-black dark:text-white"
+                                    />
+                                  ) : (
+                                    <button
+                                      onClick={() => setUnlockedFields(prev => ({ ...prev, [`${person.name}_signup`]: true }))}
+                                      className="group flex items-center gap-1.5 rounded-md border border-stroke px-2.5 py-1.5 text-sm transition hover:border-primary dark:border-strokedark"
+                                    >
+                                      <span className={`font-medium ${(person.signupBonusAmount ?? 100) !== 100 ? 'text-[#8B5CF6]' : 'text-black dark:text-white'}`}>
+                                        ${(person.signupBonusAmount ?? 100).toLocaleString()}
+                                      </span>
+                                      <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                      </svg>
+                                    </button>
+                                  )
+                                ) : (
+                                  <span className="text-xs italic text-body">{t('admin.salespeople.signupOff')}</span>
                                 )}
                               </div>
                             </td>
