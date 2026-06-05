@@ -124,6 +124,22 @@ export default function Revenue() {
   const [data, setData] = useState<Row[] | null>(null);
   const [error, setError] = useState(false);
   const [drill, setDrill] = useState<string | null>(null); // dimension name being drilled into
+  const [activeReps, setActiveReps] = useState<Set<string> | null>(null);
+  const [activeResellers, setActiveResellers] = useState<Set<string> | null>(null);
+
+  // Load active salespeople + active resellers so the report shows only active ones.
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const h = { headers: { Authorization: `Bearer ${token}` } };
+    axios
+      .get(`${API_URL}/api/salespeople`, h) // active-only by default
+      .then((r) => setActiveReps(new Set((r.data.salespeople || []).map((n: string) => n.toLowerCase()))))
+      .catch(() => setActiveReps(null));
+    axios
+      .get(`${API_URL}/api/resellers`, h)
+      .then((r) => setActiveResellers(new Set((r.data.resellers || []).filter((x: any) => x.active).map((x: any) => String(x.name).toLowerCase()))))
+      .catch(() => setActiveResellers(null)); // no reseller:view → don't filter
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -145,8 +161,15 @@ export default function Revenue() {
   // Dimension accessor for the active tab.
   const dimOf = (r: Row) => (tab === 'byRep' ? r.sales_rep_name || t('revenue.unassigned') : r.reseller_name);
 
-  // Rows relevant to the tab (reseller tab: only reseller-attributed rows).
-  const tabRows = useMemo(() => (data || []).filter((r) => (tab === 'byReseller' ? !!r.reseller_name : true)), [data, tab]);
+  // Rows relevant to the tab, restricted to ACTIVE salespeople / resellers.
+  // (activeReps/activeResellers are null until loaded → no filtering yet, avoids an empty flash.)
+  const tabRows = useMemo(() => {
+    const rows = data || [];
+    if (tab === 'byReseller') {
+      return rows.filter((r) => !!r.reseller_name && (activeResellers === null || activeResellers.has(r.reseller_name.toLowerCase())));
+    }
+    return rows.filter((r) => !!r.sales_rep_name && (activeReps === null || activeReps.has(r.sales_rep_name.toLowerCase())));
+  }, [data, tab, activeReps, activeResellers]);
 
   // Month + search filter (for KPIs + table).
   const filtered = useMemo(() => {
