@@ -3,6 +3,28 @@
     "title": "Resellers",
     "subtitle": "POS license activations (Zoho) and residual payments (Zentact).",
     "tabs": { "activations": "POS Activations", "payments": "Payments" },
+    "filters": {
+      "year": "Year",
+      "month": "Month",
+      "reseller": "Reseller",
+      "all": "All",
+      "allMonths": "All months",
+      "search": "Search",
+      "searchPlaceholder": "Search customer or reseller…",
+      "results_one": "{{count}} result",
+      "results_other": "{{count}} results",
+      "reset": "Reset filters",
+      "noResultsTitle": "No matches for these filters",
+      "noResultsDesc": "Try a different year, month, reseller, or search term."
+    },
+    "kpi": {
+      "licenses": "Licenses",
+      "locations": "Locations",
+      "resellers": "Resellers",
+      "submissions": "Submissions",
+      "merchants": "Merchants",
+      "active": "Active merchants"
+    },
     "notConnectedTitle": "Data source not connected yet",
     "notConnectedDesc": "{{source}} integration is coming in the next phase.",
     "activations": {

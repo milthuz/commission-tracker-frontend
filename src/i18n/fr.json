@@ -3,6 +3,28 @@
     "title": "Revendeurs",
     "subtitle": "Activations de licences POS (Zoho) et paiements résiduels (Zentact).",
     "tabs": { "activations": "Activations POS", "payments": "Paiements" },
+    "filters": {
+      "year": "Année",
+      "month": "Mois",
+      "reseller": "Revendeur",
+      "all": "Tous",
+      "allMonths": "Tous les mois",
+      "search": "Recherche",
+      "searchPlaceholder": "Rechercher un client ou un revendeur…",
+      "results_one": "{{count}} résultat",
+      "results_other": "{{count}} résultats",
+      "reset": "Réinitialiser les filtres",
+      "noResultsTitle": "Aucun résultat pour ces filtres",
+      "noResultsDesc": "Essayez une autre année, un autre mois, revendeur ou terme de recherche."
+    },
+    "kpi": {
+      "licenses": "Licences",
+      "locations": "Emplacements",
+      "resellers": "Revendeurs",
+      "submissions": "Soumissions",
+      "merchants": "Marchands",
+      "active": "Marchands actifs"
+    },
     "notConnectedTitle": "Source de données pas encore connectée",
     "notConnectedDesc": "L'intégration {{source}} arrive à la prochaine phase.",
     "activations": {
