@@ -152,20 +152,20 @@ const CommissionReport = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) return;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      setIsAdmin(payload.isAdmin || false);
-    } catch (e) { /* */ }
-    // Permissions + isSalesperson come from /api/auth/verify — JWT only carries isAdmin
+    // isAdmin/permissions come from /api/auth/verify, which reflects the EFFECTIVE
+    // identity (impersonation downgrades to isAdmin=false). Do NOT trust the raw JWT's
+    // isAdmin here — it stays true while impersonating and would expose the admin
+    // rep-selector + other reps' reports. See impersonation middleware.
     (async () => {
       try {
         const res = await axios.get(`${API_URL}/api/auth/verify`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setIsAdmin(!!res.data?.user?.isAdmin);
         if (Array.isArray(res.data?.user?.permissions)) setPerms(res.data.user.permissions);
         else if (Array.isArray(res.data?.permissions)) setPerms(res.data.permissions);
         setIsSalesperson(!!res.data?.user?.isSalesperson);
-      } catch (_e) { /* fallback to isAdmin only */ }
+      } catch (_e) { /* leave isAdmin=false on failure (least privilege) */ }
     })();
   }, []);
 
