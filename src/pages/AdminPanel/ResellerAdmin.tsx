@@ -122,7 +122,7 @@ export default function ResellerAdmin() {
               <tr key={r.id} className="border-b border-stroke align-top dark:border-strokedark">
                 <td className="px-3 py-2"><input value={r.name} onChange={(e) => patchLocal(r.id, { name: e.target.value })} className={inputCls} /></td>
                 <td className="px-3 py-2"><input value={r.emailsText} onChange={(e) => patchLocal(r.id, { emailsText: e.target.value })} placeholder="a@b.com, c@d.com" className={inputCls + ' min-w-[14rem]'} /></td>
-                <td className="px-3 py-2"><input list="zentact-names" value={r.zentact_key || ''} onChange={(e) => patchLocal(r.id, { zentact_key: e.target.value })} placeholder="Lirette MG" className={inputCls} /></td>
+                <td className="px-3 py-2"><input list="zentact-names" value={r.zentact_key || ''} onChange={(e) => patchLocal(r.id, { zentact_key: e.target.value })} className={inputCls} /></td>
                 <td className="px-3 py-2 text-body">{r.locations}</td>
                 <td className="px-3 py-2 text-body">{r.licenses}</td>
                 <td className="px-3 py-2">
