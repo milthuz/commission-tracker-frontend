@@ -93,6 +93,7 @@ interface CustomerData {
 interface ReportData {
   repName: string;
   commissionRate: number;
+  baseSalary?: number;
   year: string;
   months: MonthData[];
   customers: CustomerData[];
@@ -668,6 +669,44 @@ const CommissionReport = () => {
           </select>
         </div>
       </div>
+
+      {/* Total Compensation (YTD) — base salary + commission + annual bonus + signup payments */}
+      {(() => {
+        const baseSalary = report.baseSalary || 0;
+        const ytdComm = report.summary.ytd.commission || 0;
+        const annualBonus = pointsData?.annual?.annualBonus || 0;
+        const signupPay = pointsData?.annual?.zentactBonus || 0;
+        const totalComp = baseSalary + ytdComm + annualBonus + signupPay;
+        const part = (label: string, value: number) => (
+          <div>
+            <p className="text-xs text-body">{label}</p>
+            <p className="font-semibold text-black dark:text-white">{formatCurrency(value)}</p>
+          </div>
+        );
+        return (
+          <div className="mb-6 rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary bg-opacity-10 text-primary">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="text-sm font-medium text-body">{t('commissionReport.totalComp')} ({selectedYear})</p>
+                  <h3 className="text-3xl font-bold text-black dark:text-white">{formatCurrency(totalComp)}</h3>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-x-8 gap-y-2">
+                {part(t('commissionReport.compBase'), baseSalary)}
+                {part(t('commissionReport.compCommission'), ytdComm)}
+                {part(t('commissionReport.compAnnualBonus'), annualBonus)}
+                {part(t('commissionReport.compSignup'), signupPay)}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Summary Cards */}
       <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
