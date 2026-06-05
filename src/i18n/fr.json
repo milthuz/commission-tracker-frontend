@@ -25,6 +25,12 @@
       "merchants": "Marchands",
       "active": "Marchands actifs"
     },
+    "chart": {
+      "activationsTitle": "Licences par mois — {{year}}",
+      "paymentsTitle": "Marchands activés par mois — {{year}}",
+      "others": "Autres",
+      "empty": "Aucune donnée pour {{year}}"
+    },
     "notConnectedTitle": "Source de données pas encore connectée",
     "notConnectedDesc": "L'intégration {{source}} arrive à la prochaine phase.",
     "activations": {

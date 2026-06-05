@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import ReactApexChart from 'react-apexcharts';
+import { ApexOptions } from 'apexcharts';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -7,7 +9,17 @@ const API_URL = import.meta.env.VITE_API_URL;
 type Tab = 'activations' | 'payments';
 
 type Filter = { year: string; month: string; reseller: string; search: string };
-const EMPTY_FILTER: Filter = { year: 'all', month: 'all', reseller: 'all', search: '' };
+
+// Default landing view: current year + current month, all resellers.
+function makeDefaultFilter(): Filter {
+  const now = new Date();
+  return { year: String(now.getFullYear()), month: String(now.getMonth()), reseller: 'all', search: '' };
+}
+const filtersEqual = (a: Filter, b: Filter) =>
+  a.year === b.year && a.month === b.month && a.reseller === b.reseller && a.search === b.search;
+
+// Distinct colors for the stacked-by-reseller chart series.
+const CHART_PALETTE = ['#3C50E0', '#80CAEE', '#0FADCF', '#F58346', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#6366F1', '#22C55E'];
 
 // ---------------------------------------------------------------------------
 // Small presentational helpers
@@ -84,12 +96,14 @@ function FilterBar({
   filter,
   setFilter,
   count,
+  defaultFilter,
 }: {
   years: number[];
   resellers: string[];
   filter: Filter;
   setFilter: (f: Filter) => void;
   count: number;
+  defaultFilter: Filter;
 }) {
   const { t, i18n } = useTranslation();
   const months = useMemo(
@@ -100,8 +114,7 @@ function FilterBar({
       })),
     [i18n.language],
   );
-  const isFiltered =
-    filter.year !== 'all' || filter.month !== 'all' || filter.reseller !== 'all' || filter.search.trim() !== '';
+  const isFiltered = !filtersEqual(filter, defaultFilter);
 
   const selectCls =
     'rounded-md border border-stroke bg-transparent py-2 pl-3 pr-8 text-sm font-medium text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white dark:focus:border-primary';
@@ -167,7 +180,7 @@ function FilterBar({
         <span className="text-sm text-body">{t('reseller.filters.results', { count })}</span>
         {isFiltered && (
           <button
-            onClick={() => setFilter({ ...EMPTY_FILTER })}
+            onClick={() => setFilter({ ...defaultFilter })}
             className="text-sm font-medium text-primary hover:underline"
           >
             {t('reseller.filters.reset')}
@@ -208,9 +221,91 @@ function deriveYears(dates: (string | null)[]): number[] {
 }
 
 // ---------------------------------------------------------------------------
+// Stacked column chart — one column per month of the selected year, segmented
+// by reseller, to show the year's progression. Ignores the month filter.
+// ---------------------------------------------------------------------------
+type ChartPoint = { month: number; reseller: string; value: number };
+
+function ResellerYearChart({
+  points,
+  year,
+  title,
+  valueLabel,
+}: {
+  points: ChartPoint[];
+  year: number;
+  title: string;
+  valueLabel: string;
+}) {
+  const { t, i18n } = useTranslation();
+  const monthLabels = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, m) => {
+        const l = new Date(2000, m, 1).toLocaleString(i18n.language, { month: 'short' }).replace('.', '');
+        return l.charAt(0).toUpperCase() + l.slice(1);
+      }),
+    [i18n.language],
+  );
+
+  const series = useMemo(() => {
+    const byReseller = new Map<string, number[]>();
+    for (const p of points) {
+      if (!byReseller.has(p.reseller)) byReseller.set(p.reseller, new Array(12).fill(0));
+      byReseller.get(p.reseller)![p.month] += p.value;
+    }
+    let entries = [...byReseller.entries()]
+      .map(([name, data]) => ({ name, data, total: data.reduce((a, b) => a + b, 0) }))
+      .sort((a, b) => b.total - a.total);
+    const CAP = 8;
+    if (entries.length > CAP) {
+      const others = entries.slice(CAP);
+      const othersData = new Array(12).fill(0);
+      for (const e of others) e.data.forEach((v, i) => (othersData[i] += v));
+      entries = [...entries.slice(0, CAP), { name: t('reseller.chart.others'), data: othersData, total: 0 }];
+    }
+    return entries.map((e) => ({ name: e.name, data: e.data }));
+  }, [points, t]);
+
+  const options: ApexOptions = {
+    colors: CHART_PALETTE,
+    chart: { type: 'bar', height: 350, stacked: true, fontFamily: 'Satoshi, sans-serif', toolbar: { show: false }, zoom: { enabled: false } },
+    plotOptions: {
+      bar: { horizontal: false, columnWidth: '45%', borderRadius: 3, borderRadiusApplication: 'end', borderRadiusWhenStacked: 'last' },
+    },
+    dataLabels: { enabled: false },
+    xaxis: { categories: monthLabels },
+    yaxis: { title: { text: valueLabel } },
+    legend: { position: 'top', horizontalAlign: 'left', fontFamily: 'Satoshi', fontWeight: 500, fontSize: '13px', markers: { radius: 99 } },
+    fill: { opacity: 1 },
+    tooltip: { y: { formatter: (v: number) => `${v}` } },
+  };
+
+  return (
+    <div className="mb-6 rounded-sm border border-stroke bg-white px-5 pt-5 pb-2 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <h4 className="mb-2 text-base font-semibold text-black dark:text-white">{title}</h4>
+      {points.length > 0 ? (
+        <ReactApexChart options={options} series={series} type="bar" height={350} />
+      ) : (
+        <p className="py-12 text-center text-sm text-body">{t('reseller.chart.empty', { year })}</p>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Tabs
 // ---------------------------------------------------------------------------
-function ActivationsTab({ data, filter, setFilter }: { data: any; filter: Filter; setFilter: (f: Filter) => void }) {
+function ActivationsTab({
+  data,
+  filter,
+  setFilter,
+  defaultFilter,
+}: {
+  data: any;
+  filter: Filter;
+  setFilter: (f: Filter) => void;
+  defaultFilter: Filter;
+}) {
   const { t } = useTranslation();
   const rows = data?.activations || [];
 
@@ -226,6 +321,21 @@ function ActivationsTab({ data, filter, setFilter }: { data: any; filter: Filter
       ),
     [rows, filter],
   );
+
+  // Chart spans the whole selected year (ignores the month filter).
+  const chartYear = filter.year !== 'all' ? Number(filter.year) : years[0] ?? new Date().getFullYear();
+  const chartPoints: ChartPoint[] = useMemo(() => {
+    const q = filter.search.trim().toLowerCase();
+    return rows
+      .filter((r: any) => {
+        const d = r.submitted_at ? new Date(r.submitted_at) : null;
+        if (!d || d.getFullYear() !== chartYear) return false;
+        if (filter.reseller !== 'all' && (r.reseller_name || '') !== filter.reseller) return false;
+        if (q && !`${r.reseller_name || ''} ${r.customer_name || ''}`.toLowerCase().includes(q)) return false;
+        return true;
+      })
+      .map((r: any) => ({ month: new Date(r.submitted_at).getMonth(), reseller: r.reseller_name || '—', value: Number(r.quantity) || 0 }));
+  }, [rows, chartYear, filter.reseller, filter.search]);
 
   const kpis = useMemo(() => {
     const locations = new Set<string>();
@@ -246,7 +356,7 @@ function ActivationsTab({ data, filter, setFilter }: { data: any; filter: Filter
 
   return (
     <div>
-      <FilterBar years={years} resellers={resellers} filter={filter} setFilter={setFilter} count={filtered.length} />
+      <FilterBar years={years} resellers={resellers} filter={filter} setFilter={setFilter} count={filtered.length} defaultFilter={defaultFilter} />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('reseller.kpi.licenses')} value={kpis.licenses} color="bg-primary bg-opacity-10 text-primary" iconD={ICONS.licenses} />
@@ -254,6 +364,8 @@ function ActivationsTab({ data, filter, setFilter }: { data: any; filter: Filter
         <KpiCard label={t('reseller.kpi.resellers')} value={kpis.resellers} color="bg-[#6366F1] bg-opacity-10 text-[#6366F1]" iconD={ICONS.resellers} />
         <KpiCard label={t('reseller.kpi.submissions')} value={kpis.submissions} color="bg-warning bg-opacity-10 text-warning" iconD={ICONS.submissions} />
       </div>
+
+      <ResellerYearChart points={chartPoints} year={chartYear} title={t('reseller.chart.activationsTitle', { year: chartYear })} valueLabel={t('reseller.kpi.licenses')} />
 
       {filtered.length === 0 ? (
         <EmptyCard title={t('reseller.filters.noResultsTitle')} desc={t('reseller.filters.noResultsDesc')} />
@@ -287,7 +399,17 @@ function ActivationsTab({ data, filter, setFilter }: { data: any; filter: Filter
   );
 }
 
-function PaymentsTab({ data, filter, setFilter }: { data: any; filter: Filter; setFilter: (f: Filter) => void }) {
+function PaymentsTab({
+  data,
+  filter,
+  setFilter,
+  defaultFilter,
+}: {
+  data: any;
+  filter: Filter;
+  setFilter: (f: Filter) => void;
+  defaultFilter: Filter;
+}) {
   const { t } = useTranslation();
   const sales = data?.sales || [];
 
@@ -303,6 +425,21 @@ function PaymentsTab({ data, filter, setFilter }: { data: any; filter: Filter; s
       ),
     [sales, filter],
   );
+
+  // Chart spans the whole selected year (ignores the month filter). One merchant = 1.
+  const chartYear = filter.year !== 'all' ? Number(filter.year) : years[0] ?? new Date().getFullYear();
+  const chartPoints: ChartPoint[] = useMemo(() => {
+    const q = filter.search.trim().toLowerCase();
+    return sales
+      .filter((s: any) => {
+        const d = s.activated_at ? new Date(s.activated_at) : null;
+        if (!d || d.getFullYear() !== chartYear) return false;
+        if (filter.reseller !== 'all' && (s.reseller_name || '') !== filter.reseller) return false;
+        if (q && !`${s.reseller_name || ''} ${s.business_name || ''}`.toLowerCase().includes(q)) return false;
+        return true;
+      })
+      .map((s: any) => ({ month: new Date(s.activated_at).getMonth(), reseller: s.reseller_name || '—', value: 1 }));
+  }, [sales, chartYear, filter.reseller, filter.search]);
 
   const kpis = useMemo(() => {
     const rs = new Set<string>();
@@ -321,13 +458,15 @@ function PaymentsTab({ data, filter, setFilter }: { data: any; filter: Filter; s
 
   return (
     <div>
-      <FilterBar years={years} resellers={resellers} filter={filter} setFilter={setFilter} count={filtered.length} />
+      <FilterBar years={years} resellers={resellers} filter={filter} setFilter={setFilter} count={filtered.length} defaultFilter={defaultFilter} />
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <KpiCard label={t('reseller.kpi.merchants')} value={kpis.merchants} color="bg-primary bg-opacity-10 text-primary" iconD={ICONS.merchants} />
         <KpiCard label={t('reseller.kpi.active')} value={kpis.active} color="bg-success bg-opacity-10 text-success" iconD={ICONS.active} />
         <KpiCard label={t('reseller.kpi.resellers')} value={kpis.resellers} color="bg-[#6366F1] bg-opacity-10 text-[#6366F1]" iconD={ICONS.resellers} />
       </div>
+
+      <ResellerYearChart points={chartPoints} year={chartYear} title={t('reseller.chart.paymentsTitle', { year: chartYear })} valueLabel={t('reseller.kpi.merchants')} />
 
       {filtered.length === 0 ? (
         <EmptyCard title={t('reseller.filters.noResultsTitle')} desc={t('reseller.filters.noResultsDesc')} />
@@ -367,7 +506,8 @@ function PaymentsTab({ data, filter, setFilter }: { data: any; filter: Filter; s
 export default function Reseller() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<Tab>('activations');
-  const [filter, setFilter] = useState<Filter>({ ...EMPTY_FILTER });
+  const defaultFilter = useMemo(() => makeDefaultFilter(), []);
+  const [filter, setFilter] = useState<Filter>(() => makeDefaultFilter());
   const [activations, setActivations] = useState<any>(null);
   const [residuals, setResiduals] = useState<any>(null);
 
@@ -411,8 +551,8 @@ export default function Reseller() {
         </div>
 
         <div className="p-6">
-          {tab === 'activations' && <ActivationsTab data={activations} filter={filter} setFilter={setFilter} />}
-          {tab === 'payments' && <PaymentsTab data={residuals} filter={filter} setFilter={setFilter} />}
+          {tab === 'activations' && <ActivationsTab data={activations} filter={filter} setFilter={setFilter} defaultFilter={defaultFilter} />}
+          {tab === 'payments' && <PaymentsTab data={residuals} filter={filter} setFilter={setFilter} defaultFilter={defaultFilter} />}
         </div>
       </div>
     </>

@@ -25,6 +25,12 @@
       "merchants": "Merchants",
       "active": "Active merchants"
     },
+    "chart": {
+      "activationsTitle": "Licenses by month — {{year}}",
+      "paymentsTitle": "Merchants activated by month — {{year}}",
+      "others": "Others",
+      "empty": "No data for {{year}}"
+    },
     "notConnectedTitle": "Data source not connected yet",
     "notConnectedDesc": "{{source}} integration is coming in the next phase.",
     "activations": {
