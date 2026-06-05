@@ -205,7 +205,7 @@
     "noDealsFound": "No SOLD deals found for {{month}} {{year}}",
     "zentactActivations": "Payment activations",
     "zentactBonusBadge": "💳 {{count}} activation(s) · ${{amount}}",
-    "zentactBonusLabel": "Zentact bonus",
+    "zentactBonusLabel": "Signup bonus",
     "zentactSection": "Payment Activations",
     "merchant": "Merchant",
     "activatedDate": "Activated",

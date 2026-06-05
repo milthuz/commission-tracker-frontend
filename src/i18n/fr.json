@@ -205,7 +205,7 @@
     "noDealsFound": "Aucune vente conclue trouvée pour {{month}} {{year}}",
     "zentactActivations": "Activations de paiement",
     "zentactBonusBadge": "💳 {{count}} activation(s) · {{amount}} $",
-    "zentactBonusLabel": "Prime Zentact",
+    "zentactBonusLabel": "Prime d'inscription",
     "zentactSection": "Activations de paiement",
     "merchant": "Marchand",
     "activatedDate": "Activé le",
