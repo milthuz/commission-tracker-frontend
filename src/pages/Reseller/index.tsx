@@ -40,9 +40,12 @@ const ICONS = {
   merchants: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
   active: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
   search: 'M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z',
+  profit: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1m0-9a9 9 0 110 0z',
 };
 
-function KpiCard({ label, value, color, iconD }: { label: string; value: number; color: string; iconD: string }) {
+const money = (n: number) => '$' + (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function KpiCard({ label, value, color, iconD }: { label: string; value: number | string; color: string; iconD: string }) {
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
       <div className="flex items-center gap-4">
@@ -51,7 +54,7 @@ function KpiCard({ label, value, color, iconD }: { label: string; value: number;
         </span>
         <div>
           <p className="text-title-md font-bold leading-tight text-black dark:text-white">
-            {value.toLocaleString()}
+            {typeof value === 'number' ? value.toLocaleString() : value}
           </p>
           <p className="text-sm font-medium text-body">{label}</p>
         </div>
@@ -443,12 +446,13 @@ function PaymentsTab({
 
   const kpis = useMemo(() => {
     const rs = new Set<string>();
-    let active = 0;
+    let active = 0, profit = 0;
     for (const s of filtered) {
       if (s.reseller_name) rs.add(s.reseller_name);
       if ((s.status || '').toUpperCase() === 'ACTIVE') active++;
+      profit += Number(s.transaction_profit) || 0;
     }
-    return { merchants: filtered.length, active, resellers: rs.size };
+    return { merchants: filtered.length, active, resellers: rs.size, profit };
   }, [filtered]);
 
   if (!data) return <p className="text-sm text-body">…</p>;
@@ -460,9 +464,10 @@ function PaymentsTab({
     <div>
       <FilterBar years={years} resellers={resellers} filter={filter} setFilter={setFilter} count={filtered.length} defaultFilter={defaultFilter} />
 
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <KpiCard label={t('reseller.kpi.merchants')} value={kpis.merchants} color="bg-primary bg-opacity-10 text-primary" iconD={ICONS.merchants} />
-        <KpiCard label={t('reseller.kpi.active')} value={kpis.active} color="bg-success bg-opacity-10 text-success" iconD={ICONS.active} />
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard label={t('reseller.kpi.profit')} value={money(kpis.profit)} color="bg-primary bg-opacity-10 text-primary" iconD={ICONS.profit} />
+        <KpiCard label={t('reseller.kpi.merchants')} value={kpis.merchants} color="bg-success bg-opacity-10 text-success" iconD={ICONS.merchants} />
+        <KpiCard label={t('reseller.kpi.active')} value={kpis.active} color="bg-warning bg-opacity-10 text-warning" iconD={ICONS.active} />
         <KpiCard label={t('reseller.kpi.resellers')} value={kpis.resellers} color="bg-[#6366F1] bg-opacity-10 text-[#6366F1]" iconD={ICONS.resellers} />
       </div>
 
@@ -477,6 +482,7 @@ function PaymentsTab({
               <tr className="bg-gray-2 text-left dark:bg-meta-4">
                 <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.reseller')}</th>
                 <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.payments.merchant')}</th>
+                <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('reseller.kpi.profit')}</th>
                 <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.payments.status')}</th>
                 <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.payments.activatedAt')}</th>
               </tr>
@@ -486,6 +492,7 @@ function PaymentsTab({
                 <tr key={i} className="border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
                   <td className="px-4 py-3 font-medium text-black dark:text-white">{s.reseller_name}</td>
                   <td className="px-4 py-3 text-body">{s.business_name || '—'}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-primary">{money(Number(s.transaction_profit) || 0)}</td>
                   <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
                   <td className="px-4 py-3 text-body">
                     {s.activated_at ? new Date(s.activated_at).toLocaleDateString() : '—'}

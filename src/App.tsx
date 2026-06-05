@@ -14,6 +14,7 @@ import { Navigate } from 'react-router-dom';
 import Versions from './pages/Versions';
 import AdminPanel from './pages/AdminPanel';
 import Reseller from './pages/Reseller';
+import Revenue from './pages/Revenue';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -113,6 +114,15 @@ function AppContent() {
               <>
                 <PageTitle title="Reseller | Commission Tracker" />
                 <Reseller />
+              </>
+            }
+          />
+          <Route
+            path="/revenue"
+            element={
+              <>
+                <PageTitle title="Revenue | Commission Tracker" />
+                <Revenue />
               </>
             }
           />

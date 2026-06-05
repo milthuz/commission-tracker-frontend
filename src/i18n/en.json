@@ -23,7 +23,8 @@
       "resellers": "Resellers",
       "submissions": "Submissions",
       "merchants": "Merchants",
-      "active": "Active merchants"
+      "active": "Active merchants",
+      "profit": "Transaction Profit"
     },
     "chart": {
       "activationsTitle": "Licenses by month — {{year}}",
@@ -55,6 +56,45 @@
       "status": "Status",
       "activatedAt": "Activated"
     }
+  },
+  "revenue": {
+    "title": "Revenue",
+    "subtitle": "Merchant Transaction Profit from Zentact — basis for salesperson bonuses and reseller residuals.",
+    "tabs": { "byRep": "By salesperson", "byReseller": "By reseller" },
+    "kpi": {
+      "profit": "Transaction Profit",
+      "volume": "Volume processed",
+      "merchants": "Merchants",
+      "reps": "Salespeople",
+      "resellers": "Resellers"
+    },
+    "filters": {
+      "year": "Year",
+      "month": "Month",
+      "all": "All",
+      "allMonths": "All months",
+      "search": "Search",
+      "searchPlaceholder": "Search merchant, rep or reseller…",
+      "results_one": "{{count}} result",
+      "results_other": "{{count}} results",
+      "reset": "Reset filters",
+      "noResultsTitle": "No matches for these filters",
+      "noResultsDesc": "Try a different year, month, or search term."
+    },
+    "cols": {
+      "rep": "Salesperson",
+      "reseller": "Reseller",
+      "merchant": "Merchant",
+      "profit": "Transaction Profit",
+      "volume": "Volume",
+      "merchants": "Merchants"
+    },
+    "chartTitle": "Transaction Profit by month — {{year}}",
+    "unassigned": "(unassigned)",
+    "noReseller": "(not a reseller)",
+    "emptyTitle": "No revenue data yet",
+    "emptyDesc": "The Zentact revenue import is still running or not connected — check back shortly.",
+    "others": "Others"
   },
   "newFeatures": {
     "adminDataTools": {
@@ -146,6 +186,7 @@
     "roles": "Roles & Permissions",
     "importPayments": "Import Commissions",
     "reseller": "Reseller",
+    "revenue": "Revenue",
     "resellersAdmin": "Manage Resellers",
     "profile": "Profile",
     "collapse": "Collapse sidebar",

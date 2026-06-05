@@ -275,6 +275,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Menu Item Revenue (perm: revenue:view) --> */}
+              {can('revenue:view') && (
+                <li>
+                  <NavLink
+                    to="/revenue"
+                    title={collapsed ? t('sidebar.revenue') as string : undefined}
+                    className={navLinkCls(pathname.includes('revenue'))}
+                  >
+                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M3 13h2v7H3v-7zm4-6h2v13H7V7zm4 3h2v10h-2V10zm4-7h2v17h-2V3zm4 9h2v8h-2v-8z" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.revenue')}</span>
+                    <NewBadge path="/revenue" collapsed={collapsed} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Admin Panel (Admin Only) --> */}
               {isAdmin && (
                 <li>
