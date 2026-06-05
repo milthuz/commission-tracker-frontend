@@ -76,15 +76,15 @@ const CommissionTracker: React.FC = () => {
     new Intl.DateTimeFormat(i18n.language, { month: 'short' }).format(new Date(2000, i, 1))
   );
 
-  // Detect admin from JWT
+  // Admin status from the EFFECTIVE identity (/api/auth/verify), not the raw JWT —
+  // the JWT stays admin while impersonating, which would expose admin-only controls.
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setIsAdmin(payload.isAdmin || false);
-      } catch { /* */ }
-    }
+    if (!token) return;
+    axios
+      .get(`${API_URL}/api/auth/verify`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => setIsAdmin(!!res.data?.user?.isAdmin))
+      .catch(() => setIsAdmin(false));
   }, []);
 
   // Fetch active salespeople (for the Assign dropdown when isAdmin)

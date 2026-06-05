@@ -34,8 +34,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     storedSidebarExpanded === null ? false : storedSidebarExpanded === 'true'
   );
 
-  // Check if user is admin
-  const [isAdmin, setIsAdmin] = useState(false);
+  // Admin status from the EFFECTIVE identity (/api/auth/verify via AuthContext).
+  // Not from the raw JWT — that stays admin while impersonating and would leak the
+  // admin menu/tools during a "view as" session.
+  const isAdmin = !!user?.isAdmin;
   const [adminMenuOpen, setAdminMenuOpen] = useState(pathname.includes('admin'));
 
   // Desktop collapse — independent from the mobile drawer (sidebarOpen).
@@ -55,18 +57,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       collapsed ? 'justify-center px-2' : 'gap-2.5 px-4'
     } ${active ? 'bg-graydark dark:bg-meta-4' : ''}`;
   const labelCls = collapsed ? 'sr-only' : '';
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setIsAdmin(payload.isAdmin || false);
-      } catch (error) {
-        console.error('Error decoding token:', error);
-      }
-    }
-  }, []);
 
   // close on click outside
   useEffect(() => {

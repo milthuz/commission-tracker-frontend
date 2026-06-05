@@ -178,24 +178,20 @@ const AdminPanel = () => {
     onConfirm: () => void;
   } | null>(null);
 
-  // Check if user is admin
+  // Admin gate from the EFFECTIVE identity (/api/auth/verify), not the raw JWT —
+  // the JWT stays admin while impersonating, which would let an impersonated
+  // "view as" session into the Admin Panel.
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const adminStatus = payload.isAdmin || false;
+    if (!token) { navigate('/'); return; }
+    axios
+      .get(`${API_URL}/api/auth/verify`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {
+        const adminStatus = !!res.data?.user?.isAdmin;
         setIsAdmin(adminStatus);
-        
-        if (!adminStatus) {
-          // Not admin, redirect to dashboard
-          navigate('/');
-        }
-      } catch (error) {
-        console.error('Error decoding token:', error);
-        navigate('/');
-      }
-    }
+        if (!adminStatus) navigate('/');
+      })
+      .catch(() => navigate('/'));
   }, [navigate]);
 
   // Fetch all salespeople
