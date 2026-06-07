@@ -321,6 +321,7 @@ export default function Revenue() {
                         <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.other')}</th>
                         <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.total')}</th>
                         <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.merchants')}</th>
+                        <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.avgPerMerchant')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -339,6 +340,7 @@ export default function Revenue() {
                           <td className="px-4 py-3 text-right text-body">{money(g.other)}</td>
                           <td className="px-4 py-3 text-right font-semibold text-primary">{money(g.total)}</td>
                           <td className="px-4 py-3 text-right text-body">{g.merchants}</td>
+                          <td className="px-4 py-3 text-right text-body">{money(g.merchants ? g.total / g.merchants : 0)}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -91,7 +91,8 @@
       "other": "Other Revenue",
       "total": "Total",
       "volume": "Volume",
-      "merchants": "Marchands"
+      "merchants": "Marchands",
+      "avgPerMerchant": "Moy. / marchand"
     },
     "chartTitle": "Transaction Profit par mois — {{year}}",
     "unassigned": "(non assigné)",
