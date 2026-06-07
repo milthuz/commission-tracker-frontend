@@ -14,6 +14,7 @@ type Row = {
   reseller_name: string | null;
   month: number; // 1-12
   transaction_profit: number;
+  other_revenue: number;
   volume: number;
   payments_count: number;
 };
@@ -37,6 +38,8 @@ const ICONS = {
   volume: 'M3 13h2v7H3v-7zm4-6h2v13H7V7zm4 3h2v10h-2V10zm4-7h2v17h-2V3zm4 9h2v8h-2v-8z',
   merchants: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
   reps: 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-9a4 4 0 11-8 0 4 4 0 018 0z',
+  other: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+  total: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z',
   search: 'M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z',
 };
 
@@ -183,42 +186,42 @@ export default function Revenue() {
 
   const kpis = useMemo(() => {
     const merchants = new Set<string>();
-    const dims = new Set<string>();
-    let profit = 0, volume = 0;
+    let profit = 0, other = 0, volume = 0;
     for (const r of filtered) {
-      profit += r.transaction_profit; volume += r.volume;
+      profit += r.transaction_profit; other += r.other_revenue; volume += r.volume;
       merchants.add(r.merchant_account_id);
-      const d = dimOf(r); if (d) dims.add(d);
     }
-    return { profit, volume, merchants: merchants.size, dims: dims.size };
+    return { profit, other, total: profit + other, volume, merchants: merchants.size };
   }, [filtered, tab]);
 
   // Aggregate table by dimension.
   const grouped = useMemo(() => {
-    const map = new Map<string, { name: string; profit: number; volume: number; merchants: Set<string> }>();
+    const map = new Map<string, { name: string; profit: number; other: number; merchants: Set<string> }>();
     for (const r of filtered) {
       const d = dimOf(r) || t('revenue.unassigned');
-      if (!map.has(d)) map.set(d, { name: d, profit: 0, volume: 0, merchants: new Set() });
+      if (!map.has(d)) map.set(d, { name: d, profit: 0, other: 0, merchants: new Set() });
       const g = map.get(d)!;
-      g.profit += r.transaction_profit; g.volume += r.volume; g.merchants.add(r.merchant_account_id);
+      g.profit += r.transaction_profit; g.other += r.other_revenue; g.merchants.add(r.merchant_account_id);
     }
-    return [...map.values()].map((g) => ({ name: g.name, profit: g.profit, volume: g.volume, merchants: g.merchants.size })).sort((a, b) => b.profit - a.profit);
+    return [...map.values()]
+      .map((g) => ({ name: g.name, profit: g.profit, other: g.other, total: g.profit + g.other, merchants: g.merchants.size }))
+      .sort((a, b) => b.total - a.total);
   }, [filtered, tab]);
 
   // Drill-down: per-merchant breakdown for the clicked dimension (same filtered period).
   const drillMerchants = useMemo(() => {
     if (!drill) return [];
-    const map = new Map<string, { name: string; profit: number; volume: number }>();
+    const map = new Map<string, { name: string; profit: number; other: number }>();
     for (const r of filtered) {
       if ((dimOf(r) || t('revenue.unassigned')) !== drill) continue;
       const key = r.merchant_account_id;
-      if (!map.has(key)) map.set(key, { name: r.business_name || r.merchant_account_id, profit: 0, volume: 0 });
+      if (!map.has(key)) map.set(key, { name: r.business_name || r.merchant_account_id, profit: 0, other: 0 });
       const m = map.get(key)!;
-      m.profit += r.transaction_profit; m.volume += r.volume;
+      m.profit += r.transaction_profit; m.other += r.other_revenue;
     }
-    return [...map.values()].sort((a, b) => b.profit - a.profit);
+    return [...map.values()].map((m) => ({ ...m, total: m.profit + m.other })).sort((a, b) => b.total - a.total);
   }, [drill, filtered, tab]);
-  const drillTotal = useMemo(() => drillMerchants.reduce((s, m) => s + m.profit, 0), [drillMerchants]);
+  const drillTotal = useMemo(() => drillMerchants.reduce((s, m) => s + m.total, 0), [drillMerchants]);
 
   // Chart points: full year (ignores month filter), respects search + tab.
   const chartPoints = useMemo(() => {
@@ -299,9 +302,9 @@ export default function Revenue() {
               {/* KPI cards */}
               <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <KpiCard label={t('revenue.kpi.profit')} value={moneyCompact(kpis.profit)} title={money(kpis.profit)} color="bg-primary bg-opacity-10 text-primary" iconD={ICONS.profit} />
-                <KpiCard label={t('revenue.kpi.volume')} value={moneyCompact(kpis.volume)} title={money(kpis.volume)} color="bg-success bg-opacity-10 text-success" iconD={ICONS.volume} />
+                <KpiCard label={t('revenue.kpi.other')} value={moneyCompact(kpis.other)} title={money(kpis.other)} color="bg-[#6366F1] bg-opacity-10 text-[#6366F1]" iconD={ICONS.other} />
+                <KpiCard label={t('revenue.kpi.total')} value={moneyCompact(kpis.total)} title={money(kpis.total)} color="bg-success bg-opacity-10 text-success" iconD={ICONS.total} />
                 <KpiCard label={t('revenue.kpi.merchants')} value={String(kpis.merchants)} color="bg-warning bg-opacity-10 text-warning" iconD={ICONS.merchants} />
-                <KpiCard label={tab === 'byRep' ? t('revenue.kpi.reps') : t('revenue.kpi.resellers')} value={String(kpis.dims)} color="bg-[#6366F1] bg-opacity-10 text-[#6366F1]" iconD={ICONS.reps} />
               </div>
 
               <YearChart points={chartPoints} title={t('revenue.chartTitle', { year })} />
@@ -315,7 +318,8 @@ export default function Revenue() {
                       <tr className="bg-gray-2 text-left dark:bg-meta-4">
                         <th className="px-4 py-3 font-medium text-black dark:text-white">{tab === 'byRep' ? t('revenue.cols.rep') : t('revenue.cols.reseller')}</th>
                         <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.profit')}</th>
-                        <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.volume')}</th>
+                        <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.other')}</th>
+                        <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.total')}</th>
                         <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.merchants')}</th>
                       </tr>
                     </thead>
@@ -331,8 +335,9 @@ export default function Revenue() {
                               {g.name}
                             </button>
                           </td>
-                          <td className="px-4 py-3 text-right font-semibold text-primary">{money(g.profit)}</td>
-                          <td className="px-4 py-3 text-right text-body">{money(g.volume)}</td>
+                          <td className="px-4 py-3 text-right text-body">{money(g.profit)}</td>
+                          <td className="px-4 py-3 text-right text-body">{money(g.other)}</td>
+                          <td className="px-4 py-3 text-right font-semibold text-primary">{money(g.total)}</td>
                           <td className="px-4 py-3 text-right text-body">{g.merchants}</td>
                         </tr>
                       ))}
@@ -374,15 +379,17 @@ export default function Revenue() {
                   <tr className="bg-gray-2 text-left dark:bg-meta-4">
                     <th className="px-6 py-3 font-medium text-black dark:text-white">{t('revenue.cols.merchant')}</th>
                     <th className="px-6 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.profit')}</th>
-                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.volume')}</th>
+                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.other')}</th>
+                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.total')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {drillMerchants.map((m) => (
                     <tr key={m.name} className="border-t border-stroke dark:border-strokedark">
                       <td className="px-6 py-3 text-black dark:text-white">{m.name}</td>
-                      <td className="px-6 py-3 text-right font-semibold text-primary">{money(m.profit)}</td>
-                      <td className="px-6 py-3 text-right text-body">{money(m.volume)}</td>
+                      <td className="px-6 py-3 text-right text-body">{money(m.profit)}</td>
+                      <td className="px-6 py-3 text-right text-body">{money(m.other)}</td>
+                      <td className="px-6 py-3 text-right font-semibold text-primary">{money(m.total)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -63,6 +63,8 @@
     "tabs": { "byRep": "Par vendeur", "byReseller": "Par revendeur" },
     "kpi": {
       "profit": "Transaction Profit",
+      "other": "Other Revenue",
+      "total": "Revenu total",
       "volume": "Volume traité",
       "merchants": "Marchands",
       "reps": "Vendeurs",
@@ -86,6 +88,8 @@
       "reseller": "Revendeur",
       "merchant": "Marchand",
       "profit": "Transaction Profit",
+      "other": "Other Revenue",
+      "total": "Total",
       "volume": "Volume",
       "merchants": "Marchands"
     },

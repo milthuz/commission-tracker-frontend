@@ -63,6 +63,8 @@
     "tabs": { "byRep": "By salesperson", "byReseller": "By reseller" },
     "kpi": {
       "profit": "Transaction Profit",
+      "other": "Other Revenue",
+      "total": "Total Revenue",
       "volume": "Volume processed",
       "merchants": "Merchants",
       "reps": "Salespeople",
@@ -86,6 +88,8 @@
       "reseller": "Reseller",
       "merchant": "Merchant",
       "profit": "Transaction Profit",
+      "other": "Other Revenue",
+      "total": "Total",
       "volume": "Volume",
       "merchants": "Merchants"
     },
