@@ -121,7 +121,7 @@ function AppContent() {
             path="/revenue"
             element={
               <>
-                <PageTitle title="Revenue | Commission Tracker" />
+                <PageTitle title="Processing Revenue | Commission Tracker" />
                 <Revenue />
               </>
             }

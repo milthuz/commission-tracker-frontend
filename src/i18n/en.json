@@ -58,7 +58,7 @@
     }
   },
   "revenue": {
-    "title": "Revenue",
+    "title": "Processing Revenue",
     "subtitle": "Merchant Transaction Profit from Zentact — basis for salesperson bonuses and reseller residuals.",
     "tabs": { "byRep": "By salesperson", "byReseller": "By reseller" },
     "kpi": {
@@ -193,7 +193,7 @@
     "roles": "Roles & Permissions",
     "importPayments": "Import Commissions",
     "reseller": "Reseller",
-    "revenue": "Revenue",
+    "revenue": "Processing Revenue",
     "resellersAdmin": "Manage Resellers",
     "profile": "Profile",
     "collapse": "Collapse sidebar",
