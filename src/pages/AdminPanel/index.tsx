@@ -440,6 +440,17 @@ const AdminPanel = () => {
       setReleaseNotes(response.data.notes || '');
       setCommitCount(response.data.commitCount || 0);
       setSinceTag(response.data.sinceTag || '');
+      // Auto-fill "What's New" from feat(scope) commits → menu sections (admin can tweak).
+      if (Array.isArray(response.data.suggestedFeatures)) {
+        setNewFeatureTags(
+          response.data.suggestedFeatures.map((f: any) => ({
+            path: f.path || '',
+            title: f.title || '',
+            description: f.description || '',
+            days: f.days || 7,
+          }))
+        );
+      }
     } catch (err) {
       console.error('Error generating notes:', err);
       setReleaseNotes('## ✨ New Features\n- \n\n## 🎨 UI Improvements\n- \n\n## 🔧 Bug Fixes\n- \n');
