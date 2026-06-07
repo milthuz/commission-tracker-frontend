@@ -90,9 +90,12 @@ export function NewFeaturesProvider({ children }: { children: ReactNode }) {
     if (f) markSeen(f.id);
   }, [pathname, seen, features, markSeen]);
 
+  // "New" pill: shown only while the feature is recent (window) AND the user hasn't
+  // seen it yet. It clears the moment they open the section (markSeen on navigation),
+  // per-user and permanently — no lingering day-counter.
   const showBadge = useCallback(
-    (path: string) => features.some((f) => f.path === path && windowOpen(f)),
-    [features],
+    (path: string) => !!seen && features.some((f) => f.path === path && windowOpen(f) && !seen.includes(f.id)),
+    [seen, features],
   );
   const hasDot = useCallback(
     (path: string) => !!seen && features.some((f) => f.path === path && windowOpen(f) && !seen.includes(f.id)),
