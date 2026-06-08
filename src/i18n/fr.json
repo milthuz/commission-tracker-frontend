@@ -238,6 +238,8 @@
     "totalTeamPoints": "Points totaux de l'équipe",
     "teamsTitle": "Équipes",
     "notCounted": "Hors quota",
+    "teamMembers": "{{count}} membres",
+    "teamRepsMet": "{{met}}/{{total}} ont atteint le quota",
     "soldDealsMonth": "Ventes conclues ce mois-ci",
     "repsMetQuota": "Représentants ayant atteint le quota ({{quota}} pts)",
     "quotaMet": "✓ Quota atteint",
