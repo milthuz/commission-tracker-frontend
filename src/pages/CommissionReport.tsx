@@ -956,8 +956,9 @@ const CommissionReport = () => {
         </div>
       </div>
 
-      {/* Two Column: Monthly Table + Top Customers */}
-      <div className="grid grid-cols-1 gap-6 2xl:grid-cols-2 min-w-0">
+      {/* Monthly Table + Top Customers — full width stacked (the breakdown + its expandable
+          invoice detail is too wide for a half-width column) */}
+      <div className="grid grid-cols-1 gap-6 min-w-0">
         {/* Monthly Breakdown Table */}
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark min-w-0 overflow-hidden">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
