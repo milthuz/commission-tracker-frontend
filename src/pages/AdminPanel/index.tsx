@@ -10,6 +10,7 @@ import CommissionImport from './CommissionImport';
 import ResellerAdmin from './ResellerAdmin';
 
 const API_URL = import.meta.env.VITE_API_URL;
+const DEFAULT_QUOTA = 15;
 
 interface Salesperson {
   name: string;
@@ -20,6 +21,7 @@ interface Salesperson {
   aliases: string[];
   signupBonusAmount: number;
   signupBonusEnabled: boolean;
+  monthlyQuota: number | null;
   teamId: number | null;
   teamName: string | null;
 }
@@ -281,6 +283,20 @@ const AdminPanel = () => {
       fetchSalespeople();
     } catch (error: any) {
       alert(error?.response?.data?.error || 'Failed to delete team');
+    }
+  };
+
+  const updateQuota = async (name: string, quota: number | null) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/quota`,
+        { quota },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSalespeople(prev => prev.map(p => p.name === name ? { ...p, monthlyQuota: quota } : p));
+    } catch (error: any) {
+      alert(error?.response?.data?.error || 'Failed to update quota');
     }
   };
 
@@ -2161,6 +2177,22 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   </button>
                                 )}
                               </div>
+                            </div>
+                            <div>
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.monthlyQuota')}</span>
+                              <input
+                                type="number"
+                                min="0"
+                                defaultValue={person.monthlyQuota ?? ''}
+                                placeholder={String(DEFAULT_QUOTA)}
+                                title={t('admin.salespeople.quotaHint') as string}
+                                onBlur={(e) => {
+                                  const raw = e.target.value.trim();
+                                  const val = raw === '' ? null : parseInt(raw);
+                                  if (val !== person.monthlyQuota) updateQuota(person.name, val);
+                                }}
+                                className={`w-24 rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input ${person.monthlyQuota != null ? 'font-medium text-[#8B5CF6]' : 'text-black dark:text-white'}`}
+                              />
                             </div>
                             <div>
                               <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.signupBonus')}</span>

@@ -77,6 +77,7 @@ interface PointsData {
   companyPoints?: number;
   companyTarget?: number;
   companyQuotaMet?: boolean;
+  leadSourceGroups?: string[];
 }
 
 const CommissionTracker: React.FC = () => {
@@ -160,6 +161,21 @@ const CommissionTracker: React.FC = () => {
     }
   };
 
+  // Admin: override a deal's lead source group (empty = revert to the CRM-synced value).
+  const overrideDealSource = async (dealId: string, source: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/crm/deals/${encodeURIComponent(dealId)}/source`,
+        { source },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchPoints();
+    } catch (err) {
+      console.error('Failed to override deal source', err);
+    }
+  };
+
   const getSourceBadgeColor = (sourceGroup: string) => {
     const s = sourceGroup.toLowerCase();
     if (s.includes('outbound')) return 'bg-[#8B5CF6] text-white';
@@ -167,8 +183,8 @@ const CommissionTracker: React.FC = () => {
     return 'bg-[#3B82F6] text-white';
   };
 
-  const getQuotaBarColor = (points: number) => {
-    const pct = (points / QUOTA) * 100;
+  const getQuotaBarColor = (points: number, quota: number = QUOTA) => {
+    const pct = quota > 0 ? (points / quota) * 100 : 0;
     if (pct >= 100) return 'bg-success';
     if (pct >= 60) return 'bg-warning';
     return 'bg-danger';
@@ -223,7 +239,7 @@ const CommissionTracker: React.FC = () => {
   const activeGroup = groups.find(g => g.key === activeKey);
   const agName = activeGroup ? (activeGroup.team ? activeGroup.team.name : t('commissionTracker.noTeamGroup')) : '';
   const agPoints = activeGroup ? (activeGroup.team ? activeGroup.team.totalPoints : activeGroup.reps.reduce((s, r) => s + r.totalPoints, 0)) : 0;
-  const agTarget = activeGroup ? (activeGroup.team ? activeGroup.team.quotaTarget : QUOTA * activeGroup.reps.length) : 0;
+  const agTarget = activeGroup ? (activeGroup.team ? activeGroup.team.quotaTarget : activeGroup.reps.reduce((s, r) => s + (r.quota || QUOTA), 0)) : 0;
   const agMet = activeGroup ? (activeGroup.team ? activeGroup.team.membersMet : activeGroup.reps.filter(r => r.quotaMet).length) : 0;
   const agMembers = activeGroup ? (activeGroup.team ? activeGroup.team.memberCount : activeGroup.reps.length) : 0;
   const agDeals = activeGroup ? activeGroup.reps.reduce((s, r) => s + (r.dealsCount ?? r.deals.length), 0) : 0;
@@ -241,7 +257,6 @@ const CommissionTracker: React.FC = () => {
               month: currentMonthName,
               year: selectedYear,
               count: agDeals,
-              quota: QUOTA,
             })}
           </p>
         </div>
@@ -286,7 +301,7 @@ const CommissionTracker: React.FC = () => {
         <div className="hidden h-9 w-px bg-stroke dark:bg-strokedark sm:block" />
         <div>
           <p className="text-2xl font-bold leading-none text-black dark:text-white">{agMet}/{agMembers}</p>
-          <span className="text-xs font-medium text-gray-500">{t('commissionTracker.repsMetQuota', { quota: QUOTA })}</span>
+          <span className="text-xs font-medium text-gray-500">{t('commissionTracker.repsMetQuota')}</span>
         </div>
       </div>
 
@@ -370,7 +385,7 @@ const CommissionTracker: React.FC = () => {
               )}
               <div className="divide-y divide-stroke dark:divide-strokedark">
                 {g.reps.map(rep => {
-                  const quotaPct = Math.min(100, (rep.totalPoints / QUOTA) * 100);
+                  const quotaPct = Math.min(100, (rep.totalPoints / (rep.quota || QUOTA)) * 100);
                   const isExpanded = expandedRep === rep.repName;
                   const canViewDetails = !rep.restricted; // backend flagged this row
 
@@ -415,7 +430,7 @@ const CommissionTracker: React.FC = () => {
                     {/* Progress bar */}
                     <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">
                       <div
-                        className={`h-2 rounded-full transition-all ${getQuotaBarColor(rep.totalPoints)}`}
+                        className={`h-2 rounded-full transition-all ${getQuotaBarColor(rep.totalPoints, rep.quota || QUOTA)}`}
                         style={{ width: `${quotaPct}%` }}
                       />
                     </div>
@@ -426,7 +441,7 @@ const CommissionTracker: React.FC = () => {
                 <div className="flex items-center gap-6 ml-4">
                   <div className="text-right">
                     <p className="text-xl font-bold text-black dark:text-white">
-                      {rep.totalPoints}<span className="text-sm font-normal text-gray-500"> / {QUOTA} pts</span>
+                      {rep.totalPoints}<span className="text-sm font-normal text-gray-500"> / {rep.quota || QUOTA} pts</span>
                     </p>
                     <p className="text-xs text-gray-500">
                       {rep.dealsCount ?? rep.deals.length} {(rep.dealsCount ?? rep.deals.length) !== 1
@@ -497,9 +512,26 @@ const CommissionTracker: React.FC = () => {
                               <p className="text-xs text-gray-500">{deal.account_name}</p>
                             </td>
                             <td className="px-6 py-3">
-                              <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getSourceBadgeColor(deal.lead_source_group)}`}>
-                                {deal.lead_source_group || '—'}
-                              </span>
+                              {isAdmin ? (
+                                <select
+                                  value={deal.lead_source_group || ''}
+                                  onChange={(e) => overrideDealSource(deal.crm_deal_id, e.target.value)}
+                                  title={t('commissionTracker.overrideSourceHint') as string}
+                                  className="rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white"
+                                >
+                                  <option value="">—</option>
+                                  {(data.leadSourceGroups || []).map(g => (
+                                    <option key={g} value={g}>{g}</option>
+                                  ))}
+                                  {deal.lead_source_group && !(data.leadSourceGroups || []).includes(deal.lead_source_group) && (
+                                    <option value={deal.lead_source_group}>{deal.lead_source_group}</option>
+                                  )}
+                                </select>
+                              ) : (
+                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getSourceBadgeColor(deal.lead_source_group)}`}>
+                                  {deal.lead_source_group || '—'}
+                                </span>
+                              )}
                             </td>
                             <td className="px-6 py-3 text-sm text-body">
                               {formatDateOnly(deal.close_date, i18n.language)}
