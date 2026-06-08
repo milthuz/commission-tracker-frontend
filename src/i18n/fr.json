@@ -467,6 +467,23 @@
       "stoppingMessage": "Arrêt après la facture en cours...",
       "confirmRecalculate": "Recalculer les commissions pour TOUTES les factures avec le modèle actuel ?\n\n• SaaS 1er mois → 100 %\n• Renouvellements SaaS → 0 %\n• Hardware → 10 % dans les 3 mois après le 1er SaaS\n\nS'exécute en arrière-plan. Assurez-vous que l'Enrichissement soit terminé d'abord, pour que les factures soient classées."
     },
+    "teams": {
+      "title": "Équipes",
+      "subtitle": "Regrouper les vendeurs pour le suivi du quota. Une équipe « hors quota » est suivie mais exclue du quota d'équipe et de compagnie.",
+      "newPlaceholder": "Nom de la nouvelle équipe…",
+      "create": "Créer l'équipe",
+      "empty": "Aucune équipe. Créez-en une ci-dessus, puis affectez les vendeurs plus bas.",
+      "colName": "Nom",
+      "colMembers": "Membres",
+      "colQuota": "Quota mensuel",
+      "colCounts": "Compte dans le quota",
+      "autoQuota": "Auto",
+      "quotaHint": "Laisser vide pour une cible automatique (15 × membres). Saisir un nombre pour fixer un quota d'équipe.",
+      "countsHint": "Désactivé : les vendeurs de cette équipe sont suivis mais exclus des totaux de quota d'équipe et de compagnie.",
+      "confirmDelete": "Supprimer l'équipe « {{name}} » ? Ses membres deviendront sans équipe.",
+      "team": "Équipe",
+      "noTeam": "— Sans équipe —"
+    },
     "salespeople": {
       "title": "Gérer les vendeurs",
       "subtitle": "Activer/désactiver les vendeurs pour contrôler qui apparaît dans les filtres et rapports de commissions",

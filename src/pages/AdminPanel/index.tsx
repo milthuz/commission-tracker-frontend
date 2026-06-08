@@ -20,6 +20,16 @@ interface Salesperson {
   aliases: string[];
   signupBonusAmount: number;
   signupBonusEnabled: boolean;
+  teamId: number | null;
+  teamName: string | null;
+}
+
+interface Team {
+  id: number;
+  name: string;
+  monthlyQuotaOverride: number | null;
+  countsTowardQuota: boolean;
+  memberCount: number;
 }
 
 interface AdminUser {
@@ -58,6 +68,8 @@ const AdminPanel = () => {
   useAuth();
   const navigate = useNavigate();
   const [salespeople, setSalespeople] = useState<Salesperson[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [newTeamName, setNewTeamName] = useState('');
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -212,6 +224,74 @@ const AdminPanel = () => {
     }
   };
 
+  // Fetch teams
+  const fetchTeams = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/teams`, { headers: { Authorization: `Bearer ${token}` } });
+      setTeams(res.data.teams || []);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    }
+  };
+
+  const createTeam = async () => {
+    const name = newTeamName.trim();
+    if (!name) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/teams`, { name }, { headers: { Authorization: `Bearer ${token}` } });
+      setNewTeamName('');
+      fetchTeams();
+    } catch (error: any) {
+      alert(error?.response?.data?.error || 'Failed to create team');
+    }
+  };
+
+  const updateTeam = async (team: Team, patch: Partial<Team>) => {
+    const merged = { ...team, ...patch };
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/teams/${team.id}`,
+        { name: merged.name, monthlyQuotaOverride: merged.monthlyQuotaOverride, countsTowardQuota: merged.countsTowardQuota },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTeams(prev => prev.map(t => t.id === team.id ? merged : t));
+    } catch (error: any) {
+      alert(error?.response?.data?.error || 'Failed to update team');
+      fetchTeams();
+    }
+  };
+
+  const deleteTeam = async (team: Team) => {
+    if (!window.confirm(t('admin.teams.confirmDelete', { name: team.name }) as string)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/teams/${team.id}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchTeams();
+      fetchSalespeople();
+    } catch (error: any) {
+      alert(error?.response?.data?.error || 'Failed to delete team');
+    }
+  };
+
+  const assignTeam = async (name: string, teamId: number | null) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/team`,
+        { teamId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const teamName = teamId == null ? null : (teams.find(t => t.id === teamId)?.name ?? null);
+      setSalespeople(prev => prev.map(p => p.name === name ? { ...p, teamId, teamName } : p));
+      fetchTeams(); // refresh member counts
+    } catch (error: any) {
+      alert(error?.response?.data?.error || 'Failed to assign team');
+    }
+  };
+
   // Fetch admin users
   const fetchAdminUsers = async () => {
     try {
@@ -318,6 +398,7 @@ const AdminPanel = () => {
   useEffect(() => {
     if (isAdmin) {
       fetchSalespeople();
+      fetchTeams();
       fetchSyncStatus();
       fetchCrmStatus();
       fetchZentactStatus();
@@ -1783,6 +1864,91 @@ Joker Pub,Jay Daoust,2024-04-01`}
               </div>
             )}
 
+            {/* Teams management */}
+            <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.teams.title')}</h3>
+                <p className="text-sm text-body mt-1">{t('admin.teams.subtitle')}</p>
+              </div>
+              <div className="p-3 sm:p-5">
+                {/* Create */}
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  <input
+                    type="text"
+                    value={newTeamName}
+                    onChange={(e) => setNewTeamName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') createTeam(); }}
+                    placeholder={t('admin.teams.newPlaceholder') as string}
+                    className="flex-1 min-w-[200px] rounded border-[1.5px] border-stroke bg-transparent px-4 py-2.5 font-medium outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input"
+                  />
+                  <button onClick={createTeam} className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90">
+                    {t('admin.teams.create')}
+                  </button>
+                </div>
+                {teams.length === 0 ? (
+                  <p className="py-4 text-center text-sm text-body">{t('admin.teams.empty')}</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[640px] table-auto">
+                      <thead>
+                        <tr className="bg-gray-2 text-left text-sm dark:bg-meta-4">
+                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colName')}</th>
+                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colMembers')}</th>
+                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colQuota')}</th>
+                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colCounts')}</th>
+                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('common.actions')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {teams.map(team => (
+                          <tr key={team.id} className="border-b border-stroke text-sm dark:border-strokedark">
+                            <td className="px-3 py-3">
+                              <input
+                                type="text"
+                                defaultValue={team.name}
+                                onBlur={(e) => { const v = e.target.value.trim(); if (v && v !== team.name) updateTeam(team, { name: v }); }}
+                                className="w-full max-w-[200px] rounded border border-stroke bg-transparent px-2 py-1 text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                              />
+                            </td>
+                            <td className="px-3 py-3 text-body">{team.memberCount}</td>
+                            <td className="px-3 py-3">
+                              <input
+                                type="number"
+                                min="0"
+                                defaultValue={team.monthlyQuotaOverride ?? ''}
+                                placeholder={t('admin.teams.autoQuota') as string}
+                                onBlur={(e) => {
+                                  const raw = e.target.value.trim();
+                                  const val = raw === '' ? null : parseInt(raw);
+                                  if (val !== team.monthlyQuotaOverride) updateTeam(team, { monthlyQuotaOverride: val });
+                                }}
+                                className="w-28 rounded border border-stroke bg-transparent px-2 py-1 text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
+                                title={t('admin.teams.quotaHint') as string}
+                              />
+                            </td>
+                            <td className="px-3 py-3">
+                              <button
+                                onClick={() => updateTeam(team, { countsTowardQuota: !team.countsTowardQuota })}
+                                title={t('admin.teams.countsHint') as string}
+                                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${team.countsTowardQuota ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
+                              >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${team.countsTowardQuota ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                              </button>
+                            </td>
+                            <td className="px-3 py-3">
+                              <button onClick={() => deleteTeam(team)} className="rounded-md bg-danger px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 whitespace-nowrap">
+                                {t('common.delete')}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
                 <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.salespeople.title')}</h3>
@@ -1858,6 +2024,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.baseSalary')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.signupBonus')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.aliases')}</th>
+                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.teams.team')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.actions')}</th>
                         </tr>
                       </thead>
@@ -2053,6 +2220,18 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   </svg>
                                 </button>
                               )}
+                            </td>
+                            <td className="px-4 py-5">
+                              <select
+                                value={person.teamId ?? ''}
+                                onChange={(e) => assignTeam(person.name, e.target.value === '' ? null : parseInt(e.target.value))}
+                                className="rounded border border-stroke bg-transparent px-2 py-1.5 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+                              >
+                                <option value="">{t('admin.teams.noTeam')}</option>
+                                {teams.map(tm => (
+                                  <option key={tm.id} value={tm.id}>{tm.name}</option>
+                                ))}
+                              </select>
                             </td>
                             <td className="px-4 py-5">
                               <button

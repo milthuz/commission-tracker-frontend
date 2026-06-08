@@ -467,6 +467,23 @@
       "stoppingMessage": "Stopping after current invoice...",
       "confirmRecalculate": "Recalculate commissions for ALL invoices using the current model?\n\n• SaaS first month → 100%\n• SaaS renewals → 0%\n• Hardware → 10% within 3 months of first SaaS\n\nRuns in the background. Make sure Enrich has finished first so invoices are classified."
     },
+    "teams": {
+      "title": "Teams",
+      "subtitle": "Group salespeople for quota tracking. Teams flagged as not counting are tracked but excluded from team & company quota.",
+      "newPlaceholder": "New team name…",
+      "create": "Create team",
+      "empty": "No teams yet. Create one above, then assign salespeople below.",
+      "colName": "Name",
+      "colMembers": "Members",
+      "colQuota": "Monthly quota",
+      "colCounts": "Counts toward quota",
+      "autoQuota": "Auto",
+      "quotaHint": "Leave blank for automatic target (15 × members). Enter a number to set a fixed team quota.",
+      "countsHint": "When off, this team's reps are tracked but excluded from team & company quota totals.",
+      "confirmDelete": "Delete team \"{{name}}\"? Its members will become unassigned.",
+      "team": "Team",
+      "noTeam": "— No team —"
+    },
     "salespeople": {
       "title": "Manage Salespeople",
       "subtitle": "Toggle salespeople on/off to control who appears in invoice filters and commission reports",
