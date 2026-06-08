@@ -29,6 +29,8 @@ interface Team {
   name: string;
   monthlyQuotaOverride: number | null;
   countsTowardQuota: boolean;
+  includeDeals: boolean;
+  includePayments: boolean;
   memberCount: number;
 }
 
@@ -254,7 +256,13 @@ const AdminPanel = () => {
       const token = localStorage.getItem('token');
       await axios.put(
         `${API_URL}/api/teams/${team.id}`,
-        { name: merged.name, monthlyQuotaOverride: merged.monthlyQuotaOverride, countsTowardQuota: merged.countsTowardQuota },
+        {
+          name: merged.name,
+          monthlyQuotaOverride: merged.monthlyQuotaOverride,
+          countsTowardQuota: merged.countsTowardQuota,
+          includeDeals: merged.includeDeals,
+          includePayments: merged.includePayments,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setTeams(prev => prev.map(t => t.id === team.id ? merged : t));
@@ -1889,12 +1897,13 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <p className="py-4 text-center text-sm text-body">{t('admin.teams.empty')}</p>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[640px] table-auto">
+                    <table className="w-full min-w-[780px] table-auto">
                       <thead>
                         <tr className="bg-gray-2 text-left text-sm dark:bg-meta-4">
                           <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colName')}</th>
                           <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colMembers')}</th>
                           <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colQuota')}</th>
+                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colSources')}</th>
                           <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colCounts')}</th>
                           <th className="px-3 py-3 font-medium text-black dark:text-white">{t('common.actions')}</th>
                         </tr>
@@ -1925,6 +1934,30 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 className="w-28 rounded border border-stroke bg-transparent px-2 py-1 text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
                                 title={t('admin.teams.quotaHint') as string}
                               />
+                            </td>
+                            <td className="px-3 py-3">
+                              <div className="flex flex-col gap-1.5">
+                                <label className="flex items-center gap-2 text-xs text-body">
+                                  <button
+                                    onClick={() => updateTeam(team, { includeDeals: !team.includeDeals })}
+                                    title={t('admin.teams.includeDealsHint') as string}
+                                    className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition ${team.includeDeals ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
+                                  >
+                                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow transition ${team.includeDeals ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+                                  </button>
+                                  {t('admin.teams.includeDeals')}
+                                </label>
+                                <label className="flex items-center gap-2 text-xs text-body">
+                                  <button
+                                    onClick={() => updateTeam(team, { includePayments: !team.includePayments })}
+                                    title={t('admin.teams.includePaymentsHint') as string}
+                                    className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition ${team.includePayments ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
+                                  >
+                                    <span className={`inline-block h-3 w-3 transform rounded-full bg-white shadow transition ${team.includePayments ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+                                  </button>
+                                  {t('admin.teams.includePayments')}
+                                </label>
+                              </div>
                             </td>
                             <td className="px-3 py-3">
                               <button
