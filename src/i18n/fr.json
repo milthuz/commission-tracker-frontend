@@ -236,6 +236,8 @@
     "loadingPoints": "Chargement des données de points depuis le CRM...",
     "subtitle": "{{month}} {{year}} · {{count}} ventes conclues · Quota : {{quota}} pts",
     "totalTeamPoints": "Points totaux de l'équipe",
+    "teamsTitle": "Équipes",
+    "notCounted": "Hors quota",
     "soldDealsMonth": "Ventes conclues ce mois-ci",
     "repsMetQuota": "Représentants ayant atteint le quota ({{quota}} pts)",
     "quotaMet": "✓ Quota atteint",

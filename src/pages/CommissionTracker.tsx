@@ -47,6 +47,19 @@ interface RepData {
   deals: Deal[];
   zentactMerchants: ZentactMerchant[];
   restricted?: boolean;   // backend flag — true when current user can't see this rep's details
+  team?: { id: number; name: string } | null;
+  countsTowardQuota?: boolean;
+}
+
+interface TeamAgg {
+  teamId: number | null;
+  name: string;
+  countsTowardQuota: boolean;
+  totalPoints: number;
+  memberCount: number;
+  quotaTarget: number;
+  quotaMet: boolean;
+  repNames: string[];
 }
 
 interface PointsData {
@@ -58,6 +71,10 @@ interface PointsData {
   totalDeals: number;
   totalZentactActivations: number;
   reps: RepData[];
+  teams?: TeamAgg[];
+  companyPoints?: number;
+  companyTarget?: number;
+  companyQuotaMet?: boolean;
 }
 
 const CommissionTracker: React.FC = () => {
@@ -177,7 +194,11 @@ const CommissionTracker: React.FC = () => {
   if (!data) return null;
 
   const totalPoints = data.reps.reduce((s, r) => s + r.totalPoints, 0);
-  const repsMetQuota = data.reps.filter(r => r.quotaMet).length;
+  // Reps in teams flagged "not counting" are tracked but excluded from company quota KPIs.
+  const countingReps = data.reps.filter(r => r.countsTowardQuota !== false);
+  const companyPoints = data.companyPoints ?? totalPoints;
+  const repsMetQuota = countingReps.filter(r => r.quotaMet).length;
+  const totalCountingReps = countingReps.length;
   const totalDeals = data.totalDeals;
   const totalZentact = data.totalZentactActivations || 0;
   const currentMonthName = MONTH_NAMES[selectedMonth - 1];
@@ -232,7 +253,7 @@ const CommissionTracker: React.FC = () => {
             </svg>
           </div>
           <div className="mt-4">
-            <h4 className="text-2xl font-bold text-black dark:text-white">{totalPoints} pts</h4>
+            <h4 className="text-2xl font-bold text-black dark:text-white">{companyPoints} pts</h4>
             <span className="text-sm font-medium text-gray-500">{t('commissionTracker.totalTeamPoints')}</span>
           </div>
         </div>
@@ -259,7 +280,7 @@ const CommissionTracker: React.FC = () => {
           </div>
           <div className="mt-4">
             <h4 className="text-2xl font-bold text-black dark:text-white">
-              {repsMetQuota}/{data.reps.length}
+              {repsMetQuota}/{totalCountingReps}
             </h4>
             <span className="text-sm font-medium text-gray-500">
               {t('commissionTracker.repsMetQuota', { quota: QUOTA })}
@@ -280,6 +301,41 @@ const CommissionTracker: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Teams quota panel */}
+      {data.teams && data.teams.length > 0 && (
+        <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+            <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionTracker.teamsTitle')}</h3>
+          </div>
+          <div className="divide-y divide-stroke dark:divide-strokedark">
+            {data.teams.map(tm => {
+              const pct = tm.quotaTarget > 0 ? Math.min(100, (tm.totalPoints / tm.quotaTarget) * 100) : 0;
+              return (
+                <div key={tm.teamId ?? 'none'} className={`px-6 py-4 ${tm.countsTowardQuota ? '' : 'opacity-70'}`}>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium text-black dark:text-white">{tm.name}</span>
+                      <span className="text-xs text-gray-500">({tm.memberCount})</span>
+                      {!tm.countsTowardQuota && (
+                        <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-meta-4 dark:text-gray-300">
+                          {t('commissionTracker.notCounted')}
+                        </span>
+                      )}
+                    </div>
+                    <span className={`text-sm font-semibold ${tm.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>
+                      {tm.totalPoints}/{tm.quotaTarget} pts
+                    </span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-meta-4">
+                    <div className={`h-2 rounded-full ${tm.quotaMet ? 'bg-success' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Rep Cards */}
       <div className="space-y-4">
