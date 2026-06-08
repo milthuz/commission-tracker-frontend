@@ -477,6 +477,15 @@
       "stoppingMessage": "Stopping after current invoice...",
       "confirmRecalculate": "Recalculate commissions for ALL invoices using the current model?\n\n• SaaS first month → 100%\n• SaaS renewals → 0%\n• Hardware → 10% within 3 months of first SaaS\n\nRuns in the background. Make sure Enrich has finished first so invoices are classified."
     },
+    "dealPoints": {
+      "title": "Points by deal type",
+      "subtitle": "Set how many points a deal is worth based on its lead source. Types left unset keep their synced CRM points.",
+      "empty": "No custom point values yet. Add one below.",
+      "type": "Deal type (source)",
+      "points": "Points",
+      "selectType": "Select a deal type…",
+      "add": "Add"
+    },
     "teams": {
       "title": "Teams",
       "subtitle": "Group salespeople for quota tracking. Teams flagged as not counting are tracked but excluded from team & company quota.",

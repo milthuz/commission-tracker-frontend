@@ -477,6 +477,15 @@
       "stoppingMessage": "Arrêt après la facture en cours...",
       "confirmRecalculate": "Recalculer les commissions pour TOUTES les factures avec le modèle actuel ?\n\n• SaaS 1er mois → 100 %\n• Renouvellements SaaS → 0 %\n• Hardware → 10 % dans les 3 mois après le 1er SaaS\n\nS'exécute en arrière-plan. Assurez-vous que l'Enrichissement soit terminé d'abord, pour que les factures soient classées."
     },
+    "dealPoints": {
+      "title": "Points par type de deal",
+      "subtitle": "Définir combien de points vaut un deal selon sa source. Les types non définis gardent les points CRM synchronisés.",
+      "empty": "Aucune valeur personnalisée. Ajoutez-en une ci-dessous.",
+      "type": "Type de deal (source)",
+      "points": "Points",
+      "selectType": "Choisir un type de deal…",
+      "add": "Ajouter"
+    },
     "teams": {
       "title": "Équipes",
       "subtitle": "Regrouper les vendeurs pour le suivi du quota. Une équipe « hors quota » est suivie mais exclue du quota d'équipe et de compagnie.",

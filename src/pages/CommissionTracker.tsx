@@ -89,6 +89,7 @@ const CommissionTracker: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [expandedRep, setExpandedRep] = useState<string | null>(null);
   const [selectedTeamKey, setSelectedTeamKey] = useState<string | null>(null);
+  const [editingDealSource, setEditingDealSource] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeReps, setActiveReps] = useState<string[]>([]);
 
@@ -512,12 +513,13 @@ const CommissionTracker: React.FC = () => {
                               <p className="text-xs text-gray-500">{deal.account_name}</p>
                             </td>
                             <td className="px-6 py-3">
-                              {isAdmin ? (
+                              {isAdmin && editingDealSource === deal.crm_deal_id ? (
                                 <select
+                                  autoFocus
                                   value={deal.lead_source_group || ''}
-                                  onChange={(e) => overrideDealSource(deal.crm_deal_id, e.target.value)}
-                                  title={t('commissionTracker.overrideSourceHint') as string}
-                                  className="rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white"
+                                  onChange={(e) => { overrideDealSource(deal.crm_deal_id, e.target.value); setEditingDealSource(null); }}
+                                  onBlur={() => setEditingDealSource(null)}
+                                  className="rounded border border-primary bg-transparent px-2 py-1 text-xs outline-none dark:bg-form-input text-black dark:text-white"
                                 >
                                   <option value="">—</option>
                                   {(data.leadSourceGroups || []).map(g => (
@@ -528,8 +530,21 @@ const CommissionTracker: React.FC = () => {
                                   )}
                                 </select>
                               ) : (
-                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getSourceBadgeColor(deal.lead_source_group)}`}>
-                                  {deal.lead_source_group || '—'}
+                                <span className="inline-flex items-center gap-1.5">
+                                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getSourceBadgeColor(deal.lead_source_group)}`}>
+                                    {deal.lead_source_group || '—'}
+                                  </span>
+                                  {isAdmin && (
+                                    <button
+                                      onClick={() => setEditingDealSource(deal.crm_deal_id)}
+                                      title={t('commissionTracker.overrideSourceHint') as string}
+                                      className="text-body transition hover:text-primary"
+                                    >
+                                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                    </button>
+                                  )}
                                 </span>
                               )}
                             </td>
