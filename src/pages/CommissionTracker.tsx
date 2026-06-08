@@ -87,6 +87,7 @@ const CommissionTracker: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [expandedRep, setExpandedRep] = useState<string | null>(null);
+  const [selectedTeamKey, setSelectedTeamKey] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeReps, setActiveReps] = useState<string[]>([]);
 
@@ -221,6 +222,10 @@ const CommissionTracker: React.FC = () => {
     groups.push({ key: `t-${tm.teamId}`, team: tm, reps: rs });
   }
   if (noTeamReps.length) groups.push({ key: 'none', reps: noTeamReps });
+  // Active team for the top selector (default = first group; falls back if the selected one vanished).
+  const activeKey = selectedTeamKey && groups.some(g => g.key === selectedTeamKey)
+    ? selectedTeamKey
+    : (groups[0]?.key ?? null);
 
   return (
     <>
@@ -284,6 +289,33 @@ const CommissionTracker: React.FC = () => {
         </div>
       </div>
 
+      {/* Team selector */}
+      {groups.length > 1 && (
+        <div className="mb-4 flex flex-wrap gap-2">
+          {groups.map(g => {
+            const active = g.key === activeKey;
+            return (
+              <button
+                key={g.key}
+                onClick={() => setSelectedTeamKey(g.key)}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
+                  active
+                    ? 'bg-primary text-white shadow'
+                    : 'border border-stroke bg-white text-body hover:bg-gray-100 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4'
+                }`}
+              >
+                {g.team ? g.team.name : t('commissionTracker.noTeamGroup')}
+                {g.team && (
+                  <span className={`text-xs ${active ? 'text-white/80' : 'text-gray-400'}`}>
+                    {g.team.totalPoints}/{g.team.quotaTarget}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Rep Cards */}
       <div className="space-y-4">
         {data.reps.length === 0 ? (
@@ -292,7 +324,7 @@ const CommissionTracker: React.FC = () => {
               {t('commissionTracker.noDealsFound', { month: currentMonthName, year: selectedYear })}
             </p>
           </div>
-        ) : groups.map(g => {
+        ) : groups.filter(g => g.key === activeKey).map(g => {
           const tm = g.team;
           const pct = tm && tm.quotaTarget > 0 ? Math.min(100, Math.round((tm.totalPoints / tm.quotaTarget) * 100)) : 0;
           const sources = tm ? [
