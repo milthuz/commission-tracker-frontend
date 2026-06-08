@@ -1117,8 +1117,8 @@ const CommissionReport = () => {
                   {/* Expanded invoice drill-down */}
                   {isExpanded && (
                     <tr>
-                      <td colSpan={(canApprove || canMarkPaid) ? 5 : 4} className="p-0">
-                        <div className="bg-[#8B5CF6] bg-opacity-[0.03] border-b border-[#8B5CF6] border-opacity-20 px-4 py-3">
+                      <td colSpan={4 + (pointsData ? 2 : 0) + ((canApprove || canMarkPaid) ? 1 : 0)} className="p-0">
+                        <div className="bg-[#8B5CF6] bg-opacity-[0.03] border-b border-[#8B5CF6] border-opacity-20 px-4 py-3 overflow-x-auto">
                           {loadingDrill ? (
                             <div className="flex items-center justify-center py-4">
                               <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
