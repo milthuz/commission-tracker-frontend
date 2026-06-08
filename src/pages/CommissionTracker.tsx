@@ -196,7 +196,6 @@ const CommissionTracker: React.FC = () => {
 
   if (!data) return null;
 
-  const totalDeals = data.totalDeals;
   const currentMonthName = MONTH_NAMES[selectedMonth - 1];
 
   // Group rep cards under their team (with a header per team), instead of one mixed list.
@@ -227,6 +226,7 @@ const CommissionTracker: React.FC = () => {
   const agTarget = activeGroup ? (activeGroup.team ? activeGroup.team.quotaTarget : QUOTA * activeGroup.reps.length) : 0;
   const agMet = activeGroup ? (activeGroup.team ? activeGroup.team.membersMet : activeGroup.reps.filter(r => r.quotaMet).length) : 0;
   const agMembers = activeGroup ? (activeGroup.team ? activeGroup.team.memberCount : activeGroup.reps.length) : 0;
+  const agDeals = activeGroup ? activeGroup.reps.reduce((s, r) => s + (r.dealsCount ?? r.deals.length), 0) : 0;
 
   return (
     <>
@@ -240,7 +240,7 @@ const CommissionTracker: React.FC = () => {
             {t('commissionTracker.subtitle', {
               month: currentMonthName,
               year: selectedYear,
-              count: totalDeals,
+              count: agDeals,
               quota: QUOTA,
             })}
           </p>
