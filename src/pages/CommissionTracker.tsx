@@ -344,6 +344,8 @@ const CommissionTracker: React.FC = () => {
         ) : groups.filter(g => g.key === activeKey).map(g => {
           const tm = g.team;
           const pct = tm && tm.quotaTarget > 0 ? Math.min(100, Math.round((tm.totalPoints / tm.quotaTarget) * 100)) : 0;
+          // Continuous color from red (0%) → amber → green (100%) as the team nears its goal.
+          const ringColor = `hsl(${Math.round(Math.max(0, Math.min(100, pct)) * 1.2)}, 72%, 45%)`;
           const sources = tm ? [
             tm.includeDeals && t('commissionTracker.srcDeals'),
             tm.includePayments && t('commissionTracker.srcPayments'),
@@ -379,14 +381,13 @@ const CommissionTracker: React.FC = () => {
                     <svg className="h-full w-full -rotate-90" viewBox="0 0 72 72">
                       <circle className="text-gray-200 dark:text-gray-700" cx="36" cy="36" r="32" fill="none" stroke="currentColor" strokeWidth="7" />
                       <circle
-                        className={tm.quotaMet ? 'text-success' : 'text-primary'}
-                        cx="36" cy="36" r="32" fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round"
+                        cx="36" cy="36" r="32" fill="none" stroke={ringColor} strokeWidth="7" strokeLinecap="round"
                         strokeDasharray={2 * Math.PI * 32}
                         strokeDashoffset={(2 * Math.PI * 32) * (1 - pct / 100)}
-                        style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+                        style={{ transition: 'stroke-dashoffset 0.5s ease, stroke 0.5s ease' }}
                       />
                     </svg>
-                    <span className={`absolute inset-0 flex items-center justify-center text-lg font-bold ${tm.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>{pct}%</span>
+                    <span className="absolute inset-0 flex items-center justify-center text-lg font-bold" style={{ color: ringColor }}>{pct}%</span>
                   </div>
                 </div>
               ) : (
