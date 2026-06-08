@@ -965,10 +965,10 @@ const CommissionReport = () => {
             <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.monthlyBreakdown')}</h3>
           </div>
           <div className="p-6 overflow-x-auto">
-            <table className="w-full table-auto">
+            <table className="w-full table-fixed">
               <thead>
                 <tr className="border-b-2 border-stroke text-left dark:border-strokedark">
-                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-body">{t('commissionReport.unlockMonth')}</th>
+                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-body w-[22%]">{t('commissionReport.unlockMonth')}</th>
                   <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-body">{t('commissionReport.revenue')}</th>
                   <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-body">{t('commissionReport.commission')}</th>
                   <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-body">{t('commissionReport.invoiceCount')}</th>
