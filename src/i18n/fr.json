@@ -483,8 +483,9 @@
       "empty": "Aucune valeur personnalisée. Ajoutez-en une ci-dessous.",
       "type": "Type de deal (source)",
       "points": "Points",
-      "selectType": "Choisir un type de deal…",
-      "add": "Ajouter"
+      "custom": "Personnalisé",
+      "default": "Défaut (CRM)",
+      "reset": "Réinitialiser"
     },
     "teams": {
       "title": "Équipes",

@@ -74,10 +74,7 @@ const AdminPanel = () => {
   const [salespeople, setSalespeople] = useState<Salesperson[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [newTeamName, setNewTeamName] = useState('');
-  const [dealPoints, setDealPoints] = useState<{ sourceGroup: string; points: number }[]>([]);
-  const [allDealGroups, setAllDealGroups] = useState<string[]>([]);
-  const [newDealGroup, setNewDealGroup] = useState('');
-  const [newDealPoints, setNewDealPoints] = useState('');
+  const [dealGroups, setDealGroups] = useState<{ sourceGroup: string; points: number; isCustom: boolean }[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -339,8 +336,7 @@ const AdminPanel = () => {
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API_URL}/api/deal-source-points`, { headers: { Authorization: `Bearer ${token}` } });
-      setDealPoints(res.data.mappings || []);
-      setAllDealGroups(res.data.allGroups || []);
+      setDealGroups(res.data.groups || []);
     } catch (error) {
       console.error('Error fetching deal points:', error);
     }
@@ -2068,35 +2064,43 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 <p className="text-sm text-body mt-1">{t('admin.dealPoints.subtitle')}</p>
               </div>
               <div className="p-3 sm:p-5">
-                {dealPoints.length === 0 ? (
-                  <p className="mb-4 text-sm text-body">{t('admin.dealPoints.empty')}</p>
+                {dealGroups.length === 0 ? (
+                  <p className="text-sm text-body">{t('admin.dealPoints.empty')}</p>
                 ) : (
-                  <div className="mb-4 overflow-x-auto">
+                  <div className="overflow-x-auto">
                     <table className="w-full min-w-[420px] table-auto">
                       <thead>
                         <tr className="bg-gray-2 text-left text-sm dark:bg-meta-4">
                           <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.dealPoints.type')}</th>
                           <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.dealPoints.points')}</th>
-                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('common.actions')}</th>
+                          <th className="px-3 py-3"></th>
                         </tr>
                       </thead>
                       <tbody>
-                        {dealPoints.map(dp => (
+                        {dealGroups.map(dp => (
                           <tr key={dp.sourceGroup} className="border-b border-stroke text-sm dark:border-strokedark">
                             <td className="px-3 py-3 text-black dark:text-white">{dp.sourceGroup}</td>
                             <td className="px-3 py-3">
-                              <input
-                                type="number"
-                                min="0"
-                                defaultValue={dp.points}
-                                onBlur={(e) => { const v = parseInt(e.target.value); if (!isNaN(v) && v !== dp.points) saveDealPoints(dp.sourceGroup, v); }}
-                                className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
-                              />
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  defaultValue={dp.points}
+                                  key={`${dp.sourceGroup}-${dp.points}-${dp.isCustom}`}
+                                  onBlur={(e) => { const v = parseInt(e.target.value); if (!isNaN(v) && v !== dp.points) saveDealPoints(dp.sourceGroup, v); }}
+                                  className={`w-20 rounded border bg-transparent px-2 py-1 outline-none focus:border-primary dark:bg-form-input ${dp.isCustom ? 'border-primary font-medium text-[#8B5CF6]' : 'border-stroke text-black dark:border-strokedark dark:text-white'}`}
+                                />
+                                {dp.isCustom
+                                  ? <span className="rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-xs font-medium text-[#8B5CF6]">{t('admin.dealPoints.custom')}</span>
+                                  : <span className="text-xs text-body">{t('admin.dealPoints.default')}</span>}
+                              </div>
                             </td>
                             <td className="px-3 py-3">
-                              <button onClick={() => deleteDealPoints(dp.sourceGroup)} className="rounded-md bg-danger px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 whitespace-nowrap">
-                                {t('common.delete')}
-                              </button>
+                              {dp.isCustom && (
+                                <button onClick={() => deleteDealPoints(dp.sourceGroup)} className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body transition hover:border-danger hover:text-danger whitespace-nowrap dark:border-strokedark">
+                                  {t('admin.dealPoints.reset')}
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -2104,32 +2108,6 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     </table>
                   </div>
                 )}
-                <div className="flex flex-wrap items-center gap-2">
-                  <select
-                    value={newDealGroup}
-                    onChange={(e) => setNewDealGroup(e.target.value)}
-                    className="min-w-[200px] rounded border-[1.5px] border-stroke bg-transparent px-4 py-2.5 font-medium outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-                  >
-                    <option value="">{t('admin.dealPoints.selectType')}</option>
-                    {allDealGroups.filter(g => !dealPoints.some(dp => dp.sourceGroup === g)).map(g => (
-                      <option key={g} value={g}>{g}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder={t('admin.dealPoints.points') as string}
-                    value={newDealPoints}
-                    onChange={(e) => setNewDealPoints(e.target.value)}
-                    className="w-28 rounded border-[1.5px] border-stroke bg-transparent px-4 py-2.5 font-medium outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-                  />
-                  <button
-                    onClick={() => { if (newDealGroup && newDealPoints !== '') { saveDealPoints(newDealGroup, parseInt(newDealPoints)); setNewDealGroup(''); setNewDealPoints(''); } }}
-                    className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90"
-                  >
-                    {t('admin.dealPoints.add')}
-                  </button>
-                </div>
               </div>
             </div>
 

@@ -483,8 +483,9 @@
       "empty": "No custom point values yet. Add one below.",
       "type": "Deal type (source)",
       "points": "Points",
-      "selectType": "Select a deal type…",
-      "add": "Add"
+      "custom": "Custom",
+      "default": "Default (CRM)",
+      "reset": "Reset"
     },
     "teams": {
       "title": "Teams",
