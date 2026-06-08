@@ -2014,34 +2014,31 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 </div>
               ) : (
                 <div className="p-3 sm:p-5">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[820px] table-auto">
-                      <thead>
-                        <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.name')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.invoices')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.commissionPercent')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.baseSalary')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.signupBonus')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.salespeople.aliases')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.teams.team')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.actions')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(salespeopleTab === 'active' ? activePeople : inactivePeople).map((person) => {
-                          const commissionUnlocked = unlockedFields[`${person.name}_commission`] || false;
-                          const salaryUnlocked = unlockedFields[`${person.name}_salary`] || false;
-                          return (
-                          <tr key={person.name} className="border-b border-stroke dark:border-strokedark">
-                            <td className="px-4 py-5">
-                              <p className="text-black dark:text-white">{person.name}</p>
-                            </td>
-                            <td className="px-4 py-5">
-                              <p className="text-body">{person.invoiceCount} {t('common.invoices').toLowerCase()}</p>
-                            </td>
-                            {/* Commission % with lock */}
-                            <td className="px-4 py-5">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {(salespeopleTab === 'active' ? activePeople : inactivePeople).map((person) => {
+                      const commissionUnlocked = unlockedFields[`${person.name}_commission`] || false;
+                      const salaryUnlocked = unlockedFields[`${person.name}_salary`] || false;
+                      return (
+                        <div key={person.name} className="rounded-lg border border-stroke bg-white p-4 shadow-sm transition hover:shadow-md dark:border-strokedark dark:bg-boxdark">
+                          {/* Card header */}
+                          <div className="mb-4 flex items-start justify-between gap-3 border-b border-stroke pb-3 dark:border-strokedark">
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold text-black dark:text-white">{person.name}</p>
+                              <p className="text-xs text-body">{person.invoiceCount} {t('common.invoices').toLowerCase()}</p>
+                            </div>
+                            <button
+                              onClick={() => toggleSalesperson(person.name, person.isActive)}
+                              className={`shrink-0 inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                                person.isActive ? 'bg-danger text-white hover:bg-opacity-90' : 'bg-success text-white hover:bg-opacity-90'
+                              }`}
+                            >
+                              {person.isActive ? t('admin.salespeople.deactivate') : t('admin.salespeople.activate')}
+                            </button>
+                          </div>
+                          {/* Fields */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.commissionPercent')}</span>
                               <div className="flex items-center gap-1.5">
                                 {commissionUnlocked ? (
                                   <>
@@ -2087,9 +2084,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   </button>
                                 )}
                               </div>
-                            </td>
-                            {/* Base Salary with lock */}
-                            <td className="px-4 py-5">
+                            </div>
+                            <div>
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.baseSalary')}</span>
                               <div className="flex items-center gap-1.5">
                                 {salaryUnlocked ? (
                                   <>
@@ -2131,9 +2128,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   </button>
                                 )}
                               </div>
-                            </td>
-                            {/* Signup bonus: on/off toggle + per-activation amount */}
-                            <td className="px-4 py-5">
+                            </div>
+                            <div>
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.signupBonus')}</span>
                               <div className="flex items-center gap-2">
                                 <button
                                   onClick={() => updateSignupBonus(person.name, person.signupBonusAmount ?? 100, !person.signupBonusEnabled)}
@@ -2181,9 +2178,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   <span className="text-xs italic text-body">{t('admin.salespeople.signupOff')}</span>
                                 )}
                               </div>
-                            </td>
-                            {/* Aliases */}
-                            <td className="px-4 py-5">
+                            </div>
+                            <div className="col-span-2">
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.aliases')}</span>
                               {unlockedFields[`${person.name}_aliases`] ? (
                                 <input
                                   type="text"
@@ -2220,42 +2217,30 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   </svg>
                                 </button>
                               )}
-                            </td>
-                            <td className="px-4 py-5">
+                            </div>
+                            <div>
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.teams.team')}</span>
                               <select
                                 value={person.teamId ?? ''}
                                 onChange={(e) => assignTeam(person.name, e.target.value === '' ? null : parseInt(e.target.value))}
-                                className="rounded border border-stroke bg-transparent px-2 py-1.5 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+                                className="w-full rounded border border-stroke bg-transparent px-2 py-1.5 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
                               >
                                 <option value="">{t('admin.teams.noTeam')}</option>
                                 {teams.map(tm => (
                                   <option key={tm.id} value={tm.id}>{tm.name}</option>
                                 ))}
                               </select>
-                            </td>
-                            <td className="px-4 py-5">
-                              <button
-                                onClick={() => toggleSalesperson(person.name, person.isActive)}
-                                className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-center text-sm font-medium transition ${
-                                  person.isActive
-                                    ? 'bg-danger text-white hover:bg-opacity-90'
-                                    : 'bg-success text-white hover:bg-opacity-90'
-                                }`}
-                              >
-                                {person.isActive ? t('admin.salespeople.deactivate') : t('admin.salespeople.activate')}
-                              </button>
-                            </td>
-                          </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                    {(salespeopleTab === 'active' ? activePeople : inactivePeople).length === 0 && (
-                      <div className="py-12 text-center">
-                        <p className="text-body">{salespeopleTab === 'active' ? t('admin.salespeople.noActive') : t('admin.salespeople.noInactive')}</p>
-                      </div>
-                    )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+                  {(salespeopleTab === 'active' ? activePeople : inactivePeople).length === 0 && (
+                    <div className="py-12 text-center">
+                      <p className="text-body">{salespeopleTab === 'active' ? t('admin.salespeople.noActive') : t('admin.salespeople.noInactive')}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
