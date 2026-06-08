@@ -497,7 +497,9 @@
       "countsHint": "When off, this team's reps are tracked but excluded from team & company quota totals.",
       "confirmDelete": "Delete team \"{{name}}\"? Its members will become unassigned.",
       "team": "Team",
-      "noTeam": "— No team —"
+      "noTeam": "— No team —",
+      "moveUp": "Move up",
+      "moveDown": "Move down"
     },
     "salespeople": {
       "title": "Manage Salespeople",

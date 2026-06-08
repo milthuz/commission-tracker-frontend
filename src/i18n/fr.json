@@ -497,7 +497,9 @@
       "countsHint": "Désactivé : les vendeurs de cette équipe sont suivis mais exclus des totaux de quota d'équipe et de compagnie.",
       "confirmDelete": "Supprimer l'équipe « {{name}} » ? Ses membres deviendront sans équipe.",
       "team": "Équipe",
-      "noTeam": "— Sans équipe —"
+      "noTeam": "— Sans équipe —",
+      "moveUp": "Monter",
+      "moveDown": "Descendre"
     },
     "salespeople": {
       "title": "Gérer les vendeurs",

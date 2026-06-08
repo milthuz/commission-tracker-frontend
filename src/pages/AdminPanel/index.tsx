@@ -274,6 +274,20 @@ const AdminPanel = () => {
     }
   };
 
+  const moveTeam = async (index: number, dir: -1 | 1) => {
+    const j = index + dir;
+    if (j < 0 || j >= teams.length) return;
+    const next = [...teams];
+    [next[index], next[j]] = [next[j], next[index]];
+    setTeams(next);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/teams/reorder`, { orderedIds: next.map(t => t.id) }, { headers: { Authorization: `Bearer ${token}` } });
+    } catch (error) {
+      fetchTeams(); // revert to server order on failure
+    }
+  };
+
   const deleteTeam = async (team: Team) => {
     if (!window.confirm(t('admin.teams.confirmDelete', { name: team.name }) as string)) return;
     try {
@@ -1925,7 +1939,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                         </tr>
                       </thead>
                       <tbody>
-                        {teams.map(team => (
+                        {teams.map((team, idx) => (
                           <tr key={team.id} className="border-b border-stroke text-sm dark:border-strokedark">
                             <td className="px-3 py-3">
                               <input
@@ -1985,6 +1999,18 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               </button>
                             </td>
                             <td className="px-3 py-3">
+                              <button
+                                onClick={() => moveTeam(idx, -1)}
+                                disabled={idx === 0}
+                                title={t('admin.teams.moveUp') as string}
+                                className="mr-1 rounded-md border border-stroke px-2 py-1.5 text-xs text-body transition hover:border-primary hover:text-primary disabled:opacity-30 dark:border-strokedark"
+                              >↑</button>
+                              <button
+                                onClick={() => moveTeam(idx, 1)}
+                                disabled={idx === teams.length - 1}
+                                title={t('admin.teams.moveDown') as string}
+                                className="mr-2 rounded-md border border-stroke px-2 py-1.5 text-xs text-body transition hover:border-primary hover:text-primary disabled:opacity-30 dark:border-strokedark"
+                              >↓</button>
                               <button onClick={() => deleteTeam(team)} className="rounded-md bg-danger px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 whitespace-nowrap">
                                 {t('common.delete')}
                               </button>
