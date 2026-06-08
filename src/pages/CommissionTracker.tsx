@@ -55,6 +55,8 @@ interface TeamAgg {
   teamId: number | null;
   name: string;
   countsTowardQuota: boolean;
+  includeDeals: boolean;
+  includePayments: boolean;
   totalPoints: number;
   memberCount: number;
   membersMet: number;
@@ -200,12 +202,12 @@ const CommissionTracker: React.FC = () => {
   const repsMetQuota = countingReps.filter(r => r.quotaMet).length;
   const totalCountingReps = countingReps.length;
   const totalDeals = data.totalDeals;
-  const totalZentact = data.totalZentactActivations || 0;
   const currentMonthName = MONTH_NAMES[selectedMonth - 1];
 
   // Group rep cards under their team (with a header per team), instead of one mixed list.
   type GroupItem =
-    | { type: 'header'; name: string; key: string }
+    | { type: 'teamHeader'; team: TeamAgg; key: string }
+    | { type: 'noTeamHeader'; key: string }
     | { type: 'rep'; rep: RepData; key: string };
   const repsByTeam: Record<string, RepData[]> = {};
   const noTeamReps: RepData[] = [];
@@ -219,11 +221,11 @@ const CommissionTracker: React.FC = () => {
   for (const tm of orderedTeams) {
     const rs = repsByTeam[String(tm.teamId)] || [];
     if (rs.length === 0) continue;
-    groupedItems.push({ type: 'header', name: tm.name, key: `h-${tm.teamId}` });
+    groupedItems.push({ type: 'teamHeader', team: tm, key: `h-${tm.teamId}` });
     for (const r of rs) groupedItems.push({ type: 'rep', rep: r, key: r.repName });
   }
   if (noTeamReps.length) {
-    if (orderedTeams.length) groupedItems.push({ type: 'header', name: t('commissionTracker.noTeamGroup'), key: 'h-none' });
+    if (orderedTeams.length) groupedItems.push({ type: 'noTeamHeader', key: 'h-none' });
     for (const r of noTeamReps) groupedItems.push({ type: 'rep', rep: r, key: r.repName });
   }
 
@@ -267,122 +269,27 @@ const CommissionTracker: React.FC = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4 2xl:gap-7.5 mb-6">
-        {/* Total Points */}
-        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#8B5CF6] bg-opacity-20">
-            <svg className="h-6 w-6 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      {/* Compact company summary */}
+      <div className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-sm border border-stroke bg-white px-6 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#8B5CF6] bg-opacity-20">
+            <svg className="h-5 w-5 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
             </svg>
           </div>
-          <div className="mt-4">
-            <h4 className="text-2xl font-bold text-black dark:text-white">{companyPoints} pts</h4>
-            <span className="text-sm font-medium text-gray-500">{t('commissionTracker.totalTeamPoints')}</span>
+          <div>
+            <p className="text-2xl font-bold leading-none text-black dark:text-white">
+              {companyPoints}<span className="text-sm font-normal text-gray-500"> / {data.companyTarget ?? 0} pts</span>
+            </p>
+            <span className="text-xs font-medium text-gray-500">{t('commissionTracker.companyQuota')}</span>
           </div>
         </div>
-
-        {/* Deals Closed */}
-        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#10B981] bg-opacity-20">
-            <svg className="h-6 w-6 text-[#10B981]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="mt-4">
-            <h4 className="text-2xl font-bold text-black dark:text-white">{totalDeals}</h4>
-            <span className="text-sm font-medium text-gray-500">{t('commissionTracker.soldDealsMonth')}</span>
-          </div>
-        </div>
-
-        {/* Quota Attainment */}
-        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#F59E0B] bg-opacity-20">
-            <svg className="h-6 w-6 text-[#F59E0B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
-          <div className="mt-4">
-            <h4 className="text-2xl font-bold text-black dark:text-white">
-              {repsMetQuota}/{totalCountingReps}
-            </h4>
-            <span className="text-sm font-medium text-gray-500">
-              {t('commissionTracker.repsMetQuota', { quota: QUOTA })}
-            </span>
-          </div>
-        </div>
-
-        {/* Zentact Activations */}
-        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-[#6366F1] bg-opacity-20">
-            <svg className="h-6 w-6 text-[#6366F1]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-            </svg>
-          </div>
-          <div className="mt-4">
-            <h4 className="text-2xl font-bold text-black dark:text-white">{totalZentact}</h4>
-            <span className="text-sm font-medium text-gray-500">{t('commissionTracker.zentactActivations')}</span>
-          </div>
+        <div className="hidden h-9 w-px bg-stroke dark:bg-strokedark sm:block" />
+        <div>
+          <p className="text-2xl font-bold leading-none text-black dark:text-white">{repsMetQuota}/{totalCountingReps}</p>
+          <span className="text-xs font-medium text-gray-500">{t('commissionTracker.repsMetQuota', { quota: QUOTA })}</span>
         </div>
       </div>
-
-      {/* Teams quota panel */}
-      {data.teams && data.teams.length > 0 && (
-        <div className="mb-6">
-          <h3 className="mb-3 text-lg font-semibold text-black dark:text-white">{t('commissionTracker.teamsTitle')}</h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {data.teams.map(tm => {
-              const pct = tm.quotaTarget > 0 ? Math.min(100, Math.round((tm.totalPoints / tm.quotaTarget) * 100)) : 0;
-              return (
-                <div
-                  key={tm.teamId ?? 'none'}
-                  className={`rounded-xl border bg-white p-5 shadow-default transition dark:bg-boxdark ${
-                    tm.quotaMet ? 'border-success/40' : 'border-stroke dark:border-strokedark'
-                  } ${tm.countsTowardQuota ? '' : 'opacity-80'}`}
-                >
-                  {/* Header */}
-                  <div className="mb-4 flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-base font-semibold text-black dark:text-white">{tm.name}</p>
-                      <p className="mt-0.5 text-xs text-gray-500">
-                        {t('commissionTracker.teamMembers', { count: tm.memberCount })}
-                      </p>
-                    </div>
-                    {tm.quotaMet ? (
-                      <span className="shrink-0 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
-                        ✓ {t('commissionTracker.quotaMet')}
-                      </span>
-                    ) : !tm.countsTowardQuota ? (
-                      <span className="shrink-0 rounded-full bg-gray-200 px-2.5 py-1 text-xs font-medium text-gray-600 dark:bg-meta-4 dark:text-gray-300">
-                        {t('commissionTracker.notCounted')}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {/* Big points */}
-                  <div className="mb-1 flex items-end justify-between">
-                    <div>
-                      <span className="text-3xl font-bold text-black dark:text-white">{tm.totalPoints}</span>
-                      <span className="text-sm font-medium text-gray-500"> / {tm.quotaTarget} pts</span>
-                    </div>
-                    <span className={`text-sm font-semibold ${tm.quotaMet ? 'text-success' : 'text-primary'}`}>{pct}%</span>
-                  </div>
-
-                  {/* Progress */}
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
-                    <div className={`h-full rounded-full transition-all ${tm.quotaMet ? 'bg-success' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
-                  </div>
-
-                  {/* Footer */}
-                  <p className="mt-3 text-xs text-gray-500">
-                    {t('commissionTracker.teamRepsMet', { met: tm.membersMet, total: tm.memberCount })}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Rep Cards */}
       <div className="space-y-4">
@@ -393,10 +300,40 @@ const CommissionTracker: React.FC = () => {
             </p>
           </div>
         ) : groupedItems.map(item => {
-          if (item.type === 'header') {
+          if (item.type === 'teamHeader') {
+            const tm = item.team;
+            const pct = tm.quotaTarget > 0 ? Math.min(100, Math.round((tm.totalPoints / tm.quotaTarget) * 100)) : 0;
+            const sources = [
+              tm.includeDeals && t('commissionTracker.srcDeals'),
+              tm.includePayments && t('commissionTracker.srcPayments'),
+            ].filter(Boolean).join(' + ');
             return (
-              <h4 key={item.key} className="pt-3 text-xs font-semibold uppercase tracking-wide text-gray-500 first:pt-0">
-                {item.name}
+              <div key={item.key} className="mt-6 rounded-xl border border-stroke bg-gray-50 px-5 py-4 first:mt-0 dark:border-strokedark dark:bg-meta-4/30">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-base font-bold text-black dark:text-white">{tm.name}</span>
+                    <span className="text-xs text-gray-500">· {t('commissionTracker.teamMembers', { count: tm.memberCount })}</span>
+                    {!tm.countsTowardQuota && (
+                      <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-meta-4 dark:text-gray-300">{t('commissionTracker.notCounted')}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-gray-500">{t('commissionTracker.teamRepsMet', { met: tm.membersMet, total: tm.memberCount })}</span>
+                    <span className={`text-sm font-bold ${tm.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>{tm.totalPoints} / {tm.quotaTarget} pts</span>
+                    <span className={`text-xs font-semibold ${tm.quotaMet ? 'text-success' : 'text-primary'}`}>{pct}%</span>
+                  </div>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
+                  <div className={`h-full rounded-full transition-all ${tm.quotaMet ? 'bg-success' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                </div>
+                {sources && <p className="mt-2 text-xs text-gray-500">{t('commissionTracker.quotaSources')}: {sources}</p>}
+              </div>
+            );
+          }
+          if (item.type === 'noTeamHeader') {
+            return (
+              <h4 key={item.key} className="mt-6 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                {t('commissionTracker.noTeamGroup')}
               </h4>
             );
           }
