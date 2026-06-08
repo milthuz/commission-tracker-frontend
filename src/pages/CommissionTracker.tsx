@@ -203,6 +203,30 @@ const CommissionTracker: React.FC = () => {
   const totalZentact = data.totalZentactActivations || 0;
   const currentMonthName = MONTH_NAMES[selectedMonth - 1];
 
+  // Group rep cards under their team (with a header per team), instead of one mixed list.
+  type GroupItem =
+    | { type: 'header'; name: string; key: string }
+    | { type: 'rep'; rep: RepData; key: string };
+  const repsByTeam: Record<string, RepData[]> = {};
+  const noTeamReps: RepData[] = [];
+  for (const r of data.reps) {
+    const tid = r.team?.id;
+    if (tid == null) noTeamReps.push(r);
+    else { (repsByTeam[String(tid)] = repsByTeam[String(tid)] || []).push(r); }
+  }
+  const orderedTeams = data.teams || [];
+  const groupedItems: GroupItem[] = [];
+  for (const tm of orderedTeams) {
+    const rs = repsByTeam[String(tm.teamId)] || [];
+    if (rs.length === 0) continue;
+    groupedItems.push({ type: 'header', name: tm.name, key: `h-${tm.teamId}` });
+    for (const r of rs) groupedItems.push({ type: 'rep', rep: r, key: r.repName });
+  }
+  if (noTeamReps.length) {
+    if (orderedTeams.length) groupedItems.push({ type: 'header', name: t('commissionTracker.noTeamGroup'), key: 'h-none' });
+    for (const r of noTeamReps) groupedItems.push({ type: 'rep', rep: r, key: r.repName });
+  }
+
   return (
     <>
       {/* Header */}
@@ -368,7 +392,15 @@ const CommissionTracker: React.FC = () => {
               {t('commissionTracker.noDealsFound', { month: currentMonthName, year: selectedYear })}
             </p>
           </div>
-        ) : data.reps.map(rep => {
+        ) : groupedItems.map(item => {
+          if (item.type === 'header') {
+            return (
+              <h4 key={item.key} className="pt-3 text-xs font-semibold uppercase tracking-wide text-gray-500 first:pt-0">
+                {item.name}
+              </h4>
+            );
+          }
+          const rep = item.rep;
           const quotaPct = Math.min(100, (rep.totalPoints / QUOTA) * 100);
           const isExpanded = expandedRep === rep.repName;
           const canViewDetails = !rep.restricted; // backend flagged this row
