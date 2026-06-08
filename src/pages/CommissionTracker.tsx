@@ -351,9 +351,9 @@ const CommissionTracker: React.FC = () => {
           return (
             <div key={g.key} className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               {tm ? (
-                <div className={`border-b border-stroke px-5 py-4 dark:border-strokedark ${tm.countsTowardQuota ? '' : 'bg-gray-50 dark:bg-meta-4/20'}`}>
-                  <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
+                <div className={`flex items-center justify-between gap-4 border-b border-stroke px-5 py-4 dark:border-strokedark ${tm.countsTowardQuota ? '' : 'bg-gray-50 dark:bg-meta-4/20'}`}>
+                  <div className="min-w-0">
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
                       <span className="text-lg font-bold text-black dark:text-white">{tm.name}</span>
                       <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-meta-4 dark:text-gray-300">
                         {t('commissionTracker.teamMembers', { count: tm.memberCount })}
@@ -365,18 +365,28 @@ const CommissionTracker: React.FC = () => {
                         <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-meta-4 dark:text-gray-300">{t('commissionTracker.notCounted')}</span>
                       )}
                     </div>
-                    <div className="whitespace-nowrap">
-                      <span className={`text-lg font-bold ${tm.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>{tm.totalPoints}</span>
+                    <p>
+                      <span className={`text-xl font-bold ${tm.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>{tm.totalPoints}</span>
                       <span className="text-sm font-medium text-gray-500"> / {tm.quotaTarget} pts</span>
-                      <span className={`ml-2 text-sm font-semibold ${tm.quotaMet ? 'text-success' : 'text-primary'}`}>{pct}%</span>
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-4 text-xs text-gray-500">
+                      <span>{t('commissionTracker.teamRepsMet', { met: tm.membersMet, total: tm.memberCount })}</span>
+                      {sources && <span>· {t('commissionTracker.quotaSources')}: {sources}</span>}
                     </div>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
-                    <div className={`h-full rounded-full transition-all ${tm.quotaMet ? 'bg-success' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
-                  </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-4 text-xs text-gray-500">
-                    <span>{t('commissionTracker.teamRepsMet', { met: tm.membersMet, total: tm.memberCount })}</span>
-                    {sources && <span>· {t('commissionTracker.quotaSources')}: {sources}</span>}
+                  {/* Progress ring */}
+                  <div className="relative h-[78px] w-[78px] shrink-0">
+                    <svg className="h-full w-full -rotate-90" viewBox="0 0 72 72">
+                      <circle className="text-gray-200 dark:text-gray-700" cx="36" cy="36" r="32" fill="none" stroke="currentColor" strokeWidth="7" />
+                      <circle
+                        className={tm.quotaMet ? 'text-success' : 'text-primary'}
+                        cx="36" cy="36" r="32" fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round"
+                        strokeDasharray={2 * Math.PI * 32}
+                        strokeDashoffset={(2 * Math.PI * 32) * (1 - pct / 100)}
+                        style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+                      />
+                    </svg>
+                    <span className={`absolute inset-0 flex items-center justify-center text-lg font-bold ${tm.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>{pct}%</span>
                   </div>
                 </div>
               ) : (
