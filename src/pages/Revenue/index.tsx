@@ -127,6 +127,7 @@ export default function Revenue() {
   const [data, setData] = useState<Row[] | null>(null);
   const [error, setError] = useState(false);
   const [drill, setDrill] = useState<string | null>(null); // dimension name being drilled into
+  const [drillSort, setDrillSort] = useState<{ col: 'name' | 'profit' | 'other' | 'total'; dir: 'asc' | 'desc' }>({ col: 'total', dir: 'desc' });
   const [activeReps, setActiveReps] = useState<Set<string> | null>(null);
   const [activeResellers, setActiveResellers] = useState<Set<string> | null>(null);
 
@@ -219,9 +220,20 @@ export default function Revenue() {
       const m = map.get(key)!;
       m.profit += r.transaction_profit; m.other += r.other_revenue;
     }
-    return [...map.values()].map((m) => ({ ...m, total: m.profit + m.other })).sort((a, b) => b.total - a.total);
-  }, [drill, filtered, tab]);
+    const rows = [...map.values()].map((m) => ({ ...m, total: m.profit + m.other }));
+    const { col, dir } = drillSort;
+    const sign = dir === 'asc' ? 1 : -1;
+    rows.sort((a, b) => col === 'name'
+      ? sign * a.name.localeCompare(b.name)
+      : sign * ((a[col] as number) - (b[col] as number)));
+    return rows;
+  }, [drill, filtered, tab, drillSort]);
   const drillTotal = useMemo(() => drillMerchants.reduce((s, m) => s + m.total, 0), [drillMerchants]);
+  const sortDrillBy = (col: 'name' | 'profit' | 'other' | 'total') =>
+    setDrillSort((s) => s.col === col
+      ? { col, dir: s.dir === 'asc' ? 'desc' : 'asc' }
+      : { col, dir: col === 'name' ? 'asc' : 'desc' });
+  const sortArrow = (col: string) => drillSort.col === col ? (drillSort.dir === 'asc' ? ' ▲' : ' ▼') : '';
 
   // Chart points: full year (ignores month filter), respects search + tab.
   const chartPoints = useMemo(() => {
@@ -379,10 +391,18 @@ export default function Revenue() {
               <table className="w-full table-auto text-sm">
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                    <th className="px-6 py-3 font-medium text-black dark:text-white">{t('revenue.cols.merchant')}</th>
-                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.profit')}</th>
-                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.other')}</th>
-                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.total')}</th>
+                    <th className="px-6 py-3 font-medium text-black dark:text-white">
+                      <button onClick={() => sortDrillBy('name')} className="font-medium transition hover:text-primary">{t('revenue.cols.merchant')}{sortArrow('name')}</button>
+                    </th>
+                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">
+                      <button onClick={() => sortDrillBy('profit')} className="font-medium transition hover:text-primary">{t('revenue.cols.profit')}{sortArrow('profit')}</button>
+                    </th>
+                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">
+                      <button onClick={() => sortDrillBy('other')} className="font-medium transition hover:text-primary">{t('revenue.cols.other')}{sortArrow('other')}</button>
+                    </th>
+                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">
+                      <button onClick={() => sortDrillBy('total')} className="font-medium transition hover:text-primary">{t('revenue.cols.total')}{sortArrow('total')}</button>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
