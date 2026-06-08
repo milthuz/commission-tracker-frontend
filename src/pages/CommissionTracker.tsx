@@ -205,10 +205,7 @@ const CommissionTracker: React.FC = () => {
   const currentMonthName = MONTH_NAMES[selectedMonth - 1];
 
   // Group rep cards under their team (with a header per team), instead of one mixed list.
-  type GroupItem =
-    | { type: 'teamHeader'; team: TeamAgg; key: string }
-    | { type: 'noTeamHeader'; key: string }
-    | { type: 'rep'; rep: RepData; key: string };
+  type RepGroup = { key: string; team?: TeamAgg; reps: RepData[] };
   const repsByTeam: Record<string, RepData[]> = {};
   const noTeamReps: RepData[] = [];
   for (const r of data.reps) {
@@ -217,17 +214,13 @@ const CommissionTracker: React.FC = () => {
     else { (repsByTeam[String(tid)] = repsByTeam[String(tid)] || []).push(r); }
   }
   const orderedTeams = data.teams || [];
-  const groupedItems: GroupItem[] = [];
+  const groups: RepGroup[] = [];
   for (const tm of orderedTeams) {
     const rs = repsByTeam[String(tm.teamId)] || [];
     if (rs.length === 0) continue;
-    groupedItems.push({ type: 'teamHeader', team: tm, key: `h-${tm.teamId}` });
-    for (const r of rs) groupedItems.push({ type: 'rep', rep: r, key: r.repName });
+    groups.push({ key: `t-${tm.teamId}`, team: tm, reps: rs });
   }
-  if (noTeamReps.length) {
-    if (orderedTeams.length) groupedItems.push({ type: 'noTeamHeader', key: 'h-none' });
-    for (const r of noTeamReps) groupedItems.push({ type: 'rep', rep: r, key: r.repName });
-  }
+  if (noTeamReps.length) groups.push({ key: 'none', reps: noTeamReps });
 
   return (
     <>
@@ -299,51 +292,57 @@ const CommissionTracker: React.FC = () => {
               {t('commissionTracker.noDealsFound', { month: currentMonthName, year: selectedYear })}
             </p>
           </div>
-        ) : groupedItems.map(item => {
-          if (item.type === 'teamHeader') {
-            const tm = item.team;
-            const pct = tm.quotaTarget > 0 ? Math.min(100, Math.round((tm.totalPoints / tm.quotaTarget) * 100)) : 0;
-            const sources = [
-              tm.includeDeals && t('commissionTracker.srcDeals'),
-              tm.includePayments && t('commissionTracker.srcPayments'),
-            ].filter(Boolean).join(' + ');
-            return (
-              <div key={item.key} className="mt-6 rounded-xl border border-stroke bg-gray-50 px-5 py-4 first:mt-0 dark:border-strokedark dark:bg-meta-4/30">
-                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-base font-bold text-black dark:text-white">{tm.name}</span>
-                    <span className="text-xs text-gray-500">· {t('commissionTracker.teamMembers', { count: tm.memberCount })}</span>
-                    {!tm.countsTowardQuota && (
-                      <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-meta-4 dark:text-gray-300">{t('commissionTracker.notCounted')}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500">{t('commissionTracker.teamRepsMet', { met: tm.membersMet, total: tm.memberCount })}</span>
-                    <span className={`text-sm font-bold ${tm.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>{tm.totalPoints} / {tm.quotaTarget} pts</span>
-                    <span className={`text-xs font-semibold ${tm.quotaMet ? 'text-success' : 'text-primary'}`}>{pct}%</span>
-                  </div>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
-                  <div className={`h-full rounded-full transition-all ${tm.quotaMet ? 'bg-success' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
-                </div>
-                {sources && <p className="mt-2 text-xs text-gray-500">{t('commissionTracker.quotaSources')}: {sources}</p>}
-              </div>
-            );
-          }
-          if (item.type === 'noTeamHeader') {
-            return (
-              <h4 key={item.key} className="mt-6 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {t('commissionTracker.noTeamGroup')}
-              </h4>
-            );
-          }
-          const rep = item.rep;
-          const quotaPct = Math.min(100, (rep.totalPoints / QUOTA) * 100);
-          const isExpanded = expandedRep === rep.repName;
-          const canViewDetails = !rep.restricted; // backend flagged this row
-
+        ) : groups.map(g => {
+          const tm = g.team;
+          const pct = tm && tm.quotaTarget > 0 ? Math.min(100, Math.round((tm.totalPoints / tm.quotaTarget) * 100)) : 0;
+          const sources = tm ? [
+            tm.includeDeals && t('commissionTracker.srcDeals'),
+            tm.includePayments && t('commissionTracker.srcPayments'),
+          ].filter(Boolean).join(' + ') : '';
           return (
-            <div key={rep.repName} className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div key={g.key} className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              {tm ? (
+                <div className={`border-b border-stroke px-5 py-4 dark:border-strokedark ${tm.countsTowardQuota ? '' : 'bg-gray-50 dark:bg-meta-4/20'}`}>
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-lg font-bold text-black dark:text-white">{tm.name}</span>
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-meta-4 dark:text-gray-300">
+                        {t('commissionTracker.teamMembers', { count: tm.memberCount })}
+                      </span>
+                      {tm.quotaMet && (
+                        <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">✓ {t('commissionTracker.quotaMet')}</span>
+                      )}
+                      {!tm.countsTowardQuota && (
+                        <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-meta-4 dark:text-gray-300">{t('commissionTracker.notCounted')}</span>
+                      )}
+                    </div>
+                    <div className="whitespace-nowrap">
+                      <span className={`text-lg font-bold ${tm.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>{tm.totalPoints}</span>
+                      <span className="text-sm font-medium text-gray-500"> / {tm.quotaTarget} pts</span>
+                      <span className={`ml-2 text-sm font-semibold ${tm.quotaMet ? 'text-success' : 'text-primary'}`}>{pct}%</span>
+                    </div>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
+                    <div className={`h-full rounded-full transition-all ${tm.quotaMet ? 'bg-success' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 text-xs text-gray-500">
+                    <span>{t('commissionTracker.teamRepsMet', { met: tm.membersMet, total: tm.memberCount })}</span>
+                    {sources && <span>· {t('commissionTracker.quotaSources')}: {sources}</span>}
+                  </div>
+                </div>
+              ) : (
+                <div className="border-b border-stroke px-5 py-3 dark:border-strokedark">
+                  <span className="text-sm font-semibold uppercase tracking-wide text-gray-500">{t('commissionTracker.noTeamGroup')}</span>
+                </div>
+              )}
+              <div className="divide-y divide-stroke dark:divide-strokedark">
+                {g.reps.map(rep => {
+                  const quotaPct = Math.min(100, (rep.totalPoints / QUOTA) * 100);
+                  const isExpanded = expandedRep === rep.repName;
+                  const canViewDetails = !rep.restricted; // backend flagged this row
+
+                  return (
+                    <div key={rep.repName} className="bg-white dark:bg-boxdark">
               {/* Rep Header */}
               <div
                 className={`flex items-center justify-between px-6 py-5 ${canViewDetails ? 'cursor-pointer' : 'cursor-not-allowed'}`}
@@ -567,6 +566,10 @@ const CommissionTracker: React.FC = () => {
                   </div>
                 </div>
               )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           );
         })}
