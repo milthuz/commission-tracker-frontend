@@ -462,35 +462,6 @@ const CommissionTracker: React.FC = () => {
                 </div>
               </div>
 
-              {/* Annual summary bar */}
-              <div className="border-t border-stroke px-6 py-2 dark:border-strokedark flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                <span>
-                  {t('commissionTracker.ytd', { year: selectedYear })}{' '}
-                  <strong className="text-black dark:text-white">{rep.annualPoints} pts</strong>
-                </span>
-                {rep.annualZentactActivations > 0 && (
-                  <span className="text-[#6366F1] font-medium">
-                    💳 {t('commissionTracker.ytdZentact', {
-                      count: rep.annualZentactActivations,
-                      amount: rep.annualZentactBonus.toLocaleString(),
-                    })}
-                  </span>
-                )}
-                {rep.annualBonus > 0 && (
-                  <span className="text-success font-semibold">
-                    {t('commissionTracker.annualBonus', { amount: rep.annualBonus.toLocaleString() })}
-                  </span>
-                )}
-                {rep.nextBonusTier && rep.quotaMet && (
-                  <span>
-                    {t('commissionTracker.morePtsToBonus', {
-                      count: rep.nextBonusTier.points - rep.totalPoints,
-                      amount: rep.nextBonusTier.bonus.toLocaleString(),
-                    })}
-                  </span>
-                )}
-              </div>
-
               {/* Expanded deals table */}
               {isExpanded && (
                 <div className="border-t border-stroke dark:border-strokedark">
