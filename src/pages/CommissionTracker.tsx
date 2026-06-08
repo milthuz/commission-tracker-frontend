@@ -196,12 +196,6 @@ const CommissionTracker: React.FC = () => {
 
   if (!data) return null;
 
-  const totalPoints = data.reps.reduce((s, r) => s + r.totalPoints, 0);
-  // Reps in teams flagged "not counting" are tracked but excluded from company quota KPIs.
-  const countingReps = data.reps.filter(r => r.countsTowardQuota !== false);
-  const companyPoints = data.companyPoints ?? totalPoints;
-  const repsMetQuota = countingReps.filter(r => r.quotaMet).length;
-  const totalCountingReps = countingReps.length;
   const totalDeals = data.totalDeals;
   const currentMonthName = MONTH_NAMES[selectedMonth - 1];
 
@@ -226,6 +220,13 @@ const CommissionTracker: React.FC = () => {
   const activeKey = selectedTeamKey && groups.some(g => g.key === selectedTeamKey)
     ? selectedTeamKey
     : (groups[0]?.key ?? null);
+  // Top summary reflects the SELECTED team (switches with the selector), not the whole company.
+  const activeGroup = groups.find(g => g.key === activeKey);
+  const agName = activeGroup ? (activeGroup.team ? activeGroup.team.name : t('commissionTracker.noTeamGroup')) : '';
+  const agPoints = activeGroup ? (activeGroup.team ? activeGroup.team.totalPoints : activeGroup.reps.reduce((s, r) => s + r.totalPoints, 0)) : 0;
+  const agTarget = activeGroup ? (activeGroup.team ? activeGroup.team.quotaTarget : QUOTA * activeGroup.reps.length) : 0;
+  const agMet = activeGroup ? (activeGroup.team ? activeGroup.team.membersMet : activeGroup.reps.filter(r => r.quotaMet).length) : 0;
+  const agMembers = activeGroup ? (activeGroup.team ? activeGroup.team.memberCount : activeGroup.reps.length) : 0;
 
   return (
     <>
@@ -277,14 +278,14 @@ const CommissionTracker: React.FC = () => {
           </div>
           <div>
             <p className="text-2xl font-bold leading-none text-black dark:text-white">
-              {companyPoints}<span className="text-sm font-normal text-gray-500"> / {data.companyTarget ?? 0} pts</span>
+              {agPoints}<span className="text-sm font-normal text-gray-500"> / {agTarget} pts</span>
             </p>
-            <span className="text-xs font-medium text-gray-500">{t('commissionTracker.companyQuota')}</span>
+            <span className="text-xs font-medium text-gray-500">{agName || t('commissionTracker.companyQuota')}</span>
           </div>
         </div>
         <div className="hidden h-9 w-px bg-stroke dark:bg-strokedark sm:block" />
         <div>
-          <p className="text-2xl font-bold leading-none text-black dark:text-white">{repsMetQuota}/{totalCountingReps}</p>
+          <p className="text-2xl font-bold leading-none text-black dark:text-white">{agMet}/{agMembers}</p>
           <span className="text-xs font-medium text-gray-500">{t('commissionTracker.repsMetQuota', { quota: QUOTA })}</span>
         </div>
       </div>
