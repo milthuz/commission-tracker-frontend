@@ -1848,7 +1848,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 </div>
               ) : (
                 <div className="p-7">
-                  <div className="max-h-[600px] overflow-y-auto">
+                  <div className="overflow-x-auto">
                     <table className="w-full table-auto">
                       <thead>
                         <tr className="bg-gray-2 text-left dark:bg-meta-4">
