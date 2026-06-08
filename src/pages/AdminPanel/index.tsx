@@ -1847,9 +1847,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
                 </div>
               ) : (
-                <div className="p-7">
+                <div className="p-3 sm:p-5">
                   <div className="overflow-x-auto">
-                    <table className="w-full table-auto">
+                    <table className="w-full min-w-[820px] table-auto">
                       <thead>
                         <tr className="bg-gray-2 text-left dark:bg-meta-4">
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.name')}</th>
@@ -2057,7 +2057,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                             <td className="px-4 py-5">
                               <button
                                 onClick={() => toggleSalesperson(person.name, person.isActive)}
-                                className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-center text-sm font-medium transition ${
+                                className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-center text-sm font-medium transition ${
                                   person.isActive
                                     ? 'bg-danger text-white hover:bg-opacity-90'
                                     : 'bg-success text-white hover:bg-opacity-90'
