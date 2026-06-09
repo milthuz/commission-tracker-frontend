@@ -6,6 +6,7 @@ import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { Eye, Download, X } from 'lucide-react';
 import { formatDateOnly } from '../utils/date';
+import PayStubModal, { PayStubData } from '../components/PayStubModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -127,6 +128,11 @@ const CommissionReport = () => {
   const [perms, setPerms] = useState<string[]>([]);
   const canApprove = isAdmin || perms.includes('*') || perms.includes('report:approve');
   const canMarkPaid = isAdmin || perms.includes('*') || perms.includes('report:mark_paid');
+  const canViewPaystub = isAdmin || perms.includes('*') || perms.includes('report:view_paystub');
+  // Rep-facing pay stub (Étape 3): app-generated or sourced from a historical import.
+  const [payStub, setPayStub] = useState<PayStubData | null>(null);
+  const [loadingStub, setLoadingStub] = useState(false);
+  const [committingStub, setCommittingStub] = useState(false);
   const [approvingMonth, setApprovingMonth] = useState<number | null>(null);
   const [markingPaidMonth, setMarkingPaidMonth] = useState<number | null>(null);
 
@@ -326,6 +332,64 @@ const CommissionReport = () => {
       alert('Failed to unapprove commission');
     } finally {
       setApprovingMonth(null);
+    }
+  };
+
+  // Open the pay stub for the selected rep + month. The backend picks the source:
+  // a historical import if one exists for that period, else the app-generated stub.
+  const openPayStub = async () => {
+    if (selectedMonth === 'all') return;
+    setLoadingStub(true);
+    try {
+      const token = localStorage.getItem('token');
+      const params: Record<string, string> = { year: selectedYear, month: selectedMonth };
+      if (selectedRep) params.repName = selectedRep;
+      const res = await axios.get(`${API_URL}/api/commissions/pay-stub`, {
+        headers: { Authorization: `Bearer ${token}` }, params,
+      });
+      const d = res.data;
+      // Hide the synthetic 'app-generated:…' filename from the subtitle.
+      const subtitle = d.filename && !String(d.filename).startsWith('app-generated') ? d.filename : undefined;
+      setPayStub({
+        repName:     d.repName,
+        period:      d.period,
+        subtitle,
+        lines:       d.lines || [],
+        bonuses:     d.bonuses || [],
+        total:       d.total || 0,
+        source:      d.source,
+        linesStored: d.linesStored,
+      });
+    } catch (e) {
+      console.error('Error loading pay stub:', e);
+      alert('Failed to load pay stub');
+    } finally {
+      setLoadingStub(false);
+    }
+  };
+
+  // Commit an app-generated stub: mark the period's unlocked-but-unpaid commissions as paid
+  // and record the stub. Admin / report:mark_paid only (button only wired for them).
+  const commitPayStub = async () => {
+    if (!payStub || payStub.source !== 'generated' || selectedMonth === 'all') return;
+    const monthName = MONTH_NAMES[parseInt(selectedMonth) - 1];
+    if (!confirm(`Mark ${payStub.repName} — ${monthName} ${selectedYear} paid? This marks the period's unlocked commissions as paid and records the pay stub.`)) return;
+    setCommittingStub(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/commissions/pay-stub/commit`, {
+        repName: payStub.repName,
+        year: selectedYear,
+        month: selectedMonth,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      alert(`✓ ${res.data.invoicesMarked} invoices marked paid.`);
+      await openPayStub();     // re-open → now an 'imported' (app-generated) stub
+      await refreshReport();   // reflect new paid status in the report
+    } catch (e: any) {
+      console.error('Error committing pay stub:', e);
+      alert(e?.response?.data?.error || 'Failed to commit pay stub');
+    } finally {
+      setCommittingStub(false);
     }
   };
 
@@ -667,8 +731,35 @@ const CommissionReport = () => {
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
+
+          {/* Pay Stub — per month; disabled on "All Months" */}
+          {canViewPaystub && (
+            <button
+              onClick={openPayStub}
+              disabled={selectedMonth === 'all' || loadingStub}
+              title={selectedMonth === 'all' ? (t('commissionReport.payStub.open') as string) : undefined}
+              className="inline-flex items-center gap-2 rounded border border-primary bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loadingStub ? (
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
+                </svg>
+              )}
+              {t('commissionReport.payStub.open')}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Pay Stub modal (shared component) */}
+      <PayStubModal
+        data={payStub}
+        onClose={() => setPayStub(null)}
+        onCommit={canMarkPaid ? commitPayStub : undefined}
+        committing={committingStub}
+      />
 
       {/* Total Compensation (YTD) — base salary + commission + annual bonus + signup payments */}
       {(() => {
