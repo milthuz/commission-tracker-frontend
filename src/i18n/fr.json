@@ -616,7 +616,22 @@
       "notFoundDetails": "{{count}} factures introuvables dans notre base de données",
       "skippedZeroDetails": "{{count}} factures ignorées (commission de 0 $)",
       "historyTitle": "Historique des imports",
-      "historySubtitle": "Imports passés des rapports de commission.",
+      "historySubtitle": "Imports passés des rapports de commission. Cliquez une ligne pour voir son bulletin de paie.",
+      "payStub": {
+        "title": "Bulletin de paie",
+        "period": "Période",
+        "commissions": "Commissions",
+        "bonuses": "Bonus",
+        "invoice": "Facture",
+        "customer": "Client",
+        "amount": "Payé",
+        "appCalc": "Calc. app",
+        "type": "Type",
+        "merchant": "Marchand",
+        "totalPaid": "Total versé",
+        "print": "Imprimer",
+        "discrepancyHint": "Payé = montant du fichier importé. Calc. app = commission calculée par l'app ; ⚠ signale un écart."
+      },
       "filename": "Fichier",
       "period": "Période",
       "importedAt": "Importé"

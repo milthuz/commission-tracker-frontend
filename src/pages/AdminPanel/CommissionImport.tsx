@@ -69,6 +69,10 @@ interface HistoryRow {
   total_amount: number;
 }
 
+interface StubLine { invoice_number: string; customer: string | null; paid_amount: number; app_commission: number | null; }
+interface StubBonus { bonus_type: string; merchant_name: string | null; amount: number; report_date: string | null; }
+interface StubDetail { import: HistoryRow; lines: StubLine[]; bonuses: StubBonus[]; }
+
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 const CommissionImport: React.FC = () => {
@@ -78,6 +82,41 @@ const CommissionImport: React.FC = () => {
   const [committingAll, setCommittingAll] = useState(false);
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [dragOver, setDragOver] = useState(false);
+  const [stub, setStub] = useState<StubDetail | null>(null);
+
+  const openStub = async (id: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/admin/commission-imports/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      setStub(res.data);
+    } catch (_e) { /* ignore */ }
+  };
+
+  const stubTotal = (s: StubDetail) =>
+    s.lines.reduce((a, l) => a + l.paid_amount, 0) + s.bonuses.reduce((a, b) => a + b.amount, 0);
+
+  const printStub = () => {
+    if (!stub) return;
+    const imp = stub.import;
+    const period = imp.paid_for_period?.substring(0, 7) || '';
+    const linesHtml = stub.lines.map(l => `<tr><td>${l.invoice_number}</td><td>${l.customer || ''}</td><td class="r">${fmt(l.paid_amount)}</td></tr>`).join('');
+    const bonusHtml = stub.bonuses.map(b => `<tr><td>${b.bonus_type}</td><td>${b.merchant_name || ''}</td><td class="r">${fmt(b.amount)}</td></tr>`).join('');
+    const w = window.open('', '_blank', 'width=820,height=900');
+    if (!w) return;
+    w.document.write(`<html><head><title>${t('admin.commissionImport.payStub.title')} - ${imp.rep_name} - ${period}</title>
+      <style>body{font-family:Arial,Helvetica,sans-serif;padding:36px;color:#1c2434}h1{font-size:20px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;margin:22px 0 4px}p.m{color:#64748b;margin:4px 0 0}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:left}th{background:#f7f9fc}.r{text-align:right}.tot{margin-top:18px;text-align:right;font-size:18px;font-weight:bold}</style>
+      </head><body>
+      <h1>${t('admin.commissionImport.payStub.title')} — ${imp.rep_name}</h1>
+      <p class="m">${t('admin.commissionImport.payStub.period')}: ${period} · ${imp.filename}</p>
+      <h2>${t('admin.commissionImport.payStub.commissions')} (${stub.lines.length})</h2>
+      <table><thead><tr><th>${t('admin.commissionImport.payStub.invoice')}</th><th>${t('admin.commissionImport.payStub.customer')}</th><th class="r">${t('admin.commissionImport.payStub.amount')}</th></tr></thead><tbody>${linesHtml || '<tr><td colspan="3">—</td></tr>'}</tbody></table>
+      ${stub.bonuses.length ? `<h2>${t('admin.commissionImport.payStub.bonuses')} (${stub.bonuses.length})</h2><table><thead><tr><th>${t('admin.commissionImport.payStub.type')}</th><th>${t('admin.commissionImport.payStub.merchant')}</th><th class="r">${t('admin.commissionImport.payStub.amount')}</th></tr></thead><tbody>${bonusHtml}</tbody></table>` : ''}
+      <p class="tot">${t('admin.commissionImport.payStub.totalPaid')}: ${fmt(stubTotal(stub))}</p>
+      </body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 250);
+  };
 
   const fetchHistory = async () => {
     try {
@@ -446,8 +485,8 @@ const CommissionImport: React.FC = () => {
               </thead>
               <tbody>
                 {history.map((h) => (
-                  <tr key={h.id} className="border-t border-stroke dark:border-strokedark">
-                    <td className="px-3 py-1.5 truncate max-w-[280px]">{h.filename}</td>
+                  <tr key={h.id} onClick={() => openStub(h.id)} className="cursor-pointer border-t border-stroke transition hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/30">
+                    <td className="px-3 py-1.5 truncate max-w-[280px] text-primary">{h.filename}</td>
                     <td className="px-3 py-1.5">{h.rep_name}</td>
                     <td className="px-3 py-1.5">{h.paid_for_period?.substring(0, 7)}</td>
                     <td className="px-3 py-1.5 text-right">{h.invoices_marked}</td>
@@ -458,6 +497,97 @@ const CommissionImport: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pay Stub detail modal */}
+      {stub && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => setStub(null)}>
+          <div className="max-h-[85vh] w-full max-w-2xl overflow-auto rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
+              <div>
+                <h3 className="text-lg font-semibold text-black dark:text-white">
+                  {t('admin.commissionImport.payStub.title')} — {stub.import.rep_name}
+                </h3>
+                <p className="text-sm text-body">{t('admin.commissionImport.payStub.period')}: {stub.import.paid_for_period?.substring(0, 7)} · {stub.import.filename}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={printStub} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+                  {t('admin.commissionImport.payStub.print')}
+                </button>
+                <button onClick={() => setStub(null)} className="text-body hover:text-danger">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              {/* Commission lines */}
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-body">{t('admin.commissionImport.payStub.commissions')} ({stub.lines.length})</p>
+              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-2 dark:bg-meta-4">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.payStub.invoice')}</th>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.payStub.customer')}</th>
+                      <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.payStub.amount')}</th>
+                      <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.payStub.appCalc')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stub.lines.length === 0 ? (
+                      <tr><td colSpan={4} className="px-3 py-3 text-center text-body">—</td></tr>
+                    ) : stub.lines.map((l) => {
+                      const diff = l.app_commission != null && Math.abs(l.app_commission - l.paid_amount) > 0.01;
+                      return (
+                        <tr key={l.invoice_number} className="border-t border-stroke dark:border-strokedark">
+                          <td className="px-3 py-2 font-medium text-primary">{l.invoice_number}</td>
+                          <td className="px-3 py-2 text-black dark:text-white">{l.customer || '—'}</td>
+                          <td className="px-3 py-2 text-right font-semibold text-black dark:text-white">{fmt(l.paid_amount)}</td>
+                          <td className={`px-3 py-2 text-right ${diff ? 'font-medium text-danger' : 'text-body'}`}>
+                            {l.app_commission == null ? '—' : fmt(l.app_commission)}{diff ? ' ⚠' : ''}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Bonuses */}
+              {stub.bonuses.length > 0 && (
+                <>
+                  <p className="mb-1 mt-5 text-xs font-semibold uppercase tracking-wide text-body">{t('admin.commissionImport.payStub.bonuses')} ({stub.bonuses.length})</p>
+                  <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-2 dark:bg-meta-4">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.payStub.type')}</th>
+                          <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.payStub.merchant')}</th>
+                          <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.payStub.amount')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stub.bonuses.map((b, i) => (
+                          <tr key={i} className="border-t border-stroke dark:border-strokedark">
+                            <td className="px-3 py-2 capitalize text-black dark:text-white">{b.bonus_type}</td>
+                            <td className="px-3 py-2 text-black dark:text-white">{b.merchant_name || '—'}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-success">{fmt(b.amount)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+
+              {/* Total */}
+              <div className="mt-5 flex items-center justify-between rounded-md bg-gray-2 px-4 py-3 dark:bg-meta-4">
+                <span className="font-semibold text-black dark:text-white">{t('admin.commissionImport.payStub.totalPaid')}</span>
+                <span className="text-xl font-bold text-primary">{fmt(stubTotal(stub))}</span>
+              </div>
+              <p className="mt-2 text-xs text-body">{t('admin.commissionImport.payStub.discrepancyHint')}</p>
+            </div>
           </div>
         </div>
       )}

@@ -616,7 +616,22 @@
       "notFoundDetails": "{{count}} invoices not found in our database",
       "skippedZeroDetails": "{{count}} invoices skipped (commission was $0)",
       "historyTitle": "Import History",
-      "historySubtitle": "Past commission report imports.",
+      "historySubtitle": "Past commission report imports. Click a row to view its pay stub.",
+      "payStub": {
+        "title": "Pay Stub",
+        "period": "Period",
+        "commissions": "Commissions",
+        "bonuses": "Bonuses",
+        "invoice": "Invoice",
+        "customer": "Customer",
+        "amount": "Paid",
+        "appCalc": "App calc.",
+        "type": "Type",
+        "merchant": "Merchant",
+        "totalPaid": "Total paid",
+        "print": "Print",
+        "discrepancyHint": "Paid = amount from the imported file. App calc. = the app's computed commission; ⚠ marks a difference."
+      },
       "filename": "File",
       "period": "Period",
       "importedAt": "Imported"
