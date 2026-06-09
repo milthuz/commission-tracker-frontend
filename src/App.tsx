@@ -6,6 +6,7 @@ import Loader from './common/Loader';
 import PageTitle from './components/PageTitle';
 import ZohoLogin from './pages/Authentication/ZohoLogin';
 import ZohoCallback from './pages/Authentication/ZohoCallback';
+import TermsOfService from './pages/Legal/TermsOfService';
 import ECommerce from './pages/Dashboard/ECommerce';
 import CommissionTracker from './pages/CommissionTracker';
 import CommissionReport from './pages/CommissionReport';
@@ -41,7 +42,7 @@ function AppContent() {
         path="/auth/zoho-login"
         element={
           <>
-            <PageTitle title="Sign In | Commission Tracker" />
+            <PageTitle title="Sign In | SalesHub" />
             <ZohoLogin />
           </>
         }
@@ -50,8 +51,17 @@ function AppContent() {
         path="/auth/zoho/callback"
         element={
           <>
-            <PageTitle title="Authenticating | Commission Tracker" />
+            <PageTitle title="Authenticating | SalesHub" />
             <ZohoCallback />
+          </>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <>
+            <PageTitle title="Terms of Service | SalesHub" />
+            <TermsOfService />
           </>
         }
       />
@@ -63,7 +73,7 @@ function AppContent() {
             index
             element={
               <>
-                <PageTitle title="Sales Hub | Commission Tracker" />
+                <PageTitle title="SalesHub" />
                 <ECommerce />
               </>
             }
@@ -90,7 +100,7 @@ function AppContent() {
             path="/profile"
             element={
               <>
-                <PageTitle title="Profile | Commission Tracker" />
+                <PageTitle title="Profile | SalesHub" />
                 <Profile />
               </>
             }
@@ -103,7 +113,7 @@ function AppContent() {
             path="/versions"
             element={
               <>
-                <PageTitle title="Versions | Commission Tracker" />
+                <PageTitle title="Versions | SalesHub" />
                 <Versions />
               </>
             }
@@ -112,7 +122,7 @@ function AppContent() {
             path="/reseller"
             element={
               <>
-                <PageTitle title="Reseller | Commission Tracker" />
+                <PageTitle title="Reseller | SalesHub" />
                 <Reseller />
               </>
             }
@@ -121,7 +131,7 @@ function AppContent() {
             path="/revenue"
             element={
               <>
-                <PageTitle title="Processing Revenue | Commission Tracker" />
+                <PageTitle title="Processing Revenue | SalesHub" />
                 <Revenue />
               </>
             }
@@ -130,7 +140,7 @@ function AppContent() {
             path="/admin"
             element={
               <>
-                <PageTitle title="Admin Panel | Commission Tracker" />
+                <PageTitle title="Admin Panel | SalesHub" />
                 <AdminPanel />
               </>
             }
@@ -139,7 +149,7 @@ function AppContent() {
             path="/admin/:section"
             element={
               <>
-                <PageTitle title="Admin Panel | Commission Tracker" />
+                <PageTitle title="Admin Panel | SalesHub" />
                 <AdminPanel />
               </>
             }
@@ -152,7 +162,7 @@ function AppContent() {
         path="*"
         element={
           <>
-            <PageTitle title="404 | Commission Tracker" />
+            <PageTitle title="404 | SalesHub" />
             <ZohoLogin />
           </>
         }

@@ -2,7 +2,10 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ClusterLogo from '../../images/logo/cluster-on-light.svg';
+import LoginBg from '../../images/login-bg.jpg';
 import { useAppVersion } from '../../hooks/useAppVersion';
+
+const PRIVACY_URL = 'https://www.clusterpos.com/en-us/privacy-policy';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -38,8 +41,13 @@ const ZohoLogin = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-boxdark-2 px-4">
-      <div className="w-full max-w-md">
+    <div
+      className="relative flex min-h-screen items-center justify-center bg-cover bg-center px-4"
+      style={{ backgroundImage: `url(${LoginBg})` }}
+    >
+      {/* Dark overlay so the card and legal text stay legible over the photo */}
+      <div className="absolute inset-0 bg-black bg-opacity-60" />
+      <div className="relative z-10 w-full max-w-md">
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke px-6.5 py-5 dark:border-strokedark">
             <div className="flex justify-center">
@@ -50,7 +58,7 @@ const ZohoLogin = () => {
           <div className="p-6.5">
             <div className="mb-6 text-center">
               <h2 className="mb-2 text-2xl font-bold text-black dark:text-white">
-                Commission Tracker
+                SalesHub
               </h2>
               <div className="flex items-center justify-center gap-2">
                 <span className="rounded-full bg-warning px-3 py-1 text-xs font-bold text-white">
@@ -98,13 +106,23 @@ const ZohoLogin = () => {
         </div>
 
         <div className="mt-5 text-center">
-          <p className="text-sm text-bodydark">
+          <p className="text-sm text-white text-opacity-80">
             By signing in, you agree to our{' '}
-            <a href="#" className="text-primary hover:underline">
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-white hover:underline"
+            >
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="#" className="text-primary hover:underline">
+            <a
+              href={PRIVACY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-white hover:underline"
+            >
               Privacy Policy
             </a>
           </p>

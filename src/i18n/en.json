@@ -1,4 +1,9 @@
 {
+  "legal": {
+    "termsTitle": "Terms of Service",
+    "privacyTitle": "Privacy Policy",
+    "backToLogin": "Back to login"
+  },
   "reseller": {
     "title": "Resellers",
     "subtitle": "POS license activations (Zoho) and residual payments (Zentact).",
