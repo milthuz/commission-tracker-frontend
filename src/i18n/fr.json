@@ -58,7 +58,7 @@
     }
   },
   "revenue": {
-    "title": "Processing Revenue",
+    "title": "Revenus de traitement",
     "subtitle": "Transaction Profit des marchands (Zentact) — base des bonus vendeurs et des résiduels revendeurs.",
     "tabs": { "byRep": "Par vendeur", "byReseller": "Par revendeur" },
     "kpi": {
@@ -194,7 +194,7 @@
     "roles": "Rôles et permissions",
     "importPayments": "Importer commissions",
     "reseller": "Activations revendeur",
-    "revenue": "Processing Revenue",
+    "revenue": "Revenus de traitement",
     "resellersAdmin": "Gestion revendeurs",
     "profile": "Profil",
     "collapse": "Réduire la barre latérale",
