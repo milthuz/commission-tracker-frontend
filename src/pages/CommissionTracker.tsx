@@ -184,12 +184,6 @@ const CommissionTracker: React.FC = () => {
     return 'bg-[#3B82F6] text-white';
   };
 
-  const getQuotaBarColor = (points: number, quota: number = QUOTA) => {
-    const pct = quota > 0 ? (points / quota) * 100 : 0;
-    if (pct >= 100) return 'bg-success';
-    if (pct >= 60) return 'bg-warning';
-    return 'bg-danger';
-  };
 
   if (loading) return (
     <div className="flex h-[60vh] items-center justify-center">
@@ -398,6 +392,7 @@ const CommissionTracker: React.FC = () => {
               <div className="divide-y divide-stroke dark:divide-strokedark">
                 {g.reps.map(rep => {
                   const quotaPct = Math.min(100, (rep.totalPoints / (rep.quota || QUOTA)) * 100);
+                  const repBarColor = `hsl(${Math.round(Math.max(0, Math.min(100, quotaPct)) * 1.2)}, 72%, 45%)`;
                   const isExpanded = expandedRep === rep.repName;
                   const canViewDetails = !rep.restricted; // backend flagged this row
 
@@ -442,8 +437,8 @@ const CommissionTracker: React.FC = () => {
                     {/* Progress bar */}
                     <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">
                       <div
-                        className={`h-2 rounded-full transition-all ${getQuotaBarColor(rep.totalPoints, rep.quota || QUOTA)}`}
-                        style={{ width: `${quotaPct}%` }}
+                        className="h-2 rounded-full transition-all"
+                        style={{ width: `${quotaPct}%`, backgroundColor: repBarColor }}
                       />
                     </div>
                   </div>
