@@ -5,8 +5,6 @@ import ClusterLogo from '../../images/logo/cluster-on-light.svg';
 import LoginBg from '../../images/login-bg.jpg';
 import { useAppVersion } from '../../hooks/useAppVersion';
 
-const PRIVACY_URL = 'https://www.clusterpos.com/en-us/privacy-policy';
-
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
 const ZohoLogin = () => {
@@ -58,7 +56,7 @@ const ZohoLogin = () => {
           <div className="p-6.5">
             <div className="mb-6 text-center">
               <h2 className="mb-2 text-2xl font-bold text-black dark:text-white">
-                SalesHub
+                Sales Hub
               </h2>
               <div className="flex items-center justify-center gap-2">
                 <span className="rounded-full bg-warning px-3 py-1 text-xs font-bold text-white">
@@ -118,7 +116,7 @@ const ZohoLogin = () => {
             </a>{' '}
             and{' '}
             <a
-              href={PRIVACY_URL}
+              href="/privacy"
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-white hover:underline"

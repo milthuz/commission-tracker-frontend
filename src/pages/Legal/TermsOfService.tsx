@@ -2,9 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ClusterLogo from '../../images/logo/cluster-on-light.svg';
 
-const PRIVACY_URL = 'https://www.clusterpos.com/en-us/privacy-policy';
-
-// Bilingual Terms of Service for SalesHub — an internal sales & commission tool
+// Bilingual Terms of Service for Sales Hub — an internal sales & commission tool
 // operated by Cluster Systems. Authorized employees/partners sign in with Zoho SSO.
 // Note: this is a reasonable internal-tool ToS, not legal advice — have counsel review.
 type Section = { title: string; body: string[] };
@@ -12,7 +10,7 @@ const CONTENT: Record<'en' | 'fr', { effective: string; intro: string; sections:
   en: {
     effective: 'Effective date: June 9, 2026',
     intro:
-      'These Terms of Service ("Terms") govern your access to and use of SalesHub (the "Service"), an internal sales and commission management application operated by Cluster Systems Inc. ("Cluster", "we", "us"). By signing in to the Service, you agree to these Terms.',
+      'These Terms of Service ("Terms") govern your access to and use of Sales Hub (the "Service"), an internal sales and commission management application operated by Cluster Systems Inc. ("Cluster", "we", "us"). By signing in to the Service, you agree to these Terms.',
     sections: [
       { title: '1. Eligibility & access', body: [
         'The Service is provided solely to Cluster employees, representatives, and authorized partners. Access is granted through your Zoho account (single sign-on) and may be revoked at any time.',
@@ -49,7 +47,7 @@ const CONTENT: Record<'en' | 'fr', { effective: string; intro: string; sections:
   fr: {
     effective: 'Date d’entrée en vigueur : 9 juin 2026',
     intro:
-      'Les présentes conditions d’utilisation (« Conditions ») régissent votre accès à SalesHub (le « Service ») et son utilisation, une application interne de gestion des ventes et des commissions exploitée par Cluster Systems Inc. (« Cluster », « nous »). En vous connectant au Service, vous acceptez les présentes Conditions.',
+      'Les présentes conditions d’utilisation (« Conditions ») régissent votre accès à Sales Hub (le « Service ») et son utilisation, une application interne de gestion des ventes et des commissions exploitée par Cluster Systems Inc. (« Cluster », « nous »). En vous connectant au Service, vous acceptez les présentes Conditions.',
     sections: [
       { title: '1. Admissibilité et accès', body: [
         'Le Service est destiné uniquement aux employés, représentants et partenaires autorisés de Cluster. L’accès est accordé via votre compte Zoho (authentification unique) et peut être révoqué à tout moment.',
@@ -97,9 +95,9 @@ const TermsOfService = () => {
           <div className="flex items-center justify-between gap-4 border-b border-stroke px-6 py-5 dark:border-strokedark">
             <img src={ClusterLogo} alt="Cluster" className="h-8 w-auto" />
             <div className="flex items-center gap-5">
-              <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary hover:underline">
+              <Link to="/privacy" className="text-sm font-medium text-primary hover:underline">
                 {t('legal.privacyTitle')}
-              </a>
+              </Link>
               <Link to="/auth/zoho-login" className="text-sm font-medium text-primary hover:underline">
                 {t('legal.backToLogin')}
               </Link>
@@ -121,9 +119,9 @@ const TermsOfService = () => {
                   ))}
                   {s.title.startsWith('6.') && (
                     <p className="mt-2 text-sm leading-relaxed text-body">
-                      <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                      <Link to="/privacy" className="font-medium text-primary hover:underline">
                         {t('legal.privacyTitle')} →
-                      </a>
+                      </Link>
                     </p>
                   )}
                 </section>

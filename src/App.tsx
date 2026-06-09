@@ -7,6 +7,7 @@ import PageTitle from './components/PageTitle';
 import ZohoLogin from './pages/Authentication/ZohoLogin';
 import ZohoCallback from './pages/Authentication/ZohoCallback';
 import TermsOfService from './pages/Legal/TermsOfService';
+import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
 import ECommerce from './pages/Dashboard/ECommerce';
 import CommissionTracker from './pages/CommissionTracker';
 import CommissionReport from './pages/CommissionReport';
@@ -42,7 +43,7 @@ function AppContent() {
         path="/auth/zoho-login"
         element={
           <>
-            <PageTitle title="Sign In | SalesHub" />
+            <PageTitle title="Sign In | Sales Hub" />
             <ZohoLogin />
           </>
         }
@@ -51,7 +52,7 @@ function AppContent() {
         path="/auth/zoho/callback"
         element={
           <>
-            <PageTitle title="Authenticating | SalesHub" />
+            <PageTitle title="Authenticating | Sales Hub" />
             <ZohoCallback />
           </>
         }
@@ -60,8 +61,17 @@ function AppContent() {
         path="/terms"
         element={
           <>
-            <PageTitle title="Terms of Service | SalesHub" />
+            <PageTitle title="Terms of Service | Sales Hub" />
             <TermsOfService />
+          </>
+        }
+      />
+      <Route
+        path="/privacy"
+        element={
+          <>
+            <PageTitle title="Privacy Policy | Sales Hub" />
+            <PrivacyPolicy />
           </>
         }
       />
@@ -73,7 +83,7 @@ function AppContent() {
             index
             element={
               <>
-                <PageTitle title="SalesHub" />
+                <PageTitle title="Sales Hub" />
                 <ECommerce />
               </>
             }
@@ -100,7 +110,7 @@ function AppContent() {
             path="/profile"
             element={
               <>
-                <PageTitle title="Profile | SalesHub" />
+                <PageTitle title="Profile | Sales Hub" />
                 <Profile />
               </>
             }
@@ -113,7 +123,7 @@ function AppContent() {
             path="/versions"
             element={
               <>
-                <PageTitle title="Versions | SalesHub" />
+                <PageTitle title="Versions | Sales Hub" />
                 <Versions />
               </>
             }
@@ -122,7 +132,7 @@ function AppContent() {
             path="/reseller"
             element={
               <>
-                <PageTitle title="Reseller | SalesHub" />
+                <PageTitle title="Reseller | Sales Hub" />
                 <Reseller />
               </>
             }
@@ -131,7 +141,7 @@ function AppContent() {
             path="/revenue"
             element={
               <>
-                <PageTitle title="Processing Revenue | SalesHub" />
+                <PageTitle title="Processing Revenue | Sales Hub" />
                 <Revenue />
               </>
             }
@@ -140,7 +150,7 @@ function AppContent() {
             path="/admin"
             element={
               <>
-                <PageTitle title="Admin Panel | SalesHub" />
+                <PageTitle title="Admin Panel | Sales Hub" />
                 <AdminPanel />
               </>
             }
@@ -149,7 +159,7 @@ function AppContent() {
             path="/admin/:section"
             element={
               <>
-                <PageTitle title="Admin Panel | SalesHub" />
+                <PageTitle title="Admin Panel | Sales Hub" />
                 <AdminPanel />
               </>
             }
@@ -162,7 +172,7 @@ function AppContent() {
         path="*"
         element={
           <>
-            <PageTitle title="404 | SalesHub" />
+            <PageTitle title="404 | Sales Hub" />
             <ZohoLogin />
           </>
         }
