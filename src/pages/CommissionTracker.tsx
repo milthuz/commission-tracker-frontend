@@ -270,7 +270,8 @@ const CommissionTracker: React.FC = () => {
             onChange={e => setSelectedYear(parseInt(e.target.value))}
             className="rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white"
           >
-            {[...Array(4)].map((_, i) => {
+            {/* Data starts Jan 2025 — list current year down to 2025 only */}
+            {[...Array(new Date().getFullYear() - 2024)].map((_, i) => {
               const y = new Date().getFullYear() - i;
               return <option key={y} value={y}>{y}</option>;
             })}

@@ -729,7 +729,8 @@ const CommissionReport = () => {
             onChange={(e) => setSelectedYear(e.target.value)}
             className="rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
           >
-            {[2026, 2025, 2024, 2023, 2022].map(y => (
+            {/* Data starts Jan 2025 — list current year down to 2025 only */}
+            {Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i).map(y => (
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
