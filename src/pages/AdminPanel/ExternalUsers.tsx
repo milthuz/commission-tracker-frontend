@@ -75,6 +75,18 @@ const ExternalUsers: React.FC = () => {
     }
   };
 
+  const sendTest = async () => {
+    setBusy(true); setNotice(null);
+    try {
+      const r = await axios.post(`${API_URL}/api/admin/local-users/test-email`, {}, hdrs());
+      setNotice(r.data.sent
+        ? { type: 'success', msg: t('admin.externalUsers.testSent', { email: r.data.to }) as string }
+        : { type: 'error', msg: t('admin.externalUsers.testFailed', { error: r.data.error || '?' }) as string });
+    } catch (e: any) {
+      setNotice({ type: 'error', msg: e?.response?.data?.error || 'Failed' });
+    } finally { setBusy(false); }
+  };
+
   const remove = async (u: LocalUser) => {
     if (!confirm(t('admin.externalUsers.confirmDelete', { email: u.email }) as string)) return;
     try {
@@ -104,7 +116,13 @@ const ExternalUsers: React.FC = () => {
   return (
     <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
       <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-        <h3 className="text-lg font-semibold text-black dark:text-white">🔐 {t('admin.externalUsers.title')}</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-lg font-semibold text-black dark:text-white">🔐 {t('admin.externalUsers.title')}</h3>
+          <button onClick={sendTest} disabled={busy}
+            className="rounded border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:text-primary disabled:opacity-50 dark:border-strokedark">
+            ✉ {t('admin.externalUsers.sendTest')}
+          </button>
+        </div>
         <p className="mt-1 text-sm text-body">{t('admin.externalUsers.subtitle')}</p>
         {!smtpConfigured && (
           <p className="mt-2 rounded-md border border-warning border-opacity-40 bg-warning bg-opacity-10 px-3 py-2 text-xs text-black dark:text-white">
