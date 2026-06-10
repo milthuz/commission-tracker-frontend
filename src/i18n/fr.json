@@ -651,6 +651,16 @@
       "skippedZeroDetails": "{{count}} factures ignorées (commission de 0 $)",
       "historyTitle": "Historique des imports",
       "historySubtitle": "Imports passés des rapports de commission. Cliquez une ligne pour voir son bulletin de paie.",
+      "coverage": {
+        "title": "Couverture et réconciliation",
+        "subtitle": "Une cellule par rep par mois depuis janvier 2025. Repérez d'un coup d'œil les fichiers de paie manquants et les commissions non payées — cliquez une cellule pour ouvrir le bulletin du mois.",
+        "legendFile": "payé via fichier importé",
+        "legendApp": "payé via l'app",
+        "legendUnpaid": "gagné mais non payé (modèle app)",
+        "legendNothing": "rien de gagné / tout réglé",
+        "totalPaid": "Total payé",
+        "totalUnpaid": "Total non payé"
+      },
       "payStub": {
         "title": "Bulletin de paie",
         "period": "Période",

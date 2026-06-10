@@ -74,6 +74,10 @@ interface StubLine { invoice_number: string; customer: string | null; paid_amoun
 interface StubBonus { bonus_type: string; merchant_name: string | null; amount: number; report_date: string | null; }
 interface StubDetail { import: HistoryRow; lines: StubLine[]; bonuses: StubBonus[]; }
 
+interface CoverageCell { importTotal: number | null; source: 'file' | 'app' | 'both' | null; unpaid: number; unpaidCount: number; }
+interface CoverageRow { rep: string; cells: Record<string, CoverageCell>; totalPaid: number; totalUnpaid: number; }
+interface CoverageData { months: string[]; rows: CoverageRow[]; }
+
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 // Map the import-detail response into the shared PayStubModal shape.
@@ -96,6 +100,7 @@ const CommissionImport: React.FC = () => {
   const [history, setHistory] = useState<HistoryRow[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [stub, setStub] = useState<PayStubData | null>(null);
+  const [coverage, setCoverage] = useState<CoverageData | null>(null);
 
   const openStub = async (id: number) => {
     try {
@@ -103,6 +108,36 @@ const CommissionImport: React.FC = () => {
       const res = await axios.get(`${API_URL}/api/admin/commission-imports/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       setStub(toPayStub(res.data as StubDetail));
     } catch (_e) { /* ignore */ }
+  };
+
+  // Open the UNIFIED pay stub (imported or app-generated) for a coverage cell.
+  const openPeriodStub = async (rep: string, ym: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const [year, month] = ym.split('-');
+      const res = await axios.get(`${API_URL}/api/commissions/pay-stub`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { repName: rep, year, month: String(parseInt(month)) },
+      });
+      const d = res.data;
+      const subtitle = d.filename && !String(d.filename).startsWith('app-generated') ? d.filename : undefined;
+      setStub({
+        repName: d.repName, period: d.period, subtitle,
+        lines: d.lines || [], bonuses: d.bonuses || [], total: d.total || 0,
+        source: d.source, linesStored: d.linesStored,
+        missed: d.missed || [], missedTotal: d.missedTotal || 0,
+      });
+    } catch (_e) { /* ignore */ }
+  };
+
+  const fetchCoverage = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/admin/commission-imports/coverage/matrix`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCoverage(res.data);
+    } catch (_e) { /* silent */ }
   };
 
   const fetchHistory = async () => {
@@ -115,7 +150,7 @@ const CommissionImport: React.FC = () => {
     } catch (_e) { /* silent */ }
   };
 
-  useEffect(() => { fetchHistory(); }, []);
+  useEffect(() => { fetchHistory(); fetchCoverage(); }, []);
 
   // Update a single entry by id
   const updateEntry = (id: string, patch: Partial<FileEntry>) => {
@@ -180,6 +215,7 @@ const CommissionImport: React.FC = () => {
       await commitOne(e);
     }
     await fetchHistory();
+    await fetchCoverage();
     setCommittingAll(false);
   };
 
@@ -480,6 +516,78 @@ const CommissionImport: React.FC = () => {
                     <td className="px-3 py-1.5 text-right">{h.signup_bonuses_count} ({fmt(h.signup_bonuses_amount)})</td>
                     <td className="px-3 py-1.5 text-right font-semibold">{fmt(h.total_amount)}</td>
                     <td className="px-3 py-1.5 text-body">{fmtDate(h.imported_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Coverage / reconciliation matrix: rep × month */}
+      {coverage && coverage.rows.length > 0 && (
+        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.coverage.title')}</h3>
+            <p className="text-sm text-body">{t('admin.commissionImport.coverage.subtitle')}</p>
+            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-body">
+              <span><span className="font-bold text-success">✓</span> {t('admin.commissionImport.coverage.legendFile')}</span>
+              <span><span className="font-bold text-primary">✓</span> {t('admin.commissionImport.coverage.legendApp')}</span>
+              <span><span className="font-bold text-warning">●</span> {t('admin.commissionImport.coverage.legendUnpaid')}</span>
+              <span><span className="font-bold">—</span> {t('admin.commissionImport.coverage.legendNothing')}</span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-gray-50 dark:bg-meta-4">
+                <tr>
+                  <th className="sticky left-0 z-10 bg-gray-50 px-3 py-2 text-left dark:bg-meta-4">Rep</th>
+                  {coverage.months.map(ym => (
+                    <th key={ym} className="whitespace-nowrap px-2 py-2 text-center font-medium">{ym}</th>
+                  ))}
+                  <th className="whitespace-nowrap px-3 py-2 text-right">{t('admin.commissionImport.coverage.totalPaid')}</th>
+                  <th className="whitespace-nowrap px-3 py-2 text-right">{t('admin.commissionImport.coverage.totalUnpaid')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coverage.rows.map(row => (
+                  <tr key={row.rep} className="border-t border-stroke dark:border-strokedark">
+                    <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-1.5 font-medium text-black dark:bg-boxdark dark:text-white">
+                      {row.rep}
+                    </td>
+                    {coverage.months.map(ym => {
+                      const c = row.cells[ym];
+                      const hasImport = c && c.importTotal != null;
+                      const hasUnpaid = c && c.unpaid > 0.005;
+                      return (
+                        <td
+                          key={ym}
+                          onClick={() => (hasImport || hasUnpaid) && openPeriodStub(row.rep, ym)}
+                          title={`${row.rep} · ${ym}`}
+                          className={`whitespace-nowrap px-2 py-1.5 text-center align-middle ${
+                            hasImport || hasUnpaid ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-meta-4/40' : ''
+                          }`}
+                        >
+                          {hasImport ? (
+                            <div className="leading-tight">
+                              <span className={`font-bold ${c.source === 'file' ? 'text-success' : 'text-primary'}`}>✓</span>
+                              <span className="ml-1 text-black dark:text-white">{fmt(c.importTotal!)}</span>
+                              {hasUnpaid && (
+                                <div className="text-[10px] font-medium text-warning">● {fmt(c.unpaid)}</div>
+                              )}
+                            </div>
+                          ) : hasUnpaid ? (
+                            <span className="font-medium text-warning">● {fmt(c.unpaid)}</span>
+                          ) : (
+                            <span className="text-bodydark2">—</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                    <td className="whitespace-nowrap px-3 py-1.5 text-right font-semibold text-black dark:text-white">{fmt(row.totalPaid)}</td>
+                    <td className={`whitespace-nowrap px-3 py-1.5 text-right font-semibold ${row.totalUnpaid > 0.005 ? 'text-warning' : 'text-body'}`}>
+                      {fmt(row.totalUnpaid)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

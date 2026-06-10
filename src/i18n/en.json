@@ -651,6 +651,16 @@
       "skippedZeroDetails": "{{count}} invoices skipped (commission was $0)",
       "historyTitle": "Import History",
       "historySubtitle": "Past commission report imports. Click a row to view its pay stub.",
+      "coverage": {
+        "title": "Coverage & Reconciliation",
+        "subtitle": "One cell per rep per month since Jan 2025. Spot missing pay files and unpaid commissions at a glance — click a cell to open that month's pay stub.",
+        "legendFile": "paid via imported file",
+        "legendApp": "paid via the app",
+        "legendUnpaid": "earned but unpaid (app model)",
+        "legendNothing": "nothing earned / all settled",
+        "totalPaid": "Total paid",
+        "totalUnpaid": "Total unpaid"
+      },
       "payStub": {
         "title": "Pay Stub",
         "period": "Period",
