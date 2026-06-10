@@ -783,9 +783,9 @@ const CommissionReport = () => {
         const signupPay = pointsData?.annual?.zentactBonus || 0;
         const totalComp = baseSalaryEarned + ytdComm + annualBonus + signupPay;
         const part = (label: string, value: number) => (
-          <div className="min-w-[120px]">
-            <p className="text-xs text-body">{label}</p>
-            <p className="mt-0.5 text-lg font-semibold text-black dark:text-white">{formatCurrency(value)}</p>
+          <div>
+            <p className="whitespace-nowrap text-xs text-body">{label}</p>
+            <p className="mt-0.5 whitespace-nowrap text-lg font-semibold text-black dark:text-white">{formatCurrency(value)}</p>
           </div>
         );
         const op = (sym: string) => (
@@ -796,33 +796,32 @@ const CommissionReport = () => {
             <p className="mb-4 text-sm font-medium text-body">
               {t('commissionReport.totalComp')} ({selectedYear})
             </p>
-            {/* Visual equation: components on the left (wrap cleanly), '=' + total pinned right */}
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-4">
-                {/* Base salary — with its own pay-period progress (kept compact) */}
-                <div className="min-w-[150px]">
-                  <p className="text-xs text-body">{t('commissionReport.compBase')}</p>
-                  <p className="mt-0.5 text-lg font-semibold text-black dark:text-white">{formatCurrency(baseSalaryEarned)}</p>
-                  <div className="mt-1 flex items-center gap-2">
-                    <div className="h-1 w-16 overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="whitespace-nowrap text-[11px] text-body">
-                      {t('commissionReport.payPeriodsProgress', { done: periodsElapsed, total: PAY_PERIODS, pct })}
-                    </span>
+            {/* Visual equation: components on the left (wrap cleanly), '=' + total pinned right.
+                Cards are kept narrow (progress text UNDER the bar) so a normal laptop fits one row. */}
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-4">
+                {/* Base salary — with its own pay-period progress (stacked to stay narrow) */}
+                <div>
+                  <p className="whitespace-nowrap text-xs text-body">{t('commissionReport.compBase')}</p>
+                  <p className="mt-0.5 whitespace-nowrap text-lg font-semibold text-black dark:text-white">{formatCurrency(baseSalaryEarned)}</p>
+                  <div className="mt-1.5 h-1 w-28 overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
                   </div>
+                  <p className="mt-1 whitespace-nowrap text-[11px] text-body">
+                    {t('commissionReport.payPeriodsProgress', { done: periodsElapsed, total: PAY_PERIODS, pct })}
+                  </p>
                   <p className="whitespace-nowrap text-[11px] text-body">{t('commissionReport.compBaseOf', { amount: formatCurrency(annualSalary) })}</p>
                 </div>
                 {/* Each '+' is welded to its card so wrapping keeps "+ <card>" together */}
-                <div className="flex items-center gap-x-4">{op('+')}{part(t('commissionReport.compCommission'), ytdComm)}</div>
-                <div className="flex items-center gap-x-4">{op('+')}{part(t('commissionReport.compAnnualBonus'), annualBonus)}</div>
-                <div className="flex items-center gap-x-4">{op('+')}{part(t('commissionReport.compSignup'), signupPay)}</div>
+                <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compCommission'), ytdComm)}</div>
+                <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compAnnualBonus'), annualBonus)}</div>
+                <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compSignup'), signupPay)}</div>
               </div>
               {/* Total — '=' + result box, anchored together so they never separate */}
-              <div className="flex items-center gap-4 xl:border-l xl:border-stroke xl:pl-6 xl:dark:border-strokedark">
+              <div className="flex shrink-0 items-center gap-3 lg:border-l lg:border-stroke lg:pl-5 lg:dark:border-strokedark">
                 {op('=')}
                 <div className="rounded-lg border border-primary border-opacity-25 bg-primary bg-opacity-[0.06] px-5 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t('commissionReport.earnedToDate')}</p>
+                  <p className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-primary">{t('commissionReport.earnedToDate')}</p>
                   <p className="mt-0.5 whitespace-nowrap text-2xl font-bold text-black dark:text-white">{formatCurrency(totalComp)}</p>
                 </div>
               </div>
