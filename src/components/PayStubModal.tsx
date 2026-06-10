@@ -102,7 +102,8 @@ const PayStubModal: React.FC<{
             {tp('print')}
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-6">
+        {/* rounded-b matches the modal's radius — the scroll area otherwise paints square corners over it */}
+        <div className="flex-1 overflow-y-auto rounded-b-lg p-6">
           {/* Banner: invoice breakdown reconstructed (old import without stored lines) */}
           {data.source === 'imported' && !data.linesStored && (
             <div className="mb-4 rounded-md border border-warning border-opacity-40 bg-warning bg-opacity-10 px-4 py-3 text-xs text-black dark:text-white">
