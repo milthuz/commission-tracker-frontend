@@ -27,6 +27,13 @@
     "backToLoginBtn": "Back to login",
     "agreePrefix": "By signing in, you agree to our",
     "and": "and",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "signup": {
+      "title": "Access is by invitation",
+      "body": "Sales Hub accounts are created by invitation. If you work with Cluster Systems, ask your administrator or account manager to send you an invitation — you'll receive an email to activate your account.",
+      "contact": "Questions? Reach us at"
+    },
     "invite": {
       "invalidTitle": "Invitation problem",
       "invalid": "This invitation link is invalid or has already been used.",

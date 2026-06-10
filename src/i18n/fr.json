@@ -27,6 +27,13 @@
     "backToLoginBtn": "Retour à la connexion",
     "agreePrefix": "En vous connectant, vous acceptez nos",
     "and": "et notre",
+    "noAccount": "Pas de compte ?",
+    "signUp": "S'inscrire",
+    "signup": {
+      "title": "L'accès se fait sur invitation",
+      "body": "Les comptes Sales Hub sont créés sur invitation. Si vous travaillez avec Cluster Systems, demandez à votre administrateur ou à votre chargé de compte de vous envoyer une invitation — vous recevrez un courriel pour activer votre compte.",
+      "contact": "Des questions ? Écrivez-nous à"
+    },
     "invite": {
       "invalidTitle": "Problème d'invitation",
       "invalid": "Ce lien d'invitation est invalide ou a déjà été utilisé.",

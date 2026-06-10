@@ -7,7 +7,7 @@ import { useAppVersion } from '../../hooks/useAppVersion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
-type Step = 'creds' | 'mfa' | 'forgot' | 'forgotSent';
+type Step = 'creds' | 'mfa' | 'forgot' | 'forgotSent' | 'signup';
 
 // Split-screen login (Wealthsimple-style): dark brand panel + light form panel.
 // Two ways in: email+password+TOTP (external users) or Zoho SSO (internal users).
@@ -175,7 +175,37 @@ const ZohoLogin = () => {
                 </svg>
                 {t('auth.zohoLogin')}
               </button>
+
+              <p className="mt-7 text-center text-sm text-black dark:text-bodydark">
+                {t('auth.noAccount')}{' '}
+                <button type="button" onClick={() => { setError(''); setStep('signup'); }}
+                  className="font-semibold text-black underline hover:text-primary dark:text-white">
+                  {t('auth.signUp')}
+                </button>
+              </p>
             </>
+          )}
+
+          {step === 'signup' && (
+            <div className="text-center">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-primary bg-opacity-10">
+                <svg className="h-7 w-7 text-primary" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                </svg>
+              </div>
+              <h2 className="mb-3 text-2xl font-bold text-black dark:text-white">{t('auth.signup.title')}</h2>
+              <p className="mb-3 text-sm leading-relaxed text-body">{t('auth.signup.body')}</p>
+              <p className="mb-8 text-sm leading-relaxed text-body">
+                {t('auth.signup.contact')}{' '}
+                <a href="mailto:support@clusterpos.com" className="font-medium text-primary hover:underline">
+                  support@clusterpos.com
+                </a>
+              </p>
+              <button onClick={() => setStep('creds')}
+                className="w-full rounded-full border border-stroke py-3.5 text-base font-semibold text-black hover:bg-gray-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                ← {t('auth.backToLoginBtn')}
+              </button>
+            </div>
           )}
 
           {step === 'mfa' && (
