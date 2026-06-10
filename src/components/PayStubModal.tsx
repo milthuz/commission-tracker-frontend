@@ -6,6 +6,7 @@ export interface PayStubLine {
   customer: string | null;
   paid_amount: number;
   app_commission: number | null;
+  not_in_db?: boolean;       // paid per the file but the invoice predates our DB (pre-2025)
 }
 export interface PayStubBonus {
   bonus_type: string;
@@ -129,15 +130,22 @@ const PayStubModal: React.FC<{
                     {data.lines.length === 0 ? (
                       <tr><td colSpan={data.source === 'imported' ? 4 : 3} className="px-3 py-3 text-center text-body">—</td></tr>
                     ) : data.lines.map((l) => {
-                      const diff = l.app_commission != null && Math.abs(l.app_commission - l.paid_amount) > 0.01;
+                      const diff = !l.not_in_db && l.app_commission != null && Math.abs(l.app_commission - l.paid_amount) > 0.01;
                       return (
                         <tr key={l.invoice_number} className="border-t border-stroke dark:border-strokedark">
                           <td className="px-3 py-2 font-medium text-primary">{l.invoice_number}</td>
-                          <td className="px-3 py-2 text-black dark:text-white">{l.customer || '—'}</td>
+                          <td className="px-3 py-2 text-black dark:text-white">
+                            {l.customer || '—'}
+                            {l.not_in_db && (
+                              <span className="ml-2 inline-flex rounded-full bg-gray-200 px-1.5 py-0 text-[9px] font-bold text-body dark:bg-meta-4">
+                                {tp('notInDb')}
+                              </span>
+                            )}
+                          </td>
                           <td className="px-3 py-2 text-right font-semibold text-black dark:text-white">{fmt(l.paid_amount)}</td>
                           {data.source === 'imported' && (
                             <td className={`px-3 py-2 text-right ${diff ? 'font-medium text-danger' : 'text-body'}`}>
-                              {l.app_commission == null ? '—' : fmt(l.app_commission)}{diff ? ' ⚠' : ''}
+                              {l.not_in_db || l.app_commission == null ? '—' : fmt(l.app_commission)}{diff ? ' ⚠' : ''}
                             </td>
                           )}
                         </tr>
