@@ -6,6 +6,8 @@ import Loader from './common/Loader';
 import PageTitle from './components/PageTitle';
 import ZohoLogin from './pages/Authentication/ZohoLogin';
 import ZohoCallback from './pages/Authentication/ZohoCallback';
+import AcceptInvite from './pages/Authentication/AcceptInvite';
+import ResetPassword from './pages/Authentication/ResetPassword';
 import TermsOfService from './pages/Legal/TermsOfService';
 import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
 import ECommerce from './pages/Dashboard/ECommerce';
@@ -72,6 +74,24 @@ function AppContent() {
           <>
             <PageTitle title="Privacy Policy | Sales Hub" />
             <PrivacyPolicy />
+          </>
+        }
+      />
+      <Route
+        path="/accept-invite"
+        element={
+          <>
+            <PageTitle title="Invitation | Sales Hub" />
+            <AcceptInvite />
+          </>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <>
+            <PageTitle title="Reset Password | Sales Hub" />
+            <ResetPassword />
           </>
         }
       />

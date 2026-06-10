@@ -7,6 +7,7 @@ import packageJson from '../../../package.json';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import { formatDateOnly } from '../../utils/date';
 import CommissionImport from './CommissionImport';
+import ExternalUsers from './ExternalUsers';
 import ResellerAdmin from './ResellerAdmin';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -2896,6 +2897,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           )}
 
           {/* ==================== COMMISSION IMPORT TAB ==================== */}
+          {activeTab === 'admins' && <ExternalUsers />}
           {activeTab === 'import-payments' && <CommissionImport />}
           {activeTab === 'resellers' && <ResellerAdmin />}
 
