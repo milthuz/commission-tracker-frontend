@@ -813,12 +813,10 @@ const CommissionReport = () => {
                   </div>
                   <p className="whitespace-nowrap text-[11px] text-body">{t('commissionReport.compBaseOf', { amount: formatCurrency(annualSalary) })}</p>
                 </div>
-                {op('+')}
-                {part(t('commissionReport.compCommission'), ytdComm)}
-                {op('+')}
-                {part(t('commissionReport.compAnnualBonus'), annualBonus)}
-                {op('+')}
-                {part(t('commissionReport.compSignup'), signupPay)}
+                {/* Each '+' is welded to its card so wrapping keeps "+ <card>" together */}
+                <div className="flex items-center gap-x-4">{op('+')}{part(t('commissionReport.compCommission'), ytdComm)}</div>
+                <div className="flex items-center gap-x-4">{op('+')}{part(t('commissionReport.compAnnualBonus'), annualBonus)}</div>
+                <div className="flex items-center gap-x-4">{op('+')}{part(t('commissionReport.compSignup'), signupPay)}</div>
               </div>
               {/* Total — '=' + result box, anchored together so they never separate */}
               <div className="flex items-center gap-4 xl:border-l xl:border-stroke xl:pl-6 xl:dark:border-strokedark">
