@@ -764,9 +764,17 @@ const CommissionReport = () => {
         committing={committingStub}
       />
 
-      {/* Total Compensation (YTD) — base salary + commission + annual bonus + signup payments */}
+      {/* Total Compensation (YTD) — PRORATED base salary + commission + annual bonus + signup
+          payments. The salary accrues with the calendar so the total grows month over month:
+          current year → months elapsed/12, past year → 12/12, future year → 0/12. */}
       {(() => {
-        const baseSalary = report.baseSalary || 0;
+        const annualSalary = report.baseSalary || 0;
+        const now = new Date();
+        const yearNum = parseInt(selectedYear);
+        const monthsElapsed = yearNum < now.getFullYear() ? 12
+          : yearNum > now.getFullYear() ? 0
+          : now.getMonth() + 1;
+        const baseSalary = annualSalary * (monthsElapsed / 12);
         const ytdComm = report.summary.ytd.commission || 0;
         const annualBonus = pointsData?.annual?.annualBonus || 0;
         const signupPay = pointsData?.annual?.zentactBonus || 0;
@@ -792,7 +800,7 @@ const CommissionReport = () => {
                 </div>
               </div>
               <div className="flex flex-wrap gap-x-8 gap-y-2">
-                {part(t('commissionReport.compBase'), baseSalary)}
+                {part(`${t('commissionReport.compBase')} (${monthsElapsed}/12)`, baseSalary)}
                 {part(t('commissionReport.compCommission'), ytdComm)}
                 {part(t('commissionReport.compAnnualBonus'), annualBonus)}
                 {part(t('commissionReport.compSignup'), signupPay)}
