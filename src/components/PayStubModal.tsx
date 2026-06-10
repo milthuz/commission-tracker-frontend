@@ -76,9 +76,9 @@ const PayStubModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4 sm:p-8" onClick={onClose}>
-      {/* flex-col + inner scroll area: the header (and the corner ✕) stay visible while the body scrolls */}
-      <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-        {/* Close button pinned to the popup's own corner */}
+      {/* Outer wrapper = position context for the corner ✕ (kept OUTSIDE the clipped box so it isn't cut);
+          inner box is overflow-hidden so the scroll area's scrollbar gets clipped by the rounded corners. */}
+      <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
           title={tp('close') as string}
@@ -86,6 +86,7 @@ const PayStubModal: React.FC<{
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
+        <div className="flex max-h-[92vh] flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark">
         <div className="flex items-start justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
           <div>
             <h3 className="text-lg font-semibold text-black dark:text-white">{tp('title')} — {data.repName}</h3>
@@ -102,8 +103,7 @@ const PayStubModal: React.FC<{
             {tp('print')}
           </button>
         </div>
-        {/* rounded-b matches the modal's radius — the scroll area otherwise paints square corners over it */}
-        <div className="flex-1 overflow-y-auto rounded-b-lg p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Banner: invoice breakdown reconstructed (old import without stored lines) */}
           {data.source === 'imported' && !data.linesStored && (
             <div className="mb-4 rounded-md border border-warning border-opacity-40 bg-warning bg-opacity-10 px-4 py-3 text-xs text-black dark:text-white">
@@ -244,6 +244,7 @@ const PayStubModal: React.FC<{
               )}
             </>
           )}
+        </div>
         </div>
       </div>
     </div>
