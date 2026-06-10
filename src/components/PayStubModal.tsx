@@ -67,8 +67,17 @@ const PayStubModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={onClose}>
-      <div className="max-h-[85vh] w-full max-w-2xl overflow-auto rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4 sm:p-8" onClick={onClose}>
+      {/* flex-col + inner scroll area: the header (and the corner ✕) stay visible while the body scrolls */}
+      <div className="relative flex max-h-[92vh] w-full max-w-4xl flex-col rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+        {/* Close button pinned to the popup's own corner */}
+        <button
+          onClick={onClose}
+          title={tp('close') as string}
+          className="absolute -right-3 -top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-stroke bg-white text-body shadow-lg transition hover:text-danger dark:border-strokedark dark:bg-boxdark dark:text-bodydark"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
         <div className="flex items-start justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
           <div>
             <h3 className="text-lg font-semibold text-black dark:text-white">{tp('title')} — {data.repName}</h3>
@@ -81,16 +90,11 @@ const PayStubModal: React.FC<{
               {data.source === 'imported' ? tp('sourceImported') : tp('sourceGenerated')}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={printStub} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
-              {tp('print')}
-            </button>
-            <button onClick={onClose} className="text-body hover:text-danger" title={tp('close') as string}>
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-          </div>
+          <button onClick={printStub} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+            {tp('print')}
+          </button>
         </div>
-        <div className="p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Banner: invoice breakdown reconstructed (old import without stored lines) */}
           {data.source === 'imported' && !data.linesStored && (
             <div className="mb-4 rounded-md border border-warning border-opacity-40 bg-warning bg-opacity-10 px-4 py-3 text-xs text-black dark:text-white">
