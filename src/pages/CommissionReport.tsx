@@ -796,33 +796,37 @@ const CommissionReport = () => {
             <p className="mb-4 text-sm font-medium text-body">
               {t('commissionReport.totalComp')} ({selectedYear})
             </p>
-            {/* Visual equation: salary + commission + bonus + signup = total earned to date */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-4">
-              {/* Base salary — with its own pay-period progress */}
-              <div className="min-w-[185px]">
-                <p className="text-xs text-body">{t('commissionReport.compBase')}</p>
-                <p className="mt-0.5 text-lg font-semibold text-black dark:text-white">{formatCurrency(baseSalaryEarned)}</p>
-                <div className="mt-1 flex items-center gap-2">
-                  <div className="h-1 w-20 overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+            {/* Visual equation: components on the left (wrap cleanly), '=' + total pinned right */}
+            <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-4">
+                {/* Base salary — with its own pay-period progress (kept compact) */}
+                <div className="min-w-[150px]">
+                  <p className="text-xs text-body">{t('commissionReport.compBase')}</p>
+                  <p className="mt-0.5 text-lg font-semibold text-black dark:text-white">{formatCurrency(baseSalaryEarned)}</p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <div className="h-1 w-16 overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
+                      <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="whitespace-nowrap text-[11px] text-body">
+                      {t('commissionReport.payPeriodsProgress', { done: periodsElapsed, total: PAY_PERIODS, pct })}
+                    </span>
                   </div>
-                  <span className="text-[11px] text-body">
-                    {t('commissionReport.payPeriodsProgress', { done: periodsElapsed, total: PAY_PERIODS, pct })}
-                  </span>
+                  <p className="whitespace-nowrap text-[11px] text-body">{t('commissionReport.compBaseOf', { amount: formatCurrency(annualSalary) })}</p>
                 </div>
-                <p className="text-[11px] text-body">{t('commissionReport.compBaseOf', { amount: formatCurrency(annualSalary) })}</p>
+                {op('+')}
+                {part(t('commissionReport.compCommission'), ytdComm)}
+                {op('+')}
+                {part(t('commissionReport.compAnnualBonus'), annualBonus)}
+                {op('+')}
+                {part(t('commissionReport.compSignup'), signupPay)}
               </div>
-              {op('+')}
-              {part(t('commissionReport.compCommission'), ytdComm)}
-              {op('+')}
-              {part(t('commissionReport.compAnnualBonus'), annualBonus)}
-              {op('+')}
-              {part(t('commissionReport.compSignup'), signupPay)}
-              {op('=')}
-              {/* Total — the result, visually distinct */}
-              <div className="rounded-lg border border-primary border-opacity-25 bg-primary bg-opacity-[0.06] px-5 py-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t('commissionReport.earnedToDate')}</p>
-                <p className="mt-0.5 text-2xl font-bold text-black dark:text-white">{formatCurrency(totalComp)}</p>
+              {/* Total — '=' + result box, anchored together so they never separate */}
+              <div className="flex items-center gap-4 xl:border-l xl:border-stroke xl:pl-6 xl:dark:border-strokedark">
+                {op('=')}
+                <div className="rounded-lg border border-primary border-opacity-25 bg-primary bg-opacity-[0.06] px-5 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t('commissionReport.earnedToDate')}</p>
+                  <p className="mt-0.5 whitespace-nowrap text-2xl font-bold text-black dark:text-white">{formatCurrency(totalComp)}</p>
+                </div>
               </div>
             </div>
             <p className="mt-3 text-[11px] italic text-body">{t('commissionReport.grossDisclaimer')}</p>
