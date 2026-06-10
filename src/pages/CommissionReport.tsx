@@ -796,10 +796,10 @@ const CommissionReport = () => {
             <p className="mb-4 text-sm font-medium text-body">
               {t('commissionReport.totalComp')} ({selectedYear})
             </p>
-            {/* Visual equation: components on the left (wrap cleanly), '=' + total pinned right.
-                Cards are kept narrow (progress text UNDER the bar) so a normal laptop fits one row. */}
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-4">
+            {/* Visual equation flowing left: salary + commission + bonus + signup = total.
+                ONE wrap container — no justify-between, so no dead gap inside the equation;
+                leftover space sits naturally after the total box. */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-4">
                 {/* Base salary — with its own pay-period progress (stacked to stay narrow) */}
                 <div>
                   <p className="whitespace-nowrap text-xs text-body">{t('commissionReport.compBase')}</p>
@@ -816,15 +816,14 @@ const CommissionReport = () => {
                 <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compCommission'), ytdComm)}</div>
                 <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compAnnualBonus'), annualBonus)}</div>
                 <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compSignup'), signupPay)}</div>
-              </div>
-              {/* Total — '=' + result box, anchored together so they never separate */}
-              <div className="flex shrink-0 items-center gap-3 lg:border-l lg:border-stroke lg:pl-5 lg:dark:border-strokedark">
-                {op('=')}
-                <div className="rounded-lg border border-primary border-opacity-25 bg-primary bg-opacity-[0.06] px-5 py-3">
-                  <p className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-primary">{t('commissionReport.earnedToDate')}</p>
-                  <p className="mt-0.5 whitespace-nowrap text-2xl font-bold text-black dark:text-white">{formatCurrency(totalComp)}</p>
+                {/* Total — '=' + result box, flows right after the components (no dead gap) */}
+                <div className="flex shrink-0 items-center gap-3 lg:border-l lg:border-stroke lg:pl-5 lg:dark:border-strokedark">
+                  {op('=')}
+                  <div className="rounded-lg border border-primary border-opacity-25 bg-primary bg-opacity-[0.06] px-5 py-3">
+                    <p className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-primary">{t('commissionReport.earnedToDate')}</p>
+                    <p className="mt-0.5 whitespace-nowrap text-2xl font-bold text-black dark:text-white">{formatCurrency(totalComp)}</p>
+                  </div>
                 </div>
-              </div>
             </div>
             <p className="mt-3 text-[11px] italic text-body">{t('commissionReport.grossDisclaimer')}</p>
           </div>
