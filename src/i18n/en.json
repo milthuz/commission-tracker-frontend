@@ -61,6 +61,24 @@
       "doneSubtitle": "You can now log in with your new password."
     }
   },
+  "assistant": {
+    "title": "Sales Hub Assistant",
+    "subtitle": "AI help — ask me anything about the app",
+    "greeting": "Hi! 👋 I'm the Sales Hub assistant. Ask me how commissions are calculated, where to find something, or how a feature works.",
+    "placeholder": "Ask a question…",
+    "suggestions": [
+      "How are commissions calculated?",
+      "What is a pay stub?",
+      "Where do I see my monthly points?",
+      "How do teams and quotas work?"
+    ],
+    "clear": "New conversation",
+    "close": "Close",
+    "notConfigured": "The assistant isn't configured yet — ask your administrator.",
+    "rateLimited": "Too many messages — please wait a few minutes.",
+    "error": "Something went wrong — please try again.",
+    "disclaimer": "AI assistant — may make mistakes. It can't see your data."
+  },
   "reseller": {
     "title": "Resellers",
     "subtitle": "POS license activations (Zoho) and residual payments (Zentact).",

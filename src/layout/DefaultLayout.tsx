@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar/index';
 import ImpersonationBanner from '../components/ImpersonationBanner';
 import ConnectionStatusBanner from '../components/ConnectionStatusBanner';
 import NewFeatureBanner from '../components/NewFeatureBanner';
+import ChatAssistant from '../components/ChatAssistant';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,6 +38,7 @@ const DefaultLayout: React.FC = () => {
         {/* <!-- ===== Content Area End ===== --> */}
       </div>
       {/* <!-- ===== Page Wrapper End ===== --> */}
+      <ChatAssistant />
     </div>
   );
 };

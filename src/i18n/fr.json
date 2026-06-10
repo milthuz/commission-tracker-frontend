@@ -61,6 +61,24 @@
       "doneSubtitle": "Vous pouvez maintenant vous connecter avec votre nouveau mot de passe."
     }
   },
+  "assistant": {
+    "title": "Assistant Sales Hub",
+    "subtitle": "Aide IA — posez vos questions sur l'app",
+    "greeting": "Salut ! 👋 Je suis l'assistant Sales Hub. Demandez-moi comment les commissions sont calculées, où trouver quelque chose, ou comment fonctionne une fonctionnalité.",
+    "placeholder": "Posez une question…",
+    "suggestions": [
+      "Comment les commissions sont-elles calculées ?",
+      "C'est quoi un bulletin de paie ?",
+      "Où je vois mes points du mois ?",
+      "Comment fonctionnent les équipes et quotas ?"
+    ],
+    "clear": "Nouvelle conversation",
+    "close": "Fermer",
+    "notConfigured": "L'assistant n'est pas encore configuré — demandez à votre administrateur.",
+    "rateLimited": "Trop de messages — patientez quelques minutes.",
+    "error": "Une erreur est survenue — réessayez.",
+    "disclaimer": "Assistant IA — peut faire des erreurs. Il ne voit pas vos données."
+  },
   "reseller": {
     "title": "Revendeurs",
     "subtitle": "Activations de licences POS (Zoho) et paiements résiduels (Zentact).",
