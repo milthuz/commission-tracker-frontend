@@ -384,6 +384,12 @@
       "missedHint": "Débloqué selon le modèle de l'app mais couvert par aucun paiement — vérifiez si c'est un oubli. Non inclus dans le total ci-dessus.",
       "missedSubtotal": "Sous-total non payé",
       "notInDb": "hors BD (pré-2025)",
+      "repLabel": "Représentant(e)",
+      "sourceLabel": "Source",
+      "issuedOn": "Émis le",
+      "subtotalCommissions": "Sous-total commissions",
+      "subtotalBonuses": "Sous-total bonus",
+      "otherAmounts": "Bonus mensuel / autres",
       "reconstructedBanner": "Cet import est antérieur au stockage par facture : le détail ci-dessous est reconstruit depuis les données de l'app. Le total du fichier fait foi. Ré-importez le fichier pour stocker les montants exacts payés."
     },
     "title": "Rapport de commissions",

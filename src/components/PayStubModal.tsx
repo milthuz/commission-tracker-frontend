@@ -50,28 +50,113 @@ const PayStubModal: React.FC<{
 
   const tp = (k: string) => t(`commissionReport.payStub.${k}`);
 
+  // Branded, print-optimized pay-stub document (opens in a new window, auto-prints).
   const printStub = () => {
-    const linesHtml = data.lines
-      .map(l => `<tr><td>${l.invoice_number}</td><td>${l.customer || ''}</td><td class="r">${fmt(l.paid_amount)}</td></tr>`)
-      .join('');
-    const bonusHtml = data.bonuses
-      .map(b => `<tr><td>${b.bonus_type}</td><td>${b.merchant_name || ''}</td><td class="r">${fmt(b.amount)}</td></tr>`)
-      .join('');
-    const w = window.open('', '_blank', 'width=820,height=900');
+    const esc = (s: string | null | undefined) =>
+      String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const locale = i18n.language === 'fr' ? 'fr-CA' : 'en-CA';
+    const issued = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
+    const linesSum = data.lines.reduce((a, l) => a + l.paid_amount, 0);
+    const bonusSum = data.bonuses.reduce((a, b) => a + b.amount, 0);
+    const other = data.total - linesSum - bonusSum; // e.g. monthly bonus stored only in the import total
+    const sourceLabel = data.source === 'imported'
+      ? (data.subtitle ? esc(data.subtitle) : (tp('sourceImported') as string))
+      : (tp('sourceGenerated') as string);
+
+    const linesHtml = data.lines.map((l, i) => `
+      <tr${i % 2 ? ' class="alt"' : ''}>
+        <td class="mono">${esc(l.invoice_number)}</td>
+        <td>${esc(l.customer) || '—'}${l.not_in_db ? ` <span class="pill">${tp('notInDb')}</span>` : ''}</td>
+        <td class="num">${fmt(l.paid_amount)}</td>
+      </tr>`).join('');
+    const bonusHtml = data.bonuses.map((b, i) => `
+      <tr${i % 2 ? ' class="alt"' : ''}>
+        <td class="cap">${esc(b.bonus_type)}</td>
+        <td>${esc(b.merchant_name) || '—'}</td>
+        <td class="num">${fmt(b.amount)}</td>
+      </tr>`).join('');
+
+    const w = window.open('', '_blank', 'width=860,height=980');
     if (!w) return;
-    w.document.write(`<html><head><title>${tp('title')} - ${data.repName} - ${data.period}</title>
-      <style>body{font-family:Arial,Helvetica,sans-serif;padding:36px;color:#1c2434}h1{font-size:20px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#64748b;margin:22px 0 4px}p.m{color:#64748b;margin:4px 0 0}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:6px 8px;border-bottom:1px solid #e2e8f0;text-align:left}th{background:#f7f9fc}.r{text-align:right}.tot{margin-top:18px;text-align:right;font-size:18px;font-weight:bold}</style>
-      </head><body>
-      <h1>${tp('title')} — ${data.repName}</h1>
-      <p class="m">${tp('period')}: ${data.period}${data.subtitle ? ' · ' + data.subtitle : ''}</p>
-      <h2>${tp('commissions')} (${data.lines.length})</h2>
-      <table><thead><tr><th>${tp('invoice')}</th><th>${tp('customer')}</th><th class="r">${tp('amount')}</th></tr></thead><tbody>${linesHtml || '<tr><td colspan="3">—</td></tr>'}</tbody></table>
-      ${data.bonuses.length ? `<h2>${tp('bonuses')} (${data.bonuses.length})</h2><table><thead><tr><th>${tp('type')}</th><th>${tp('merchant')}</th><th class="r">${tp('amount')}</th></tr></thead><tbody>${bonusHtml}</tbody></table>` : ''}
-      <p class="tot">${tp('totalPaid')}: ${fmt(data.total)}</p>
-      </body></html>`);
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8">
+<title>${tp('title')} — ${esc(data.repName)} — ${esc(data.period)}</title>
+<style>
+  @page { margin: 14mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font-family: 'Segoe UI', -apple-system, Arial, sans-serif; color: #1c2434; background: #fff; }
+  .wrap { max-width: 740px; margin: 0 auto; }
+  .accent { height: 6px; background: #f2682c; }
+  .band { display: flex; justify-content: space-between; align-items: flex-end; background: #1c2434; color: #fff; padding: 26px 34px; }
+  .brand { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+  .brand small { display: block; font-size: 11px; font-weight: 400; color: #8a99af; letter-spacing: .04em; margin-top: 2px; }
+  .doc { text-align: right; }
+  .doc .t { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: #f2682c; font-weight: 700; }
+  .doc .p { font-size: 22px; font-weight: 700; margin-top: 2px; }
+  .meta { display: flex; gap: 36px; padding: 18px 34px; border-bottom: 1px solid #e8edf3; flex-wrap: wrap; }
+  .meta div span { display: block; font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: #94a3b8; margin-bottom: 3px; }
+  .meta div b { font-size: 13.5px; font-weight: 600; }
+  .content { padding: 10px 34px 26px; }
+  h2 { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #f2682c; margin: 26px 0 8px; display: flex; align-items: center; gap: 10px; }
+  h2:after { content: ''; flex: 1; height: 1px; background: #eef2f7; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th { text-align: left; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #64748b; padding: 7px 10px; border-bottom: 2px solid #1c2434; }
+  thead th.num { text-align: right; }
+  td { padding: 8px 10px; border-bottom: 1px solid #eef2f7; vertical-align: top; }
+  tr.alt td { background: #fafbfd; }
+  .mono { font-family: 'Consolas', 'Courier New', monospace; font-size: 11.5px; color: #3b4a63; }
+  .num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cap { text-transform: capitalize; }
+  .pill { display: inline-block; font-size: 9px; background: #eef2f7; color: #64748b; border-radius: 99px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
+  .totals { margin-top: 26px; display: flex; justify-content: flex-end; }
+  .totals .box { min-width: 290px; }
+  .trow { display: flex; justify-content: space-between; padding: 5px 12px; font-size: 12.5px; color: #475569; }
+  .trow b { font-variant-numeric: tabular-nums; color: #1c2434; }
+  .grand { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding: 13px 16px; background: #fff4ec; border: 1px solid #f7c8ab; border-radius: 10px; }
+  .grand span { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: #f2682c; font-weight: 700; }
+  .grand b { font-size: 21px; font-variant-numeric: tabular-nums; }
+  footer { margin-top: 34px; padding-top: 12px; border-top: 1px solid #e8edf3; display: flex; justify-content: space-between; gap: 16px; font-size: 9.5px; color: #94a3b8; }
+  footer .d { font-style: italic; }
+</style></head><body>
+<div class="wrap">
+  <div class="accent"></div>
+  <div class="band">
+    <div class="brand">Sales Hub<small>by Cluster Systems</small></div>
+    <div class="doc"><div class="t">${tp('title')}</div><div class="p">${esc(data.period)}</div></div>
+  </div>
+  <div class="meta">
+    <div><span>${tp('repLabel')}</span><b>${esc(data.repName)}</b></div>
+    <div><span>${tp('period')}</span><b>${esc(data.period)}</b></div>
+    <div><span>${tp('sourceLabel')}</span><b>${sourceLabel}</b></div>
+    <div><span>${tp('issuedOn')}</span><b>${issued}</b></div>
+  </div>
+  <div class="content">
+    <h2>${tp('commissions')} (${data.lines.length})</h2>
+    <table>
+      <thead><tr><th>${tp('invoice')}</th><th>${tp('customer')}</th><th class="num">${tp('amount')}</th></tr></thead>
+      <tbody>${linesHtml || `<tr><td colspan="3" style="text-align:center;color:#94a3b8">—</td></tr>`}</tbody>
+    </table>
+    ${data.bonuses.length ? `
+    <h2>${tp('bonuses')} (${data.bonuses.length})</h2>
+    <table>
+      <thead><tr><th>${tp('type')}</th><th>${tp('merchant')}</th><th class="num">${tp('amount')}</th></tr></thead>
+      <tbody>${bonusHtml}</tbody>
+    </table>` : ''}
+    <div class="totals"><div class="box">
+      <div class="trow"><span>${tp('subtotalCommissions')}</span><b>${fmt(linesSum)}</b></div>
+      ${data.bonuses.length ? `<div class="trow"><span>${tp('subtotalBonuses')}</span><b>${fmt(bonusSum)}</b></div>` : ''}
+      ${Math.abs(other) > 0.01 ? `<div class="trow"><span>${tp('otherAmounts')}</span><b>${fmt(other)}</b></div>` : ''}
+      <div class="grand"><span>${tp('totalPaid')}</span><b>${fmt(data.total)}</b></div>
+    </div></div>
+    <footer>
+      <div class="d">${t('commissionReport.grossDisclaimer')}</div>
+      <div>Sales Hub · saleshub.clusterpos.com</div>
+    </footer>
+  </div>
+</div>
+</body></html>`);
     w.document.close();
     w.focus();
-    setTimeout(() => w.print(), 250);
+    setTimeout(() => w.print(), 300);
   };
 
   return (

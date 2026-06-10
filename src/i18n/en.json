@@ -384,6 +384,12 @@
       "missedHint": "Unlocked per the app's model but not covered by any payment — verify whether these were forgotten. Not included in the total above.",
       "missedSubtotal": "Unpaid subtotal",
       "notInDb": "not in DB (pre-2025)",
+      "repLabel": "Salesperson",
+      "sourceLabel": "Source",
+      "issuedOn": "Issued on",
+      "subtotalCommissions": "Commissions subtotal",
+      "subtotalBonuses": "Bonuses subtotal",
+      "otherAmounts": "Monthly bonus / other",
       "reconstructedBanner": "This import predates per-invoice storage, so the invoice breakdown below is reconstructed from the app's data. The file total stays authoritative. Re-import the file to store the exact paid amounts."
     },
     "title": "Commission Report",
