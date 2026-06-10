@@ -764,9 +764,9 @@ const CommissionReport = () => {
         committing={committingStub}
       />
 
-      {/* Total Compensation (YTD) — base salary accrued by PAY PERIOD (26 bi-weekly periods
-          per year) + commission + annual bonus + signup payments. Completed 14-day periods
-          since Jan 1 count as paid: current year → periods/26, past year → 26/26, future → 0. */}
+      {/* Total Compensation — EARNED TO DATE: base salary accrued by pay period (26 bi-weekly
+          periods/year, completed 14-day periods since Jan 1) + YTD commission + bonuses.
+          The salary card shows both the earned amount and the full annual reference. */}
       {(() => {
         const PAY_PERIODS = 26;
         const annualSalary = report.baseSalary || 0;
@@ -776,15 +776,17 @@ const CommissionReport = () => {
         const periodsElapsed = yearNum < now.getFullYear() ? PAY_PERIODS
           : yearNum > now.getFullYear() ? 0
           : Math.min(PAY_PERIODS, Math.max(0, Math.floor(daysElapsed / 14)));
-        const baseSalary = annualSalary * (periodsElapsed / PAY_PERIODS);
+        const pct = Math.round((periodsElapsed / PAY_PERIODS) * 100);
+        const baseSalaryEarned = annualSalary * (periodsElapsed / PAY_PERIODS);
         const ytdComm = report.summary.ytd.commission || 0;
         const annualBonus = pointsData?.annual?.annualBonus || 0;
         const signupPay = pointsData?.annual?.zentactBonus || 0;
-        const totalComp = baseSalary + ytdComm + annualBonus + signupPay;
-        const part = (label: string, value: number) => (
+        const totalComp = baseSalaryEarned + ytdComm + annualBonus + signupPay;
+        const part = (label: string, value: number, sub?: string) => (
           <div>
             <p className="text-xs text-body">{label}</p>
             <p className="font-semibold text-black dark:text-white">{formatCurrency(value)}</p>
+            {sub && <p className="text-[11px] text-body">{sub}</p>}
           </div>
         );
         return (
@@ -797,12 +799,27 @@ const CommissionReport = () => {
                   </svg>
                 </span>
                 <div>
-                  <p className="text-sm font-medium text-body">{t('commissionReport.totalComp')} ({selectedYear})</p>
+                  <p className="text-sm font-medium text-body">
+                    {t('commissionReport.totalComp')} ({selectedYear}) · <span className="font-semibold text-primary">{t('commissionReport.earnedToDate')}</span>
+                  </p>
                   <h3 className="text-3xl font-bold text-black dark:text-white">{formatCurrency(totalComp)}</h3>
+                  {/* Year progression bar (pay periods) */}
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="h-1.5 w-44 overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
+                      <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-[11px] text-body">
+                      {t('commissionReport.payPeriodsProgress', { done: periodsElapsed, total: PAY_PERIODS, pct })}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="flex flex-wrap gap-x-8 gap-y-2">
-                {part(`${t('commissionReport.compBase')} (${periodsElapsed}/${PAY_PERIODS})`, baseSalary)}
+                {part(
+                  t('commissionReport.compBase'),
+                  baseSalaryEarned,
+                  t('commissionReport.compBaseOf', { amount: formatCurrency(annualSalary) }) as string
+                )}
                 {part(t('commissionReport.compCommission'), ytdComm)}
                 {part(t('commissionReport.compAnnualBonus'), annualBonus)}
                 {part(t('commissionReport.compSignup'), signupPay)}

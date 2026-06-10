@@ -387,6 +387,9 @@
       "reconstructedBanner": "This import predates per-invoice storage, so the invoice breakdown below is reconstructed from the app's data. The file total stays authoritative. Re-import the file to store the exact paid amounts."
     },
     "title": "Commission Report",
+    "earnedToDate": "earned to date",
+    "payPeriodsProgress": "{{done}}/{{total}} pay periods ({{pct}}% of the year)",
+    "compBaseOf": "of {{amount}} annual salary",
     "ytdCommission": "YTD Commission",
     "ytdRevenue": "YTD Revenue",
     "totalComp": "Total Compensation",

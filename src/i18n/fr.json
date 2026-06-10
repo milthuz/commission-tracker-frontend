@@ -387,6 +387,9 @@
       "reconstructedBanner": "Cet import est antérieur au stockage par facture : le détail ci-dessous est reconstruit depuis les données de l'app. Le total du fichier fait foi. Ré-importez le fichier pour stocker les montants exacts payés."
     },
     "title": "Rapport de commissions",
+    "earnedToDate": "gagné à ce jour",
+    "payPeriodsProgress": "{{done}}/{{total}} paies ({{pct}} % de l'année)",
+    "compBaseOf": "sur {{amount}} de salaire annuel",
     "ytdCommission": "Commission cumulative",
     "ytdRevenue": "Revenus cumulatifs",
     "totalComp": "Rémunération totale",
