@@ -359,6 +359,8 @@ const CommissionReport = () => {
         total:       d.total || 0,
         source:      d.source,
         linesStored: d.linesStored,
+        missed:      d.missed || [],
+        missedTotal: d.missedTotal || 0,
       });
     } catch (e) {
       console.error('Error loading pay stub:', e);

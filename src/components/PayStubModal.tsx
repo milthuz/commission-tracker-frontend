@@ -12,6 +12,11 @@ export interface PayStubBonus {
   merchant_name: string | null;
   amount: number;
 }
+export interface PayStubMissed {
+  invoice_number: string;
+  customer: string | null;
+  app_commission: number;
+}
 export interface PayStubData {
   repName: string;
   period: string;            // 'YYYY-MM'
@@ -21,6 +26,8 @@ export interface PayStubData {
   total: number;
   source: 'imported' | 'generated';
   linesStored: boolean;      // false → invoice breakdown is reconstructed (old import)
+  missed?: PayStubMissed[];  // earned this period per the app but NOT paid (imported stubs)
+  missedTotal?: number;
 }
 
 // Shared pay-stub detail modal — used by the admin import history AND the rep-facing
@@ -102,7 +109,7 @@ const PayStubModal: React.FC<{
             </div>
           )}
 
-          {data.lines.length === 0 && data.bonuses.length === 0 ? (
+          {data.lines.length === 0 && data.bonuses.length === 0 && !(data.missed && data.missed.length) ? (
             <p className="py-6 text-center text-sm text-body">{tp('noData')}</p>
           ) : (
             <>
@@ -175,6 +182,41 @@ const PayStubModal: React.FC<{
               <p className="mt-2 text-xs text-body">
                 {data.source === 'imported' ? tp('discrepancyHint') : tp('generatedHint')}
               </p>
+
+              {/* Forgot-to-pay radar: earned this period per the app's model but not paid. */}
+              {data.missed && data.missed.length > 0 && (
+                <div className="mt-5 rounded-md border border-warning border-opacity-40 bg-warning bg-opacity-5 p-4">
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-warning">
+                    ⚠ {tp('missedTitle')} ({data.missed.length})
+                  </p>
+                  <div className="overflow-x-auto rounded border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-2 dark:bg-meta-4">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-medium">{tp('invoice')}</th>
+                          <th className="px-3 py-2 text-left font-medium">{tp('customer')}</th>
+                          <th className="px-3 py-2 text-right font-medium">{tp('appCalc')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.missed.map((m) => (
+                          <tr key={m.invoice_number} className="border-t border-stroke dark:border-strokedark">
+                            <td className="px-3 py-2 font-medium text-primary">{m.invoice_number}</td>
+                            <td className="px-3 py-2 text-black dark:text-white">{m.customer || '—'}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-warning">{fmt(m.app_commission)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-xs text-body">{tp('missedHint')}</p>
+                    <p className="whitespace-nowrap pl-4 text-sm font-bold text-warning">
+                      {tp('missedSubtotal')}: {fmt(data.missedTotal || 0)}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Commit action — only for app-generated stubs, only when the parent wires it. */}
               {onCommit && data.source === 'generated' && (data.lines.length > 0 || data.bonuses.length > 0) && (

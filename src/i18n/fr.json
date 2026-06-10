@@ -304,7 +304,10 @@
       "committing": "Marquage en cours…",
       "committed": "Payé ✓",
       "discrepancyHint": "Payé = montant du fichier importé. Calc. app = commission calculée par l'app ; ⚠ signale un écart.",
-      "generatedHint": "Généré à partir du modèle de commission de l'app pour cette période (commissions débloquées + paiements de signup).",
+      "generatedHint": "Généré à partir du modèle de l'app : commissions débloquées NON payées de la période + paiements de signup.",
+      "missedTitle": "Gagné cette période mais NON payé",
+      "missedHint": "Débloqué selon le modèle de l'app mais couvert par aucun paiement — vérifiez si c'est un oubli. Non inclus dans le total ci-dessus.",
+      "missedSubtotal": "Sous-total non payé",
       "reconstructedBanner": "Cet import est antérieur au stockage par facture : le détail ci-dessous est reconstruit depuis les données de l'app. Le total du fichier fait foi. Ré-importez le fichier pour stocker les montants exacts payés."
     },
     "title": "Rapport de commissions",

@@ -304,7 +304,10 @@
       "committing": "Marking paid…",
       "committed": "Paid ✓",
       "discrepancyHint": "Paid = amount from the imported file. App calc. = the app's computed commission; ⚠ marks a difference.",
-      "generatedHint": "Generated from the app's commission model for this period (unlocked commissions + signup payments).",
+      "generatedHint": "Generated from the app's commission model: UNPAID commissions unlocked this period + signup payments.",
+      "missedTitle": "Earned this period but NOT paid",
+      "missedHint": "Unlocked per the app's model but not covered by any payment — verify whether these were forgotten. Not included in the total above.",
+      "missedSubtotal": "Unpaid subtotal",
       "reconstructedBanner": "This import predates per-invoice storage, so the invoice breakdown below is reconstructed from the app's data. The file total stays authoritative. Re-import the file to store the exact paid amounts."
     },
     "title": "Commission Report",
