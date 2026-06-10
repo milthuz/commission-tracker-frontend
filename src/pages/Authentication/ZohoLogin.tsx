@@ -197,8 +197,8 @@ const ZohoLogin = () => {
               <p className="mb-3 text-sm leading-relaxed text-body">{t('auth.signup.body')}</p>
               <p className="mb-8 text-sm leading-relaxed text-body">
                 {t('auth.signup.contact')}{' '}
-                <a href="mailto:support@clusterpos.com" className="font-medium text-primary hover:underline">
-                  support@clusterpos.com
+                <a href="mailto:saleshub@clustersystems.com" className="font-medium text-primary hover:underline">
+                  saleshub@clustersystems.com
                 </a>
               </p>
               <button onClick={() => setStep('creds')}
