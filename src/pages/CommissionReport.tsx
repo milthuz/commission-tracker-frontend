@@ -764,17 +764,19 @@ const CommissionReport = () => {
         committing={committingStub}
       />
 
-      {/* Total Compensation (YTD) — PRORATED base salary + commission + annual bonus + signup
-          payments. The salary accrues with the calendar so the total grows month over month:
-          current year → months elapsed/12, past year → 12/12, future year → 0/12. */}
+      {/* Total Compensation (YTD) — base salary accrued by PAY PERIOD (26 bi-weekly periods
+          per year) + commission + annual bonus + signup payments. Completed 14-day periods
+          since Jan 1 count as paid: current year → periods/26, past year → 26/26, future → 0. */}
       {(() => {
+        const PAY_PERIODS = 26;
         const annualSalary = report.baseSalary || 0;
         const now = new Date();
         const yearNum = parseInt(selectedYear);
-        const monthsElapsed = yearNum < now.getFullYear() ? 12
+        const daysElapsed = Math.floor((now.getTime() - new Date(yearNum, 0, 1).getTime()) / 86400000);
+        const periodsElapsed = yearNum < now.getFullYear() ? PAY_PERIODS
           : yearNum > now.getFullYear() ? 0
-          : now.getMonth() + 1;
-        const baseSalary = annualSalary * (monthsElapsed / 12);
+          : Math.min(PAY_PERIODS, Math.max(0, Math.floor(daysElapsed / 14)));
+        const baseSalary = annualSalary * (periodsElapsed / PAY_PERIODS);
         const ytdComm = report.summary.ytd.commission || 0;
         const annualBonus = pointsData?.annual?.annualBonus || 0;
         const signupPay = pointsData?.annual?.zentactBonus || 0;
@@ -800,7 +802,7 @@ const CommissionReport = () => {
                 </div>
               </div>
               <div className="flex flex-wrap gap-x-8 gap-y-2">
-                {part(`${t('commissionReport.compBase')} (${monthsElapsed}/12)`, baseSalary)}
+                {part(`${t('commissionReport.compBase')} (${periodsElapsed}/${PAY_PERIODS})`, baseSalary)}
                 {part(t('commissionReport.compCommission'), ytdComm)}
                 {part(t('commissionReport.compAnnualBonus'), annualBonus)}
                 {part(t('commissionReport.compSignup'), signupPay)}
