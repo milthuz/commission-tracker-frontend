@@ -390,6 +390,7 @@
     "earnedToDate": "earned to date",
     "payPeriodsProgress": "{{done}}/{{total}} pay periods ({{pct}}% of the year)",
     "compBaseOf": "of {{amount}} annual salary",
+    "grossDisclaimer": "Gross amounts — before income tax, deductions and source withholdings.",
     "ytdCommission": "YTD Commission",
     "ytdRevenue": "YTD Revenue",
     "totalComp": "Total Compensation",

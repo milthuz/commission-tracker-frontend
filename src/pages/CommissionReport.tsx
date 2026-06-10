@@ -825,6 +825,7 @@ const CommissionReport = () => {
                 <p className="mt-0.5 text-2xl font-bold text-black dark:text-white">{formatCurrency(totalComp)}</p>
               </div>
             </div>
+            <p className="mt-3 text-[11px] italic text-body">{t('commissionReport.grossDisclaimer')}</p>
           </div>
         );
       })()}

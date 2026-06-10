@@ -390,6 +390,7 @@
     "earnedToDate": "gagné à ce jour",
     "payPeriodsProgress": "{{done}}/{{total}} paies ({{pct}} % de l'année)",
     "compBaseOf": "sur {{amount}} de salaire annuel",
+    "grossDisclaimer": "Montants bruts — avant impôts, déductions et retenues à la source.",
     "ytdCommission": "Commission cumulative",
     "ytdRevenue": "Revenus cumulatifs",
     "totalComp": "Rémunération totale",
