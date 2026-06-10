@@ -42,7 +42,7 @@ const CONTENT: Record<'en' | 'fr', { effective: string; intro: string; sections:
         'We may update this Privacy Policy from time to time. Continued use of the Service after changes take effect constitutes acceptance of the revised policy.',
       ]},
     ],
-    contact: 'Questions about this policy or your data? Contact Cluster Systems at support@clusterpos.com.',
+    contact: 'Questions about this policy or your data? Contact Cluster Systems at saleshub@clustersystems.com.',
   },
   fr: {
     effective: 'Date d’entrée en vigueur : 9 juin 2026',
@@ -80,7 +80,7 @@ const CONTENT: Record<'en' | 'fr', { effective: string; intro: string; sections:
         'Nous pouvons mettre à jour la présente Politique de confidentialité de temps à autre. La poursuite de l’utilisation du Service après l’entrée en vigueur des modifications vaut acceptation de la politique révisée.',
       ]},
     ],
-    contact: 'Des questions sur cette politique ou vos données ? Contactez Cluster Systems à support@clusterpos.com.',
+    contact: 'Des questions sur cette politique ou vos données ? Contactez Cluster Systems à saleshub@clustersystems.com.',
   },
 };
 

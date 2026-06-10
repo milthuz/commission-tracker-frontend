@@ -163,7 +163,7 @@ const DropdownUser = () => {
           </li>
           <li>
             <a
-              href="mailto:david@clustersystems.com?subject=Commission Tracker Support Request"
+              href="mailto:saleshub@clustersystems.com?subject=Sales Hub Support Request"
               className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
             >
               <svg

@@ -42,7 +42,7 @@ const CONTENT: Record<'en' | 'fr', { effective: string; intro: string; sections:
         'We may update these Terms from time to time. Continued use of the Service after changes take effect constitutes acceptance of the revised Terms.',
       ]},
     ],
-    contact: 'Questions about these Terms? Contact Cluster Systems at support@clusterpos.com.',
+    contact: 'Questions about these Terms? Contact Cluster Systems at saleshub@clustersystems.com.',
   },
   fr: {
     effective: 'Date d’entrée en vigueur : 9 juin 2026',
@@ -79,7 +79,7 @@ const CONTENT: Record<'en' | 'fr', { effective: string; intro: string; sections:
         'Nous pouvons mettre à jour les présentes Conditions de temps à autre. La poursuite de l’utilisation du Service après l’entrée en vigueur des modifications vaut acceptation des Conditions révisées.',
       ]},
     ],
-    contact: 'Des questions sur ces Conditions ? Contactez Cluster Systems à support@clusterpos.com.',
+    contact: 'Des questions sur ces Conditions ? Contactez Cluster Systems à saleshub@clustersystems.com.',
   },
 };
 
