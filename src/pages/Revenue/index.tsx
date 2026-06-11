@@ -128,6 +128,8 @@ export default function Revenue() {
   const [error, setError] = useState(false);
   const [drill, setDrill] = useState<string | null>(null); // dimension name being drilled into
   const [drillSort, setDrillSort] = useState<{ col: 'name' | 'profit' | 'other' | 'total'; dir: 'asc' | 'desc' }>({ col: 'total', dir: 'desc' });
+  const [drillSearch, setDrillSearch] = useState('');
+  useEffect(() => { setDrillSearch(''); }, [drill]); // fresh search per drill-down
   const [activeReps, setActiveReps] = useState<Set<string> | null>(null);
   const [activeResellers, setActiveResellers] = useState<Set<string> | null>(null);
 
@@ -220,14 +222,20 @@ export default function Revenue() {
       const m = map.get(key)!;
       m.profit += r.transaction_profit; m.other += r.other_revenue;
     }
-    const rows = [...map.values()].map((m) => ({ ...m, total: m.profit + m.other }));
+    let rows = [...map.values()].map((m) => ({ ...m, total: m.profit + m.other }));
+    if (drillSearch.trim()) {
+      // Accent-insensitive merchant search ("cafe" matches "Café")
+      const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+      const q = norm(drillSearch.trim());
+      rows = rows.filter((m) => norm(m.name).includes(q));
+    }
     const { col, dir } = drillSort;
     const sign = dir === 'asc' ? 1 : -1;
     rows.sort((a, b) => col === 'name'
       ? sign * a.name.localeCompare(b.name)
       : sign * ((a[col] as number) - (b[col] as number)));
     return rows;
-  }, [drill, filtered, tab, drillSort]);
+  }, [drill, filtered, tab, drillSort, drillSearch]);
   const drillTotal = useMemo(() => drillMerchants.reduce((s, m) => s + m.total, 0), [drillMerchants]);
   const sortDrillBy = (col: 'name' | 'profit' | 'other' | 'total') =>
     setDrillSort((s) => s.col === col
@@ -381,11 +389,33 @@ export default function Revenue() {
                   {t('revenue.accountsSubtitle', { count: drillMerchants.length })} · {money(drillTotal)}
                 </p>
               </div>
-              <button onClick={() => setDrill(null)} className="text-body hover:text-black dark:hover:text-white" aria-label="Close">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-3">
+                <div className="relative hidden sm:block">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-body"><Icon d={ICONS.search} className="h-4 w-4" /></span>
+                  <input
+                    type="text"
+                    value={drillSearch}
+                    onChange={(e) => setDrillSearch(e.target.value)}
+                    placeholder={t('revenue.searchAccounts')}
+                    className="w-56 rounded-md border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
+                  />
+                </div>
+                <button onClick={() => setDrill(null)} className="text-body hover:text-black dark:hover:text-white" aria-label="Close">
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            {/* Mobile search (header too narrow) */}
+            <div className="border-b border-stroke px-6 py-3 dark:border-strokedark sm:hidden">
+              <input
+                type="text"
+                value={drillSearch}
+                onChange={(e) => setDrillSearch(e.target.value)}
+                placeholder={t('revenue.searchAccounts')}
+                className="w-full rounded-md border border-stroke bg-transparent py-2 px-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
+              />
             </div>
             <div className="max-h-[calc(80vh-5rem)] overflow-auto">
               <table className="w-full table-auto text-sm">

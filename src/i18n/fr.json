@@ -182,7 +182,8 @@
     "others": "Autres",
     "viewAccounts": "Voir les comptes",
     "accountsSubtitle_one": "{{count}} compte",
-    "accountsSubtitle_other": "{{count}} comptes"
+    "accountsSubtitle_other": "{{count}} comptes",
+    "searchAccounts": "Rechercher un marchand…"
   },
   "newFeatures": {
     "adminDataTools": {
