@@ -85,7 +85,8 @@ const AdminPanel = () => {
   const [syncInfo, setSyncInfo] = useState<any>(null);
   const location = useLocation();
   const pathParts = location.pathname.split('/');
-  const activeTab = pathParts[2] || 'sync'; // /admin/sync, /admin/salespeople, etc.
+  const rawTab = pathParts[2] || 'sync'; // /admin/sync, /admin/salespeople, etc.
+  const activeTab = rawTab === 'admins' ? 'users' : rawTab; // legacy /admin/admins → Users section
 
   // Handle redirect back from CRM OAuth
   useEffect(() => {
@@ -1285,7 +1286,7 @@ const AdminPanel = () => {
              activeTab === 'salespeople' ? t('admin.salespeople.title') :
              activeTab === 'customers' ? t('admin.customers.title') :
              activeTab === 'releases' ? t('admin.releases.title') :
-             activeTab === 'admins' ? t('admin.admins.title') :
+             activeTab === 'users' ? t('admin.usersSection.title') :
              activeTab === 'roles' ? t('admin.roles.title') :
              activeTab === 'import-payments' ? t('admin.commissionImport.title') :
              activeTab === 'resellers' ? t('admin.resellers.title') :
@@ -1296,7 +1297,7 @@ const AdminPanel = () => {
              activeTab === 'salespeople' ? t('admin.salespeople.subtitle') :
              activeTab === 'customers' ? t('admin.customers.subtitle') :
              activeTab === 'releases' ? `${t('admin.releases.currentVersion')}: v${appVersion}` :
-             activeTab === 'admins' ? t('admin.admins.subtitle') :
+             activeTab === 'users' ? t('admin.usersSection.subtitle') :
              activeTab === 'roles' ? t('admin.roles.subtitle') :
              activeTab === 'import-payments' ? t('admin.commissionImport.subtitle') :
              activeTab === 'resellers' ? t('admin.resellers.subtitle') :
@@ -2758,7 +2759,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           )}
 
           {/* ==================== ADMIN USERS ==================== */}
-          {activeTab === 'admins' && (
+          {activeTab === 'users' && (
             <>
             {/* ==================== IMPERSONATION ==================== */}
             <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -2971,7 +2972,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           )}
 
           {/* ==================== COMMISSION IMPORT TAB ==================== */}
-          {activeTab === 'admins' && <ExternalUsers />}
+          {activeTab === 'users' && <ExternalUsers />}
           {activeTab === 'import-payments' && <CommissionImport />}
           {activeTab === 'resellers' && <ResellerAdmin />}
 

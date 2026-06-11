@@ -272,6 +272,7 @@
     "customers": "Customers",
     "releases": "Releases",
     "admins": "Admins",
+    "users": "Users",
     "roles": "Roles & Permissions",
     "importPayments": "Import Commissions",
     "reseller": "Reseller Activation",
@@ -824,6 +825,10 @@
       "descAdmin": "Full access to everything",
       "descManager": "Team manager — full team visibility, can approve commissions",
       "descSalesRep": "Standard salesperson — sees own data only"
+    },
+    "usersSection": {
+      "title": "User Management",
+      "subtitle": "Roles, admin access, role pre-assignment and external users"
     },
     "admins": {
       "title": "Admin Access",

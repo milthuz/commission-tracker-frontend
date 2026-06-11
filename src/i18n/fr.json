@@ -272,6 +272,7 @@
     "customers": "Clients",
     "releases": "Versions",
     "admins": "Administrateurs",
+    "users": "Utilisateurs",
     "roles": "Rôles et permissions",
     "importPayments": "Importer commissions",
     "reseller": "Activations revendeur",
@@ -824,6 +825,10 @@
       "descAdmin": "Accès complet à tout",
       "descManager": "Gestionnaire d'équipe — visibilité complète de l'équipe, peut approuver les commissions",
       "descSalesRep": "Vendeur standard — voit uniquement ses propres données"
+    },
+    "usersSection": {
+      "title": "Gestion des utilisateurs",
+      "subtitle": "Rôles, accès administrateur, pré-assignation de rôles et utilisateurs externes"
     },
     "admins": {
       "title": "Accès administrateur",

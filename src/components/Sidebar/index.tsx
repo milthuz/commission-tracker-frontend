@@ -377,12 +377,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </li>
                     <li>
                       <NavLink
-                        to="/admin/admins"
+                        to="/admin/users"
                         className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                          pathname === '/admin/admins' ? 'text-white' : ''
+                          pathname === '/admin/users' || pathname === '/admin/admins' ? 'text-white' : ''
                         }`}
                       >
-                        {t('sidebar.admins')}<NewBadge path="/admin/admins" />
+                        {t('sidebar.users')}<NewBadge path="/admin/users" />
                       </NavLink>
                     </li>
                     <li>
