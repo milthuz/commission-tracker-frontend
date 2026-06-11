@@ -101,6 +101,9 @@ const CommissionImport: React.FC = () => {
   const [dragOver, setDragOver] = useState(false);
   const [stub, setStub] = useState<PayStubData | null>(null);
   const [coverage, setCoverage] = useState<CoverageData | null>(null);
+  // Past report years hidden from the Commission Report + coverage matrix.
+  const [disabledYears, setDisabledYears] = useState<number[]>([]);
+  const [savingYears, setSavingYears] = useState(false);
 
   const openStub = async (id: number) => {
     try {
@@ -150,7 +153,34 @@ const CommissionImport: React.FC = () => {
     } catch (_e) { /* silent */ }
   };
 
-  useEffect(() => { fetchHistory(); fetchCoverage(); }, []);
+  const fetchDisabledYears = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/settings/report-years`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDisabledYears(Array.isArray(res.data?.disabledYears) ? res.data.disabledYears : []);
+    } catch (_e) { /* silent */ }
+  };
+
+  const toggleYear = async (year: number) => {
+    const next = disabledYears.includes(year)
+      ? disabledYears.filter(y => y !== year)
+      : [...disabledYears, year];
+    setSavingYears(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.put(`${API_URL}/api/admin/report-years`, { disabledYears: next }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDisabledYears(Array.isArray(res.data?.disabledYears) ? res.data.disabledYears : next);
+      await fetchCoverage(); // matrix months follow the setting
+    } catch (_e) { /* keep prior state */ } finally {
+      setSavingYears(false);
+    }
+  };
+
+  useEffect(() => { fetchHistory(); fetchCoverage(); fetchDisabledYears(); }, []);
 
   // Update a single entry by id
   const updateEntry = (id: string, patch: Partial<FileEntry>) => {
@@ -592,6 +622,42 @@ const CommissionImport: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Report years visibility — hide a noisy past year (e.g. 2025) everywhere */}
+      {new Date().getFullYear() > 2025 && (
+        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.reportYears.title')}</h3>
+            <p className="text-sm text-body">{t('admin.commissionImport.reportYears.subtitle')}</p>
+          </div>
+          <div className="px-6 py-4">
+            {Array.from({ length: new Date().getFullYear() - 2025 }, (_, i) => 2025 + i).map(y => {
+              const hidden = disabledYears.includes(y);
+              return (
+                <div key={y} className="flex flex-wrap items-center justify-between gap-3 py-2">
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium text-black dark:text-white">{y}</span>
+                    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      hidden ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'
+                    }`}>
+                      {hidden ? t('admin.commissionImport.reportYears.hidden') : t('admin.commissionImport.reportYears.visible')}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => toggleYear(y)}
+                    disabled={savingYears}
+                    className={`whitespace-nowrap rounded px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 ${
+                      hidden ? 'bg-success hover:bg-success/90' : 'bg-warning hover:bg-warning/90'
+                    }`}
+                  >
+                    {hidden ? t('admin.commissionImport.reportYears.show') : t('admin.commissionImport.reportYears.hide')}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

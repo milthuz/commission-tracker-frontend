@@ -765,6 +765,14 @@
       "skippedZeroDetails": "{{count}} factures ignorées (commission de 0 $)",
       "historyTitle": "Historique des imports",
       "historySubtitle": "Imports passés des rapports de commission. Cliquez une ligne pour voir son bulletin de paie.",
+      "reportYears": {
+        "title": "Années de rapport",
+        "subtitle": "Masquer une année passée du rapport de commission et de la matrice de couverture ci-dessous (ex. 2025, données pré-plateforme qui créent de la confusion). Rien n'est supprimé — une année masquée peut être réaffichée en tout temps.",
+        "visible": "Visible",
+        "hidden": "Masquée",
+        "hide": "Masquer",
+        "show": "Afficher"
+      },
       "coverage": {
         "title": "Couverture et réconciliation",
         "subtitle": "Une cellule par rep par mois depuis janvier 2025. Repérez d'un coup d'œil les fichiers de paie manquants et les commissions non payées — cliquez une cellule pour ouvrir le bulletin du mois.",

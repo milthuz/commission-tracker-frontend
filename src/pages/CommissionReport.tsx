@@ -123,6 +123,8 @@ const CommissionReport = () => {
   const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1));
   const [selectedRep, setSelectedRep] = useState('');
   const [salespeople, setSalespeople] = useState<string[]>([]);
+  // Years hidden by the admin (Admin → Import Commissions) — dropped from the year dropdown.
+  const [disabledYears, setDisabledYears] = useState<number[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSalesperson, setIsSalesperson] = useState(false);
   const [perms, setPerms] = useState<string[]>([]);
@@ -172,6 +174,23 @@ const CommissionReport = () => {
         else if (Array.isArray(res.data?.permissions)) setPerms(res.data.permissions);
         setIsSalesperson(!!res.data?.user?.isSalesperson);
       } catch (_e) { /* leave isAdmin=false on failure (least privilege) */ }
+    })();
+    (async () => {
+      try {
+        const res = await axios.get(`${API_URL}/api/settings/report-years`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const years: number[] = Array.isArray(res.data?.disabledYears) ? res.data.disabledYears : [];
+        setDisabledYears(years);
+        // If the selected year just became hidden, fall back to the newest visible one.
+        setSelectedYear(prev => {
+          if (!years.includes(parseInt(prev, 10))) return prev;
+          for (let y = new Date().getFullYear(); y >= 2025; y--) {
+            if (!years.includes(y)) return String(y);
+          }
+          return prev;
+        });
+      } catch (_e) { /* on failure, show all years */ }
     })();
   }, []);
 
@@ -729,10 +748,12 @@ const CommissionReport = () => {
             onChange={(e) => setSelectedYear(e.target.value)}
             className="rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
           >
-            {/* Data starts Jan 2025 — list current year down to 2025 only */}
-            {Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i).map(y => (
-              <option key={y} value={y}>{y}</option>
-            ))}
+            {/* Data starts Jan 2025 — list current year down to 2025, minus admin-disabled years */}
+            {Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i)
+              .filter(y => !disabledYears.includes(y))
+              .map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
           </select>
 
           {/* Pay Stub — per month; disabled on "All Months" */}
