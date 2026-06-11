@@ -21,8 +21,23 @@ import Reseller from './pages/Reseller';
 import Revenue from './pages/Revenue';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { NewFeaturesProvider } from './context/NewFeaturesContext';
+
+// "/" = company-wide dashboard (perm invoices:view_all). Reps without that permission
+// are sent to their own Commission Report instead of landing on an empty/403 page.
+function HomeRoute() {
+  const { user } = useAuth();
+  const perms = user?.permissions || [];
+  const canDashboard = !!user?.isAdmin || perms.includes('*') || perms.includes('invoices:view_all');
+  if (user && !canDashboard) return <Navigate to="/commission-report" replace />;
+  return (
+    <>
+      <PageTitle title="Sales Hub" />
+      <ECommerce />
+    </>
+  );
+}
 
 function AppContent() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -101,12 +116,7 @@ function AppContent() {
         <Route element={<DefaultLayout />}>
           <Route
             index
-            element={
-              <>
-                <PageTitle title="Sales Hub" />
-                <ECommerce />
-              </>
-            }
+            element={<HomeRoute />}
           />
           <Route
             path="/commission-tracker"

@@ -163,7 +163,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             )}
 
             <ul className="mb-6 flex flex-col gap-1.5">
-              {/* <!-- Menu Item Dashboard --> */}
+              {/* <!-- Menu Item Dashboard (company-wide stats — perm: invoices:view_all) --> */}
+              {(isAdmin || can('invoices:view_all')) && (
               <li>
                 <NavLink
                   to="/"
@@ -199,9 +200,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   <NewBadge path="/" collapsed={collapsed} />
                 </NavLink>
               </li>
+              )}
               {/* <!-- Menu Item Dashboard --> */}
 
-              {/* <!-- Menu Item Commission Tracker --> */}
+              {/* <!-- Menu Item Commission Tracker (perm: tracker:view_*) --> */}
+              {(isAdmin || can('tracker:view_own') || can('tracker:view_all_totals') || can('tracker:view_all_details')) && (
               <li>
                 <NavLink
                   to="/commission-tracker"
@@ -225,9 +228,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   <NewBadge path="/commission-tracker" collapsed={collapsed} />
                 </NavLink>
               </li>
+              )}
               {/* <!-- Menu Item Commission Tracker --> */}
 
-              {/* <!-- Menu Item Commission Report --> */}
+              {/* <!-- Menu Item Commission Report (perm: report:view_*) --> */}
+              {(isAdmin || can('report:view_own') || can('report:view_others')) && (
               <li>
                 <NavLink
                   to="/commission-report"
@@ -247,6 +252,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   <NewBadge path="/commission-report" collapsed={collapsed} />
                 </NavLink>
               </li>
+              )}
               {/* <!-- Menu Item Commission Report --> */}
 
               {/* <!-- Menu Item Reseller (perm: reseller:view) --> */}
