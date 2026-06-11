@@ -39,9 +39,13 @@ const PayStubModal: React.FC<{
   onClose: () => void;
   onCommit?: () => void;     // only wired by Commission Report for admins (report:mark_paid)
   committing?: boolean;
-}> = ({ data, onClose, onCommit, committing }) => {
+  // Admin-only audit info: the "App calc." comparison column + the missed/unpaid radar panel.
+  // Reps must NOT see how the app's model compares to what was actually paid.
+  showAppCalc?: boolean;
+}> = ({ data, onClose, onCommit, committing, showAppCalc }) => {
   const { t, i18n } = useTranslation();
   if (!data) return null;
+  const showApp = !!showAppCalc && data.source === 'imported';
 
   const fmt = (val: number) =>
     val.toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -209,12 +213,12 @@ const PayStubModal: React.FC<{
                       <th className="px-3 py-2 text-left font-medium">{tp('invoice')}</th>
                       <th className="px-3 py-2 text-left font-medium">{tp('customer')}</th>
                       <th className="px-3 py-2 text-right font-medium">{tp('amount')}</th>
-                      {data.source === 'imported' && <th className="px-3 py-2 text-right font-medium">{tp('appCalc')}</th>}
+                      {showApp && <th className="px-3 py-2 text-right font-medium">{tp('appCalc')}</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {data.lines.length === 0 ? (
-                      <tr><td colSpan={data.source === 'imported' ? 4 : 3} className="px-3 py-3 text-center text-body">—</td></tr>
+                      <tr><td colSpan={showApp ? 4 : 3} className="px-3 py-3 text-center text-body">—</td></tr>
                     ) : data.lines.map((l) => {
                       const diff = !l.not_in_db && l.app_commission != null && Math.abs(l.app_commission - l.paid_amount) > 0.01;
                       return (
@@ -229,7 +233,7 @@ const PayStubModal: React.FC<{
                             )}
                           </td>
                           <td className="px-3 py-2 text-right font-semibold text-black dark:text-white">{fmt(l.paid_amount)}</td>
-                          {data.source === 'imported' && (
+                          {showApp && (
                             <td className={`px-3 py-2 text-right ${diff ? 'font-medium text-danger' : 'text-body'}`}>
                               {l.not_in_db || l.app_commission == null ? '—' : fmt(l.app_commission)}{diff ? ' ⚠' : ''}
                             </td>
@@ -278,7 +282,7 @@ const PayStubModal: React.FC<{
               </p>
 
               {/* Forgot-to-pay radar: earned this period per the app's model but not paid. */}
-              {data.missed && data.missed.length > 0 && (
+              {showAppCalc && data.missed && data.missed.length > 0 && (
                 <div className="mt-5 rounded-md border border-warning border-opacity-40 bg-warning bg-opacity-5 p-4">
                   <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-warning">
                     ⚠ {tp('missedTitle')} ({data.missed.length})

@@ -793,6 +793,7 @@ const CommissionReport = () => {
         onClose={() => setPayStub(null)}
         onCommit={canMarkPaid ? commitPayStub : undefined}
         committing={committingStub}
+        showAppCalc={canMarkPaid}
       />
 
       {/* Total Compensation — EARNED TO DATE: base salary accrued by pay period (26 bi-weekly

@@ -663,7 +663,7 @@ const CommissionImport: React.FC = () => {
       )}
 
       {/* Pay Stub detail modal (shared component) */}
-      <PayStubModal data={stub} onClose={() => setStub(null)} />
+      <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc />
     </div>
   );
 };
