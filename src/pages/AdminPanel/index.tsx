@@ -15,6 +15,7 @@ const DEFAULT_QUOTA = 15;
 
 interface Salesperson {
   name: string;
+  email?: string | null;
   isActive: boolean;
   commissionRate: number;
   baseSalary: number;
@@ -301,6 +302,20 @@ const AdminPanel = () => {
       fetchSalespeople();
     } catch (error: any) {
       alert(error?.response?.data?.error || 'Failed to delete team');
+    }
+  };
+
+  const updateRepEmail = async (name: string, email: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/email`,
+        { email },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSalespeople(prev => prev.map(p => p.name === name ? { ...p, email: email || null } : p));
+    } catch (error: any) {
+      alert(error?.response?.data?.error || 'Failed to update email');
     }
   };
 
@@ -2293,6 +2308,21 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   </button>
                                 )}
                               </div>
+                            </div>
+                            <div>
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.email')}</span>
+                              <input
+                                type="email"
+                                defaultValue={person.email ?? ''}
+                                placeholder={t('admin.salespeople.emailPlaceholder')}
+                                title={t('admin.salespeople.emailHint') as string}
+                                onBlur={(e) => {
+                                  const val = e.target.value.trim().toLowerCase();
+                                  if (val !== (person.email || '')) updateRepEmail(person.name, val);
+                                }}
+                                onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                                className={`w-full max-w-[230px] rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input ${person.email ? 'text-black dark:text-white' : 'text-body'}`}
+                              />
                             </div>
                             <div>
                               <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.monthlyQuota')}</span>
