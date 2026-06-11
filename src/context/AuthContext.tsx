@@ -40,14 +40,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedUser = localStorage.getItem('user');
 
       if (token && storedUser) {
-        // Verify token with backend
+        // Verify token with backend. IMPORTANT: this uses fetch (not axios), so the
+        // axios interceptor that adds X-Impersonate-As does NOT apply — attach it
+        // manually, otherwise the Sidebar keeps the ADMIN identity (full admin menu)
+        // while impersonating a rep.
+        const headers: Record<string, string> = { 'Authorization': `Bearer ${token}` };
+        const impersonateAs = localStorage.getItem('impersonateAs');
+        if (impersonateAs) headers['X-Impersonate-As'] = impersonateAs;
         const response = await fetch(
           `${import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com'}/api/auth/verify`,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          }
+          { headers }
         );
 
         if (response.ok) {
