@@ -40,8 +40,9 @@ interface Team {
 interface AdminUser {
   email: string;
   isAdmin: boolean;
-  createdAt: string;
-  lastLogin: string;
+  createdAt: string | null;
+  lastLogin: string | null;
+  userType?: 'zoho' | 'external' | 'pending';
   roles?: { id: number; name: string }[];
 }
 
@@ -140,6 +141,7 @@ const AdminPanel = () => {
 
   // User roles editing
   const [editingUserRoles, setEditingUserRoles] = useState<string | null>(null); // user email being edited
+  const [preassignEmail, setPreassignEmail] = useState(''); // assign roles to an email that hasn't logged in yet
   const [editingUserRoleIds, setEditingUserRoleIds] = useState<number[]>([]);
 
   // CRM connection state
@@ -2809,6 +2811,37 @@ Joker Pub,Jay Daoust,2024-04-01`}
               ) : (
                 <div className="p-7">
                   <p className="mb-4 text-sm text-body">{t('admin.admins.description')}</p>
+                  {/* Pre-assign roles to an email that hasn't logged in yet (rep's first Zoho
+                      login will pick the roles up by email match). */}
+                  <form
+                    className="mb-4 flex flex-wrap items-center gap-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const email = preassignEmail.trim().toLowerCase();
+                      if (!email || !email.includes('@')) return;
+                      setEditingUserRoles(email);
+                      setEditingUserRoleIds(
+                        (adminUsers.find(u => u.email.toLowerCase() === email)?.roles || []).map(r => r.id)
+                      );
+                      setPreassignEmail('');
+                    }}
+                  >
+                    <input
+                      type="email"
+                      value={preassignEmail}
+                      onChange={(e) => setPreassignEmail(e.target.value)}
+                      placeholder={t('admin.admins.preassignPlaceholder')}
+                      className="w-72 rounded-md border border-stroke bg-transparent py-2 px-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!preassignEmail.trim().includes('@')}
+                      className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                    >
+                      {t('admin.admins.preassignButton')}
+                    </button>
+                    <span className="text-xs text-body">{t('admin.admins.preassignHint')}</span>
+                  </form>
                   <div className="max-h-[600px] overflow-y-auto">
                     <table className="w-full table-auto">
                       <thead>
@@ -2825,6 +2858,15 @@ Joker Pub,Jay Daoust,2024-04-01`}
                           <tr key={user.email} className="border-b border-stroke dark:border-strokedark">
                             <td className="px-4 py-5">
                               <p className="text-black dark:text-white font-medium">{user.email}</p>
+                              {user.userType && user.userType !== 'zoho' && (
+                                <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                  user.userType === 'external'
+                                    ? 'bg-primary bg-opacity-10 text-primary'
+                                    : 'bg-warning bg-opacity-10 text-warning'
+                                }`}>
+                                  {t(`admin.admins.type_${user.userType}`)}
+                                </span>
+                              )}
                             </td>
                             <td className="px-4 py-5">
                               <p className="text-sm text-body">
@@ -2868,6 +2910,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 >
                                   {t('admin.admins.editRoles')}
                                 </button>
+                              {(!user.userType || user.userType === 'zoho') && (
                               <button
                                 onClick={() => toggleAdminStatus(user.email, user.isAdmin)}
                                 className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
@@ -2878,6 +2921,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               >
                                 {user.isAdmin ? t('admin.admins.revokeAdmin') : t('admin.admins.grantAdmin')}
                               </button>
+                              )}
                               </div>
                             </td>
                           </tr>

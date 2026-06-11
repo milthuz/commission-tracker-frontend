@@ -841,6 +841,11 @@
       "noUsers": "No users found",
       "rolesColumn": "Roles",
       "noRoles": "No roles",
+      "preassignPlaceholder": "email@company.com",
+      "preassignButton": "Assign roles to email",
+      "preassignHint": "Works before their first login — roles apply by email match.",
+      "type_external": "External",
+      "type_pending": "Never logged in",
       "editRoles": "Edit Roles",
       "assignRoles": "Assign Roles"
     }

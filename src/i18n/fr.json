@@ -841,6 +841,11 @@
       "noUsers": "Aucun utilisateur trouvé",
       "rolesColumn": "Rôles",
       "noRoles": "Aucun rôle",
+      "preassignPlaceholder": "courriel@compagnie.com",
+      "preassignButton": "Assigner des rôles au courriel",
+      "preassignHint": "Fonctionne avant la première connexion — les rôles s'appliquent par correspondance de courriel.",
+      "type_external": "Externe",
+      "type_pending": "Jamais connecté",
       "editRoles": "Modifier les rôles",
       "assignRoles": "Assigner des rôles"
     }
