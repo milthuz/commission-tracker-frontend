@@ -122,7 +122,10 @@ const CommissionReport = () => {
   // Year defaults match — if user changes the year to a past one, they can
   // switch to 'All Months' manually for an annual view.
   const [selectedMonth, setSelectedMonth] = useState(String(new Date().getMonth() + 1));
-  const [selectedRep, setSelectedRep] = useState('');
+  // Restore the last viewed rep so the FIRST report fetch already targets them.
+  // Without this, an admin's initial fetch returns their own (empty) report, the
+  // banner/cards flash $0, then the rep auto-select triggers a second fetch.
+  const [selectedRep, setSelectedRep] = useState(() => localStorage.getItem('commissionReport.selectedRep') || '');
   const [salespeople, setSalespeople] = useState<string[]>([]);
   // Years hidden by the admin (Admin → Import Commissions) — dropped from the year dropdown.
   const [disabledYears, setDisabledYears] = useState<number[]>([]);
@@ -208,8 +211,9 @@ const CommissionReport = () => {
         setSalespeople(reps);
         // If admin is not themselves a salesperson, auto-select the first one
         // (otherwise the default empty selection falls back to admin's own name,
-        // which produces an empty report since they have no commissions)
-        if (!isSalesperson && !selectedRep && reps.length > 0) {
+        // which produces an empty report since they have no commissions).
+        // A restored selection that no longer exists in the list falls back too.
+        if (!isSalesperson && reps.length > 0 && (!selectedRep || !reps.includes(selectedRep))) {
           setSelectedRep(reps[0]);
         }
       } catch (e) {
@@ -218,6 +222,11 @@ const CommissionReport = () => {
     };
     fetchReps();
   }, [isAdmin, isSalesperson]);
+
+  // Remember the selected rep for the next visit (instant correct first fetch).
+  useEffect(() => {
+    if (selectedRep) localStorage.setItem('commissionReport.selectedRep', selectedRep);
+  }, [selectedRep]);
 
   // Fetch report data
   useEffect(() => {
