@@ -831,9 +831,9 @@
       "subtitle": "Rôles, accès administrateur, pré-assignation de rôles et utilisateurs externes"
     },
     "admins": {
-      "title": "Accès administrateur",
-      "subtitle": "Gérer les accès administrateur de l'application",
-      "description": "Les utilisateurs ayant ouvert une session via Zoho apparaissent ici. Accordez ou révoquez les privilèges d'administrateur selon les besoins. Les administrateurs peuvent accéder à toutes les données, gérer les vendeurs, exécuter des synchronisations et modifier les paramètres.",
+      "title": "Accès utilisateurs",
+      "subtitle": "Gérer les rôles et l'accès administrateur de tous ceux qui peuvent se connecter",
+      "description": "Les utilisateurs Zoho, les utilisateurs externes et les courriels pré-assignés apparaissent tous ici. Assignez des rôles pour contrôler ce que chacun voit, et accordez ou révoquez les privilèges d'administrateur (comptes Zoho seulement). Les administrateurs peuvent accéder à toutes les données, gérer les vendeurs, exécuter des synchronisations et modifier les paramètres.",
       "totalUsers": "Total des utilisateurs",
       "adminCount": "Administrateurs",
       "email": "Courriel",

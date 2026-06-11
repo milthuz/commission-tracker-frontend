@@ -831,9 +831,9 @@
       "subtitle": "Roles, admin access, role pre-assignment and external users"
     },
     "admins": {
-      "title": "Admin Access",
-      "subtitle": "Manage who has admin access to the application",
-      "description": "Users who have logged in via Zoho appear here. Grant or revoke admin privileges as needed. Admins can access all data, manage salespeople, run syncs, and modify settings.",
+      "title": "User Access",
+      "subtitle": "Manage roles and admin access for everyone who can sign in",
+      "description": "Zoho users, external users and pre-assigned emails all appear here. Assign roles to control what each user sees, and grant or revoke admin privileges (Zoho accounts only). Admins can access all data, manage salespeople, run syncs, and modify settings.",
       "totalUsers": "Total Users",
       "adminCount": "Admins",
       "email": "Email",
