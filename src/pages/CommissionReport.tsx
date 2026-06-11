@@ -35,6 +35,7 @@ interface DrillInvoice {
 const COMMISSION_STATUS_STYLES: Record<string, { key: string; cls: string }> = {
   hardware:         { key: 'commissionReport.csHardware',       cls: 'bg-primary bg-opacity-10 text-primary' },
   saas_first:       { key: 'commissionReport.csSaasFirst',      cls: 'bg-success bg-opacity-10 text-success' },
+  saas_annual:      { key: 'commissionReport.csSaasAnnual',     cls: 'bg-success bg-opacity-10 text-success' },
   saas_renewal:     { key: 'commissionReport.csSaasRenewal',    cls: 'bg-gray-200 text-body dark:bg-meta-4' },
   pending_saas:     { key: 'commissionReport.csPendingSaas',    cls: 'bg-warning bg-opacity-10 text-warning' },
   pending_payment:  { key: 'commissionReport.csPendingPayment', cls: 'bg-warning bg-opacity-10 text-warning' },

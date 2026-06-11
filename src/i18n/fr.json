@@ -462,6 +462,7 @@
     "pendingHelp": "Ventes hardware en attente de la 1re facture SaaS, ou factures payées hors fenêtre de 3 mois.",
     "csHardware": "Hardware",
     "csSaasFirst": "SaaS 1er mois",
+    "csSaasAnnual": "Abo annuel (10 %)",
     "csSaasRenewal": "Renouvellement",
     "csPendingSaas": "SaaS à venir",
     "csPendingPayment": "Paiement à venir",

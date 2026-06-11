@@ -462,6 +462,7 @@
     "pendingHelp": "Hardware sales waiting for first SaaS invoice, or paid invoices outside the 3-month window.",
     "csHardware": "Hardware",
     "csSaasFirst": "SaaS 1st month",
+    "csSaasAnnual": "Annual sub (10%)",
     "csSaasRenewal": "Renewal",
     "csPendingSaas": "Pending SaaS",
     "csPendingPayment": "Pending payment",
