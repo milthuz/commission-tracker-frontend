@@ -40,6 +40,7 @@ const COMMISSION_STATUS_STYLES: Record<string, { key: string; cls: string }> = {
   pending_saas:     { key: 'commissionReport.csPendingSaas',    cls: 'bg-warning bg-opacity-10 text-warning' },
   pending_payment:  { key: 'commissionReport.csPendingPayment', cls: 'bg-warning bg-opacity-10 text-warning' },
   too_late:         { key: 'commissionReport.csTooLate',        cls: 'bg-danger bg-opacity-10 text-danger' },
+  quota_not_met:    { key: 'commissionReport.csQuotaNotMet',    cls: 'bg-danger bg-opacity-10 text-danger' },
   not_eligible:     { key: 'commissionReport.csNotEligible',    cls: 'bg-gray-200 text-body dark:bg-meta-4' },
 };
 

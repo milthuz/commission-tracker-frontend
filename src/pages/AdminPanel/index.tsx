@@ -24,6 +24,8 @@ interface Salesperson {
   signupBonusAmount: number;
   signupBonusEnabled: boolean;
   monthlyQuota: number | null;
+  hireDate?: string | null;
+  quotaGateEnabled?: boolean;
   teamId: number | null;
   teamName: string | null;
 }
@@ -317,6 +319,34 @@ const AdminPanel = () => {
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, email: email || null } : p));
     } catch (error: any) {
       alert(error?.response?.data?.error || 'Failed to update email');
+    }
+  };
+
+  const updateHireDate = async (name: string, hireDate: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/hire-date`,
+        { hireDate },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSalespeople(prev => prev.map(p => p.name === name ? { ...p, hireDate: hireDate || null } : p));
+    } catch (error: any) {
+      alert(error?.response?.data?.error || 'Failed to update hire date');
+    }
+  };
+
+  const updateQuotaGate = async (name: string, enabled: boolean) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/quota-gate`,
+        { enabled },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSalespeople(prev => prev.map(p => p.name === name ? { ...p, quotaGateEnabled: enabled } : p));
+    } catch (error: any) {
+      alert(error?.response?.data?.error || 'Failed to update quota gate');
     }
   };
 
@@ -2324,6 +2354,29 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
                                 className={`w-full max-w-[230px] rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input ${person.email ? 'text-black dark:text-white' : 'text-body'}`}
                               />
+                            </div>
+                            <div>
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.hireDate')}</span>
+                              <input
+                                type="date"
+                                defaultValue={person.hireDate ?? ''}
+                                title={t('admin.salespeople.hireDateHint') as string}
+                                onBlur={(e) => {
+                                  const val = e.target.value;
+                                  if (val !== (person.hireDate || '')) updateHireDate(person.name, val);
+                                }}
+                                className="rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white"
+                              />
+                            </div>
+                            <div>
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.quotaGate')}</span>
+                              <button
+                                onClick={() => updateQuotaGate(person.name, !(person.quotaGateEnabled !== false))}
+                                title={t('admin.salespeople.quotaGateHint') as string}
+                                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.quotaGateEnabled !== false ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
+                              >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.quotaGateEnabled !== false ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                              </button>
                             </div>
                             <div>
                               <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.monthlyQuota')}</span>

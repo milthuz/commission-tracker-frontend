@@ -261,7 +261,7 @@ const PayStubModal: React.FC<{
                       <tbody>
                         {data.bonuses.map((b, i) => (
                           <tr key={i} className="border-t border-stroke dark:border-strokedark">
-                            <td className="px-3 py-2 capitalize text-black dark:text-white">{b.bonus_type}</td>
+                            <td className="px-3 py-2 capitalize text-black dark:text-white">{b.bonus_type === 'monthly_performance' ? tp('monthlyPerformance') : b.bonus_type}</td>
                             <td className="px-3 py-2 text-black dark:text-white">{b.merchant_name || '—'}</td>
                             <td className="px-3 py-2 text-right font-semibold text-success">{fmt(b.amount)}</td>
                           </tr>
