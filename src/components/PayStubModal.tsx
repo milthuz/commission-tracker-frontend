@@ -29,6 +29,8 @@ export interface PayStubData {
   linesStored: boolean;      // false → invoice breakdown is reconstructed (old import)
   missed?: PayStubMissed[];  // earned this period per the app but NOT paid (imported stubs)
   missedTotal?: number;
+  // Quota-gate context (generated stubs, payroll admins only) — plan v7.7 §2
+  quota?: { points: number; required: number; met: boolean; ramp: boolean; waived: boolean } | null;
 }
 
 // Shared pay-stub detail modal — used by the admin import history AND the rep-facing
@@ -42,7 +44,9 @@ const PayStubModal: React.FC<{
   // Admin-only audit info: the "App calc." comparison column + the missed/unpaid radar panel.
   // Reps must NOT see how the app's model compares to what was actually paid.
   showAppCalc?: boolean;
-}> = ({ data, onClose, onCommit, committing, showAppCalc }) => {
+  // Per-month quota override ("payer quand même") — wired by admin pages only.
+  onQuotaWaive?: (waived: boolean) => void;
+}> = ({ data, onClose, onCommit, committing, showAppCalc, onQuotaWaive }) => {
   const { t, i18n } = useTranslation();
   if (!data) return null;
   const showApp = !!showAppCalc && data.source === 'imported';
@@ -197,6 +201,35 @@ const PayStubModal: React.FC<{
           {data.source === 'imported' && !data.linesStored && (
             <div className="mb-4 rounded-md border border-warning border-opacity-40 bg-warning bg-opacity-10 px-4 py-3 text-xs text-black dark:text-white">
               ⚠ {tp('reconstructedBanner')}
+            </div>
+          )}
+
+          {/* Quota gate (plan v7.7 §2) — payroll admins: status + per-month override */}
+          {data.quota && !data.quota.ramp && (
+            <div className={`mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border px-4 py-3 text-xs ${
+              data.quota.met
+                ? 'border-success border-opacity-40 bg-success bg-opacity-5 text-black dark:text-white'
+                : data.quota.waived
+                  ? 'border-primary border-opacity-40 bg-primary bg-opacity-5 text-black dark:text-white'
+                  : 'border-danger border-opacity-40 bg-danger bg-opacity-5 text-black dark:text-white'
+            }`}>
+              <span>
+                {data.quota.met
+                  ? `✓ ${tp('quotaMet')} (${data.quota.points}/${data.quota.required} pts)`
+                  : data.quota.waived
+                    ? `${tp('quotaWaived')} (${data.quota.points}/${data.quota.required} pts)`
+                    : `⛔ ${tp('quotaNotMet')} (${data.quota.points}/${data.quota.required} pts)`}
+              </span>
+              {onQuotaWaive && !data.quota.met && (
+                <button
+                  onClick={() => onQuotaWaive(!data.quota!.waived)}
+                  className={`whitespace-nowrap rounded px-3 py-1.5 text-xs font-medium text-white ${
+                    data.quota.waived ? 'bg-danger hover:bg-opacity-90' : 'bg-primary hover:bg-opacity-90'
+                  }`}
+                >
+                  {data.quota.waived ? tp('quotaUnwaive') : tp('quotaWaive')}
+                </button>
+              )}
             </div>
           )}
 

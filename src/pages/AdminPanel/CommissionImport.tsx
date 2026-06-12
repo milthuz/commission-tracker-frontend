@@ -129,8 +129,25 @@ const CommissionImport: React.FC = () => {
         lines: d.lines || [], bonuses: d.bonuses || [], total: d.total || 0,
         source: d.source, linesStored: d.linesStored,
         missed: d.missed || [], missedTotal: d.missedTotal || 0,
+        quota: d.quota || null,
       });
     } catch (_e) { /* ignore */ }
+  };
+
+  // Per-month quota override from the matrix flow — backend kicks a recalc (~2 min).
+  const waiveQuota = async (waived: boolean) => {
+    if (!stub) return;
+    const [year, month] = stub.period.split('-');
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/commissions/quota-waiver`, {
+        repName: stub.repName, year, month: String(parseInt(month)), waived,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setStub(null);
+      alert(t('commissionReport.payStub.quotaWaiveStarted') as string);
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Failed to update quota waiver');
+    }
   };
 
   const fetchCoverage = async () => {
@@ -663,7 +680,7 @@ const CommissionImport: React.FC = () => {
       )}
 
       {/* Pay Stub detail modal (shared component) */}
-      <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc />
+      <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc onQuotaWaive={waiveQuota} />
     </div>
   );
 };

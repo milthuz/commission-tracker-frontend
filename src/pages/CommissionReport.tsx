@@ -391,12 +391,29 @@ const CommissionReport = () => {
         linesStored: d.linesStored,
         missed:      d.missed || [],
         missedTotal: d.missedTotal || 0,
+        quota:       d.quota || null,
       });
     } catch (e) {
       console.error('Error loading pay stub:', e);
       alert('Failed to load pay stub');
     } finally {
       setLoadingStub(false);
+    }
+  };
+
+  // Per-month quota override (plan v7.7): pay this rep's month despite the missed quota.
+  // The backend kicks a recalc — the restored commissions appear after ~2 minutes.
+  const waiveQuota = async (waived: boolean) => {
+    if (!payStub || selectedMonth === 'all') return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/commissions/quota-waiver`, {
+        repName: payStub.repName, year: selectedYear, month: selectedMonth, waived,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setPayStub(null);
+      setNotification({ show: true, type: 'success', message: t('commissionReport.payStub.quotaWaiveStarted') as string });
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Failed to update quota waiver');
     }
   };
 
@@ -795,6 +812,7 @@ const CommissionReport = () => {
         onCommit={canMarkPaid ? commitPayStub : undefined}
         committing={committingStub}
         showAppCalc={canMarkPaid}
+        onQuotaWaive={canMarkPaid ? waiveQuota : undefined}
       />
 
       {/* Total Compensation — EARNED TO DATE: base salary accrued by pay period (26 bi-weekly
