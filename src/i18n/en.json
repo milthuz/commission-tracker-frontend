@@ -371,6 +371,7 @@
       "type": "Type",
       "merchant": "Merchant",
       "monthlyPerformance": "Monthly bonus",
+      "processingBonus": "Processing bonus",
       "quotaMet": "Quota met",
       "quotaNotMet": "Quota NOT met — this month's hardware/SaaS commissions are withheld",
       "quotaWaived": "Override active — this month is paid despite the missed quota",
