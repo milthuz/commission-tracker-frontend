@@ -784,6 +784,18 @@
       "skippedZeroDetails": "{{count}} factures ignorées (commission de 0 $)",
       "historyTitle": "Historique des imports",
       "historySubtitle": "Imports passés des rapports de commission. Cliquez une ligne pour voir son bulletin de paie.",
+      "processing": {
+        "title": "Bonus de paiement (bi-annuel)",
+        "subtitle": "Versé deux fois par an — juin couvre déc→mai, décembre couvre juin→nov. Par compte : moyenne mensuelle (profit transaction + autres revenus) sur ses mois actifs, moins les premiers 100 $, plafonné à 400 $. Actif ≥ 3 des 6 mois.",
+        "june": "Versement juin (déc→mai)",
+        "december": "Versement décembre (juin→nov)",
+        "preview": "Prévisualiser",
+        "loading": "Calcul…",
+        "window": "Fenêtre",
+        "accounts": "Comptes",
+        "bonus": "Bonus",
+        "none": "Aucun compte admissible pour cette période."
+      },
       "reportYears": {
         "title": "Années de rapport",
         "subtitle": "Masquer une année passée du rapport de commission et de la matrice de couverture ci-dessous (ex. 2025, données pré-plateforme qui créent de la confusion). Rien n'est supprimé — une année masquée peut être réaffichée en tout temps.",

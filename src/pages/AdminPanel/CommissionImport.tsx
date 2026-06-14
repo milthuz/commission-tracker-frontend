@@ -78,6 +78,10 @@ interface CoverageCell { importTotal: number | null; source: 'file' | 'app' | 'b
 interface CoverageRow { rep: string; cells: Record<string, CoverageCell>; totalPaid: number; totalUnpaid: number; }
 interface CoverageData { months: string[]; rows: CoverageRow[]; }
 
+interface ProcAccount { merchant_account_id: string; business_name: string; avg: number; activeMonths: number; bonus: number; }
+interface ProcRep { rep: string; total: number; accounts: ProcAccount[]; }
+interface ProcData { year: number; month: number; window: [number, number][]; grandTotal: number; reps: ProcRep[]; }
+
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 // Map the import-detail response into the shared PayStubModal shape.
@@ -101,6 +105,12 @@ const CommissionImport: React.FC = () => {
   const [dragOver, setDragOver] = useState(false);
   const [stub, setStub] = useState<PayStubData | null>(null);
   const [coverage, setCoverage] = useState<CoverageData | null>(null);
+  // Processing-bonus preview (bi-annual: June covers Dec→May, December covers Jun→Nov).
+  const [procYear, setProcYear] = useState(new Date().getFullYear());
+  const [procMonth, setProcMonth] = useState<6 | 12>(new Date().getMonth() + 1 >= 6 && new Date().getMonth() + 1 < 12 ? 6 : 12);
+  const [procData, setProcData] = useState<ProcData | null>(null);
+  const [procLoading, setProcLoading] = useState(false);
+  const [procExpanded, setProcExpanded] = useState<string | null>(null);
   // Past report years hidden from the Commission Report + coverage matrix.
   const [disabledYears, setDisabledYears] = useState<number[]>([]);
   const [savingYears, setSavingYears] = useState(false);
@@ -147,6 +157,22 @@ const CommissionImport: React.FC = () => {
       alert(t('commissionReport.payStub.quotaWaiveStarted') as string);
     } catch (e: any) {
       alert(e?.response?.data?.error || 'Failed to update quota waiver');
+    }
+  };
+
+  const fetchProcessing = async () => {
+    setProcLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/admin/processing-bonus`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { year: procYear, month: procMonth },
+      });
+      setProcData(res.data);
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Failed to load processing bonus');
+    } finally {
+      setProcLoading(false);
     }
   };
 
@@ -642,6 +668,83 @@ const CommissionImport: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Processing bonus (bi-annual) preview */}
+      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.processing.title')}</h3>
+          <p className="text-sm text-body">{t('admin.commissionImport.processing.subtitle')}</p>
+        </div>
+        <div className="px-6 py-4">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <select
+              value={procMonth}
+              onChange={(e) => setProcMonth(parseInt(e.target.value) as 6 | 12)}
+              className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input"
+            >
+              <option value={6}>{t('admin.commissionImport.processing.june')}</option>
+              <option value={12}>{t('admin.commissionImport.processing.december')}</option>
+            </select>
+            <input
+              type="number"
+              value={procYear}
+              onChange={(e) => setProcYear(parseInt(e.target.value) || procYear)}
+              className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white"
+            />
+            <button
+              onClick={fetchProcessing}
+              disabled={procLoading}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+            >
+              {procLoading ? t('admin.commissionImport.processing.loading') : t('admin.commissionImport.processing.preview')}
+            </button>
+            {procData && (
+              <span className="text-sm text-body">
+                {t('admin.commissionImport.processing.window')}: {procData.window[0][1]}/{procData.window[0][0]} – {procData.window[5][1]}/{procData.window[5][0]} ·
+                <span className="ml-1 font-semibold text-black dark:text-white">{fmt(procData.grandTotal)}</span>
+              </span>
+            )}
+          </div>
+          {procData && (
+            procData.reps.length === 0 ? (
+              <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.processing.none')}</p>
+            ) : (
+              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-2 dark:bg-meta-4">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-medium">Rep</th>
+                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.accounts')}</th>
+                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.bonus')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {procData.reps.map((r) => (
+                      <React.Fragment key={r.rep}>
+                        <tr
+                          onClick={() => setProcExpanded(procExpanded === r.rep ? null : r.rep)}
+                          className="cursor-pointer border-t border-stroke transition hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/30"
+                        >
+                          <td className="px-4 py-2 font-medium text-black dark:text-white">{procExpanded === r.rep ? '▾' : '▸'} {r.rep}</td>
+                          <td className="px-4 py-2 text-right text-body">{r.accounts.length}</td>
+                          <td className="px-4 py-2 text-right font-semibold text-success">{fmt(r.total)}</td>
+                        </tr>
+                        {procExpanded === r.rep && r.accounts.map((a) => (
+                          <tr key={a.merchant_account_id} className="border-t border-stroke bg-gray-50 text-xs dark:border-strokedark dark:bg-meta-4/20">
+                            <td className="px-4 py-1.5 pl-8 text-black dark:text-white">{a.business_name}</td>
+                            <td className="px-4 py-1.5 text-right text-body">{a.activeMonths} mo · ~{fmt(a.avg)}/mo</td>
+                            <td className="px-4 py-1.5 text-right text-body">{fmt(a.bonus)}</td>
+                          </tr>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          )}
+        </div>
+      </div>
 
       {/* Report years visibility — hide a noisy past year (e.g. 2025) everywhere */}
       {new Date().getFullYear() > 2025 && (

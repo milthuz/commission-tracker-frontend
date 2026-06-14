@@ -784,6 +784,18 @@
       "skippedZeroDetails": "{{count}} invoices skipped (commission was $0)",
       "historyTitle": "Import History",
       "historySubtitle": "Past commission report imports. Click a row to view its pay stub.",
+      "processing": {
+        "title": "Processing Bonus (bi-annual)",
+        "subtitle": "Paid twice a year — June covers Dec→May, December covers Jun→Nov. Per account: avg monthly (transaction profit + other revenue) over its active months, minus the first $100, capped at $400. Active ≥3 of the 6 months.",
+        "june": "June payout (Dec→May)",
+        "december": "December payout (Jun→Nov)",
+        "preview": "Preview",
+        "loading": "Computing…",
+        "window": "Window",
+        "accounts": "Accounts",
+        "bonus": "Bonus",
+        "none": "No qualifying accounts for this period."
+      },
       "reportYears": {
         "title": "Report Years",
         "subtitle": "Hide a past year from the Commission Report and the coverage matrix below (e.g. 2025, pre-platform data that causes confusion). Nothing is deleted — a hidden year can be shown again anytime.",
