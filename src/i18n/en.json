@@ -786,12 +786,12 @@
       "historySubtitle": "Past commission report imports. Click a row to view its pay stub.",
       "processing": {
         "title": "Processing Bonus (bi-annual)",
-        "subtitle": "Paid twice a year — June covers Dec→May, December covers Jun→Nov. Per account: avg monthly (transaction profit + other revenue) over its active months, minus the first $100, capped at $400. Active ≥3 of the 6 months.",
-        "june": "June payout (Dec→May)",
-        "december": "December payout (Jun→Nov)",
+        "subtitle": "Paid ONCE per account, at the June or December payout after its first 6 months are complete. The 6-month window is anchored to the account's activation. Per account: avg monthly (transaction profit + other revenue) over its active months, minus the first $100, capped at $400 (needs revenue in ≥3 of the 6 months). Active reps only.",
+        "june": "June payout",
+        "december": "December payout",
         "preview": "Preview",
         "loading": "Computing…",
-        "window": "Window",
+        "total": "Total",
         "accounts": "Accounts",
         "bonus": "Bonus",
         "none": "No qualifying accounts for this period."

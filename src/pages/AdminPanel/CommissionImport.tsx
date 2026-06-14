@@ -78,9 +78,9 @@ interface CoverageCell { importTotal: number | null; source: 'file' | 'app' | 'b
 interface CoverageRow { rep: string; cells: Record<string, CoverageCell>; totalPaid: number; totalUnpaid: number; }
 interface CoverageData { months: string[]; rows: CoverageRow[]; }
 
-interface ProcAccount { merchant_account_id: string; business_name: string; avg: number; activeMonths: number; bonus: number; }
+interface ProcAccount { merchant_account_id: string; business_name: string; windowStart: string; windowEnd: string; avg: number; activeMonths: number; bonus: number; }
 interface ProcRep { rep: string; total: number; accounts: ProcAccount[]; }
-interface ProcData { year: number; month: number; window: [number, number][]; grandTotal: number; reps: ProcRep[]; }
+interface ProcData { year: number; month: number; grandTotal: number; reps: ProcRep[]; }
 
 const newId = () => Math.random().toString(36).slice(2, 10);
 
@@ -700,7 +700,7 @@ const CommissionImport: React.FC = () => {
             </button>
             {procData && (
               <span className="text-sm text-body">
-                {t('admin.commissionImport.processing.window')}: {procData.window[0][1]}/{procData.window[0][0]} – {procData.window[5][1]}/{procData.window[5][0]} ·
+                {t('admin.commissionImport.processing.total')}:
                 <span className="ml-1 font-semibold text-black dark:text-white">{fmt(procData.grandTotal)}</span>
               </span>
             )}
@@ -731,7 +731,7 @@ const CommissionImport: React.FC = () => {
                         </tr>
                         {procExpanded === r.rep && r.accounts.map((a) => (
                           <tr key={a.merchant_account_id} className="border-t border-stroke bg-gray-50 text-xs dark:border-strokedark dark:bg-meta-4/20">
-                            <td className="px-4 py-1.5 pl-8 text-black dark:text-white">{a.business_name}</td>
+                            <td className="px-4 py-1.5 pl-8 text-black dark:text-white">{a.business_name}<span className="ml-2 text-body">({a.windowStart} → {a.windowEnd})</span></td>
                             <td className="px-4 py-1.5 text-right text-body">{a.activeMonths} mo · ~{fmt(a.avg)}/mo</td>
                             <td className="px-4 py-1.5 text-right text-body">{fmt(a.bonus)}</td>
                           </tr>
