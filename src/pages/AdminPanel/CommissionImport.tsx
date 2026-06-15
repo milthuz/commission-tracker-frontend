@@ -31,6 +31,8 @@ interface PreviewSummary {
   signup_bonuses_count: number;
   signup_bonuses_amount: number;
   monthly_bonus_amount: number;
+  volume_bonuses_count?: number;
+  volume_bonuses_amount?: number;
   total_to_pay: number;
 }
 
@@ -41,6 +43,7 @@ interface PreviewResponse {
   skipped_zero: string[];
   not_found: string[];
   bonuses: PreviewBonus[];
+  volume_bonuses?: { merchant: string | null; amount: number; matched_zentact_id: string | null }[];
 }
 
 // One row per dropped file — tracks both the file and its preview/commit state.
@@ -541,6 +544,35 @@ const CommissionImport: React.FC = () => {
                             </tbody>
                           </table>
                         </div>
+                      </div>
+                    )}
+
+                    {/* Volume / processing bonuses (historical, recorded per account) */}
+                    {e.preview.volume_bonuses && e.preview.volume_bonuses.length > 0 && (
+                      <div>
+                        <p className="mb-1 text-xs font-semibold text-black dark:text-white">
+                          {t('admin.commissionImport.volumeBonuses')} ({e.preview.volume_bonuses.length})
+                        </p>
+                        <div className="rounded border border-stroke dark:border-strokedark">
+                          <table className="w-full text-xs">
+                            <tbody>
+                              {e.preview.volume_bonuses.map((b, i) => (
+                                <tr key={i} className="border-t border-stroke first:border-t-0 dark:border-strokedark">
+                                  <td className="px-2 py-1 truncate max-w-[220px]">{b.merchant}</td>
+                                  <td className="px-2 py-1 text-center text-[10px]">
+                                    {b.matched_zentact_id
+                                      ? <span className="text-success">✓ Zentact</span>
+                                      : <span className="text-warning" title={t('admin.commissionImport.volumeNoMatchHint') as string}>{t('admin.commissionImport.noMatch')}</span>}
+                                  </td>
+                                  <td className="px-2 py-1 text-right font-medium">{fmt(b.amount)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {e.preview.volume_bonuses.some(b => !b.matched_zentact_id) && (
+                          <p className="mt-1 text-[10px] text-warning">{t('admin.commissionImport.volumeNoMatchHint')}</p>
+                        )}
                       </div>
                     )}
 

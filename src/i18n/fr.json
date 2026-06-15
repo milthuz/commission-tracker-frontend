@@ -773,6 +773,8 @@
       "invoicesToMark": "Factures à marquer payées",
       "signupBonuses": "Paiements d'inscription",
       "monthlyBonus": "Prime mensuelle",
+      "volumeBonuses": "Bonus volume / processing",
+      "volumeNoMatchHint": "Les comptes non appariés ne seront PAS exclus du versement automatique — corrige le nom du marchand pour éviter un double paiement.",
       "totalToPay": "Total à payer",
       "merchant": "Marchand",
       "matchedZentact": "Match Zentact",

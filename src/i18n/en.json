@@ -773,6 +773,8 @@
       "invoicesToMark": "Invoices to mark paid",
       "signupBonuses": "Signup payments",
       "monthlyBonus": "Monthly bonus",
+      "volumeBonuses": "Volume / processing bonuses",
+      "volumeNoMatchHint": "Unmatched accounts won't be excluded from the automated payout — fix the merchant name to avoid double-paying.",
       "totalToPay": "Total to pay",
       "merchant": "Merchant",
       "matchedZentact": "Zentact match",
