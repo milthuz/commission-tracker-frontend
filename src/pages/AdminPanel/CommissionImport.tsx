@@ -107,6 +107,11 @@ type SubTab = typeof SUBTABS[number];
 
 const CommissionImport: React.FC = () => {
   const { t, i18n } = useTranslation();
+  // Month name in the current locale (e.g. "May" / "mai"), capitalized.
+  const monthName = (m: number) => {
+    const s = new Date(2000, m - 1, 1).toLocaleString(i18n.language, { month: 'long' });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [subTab, setSubTab] = useState<SubTab>('import');
   const [entries, setEntries] = useState<FileEntry[]>([]);
@@ -840,7 +845,7 @@ const CommissionImport: React.FC = () => {
               <div className="flex gap-2">
                 <select value={payMonth} onChange={(e) => setPayMonth(parseInt(e.target.value))}
                   className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{String(m).padStart(2, '0')}</option>)}
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthName(m)}</option>)}
                 </select>
                 <input type="number" value={payYear} onChange={(e) => setPayYear(parseInt(e.target.value) || payYear)}
                   className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
@@ -1011,7 +1016,7 @@ const CommissionImport: React.FC = () => {
               <div className="flex gap-2">
                 <select value={mbMonth} onChange={(e) => setMbMonth(parseInt(e.target.value))}
                   className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{String(m).padStart(2, '0')}</option>)}
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthName(m)}</option>)}
                 </select>
                 <input type="number" value={mbYear} onChange={(e) => setMbYear(parseInt(e.target.value) || mbYear)}
                   className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
