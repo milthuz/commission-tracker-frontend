@@ -197,11 +197,21 @@ const PayStubModal: React.FC<{
             <p className="text-sm text-body">
               {tp('period')}: {data.period}{data.subtitle ? ` · ${data.subtitle}` : ''}
             </p>
-            <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${
-              data.source === 'imported' ? 'bg-primary bg-opacity-10 text-primary' : 'bg-success bg-opacity-10 text-success'
-            }`}>
-              {data.source === 'imported' ? tp('sourceImported') : tp('sourceGenerated')}
-            </span>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              {/* Approval status — clear for the rep: pending approval → paid */}
+              <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                data.source === 'imported'
+                  ? 'bg-success bg-opacity-10 text-success'
+                  : 'bg-warning bg-opacity-10 text-warning'
+              }`}>
+                {data.source === 'imported' ? `✓ ${tp('statusPaid')}` : `⏳ ${tp('statusPending')}`}
+              </span>
+              <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                data.source === 'imported' ? 'bg-primary bg-opacity-10 text-primary' : 'bg-gray-2 text-body dark:bg-meta-4'
+              }`}>
+                {data.source === 'imported' ? tp('sourceImported') : tp('sourceGenerated')}
+              </span>
+            </div>
           </div>
           <button onClick={printStub} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
             {tp('print')}

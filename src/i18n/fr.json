@@ -373,6 +373,8 @@
       "monthlyPerformance": "Bonus mensuel",
       "processingBonus": "Bonus de paiement",
       "signupBonus": "Bonus d'inscription",
+      "statusPending": "En attente d'approbation",
+      "statusPaid": "Payé",
       "quotaMet": "Quota atteint",
       "quotaNotMet": "Quota NON atteint — les commissions matériel/SaaS du mois sont retenues",
       "quotaWaived": "Exemption active — ce mois est payé malgré le quota manqué",
