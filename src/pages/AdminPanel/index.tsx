@@ -1354,7 +1354,7 @@ const AdminPanel = () => {
       {/* Content */}
           {activeTab === 'sync' && (
             <>
-            <div className="flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
               {([['connections', t('admin.integrations.tabs.connections')], ['data', t('admin.integrations.tabs.data')]] as const).map(([key, label]) => (
                 <button key={key} onClick={() => setSyncSub(key as 'connections' | 'data')}
                   className={`rounded-md px-4 py-2 text-sm font-medium transition ${syncSub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
