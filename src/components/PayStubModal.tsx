@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
 export interface PayStubLine {
   invoice_number: string;
@@ -48,6 +51,9 @@ const PayStubModal: React.FC<{
   onQuotaWaive?: (waived: boolean) => void;
 }> = ({ data, onClose, onCommit, committing, showAppCalc, onQuotaWaive }) => {
   const { t, i18n } = useTranslation();
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [emailTo, setEmailTo] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
   if (!data) return null;
   const showApp = !!showAppCalc && data.source === 'imported';
 
@@ -64,6 +70,44 @@ const PayStubModal: React.FC<{
       case 'monthly_performance': return tp('monthlyPerformance');
       case 'processing':          return tp('processingBonus');
       default:                    return type;
+    }
+  };
+
+  // Export to Excel — a .xls (HTML-table) file Excel opens natively. No dependency.
+  const exportExcel = () => {
+    if (!data) return;
+    const esc = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const rows: string[] = [];
+    rows.push(`<tr><th colspan="3" style="text-align:left">${esc(tp('title'))} — ${esc(data.repName)} · ${esc(data.period)}</th></tr>`);
+    rows.push(`<tr><th>${esc(tp('invoice'))}</th><th>${esc(tp('customer'))}</th><th>${esc(tp('amount'))}</th></tr>`);
+    data.lines.forEach(l => rows.push(`<tr><td>${esc(l.invoice_number)}</td><td>${esc(l.customer)}</td><td>${l.paid_amount}</td></tr>`));
+    data.bonuses.forEach(b => rows.push(`<tr><td>${esc(bonusLabel(b.bonus_type))}</td><td>${esc(b.merchant_name)}</td><td>${b.amount}</td></tr>`));
+    rows.push(`<tr><td></td><td style="text-align:right"><b>${esc(tp('totalPaid'))}</b></td><td><b>${data.total}</b></td></tr>`);
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1">${rows.join('')}</table></body></html>`;
+    const blob = new Blob(['﻿', html], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `PayStub_${data.repName.replace(/\s+/g, '_')}_${data.period}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const sendEmail = async () => {
+    if (!data || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailTo.trim())) return;
+    setEmailSending(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/commissions/pay-stub/email`, {
+        repName: data.repName, period: data.period, to: emailTo.trim(),
+        lines: data.lines, bonuses: data.bonuses, total: data.total, source: data.source,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setEmailOpen(false); setEmailTo('');
+      alert(tp('emailSent'));
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Failed to send');
+    } finally {
+      setEmailSending(false);
     }
   };
 
@@ -213,9 +257,42 @@ const PayStubModal: React.FC<{
               </span>
             </div>
           </div>
-          <button onClick={printStub} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
-            {tp('print')}
-          </button>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={() => { setEmailOpen(o => !o); }} title={tp('email') as string}
+                className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium text-body transition hover:border-primary hover:text-primary dark:border-strokedark">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                {tp('email')}
+              </button>
+              <button onClick={exportExcel} title={tp('excel') as string}
+                className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium text-body transition hover:border-success hover:text-success dark:border-strokedark">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4h16v16H4zM4 9h16M9 4v16" /></svg>
+                {tp('excel')}
+              </button>
+              <button onClick={printStub} title={tp('pdf') as string}
+                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" /></svg>
+                {tp('pdf')}
+              </button>
+            </div>
+            {emailOpen && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="email"
+                  autoFocus
+                  value={emailTo}
+                  onChange={(e) => setEmailTo(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') sendEmail(); }}
+                  placeholder={tp('emailPlaceholder') as string}
+                  className="w-56 rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+                />
+                <button onClick={sendEmail} disabled={emailSending || !emailTo.trim()}
+                  className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                  {emailSending ? tp('emailSending') : tp('emailSend')}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto p-6">
           {/* Banner: invoice breakdown reconstructed (old import without stored lines) */}
