@@ -56,6 +56,17 @@ const PayStubModal: React.FC<{
       style: 'currency', currency: 'CAD', minimumFractionDigits: 2,
     });
 
+  // Friendly label per bonus type (avoids the bare "signup"/"Bonus" ambiguity).
+  const bonusLabel = (type: string): string => {
+    switch (type) {
+      case 'signup':              return tp('signupBonus');
+      case 'monthly':
+      case 'monthly_performance': return tp('monthlyPerformance');
+      case 'processing':          return tp('processingBonus');
+      default:                    return type;
+    }
+  };
+
   const tp = (k: string) => t(`commissionReport.payStub.${k}`);
 
   // Branded, print-optimized pay-stub document (opens in a new window, auto-prints).
@@ -79,7 +90,7 @@ const PayStubModal: React.FC<{
       </tr>`).join('');
     const bonusHtml = data.bonuses.map((b, i) => `
       <tr${i % 2 ? ' class="alt"' : ''}>
-        <td class="cap">${esc(b.bonus_type)}</td>
+        <td>${esc(bonusLabel(b.bonus_type))}</td>
         <td>${esc(b.merchant_name) || '—'}</td>
         <td class="num">${fmt(b.amount)}</td>
       </tr>`).join('');
@@ -294,7 +305,7 @@ const PayStubModal: React.FC<{
                       <tbody>
                         {data.bonuses.map((b, i) => (
                           <tr key={i} className="border-t border-stroke dark:border-strokedark">
-                            <td className="px-3 py-2 capitalize text-black dark:text-white">{b.bonus_type === 'monthly_performance' ? tp('monthlyPerformance') : b.bonus_type === 'processing' ? tp('processingBonus') : b.bonus_type}</td>
+                            <td className="px-3 py-2 text-black dark:text-white">{bonusLabel(b.bonus_type)}</td>
                             <td className="px-3 py-2 text-black dark:text-white">{b.merchant_name || '—'}</td>
                             <td className="px-3 py-2 text-right font-semibold text-success">{fmt(b.amount)}</td>
                           </tr>
