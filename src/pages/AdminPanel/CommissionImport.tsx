@@ -85,6 +85,9 @@ interface ProcAccount { merchant_account_id: string; business_name: string; wind
 interface ProcRep { rep: string; total: number; accounts: ProcAccount[]; }
 interface ProcData { year: number; month: number; grandTotal: number; reps: ProcRep[]; }
 
+interface PayrollRep { rep: string; source: string; total: number; lineCount: number; bonusCount: number; }
+interface PayrollData { year: number; month: number; dueBy: string | null; recipients: string[]; grandTotal: number; reps: PayrollRep[]; }
+
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 // Map the import-detail response into the shared PayStubModal shape.
@@ -108,6 +111,51 @@ const CommissionImport: React.FC = () => {
   const [dragOver, setDragOver] = useState(false);
   const [stub, setStub] = useState<PayStubData | null>(null);
   const [coverage, setCoverage] = useState<CoverageData | null>(null);
+  // Payroll send (compile a month's commissions and email payroll).
+  const now = new Date();
+  const [payYear, setPayYear] = useState(now.getFullYear());
+  const [payMonth, setPayMonth] = useState(now.getMonth() + 1);
+  const [payData, setPayData] = useState<PayrollData | null>(null);
+  const [payLoading, setPayLoading] = useState(false);
+  const [paySending, setPaySending] = useState(false);
+  const [recipientsInput, setRecipientsInput] = useState('');
+
+  const fetchPayroll = async () => {
+    setPayLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/payroll/preview`, {
+        headers: { Authorization: `Bearer ${token}` }, params: { year: payYear, month: payMonth },
+      });
+      setPayData(res.data);
+      setRecipientsInput((res.data.recipients || []).join(', '));
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Failed to load payroll preview');
+    } finally { setPayLoading(false); }
+  };
+
+  const saveRecipients = async () => {
+    const emails = recipientsInput.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/commissions/payroll/recipients`, { emails }, { headers: { Authorization: `Bearer ${token}` } });
+      alert(t('admin.commissionImport.payroll.recipientsSaved'));
+      setPayData(d => d ? { ...d, recipients: emails } : d);
+    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to save recipients'); }
+  };
+
+  const sendPayroll = async () => {
+    if (!payData) return;
+    if (!confirm(t('admin.commissionImport.payroll.confirmSend', { count: payData.reps.length }) as string)) return;
+    setPaySending(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/commissions/payroll/send`, { year: payYear, month: payMonth }, { headers: { Authorization: `Bearer ${token}` } });
+      alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
+    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to send'); }
+    finally { setPaySending(false); }
+  };
+
   // Processing-bonus preview (bi-annual: June covers Dec→May, December covers Jun→Nov).
   const [procYear, setProcYear] = useState(new Date().getFullYear());
   const [procMonth, setProcMonth] = useState<6 | 12>(new Date().getMonth() + 1 >= 6 && new Date().getMonth() + 1 < 12 ? 6 : 12);
@@ -700,6 +748,89 @@ const CommissionImport: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Payroll send — compile a month and email it to payroll */}
+      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.payroll.title')}</h3>
+          <p className="text-sm text-body">{t('admin.commissionImport.payroll.subtitle')}</p>
+        </div>
+        <div className="px-6 py-4">
+          <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.month')}</label>
+              <div className="flex gap-2">
+                <select value={payMonth} onChange={(e) => setPayMonth(parseInt(e.target.value))}
+                  className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{String(m).padStart(2, '0')}</option>)}
+                </select>
+                <input type="number" value={payYear} onChange={(e) => setPayYear(parseInt(e.target.value) || payYear)}
+                  className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+              </div>
+            </div>
+            <button onClick={fetchPayroll} disabled={payLoading}
+              className="rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-white disabled:opacity-50">
+              {payLoading ? t('admin.commissionImport.processing.loading') : t('admin.commissionImport.payroll.preview')}
+            </button>
+            {payData?.dueBy && (
+              <span className="text-sm text-body">{t('admin.commissionImport.payroll.dueBy')}: <span className="font-semibold text-warning">{payData.dueBy}</span></span>
+            )}
+          </div>
+
+          {payData && (
+            <>
+              {/* Recipients */}
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <label className="text-xs font-medium text-body">{t('admin.commissionImport.payroll.recipients')}</label>
+                <input type="text" value={recipientsInput} onChange={(e) => setRecipientsInput(e.target.value)}
+                  placeholder="paie@compagnie.com, rh@compagnie.com"
+                  className="w-80 rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+                <button onClick={saveRecipients} className="rounded-md border border-stroke px-3 py-1.5 text-sm text-body hover:border-primary hover:text-primary dark:border-strokedark">
+                  {t('common.save')}
+                </button>
+              </div>
+
+              {payData.reps.length === 0 ? (
+                <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.payroll.none')}</p>
+              ) : (
+                <>
+                  <div className="mb-3 overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-2 dark:bg-meta-4">
+                        <tr><th className="px-4 py-2 text-left font-medium">Rep</th>
+                          <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.status')}</th>
+                          <th className="px-4 py-2 text-right font-medium">Total</th></tr>
+                      </thead>
+                      <tbody>
+                        {payData.reps.map(r => (
+                          <tr key={r.rep} className="border-t border-stroke dark:border-strokedark">
+                            <td className="px-4 py-2 font-medium text-black dark:text-white">{r.rep}</td>
+                            <td className="px-4 py-2 text-center text-[10px]">
+                              {r.source === 'imported'
+                                ? <span className="rounded-full bg-success bg-opacity-10 px-2 py-0.5 font-bold text-success">{t('commissionReport.payStub.statusPaid')}</span>
+                                : <span className="rounded-full bg-warning bg-opacity-10 px-2 py-0.5 font-bold text-warning">{t('commissionReport.payStub.statusPending')}</span>}
+                            </td>
+                            <td className="px-4 py-2 text-right font-semibold text-black dark:text-white">{fmt(r.total)}</td>
+                          </tr>
+                        ))}
+                        <tr className="border-t-2 border-black dark:border-white">
+                          <td className="px-4 py-2 font-bold text-black dark:text-white" colSpan={2}>Total</td>
+                          <td className="px-4 py-2 text-right font-bold text-primary">{fmt(payData.grandTotal)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <button onClick={sendPayroll} disabled={paySending || payData.recipients.length === 0}
+                    className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                    title={payData.recipients.length === 0 ? t('admin.commissionImport.payroll.noRecipients') as string : undefined}>
+                    {paySending ? t('admin.commissionImport.payroll.sending') : t('admin.commissionImport.payroll.send')}
+                  </button>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Processing bonus (bi-annual) preview */}
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">

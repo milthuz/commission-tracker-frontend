@@ -807,6 +807,22 @@
       "skippedZeroDetails": "{{count}} factures ignorées (commission de 0 $)",
       "historyTitle": "Historique des imports",
       "historySubtitle": "Imports passés des rapports de commission. Cliquez une ligne pour voir son bulletin de paie.",
+      "payroll": {
+        "title": "Envoyer à la paie",
+        "subtitle": "Compiler les commissions du mois pour tous les vendeurs actifs et les envoyer à la paie par courriel (tableau sommaire + un PDF combiné de tous les bulletins).",
+        "month": "Mois",
+        "preview": "Prévisualiser",
+        "dueBy": "Commission due le",
+        "recipients": "Destinataires paie",
+        "recipientsSaved": "Destinataires enregistrés.",
+        "status": "Statut",
+        "send": "Envoyer à la paie",
+        "sending": "Envoi…",
+        "sent": "Envoyé à {{count}} destinataire(s).",
+        "confirmSend": "Envoyer les commissions de {{count}} vendeurs à la paie par courriel?",
+        "none": "Rien à envoyer pour cette période.",
+        "noRecipients": "Ajoutez au moins un destinataire d'abord."
+      },
       "processing": {
         "title": "Bonus de paiement (bi-annuel)",
         "subtitle": "Versé UNE fois par compte, au versement de juin ou décembre suivant la complétion de ses 6 premiers mois. La fenêtre de 6 mois est ancrée à l'activation du compte. Par compte : moyenne mensuelle (profit transaction + autres revenus) sur ses mois actifs, moins les premiers 100 $, plafonné à 400 $ (besoin de revenus dans ≥ 3 des 6 mois). Vendeurs actifs seulement.",

@@ -807,6 +807,22 @@
       "skippedZeroDetails": "{{count}} invoices skipped (commission was $0)",
       "historyTitle": "Import History",
       "historySubtitle": "Past commission report imports. Click a row to view its pay stub.",
+      "payroll": {
+        "title": "Send to Payroll",
+        "subtitle": "Compile a month's commissions for all active reps and email it to payroll (summary table + one combined PDF of every pay stub).",
+        "month": "Month",
+        "preview": "Preview",
+        "dueBy": "Commission due by",
+        "recipients": "Payroll recipients",
+        "recipientsSaved": "Recipients saved.",
+        "status": "Status",
+        "send": "Send to payroll",
+        "sending": "Sending…",
+        "sent": "Sent to {{count}} recipient(s).",
+        "confirmSend": "Send {{count}} reps' commissions to payroll by email?",
+        "none": "Nothing to send for this period.",
+        "noRecipients": "Add at least one recipient first."
+      },
       "processing": {
         "title": "Processing Bonus (bi-annual)",
         "subtitle": "Paid ONCE per account, at the June or December payout after its first 6 months are complete. The 6-month window is anchored to the account's activation. Per account: avg monthly (transaction profit + other revenue) over its active months, minus the first $100, capped at $400 (needs revenue in ≥3 of the 6 months). Active reps only.",
