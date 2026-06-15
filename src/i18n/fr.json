@@ -383,6 +383,7 @@
       "merchant": "Marchand",
       "monthlyPerformance": "Bonus mensuel",
       "processingBonus": "Bonus de paiement",
+      "manualBonus": "Bonus manuel",
       "signupBonus": "Bonus d'inscription",
       "statusPending": "En attente d'approbation",
       "statusPaid": "Payé",
@@ -780,7 +781,7 @@
         "import": "Importer",
         "coverage": "Couverture",
         "payroll": "Paie",
-        "bonus": "Bonus bi-annuel",
+        "bonus": "Bonus",
         "settings": "Réglages"
       },
       "uploadTitle": "Téléverser un fichier Excel",
@@ -814,6 +815,16 @@
       "skippedZeroDetails": "{{count}} factures ignorées (commission de 0 $)",
       "historyTitle": "Historique des imports",
       "historySubtitle": "Imports passés des rapports de commission. Cliquez une ligne pour voir son bulletin de paie.",
+      "manualBonus": {
+        "title": "Bonus manuel",
+        "subtitle": "Ajouter un bonus ponctuel au bulletin d'un vendeur pour un mois précis, avec ta propre description.",
+        "selectRep": "Choisir un vendeur…",
+        "amount": "Montant",
+        "description": "Description",
+        "descPlaceholder": "ex. prime spéciale, référence, correction…",
+        "add": "Ajouter le bonus",
+        "needRepAmount": "Choisis un vendeur et entre un montant."
+      },
       "payroll": {
         "title": "Envoyer à la paie",
         "subtitle": "Compiler les commissions du mois pour tous les vendeurs actifs et les envoyer à la paie par courriel (tableau sommaire + un PDF combiné de tous les bulletins).",

@@ -383,6 +383,7 @@
       "merchant": "Merchant",
       "monthlyPerformance": "Monthly bonus",
       "processingBonus": "Processing bonus",
+      "manualBonus": "Manual bonus",
       "signupBonus": "Signup bonus",
       "statusPending": "Pending approval",
       "statusPaid": "Paid",
@@ -780,7 +781,7 @@
         "import": "Import",
         "coverage": "Coverage",
         "payroll": "Payroll",
-        "bonus": "Bi-annual bonus",
+        "bonus": "Bonus",
         "settings": "Settings"
       },
       "uploadTitle": "Upload Excel Report",
@@ -814,6 +815,16 @@
       "skippedZeroDetails": "{{count}} invoices skipped (commission was $0)",
       "historyTitle": "Import History",
       "historySubtitle": "Past commission report imports. Click a row to view its pay stub.",
+      "manualBonus": {
+        "title": "Manual bonus",
+        "subtitle": "Add a one-off bonus to a rep's pay stub for a specific month, with your own description.",
+        "selectRep": "Select a rep…",
+        "amount": "Amount",
+        "description": "Description",
+        "descPlaceholder": "e.g. Spiff, referral, correction…",
+        "add": "Add bonus",
+        "needRepAmount": "Pick a rep and enter an amount."
+      },
       "payroll": {
         "title": "Send to Payroll",
         "subtitle": "Compile a month's commissions for all active reps and email it to payroll (summary table + one combined PDF of every pay stub).",

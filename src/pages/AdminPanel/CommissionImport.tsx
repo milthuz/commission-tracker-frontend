@@ -160,6 +160,46 @@ const CommissionImport: React.FC = () => {
     finally { setPaySending(false); }
   };
 
+  // Manual bonus (free-text) on a rep's monthly stub.
+  const [reps, setReps] = useState<string[]>([]);
+  const [mbRep, setMbRep] = useState('');
+  const [mbYear, setMbYear] = useState(new Date().getFullYear());
+  const [mbMonth, setMbMonth] = useState(new Date().getMonth() + 1);
+  const [mbAmount, setMbAmount] = useState('');
+  const [mbDesc, setMbDesc] = useState('');
+  const [manualList, setManualList] = useState<{ id: number; rep_name: string; amount: number; description: string }[]>([]);
+
+  const fetchManualBonuses = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/manual-bonus`, {
+        headers: { Authorization: `Bearer ${token}` }, params: { year: mbYear, month: mbMonth },
+      });
+      setManualList(res.data.bonuses || []);
+    } catch (_e) { /* silent */ }
+  };
+
+  const addManualBonus = async () => {
+    const amt = parseFloat(mbAmount);
+    if (!mbRep || isNaN(amt)) { alert(t('admin.commissionImport.manualBonus.needRepAmount')); return; }
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/commissions/manual-bonus`,
+        { repName: mbRep, year: mbYear, month: mbMonth, amount: amt, description: mbDesc },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setMbAmount(''); setMbDesc('');
+      fetchManualBonuses();
+    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to add'); }
+  };
+
+  const deleteManualBonus = async (id: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/commissions/manual-bonus/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchManualBonuses();
+    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to delete'); }
+  };
+
   // Processing-bonus preview (bi-annual: June covers Dec→May, December covers Jun→Nov).
   const [procYear, setProcYear] = useState(new Date().getFullYear());
   const [procMonth, setProcMonth] = useState<6 | 12>(new Date().getMonth() + 1 >= 6 && new Date().getMonth() + 1 < 12 ? 6 : 12);
@@ -278,7 +318,19 @@ const CommissionImport: React.FC = () => {
     }
   };
 
-  useEffect(() => { fetchHistory(); fetchCoverage(); fetchDisabledYears(); }, []);
+  useEffect(() => {
+    fetchHistory(); fetchCoverage(); fetchDisabledYears();
+    // Active salespeople for the manual-bonus rep dropdown.
+    (async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_URL}/api/salespeople`, { headers: { Authorization: `Bearer ${token}` } });
+        setReps(res.data.salespeople || []);
+      } catch (_e) { /* silent */ }
+    })();
+  }, []);
+  // Reload manual bonuses whenever the selected period changes.
+  useEffect(() => { fetchManualBonuses(); }, [mbYear, mbMonth]);
 
   // Update a single entry by id
   const updateEntry = (id: string, patch: Partial<FileEntry>) => {
@@ -934,6 +986,79 @@ const CommissionImport: React.FC = () => {
                 </table>
               </div>
             )
+          )}
+        </div>
+      </div>
+
+      {/* Manual bonus — add a free-text bonus to a rep's monthly pay stub */}
+      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.manualBonus.title')}</h3>
+          <p className="text-sm text-body">{t('admin.commissionImport.manualBonus.subtitle')}</p>
+        </div>
+        <div className="px-6 py-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">Rep</label>
+              <select value={mbRep} onChange={(e) => setMbRep(e.target.value)}
+                className="w-48 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
+                <option value="">{t('admin.commissionImport.manualBonus.selectRep')}</option>
+                {reps.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.month')}</label>
+              <div className="flex gap-2">
+                <select value={mbMonth} onChange={(e) => setMbMonth(parseInt(e.target.value))}
+                  className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{String(m).padStart(2, '0')}</option>)}
+                </select>
+                <input type="number" value={mbYear} onChange={(e) => setMbYear(parseInt(e.target.value) || mbYear)}
+                  className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.amount')}</label>
+              <input type="number" step="0.01" value={mbAmount} onChange={(e) => setMbAmount(e.target.value)} placeholder="0.00"
+                className="w-28 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
+              <input type="text" value={mbDesc} onChange={(e) => setMbDesc(e.target.value)}
+                placeholder={t('admin.commissionImport.manualBonus.descPlaceholder') as string}
+                className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+            </div>
+            <button onClick={addManualBonus}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+              {t('admin.commissionImport.manualBonus.add')}
+            </button>
+          </div>
+
+          {manualList.length > 0 && (
+            <div className="mt-4 overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-2 dark:bg-meta-4">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-medium">Rep</th>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.manualBonus.description')}</th>
+                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                    <th className="px-4 py-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {manualList.map(m => (
+                    <tr key={m.id} className="border-t border-stroke dark:border-strokedark">
+                      <td className="px-4 py-2 text-black dark:text-white">{m.rep_name}</td>
+                      <td className="px-4 py-2 text-body">{m.description || '—'}</td>
+                      <td className="px-4 py-2 text-right font-semibold text-success">{fmt(m.amount)}</td>
+                      <td className="px-4 py-2 text-right">
+                        <button onClick={() => deleteManualBonus(m.id)} className="text-xs text-danger hover:underline">{t('common.delete')}</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
