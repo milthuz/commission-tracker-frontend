@@ -102,9 +102,13 @@ const toPayStub = (d: StubDetail): PayStubData => ({
   linesStored: d.lines.length > 0,
 });
 
+const SUBTABS = ['import', 'coverage', 'payroll', 'bonus', 'settings'] as const;
+type SubTab = typeof SUBTABS[number];
+
 const CommissionImport: React.FC = () => {
   const { t, i18n } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [subTab, setSubTab] = useState<SubTab>('import');
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [committingAll, setCommittingAll] = useState(false);
   const [history, setHistory] = useState<HistoryRow[]>([]);
@@ -400,6 +404,22 @@ const CommissionImport: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Sub-tab navigation */}
+      <div className="flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+        {SUBTABS.map(key => (
+          <button
+            key={key}
+            onClick={() => setSubTab(key)}
+            className={`rounded-md px-4 py-2 text-sm font-medium transition ${
+              subTab === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'
+            }`}
+          >
+            {t(`admin.commissionImport.tabs.${key}`)}
+          </button>
+        ))}
+      </div>
+
+      {subTab === 'import' && (<>
       {/* Drop zone */}
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
@@ -677,6 +697,9 @@ const CommissionImport: React.FC = () => {
         </div>
       )}
 
+      </>)}
+
+      {subTab === 'coverage' && (<>
       {/* Coverage / reconciliation matrix: rep × month */}
       {coverage && coverage.rows.length > 0 && (
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -749,6 +772,9 @@ const CommissionImport: React.FC = () => {
         </div>
       )}
 
+      </>)}
+
+      {subTab === 'payroll' && (<>
       {/* Payroll send — compile a month and email it to payroll */}
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
@@ -832,6 +858,9 @@ const CommissionImport: React.FC = () => {
         </div>
       </div>
 
+      </>)}
+
+      {subTab === 'bonus' && (<>
       {/* Processing bonus (bi-annual) preview */}
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
@@ -909,6 +938,9 @@ const CommissionImport: React.FC = () => {
         </div>
       </div>
 
+      </>)}
+
+      {subTab === 'settings' && (<>
       {/* Report years visibility — hide a noisy past year (e.g. 2025) everywhere */}
       {new Date().getFullYear() > 2025 && (
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -944,6 +976,8 @@ const CommissionImport: React.FC = () => {
           </div>
         </div>
       )}
+
+      </>)}
 
       {/* Pay Stub detail modal (shared component) */}
       <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc onQuotaWaive={waiveQuota} />

@@ -776,6 +776,13 @@
     "commissionImport": {
       "title": "Commissions",
       "subtitle": "Import pay files, review coverage, generate and send pay stubs, and manage bonuses.",
+      "tabs": {
+        "import": "Import",
+        "coverage": "Coverage",
+        "payroll": "Payroll",
+        "bonus": "Bi-annual bonus",
+        "settings": "Settings"
+      },
       "uploadTitle": "Upload Excel Report",
       "uploadSubtitle": "One .xlsx per rep per month. The file is parsed and previewed before any changes are applied.",
       "dropPrompt": "Click or drop an .xlsx file here",

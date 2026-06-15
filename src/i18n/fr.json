@@ -776,6 +776,13 @@
     "commissionImport": {
       "title": "Commissions",
       "subtitle": "Importer les fichiers de paie, réviser la couverture, générer et envoyer les bulletins, et gérer les bonus.",
+      "tabs": {
+        "import": "Importer",
+        "coverage": "Couverture",
+        "payroll": "Paie",
+        "bonus": "Bonus bi-annuel",
+        "settings": "Réglages"
+      },
       "uploadTitle": "Téléverser un fichier Excel",
       "uploadSubtitle": "Un fichier .xlsx par vendeur par mois. Le fichier est analysé et prévisualisé avant tout changement.",
       "dropPrompt": "Cliquez ou déposez un fichier .xlsx ici",
