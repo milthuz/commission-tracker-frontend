@@ -916,6 +916,15 @@
   "profile": {
     "title": "Profile",
     "subtitle": "Manage your account and preferences",
+    "requestFeature": {
+      "button": "Request a feature",
+      "title": "Request a feature",
+      "subtitle": "Have an idea to improve Sales Hub? Send it to the team.",
+      "placeholder": "Describe the feature or improvement you'd like…",
+      "send": "Send",
+      "sending": "Sending…",
+      "sent": "Thanks — your suggestion was sent to the team."
+    },
     "accountInfo": "Account Information",
     "accountInfoSubtitle": "Your personal details",
     "displayName": "Display Name",

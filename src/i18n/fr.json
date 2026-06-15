@@ -916,6 +916,15 @@
   "profile": {
     "title": "Profil",
     "subtitle": "Gérer votre compte et vos préférences",
+    "requestFeature": {
+      "button": "Demander une fonctionnalité",
+      "title": "Demander une fonctionnalité",
+      "subtitle": "Une idée pour améliorer Sales Hub? Envoyez-la à l'équipe.",
+      "placeholder": "Décrivez la fonctionnalité ou l'amélioration souhaitée…",
+      "send": "Envoyer",
+      "sending": "Envoi…",
+      "sent": "Merci — votre suggestion a été envoyée à l'équipe."
+    },
     "accountInfo": "Informations du compte",
     "accountInfoSubtitle": "Vos informations personnelles",
     "displayName": "Nom d'affichage",

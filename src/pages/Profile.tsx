@@ -73,6 +73,26 @@ const Profile = () => {
   const [currency, setCurrency] = useState('CAD');
   const [dateFormat, setDateFormat] = useState('YYYY-MM-DD');
   const [timezone, setTimezone] = useState('America/Toronto');
+  // "Request a feature" modal — emails admins.
+  const [featureModal, setFeatureModal] = useState<{ open: boolean; message: string; sending: boolean }>({
+    open: false, message: '', sending: false,
+  });
+
+  const submitFeature = async () => {
+    if (!featureModal.message.trim()) return;
+    setFeatureModal(m => ({ ...m, sending: true }));
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/feedback/feature-request`,
+        { message: featureModal.message },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setFeatureModal({ open: false, message: '', sending: false });
+      alert(t('profile.requestFeature.sent'));
+    } catch (e: any) {
+      setFeatureModal(m => ({ ...m, sending: false }));
+      alert(e?.response?.data?.error || 'Failed to send');
+    }
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -146,9 +166,20 @@ const Profile = () => {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('profile.title')}</h2>
-        <p className="text-sm text-body">{t('profile.subtitle')}</p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('profile.title')}</h2>
+          <p className="text-sm text-body">{t('profile.subtitle')}</p>
+        </div>
+        <button
+          onClick={() => setFeatureModal({ open: true, message: '', sending: false })}
+          className="inline-flex items-center gap-2 rounded-md border border-primary bg-transparent px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary hover:text-white"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          {t('profile.requestFeature.button')}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -472,6 +503,34 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Request-a-feature modal */}
+      {featureModal.open && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => !featureModal.sending && setFeatureModal(m => ({ ...m, open: false }))}>
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('profile.requestFeature.title')}</h3>
+            <p className="mb-4 text-sm text-body">{t('profile.requestFeature.subtitle')}</p>
+            <textarea
+              value={featureModal.message}
+              onChange={(e) => setFeatureModal(m => ({ ...m, message: e.target.value }))}
+              rows={5}
+              autoFocus
+              placeholder={t('profile.requestFeature.placeholder') as string}
+              className="mb-4 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+            />
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setFeatureModal(m => ({ ...m, open: false }))} disabled={featureModal.sending}
+                className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark">
+                {t('common.cancel')}
+              </button>
+              <button onClick={submitFeature} disabled={featureModal.sending || !featureModal.message.trim()}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                {featureModal.sending ? t('profile.requestFeature.sending') : t('profile.requestFeature.send')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
