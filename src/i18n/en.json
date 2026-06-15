@@ -274,7 +274,7 @@
     "admins": "Admins",
     "users": "Users",
     "roles": "Roles & Permissions",
-    "importPayments": "Import Commissions",
+    "importPayments": "Commissions",
     "reseller": "Reseller Activation",
     "revenue": "Processing Revenue",
     "resellersAdmin": "Manage Resellers",
@@ -774,8 +774,8 @@
       "rolesHint": "💡 Permissions: assign one or more roles to the user's email in Admin → Roles. Without a role, they can log in but see nothing."
     },
     "commissionImport": {
-      "title": "Import Commissions",
-      "subtitle": "Upload monthly commission reports to mark invoices as paid and record signup/monthly bonuses.",
+      "title": "Commissions",
+      "subtitle": "Import pay files, review coverage, generate and send pay stubs, and manage bonuses.",
       "uploadTitle": "Upload Excel Report",
       "uploadSubtitle": "One .xlsx per rep per month. The file is parsed and previewed before any changes are applied.",
       "dropPrompt": "Click or drop an .xlsx file here",
