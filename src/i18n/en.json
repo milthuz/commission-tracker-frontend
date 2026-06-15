@@ -358,6 +358,17 @@
     "restrictedDetails": "Details restricted — only visible to admins or your own row"
   },
   "commissionReport": {
+    "missing": {
+      "button": "Missing commission?",
+      "title": "Report a missing commission",
+      "subtitle": "Think a commission is missing or wrong? Send the details to an administrator.",
+      "invoiceLabel": "Invoice number (optional)",
+      "messageLabel": "What seems to be missing?",
+      "messagePlaceholder": "Describe the account, invoice, or amount you expected…",
+      "send": "Send",
+      "sending": "Sending…",
+      "sent": "Sent — an administrator will review it."
+    },
     "payStub": {
       "open": "Pay stub",
       "title": "Pay Stub",

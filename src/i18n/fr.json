@@ -358,6 +358,17 @@
     "restrictedDetails": "Détails restreints — visibles uniquement par les admins ou pour votre propre ligne"
   },
   "commissionReport": {
+    "missing": {
+      "button": "Commission manquante?",
+      "title": "Signaler une commission manquante",
+      "subtitle": "Vous pensez qu'une commission est manquante ou erronée? Envoyez les détails à un administrateur.",
+      "invoiceLabel": "Numéro de facture (optionnel)",
+      "messageLabel": "Qu'est-ce qui semble manquer?",
+      "messagePlaceholder": "Décrivez le compte, la facture ou le montant attendu…",
+      "send": "Envoyer",
+      "sending": "Envoi…",
+      "sent": "Envoyé — un administrateur va vérifier."
+    },
     "payStub": {
       "open": "Bulletin de paie",
       "title": "Bulletin de paie",

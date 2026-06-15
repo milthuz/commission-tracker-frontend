@@ -160,6 +160,27 @@ const CommissionReport = () => {
   const [notification, setNotification] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
     show: false, message: '', type: 'success',
   });
+  // "Missing commission" report modal (rep-facing)
+  const [missingModal, setMissingModal] = useState<{ open: boolean; invoiceNumber: string; message: string; sending: boolean }>({
+    open: false, invoiceNumber: '', message: '', sending: false,
+  });
+
+  const submitMissing = async () => {
+    if (!missingModal.message.trim()) return;
+    setMissingModal(m => ({ ...m, sending: true }));
+    try {
+      const token = localStorage.getItem('token');
+      const period = selectedMonth === 'all' ? selectedYear : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+      await axios.post(`${API_URL}/api/commissions/missing-report`,
+        { invoiceNumber: missingModal.invoiceNumber, period, message: missingModal.message },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setMissingModal({ open: false, invoiceNumber: '', message: '', sending: false });
+      setNotification({ show: true, type: 'success', message: t('commissionReport.missing.sent') as string });
+    } catch (e: any) {
+      setMissingModal(m => ({ ...m, sending: false }));
+      alert(e?.response?.data?.error || 'Failed to send');
+    }
+  };
 
   // Check admin status + load effective permissions
   useEffect(() => {
@@ -802,8 +823,55 @@ const CommissionReport = () => {
               {t('commissionReport.payStub.open')}
             </button>
           )}
+
+          {/* Missing commission — any rep viewing their own report can flag a gap */}
+          <button
+            onClick={() => setMissingModal({ open: true, invoiceNumber: '', message: '', sending: false })}
+            className="inline-flex items-center gap-2 rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium text-body transition hover:border-primary hover:text-primary dark:border-strokedark"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.33 16a2 2 0 001.74 3z" />
+            </svg>
+            {t('commissionReport.missing.button')}
+          </button>
         </div>
       </div>
+
+      {/* Missing-commission modal */}
+      {missingModal.open && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('commissionReport.missing.title')}</h3>
+            <p className="mb-4 text-sm text-body">{t('commissionReport.missing.subtitle')}</p>
+            <label className="mb-1 block text-xs font-medium text-body">{t('commissionReport.missing.invoiceLabel')}</label>
+            <input
+              type="text"
+              value={missingModal.invoiceNumber}
+              onChange={(e) => setMissingModal(m => ({ ...m, invoiceNumber: e.target.value }))}
+              placeholder="INV-012345"
+              className="mb-3 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+            />
+            <label className="mb-1 block text-xs font-medium text-body">{t('commissionReport.missing.messageLabel')}</label>
+            <textarea
+              value={missingModal.message}
+              onChange={(e) => setMissingModal(m => ({ ...m, message: e.target.value }))}
+              rows={4}
+              placeholder={t('commissionReport.missing.messagePlaceholder') as string}
+              className="mb-4 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+            />
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setMissingModal(m => ({ ...m, open: false }))} disabled={missingModal.sending}
+                className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark">
+                {t('common.cancel')}
+              </button>
+              <button onClick={submitMissing} disabled={missingModal.sending || !missingModal.message.trim()}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                {missingModal.sending ? t('commissionReport.missing.sending') : t('commissionReport.missing.send')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Pay Stub modal (shared component) */}
       <PayStubModal
