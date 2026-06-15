@@ -58,6 +58,19 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     } ${active ? 'bg-graydark dark:bg-meta-4' : ''}`;
   const labelCls = collapsed ? 'sr-only' : '';
 
+  // Wealthsimple-style floating label: when the rail is collapsed, hovering an item
+  // slides a dark pill out to the right with the menu name. Pure CSS (group-hover);
+  // rendered inside each item (which is `group relative`). Only shown when collapsed.
+  const RailTip = ({ label }: { label: string }) =>
+    collapsed ? (
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg bg-black px-3 py-1.5 text-sm font-medium text-white opacity-0 shadow-lg transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 dark:bg-meta-4"
+      >
+        {label}
+      </span>
+    ) : null;
+
   // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
@@ -96,8 +109,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0 z-9999 flex h-screen flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
-        collapsed ? 'w-20' : 'w-72.5'
+      className={`absolute left-0 top-0 z-9999 flex h-screen flex-col bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
+        collapsed ? 'w-20 overflow-visible' : 'w-72.5 overflow-y-hidden'
       } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
     >
       {/* <!-- SIDEBAR HEADER --> */}
@@ -151,7 +164,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       </div>
       {/* <!-- SIDEBAR HEADER --> */}
 
-      <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
+      <div className={`no-scrollbar flex flex-col duration-300 ease-linear ${collapsed ? 'overflow-visible' : 'overflow-y-auto'}`}>
         {/* <!-- Sidebar Menu --> */}
         <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
           {/* <!-- Menu Group --> */}
@@ -168,7 +181,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/"
-                  title={collapsed ? t('sidebar.dashboard') as string : undefined}
                   className={navLinkCls(pathname === '/')}
                 >
                   <svg
@@ -198,6 +210,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </svg>
                   <span className={labelCls}>{t('sidebar.dashboard')}</span>
                   <NewBadge path="/" collapsed={collapsed} />
+                  <RailTip label={t('sidebar.dashboard') as string} />
                 </NavLink>
               </li>
               )}
@@ -208,7 +221,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/commission-tracker"
-                  title={collapsed ? t('sidebar.commissionTracker') as string : undefined}
                   className={navLinkCls(pathname.includes('commission-tracker'))}
                 >
                   <svg
@@ -226,6 +238,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </svg>
                   <span className={labelCls}>{t('sidebar.commissionTracker')}</span>
                   <NewBadge path="/commission-tracker" collapsed={collapsed} />
+                  <RailTip label={t('sidebar.commissionTracker') as string} />
                 </NavLink>
               </li>
               )}
@@ -236,7 +249,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/commission-report"
-                  title={collapsed ? t('sidebar.commissionReport') as string : undefined}
                   className={navLinkCls(pathname.includes('commission-report'))}
                 >
                   <svg
@@ -250,6 +262,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </svg>
                   <span className={labelCls}>{t('sidebar.commissionReport')}</span>
                   <NewBadge path="/commission-report" collapsed={collapsed} />
+                  <RailTip label={t('sidebar.commissionReport') as string} />
                 </NavLink>
               </li>
               )}
@@ -260,7 +273,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 <li>
                   <NavLink
                     to="/reseller"
-                    title={collapsed ? t('sidebar.reseller') as string : undefined}
                     className={navLinkCls(pathname.includes('reseller'))}
                   >
                     <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -268,6 +280,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </svg>
                     <span className={labelCls}>{t('sidebar.reseller')}</span>
                     <NewBadge path="/reseller" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.reseller') as string} />
                   </NavLink>
                 </li>
               )}
@@ -276,7 +289,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 <li>
                   <NavLink
                     to="/revenue"
-                    title={collapsed ? t('sidebar.revenue') as string : undefined}
                     className={navLinkCls(pathname.includes('revenue'))}
                   >
                     <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -284,6 +296,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </svg>
                     <span className={labelCls}>{t('sidebar.revenue')}</span>
                     <NewBadge path="/revenue" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.revenue') as string} />
                   </NavLink>
                 </li>
               )}
@@ -295,7 +308,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       if (collapsed) setCollapsed(false);
                       setAdminMenuOpen(!adminMenuOpen);
                     }}
-                    title={collapsed ? t('sidebar.adminPanel') as string : undefined}
                     className={`group relative flex w-full items-center rounded-sm py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
                       collapsed ? 'justify-center px-2' : 'justify-between gap-2.5 px-4'
                     } ${pathname.includes('admin') ? 'bg-graydark dark:bg-meta-4' : ''}`}
@@ -328,6 +340,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" />
                       </svg>
                     )}
+                    <RailTip label={t('sidebar.adminPanel') as string} />
                   </button>
                   <ul
                     className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 overflow-hidden transition-all duration-200 ${
@@ -424,7 +437,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/profile"
-                  title={collapsed ? t('sidebar.profile') as string : undefined}
                   className={navLinkCls(pathname.includes('profile'))}
                 >
                   <svg
@@ -445,6 +457,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     />
                   </svg>
                   <span className={labelCls}>{t('sidebar.profile')}</span>
+                  <RailTip label={t('sidebar.profile') as string} />
                 </NavLink>
               </li>
               {/* <!-- Menu Item Profile --> */}
