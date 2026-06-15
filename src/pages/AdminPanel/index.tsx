@@ -9,6 +9,7 @@ import { formatDateOnly } from '../../utils/date';
 import CommissionImport from './CommissionImport';
 import ExternalUsers from './ExternalUsers';
 import ResellerAdmin from './ResellerAdmin';
+import DateField from '../../components/DateField';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const DEFAULT_QUOTA = 15;
@@ -2404,16 +2405,13 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               />
                             </div>
                             <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.hireDate')}</span>
-                              <input
-                                type="date"
-                                defaultValue={person.hireDate ?? ''}
-                                title={t('admin.salespeople.hireDateHint') as string}
-                                onBlur={(e) => {
-                                  const val = e.target.value;
+                              <span className="mb-1 block text-xs font-medium text-body" title={t('admin.salespeople.hireDateHint') as string}>{t('admin.salespeople.hireDate')}</span>
+                              <DateField
+                                value={person.hireDate ?? ''}
+                                onChange={(val) => {
                                   if (val !== (person.hireDate || '')) updateHireDate(person.name, val);
                                 }}
-                                className="rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white"
+                                className="w-full rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white"
                               />
                             </div>
                             <div>

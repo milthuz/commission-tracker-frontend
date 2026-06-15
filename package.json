@@ -16,6 +16,7 @@
   "dependencies": {
     "apexcharts": "^3.41.0",
     "axios": "^1.7.7",
+    "date-fns": "^3.6.0",
     "flatpickr": "^4.6.13",
     "headlessui": "^0.0.0",
     "i18next": "^25.8.13",
@@ -24,6 +25,7 @@
     "match-sorter": "^6.3.1",
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.1",
+    "react-datepicker": "^7.6.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-i18next": "^16.5.4",

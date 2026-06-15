@@ -20,4 +20,14 @@ i18n
     },
   });
 
+// Keep the document <html lang> in sync with the active language (accessibility /
+// spellcheck / locale-sensitive rendering). NOTE: this does NOT control the format of
+// native <input type="date"> — Chromium derives that from the BROWSER UI locale, not the
+// page lang. Consistent date-field formatting is handled by a dedicated component instead.
+const applyHtmlLang = (lng: string) => {
+  document.documentElement.lang = lng?.startsWith('fr') ? 'fr-CA' : 'en-CA';
+};
+applyHtmlLang(savedLanguage);
+i18n.on('languageChanged', applyHtmlLang);
+
 export default i18n;
