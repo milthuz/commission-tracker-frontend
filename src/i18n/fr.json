@@ -684,6 +684,8 @@
       "hireDateHint": "Pilote la rampe de 90 jours : le quota gate est suspendu pendant les 90 premiers jours (plan §7).",
       "quotaGate": "Quota gate",
       "quotaGateHint": "Plan §2 : un mois sous le quota ne paie aucune commission matériel/SaaS. Désactiver pour exempter cette personne (comptes maison, direction…).",
+      "processingBonus": "Bonus de processing",
+      "processingBonusHint": "Bonus de processing/volume bi-annuel. Désactiver pour exclure cette personne (active) de ce bonus, sans toucher à ses commissions.",
       "quotaHint": "Laisser vide pour le défaut (15 pts). Saisir un nombre pour le quota mensuel propre à ce vendeur.",
       "signupBonus": "Paiement d'inscription",
       "signupOff": "Désactivé",

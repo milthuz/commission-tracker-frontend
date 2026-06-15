@@ -684,6 +684,8 @@
       "hireDateHint": "Drives the 90-day ramp: quota gating is waived during the first 90 days (comp plan §7).",
       "quotaGate": "Quota gate",
       "quotaGateHint": "Comp plan §2: months below quota pay no hardware/SaaS commissions. Turn OFF to exempt this person (house accounts, execs…).",
+      "processingBonus": "Processing bonus",
+      "processingBonusHint": "Bi-annual processing/volume bonus. Turn OFF to exclude this (active) person from that bonus, without affecting their commissions.",
       "quotaHint": "Leave blank to use the default (15 pts). Set a number for this rep's own monthly quota.",
       "signupBonus": "Signup Payment",
       "signupOff": "Disabled",

@@ -26,6 +26,7 @@ interface Salesperson {
   monthlyQuota: number | null;
   hireDate?: string | null;
   quotaGateEnabled?: boolean;
+  processingBonusEnabled?: boolean;
   teamId: number | null;
   teamName: string | null;
 }
@@ -351,6 +352,20 @@ const AdminPanel = () => {
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, quotaGateEnabled: enabled } : p));
     } catch (error: any) {
       alert(error?.response?.data?.error || 'Failed to update quota gate');
+    }
+  };
+
+  const updateProcessingBonus = async (name: string, enabled: boolean) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/processing-bonus`,
+        { enabled },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSalespeople(prev => prev.map(p => p.name === name ? { ...p, processingBonusEnabled: enabled } : p));
+    } catch (error: any) {
+      alert(error?.response?.data?.error || 'Failed to update processing bonus');
     }
   };
 
@@ -2409,6 +2424,16 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.quotaGateEnabled !== false ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
                               >
                                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.quotaGateEnabled !== false ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                              </button>
+                            </div>
+                            <div>
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.processingBonus')}</span>
+                              <button
+                                onClick={() => updateProcessingBonus(person.name, !(person.processingBonusEnabled !== false))}
+                                title={t('admin.salespeople.processingBonusHint') as string}
+                                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.processingBonusEnabled !== false ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
+                              >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.processingBonusEnabled !== false ? 'translate-x-4' : 'translate-x-0.5'}`} />
                               </button>
                             </div>
                             <div>
