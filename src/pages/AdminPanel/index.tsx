@@ -146,6 +146,10 @@ const AdminPanel = () => {
   // User roles editing
   const [editingUserRoles, setEditingUserRoles] = useState<string | null>(null); // user email being edited
   const [preassignEmail, setPreassignEmail] = useState(''); // assign roles to an email that hasn't logged in yet
+  // Sub-tab state for the reorganized Admin sections.
+  const [syncSub, setSyncSub] = useState<'connections' | 'data'>('connections');
+  const [spSub, setSpSub] = useState<'reps' | 'teams' | 'points'>('reps');
+  const [usersSub, setUsersSub] = useState<'access' | 'external' | 'impersonation'>('access');
   const [editingUserRoleIds, setEditingUserRoleIds] = useState<number[]>([]);
 
   // CRM connection state
@@ -1350,6 +1354,16 @@ const AdminPanel = () => {
       {/* Content */}
           {activeTab === 'sync' && (
             <>
+            <div className="flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+              {([['connections', t('admin.integrations.tabs.connections')], ['data', t('admin.integrations.tabs.data')]] as const).map(([key, label]) => (
+                <button key={key} onClick={() => setSyncSub(key as 'connections' | 'data')}
+                  className={`rounded-md px-4 py-2 text-sm font-medium transition ${syncSub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {syncSub === 'connections' && (<>
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
                 <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.zohoSync.title')}</h3>
@@ -1777,8 +1791,11 @@ Joker Pub,Jay Daoust,2024-04-01`}
               </div>
             </div>
 
+            </>)}
+
+            {syncSub === 'data' && (<>
             {/* ==================== ENRICH INVOICES ==================== */}
-            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
                 <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.enrich.title')}</h3>
                 <p className="text-sm text-body mt-1">{t('admin.enrich.subtitle')}</p>
@@ -1931,6 +1948,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 )}
               </div>
             </div>
+            </>)}
             </>
           )}
 
@@ -1984,6 +2002,16 @@ Joker Pub,Jay Daoust,2024-04-01`}
               </div>
             )}
 
+            <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+              {([['reps', t('admin.salespeople.tabs.reps')], ['teams', t('admin.salespeople.tabs.teams')], ['points', t('admin.salespeople.tabs.points')]] as const).map(([key, label]) => (
+                <button key={key} onClick={() => setSpSub(key as 'reps' | 'teams' | 'points')}
+                  className={`rounded-md px-4 py-2 text-sm font-medium transition ${spSub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {spSub === 'teams' && (<>
             {/* Teams management */}
             <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
@@ -2106,6 +2134,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
               </div>
             </div>
 
+            </>)}
+
+            {spSub === 'points' && (<>
             {/* Deal-type point values */}
             <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
@@ -2159,7 +2190,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 )}
               </div>
             </div>
+            </>)}
 
+            {spSub === 'reps' && (<>
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
                 <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.salespeople.title')}</h3>
@@ -2509,6 +2542,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 </div>
               )}
             </div>
+            </>)}
             </>
           )}
 
@@ -2814,6 +2848,16 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {/* ==================== ADMIN USERS ==================== */}
           {activeTab === 'users' && (
             <>
+            <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+              {([['access', t('admin.usersSection.tabs.access')], ['external', t('admin.usersSection.tabs.external')], ['impersonation', t('admin.usersSection.tabs.impersonation')]] as const).map(([key, label]) => (
+                <button key={key} onClick={() => setUsersSub(key as 'access' | 'external' | 'impersonation')}
+                  className={`rounded-md px-4 py-2 text-sm font-medium transition ${usersSub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {usersSub === 'impersonation' && (<>
             {/* ==================== IMPERSONATION ==================== */}
             <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
@@ -2867,7 +2911,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 <p className="mt-3 text-xs text-body">{t('admin.impersonate.hint')}</p>
               </div>
             </div>
+            </>)}
 
+            {usersSub === 'access' && (<>
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
                 <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.admins.title')}</h3>
@@ -3021,11 +3067,14 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 </div>
               )}
             </div>
+            </>)}
             </>
           )}
 
+          {/* ExternalUsers lives under the Users → "External" sub-tab */}
+          {activeTab === 'users' && usersSub === 'external' && <ExternalUsers />}
+
           {/* ==================== COMMISSION IMPORT TAB ==================== */}
-          {activeTab === 'users' && <ExternalUsers />}
           {activeTab === 'import-payments' && <CommissionImport />}
           {activeTab === 'resellers' && <ResellerAdmin />}
 

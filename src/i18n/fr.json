@@ -515,7 +515,8 @@
     "title": "Panneau d'administration",
     "integrations": {
       "title": "Intégrations",
-      "subtitle": "Gérer vos connexions Zoho Books et Zentact"
+      "subtitle": "Gérer vos connexions Zoho Books et Zentact",
+      "tabs": { "connections": "Connexions", "data": "Recalcul & enrichissement" }
     },
     "zohoSync": {
       "title": "Synchronisation Zoho Books",
@@ -668,6 +669,7 @@
     "salespeople": {
       "title": "Gérer les vendeurs",
       "subtitle": "Activer/désactiver les vendeurs pour contrôler qui apparaît dans les filtres et rapports de commissions",
+      "tabs": { "reps": "Vendeurs", "teams": "Équipes", "points": "Points par type" },
       "totalSalespeople": "Total",
       "activeSalespeople": "Actifs",
       "inactiveSalespeople": "Inactifs",
@@ -910,7 +912,8 @@
     },
     "usersSection": {
       "title": "Gestion des utilisateurs",
-      "subtitle": "Rôles, accès administrateur, pré-assignation de rôles et utilisateurs externes"
+      "subtitle": "Rôles, accès administrateur, pré-assignation de rôles et utilisateurs externes",
+      "tabs": { "access": "Accès & rôles", "external": "Utilisateurs externes", "impersonation": "Impersonation" }
     },
     "admins": {
       "title": "Accès utilisateurs",

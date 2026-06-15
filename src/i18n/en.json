@@ -515,7 +515,8 @@
     "title": "Admin Panel",
     "integrations": {
       "title": "Integrations",
-      "subtitle": "Manage your Zoho Books and Zentact connections"
+      "subtitle": "Manage your Zoho Books and Zentact connections",
+      "tabs": { "connections": "Connections", "data": "Recalc & enrichment" }
     },
     "zohoSync": {
       "title": "Zoho Books Sync",
@@ -668,6 +669,7 @@
     "salespeople": {
       "title": "Manage Salespeople",
       "subtitle": "Toggle salespeople on/off to control who appears in invoice filters and commission reports",
+      "tabs": { "reps": "Salespeople", "teams": "Teams", "points": "Deal points" },
       "totalSalespeople": "Total",
       "activeSalespeople": "Active",
       "inactiveSalespeople": "Inactive",
@@ -910,7 +912,8 @@
     },
     "usersSection": {
       "title": "User Management",
-      "subtitle": "Roles, admin access, role pre-assignment and external users"
+      "subtitle": "Roles, admin access, role pre-assignment and external users",
+      "tabs": { "access": "Access & roles", "external": "External users", "impersonation": "Impersonation" }
     },
     "admins": {
       "title": "User Access",
