@@ -509,6 +509,13 @@
     "csPendingPayment": "Pending payment",
     "csTooLate": "Too late",
     "csNotEligible": "Not eligible",
+    "csExcluded": "Excluded",
+    "exclude": {
+      "refuse": "Refuse commission",
+      "restore": "Restore commission",
+      "confirm": "Refuse commission on {{invoice}}? It will become $0 (reversible).",
+      "restored": "Commission restored — recomputing (~1-3 min)."
+    },
     "type": "Type",
     "approve": "Approve",
     "markPaid": "Mark Paid",

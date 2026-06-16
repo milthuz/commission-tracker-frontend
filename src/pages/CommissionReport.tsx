@@ -42,6 +42,7 @@ const COMMISSION_STATUS_STYLES: Record<string, { key: string; cls: string }> = {
   too_late:         { key: 'commissionReport.csTooLate',        cls: 'bg-danger bg-opacity-10 text-danger' },
   quota_not_met:    { key: 'commissionReport.csQuotaNotMet',    cls: 'bg-danger bg-opacity-10 text-danger' },
   not_eligible:     { key: 'commissionReport.csNotEligible',    cls: 'bg-gray-200 text-body dark:bg-meta-4' },
+  excluded:         { key: 'commissionReport.csExcluded',       cls: 'bg-danger bg-opacity-10 text-danger' },
 };
 
 interface MonthData {
@@ -509,6 +510,30 @@ const CommissionReport = () => {
     }
   };
 
+  // Refuse / restore commission on ONE invoice (admin).
+  const toggleExcludeCommission = async (invoiceNumber: string, currentlyExcluded: boolean) => {
+    const excluded = !currentlyExcluded;
+    if (excluded && !confirm(t('commissionReport.exclude.confirm', { invoice: invoiceNumber }) as string)) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(
+        `${API_URL}/api/commissions/invoice/${encodeURIComponent(invoiceNumber)}/commission-excluded`,
+        { excluded }, { headers: { Authorization: `Bearer ${token}` } });
+      // Refresh the open drill-down (exclude is immediate; restore recomputes in background).
+      if (expandedMonth != null && report) {
+        const r = await axios.get(`${API_URL}/api/commissions/invoices`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { year: selectedYear, month: String(expandedMonth), repName: report.repName },
+        });
+        setDrillInvoices(r.data.invoices || []);
+      }
+      refreshReport();
+      if (!excluded && res.data.note) alert(t('commissionReport.exclude.restored') as string);
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Failed to update commission exclusion');
+    }
+  };
+
   // Drill-down: fetch invoices for a customer
   const toggleCustomerDrill = async (customerName: string) => {
     if (expandedCustomer === customerName) {
@@ -669,6 +694,17 @@ const CommissionReport = () => {
                 <button onClick={() => handlePrint(inv.invoiceNumber)} className="text-body hover:text-primary transition" title="Print">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                 </button>
+                {canMarkPaid && inv.approvalStatus !== 'paid' && (
+                  inv.commissionStatus === 'excluded' ? (
+                    <button onClick={() => toggleExcludeCommission(inv.invoiceNumber, true)} className="text-success hover:text-success/70 transition" title={t('commissionReport.exclude.restore') as string}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v6h6M3 13a9 9 0 103-7.7L3 8" /></svg>
+                    </button>
+                  ) : (
+                    <button onClick={() => toggleExcludeCommission(inv.invoiceNumber, false)} className="text-body hover:text-danger transition" title={t('commissionReport.exclude.refuse') as string}>
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 11-12.728 0M5.636 5.636l12.728 12.728" /></svg>
+                    </button>
+                  )
+                )}
               </div>
             </td>
           </tr>
