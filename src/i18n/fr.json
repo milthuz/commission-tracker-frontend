@@ -858,7 +858,13 @@
         "total": "Total",
         "accounts": "Comptes",
         "bonus": "Bonus",
-        "none": "Aucun compte admissible pour cette période."
+        "none": "Aucun compte admissible pour cette période.",
+        "commit": "Marquer payé",
+        "commitConfirm": "Enregistrer ce versement bi-annuel de {{total}} comme payé ? Les comptes seront exclus des calculs futurs (payé une fois).",
+        "commitDone": "{{count}} compte(s) enregistré(s) — total {{total}}.",
+        "committedInfo": "{{count}} compte(s) déjà engagé(s) pour cette période ({{total}}).",
+        "uncommit": "Annuler le commit",
+        "uncommitConfirm": "Annuler le versement engagé pour cette période ? Ces comptes redeviendront admissibles."
       },
       "reportYears": {
         "title": "Années de rapport",

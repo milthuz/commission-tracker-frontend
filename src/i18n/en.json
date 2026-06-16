@@ -858,7 +858,13 @@
         "total": "Total",
         "accounts": "Accounts",
         "bonus": "Bonus",
-        "none": "No qualifying accounts for this period."
+        "none": "No qualifying accounts for this period.",
+        "commit": "Mark paid",
+        "commitConfirm": "Record this {{total}} bi-annual payout as paid? The accounts will be excluded from future computations (paid once).",
+        "commitDone": "{{count}} account(s) recorded — total {{total}}.",
+        "committedInfo": "{{count}} account(s) already committed for this period ({{total}}).",
+        "uncommit": "Undo commit",
+        "uncommitConfirm": "Undo the committed payout for this period? These accounts become eligible again."
       },
       "reportYears": {
         "title": "Report Years",

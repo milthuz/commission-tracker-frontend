@@ -83,7 +83,7 @@ interface CoverageData { months: string[]; rows: CoverageRow[]; }
 
 interface ProcAccount { merchant_account_id: string; business_name: string; windowStart: string; windowEnd: string; avg: number; activeMonths: number; bonus: number; }
 interface ProcRep { rep: string; total: number; accounts: ProcAccount[]; }
-interface ProcData { year: number; month: number; grandTotal: number; reps: ProcRep[]; }
+interface ProcData { year: number; month: number; grandTotal: number; reps: ProcRep[]; committed?: { count: number; total: number }; }
 
 interface PayrollRep { rep: string; source: string; total: number; lineCount: number; bonusCount: number; }
 interface PayrollData { year: number; month: number; dueBy: string | null; recipients: string[]; grandTotal: number; reps: PayrollRep[]; }
@@ -275,6 +275,35 @@ const CommissionImport: React.FC = () => {
     } finally {
       setProcLoading(false);
     }
+  };
+
+  const [procCommitting, setProcCommitting] = useState(false);
+  const commitProcessing = async () => {
+    if (!procData || procData.reps.length === 0) return;
+    if (!window.confirm(t('admin.commissionImport.processing.commitConfirm', { total: fmt(procData.grandTotal) }) as string)) return;
+    setProcCommitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/commissions/processing-bonus/commit`,
+        { year: procYear, month: procMonth }, { headers: { Authorization: `Bearer ${token}` } });
+      alert(t('admin.commissionImport.processing.commitDone', { count: res.data.accounts, total: fmt(res.data.total) }) as string);
+      await fetchProcessing();
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Failed to commit');
+    } finally { setProcCommitting(false); }
+  };
+
+  const uncommitProcessing = async () => {
+    if (!window.confirm(t('admin.commissionImport.processing.uncommitConfirm') as string)) return;
+    setProcCommitting(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/commissions/processing-bonus/uncommit`,
+        { year: procYear, month: procMonth }, { headers: { Authorization: `Bearer ${token}` } });
+      await fetchProcessing();
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Failed to uncommit');
+    } finally { setProcCommitting(false); }
   };
 
   const fetchCoverage = async () => {
@@ -954,7 +983,30 @@ const CommissionImport: React.FC = () => {
                 <span className="ml-1 font-semibold text-black dark:text-white">{fmt(procData.grandTotal)}</span>
               </span>
             )}
+            {procData && procData.reps.length > 0 && (
+              <button
+                onClick={commitProcessing}
+                disabled={procCommitting}
+                className="rounded-md bg-success px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+              >
+                {procCommitting ? t('admin.commissionImport.processing.loading') : t('admin.commissionImport.processing.commit')}
+              </button>
+            )}
           </div>
+          {procData && procData.committed && procData.committed.count > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-3 rounded border border-success/30 bg-success/10 px-4 py-2 text-sm">
+              <span className="text-black dark:text-white">
+                {t('admin.commissionImport.processing.committedInfo', { count: procData.committed.count, total: fmt(procData.committed.total) })}
+              </span>
+              <button
+                onClick={uncommitProcessing}
+                disabled={procCommitting}
+                className="text-xs font-medium text-danger hover:underline disabled:opacity-50"
+              >
+                {t('admin.commissionImport.processing.uncommit')}
+              </button>
+            </div>
+          )}
           {procData && (
             procData.reps.length === 0 ? (
               <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.processing.none')}</p>
