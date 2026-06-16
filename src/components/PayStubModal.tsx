@@ -169,6 +169,9 @@ const PayStubModal: React.FC<{
   tr.alt td { background: #fafbfd; }
   .mono { font-family: 'Consolas', 'Courier New', monospace; font-size: 11.5px; color: #3b4a63; }
   .num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tfoot td { border-top: 2px solid #1c2434; border-bottom: none; background: #fafbfd; }
+  tfoot td.sub { text-align: right; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #64748b; font-weight: 700; }
+  tfoot td.num { font-weight: 800; color: #1c2434; }
   .cap { text-transform: capitalize; }
   .pill { display: inline-block; font-size: 9px; background: #eef2f7; color: #64748b; border-radius: 99px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
   .totals { margin-top: 26px; display: flex; justify-content: flex-end; }
@@ -198,16 +201,16 @@ const PayStubModal: React.FC<{
     <table>
       <thead><tr><th>${tp('invoice')}</th><th>${tp('customer')}</th><th class="num">${tp('amount')}</th></tr></thead>
       <tbody>${linesHtml || `<tr><td colspan="3" style="text-align:center;color:#94a3b8">—</td></tr>`}</tbody>
+      ${data.lines.length ? `<tfoot><tr><td class="sub" colspan="2">${tp('subtotalCommissions')}</td><td class="num">${fmt(linesSum)}</td></tr></tfoot>` : ''}
     </table>
     ${data.bonuses.length ? `
     <h2>${tp('bonuses')} (${data.bonuses.length})</h2>
     <table>
       <thead><tr><th>${tp('type')}</th><th>${tp('merchant')}</th><th class="num">${tp('amount')}</th></tr></thead>
       <tbody>${bonusHtml}</tbody>
+      <tfoot><tr><td class="sub" colspan="2">${tp('subtotalBonuses')}</td><td class="num">${fmt(bonusSum)}</td></tr></tfoot>
     </table>` : ''}
     <div class="totals"><div class="box">
-      <div class="trow"><span>${tp('subtotalCommissions')}</span><b>${fmt(linesSum)}</b></div>
-      ${data.bonuses.length ? `<div class="trow"><span>${tp('subtotalBonuses')}</span><b>${fmt(bonusSum)}</b></div>` : ''}
       ${Math.abs(other) > 0.01 ? `<div class="trow"><span>${tp('otherAmounts')}</span><b>${fmt(other)}</b></div>` : ''}
       <div class="grand"><span>${tp('totalPaid')}</span><b>${fmt(data.total)}</b></div>
     </div></div>
