@@ -409,6 +409,7 @@ const CommissionReport = () => {
         bonuses:     d.bonuses || [],
         total:       d.total || 0,
         source:      d.source,
+        appGenerated: !!d.appGenerated,
         linesStored: d.linesStored,
         missed:      d.missed || [],
         missedTotal: d.missedTotal || 0,
@@ -458,6 +459,26 @@ const CommissionReport = () => {
     } catch (e: any) {
       console.error('Error committing pay stub:', e);
       alert(e?.response?.data?.error || 'Failed to commit pay stub');
+    } finally {
+      setCommittingStub(false);
+    }
+  };
+
+  const uncommitPayStub = async () => {
+    if (!payStub || selectedMonth === 'all') return;
+    const monthName = MONTH_NAMES[parseInt(selectedMonth) - 1];
+    if (!confirm(t('commissionReport.payStub.uncommitConfirm', { rep: payStub.repName, period: `${monthName} ${selectedYear}` }) as string)) return;
+    setCommittingStub(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/commissions/pay-stub/uncommit`, {
+        repName: payStub.repName, year: selectedYear, month: selectedMonth,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      alert(t('commissionReport.payStub.uncommitDone', { count: res.data.reverted }));
+      await openPayStub();      // re-open → back to a 'generated' stub
+      await refreshReport();    // reflect pending status in the report
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Failed to undo pay stub');
     } finally {
       setCommittingStub(false);
     }
@@ -878,6 +899,7 @@ const CommissionReport = () => {
         data={payStub}
         onClose={() => setPayStub(null)}
         onCommit={canMarkPaid ? commitPayStub : undefined}
+        onUncommit={canMarkPaid ? uncommitPayStub : undefined}
         committing={committingStub}
         showAppCalc={canMarkPaid}
         onQuotaWaive={canMarkPaid ? waiveQuota : undefined}

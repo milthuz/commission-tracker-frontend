@@ -29,6 +29,7 @@ export interface PayStubData {
   bonuses: PayStubBonus[];
   total: number;
   source: 'imported' | 'generated';
+  appGenerated?: boolean;    // imported stub that came from an app commit (undoable via uncommit)
   linesStored: boolean;      // false → invoice breakdown is reconstructed (old import)
   missed?: PayStubMissed[];  // earned this period per the app but NOT paid (imported stubs)
   missedTotal?: number;
@@ -51,7 +52,9 @@ const PayStubModal: React.FC<{
   onQuotaWaive?: (waived: boolean) => void;
   // Called after missed commissions are carried forward as adjustments — parent refreshes.
   onAdjusted?: () => void;
-}> = ({ data, onClose, onCommit, committing, showAppCalc, onQuotaWaive, onAdjusted }) => {
+  // Undo a "mark paid" (app-generated commit) — wired by Commission Report for admins.
+  onUncommit?: () => void;
+}> = ({ data, onClose, onCommit, committing, showAppCalc, onQuotaWaive, onAdjusted, onUncommit }) => {
   const { t, i18n } = useTranslation();
   const [emailOpen, setEmailOpen] = useState(false);
   const [emailTo, setEmailTo] = useState('');
@@ -525,6 +528,20 @@ const PayStubModal: React.FC<{
                       {tp('committing')}
                     </>
                   ) : tp('commit')}
+                </button>
+              )}
+
+              {/* Undo — only for an app-generated (committed) stub. */}
+              {onUncommit && data.source === 'imported' && data.appGenerated && (
+                <button
+                  onClick={onUncommit}
+                  disabled={committing}
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-danger px-5 py-2.5 text-sm font-semibold text-danger transition hover:bg-danger hover:text-white disabled:opacity-50"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v6h6M3 13a9 9 0 103-7.7L3 8" />
+                  </svg>
+                  {tp('uncommit')}
                 </button>
               )}
             </>
