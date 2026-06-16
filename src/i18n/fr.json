@@ -827,7 +827,10 @@
         "description": "Description",
         "descPlaceholder": "ex. prime spéciale, référence, correction…",
         "add": "Ajouter le bonus",
-        "needRepAmount": "Choisis un vendeur et entre un montant."
+        "needRepAmount": "Choisis un vendeur et entre un montant.",
+        "historyTitle": "Historique des bonus manuels",
+        "date": "Date",
+        "period": "Période"
       },
       "payroll": {
         "title": "Envoyer à la paie",

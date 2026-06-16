@@ -827,7 +827,10 @@
         "description": "Description",
         "descPlaceholder": "e.g. Spiff, referral, correction…",
         "add": "Add bonus",
-        "needRepAmount": "Pick a rep and enter an amount."
+        "needRepAmount": "Pick a rep and enter an amount.",
+        "historyTitle": "Manual bonus history",
+        "date": "Date",
+        "period": "Period"
       },
       "payroll": {
         "title": "Send to Payroll",

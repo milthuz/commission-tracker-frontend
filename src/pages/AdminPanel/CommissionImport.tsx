@@ -172,13 +172,14 @@ const CommissionImport: React.FC = () => {
   const [mbMonth, setMbMonth] = useState(new Date().getMonth() + 1);
   const [mbAmount, setMbAmount] = useState('');
   const [mbDesc, setMbDesc] = useState('');
-  const [manualList, setManualList] = useState<{ id: number; rep_name: string; amount: number; description: string }[]>([]);
+  const [manualList, setManualList] = useState<{ id: number; rep_name: string; period: string; amount: number; description: string; created_at: string }[]>([]);
 
+  // Full history across all periods (admin console). Reloaded after add/delete.
   const fetchManualBonuses = async () => {
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API_URL}/api/commissions/manual-bonus`, {
-        headers: { Authorization: `Bearer ${token}` }, params: { year: mbYear, month: mbMonth },
+        headers: { Authorization: `Bearer ${token}` }, params: { all: 'true' },
       });
       setManualList(res.data.bonuses || []);
     } catch (_e) { /* silent */ }
@@ -334,8 +335,8 @@ const CommissionImport: React.FC = () => {
       } catch (_e) { /* silent */ }
     })();
   }, []);
-  // Reload manual bonuses whenever the selected period changes.
-  useEffect(() => { fetchManualBonuses(); }, [mbYear, mbMonth]);
+  // Load the full manual-bonus history once (it spans all periods now).
+  useEffect(() => { fetchManualBonuses(); }, []);
 
   // Update a single entry by id
   const updateEntry = (id: string, patch: Partial<FileEntry>) => {
@@ -1040,29 +1041,36 @@ const CommissionImport: React.FC = () => {
           </div>
 
           {manualList.length > 0 && (
-            <div className="mt-4 overflow-x-auto rounded border border-stroke dark:border-strokedark">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-2 dark:bg-meta-4">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium">Rep</th>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.manualBonus.description')}</th>
-                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
-                    <th className="px-4 py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {manualList.map(m => (
-                    <tr key={m.id} className="border-t border-stroke dark:border-strokedark">
-                      <td className="px-4 py-2 text-black dark:text-white">{m.rep_name}</td>
-                      <td className="px-4 py-2 text-body">{m.description || '—'}</td>
-                      <td className="px-4 py-2 text-right font-semibold text-success">{fmt(m.amount)}</td>
-                      <td className="px-4 py-2 text-right">
-                        <button onClick={() => deleteManualBonus(m.id)} className="text-xs text-danger hover:underline">{t('common.delete')}</button>
-                      </td>
+            <div className="mt-6">
+              <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('admin.commissionImport.manualBonus.historyTitle')}</h4>
+              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                <table className="w-full min-w-[640px] text-sm">
+                  <thead className="bg-gray-2 dark:bg-meta-4">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.manualBonus.date')}</th>
+                      <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.manualBonus.period')}</th>
+                      <th className="px-4 py-2 text-left font-medium">Rep</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.manualBonus.description')}</th>
+                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                      <th className="px-4 py-2"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {manualList.map(m => (
+                      <tr key={m.id} className="border-t border-stroke dark:border-strokedark">
+                        <td className="px-4 py-2 text-body whitespace-nowrap">{fmtDate(m.created_at)}</td>
+                        <td className="px-4 py-2 text-body whitespace-nowrap">{monthName(new Date(m.period).getUTCMonth() + 1)} {new Date(m.period).getUTCFullYear()}</td>
+                        <td className="px-4 py-2 text-black dark:text-white whitespace-nowrap">{m.rep_name}</td>
+                        <td className="px-4 py-2 text-body">{m.description || '—'}</td>
+                        <td className="px-4 py-2 text-right font-semibold text-success whitespace-nowrap">{fmt(m.amount)}</td>
+                        <td className="px-4 py-2 text-right">
+                          <button onClick={() => deleteManualBonus(m.id)} className="whitespace-nowrap text-xs text-danger hover:underline">{t('common.delete')}</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
