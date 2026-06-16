@@ -374,6 +374,15 @@ const PayStubModal: React.FC<{
                       );
                     })}
                   </tbody>
+                  {data.lines.length > 0 && (
+                    <tfoot>
+                      <tr className="border-t-2 border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4/40">
+                        <td colSpan={2} className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-body">{tp('subtotalCommissions')}</td>
+                        <td className="px-3 py-2 text-right font-bold text-black dark:text-white">{fmt(data.lines.reduce((a, l) => a + l.paid_amount, 0))}</td>
+                        {showApp && <td className="px-3 py-2"></td>}
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               </div>
 
@@ -399,6 +408,12 @@ const PayStubModal: React.FC<{
                           </tr>
                         ))}
                       </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4/40">
+                          <td colSpan={2} className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-body">{tp('subtotalBonuses')}</td>
+                          <td className="px-3 py-2 text-right font-bold text-black dark:text-white">{fmt(data.bonuses.reduce((a, b) => a + b.amount, 0))}</td>
+                        </tr>
+                      </tfoot>
                     </table>
                   </div>
                 </>
