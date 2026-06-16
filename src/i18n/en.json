@@ -790,6 +790,7 @@
         "coverage": "Coverage",
         "payroll": "Payroll",
         "bonus": "Bonus",
+        "adjustments": "Adjustments",
         "settings": "Settings"
       },
       "uploadTitle": "Upload Excel Report",

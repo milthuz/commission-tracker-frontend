@@ -102,7 +102,7 @@ const toPayStub = (d: StubDetail): PayStubData => ({
   linesStored: d.lines.length > 0,
 });
 
-const SUBTABS = ['import', 'coverage', 'payroll', 'bonus', 'settings'] as const;
+const SUBTABS = ['import', 'coverage', 'payroll', 'bonus', 'adjustments', 'settings'] as const;
 type SubTab = typeof SUBTABS[number];
 
 const CommissionImport: React.FC = () => {
@@ -1187,8 +1187,11 @@ const CommissionImport: React.FC = () => {
         </div>
       </div>
 
+      </>)}
+
+      {subTab === 'adjustments' && (<>
       {/* Commission adjustments — carry an unpaid commission from a past month to a target month */}
-      <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
           <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.adjustments.title')}</h3>
           <p className="text-sm text-body">{t('admin.commissionImport.adjustments.subtitle')}</p>

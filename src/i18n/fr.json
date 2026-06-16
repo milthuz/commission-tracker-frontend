@@ -790,6 +790,7 @@
         "coverage": "Couverture",
         "payroll": "Paie",
         "bonus": "Bonus",
+        "adjustments": "Ajustements",
         "settings": "Réglages"
       },
       "uploadTitle": "Téléverser un fichier Excel",
