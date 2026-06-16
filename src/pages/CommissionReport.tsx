@@ -452,7 +452,7 @@ const CommissionReport = () => {
         year: selectedYear,
         month: selectedMonth,
       }, { headers: { Authorization: `Bearer ${token}` } });
-      alert(`✓ ${res.data.invoicesMarked} invoices marked paid.`);
+      alert(t('commissionReport.payStub.committedToPayroll', { count: res.data.invoicesMarked, month: `${monthName} ${selectedYear}` }));
       await openPayStub();     // re-open → now an 'imported' (app-generated) stub
       await refreshReport();   // reflect new paid status in the report
     } catch (e: any) {

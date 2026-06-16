@@ -412,6 +412,7 @@
       "committed": "Payé ✓",
       "discrepancyHint": "Payé = montant du fichier importé. Calc. app = commission calculée par l'app ; ⚠ signale un écart.",
       "generatedHint": "Généré à partir du modèle de l'app : commissions débloquées NON payées de la période + paiements de signup.",
+      "committedToPayroll": "✓ {{count}} facture(s) marquée(s) payée(s) — ajouté à la paie de {{month}}. Va dans Commissions → Paie pour l'envoyer.",
       "missedTitle": "Gagné cette période mais NON payé",
       "missedHint": "Débloqué selon le modèle de l'app mais couvert par aucun paiement — vérifiez si c'est un oubli. Non inclus dans le total ci-dessus.",
       "missedSubtotal": "Sous-total non payé",
