@@ -861,9 +861,12 @@
         "send": "Send to payroll",
         "sending": "Sending…",
         "sent": "Sent to {{count}} recipient(s).",
-        "confirmSend": "Send {{count}} reps' commissions to payroll by email?",
+        "confirmSend": "Send {{count}} rep(s)' commissions to payroll by email?",
         "none": "Nothing to send for this period.",
-        "noRecipients": "Add at least one recipient first."
+        "noRecipients": "Add at least one recipient first.",
+        "noReps": "Select at least one rep.",
+        "selectAll": "Select all",
+        "selectedTotal": "Total ({{count}} selected)"
       },
       "processing": {
         "title": "Processing Bonus (bi-annual)",

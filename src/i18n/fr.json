@@ -861,9 +861,12 @@
         "send": "Envoyer à la paie",
         "sending": "Envoi…",
         "sent": "Envoyé à {{count}} destinataire(s).",
-        "confirmSend": "Envoyer les commissions de {{count}} vendeurs à la paie par courriel?",
+        "confirmSend": "Envoyer les commissions de {{count}} vendeur(s) à la paie par courriel?",
         "none": "Rien à envoyer pour cette période.",
-        "noRecipients": "Ajoutez au moins un destinataire d'abord."
+        "noRecipients": "Ajoutez au moins un destinataire d'abord.",
+        "noReps": "Sélectionnez au moins un vendeur.",
+        "selectAll": "Tout sélectionner",
+        "selectedTotal": "Total ({{count}} sélectionné(s))"
       },
       "processing": {
         "title": "Bonus de paiement (bi-annuel)",
