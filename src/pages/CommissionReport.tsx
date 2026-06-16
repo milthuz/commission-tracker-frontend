@@ -764,7 +764,7 @@ const CommissionReport = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Rep Selector (Admin only) */}
           {isAdmin && salespeople.length > 0 && (
             <select
@@ -811,7 +811,7 @@ const CommissionReport = () => {
               onClick={openPayStub}
               disabled={selectedMonth === 'all' || loadingStub}
               title={selectedMonth === 'all' ? (t('commissionReport.payStub.open') as string) : undefined}
-              className="inline-flex items-center gap-2 rounded border border-primary bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded border border-primary bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loadingStub ? (
                 <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -827,7 +827,7 @@ const CommissionReport = () => {
           {/* Missing commission — any rep viewing their own report can flag a gap */}
           <button
             onClick={() => setMissingModal({ open: true, invoiceNumber: '', message: '', sending: false })}
-            className="inline-flex items-center gap-2 rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium text-body transition hover:border-primary hover:text-primary dark:border-strokedark"
+            className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium text-body transition hover:border-primary hover:text-primary dark:border-strokedark"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.33 16a2 2 0 001.74 3z" />
