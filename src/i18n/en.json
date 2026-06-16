@@ -870,7 +870,9 @@
         "noRecipients": "Add at least one recipient first.",
         "noReps": "Select at least one rep.",
         "selectAll": "Select all",
-        "selectedTotal": "Total ({{count}} selected)"
+        "selectedTotal": "Total ({{count}} selected)",
+        "statusReady": "Ready to send",
+        "statusToApprove": "To approve"
       },
       "processing": {
         "title": "Processing Bonus (bi-annual)",

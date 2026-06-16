@@ -1028,10 +1028,10 @@ const CommissionImport: React.FC = () => {
                               <input type="checkbox" checked={selectedReps.has(r.rep)} onChange={() => toggleRep(r.rep)} />
                             </td>
                             <td className="px-4 py-2 font-medium text-black dark:text-white">{r.rep}</td>
-                            <td className="px-4 py-2 text-center text-[10px]">
+                            <td className="px-4 py-2 text-center">
                               {r.source === 'imported'
-                                ? <span className="rounded-full bg-success bg-opacity-10 px-2 py-0.5 font-bold text-success">{t('commissionReport.payStub.statusPaid')}</span>
-                                : <span className="rounded-full bg-warning bg-opacity-10 px-2 py-0.5 font-bold text-warning">{t('commissionReport.payStub.statusPending')}</span>}
+                                ? <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success"><span className="h-1.5 w-1.5 rounded-full bg-success" />{t('admin.commissionImport.payroll.statusReady')}</span>
+                                : <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2.5 py-1 text-[11px] font-semibold text-warning"><span className="h-1.5 w-1.5 rounded-full bg-warning" />{t('admin.commissionImport.payroll.statusToApprove')}</span>}
                             </td>
                             <td className="px-4 py-2 text-right font-semibold text-black dark:text-white">{fmt(r.total)}</td>
                           </tr>

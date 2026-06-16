@@ -870,7 +870,9 @@
         "noRecipients": "Ajoutez au moins un destinataire d'abord.",
         "noReps": "Sélectionnez au moins un vendeur.",
         "selectAll": "Tout sélectionner",
-        "selectedTotal": "Total ({{count}} sélectionné(s))"
+        "selectedTotal": "Total ({{count}} sélectionné(s))",
+        "statusReady": "Prêt à envoyer",
+        "statusToApprove": "À approuver"
       },
       "processing": {
         "title": "Bonus de paiement (bi-annuel)",
