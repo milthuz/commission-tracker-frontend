@@ -762,6 +762,16 @@ const CommissionReport = () => {
           <p className="text-sm text-body">
             {report.repName} · {report.commissionRate}% rate · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ` : ''}{selectedYear}
           </p>
+          {/* Missing commission — discreet link (any rep viewing their own report can flag a gap) */}
+          <button
+            onClick={() => setMissingModal({ open: true, invoiceNumber: '', message: '', sending: false })}
+            className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-body transition hover:text-primary"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.33 16a2 2 0 001.74 3z" />
+            </svg>
+            {t('commissionReport.missing.button')}
+          </button>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -824,16 +834,6 @@ const CommissionReport = () => {
             </button>
           )}
 
-          {/* Missing commission — any rep viewing their own report can flag a gap */}
-          <button
-            onClick={() => setMissingModal({ open: true, invoiceNumber: '', message: '', sending: false })}
-            className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium text-body transition hover:border-primary hover:text-primary dark:border-strokedark"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.33 16a2 2 0 001.74 3z" />
-            </svg>
-            {t('commissionReport.missing.button')}
-          </button>
         </div>
       </div>
 
