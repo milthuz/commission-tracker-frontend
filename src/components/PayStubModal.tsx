@@ -49,11 +49,17 @@ const PayStubModal: React.FC<{
   showAppCalc?: boolean;
   // Per-month quota override ("payer quand même") — wired by admin pages only.
   onQuotaWaive?: (waived: boolean) => void;
-}> = ({ data, onClose, onCommit, committing, showAppCalc, onQuotaWaive }) => {
+  // Called after missed commissions are carried forward as adjustments — parent refreshes.
+  onAdjusted?: () => void;
+}> = ({ data, onClose, onCommit, committing, showAppCalc, onQuotaWaive, onAdjusted }) => {
   const { t, i18n } = useTranslation();
   const [emailOpen, setEmailOpen] = useState(false);
   const [emailTo, setEmailTo] = useState('');
   const [emailSending, setEmailSending] = useState(false);
+  const now = new Date();
+  const [adjMonth, setAdjMonth] = useState(now.getMonth() + 1);
+  const [adjYear, setAdjYear] = useState(now.getFullYear());
+  const [adjBusy, setAdjBusy] = useState(false);
   if (!data) return null;
   const showApp = !!showAppCalc && data.source === 'imported';
 
@@ -70,8 +76,32 @@ const PayStubModal: React.FC<{
       case 'monthly_performance': return tp('monthlyPerformance');
       case 'processing':          return tp('processingBonus');
       case 'manual':              return tp('manualBonus');
+      case 'adjustment':          return tp('adjustment');
       default:                    return type;
     }
+  };
+
+  const monthName = (m: number) => {
+    const s = new Date(2000, m - 1, 1).toLocaleString(i18n.language, { month: 'long' });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+  // Carry all "missed" (earned-but-unpaid) invoices of this period forward to a chosen month.
+  const reportMissed = async () => {
+    if (!data?.missed?.length) return;
+    if (!window.confirm(tp('adjustConfirm') as string)) return;
+    setAdjBusy(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/commissions/adjustments`, {
+        repName: data.repName, year: adjYear, month: adjMonth,
+        invoiceNumbers: data.missed.map((m) => m.invoice_number),
+        description: `${tp('adjustment')} — ${data.period}`,
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      onAdjusted?.();
+      onClose();
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Failed to create adjustment');
+    } finally { setAdjBusy(false); }
   };
 
   // Export to Excel — a .xls (HTML-table) file Excel opens natively. No dependency.
@@ -463,6 +493,22 @@ const PayStubModal: React.FC<{
                       {tp('missedSubtotal')}: {fmt(data.missedTotal || 0)}
                     </p>
                   </div>
+                  {/* Carry these missed commissions forward to a future pay month. */}
+                  {onAdjusted && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-warning/30 pt-3">
+                      <span className="text-xs font-medium text-body">{tp('reportTo')}</span>
+                      <select value={adjMonth} onChange={(e) => setAdjMonth(parseInt(e.target.value))}
+                        className="rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => <option key={m} value={m}>{monthName(m)}</option>)}
+                      </select>
+                      <input type="number" value={adjYear} onChange={(e) => setAdjYear(parseInt(e.target.value) || adjYear)}
+                        className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                      <button onClick={reportMissed} disabled={adjBusy}
+                        className="rounded-md bg-warning px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+                        {adjBusy ? '…' : tp('reportButton')}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

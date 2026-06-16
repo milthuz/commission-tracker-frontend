@@ -881,6 +881,7 @@ const CommissionReport = () => {
         committing={committingStub}
         showAppCalc={canMarkPaid}
         onQuotaWaive={canMarkPaid ? waiveQuota : undefined}
+        onAdjusted={canMarkPaid ? refreshReport : undefined}
       />
 
       {/* Total Compensation — EARNED TO DATE: base salary accrued by pay period (26 bi-weekly

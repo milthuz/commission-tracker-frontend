@@ -206,6 +206,65 @@ const CommissionImport: React.FC = () => {
     } catch (e: any) { alert(e?.response?.data?.error || 'Failed to delete'); }
   };
 
+  // ── Commission adjustments (carry an unpaid commission forward to a target month) ──
+  interface AdjUnpaid { invoice_number: string; customer: string | null; commission: number; commission_status: string; payable_date: string | null; }
+  interface AdjRow { id: number; rep_name: string; target_period: string; invoice_number: string | null; customer: string | null; amount: number; source_period: string | null; description: string; }
+  const [adjRep, setAdjRep] = useState('');
+  const [adjUnpaid, setAdjUnpaid] = useState<AdjUnpaid[]>([]);
+  const [adjSelected, setAdjSelected] = useState<Set<string>>(new Set());
+  const [adjYear, setAdjYear] = useState(new Date().getFullYear());
+  const [adjMonth, setAdjMonth] = useState(new Date().getMonth() + 1);
+  const [adjDesc, setAdjDesc] = useState('');
+  const [adjList, setAdjList] = useState<AdjRow[]>([]);
+  const [adjBusy, setAdjBusy] = useState(false);
+
+  const fetchAdjUnpaid = async (rep: string) => {
+    if (!rep) { setAdjUnpaid([]); return; }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/unpaid-commissions`, {
+        headers: { Authorization: `Bearer ${token}` }, params: { repName: rep },
+      });
+      setAdjUnpaid(res.data.invoices || []);
+      setAdjSelected(new Set());
+    } catch (_e) { /* silent */ }
+  };
+  const fetchAdjustments = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/adjustments`, {
+        headers: { Authorization: `Bearer ${token}` }, params: { all: 'true' },
+      });
+      setAdjList(res.data.adjustments || []);
+    } catch (_e) { /* silent */ }
+  };
+  const createAdjustments = async () => {
+    if (!adjRep || adjSelected.size === 0) { alert(t('admin.commissionImport.adjustments.needSelection')); return; }
+    setAdjBusy(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/commissions/adjustments`,
+        { repName: adjRep, year: adjYear, month: adjMonth, invoiceNumbers: [...adjSelected], description: adjDesc },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setAdjDesc('');
+      await fetchAdjUnpaid(adjRep);
+      await fetchAdjustments();
+    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to create adjustment'); }
+    finally { setAdjBusy(false); }
+  };
+  const deleteAdjustment = async (id: number) => {
+    if (!window.confirm(t('admin.commissionImport.adjustments.deleteConfirm') as string)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/commissions/adjustments/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+      await fetchAdjustments();
+      if (adjRep) await fetchAdjUnpaid(adjRep);
+    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to delete'); }
+  };
+  const toggleAdjSel = (num: string) => setAdjSelected(prev => {
+    const n = new Set(prev); n.has(num) ? n.delete(num) : n.add(num); return n;
+  });
+
   // Processing-bonus preview (bi-annual: June covers Dec→May, December covers Jun→Nov).
   const [procYear, setProcYear] = useState(new Date().getFullYear());
   const [procMonth, setProcMonth] = useState<6 | 12>(new Date().getMonth() + 1 >= 6 && new Date().getMonth() + 1 < 12 ? 6 : 12);
@@ -364,8 +423,8 @@ const CommissionImport: React.FC = () => {
       } catch (_e) { /* silent */ }
     })();
   }, []);
-  // Load the full manual-bonus history once (it spans all periods now).
-  useEffect(() => { fetchManualBonuses(); }, []);
+  // Load the full manual-bonus + adjustment history once (both span all periods).
+  useEffect(() => { fetchManualBonuses(); fetchAdjustments(); }, []);
 
   // Update a single entry by id
   const updateEntry = (id: string, patch: Partial<FileEntry>) => {
@@ -1128,6 +1187,116 @@ const CommissionImport: React.FC = () => {
         </div>
       </div>
 
+      {/* Commission adjustments — carry an unpaid commission from a past month to a target month */}
+      <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.adjustments.title')}</h3>
+          <p className="text-sm text-body">{t('admin.commissionImport.adjustments.subtitle')}</p>
+        </div>
+        <div className="px-6 py-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">Rep</label>
+              <select value={adjRep} onChange={(e) => { setAdjRep(e.target.value); fetchAdjUnpaid(e.target.value); }}
+                className="w-48 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
+                <option value="">{t('admin.commissionImport.manualBonus.selectRep')}</option>
+                {reps.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.targetMonth')}</label>
+              <div className="flex gap-2">
+                <select value={adjMonth} onChange={(e) => setAdjMonth(parseInt(e.target.value))}
+                  className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthName(m)}</option>)}
+                </select>
+                <input type="number" value={adjYear} onChange={(e) => setAdjYear(parseInt(e.target.value) || adjYear)}
+                  className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-[180px]">
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
+              <input type="text" value={adjDesc} onChange={(e) => setAdjDesc(e.target.value)}
+                placeholder={t('admin.commissionImport.adjustments.descPlaceholder') as string}
+                className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+            </div>
+            <button onClick={createAdjustments} disabled={adjBusy || adjSelected.size === 0}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+              {adjBusy ? '…' : t('admin.commissionImport.adjustments.carry', { count: adjSelected.size })}
+            </button>
+          </div>
+
+          {/* Unpaid commissions for the selected rep — pick which to carry forward */}
+          {adjRep && (
+            adjUnpaid.length === 0 ? (
+              <p className="mt-4 text-sm text-body">{t('admin.commissionImport.adjustments.noUnpaid')}</p>
+            ) : (
+              <div className="mt-4 overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                <table className="w-full min-w-[640px] text-sm">
+                  <thead className="bg-gray-2 dark:bg-meta-4">
+                    <tr>
+                      <th className="px-3 py-2 w-8"></th>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.manualBonus.period')}</th>
+                      <th className="px-3 py-2 text-left font-medium">Client</th>
+                      <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adjUnpaid.map(u => (
+                      <tr key={u.invoice_number} className={`border-t border-stroke dark:border-strokedark ${adjSelected.has(u.invoice_number) ? 'bg-primary/5' : ''}`}>
+                        <td className="px-3 py-2 text-center">
+                          <input type="checkbox" checked={adjSelected.has(u.invoice_number)} onChange={() => toggleAdjSel(u.invoice_number)} />
+                        </td>
+                        <td className="px-3 py-2 font-medium text-primary">{u.invoice_number}</td>
+                        <td className="px-3 py-2 text-body whitespace-nowrap">{u.payable_date ? `${monthName(new Date(u.payable_date).getUTCMonth() + 1)} ${new Date(u.payable_date).getUTCFullYear()}` : '—'}</td>
+                        <td className="px-3 py-2 text-black dark:text-white">{u.customer || '—'}</td>
+                        <td className="px-3 py-2 text-right font-semibold text-black dark:text-white whitespace-nowrap">{fmt(u.commission)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
+          )}
+
+          {/* History of adjustments */}
+          {adjList.length > 0 && (
+            <div className="mt-6">
+              <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('admin.commissionImport.adjustments.historyTitle')}</h4>
+              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                <table className="w-full min-w-[680px] text-sm">
+                  <thead className="bg-gray-2 dark:bg-meta-4">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.targetMonth')}</th>
+                      <th className="px-3 py-2 text-left font-medium">Rep</th>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
+                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
+                      <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                      <th className="px-3 py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adjList.map(a => (
+                      <tr key={a.id} className="border-t border-stroke dark:border-strokedark">
+                        <td className="px-3 py-2 text-body whitespace-nowrap">{monthName(new Date(a.target_period).getUTCMonth() + 1)} {new Date(a.target_period).getUTCFullYear()}</td>
+                        <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{a.rep_name}</td>
+                        <td className="px-3 py-2 font-medium text-primary">{a.invoice_number || '—'}<span className="ml-2 text-body">{a.description || ''}</span></td>
+                        <td className="px-3 py-2 text-body whitespace-nowrap">{a.source_period ? `${monthName(new Date(a.source_period).getUTCMonth() + 1)} ${new Date(a.source_period).getUTCFullYear()}` : '—'}</td>
+                        <td className="px-3 py-2 text-right font-semibold text-success whitespace-nowrap">{fmt(a.amount)}</td>
+                        <td className="px-3 py-2 text-right">
+                          <button onClick={() => deleteAdjustment(a.id)} className="whitespace-nowrap text-xs text-danger hover:underline">{t('common.delete')}</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       </>)}
 
       {subTab === 'settings' && (<>
@@ -1170,7 +1339,7 @@ const CommissionImport: React.FC = () => {
       </>)}
 
       {/* Pay Stub detail modal (shared component) */}
-      <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc onQuotaWaive={waiveQuota} />
+      <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc onQuotaWaive={waiveQuota} onAdjusted={() => { fetchCoverage(); fetchAdjustments(); }} />
     </div>
   );
 };

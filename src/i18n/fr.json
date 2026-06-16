@@ -421,6 +421,10 @@
       "issuedOn": "Émis le",
       "subtotalCommissions": "Sous-total commissions",
       "subtotalBonuses": "Sous-total bonus",
+      "adjustment": "Ajustement",
+      "reportTo": "Reporter à",
+      "reportButton": "Reporter",
+      "adjustConfirm": "Reporter ces commissions manquées vers le mois choisi ? Elles seront marquées réglées ici et ajoutées au bulletin de ce mois.",
       "otherAmounts": "Bonus mensuel / autres",
       "reconstructedBanner": "Cet import est antérieur au stockage par facture : le détail ci-dessous est reconstruit depuis les données de l'app. Le total du fichier fait foi. Ré-importez le fichier pour stocker les montants exacts payés."
     },
@@ -831,6 +835,18 @@
         "historyTitle": "Historique des bonus manuels",
         "date": "Date",
         "period": "Période"
+      },
+      "adjustments": {
+        "title": "Ajustements de commission",
+        "subtitle": "Reporter une commission impayée/manquée d'un mois passé vers un mois de paie cible (ex. payer une facture de mars dans la paie de mai). La facture source est marquée réglée et le montant s'ajoute au bulletin du mois cible.",
+        "targetMonth": "Mois cible",
+        "descPlaceholder": "ex. Ajustement commissions mars",
+        "carry": "Reporter ({{count}})",
+        "noUnpaid": "Aucune commission impayée pour ce vendeur.",
+        "needSelection": "Choisis un vendeur et coche au moins une facture.",
+        "historyTitle": "Historique des ajustements",
+        "from": "Depuis",
+        "deleteConfirm": "Annuler cet ajustement ? La facture source redeviendra impayée (réapparaîtra dans le radar)."
       },
       "payroll": {
         "title": "Envoyer à la paie",

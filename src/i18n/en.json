@@ -421,6 +421,10 @@
       "issuedOn": "Issued on",
       "subtotalCommissions": "Commissions subtotal",
       "subtotalBonuses": "Bonuses subtotal",
+      "adjustment": "Adjustment",
+      "reportTo": "Carry to",
+      "reportButton": "Carry forward",
+      "adjustConfirm": "Carry these missed commissions to the selected month? They'll be marked settled here and added to that month's pay stub.",
       "otherAmounts": "Monthly bonus / other",
       "reconstructedBanner": "This import predates per-invoice storage, so the invoice breakdown below is reconstructed from the app's data. The file total stays authoritative. Re-import the file to store the exact paid amounts."
     },
@@ -831,6 +835,18 @@
         "historyTitle": "Manual bonus history",
         "date": "Date",
         "period": "Period"
+      },
+      "adjustments": {
+        "title": "Commission adjustments",
+        "subtitle": "Carry an unpaid/missed commission from a past month forward to a target pay month (e.g. pay a March invoice in May's payroll). The source invoice is marked settled and the amount is added to the target month's pay stub.",
+        "targetMonth": "Target month",
+        "descPlaceholder": "e.g. March commissions adjustment",
+        "carry": "Carry forward ({{count}})",
+        "noUnpaid": "No unpaid commissions for this rep.",
+        "needSelection": "Pick a rep and check at least one invoice.",
+        "historyTitle": "Adjustments history",
+        "from": "From",
+        "deleteConfirm": "Undo this adjustment? The source invoice becomes unpaid again (reappears in the radar)."
       },
       "payroll": {
         "title": "Send to Payroll",
