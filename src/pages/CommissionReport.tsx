@@ -161,6 +161,12 @@ const CommissionReport = () => {
   const [notification, setNotification] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({
     show: false, message: '', type: 'success',
   });
+  // Auto-dismiss any toast after a few seconds (longer for the slower recalc message).
+  useEffect(() => {
+    if (!notification.show) return;
+    const id = setTimeout(() => setNotification(n => ({ ...n, show: false })), 6000);
+    return () => clearTimeout(id);
+  }, [notification.show, notification.message]);
   // "Missing commission" report modal (rep-facing)
   const [missingModal, setMissingModal] = useState<{ open: boolean; invoiceNumber: string; message: string; sending: boolean }>({
     open: false, invoiceNumber: '', message: '', sending: false,
@@ -1626,11 +1632,14 @@ const CommissionReport = () => {
         </div>
       )}
 
-      {/* Notification */}
+      {/* Notification — bottom-right toast, auto-dismisses, manually closable */}
       {notification.show && (
-        <div className="fixed top-4 right-4 z-[999999]">
-          <div className={`flex items-center gap-3 rounded-lg px-6 py-4 shadow-lg ${notification.type === 'success' ? 'bg-success text-white' : 'bg-danger text-white'}`}>
-            <p className="font-medium">{notification.message}</p>
+        <div className="fixed bottom-6 right-6 z-[999999] max-w-sm">
+          <div className={`flex items-start gap-3 rounded-lg px-5 py-3.5 shadow-xl ${notification.type === 'success' ? 'bg-success text-white' : 'bg-danger text-white'}`}>
+            <p className="text-sm font-medium leading-snug">{notification.message}</p>
+            <button onClick={() => setNotification(n => ({ ...n, show: false }))} className="-mr-1 ml-auto shrink-0 text-white/80 transition hover:text-white" aria-label="Close">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
           </div>
         </div>
       )}
