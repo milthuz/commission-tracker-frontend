@@ -232,6 +232,11 @@ const CommissionImport: React.FC = () => {
   const [adjDesc, setAdjDesc] = useState('');
   const [adjList, setAdjList] = useState<AdjRow[]>([]);
   const [adjBusy, setAdjBusy] = useState(false);
+  const [adjHidePre2026, setAdjHidePre2026] = useState(true);   // hide the 2025 boundary-artifact invoices
+  // Displayed unpaid list (optionally excludes pre-2026 / 2025 invoices).
+  const adjUnpaidShown = adjHidePre2026
+    ? adjUnpaid.filter(u => !u.payable_date || new Date(u.payable_date).getUTCFullYear() >= 2026)
+    : adjUnpaid;
 
   const fetchAdjUnpaid = async (rep: string) => {
     if (!rep) { setAdjUnpaid([]); return; }
@@ -1282,7 +1287,21 @@ const CommissionImport: React.FC = () => {
 
           {/* Unpaid commissions for the selected rep — pick which to carry forward */}
           {adjRep && (
-            adjUnpaid.length === 0 ? (
+            <label className="mt-3 flex items-center gap-2 text-xs font-medium text-body">
+              <input type="checkbox" checked={adjHidePre2026}
+                onChange={(e) => {
+                  setAdjHidePre2026(e.target.checked);
+                  if (e.target.checked) setAdjSelected(prev => {
+                    const next = new Set<string>();
+                    adjUnpaid.forEach(u => { if (prev.has(u.invoice_number) && (!u.payable_date || new Date(u.payable_date).getUTCFullYear() >= 2026)) next.add(u.invoice_number); });
+                    return next;
+                  });
+                }} />
+              {t('admin.commissionImport.adjustments.hide2025')}
+            </label>
+          )}
+          {adjRep && (
+            adjUnpaidShown.length === 0 ? (
               <p className="mt-4 text-sm text-body">{t('admin.commissionImport.adjustments.noUnpaid')}</p>
             ) : (
               <div className="mt-4 overflow-x-auto rounded border border-stroke dark:border-strokedark">
@@ -1297,7 +1316,7 @@ const CommissionImport: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {adjUnpaid.map(u => (
+                    {adjUnpaidShown.map(u => (
                       <tr key={u.invoice_number} className={`border-t border-stroke dark:border-strokedark ${adjSelected.has(u.invoice_number) ? 'bg-primary/5' : ''}`}>
                         <td className="px-3 py-2 text-center">
                           <input type="checkbox" checked={adjSelected.has(u.invoice_number)} onChange={() => toggleAdjSel(u.invoice_number)} />

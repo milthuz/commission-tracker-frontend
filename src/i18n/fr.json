@@ -855,6 +855,7 @@
         "descPlaceholder": "ex. Ajustement commissions mars",
         "carry": "Reporter ({{count}})",
         "noUnpaid": "Aucune commission impayée pour ce vendeur.",
+        "hide2025": "Masquer les factures de 2025",
         "needSelection": "Choisis un vendeur et coche au moins une facture.",
         "historyTitle": "Historique des ajustements",
         "from": "Depuis",

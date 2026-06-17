@@ -855,6 +855,7 @@
         "descPlaceholder": "e.g. March commissions adjustment",
         "carry": "Carry forward ({{count}})",
         "noUnpaid": "No unpaid commissions for this rep.",
+        "hide2025": "Hide 2025 invoices",
         "needSelection": "Pick a rep and check at least one invoice.",
         "historyTitle": "Adjustments history",
         "from": "From",
