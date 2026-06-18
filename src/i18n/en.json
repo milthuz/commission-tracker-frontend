@@ -694,6 +694,7 @@
       "monthlyQuota": "Monthly quota (pts)",
       "email": "Login email",
       "emailPlaceholder": "name@company.com",
+      "loggedInAs": "Logged in via Zoho",
       "emailHint": "The rep's Zoho login email — enables role pre-assignment and impersonation before their first login.",
       "hireDate": "Hire date",
       "hireDateHint": "Drives the 90-day ramp: quota gating is waived during the first 90 days (comp plan §7).",

@@ -694,6 +694,7 @@
       "monthlyQuota": "Quota mensuel (pts)",
       "email": "Courriel de connexion",
       "emailPlaceholder": "nom@compagnie.com",
+      "loggedInAs": "Connecté via Zoho",
       "emailHint": "Le courriel Zoho du vendeur — permet la pré-assignation de rôles et l'impersonation avant sa première connexion.",
       "hireDate": "Date d'embauche",
       "hireDateHint": "Pilote la rampe de 90 jours : le quota gate est suspendu pendant les 90 premiers jours (plan §7).",

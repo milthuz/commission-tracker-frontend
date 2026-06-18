@@ -28,6 +28,7 @@ interface Salesperson {
   hireDate?: string | null;
   quotaGateEnabled?: boolean;
   processingBonusEnabled?: boolean;
+  resolvedLoginEmail?: string | null;
   teamId: number | null;
   teamName: string | null;
 }
@@ -2394,7 +2395,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               <input
                                 type="email"
                                 defaultValue={person.email ?? ''}
-                                placeholder={t('admin.salespeople.emailPlaceholder')}
+                                placeholder={person.resolvedLoginEmail || (t('admin.salespeople.emailPlaceholder') as string)}
                                 title={t('admin.salespeople.emailHint') as string}
                                 onBlur={(e) => {
                                   const val = e.target.value.trim().toLowerCase();
@@ -2403,6 +2404,11 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
                                 className={`w-full max-w-[230px] rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input ${person.email ? 'text-black dark:text-white' : 'text-body'}`}
                               />
+                              {!person.email && person.resolvedLoginEmail && (
+                                <span className="mt-0.5 block max-w-[230px] truncate text-[10px] text-success" title={person.resolvedLoginEmail}>
+                                  ↳ {t('admin.salespeople.loggedInAs')}: {person.resolvedLoginEmail}
+                                </span>
+                              )}
                             </div>
                             <div>
                               <span className="mb-1 block text-xs font-medium text-body" title={t('admin.salespeople.hireDateHint') as string}>{t('admin.salespeople.hireDate')}</span>
