@@ -11,6 +11,7 @@ import ResetPassword from './pages/Authentication/ResetPassword';
 import TermsOfService from './pages/Legal/TermsOfService';
 import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
 import ECommerce from './pages/Dashboard/ECommerce';
+import RepDashboard from './pages/Dashboard/RepDashboard';
 import CommissionTracker from './pages/CommissionTracker';
 import CommissionReport from './pages/CommissionReport';
 import Profile from './pages/Profile';
@@ -25,17 +26,19 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { NewFeaturesProvider } from './context/NewFeaturesContext';
 import DialogHost from './components/DialogHost';
 
-// "/" = company-wide dashboard (perm invoices:view_all). Reps without that permission
-// are sent to their own Commission Report instead of landing on an empty/403 page.
+// "/" adapts to the user's role:
+//   • Admin / company-wide viewer (invoices:view_all) → finance dashboard
+//   • everyone else (Sales Rep) → personal RepDashboard
+// (Manager gets a dedicated dashboard in a later stage; for now managers — who hold
+// invoices:view_all — land on the finance dashboard.)
 function HomeRoute() {
   const { user } = useAuth();
   const perms = user?.permissions || [];
   const canDashboard = !!user?.isAdmin || perms.includes('*') || perms.includes('invoices:view_all');
-  if (user && !canDashboard) return <Navigate to="/commission-report" replace />;
   return (
     <>
       <PageTitle title="Sales Hub" />
-      <ECommerce />
+      {canDashboard ? <ECommerce /> : <RepDashboard />}
     </>
   );
 }
