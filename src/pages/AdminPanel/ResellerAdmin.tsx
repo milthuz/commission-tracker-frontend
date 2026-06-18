@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -50,7 +51,7 @@ export default function ResellerAdmin() {
   };
 
   const remove = async (r: any) => {
-    if (!confirm(t('admin.resellers.confirmDelete', { name: r.name }))) return;
+    if (!(await dialog.confirm(t('admin.resellers.confirmDelete', { name: r.name })))) return;
     await axios.delete(`${API_URL}/api/resellers/${r.id}`, { headers: headers() });
     await load();
   };

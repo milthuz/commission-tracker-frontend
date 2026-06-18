@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { formatDateOnly } from '../utils/date';
+import { dialog } from '../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -139,7 +140,7 @@ const CommissionTracker: React.FC = () => {
       fetchPoints(); // refresh totals
     } catch (e) {
       console.error('Failed to assign rep', e);
-      alert('Failed to assign rep');
+      dialog.alert('Failed to assign rep');
     }
   };
 

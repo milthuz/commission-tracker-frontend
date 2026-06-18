@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { dialog } from '../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -91,7 +92,7 @@ const PayStubModal: React.FC<{
   // Carry all "missed" (earned-but-unpaid) invoices of this period forward to a chosen month.
   const reportMissed = async () => {
     if (!data?.missed?.length) return;
-    if (!window.confirm(tp('adjustConfirm') as string)) return;
+    if (!(await dialog.confirm(tp('adjustConfirm') as string))) return;
     setAdjBusy(true);
     try {
       const token = localStorage.getItem('token');
@@ -103,7 +104,7 @@ const PayStubModal: React.FC<{
       onAdjusted?.();
       onClose();
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Failed to create adjustment');
+      dialog.alert(e?.response?.data?.error || 'Failed to create adjustment');
     } finally { setAdjBusy(false); }
   };
 
@@ -137,9 +138,9 @@ const PayStubModal: React.FC<{
         lines: data.lines, bonuses: data.bonuses, total: data.total, source: data.source,
       }, { headers: { Authorization: `Bearer ${token}` } });
       setEmailOpen(false); setEmailTo('');
-      alert(tp('emailSent'));
+      dialog.alert(tp('emailSent'));
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Failed to send');
+      dialog.alert(e?.response?.data?.error || 'Failed to send');
     } finally {
       setEmailSending(false);
     }

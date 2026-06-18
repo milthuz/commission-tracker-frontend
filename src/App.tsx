@@ -23,6 +23,7 @@ import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NewFeaturesProvider } from './context/NewFeaturesContext';
+import DialogHost from './components/DialogHost';
 
 // "/" = company-wide dashboard (perm invoices:view_all). Reps without that permission
 // are sent to their own Commission Report instead of landing on an empty/403 page.
@@ -216,6 +217,7 @@ function App() {
     <AuthProvider>
       <NewFeaturesProvider>
         <AppContent />
+        <DialogHost />
       </NewFeaturesProvider>
     </AuthProvider>
   );

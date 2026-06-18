@@ -7,6 +7,7 @@ import { ApexOptions } from 'apexcharts';
 import { Eye, Download, X } from 'lucide-react';
 import { formatDateOnly } from '../utils/date';
 import PayStubModal, { PayStubData } from '../components/PayStubModal';
+import { dialog } from '../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -185,7 +186,7 @@ const CommissionReport = () => {
       setNotification({ show: true, type: 'success', message: t('commissionReport.missing.sent') as string });
     } catch (e: any) {
       setMissingModal(m => ({ ...m, sending: false }));
-      alert(e?.response?.data?.error || 'Failed to send');
+      dialog.alert(e?.response?.data?.error || 'Failed to send');
     }
   };
 
@@ -324,7 +325,7 @@ const CommissionReport = () => {
   const approveMonth = async (month: number) => {
     if (!report) return;
     const monthName = MONTH_NAMES[month - 1];
-    if (!confirm(`Approve commission for ${report.repName} — ${monthName} ${selectedYear}? This marks all qualifying invoices as commission paid.`)) return;
+    if (!(await dialog.confirm(`Approve commission for ${report.repName} — ${monthName} ${selectedYear}? This marks all qualifying invoices as commission paid.`))) return;
     
     setApprovingMonth(month);
     try {
@@ -335,11 +336,11 @@ const CommissionReport = () => {
         month,
       }, { headers: { Authorization: `Bearer ${token}` } });
       
-      alert(`✓ Approved! ${res.data.invoicesUpdated} invoices marked as commission paid.`);
+      dialog.alert(`✓ Approved! ${res.data.invoicesUpdated} invoices marked as commission paid.`);
       await refreshReport();
     } catch (e) {
       console.error('Error approving:', e);
-      alert('Failed to approve commission');
+      dialog.alert('Failed to approve commission');
     } finally {
       setApprovingMonth(null);
     }
@@ -348,7 +349,7 @@ const CommissionReport = () => {
   const markPaidMonth = async (month: number) => {
     if (!report) return;
     const monthName = MONTH_NAMES[month - 1];
-    if (!confirm(`Mark approved commissions as paid for ${report.repName} — ${monthName} ${selectedYear}? This records the final payout.`)) return;
+    if (!(await dialog.confirm(`Mark approved commissions as paid for ${report.repName} — ${monthName} ${selectedYear}? This records the final payout.`))) return;
 
     setMarkingPaidMonth(month);
     try {
@@ -359,11 +360,11 @@ const CommissionReport = () => {
         month,
       }, { headers: { Authorization: `Bearer ${token}` } });
 
-      alert(`✓ Marked paid! ${res.data.invoicesUpdated} invoices.`);
+      dialog.alert(`✓ Marked paid! ${res.data.invoicesUpdated} invoices.`);
       await refreshReport();
     } catch (e) {
       console.error('Error marking paid:', e);
-      alert('Failed to mark commissions as paid');
+      dialog.alert('Failed to mark commissions as paid');
     } finally {
       setMarkingPaidMonth(null);
     }
@@ -372,7 +373,7 @@ const CommissionReport = () => {
   const unapproveMonth = async (month: number) => {
     if (!report) return;
     const monthName = MONTH_NAMES[month - 1];
-    if (!confirm(`Undo approval for ${report.repName} — ${monthName} ${selectedYear}? This will revert commission paid status.`)) return;
+    if (!(await dialog.confirm(`Undo approval for ${report.repName} — ${monthName} ${selectedYear}? This will revert commission paid status.`))) return;
     
     setApprovingMonth(month);
     try {
@@ -383,11 +384,11 @@ const CommissionReport = () => {
         month,
       }, { headers: { Authorization: `Bearer ${token}` } });
       
-      alert(`↩ Reverted! ${res.data.invoicesUpdated} invoices unmarked.`);
+      dialog.alert(`↩ Reverted! ${res.data.invoicesUpdated} invoices unmarked.`);
       await refreshReport();
     } catch (e) {
       console.error('Error unapproving:', e);
-      alert('Failed to unapprove commission');
+      dialog.alert('Failed to unapprove commission');
     } finally {
       setApprovingMonth(null);
     }
@@ -424,7 +425,7 @@ const CommissionReport = () => {
       });
     } catch (e) {
       console.error('Error loading pay stub:', e);
-      alert('Failed to load pay stub');
+      dialog.alert('Failed to load pay stub');
     } finally {
       setLoadingStub(false);
     }
@@ -442,7 +443,7 @@ const CommissionReport = () => {
       setPayStub(null);
       setNotification({ show: true, type: 'success', message: t('commissionReport.payStub.quotaWaiveStarted') as string });
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Failed to update quota waiver');
+      dialog.alert(e?.response?.data?.error || 'Failed to update quota waiver');
     }
   };
 
@@ -451,7 +452,7 @@ const CommissionReport = () => {
   const commitPayStub = async () => {
     if (!payStub || payStub.source !== 'generated' || selectedMonth === 'all') return;
     const monthName = MONTH_NAMES[parseInt(selectedMonth) - 1];
-    if (!confirm(`Mark ${payStub.repName} — ${monthName} ${selectedYear} paid? This marks the period's unlocked commissions as paid and records the pay stub.`)) return;
+    if (!(await dialog.confirm(`Mark ${payStub.repName} — ${monthName} ${selectedYear} paid? This marks the period's unlocked commissions as paid and records the pay stub.`))) return;
     setCommittingStub(true);
     try {
       const token = localStorage.getItem('token');
@@ -460,12 +461,12 @@ const CommissionReport = () => {
         year: selectedYear,
         month: selectedMonth,
       }, { headers: { Authorization: `Bearer ${token}` } });
-      alert(t('commissionReport.payStub.committedToPayroll', { count: res.data.invoicesMarked, month: `${monthName} ${selectedYear}` }));
+      dialog.alert(t('commissionReport.payStub.committedToPayroll', { count: res.data.invoicesMarked, month: `${monthName} ${selectedYear}` }));
       await openPayStub();     // re-open → now an 'imported' (app-generated) stub
       await refreshReport();   // reflect new paid status in the report
     } catch (e: any) {
       console.error('Error committing pay stub:', e);
-      alert(e?.response?.data?.error || 'Failed to commit pay stub');
+      dialog.alert(e?.response?.data?.error || 'Failed to commit pay stub');
     } finally {
       setCommittingStub(false);
     }
@@ -474,18 +475,18 @@ const CommissionReport = () => {
   const uncommitPayStub = async () => {
     if (!payStub || selectedMonth === 'all') return;
     const monthName = MONTH_NAMES[parseInt(selectedMonth) - 1];
-    if (!confirm(t('commissionReport.payStub.uncommitConfirm', { rep: payStub.repName, period: `${monthName} ${selectedYear}` }) as string)) return;
+    if (!(await dialog.confirm(t('commissionReport.payStub.uncommitConfirm', { rep: payStub.repName, period: `${monthName} ${selectedYear}` }) as string))) return;
     setCommittingStub(true);
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/commissions/pay-stub/uncommit`, {
         repName: payStub.repName, year: selectedYear, month: selectedMonth,
       }, { headers: { Authorization: `Bearer ${token}` } });
-      alert(t('commissionReport.payStub.uncommitDone', { count: res.data.reverted }));
+      dialog.alert(t('commissionReport.payStub.uncommitDone', { count: res.data.reverted }));
       await openPayStub();      // re-open → back to a 'generated' stub
       await refreshReport();    // reflect pending status in the report
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Failed to undo pay stub');
+      dialog.alert(e?.response?.data?.error || 'Failed to undo pay stub');
     } finally {
       setCommittingStub(false);
     }
@@ -519,7 +520,7 @@ const CommissionReport = () => {
   // Refuse / restore commission on ONE invoice (admin).
   const toggleExcludeCommission = async (invoiceNumber: string, currentlyExcluded: boolean) => {
     const excluded = !currentlyExcluded;
-    if (excluded && !confirm(t('commissionReport.exclude.confirm', { invoice: invoiceNumber }) as string)) return;
+    if (excluded && !(await dialog.confirm(t('commissionReport.exclude.confirm', { invoice: invoiceNumber }) as string))) return;
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(
@@ -534,9 +535,9 @@ const CommissionReport = () => {
         setDrillInvoices(r.data.invoices || []);
       }
       refreshReport();
-      if (!excluded && res.data.note) alert(t('commissionReport.exclude.restored') as string);
+      if (!excluded && res.data.note) dialog.alert(t('commissionReport.exclude.restored') as string);
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Failed to update commission exclusion');
+      dialog.alert(e?.response?.data?.error || 'Failed to update commission exclusion');
     }
   };
 
@@ -589,7 +590,7 @@ const CommissionReport = () => {
       const printWindow = window.open(url, '_blank');
       if (printWindow) printWindow.onload = () => printWindow.print();
     } catch (_e) {
-      alert('Failed to print invoice.');
+      dialog.alert('Failed to print invoice.');
     }
   };
 
@@ -608,7 +609,7 @@ const CommissionReport = () => {
       link.click();
       link.remove();
     } catch (_e) {
-      alert('Failed to download PDF.');
+      dialog.alert('Failed to download PDF.');
     }
   };
 

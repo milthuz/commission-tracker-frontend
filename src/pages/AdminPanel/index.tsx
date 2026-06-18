@@ -10,6 +10,7 @@ import CommissionImport from './CommissionImport';
 import ExternalUsers from './ExternalUsers';
 import ResellerAdmin from './ResellerAdmin';
 import DateField from '../../components/DateField';
+import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const DEFAULT_QUOTA = 15;
@@ -263,7 +264,7 @@ const AdminPanel = () => {
       setNewTeamName('');
       fetchTeams();
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to create team');
+      dialog.alert(error?.response?.data?.error || 'Failed to create team');
     }
   };
 
@@ -284,7 +285,7 @@ const AdminPanel = () => {
       );
       setTeams(prev => prev.map(t => t.id === team.id ? merged : t));
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to update team');
+      dialog.alert(error?.response?.data?.error || 'Failed to update team');
       fetchTeams();
     }
   };
@@ -304,14 +305,14 @@ const AdminPanel = () => {
   };
 
   const deleteTeam = async (team: Team) => {
-    if (!window.confirm(t('admin.teams.confirmDelete', { name: team.name }) as string)) return;
+    if (!(await dialog.confirm(t('admin.teams.confirmDelete', { name: team.name }) as string))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/teams/${team.id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchTeams();
       fetchSalespeople();
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to delete team');
+      dialog.alert(error?.response?.data?.error || 'Failed to delete team');
     }
   };
 
@@ -325,7 +326,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, email: email || null } : p));
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to update email');
+      dialog.alert(error?.response?.data?.error || 'Failed to update email');
     }
   };
 
@@ -339,7 +340,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, hireDate: hireDate || null } : p));
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to update hire date');
+      dialog.alert(error?.response?.data?.error || 'Failed to update hire date');
     }
   };
 
@@ -353,7 +354,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, quotaGateEnabled: enabled } : p));
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to update quota gate');
+      dialog.alert(error?.response?.data?.error || 'Failed to update quota gate');
     }
   };
 
@@ -367,7 +368,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, processingBonusEnabled: enabled } : p));
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to update processing bonus');
+      dialog.alert(error?.response?.data?.error || 'Failed to update processing bonus');
     }
   };
 
@@ -381,7 +382,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, monthlyQuota: quota } : p));
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to update quota');
+      dialog.alert(error?.response?.data?.error || 'Failed to update quota');
     }
   };
 
@@ -397,7 +398,7 @@ const AdminPanel = () => {
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, teamId, teamName } : p));
       fetchTeams(); // refresh member counts
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to assign team');
+      dialog.alert(error?.response?.data?.error || 'Failed to assign team');
     }
   };
 
@@ -418,7 +419,7 @@ const AdminPanel = () => {
       await axios.put(`${API_URL}/api/deal-source-points`, { sourceGroup, points }, { headers: { Authorization: `Bearer ${token}` } });
       fetchDealPoints();
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to save points');
+      dialog.alert(error?.response?.data?.error || 'Failed to save points');
     }
   };
 
@@ -428,7 +429,7 @@ const AdminPanel = () => {
       await axios.delete(`${API_URL}/api/deal-source-points/${encodeURIComponent(sourceGroup)}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchDealPoints();
     } catch (error: any) {
-      alert(error?.response?.data?.error || 'Failed to delete');
+      dialog.alert(error?.response?.data?.error || 'Failed to delete');
     }
   };
 
@@ -483,20 +484,20 @@ const AdminPanel = () => {
       setShowNewRole(false);
       fetchRoles();
     } catch (e: any) {
-      alert(e.response?.data?.error || 'Failed to save role');
+      dialog.alert(e.response?.data?.error || 'Failed to save role');
     } finally {
       setSavingRole(false);
     }
   };
 
   const deleteRole = async (role: Role) => {
-    if (!confirm(`Delete role "${role.name}"? Users assigned to this role will lose its permissions.`)) return;
+    if (!(await dialog.confirm(`Delete role "${role.name}"? Users assigned to this role will lose its permissions.`))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/roles/${role.id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchRoles();
     } catch (e: any) {
-      alert(e.response?.data?.error || 'Failed to delete role');
+      dialog.alert(e.response?.data?.error || 'Failed to delete role');
     }
   };
 
@@ -508,14 +509,14 @@ const AdminPanel = () => {
       setEditingUserRoles(null);
       fetchAdminUsers();
     } catch (e: any) {
-      alert(e.response?.data?.error || 'Failed to save user roles');
+      dialog.alert(e.response?.data?.error || 'Failed to save user roles');
     }
   };
 
   // Toggle admin status
   const toggleAdminStatus = async (email: string, currentStatus: boolean) => {
     const action = currentStatus ? t('admin.admins.confirmRevoke') : t('admin.admins.confirmGrant');
-    if (!confirm(`${action} ${email}?`)) return;
+    if (!(await dialog.confirm(`${action} ${email}?`))) return;
     
     try {
       const token = localStorage.getItem('token');
@@ -531,7 +532,7 @@ const AdminPanel = () => {
       );
     } catch (error: any) {
       const msg = error.response?.data?.error || t('admin.admins.failedUpdate');
-      alert(msg);
+      dialog.alert(msg);
     }
   };
 
@@ -690,10 +691,10 @@ const AdminPanel = () => {
   // Push a new release
   const pushRelease = async () => {
     if (!newVersion.trim() || !releaseNotes.trim()) {
-      alert('Please enter a version number and release notes.');
+      dialog.alert('Please enter a version number and release notes.');
       return;
     }
-    if (!confirm(`Push release v${newVersion}? This will:\n\n• Bump package.json to v${newVersion}\n• Create a git tag\n• Create a GitHub Release\n• Trigger Netlify deployment\n\nContinue?`)) return;
+    if (!(await dialog.confirm(`Push release v${newVersion}? This will:\n\n• Bump package.json to v${newVersion}\n• Create a git tag\n• Create a GitHub Release\n• Trigger Netlify deployment\n\nContinue?`))) return;
 
     try {
       setReleaseStatus('pushing');
@@ -730,7 +731,7 @@ const AdminPanel = () => {
     } catch (err: any) {
       console.error('Release error:', err);
       setReleaseStatus('error');
-      alert(err.response?.data?.error || 'Failed to create release');
+      dialog.alert(err.response?.data?.error || 'Failed to create release');
       setTimeout(() => setReleaseStatus(null), 5000);
     }
   };
@@ -808,7 +809,7 @@ const AdminPanel = () => {
       setUnassignedMerchants(prev => prev.filter(m => m.merchant_account_id !== merchantId));
     } catch (e) {
       console.error('Failed to assign rep:', e);
-      alert('Failed to assign rep');
+      dialog.alert('Failed to assign rep');
     }
   };
 
@@ -993,7 +994,7 @@ const AdminPanel = () => {
 
   // Full bulk import
   const triggerBulkImport = async () => {
-    if (!confirm('This will re-import ALL invoices from Zoho Books. This runs in the background and may take 10-20 minutes. Continue?')) return;
+    if (!(await dialog.confirm('This will re-import ALL invoices from Zoho Books. This runs in the background and may take 10-20 minutes. Continue?'))) return;
     try {
       setSyncStatus('bulk_importing');
       const token = localStorage.getItem('token');
@@ -1050,7 +1051,7 @@ const AdminPanel = () => {
 
   // ---- Recalculate commissions (recalc-v2 — the real subscription-rule model) ----
   const triggerRecalculate = async () => {
-    if (!confirm(t('admin.recalculate.confirmRecalculate'))) return;
+    if (!(await dialog.confirm(t('admin.recalculate.confirmRecalculate')))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/api/commissions/recalc-v2/start`, {}, {
@@ -1061,7 +1062,7 @@ const AdminPanel = () => {
       startRecalcPolling();
     } catch (err: any) {
       if (err?.response?.status === 409) { setRecalcPolling(true); startRecalcPolling(); return; }
-      alert(t('admin.recalculate.startFailed'));
+      dialog.alert(t('admin.recalculate.startFailed'));
     }
   };
 
@@ -1100,7 +1101,7 @@ const AdminPanel = () => {
 
   // ---- Enrich invoices (fetch line items + classify hardware/SaaS — prerequisite to recalc) ----
   const triggerEnrich = async () => {
-    if (!confirm(t('admin.enrich.confirm'))) return;
+    if (!(await dialog.confirm(t('admin.enrich.confirm')))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/api/invoices/enrich/start`, {}, {
@@ -1111,7 +1112,7 @@ const AdminPanel = () => {
       startEnrichPolling();
     } catch (err: any) {
       if (err?.response?.status === 409) { setEnrichPolling(true); startEnrichPolling(); return; }
-      alert(t('admin.enrich.startFailed'));
+      dialog.alert(t('admin.enrich.startFailed'));
     }
   };
 
@@ -1189,7 +1190,7 @@ const AdminPanel = () => {
       );
     } catch (error) {
       console.error('Error updating salesperson status:', error);
-      alert('Failed to update salesperson status');
+      dialog.alert('Failed to update salesperson status');
     }
   };
 
@@ -1215,7 +1216,7 @@ const AdminPanel = () => {
       setUnlockedFields(prev => ({ ...prev, [`${name}_commission`]: false }));
     } catch (error) {
       console.error('Error updating commission rate:', error);
-      alert('Failed to update commission rate');
+      dialog.alert('Failed to update commission rate');
     }
   };
 
@@ -1256,7 +1257,7 @@ const AdminPanel = () => {
       setUnlockedFields(prev => ({ ...prev, [`${name}_salary`]: false }));
     } catch (error) {
       console.error('Error updating base salary:', error);
-      alert(t('admin.salespeople.failedUpdateSalary'));
+      dialog.alert(t('admin.salespeople.failedUpdateSalary'));
     }
   };
 
@@ -1277,7 +1278,7 @@ const AdminPanel = () => {
       setUnlockedFields(prev => ({ ...prev, [`${name}_signup`]: false }));
     } catch (error) {
       console.error('Error updating signup bonus:', error);
-      alert(t('admin.salespeople.failedUpdateSignup'));
+      dialog.alert(t('admin.salespeople.failedUpdateSignup'));
     }
   };
 
@@ -1296,7 +1297,7 @@ const AdminPanel = () => {
       setUnlockedFields(prev => ({ ...prev, [`${name}_aliases`]: false }));
     } catch (error) {
       console.error('Error updating aliases:', error);
-      alert('Failed to update aliases');
+      dialog.alert('Failed to update aliases');
     }
   };
 

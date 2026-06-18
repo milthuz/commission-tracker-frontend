@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -88,7 +89,7 @@ const ExternalUsers: React.FC = () => {
   };
 
   const remove = async (u: LocalUser) => {
-    if (!confirm(t('admin.externalUsers.confirmDelete', { email: u.email }) as string)) return;
+    if (!(await dialog.confirm(t('admin.externalUsers.confirmDelete', { email: u.email }) as string))) return;
     try {
       await axios.delete(`${API_URL}/api/admin/local-users/${u.id}`, hdrs());
       await load();

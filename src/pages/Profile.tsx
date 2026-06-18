@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { dialog } from '../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -87,10 +88,10 @@ const Profile = () => {
         { message: featureModal.message },
         { headers: { Authorization: `Bearer ${token}` } });
       setFeatureModal({ open: false, message: '', sending: false });
-      alert(t('profile.requestFeature.sent'));
+      dialog.alert(t('profile.requestFeature.sent'));
     } catch (e: any) {
       setFeatureModal(m => ({ ...m, sending: false }));
-      alert(e?.response?.data?.error || 'Failed to send');
+      dialog.alert(e?.response?.data?.error || 'Failed to send');
     }
   };
 
@@ -141,7 +142,7 @@ const Profile = () => {
       setTimeout(() => setSaved(false), 3000);
     } catch (e) {
       console.error('Error saving preferences:', e);
-      alert('Failed to save preferences');
+      dialog.alert('Failed to save preferences');
     } finally {
       setSaving(false);
     }
@@ -485,8 +486,8 @@ const Profile = () => {
               {/* {t('profile.signOut')} */}
               <div className="mt-5">
                 <button
-                  onClick={() => {
-                    if (confirm(t('profile.signOutConfirm'))) {
+                  onClick={async () => {
+                    if (await dialog.confirm(t('profile.signOutConfirm'))) {
                       localStorage.removeItem('token');
                       window.location.href = '/auth/zoho-login';
                     }

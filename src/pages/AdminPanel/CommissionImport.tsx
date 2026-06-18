@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import PayStubModal, { PayStubData } from '../../components/PayStubModal';
+import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -144,12 +145,12 @@ const CommissionImport: React.FC = () => {
   };
 
   const deletePaySend = async (s: PayrollSend) => {
-    if (!confirm(t('admin.commissionImport.payroll.histDeleteConfirm', { month: monthName(s.month), year: s.year }) as string)) return;
+    if (!(await dialog.confirm(t('admin.commissionImport.payroll.histDeleteConfirm', { month: monthName(s.month), year: s.year }) as string))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/commissions/payroll/sends`, { headers: { Authorization: `Bearer ${token}` }, data: { ids: s.ids } });
       fetchPaySends();
-    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to delete'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
   };
 
   const fetchPayRecipients = async () => {
@@ -171,7 +172,7 @@ const CommissionImport: React.FC = () => {
       setPayRecipients(res.data.recipients || []);
       setSelectedReps(new Set((res.data.reps || []).map((r: { rep: string }) => r.rep))); // default: all
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Failed to load payroll preview');
+      dialog.alert(e?.response?.data?.error || 'Failed to load payroll preview');
     } finally { setPayLoading(false); }
   };
 
@@ -181,12 +182,12 @@ const CommissionImport: React.FC = () => {
       const token = localStorage.getItem('token');
       const res = await axios.put(`${API_URL}/api/commissions/payroll/recipients`, { emails }, { headers: { Authorization: `Bearer ${token}` } });
       setPayRecipients(res.data.recipients || emails);
-    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to save recipients'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save recipients'); }
     finally { setSavingRecipients(false); }
   };
   const addRecipient = async () => {
     const email = newRecipient.trim().toLowerCase();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert(t('admin.commissionImport.payroll.invalidEmail')); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { dialog.alert(t('admin.commissionImport.payroll.invalidEmail')); return; }
     if (payRecipients.includes(email)) { setNewRecipient(''); return; }
     await saveRecipientList([...payRecipients, email]);
     setNewRecipient('');
@@ -206,16 +207,16 @@ const CommissionImport: React.FC = () => {
   const sendPayroll = async () => {
     if (!payData) return;
     const reps = [...selectedReps];
-    if (reps.length === 0) { alert(t('admin.commissionImport.payroll.noReps') as string); return; }
-    if (!confirm(t('admin.commissionImport.payroll.confirmSend', { count: reps.length }) as string)) return;
+    if (reps.length === 0) { dialog.alert(t('admin.commissionImport.payroll.noReps') as string); return; }
+    if (!(await dialog.confirm(t('admin.commissionImport.payroll.confirmSend', { count: reps.length }) as string))) return;
     setPaySending(true);
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/commissions/payroll/send`, { year: payYear, month: payMonth, reps, lang: i18n.language }, { headers: { Authorization: `Bearer ${token}` } });
-      alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
+      dialog.alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
       await fetchPayroll();   // refresh so the sent reps show the "Sent" badge
       fetchPaySends();        // refresh the send history
-    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to send'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to send'); }
     finally { setPaySending(false); }
   };
 
@@ -241,7 +242,7 @@ const CommissionImport: React.FC = () => {
 
   const addManualBonus = async () => {
     const amt = parseFloat(mbAmount);
-    if (!mbRep || isNaN(amt)) { alert(t('admin.commissionImport.manualBonus.needRepAmount')); return; }
+    if (!mbRep || isNaN(amt)) { dialog.alert(t('admin.commissionImport.manualBonus.needRepAmount')); return; }
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/api/commissions/manual-bonus`,
@@ -249,7 +250,7 @@ const CommissionImport: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } });
       setMbAmount(''); setMbDesc('');
       fetchManualBonuses();
-    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to add'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to add'); }
   };
 
   const deleteManualBonus = async (id: number) => {
@@ -257,7 +258,7 @@ const CommissionImport: React.FC = () => {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/commissions/manual-bonus/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchManualBonuses();
-    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to delete'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
   };
 
   // ── Commission adjustments (carry an unpaid commission forward to a target month) ──
@@ -298,7 +299,7 @@ const CommissionImport: React.FC = () => {
     } catch (_e) { /* silent */ }
   };
   const createAdjustments = async () => {
-    if (!adjRep || adjSelected.size === 0) { alert(t('admin.commissionImport.adjustments.needSelection')); return; }
+    if (!adjRep || adjSelected.size === 0) { dialog.alert(t('admin.commissionImport.adjustments.needSelection')); return; }
     setAdjBusy(true);
     try {
       const token = localStorage.getItem('token');
@@ -308,17 +309,17 @@ const CommissionImport: React.FC = () => {
       setAdjDesc('');
       await fetchAdjUnpaid(adjRep);
       await fetchAdjustments();
-    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to create adjustment'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to create adjustment'); }
     finally { setAdjBusy(false); }
   };
   const deleteAdjustment = async (id: number) => {
-    if (!window.confirm(t('admin.commissionImport.adjustments.deleteConfirm') as string)) return;
+    if (!(await dialog.confirm(t('admin.commissionImport.adjustments.deleteConfirm') as string))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/commissions/adjustments/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       await fetchAdjustments();
       if (adjRep) await fetchAdjUnpaid(adjRep);
-    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to delete'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
   };
   const toggleAdjSel = (num: string) => setAdjSelected(prev => {
     const n = new Set(prev); n.has(num) ? n.delete(num) : n.add(num); return n;
@@ -373,9 +374,9 @@ const CommissionImport: React.FC = () => {
         repName: stub.repName, year, month: String(parseInt(month)), waived,
       }, { headers: { Authorization: `Bearer ${token}` } });
       setStub(null);
-      alert(t('commissionReport.payStub.quotaWaiveStarted') as string);
+      dialog.alert(t('commissionReport.payStub.quotaWaiveStarted') as string);
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Failed to update quota waiver');
+      dialog.alert(e?.response?.data?.error || 'Failed to update quota waiver');
     }
   };
 
@@ -389,7 +390,7 @@ const CommissionImport: React.FC = () => {
       });
       setProcData(res.data);
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Failed to load processing bonus');
+      dialog.alert(e?.response?.data?.error || 'Failed to load processing bonus');
     } finally {
       setProcLoading(false);
     }
@@ -398,21 +399,21 @@ const CommissionImport: React.FC = () => {
   const [procCommitting, setProcCommitting] = useState(false);
   const commitProcessing = async () => {
     if (!procData || procData.reps.length === 0) return;
-    if (!window.confirm(t('admin.commissionImport.processing.commitConfirm', { total: fmt(procData.grandTotal) }) as string)) return;
+    if (!(await dialog.confirm(t('admin.commissionImport.processing.commitConfirm', { total: fmt(procData.grandTotal) }) as string))) return;
     setProcCommitting(true);
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/commissions/processing-bonus/commit`,
         { year: procYear, month: procMonth }, { headers: { Authorization: `Bearer ${token}` } });
-      alert(t('admin.commissionImport.processing.commitDone', { count: res.data.accounts, total: fmt(res.data.total) }) as string);
+      dialog.alert(t('admin.commissionImport.processing.commitDone', { count: res.data.accounts, total: fmt(res.data.total) }) as string);
       await fetchProcessing();
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Failed to commit');
+      dialog.alert(e?.response?.data?.error || 'Failed to commit');
     } finally { setProcCommitting(false); }
   };
 
   const uncommitProcessing = async () => {
-    if (!window.confirm(t('admin.commissionImport.processing.uncommitConfirm') as string)) return;
+    if (!(await dialog.confirm(t('admin.commissionImport.processing.uncommitConfirm') as string))) return;
     setProcCommitting(true);
     try {
       const token = localStorage.getItem('token');
@@ -420,7 +421,7 @@ const CommissionImport: React.FC = () => {
         { year: procYear, month: procMonth }, { headers: { Authorization: `Bearer ${token}` } });
       await fetchProcessing();
     } catch (e: any) {
-      alert(e?.response?.data?.error || 'Failed to uncommit');
+      dialog.alert(e?.response?.data?.error || 'Failed to uncommit');
     } finally { setProcCommitting(false); }
   };
 
