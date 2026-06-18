@@ -87,7 +87,7 @@ interface ProcData { year: number; month: number; grandTotal: number; reps: Proc
 
 interface PayrollRep { rep: string; source: string; total: number; lineCount: number; bonusCount: number; sentAt?: string | null; }
 interface PayrollData { year: number; month: number; dueBy: string | null; recipients: string[]; grandTotal: number; reps: PayrollRep[]; }
-interface PayrollSend { period: string; year: number; month: number; sentAt: string; sentBy: string; recipients: string[]; repCount: number; total: number; reps: string[]; }
+interface PayrollSend { period: string; year: number; month: number; sentAt: string; sentBy: string; recipients: string[]; repCount: number; total: number; reps: string[]; ids: number[]; }
 
 const newId = () => Math.random().toString(36).slice(2, 10);
 
@@ -141,6 +141,15 @@ const CommissionImport: React.FC = () => {
       const res = await axios.get(`${API_URL}/api/commissions/payroll/sends`, { headers: { Authorization: `Bearer ${token}` } });
       setPaySends(res.data.sends || []);
     } catch (_e) { /* silent */ }
+  };
+
+  const deletePaySend = async (s: PayrollSend) => {
+    if (!confirm(t('admin.commissionImport.payroll.histDeleteConfirm', { month: monthName(s.month), year: s.year }) as string)) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/commissions/payroll/sends`, { headers: { Authorization: `Bearer ${token}` }, data: { ids: s.ids } });
+      fetchPaySends();
+    } catch (e: any) { alert(e?.response?.data?.error || 'Failed to delete'); }
   };
 
   const fetchPayRecipients = async () => {
@@ -1163,6 +1172,13 @@ const CommissionImport: React.FC = () => {
                               <div>
                                 <span className="text-xs font-semibold uppercase text-body">{t('admin.commissionImport.payroll.histRecipients')}</span>
                                 <div className="mt-1 text-xs text-body">{s.recipients.join(', ')}</div>
+                              </div>
+                              <div className="mt-3 border-t border-stroke pt-3 dark:border-strokedark">
+                                <button onClick={() => deletePaySend(s)}
+                                  className="inline-flex items-center gap-1.5 rounded-md border border-danger/40 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger hover:text-white">
+                                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                  {t('admin.commissionImport.payroll.histDelete')}
+                                </button>
                               </div>
                             </td>
                           </tr>

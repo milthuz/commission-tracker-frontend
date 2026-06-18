@@ -900,7 +900,9 @@
         "histReps": "Reps",
         "histTotal": "Total",
         "histRecipients": "Recipients",
-        "histSentBy": "By"
+        "histSentBy": "By",
+        "histDelete": "Delete this entry",
+        "histDeleteConfirm": "Delete the {{month}} {{year}} send from the history? This only removes the history record — it does not un-send the email."
       },
       "processing": {
         "title": "Processing Bonus (bi-annual)",

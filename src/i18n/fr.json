@@ -900,7 +900,9 @@
         "histReps": "Vendeurs",
         "histTotal": "Total",
         "histRecipients": "Destinataires",
-        "histSentBy": "Par"
+        "histSentBy": "Par",
+        "histDelete": "Supprimer cette entrée",
+        "histDeleteConfirm": "Supprimer l'envoi de {{month}} {{year}} de l'historique? Cela retire seulement l'entrée d'historique — le courriel déjà envoyé n'est pas annulé."
       },
       "processing": {
         "title": "Bonus de paiement (bi-annuel)",
