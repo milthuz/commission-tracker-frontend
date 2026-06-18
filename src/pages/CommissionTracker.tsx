@@ -52,6 +52,8 @@ interface RepData {
   restricted?: boolean;   // backend flag — true when current user can't see this rep's details
   team?: { id: number; name: string } | null;
   countsTowardQuota?: boolean;
+  includeDeals?: boolean;     // false → rep's team excludes CRM deals (shown but don't count)
+  includePayments?: boolean;  // false → rep's team excludes payment activations
 }
 
 interface TeamAgg {
@@ -482,6 +484,15 @@ const CommissionTracker: React.FC = () => {
                 <div className="border-t border-stroke dark:border-strokedark">
                   {/* CRM Deals */}
                   {rep.deals.length > 0 && (
+                    <>
+                    {rep.includeDeals === false && (
+                      <div className="flex items-center gap-2 border-b border-stroke bg-warning/5 px-6 py-2 dark:border-strokedark">
+                        <svg className="h-4 w-4 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-xs font-medium text-body">{t('commissionTracker.dealsDoNotCount', { team: rep.team?.name || '' })}</span>
+                      </div>
+                    )}
                     <table className="w-full table-auto">
                       <thead>
                         <tr className="bg-gray-50 dark:bg-meta-4/50">
@@ -549,7 +560,8 @@ const CommissionTracker: React.FC = () => {
                               {formatDateOnly(deal.close_date, i18n.language)}
                             </td>
                             <td className="px-6 py-3 text-right">
-                              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#8B5CF6] text-xs font-bold text-white">
+                              <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${rep.includeDeals === false ? 'bg-gray-200 text-gray-400 line-through dark:bg-meta-4 dark:text-gray-500' : 'bg-[#8B5CF6] text-white'}`}
+                                title={rep.includeDeals === false ? t('commissionTracker.dealsDoNotCount', { team: rep.team?.name || '' }) as string : undefined}>
                                 {deal.points}
                               </span>
                             </td>
@@ -557,6 +569,7 @@ const CommissionTracker: React.FC = () => {
                         ))}
                       </tbody>
                     </table>
+                    </>
                   )}
 
                   {/* Zentact Payment Activations */}

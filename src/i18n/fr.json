@@ -331,6 +331,7 @@
     "srcPayments": "Paiements",
     "overrideSourceHint": "Forcer la source de ce deal (conservée lors des syncs CRM)",
     "manual": "Manuel",
+    "dealsDoNotCount": "Les deals ne comptent pas pour ce vendeur — l'équipe « {{team}} » ne suit que les activations de paiement.",
     "sourceOverridden": "Source forcée manuellement (figée) — valeur Zoho : {{source}}. Efface l'override pour resuivre Zoho.",
     "soldDealsMonth": "Ventes conclues ce mois-ci",
     "repsMetQuota": "Représentants ayant atteint le quota",

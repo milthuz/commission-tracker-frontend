@@ -331,6 +331,7 @@
     "srcPayments": "Payments",
     "overrideSourceHint": "Override this deal's lead source (kept across CRM syncs)",
     "manual": "Manual",
+    "dealsDoNotCount": "Deals don't count toward this rep — team \"{{team}}\" tracks payment activations only.",
     "sourceOverridden": "Source manually overridden (frozen) — Zoho value: {{source}}. Clear the override to follow Zoho again.",
     "soldDealsMonth": "SOLD deals this month",
     "repsMetQuota": "Reps met quota",
