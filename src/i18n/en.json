@@ -942,6 +942,8 @@
       "title": "Roles & Permissions",
       "subtitle": "Create custom roles and assign granular permissions to control what each user can see and do.",
       "newRole": "New Role",
+      "clone": "Clone",
+      "cloneHint": "Create a new role with the same permissions",
       "editRole": "Edit Role",
       "noRoles": "No roles defined yet — click 'New Role' to get started.",
       "nameField": "Role Name",

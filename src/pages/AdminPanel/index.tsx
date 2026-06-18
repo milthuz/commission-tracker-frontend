@@ -3182,6 +3182,13 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               >
                                 {t('common.edit')}
                               </button>
+                              <button
+                                onClick={() => { setShowNewRole(true); setEditingRole({ id: 0, name: `${role.name} (copie)`, description: role.description || '', permissions: [...role.permissions], isSystem: false, userCount: 0 }); }}
+                                title={t('admin.roles.cloneHint') as string}
+                                className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
+                              >
+                                {t('admin.roles.clone')}
+                              </button>
                               {!role.isSystem && (
                                 <button
                                   onClick={() => deleteRole(role)}
