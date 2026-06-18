@@ -891,7 +891,16 @@
         "statusToApprove": "To approve",
         "statusSent": "Sent",
         "sentOn": "Sent to payroll on",
-        "lastSent": "Last sent"
+        "lastSent": "Last sent",
+        "historyTitle": "Send history",
+        "historySubtitle": "Every payroll send, most recent first. Click a row to see the reps included.",
+        "historyNone": "No payroll has been sent yet.",
+        "histDate": "Sent",
+        "histPeriod": "Period",
+        "histReps": "Reps",
+        "histTotal": "Total",
+        "histRecipients": "Recipients",
+        "histSentBy": "By"
       },
       "processing": {
         "title": "Processing Bonus (bi-annual)",

@@ -87,6 +87,7 @@ interface ProcData { year: number; month: number; grandTotal: number; reps: Proc
 
 interface PayrollRep { rep: string; source: string; total: number; lineCount: number; bonusCount: number; sentAt?: string | null; }
 interface PayrollData { year: number; month: number; dueBy: string | null; recipients: string[]; grandTotal: number; reps: PayrollRep[]; }
+interface PayrollSend { period: string; year: number; month: number; sentAt: string; sentBy: string; recipients: string[]; repCount: number; total: number; reps: string[]; }
 
 const newId = () => Math.random().toString(36).slice(2, 10);
 
@@ -131,6 +132,16 @@ const CommissionImport: React.FC = () => {
   const [newRecipient, setNewRecipient] = useState('');
   const [savingRecipients, setSavingRecipients] = useState(false);
   const [selectedReps, setSelectedReps] = useState<Set<string>>(new Set());
+  const [paySends, setPaySends] = useState<PayrollSend[]>([]);
+  const [expandedSend, setExpandedSend] = useState<string | null>(null);
+
+  const fetchPaySends = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/payroll/sends`, { headers: { Authorization: `Bearer ${token}` } });
+      setPaySends(res.data.sends || []);
+    } catch (_e) { /* silent */ }
+  };
 
   const fetchPayRecipients = async () => {
     try {
@@ -194,6 +205,7 @@ const CommissionImport: React.FC = () => {
       const res = await axios.post(`${API_URL}/api/commissions/payroll/send`, { year: payYear, month: payMonth, reps }, { headers: { Authorization: `Bearer ${token}` } });
       alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
       await fetchPayroll();   // refresh so the sent reps show the "Sent" badge
+      fetchPaySends();        // refresh the send history
     } catch (e: any) { alert(e?.response?.data?.error || 'Failed to send'); }
     finally { setPaySending(false); }
   };
@@ -462,7 +474,7 @@ const CommissionImport: React.FC = () => {
     })();
   }, []);
   // Load the full manual-bonus + adjustment history once (both span all periods).
-  useEffect(() => { fetchManualBonuses(); fetchAdjustments(); fetchPayRecipients(); }, []);
+  useEffect(() => { fetchManualBonuses(); fetchAdjustments(); fetchPayRecipients(); fetchPaySends(); }, []);
 
   // Update a single entry by id
   const updateEntry = (id: string, patch: Partial<FileEntry>) => {
@@ -555,6 +567,12 @@ const CommissionImport: React.FC = () => {
   const fmtDate = (iso: string) => {
     try { return new Date(iso).toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA'); }
     catch { return iso; }
+  };
+  const fmtDateTime = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA',
+        { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch { return iso; }
   };
 
   // Aggregate totals across all previewed files
@@ -1085,6 +1103,76 @@ const CommissionImport: React.FC = () => {
                 </>
               )}
             </>
+          )}
+        </div>
+      </div>
+
+      {/* Payroll send history */}
+      <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.payroll.historyTitle')}</h3>
+          <p className="text-sm text-body">{t('admin.commissionImport.payroll.historySubtitle')}</p>
+        </div>
+        <div className="px-6 py-4">
+          {paySends.length === 0 ? (
+            <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.payroll.historyNone')}</p>
+          ) : (
+            <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-2 dark:bg-meta-4">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histDate')}</th>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histPeriod')}</th>
+                    <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.histReps')}</th>
+                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.payroll.histTotal')}</th>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histRecipients')}</th>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histSentBy')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paySends.map(s => {
+                    const key = `${s.period}|${s.sentAt}|${s.sentBy}`;
+                    const open = expandedSend === key;
+                    return (
+                      <React.Fragment key={key}>
+                        <tr onClick={() => setExpandedSend(open ? null : key)}
+                          className="cursor-pointer border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
+                          <td className="px-4 py-2 text-black dark:text-white">
+                            <span className="inline-flex items-center gap-1.5">
+                              <svg className={`h-3.5 w-3.5 text-body transition-transform ${open ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                              {fmtDateTime(s.sentAt)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-black dark:text-white">{monthName(s.month)} {s.year}</td>
+                          <td className="px-4 py-2 text-center">{s.repCount}</td>
+                          <td className="px-4 py-2 text-right font-semibold text-primary">{fmt(s.total)}</td>
+                          <td className="px-4 py-2 text-body">{s.recipients.length}</td>
+                          <td className="px-4 py-2 text-body">{s.sentBy}</td>
+                        </tr>
+                        {open && (
+                          <tr className="border-t border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4/20">
+                            <td colSpan={6} className="px-6 py-3">
+                              <div className="mb-2">
+                                <span className="text-xs font-semibold uppercase text-body">{t('admin.commissionImport.payroll.histReps')} ({s.repCount})</span>
+                                <div className="mt-1 flex flex-wrap gap-1.5">
+                                  {s.reps.map(r => (
+                                    <span key={r} className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{r}</span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-xs font-semibold uppercase text-body">{t('admin.commissionImport.payroll.histRecipients')}</span>
+                                <div className="mt-1 text-xs text-body">{s.recipients.join(', ')}</div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

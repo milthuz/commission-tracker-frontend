@@ -891,7 +891,16 @@
         "statusToApprove": "À approuver",
         "statusSent": "Envoyé",
         "sentOn": "Envoyé à la paie le",
-        "lastSent": "Dernier envoi"
+        "lastSent": "Dernier envoi",
+        "historyTitle": "Historique des envois",
+        "historySubtitle": "Chaque envoi à la paie, du plus récent au plus ancien. Cliquez une ligne pour voir les vendeurs inclus.",
+        "historyNone": "Aucune paie n'a encore été envoyée.",
+        "histDate": "Envoyé",
+        "histPeriod": "Période",
+        "histReps": "Vendeurs",
+        "histTotal": "Total",
+        "histRecipients": "Destinataires",
+        "histSentBy": "Par"
       },
       "processing": {
         "title": "Bonus de paiement (bi-annuel)",
