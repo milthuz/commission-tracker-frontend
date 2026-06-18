@@ -127,9 +127,18 @@ const CommissionImport: React.FC = () => {
   const [payData, setPayData] = useState<PayrollData | null>(null);
   const [payLoading, setPayLoading] = useState(false);
   const [paySending, setPaySending] = useState(false);
-  const [recipientsInput, setRecipientsInput] = useState('');
-  const [editingRecipients, setEditingRecipients] = useState(false);
+  const [payRecipients, setPayRecipients] = useState<string[]>([]);   // canonical recipient list
+  const [newRecipient, setNewRecipient] = useState('');
+  const [savingRecipients, setSavingRecipients] = useState(false);
   const [selectedReps, setSelectedReps] = useState<Set<string>>(new Set());
+
+  const fetchPayRecipients = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/payroll/recipients`, { headers: { Authorization: `Bearer ${token}` } });
+      setPayRecipients(res.data.recipients || []);
+    } catch (_e) { /* silent */ }
+  };
 
   const fetchPayroll = async () => {
     setPayLoading(true);
@@ -139,23 +148,31 @@ const CommissionImport: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }, params: { year: payYear, month: payMonth },
       });
       setPayData(res.data);
-      const recips = res.data.recipients || [];
-      setRecipientsInput(recips.join(', '));
-      setEditingRecipients(recips.length === 0);   // show editor only when none saved yet
+      setPayRecipients(res.data.recipients || []);
       setSelectedReps(new Set((res.data.reps || []).map((r: { rep: string }) => r.rep))); // default: all
     } catch (e: any) {
       alert(e?.response?.data?.error || 'Failed to load payroll preview');
     } finally { setPayLoading(false); }
   };
 
-  const saveRecipients = async () => {
-    const emails = recipientsInput.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const saveRecipientList = async (emails: string[]) => {
+    setSavingRecipients(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${API_URL}/api/commissions/payroll/recipients`, { emails }, { headers: { Authorization: `Bearer ${token}` } });
-      setPayData(d => d ? { ...d, recipients: emails } : d);
-      setEditingRecipients(false);
+      const res = await axios.put(`${API_URL}/api/commissions/payroll/recipients`, { emails }, { headers: { Authorization: `Bearer ${token}` } });
+      setPayRecipients(res.data.recipients || emails);
     } catch (e: any) { alert(e?.response?.data?.error || 'Failed to save recipients'); }
+    finally { setSavingRecipients(false); }
+  };
+  const addRecipient = async () => {
+    const email = newRecipient.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { alert(t('admin.commissionImport.payroll.invalidEmail')); return; }
+    if (payRecipients.includes(email)) { setNewRecipient(''); return; }
+    await saveRecipientList([...payRecipients, email]);
+    setNewRecipient('');
+  };
+  const removeRecipient = async (email: string) => {
+    await saveRecipientList(payRecipients.filter(e => e !== email));
   };
 
   const toggleRep = (rep: string) => setSelectedReps(prev => {
@@ -444,7 +461,7 @@ const CommissionImport: React.FC = () => {
     })();
   }, []);
   // Load the full manual-bonus + adjustment history once (both span all periods).
-  useEffect(() => { fetchManualBonuses(); fetchAdjustments(); }, []);
+  useEffect(() => { fetchManualBonuses(); fetchAdjustments(); fetchPayRecipients(); }, []);
 
   // Update a single entry by id
   const updateEntry = (id: string, patch: Partial<FileEntry>) => {
@@ -941,6 +958,41 @@ const CommissionImport: React.FC = () => {
       </>)}
 
       {subTab === 'payroll' && (<>
+      {/* Payroll recipients — managed list (add one at a time, remove individually) */}
+      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.payroll.recipientsTitle')}</h3>
+          <p className="text-sm text-body">{t('admin.commissionImport.payroll.recipientsSubtitle')}</p>
+        </div>
+        <div className="px-6 py-4">
+          {payRecipients.length === 0 ? (
+            <p className="mb-3 text-sm text-body">{t('admin.commissionImport.payroll.noRecipients')}</p>
+          ) : (
+            <ul className="mb-3 flex flex-wrap gap-2">
+              {payRecipients.map(em => (
+                <li key={em} className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                  {em}
+                  <button onClick={() => removeRecipient(em)} disabled={savingRecipients} title={t('common.delete') as string}
+                    className="text-primary/70 transition hover:text-danger disabled:opacity-50">
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <input type="email" value={newRecipient} onChange={(e) => setNewRecipient(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') addRecipient(); }}
+              placeholder="paie@compagnie.com"
+              className="w-72 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+            <button onClick={addRecipient} disabled={savingRecipients || !newRecipient.trim()}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+              {t('admin.commissionImport.payroll.addRecipient')}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Payroll send — compile a month and email it to payroll */}
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
@@ -971,45 +1023,6 @@ const CommissionImport: React.FC = () => {
 
           {payData && (
             <>
-              {/* Recipients — saved chips + edit pencil, or editor */}
-              <div className="mb-4 flex flex-wrap items-center gap-2">
-                <label className="text-xs font-medium text-body">{t('admin.commissionImport.payroll.recipients')}</label>
-                {editingRecipients ? (
-                  <>
-                    <input type="text" value={recipientsInput} onChange={(e) => setRecipientsInput(e.target.value)}
-                      placeholder="paie@compagnie.com, rh@compagnie.com"
-                      className="w-80 rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
-                    <button onClick={saveRecipients} className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-opacity-90">
-                      {t('common.save')}
-                    </button>
-                    {(payData.recipients || []).length > 0 && (
-                      <button onClick={() => { setRecipientsInput((payData.recipients || []).join(', ')); setEditingRecipients(false); }}
-                        className="rounded-md border border-stroke px-3 py-1.5 text-sm text-body hover:border-primary hover:text-primary dark:border-strokedark">
-                        {t('common.cancel')}
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {(payData.recipients || []).length > 0 ? (
-                      <span className="flex flex-wrap gap-1.5">
-                        {(payData.recipients || []).map(em => (
-                          <span key={em} className="inline-flex items-center rounded-full bg-primary bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-primary">{em}</span>
-                        ))}
-                      </span>
-                    ) : (
-                      <span className="text-sm text-body">{t('admin.commissionImport.payroll.noRecipients')}</span>
-                    )}
-                    <button onClick={() => setEditingRecipients(true)} title={t('common.edit') as string}
-                      className="ml-1 inline-flex h-7 w-7 items-center justify-center rounded-md border border-stroke text-body hover:border-primary hover:text-primary dark:border-strokedark">
-                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                    </button>
-                  </>
-                )}
-              </div>
-
               {payData.reps.length === 0 ? (
                 <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.payroll.none')}</p>
               ) : (
@@ -1048,9 +1061,9 @@ const CommissionImport: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
-                  <button onClick={sendPayroll} disabled={paySending || (payData.recipients || []).length === 0 || selectedReps.size === 0}
+                  <button onClick={sendPayroll} disabled={paySending || payRecipients.length === 0 || selectedReps.size === 0}
                     className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
-                    title={(payData.recipients || []).length === 0 ? t('admin.commissionImport.payroll.noRecipients') as string : undefined}>
+                    title={payRecipients.length === 0 ? t('admin.commissionImport.payroll.noRecipients') as string : undefined}>
                     {paySending ? t('admin.commissionImport.payroll.sending') : t('admin.commissionImport.payroll.send')}
                   </button>
                 </>
