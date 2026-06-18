@@ -332,6 +332,7 @@
     "sourceOverridden": "Source manually overridden (frozen) — Zoho value: {{source}}. Clear the override to follow Zoho again.",
     "soldDealsMonth": "SOLD deals this month",
     "repsMetQuota": "Reps met quota",
+    "totalDeals": "Total deals",
     "quotaMet": "✓ Quota Met",
     "ptsToQuota": "{{count}} pts to quota",
     "monthlyBonus": "${{amount}} bonus",

@@ -332,6 +332,7 @@
     "sourceOverridden": "Source forcée manuellement (figée) — valeur Zoho : {{source}}. Efface l'override pour resuivre Zoho.",
     "soldDealsMonth": "Ventes conclues ce mois-ci",
     "repsMetQuota": "Représentants ayant atteint le quota",
+    "totalDeals": "Total des deals",
     "quotaMet": "✓ Quota atteint",
     "ptsToQuota": "{{count}} pts pour le quota",
     "monthlyBonus": "{{amount}} $ de prime",

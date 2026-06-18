@@ -301,6 +301,11 @@ const CommissionTracker: React.FC = () => {
           <p className="text-2xl font-bold leading-none text-black dark:text-white">{agMet}/{agMembers}</p>
           <span className="text-xs font-medium text-gray-500">{t('commissionTracker.repsMetQuota')}</span>
         </div>
+        <div className="hidden h-9 w-px bg-stroke dark:bg-strokedark sm:block" />
+        <div>
+          <p className="text-2xl font-bold leading-none text-black dark:text-white">{agDeals}</p>
+          <span className="text-xs font-medium text-gray-500">{t('commissionTracker.totalDeals')}</span>
+        </div>
       </div>
 
       {/* Team selector */}
