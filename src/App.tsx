@@ -12,6 +12,7 @@ import TermsOfService from './pages/Legal/TermsOfService';
 import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
 import ECommerce from './pages/Dashboard/ECommerce';
 import RepDashboard from './pages/Dashboard/RepDashboard';
+import ManagerDashboard from './pages/Dashboard/ManagerDashboard';
 import CommissionTracker from './pages/CommissionTracker';
 import CommissionReport from './pages/CommissionReport';
 import Profile from './pages/Profile';
@@ -27,18 +28,18 @@ import { NewFeaturesProvider } from './context/NewFeaturesContext';
 import DialogHost from './components/DialogHost';
 
 // "/" adapts to the user's role:
-//   • Admin / company-wide viewer (invoices:view_all) → finance dashboard
+//   • Admin (* / admin:access) → finance dashboard (full edit access)
+//   • Manager (report:view_others, not admin) → team-performance dashboard
 //   • everyone else (Sales Rep) → personal RepDashboard
-// (Manager gets a dedicated dashboard in a later stage; for now managers — who hold
-// invoices:view_all — land on the finance dashboard.)
 function HomeRoute() {
   const { user } = useAuth();
   const perms = user?.permissions || [];
-  const canDashboard = !!user?.isAdmin || perms.includes('*') || perms.includes('invoices:view_all');
+  const isAdmin = !!user?.isAdmin || perms.includes('*') || perms.includes('admin:access');
+  const isManager = perms.includes('report:view_others') || perms.includes('tracker:view_all_details');
   return (
     <>
       <PageTitle title="Sales Hub" />
-      {canDashboard ? <ECommerce /> : <RepDashboard />}
+      {isAdmin ? <ECommerce /> : isManager ? <ManagerDashboard /> : <RepDashboard />}
     </>
   );
 }

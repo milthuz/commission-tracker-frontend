@@ -313,6 +313,23 @@
     "noActivity": "Aucune activité ce mois-ci.",
     "noData": "Aucune donnée."
   },
+  "managerDashboard": {
+    "title": "Tableau d'équipe",
+    "subtitle": "Performance de l'équipe — {{month}}",
+    "reviewCommissions": "Réviser les commissions",
+    "fullTracker": "Suivi complet",
+    "teamPoints": "Points d'équipe",
+    "repsMetQuota": "Reps ayant atteint le quota",
+    "totalDeals": "Deals ce mois",
+    "activations": "Activations",
+    "paidRevenueYtd": "Revenus payés (YTD)",
+    "commissionYtd": "Commission (YTD)",
+    "met": "atteint",
+    "belowQuota": "{{count}} rep(s) sous le quota",
+    "ptsLeft": "{{count}} pts restants",
+    "repPerformance": "Performance des reps",
+    "noData": "Aucune donnée."
+  },
   "dashboard": {
     "title": "Centre de ventes",
     "subtitle": "Aperçu des revenus, factures et clients",

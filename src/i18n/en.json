@@ -313,6 +313,23 @@
     "noActivity": "No activity this month yet.",
     "noData": "No data yet."
   },
+  "managerDashboard": {
+    "title": "Team Dashboard",
+    "subtitle": "Team performance — {{month}}",
+    "reviewCommissions": "Review commissions",
+    "fullTracker": "Full tracker",
+    "teamPoints": "Team points",
+    "repsMetQuota": "Reps met quota",
+    "totalDeals": "Deals this month",
+    "activations": "Activations",
+    "paidRevenueYtd": "Paid revenue (YTD)",
+    "commissionYtd": "Commission (YTD)",
+    "met": "met",
+    "belowQuota": "{{count}} rep(s) below quota",
+    "ptsLeft": "{{count}} pts left",
+    "repPerformance": "Rep performance",
+    "noData": "No data yet."
+  },
   "dashboard": {
     "title": "Sales Hub",
     "subtitle": "Revenue overview, invoices, and customer insights",
