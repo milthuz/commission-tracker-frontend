@@ -1020,6 +1020,15 @@ const CommissionImport: React.FC = () => {
             {payData?.dueBy && (
               <span className="text-sm text-body">{t('admin.commissionImport.payroll.dueBy')}: <span className="font-semibold text-warning">{payData.dueBy}</span></span>
             )}
+            {(() => {
+              const lastSent = payData ? payData.reps.map(r => r.sentAt).filter(Boolean).sort().slice(-1)[0] : null;
+              return lastSent ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  {t('admin.commissionImport.payroll.lastSent')}: {fmtDate(lastSent)}
+                </span>
+              ) : null;
+            })()}
           </div>
 
           {payData && (

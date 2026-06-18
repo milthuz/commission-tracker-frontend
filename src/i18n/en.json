@@ -889,7 +889,8 @@
         "statusReady": "Ready to send",
         "statusToApprove": "To approve",
         "statusSent": "Sent",
-        "sentOn": "Sent to payroll on"
+        "sentOn": "Sent to payroll on",
+        "lastSent": "Last sent"
       },
       "processing": {
         "title": "Processing Bonus (bi-annual)",

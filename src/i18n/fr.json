@@ -889,7 +889,8 @@
         "statusReady": "Prêt à envoyer",
         "statusToApprove": "À approuver",
         "statusSent": "Envoyé",
-        "sentOn": "Envoyé à la paie le"
+        "sentOn": "Envoyé à la paie le",
+        "lastSent": "Dernier envoi"
       },
       "processing": {
         "title": "Bonus de paiement (bi-annuel)",
