@@ -211,7 +211,7 @@ const CommissionImport: React.FC = () => {
     setPaySending(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${API_URL}/api/commissions/payroll/send`, { year: payYear, month: payMonth, reps }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.post(`${API_URL}/api/commissions/payroll/send`, { year: payYear, month: payMonth, reps, lang: i18n.language }, { headers: { Authorization: `Bearer ${token}` } });
       alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
       await fetchPayroll();   // refresh so the sent reps show the "Sent" badge
       fetchPaySends();        // refresh the send history
