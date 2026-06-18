@@ -887,7 +887,9 @@
         "selectAll": "Select all",
         "selectedTotal": "Total ({{count}} selected)",
         "statusReady": "Ready to send",
-        "statusToApprove": "To approve"
+        "statusToApprove": "To approve",
+        "statusSent": "Sent",
+        "sentOn": "Sent to payroll on"
       },
       "processing": {
         "title": "Processing Bonus (bi-annual)",

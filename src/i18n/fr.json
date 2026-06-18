@@ -887,7 +887,9 @@
         "selectAll": "Tout sélectionner",
         "selectedTotal": "Total ({{count}} sélectionné(s))",
         "statusReady": "Prêt à envoyer",
-        "statusToApprove": "À approuver"
+        "statusToApprove": "À approuver",
+        "statusSent": "Envoyé",
+        "sentOn": "Envoyé à la paie le"
       },
       "processing": {
         "title": "Bonus de paiement (bi-annuel)",
