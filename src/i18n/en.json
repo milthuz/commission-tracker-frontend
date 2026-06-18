@@ -328,6 +328,8 @@
     "srcDeals": "Deals",
     "srcPayments": "Payments",
     "overrideSourceHint": "Override this deal's lead source (kept across CRM syncs)",
+    "manual": "Manual",
+    "sourceOverridden": "Source manually overridden (frozen) — Zoho value: {{source}}. Clear the override to follow Zoho again.",
     "soldDealsMonth": "SOLD deals this month",
     "repsMetQuota": "Reps met quota",
     "quotaMet": "✓ Quota Met",

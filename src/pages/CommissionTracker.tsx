@@ -12,6 +12,8 @@ interface Deal {
   deal_name: string;
   account_name: string;
   lead_source_group: string;
+  source_overridden?: boolean;
+  synced_source?: string | null;
   points: number;
   close_date: string;
 }
@@ -512,6 +514,17 @@ const CommissionTracker: React.FC = () => {
                                   <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getSourceBadgeColor(deal.lead_source_group)}`}>
                                     {deal.lead_source_group || '—'}
                                   </span>
+                                  {deal.source_overridden && (
+                                    <span
+                                      title={t('commissionTracker.sourceOverridden', { source: deal.synced_source || '—' }) as string}
+                                      className="inline-flex items-center gap-0.5 rounded-full bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold text-warning"
+                                    >
+                                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                      </svg>
+                                      {t('commissionTracker.manual')}
+                                    </span>
+                                  )}
                                   {isAdmin && (
                                     <button
                                       onClick={() => setEditingDealSource(deal.crm_deal_id)}
