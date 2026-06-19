@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import CleoAvatar from './CleoAvatar';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -59,11 +60,7 @@ const ChatAssistant: React.FC = () => {
           {/* Header */}
           <div className="flex items-center justify-between bg-gradient-to-r from-[#1c2434] to-[#3c50e0] px-5 py-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 backdrop-blur">
-                <svg className="h-4.5 w-4.5 text-white" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-                </svg>
-              </span>
+              <CleoAvatar className="h-9 w-9" ring />
               <div>
                 <p className="text-sm font-semibold text-white">{t('assistant.title')}</p>
                 <p className="text-[11px] text-white/70">{t('assistant.subtitle')}</p>
@@ -157,16 +154,16 @@ const ChatAssistant: React.FC = () => {
       <button
         onClick={() => setOpen(!open)}
         title={t('assistant.title') as string}
-        className="group fixed bottom-6 right-4 z-[9990] flex h-14 w-14 items-center justify-center rounded-full border border-white/40 bg-gradient-to-br from-[#3c50e0]/70 via-[#7a5af8]/60 to-[#c850c0]/50 shadow-xl backdrop-blur-md transition-transform duration-200 hover:scale-110 dark:border-white/20"
+        className="group fixed bottom-6 right-4 z-[9990] flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition-transform duration-200 hover:scale-110"
       >
         {open ? (
-          <svg className="h-6 w-6 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
+          <span className="flex h-14 w-14 items-center justify-center rounded-full border border-white/40 bg-gradient-to-br from-[#3c50e0] via-[#7a5af8] to-[#c850c0]">
+            <svg className="h-6 w-6 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </span>
         ) : (
-          <svg className="h-6 w-6 text-white drop-shadow" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
-          </svg>
+          <CleoAvatar className="h-14 w-14" ring />
         )}
       </button>
     </>

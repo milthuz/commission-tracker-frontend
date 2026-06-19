@@ -42,8 +42,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
   // Desktop collapse — independent from the mobile drawer (sidebarOpen).
   // When collapsed, only icons are visible; labels and section headers hide.
+  // Default to collapsed (icons-only) when no preference is stored yet.
   const storedCollapsed = localStorage.getItem('sidebar-collapsed');
-  const [collapsed, setCollapsed] = useState(storedCollapsed === 'true');
+  const [collapsed, setCollapsed] = useState(storedCollapsed === null ? true : storedCollapsed === 'true');
   useEffect(() => {
     localStorage.setItem('sidebar-collapsed', String(collapsed));
     // Auto-close the admin submenu when collapsing so it doesn't pop into the

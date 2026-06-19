@@ -76,6 +76,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = (userData: User, token: string) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
+    // Start each session with the sidebar collapsed (icons only) — the user expands it if wanted.
+    localStorage.setItem('sidebar-collapsed', 'true');
     setUser(userData);
   };
 

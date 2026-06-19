@@ -62,9 +62,10 @@
     }
   },
   "assistant": {
-    "title": "Assistant Sales Hub",
-    "subtitle": "Aide IA — posez vos questions sur l'app",
-    "greeting": "Salut ! 👋 Je suis l'assistant Sales Hub. Demandez-moi comment les commissions sont calculées, où trouver quelque chose, ou comment fonctionne une fonctionnalité.",
+    "title": "Cleo",
+    "subtitle": "Ton guide Sales Hub — pose-moi tes questions",
+    "greeting": "Bonjour, je suis Cleo 👋 ton guide Sales Hub. Demande-moi comment les commissions sont calculées, où trouver quelque chose, ou comment fonctionne une fonctionnalité — ou fais une visite guidée.",
+    "startTour": "Faire la visite guidée",
     "placeholder": "Posez une question…",
     "suggestions": [
       "Comment les commissions sont-elles calculées ?",
