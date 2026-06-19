@@ -25,7 +25,7 @@ const PAD = 8;
 const CARD_W = 320;
 
 const CleoTour: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [run, setRun] = useState(false);
   const [idx, setIdx] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -46,7 +46,7 @@ const CleoTour: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       const r = await axios.post(`${API_URL}/api/assistant/chat`,
-        { messages: nextMsgs.slice(-12) },
+        { messages: nextMsgs.slice(-12), lang: i18n.language },
         { headers: { Authorization: `Bearer ${token}` } });
       setAskMsgs([...nextMsgs, { role: 'assistant', content: r.data.reply || '…' }]);
     } catch {

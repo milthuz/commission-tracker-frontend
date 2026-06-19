@@ -10,7 +10,7 @@ interface ChatMsg { role: 'user' | 'assistant'; content: string; }
 // Floating AI help assistant (bottom-right). Glassy translucent bubble that opens a
 // chat panel; answers come from the backend /api/assistant/chat (Claude API).
 const ChatAssistant: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
@@ -37,7 +37,7 @@ const ChatAssistant: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       const r = await axios.post(`${API_URL}/api/assistant/chat`,
-        { messages: next.slice(-12) },
+        { messages: next.slice(-12), lang: i18n.language },
         { headers: { Authorization: `Bearer ${token}` } });
       setMsgs([...next, { role: 'assistant', content: r.data.reply || '…' }]);
     } catch (e: any) {
