@@ -92,7 +92,8 @@ const AdminPanel = () => {
   const location = useLocation();
   const pathParts = location.pathname.split('/');
   const rawTab = pathParts[2] || 'sync'; // /admin/sync, /admin/salespeople, etc.
-  const activeTab = rawTab === 'admins' ? 'users' : rawTab; // legacy /admin/admins → Users section
+  // Roles & Permissions now lives as a tab inside the Users section (so /admin/roles → Users).
+  const activeTab = (rawTab === 'admins' || rawTab === 'roles') ? 'users' : rawTab;
 
   // Handle redirect back from CRM OAuth
   useEffect(() => {
@@ -153,7 +154,7 @@ const AdminPanel = () => {
   // Sub-tab state for the reorganized Admin sections.
   const [syncSub, setSyncSub] = useState<'connections' | 'data'>('connections');
   const [spSub, setSpSub] = useState<'reps' | 'teams' | 'points'>('reps');
-  const [usersSub, setUsersSub] = useState<'access' | 'external' | 'impersonation'>('access');
+  const [usersSub, setUsersSub] = useState<'access' | 'external' | 'impersonation' | 'roles'>(rawTab === 'roles' ? 'roles' : 'access');
   const [editingUserRoleIds, setEditingUserRoleIds] = useState<number[]>([]);
   const [editingManagedTeamIds, setEditingManagedTeamIds] = useState<number[]>([]); // team-scoped managers
 
@@ -2890,8 +2891,8 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'users' && (
             <>
             <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-              {([['access', t('admin.usersSection.tabs.access')], ['external', t('admin.usersSection.tabs.external')], ['impersonation', t('admin.usersSection.tabs.impersonation')]] as const).map(([key, label]) => (
-                <button key={key} onClick={() => setUsersSub(key as 'access' | 'external' | 'impersonation')}
+              {([['access', t('admin.usersSection.tabs.access')], ['roles', t('admin.roles.title')], ['external', t('admin.usersSection.tabs.external')], ['impersonation', t('admin.usersSection.tabs.impersonation')]] as const).map(([key, label]) => (
+                <button key={key} onClick={() => setUsersSub(key as 'access' | 'external' | 'impersonation' | 'roles')}
                   className={`rounded-md px-4 py-2 text-sm font-medium transition ${usersSub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
                   {label}
                 </button>
@@ -3119,8 +3120,8 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'import-payments' && <CommissionImport />}
           {activeTab === 'resellers' && <ResellerAdmin />}
 
-          {/* ==================== ROLES TAB ==================== */}
-          {activeTab === 'roles' && (
+          {/* ==================== ROLES TAB (under Users) ==================== */}
+          {activeTab === 'users' && usersSub === 'roles' && (
             <div className="space-y-6">
               <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
                 <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
