@@ -1070,7 +1070,10 @@
       "type_external": "Externe",
       "type_pending": "Jamais connecté",
       "editRoles": "Modifier les rôles",
-      "assignRoles": "Assigner des rôles"
+      "assignRoles": "Assigner des rôles",
+      "managedTeams": "Équipes gérées",
+      "managedTeamsHint": "Ce manager ne verra que la ou les équipes sélectionnées sur son tableau de bord et dans le suivi.",
+      "noTeams": "Aucune équipe créée pour l'instant."
     }
   },
   "header": {

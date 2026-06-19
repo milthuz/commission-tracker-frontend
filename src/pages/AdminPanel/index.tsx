@@ -155,6 +155,16 @@ const AdminPanel = () => {
   const [spSub, setSpSub] = useState<'reps' | 'teams' | 'points'>('reps');
   const [usersSub, setUsersSub] = useState<'access' | 'external' | 'impersonation'>('access');
   const [editingUserRoleIds, setEditingUserRoleIds] = useState<number[]>([]);
+  const [editingManagedTeamIds, setEditingManagedTeamIds] = useState<number[]>([]); // team-scoped managers
+
+  // Load the user's managed-team set whenever the role-edit modal opens.
+  useEffect(() => {
+    if (!editingUserRoles) { setEditingManagedTeamIds([]); return; }
+    const token = localStorage.getItem('token');
+    axios.get(`${API_URL}/api/users/${encodeURIComponent(editingUserRoles)}/managed-teams`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => setEditingManagedTeamIds(r.data.teamIds || []))
+      .catch(() => setEditingManagedTeamIds([]));
+  }, [editingUserRoles]);
 
   // CRM connection state
   const [crmStatus, setCrmStatus] = useState<{ connected: boolean; expired: boolean } | null>(null);
@@ -501,11 +511,12 @@ const AdminPanel = () => {
     }
   };
 
-  const saveUserRoles = async (email: string, roleIds: number[]) => {
+  const saveUserRoles = async (email: string, roleIds: number[], teamIds: number[]) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${API_URL}/api/users/${encodeURIComponent(email)}/roles`,
-        { roleIds }, { headers: { Authorization: `Bearer ${token}` } });
+      const headers = { Authorization: `Bearer ${token}` };
+      await axios.put(`${API_URL}/api/users/${encodeURIComponent(email)}/roles`, { roleIds }, { headers });
+      await axios.put(`${API_URL}/api/users/${encodeURIComponent(email)}/managed-teams`, { teamIds }, { headers });
       setEditingUserRoles(null);
       fetchAdminUsers();
     } catch (e: any) {
@@ -3336,6 +3347,39 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       </label>
                     ))}
                   </div>
+
+                  {/* Team scope — only when a selected role grants team-manager visibility. */}
+                  {(() => {
+                    const selectedRoles = roles.filter(r => editingUserRoleIds.includes(r.id));
+                    const isManagerScope = selectedRoles.some(r =>
+                      r.permissions.includes('report:view_others') || r.permissions.includes('tracker:view_all_details'));
+                    if (!isManagerScope) return null;
+                    return (
+                      <div className="mt-5 border-t border-stroke pt-4 dark:border-strokedark">
+                        <p className="mb-1 text-sm font-medium text-black dark:text-white">{t('admin.admins.managedTeams')}</p>
+                        <p className="mb-2 text-xs text-body">{t('admin.admins.managedTeamsHint')}</p>
+                        {teams.length === 0 ? (
+                          <p className="text-xs text-body">{t('admin.admins.noTeams')}</p>
+                        ) : (
+                          <div className="space-y-1">
+                            {teams.map(tm => (
+                              <label key={tm.id} className="flex items-center gap-2 cursor-pointer rounded px-3 py-1.5 hover:bg-gray-50 dark:hover:bg-meta-4">
+                                <input
+                                  type="checkbox"
+                                  checked={editingManagedTeamIds.includes(tm.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) setEditingManagedTeamIds([...editingManagedTeamIds, tm.id]);
+                                    else setEditingManagedTeamIds(editingManagedTeamIds.filter(id => id !== tm.id));
+                                  }}
+                                />
+                                <span className="text-sm text-black dark:text-white">{tm.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="border-t border-stroke px-6 py-3 dark:border-strokedark flex justify-end gap-3">
                   <button
@@ -3345,7 +3389,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     {t('common.cancel')}
                   </button>
                   <button
-                    onClick={() => saveUserRoles(editingUserRoles, editingUserRoleIds)}
+                    onClick={() => saveUserRoles(editingUserRoles, editingUserRoleIds, editingManagedTeamIds)}
                     className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90"
                   >
                     {t('common.save')}

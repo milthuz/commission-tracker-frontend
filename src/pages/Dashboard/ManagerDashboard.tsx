@@ -25,30 +25,21 @@ interface PointsResp {
   reps: RepRow[]; teams: TeamRow[];
   companyPoints?: number; companyTarget?: number; totalDeals?: number; totalZentactActivations?: number;
 }
-interface DashResp { cards: { paidRevenue: number; totalCommission: number } }
 
 const ManagerDashboard: React.FC = () => {
   const { t, i18n } = useTranslation();
   const now = new Date();
   const [points, setPoints] = useState<PointsResp | null>(null);
-  const [dash, setDash] = useState<DashResp | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const fmt = (v: number) =>
-    (Number(v) || 0).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   useEffect(() => {
     const run = async () => {
       try {
         setLoading(true); setError('');
         const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
-        const [p, d] = await Promise.all([
-          axios.get(`${API_URL}/api/crm/points`, { headers, params: { year: now.getFullYear(), month: now.getMonth() + 1 } }),
-          axios.get(`${API_URL}/api/dashboard`, { headers, params: { year: now.getFullYear() } }).catch(() => null),
-        ]);
+        const p = await axios.get(`${API_URL}/api/crm/points`, { headers, params: { year: now.getFullYear(), month: now.getMonth() + 1 } });
         setPoints(p.data);
-        setDash(d?.data || null);
       } catch (e: any) {
         setError(e?.response?.data?.error || 'Failed to load dashboard');
       } finally { setLoading(false); }
@@ -111,19 +102,6 @@ const ManagerDashboard: React.FC = () => {
           </div>
         ))}
       </div>
-
-      {dash && (
-        <div className="mt-4 grid grid-cols-2 gap-4">
-          <div className="rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <p className="text-xs font-medium text-gray-500">{t('managerDashboard.paidRevenueYtd')}</p>
-            <p className="mt-1 text-2xl font-bold text-black dark:text-white">{fmt(dash.cards.paidRevenue)}</p>
-          </div>
-          <div className="rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <p className="text-xs font-medium text-gray-500">{t('managerDashboard.commissionYtd')}</p>
-            <p className="mt-1 text-2xl font-bold text-black dark:text-white">{fmt(dash.cards.totalCommission)}</p>
-          </div>
-        </div>
-      )}
 
       {/* Teams breakdown */}
       {teams.length > 0 && (

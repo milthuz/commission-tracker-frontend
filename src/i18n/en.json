@@ -1070,7 +1070,10 @@
       "type_external": "External",
       "type_pending": "Never logged in",
       "editRoles": "Edit Roles",
-      "assignRoles": "Assign Roles"
+      "assignRoles": "Assign Roles",
+      "managedTeams": "Managed teams",
+      "managedTeamsHint": "This manager will see only the selected team(s) on their dashboard and in the tracker.",
+      "noTeams": "No teams created yet."
     }
   },
   "header": {
