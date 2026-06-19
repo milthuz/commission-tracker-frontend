@@ -713,6 +713,17 @@
       "stoppingMessage": "Stopping after current invoice...",
       "confirmRecalculate": "Recalculate commissions for ALL invoices using the current model?\n\n• SaaS first month → 100%\n• SaaS renewals → 0%\n• Hardware → 10% within 3 months of first SaaS\n\nRuns in the background. Make sure Enrich has finished first so invoices are classified."
     },
+    "bonusTiers": {
+      "title": "Bonus tiers",
+      "subtitle": "Points thresholds that unlock each bonus. Highest reached tier wins (not cumulative).",
+      "monthly": "Monthly bonus",
+      "annual": "Annual bonus",
+      "points": "Points",
+      "bonus": "Bonus ($)",
+      "addTier": "Add tier",
+      "none": "No tiers — add one.",
+      "saved": "Bonus tiers saved."
+    },
     "dealPoints": {
       "title": "Points by deal type",
       "subtitle": "Set how many points a deal is worth based on its lead source. Types left unset keep their synced CRM points.",
@@ -768,6 +779,8 @@
       "quotaGateHint": "Comp plan §2: months below quota pay no hardware/SaaS commissions. Turn OFF to exempt this person (house accounts, execs…).",
       "processingBonus": "Processing bonus",
       "processingBonusHint": "Bi-annual processing/volume bonus. Turn OFF to exclude this (active) person from that bonus, without affecting their commissions.",
+      "annualBonus": "Annual bonus",
+      "annualBonusHint": "Year-end annual points bonus. Turn OFF to exclude this person from it.",
       "quotaHint": "Leave blank to use the default (15 pts). Set a number for this rep's own monthly quota.",
       "signupBonus": "Signup Payment",
       "signupOff": "Disabled",

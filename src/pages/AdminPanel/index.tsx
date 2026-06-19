@@ -29,6 +29,7 @@ interface Salesperson {
   hireDate?: string | null;
   quotaGateEnabled?: boolean;
   processingBonusEnabled?: boolean;
+  annualBonusEnabled?: boolean;
   resolvedLoginEmail?: string | null;
   teamId: number | null;
   teamName: string | null;
@@ -157,6 +158,38 @@ const AdminPanel = () => {
   const [usersSub, setUsersSub] = useState<'access' | 'external' | 'impersonation' | 'roles'>(rawTab === 'roles' ? 'roles' : 'access');
   const [editingUserRoleIds, setEditingUserRoleIds] = useState<number[]>([]);
   const [editingManagedTeamIds, setEditingManagedTeamIds] = useState<number[]>([]); // team-scoped managers
+  type Tier = { points: number; bonus: number };
+  const [bonusTiers, setBonusTiers] = useState<{ monthly: Tier[]; annual: Tier[] }>({ monthly: [], annual: [] });
+  const [savingTiers, setSavingTiers] = useState(false);
+
+  const fetchBonusTiers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const r = await axios.get(`${API_URL}/api/bonus-tiers`, { headers: { Authorization: `Bearer ${token}` } });
+      setBonusTiers({ monthly: r.data.monthly || [], annual: r.data.annual || [] });
+    } catch (e) { console.error('bonus tiers', e); }
+  };
+  const saveBonusTiers = async () => {
+    setSavingTiers(true);
+    try {
+      const token = localStorage.getItem('token');
+      const sortDesc = (a: Tier, b: Tier) => b.points - a.points;
+      const payload = {
+        monthly: [...bonusTiers.monthly].sort(sortDesc),
+        annual: [...bonusTiers.annual].sort(sortDesc),
+      };
+      await axios.put(`${API_URL}/api/bonus-tiers`, payload, { headers: { Authorization: `Bearer ${token}` } });
+      await fetchBonusTiers();
+      dialog.alert(t('admin.bonusTiers.saved') as string);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save tiers'); }
+    finally { setSavingTiers(false); }
+  };
+  const setTier = (kind: 'monthly' | 'annual', i: number, field: 'points' | 'bonus', value: number) =>
+    setBonusTiers(prev => ({ ...prev, [kind]: prev[kind].map((t, j) => j === i ? { ...t, [field]: value } : t) }));
+  const addTier = (kind: 'monthly' | 'annual') =>
+    setBonusTiers(prev => ({ ...prev, [kind]: [...prev[kind], { points: 0, bonus: 0 }] }));
+  const removeTier = (kind: 'monthly' | 'annual', i: number) =>
+    setBonusTiers(prev => ({ ...prev, [kind]: prev[kind].filter((_, j) => j !== i) }));
 
   // Load the user's managed-team set whenever the role-edit modal opens.
   useEffect(() => {
@@ -383,6 +416,20 @@ const AdminPanel = () => {
     }
   };
 
+  const updateAnnualBonus = async (name: string, enabled: boolean) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/annual-bonus`,
+        { enabled },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSalespeople(prev => prev.map(p => p.name === name ? { ...p, annualBonusEnabled: enabled } : p));
+    } catch (error: any) {
+      dialog.alert(error?.response?.data?.error || 'Failed to update annual bonus');
+    }
+  };
+
   const updateQuota = async (name: string, quota: number | null) => {
     try {
       const token = localStorage.getItem('token');
@@ -553,6 +600,7 @@ const AdminPanel = () => {
       fetchSalespeople();
       fetchTeams();
       fetchDealPoints();
+      fetchBonusTiers();
       fetchSyncStatus();
       fetchCrmStatus();
       fetchZentactStatus();
@@ -2167,6 +2215,54 @@ Joker Pub,Jay Daoust,2024-04-01`}
             </>)}
 
             {spSub === 'points' && (<>
+            {/* Bonus tiers (monthly + annual) — configurable point→$ thresholds */}
+            <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="flex items-center justify-between border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <div>
+                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.bonusTiers.title')}</h3>
+                  <p className="text-sm text-body mt-1">{t('admin.bonusTiers.subtitle')}</p>
+                </div>
+                <button onClick={saveBonusTiers} disabled={savingTiers}
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                  {savingTiers ? t('common.saving') : t('common.save')}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-6 p-5 md:grid-cols-2">
+                {(['monthly', 'annual'] as const).map(kind => (
+                  <div key={kind}>
+                    <div className="mb-2 flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-black dark:text-white">{t(`admin.bonusTiers.${kind}`)}</h4>
+                      <button onClick={() => addTier(kind)} className="text-xs font-medium text-primary hover:underline">+ {t('admin.bonusTiers.addTier')}</button>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-[11px] font-medium uppercase text-body">
+                        <span className="w-24">{t('admin.bonusTiers.points')}</span>
+                        <span className="flex-1">{t('admin.bonusTiers.bonus')}</span>
+                      </div>
+                      {bonusTiers[kind].length === 0 && <p className="text-xs text-body">{t('admin.bonusTiers.none')}</p>}
+                      {bonusTiers[kind].map((tier, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <input type="number" min="0" value={tier.points}
+                            onChange={(e) => setTier(kind, i, 'points', parseInt(e.target.value) || 0)}
+                            className="w-24 rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                          <div className="relative flex-1">
+                            <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-sm text-body">$</span>
+                            <input type="number" min="0" value={tier.bonus}
+                              onChange={(e) => setTier(kind, i, 'bonus', parseFloat(e.target.value) || 0)}
+                              className="w-full rounded border border-stroke bg-transparent py-1 pl-6 pr-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                          </div>
+                          <button onClick={() => removeTier(kind, i)} title={t('common.delete') as string}
+                            className="text-body transition hover:text-danger">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Deal-type point values */}
             <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
@@ -2451,6 +2547,16 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.processingBonusEnabled !== false ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
                               >
                                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.processingBonusEnabled !== false ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                              </button>
+                            </div>
+                            <div>
+                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.annualBonus')}</span>
+                              <button
+                                onClick={() => updateAnnualBonus(person.name, !(person.annualBonusEnabled !== false))}
+                                title={t('admin.salespeople.annualBonusHint') as string}
+                                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.annualBonusEnabled !== false ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
+                              >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.annualBonusEnabled !== false ? 'translate-x-4' : 'translate-x-0.5'}`} />
                               </button>
                             </div>
                             <div>

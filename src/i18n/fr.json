@@ -713,6 +713,17 @@
       "stoppingMessage": "Arrêt après la facture en cours...",
       "confirmRecalculate": "Recalculer les commissions pour TOUTES les factures avec le modèle actuel ?\n\n• SaaS 1er mois → 100 %\n• Renouvellements SaaS → 0 %\n• Hardware → 10 % dans les 3 mois après le 1er SaaS\n\nS'exécute en arrière-plan. Assurez-vous que l'Enrichissement soit terminé d'abord, pour que les factures soient classées."
     },
+    "bonusTiers": {
+      "title": "Paliers de bonus",
+      "subtitle": "Seuils de points qui débloquent chaque bonus. Le palier le plus élevé atteint gagne (non cumulatif).",
+      "monthly": "Bonus mensuel",
+      "annual": "Bonus annuel",
+      "points": "Points",
+      "bonus": "Bonus ($)",
+      "addTier": "Ajouter un palier",
+      "none": "Aucun palier — ajoutes-en un.",
+      "saved": "Paliers de bonus enregistrés."
+    },
     "dealPoints": {
       "title": "Points par type de deal",
       "subtitle": "Définir combien de points vaut un deal selon sa source. Les types non définis gardent les points CRM synchronisés.",
@@ -768,6 +779,8 @@
       "quotaGateHint": "Plan §2 : un mois sous le quota ne paie aucune commission matériel/SaaS. Désactiver pour exempter cette personne (comptes maison, direction…).",
       "processingBonus": "Bonus de processing",
       "processingBonusHint": "Bonus de processing/volume bi-annuel. Désactiver pour exclure cette personne (active) de ce bonus, sans toucher à ses commissions.",
+      "annualBonus": "Bonus annuel",
+      "annualBonusHint": "Bonus annuel de fin d'année basé sur les points. Désactiver pour en exclure cette personne.",
       "quotaHint": "Laisser vide pour le défaut (15 pts). Saisir un nombre pour le quota mensuel propre à ce vendeur.",
       "signupBonus": "Paiement d'inscription",
       "signupOff": "Désactivé",
