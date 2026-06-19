@@ -252,6 +252,8 @@ const RepDashboard: React.FC = () => {
             {annual.tiers.map(tr => {
               const reached = annual.totalPoints >= tr.points;
               const pct = Math.min(100, Math.round((annual.totalPoints / tr.points) * 100));
+              // Same continuous red→amber→green scale as the Commission Tracker bars.
+              const barColor = `hsl(${Math.round(Math.max(0, Math.min(100, pct)) * 1.2)}, 72%, 45%)`;
               return (
                 <div key={tr.points} className={`rounded-lg border p-2.5 ${reached ? 'border-success/40 bg-success/5' : 'border-stroke dark:border-strokedark'}`}>
                   <div className="mb-1 flex items-center justify-between text-xs">
@@ -259,7 +261,7 @@ const RepDashboard: React.FC = () => {
                     <span className="text-gray-400">{pct}%</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-meta-4">
-                    <div className={`h-1.5 rounded-full ${reached ? 'bg-success' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                    <div className="h-1.5 rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
                   </div>
                 </div>
               );
