@@ -1086,20 +1086,14 @@ const CommissionReport = () => {
       {/* Points & Bonus Summary */}
       {pointsData && (
         <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark flex items-center justify-between">
+          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
             <div>
               <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.pointsBonuses')}</h3>
               <p className="text-sm text-body">{t('commissionReport.pointsBonusesSubtitle')}</p>
             </div>
-            {/* Annual bonus badge */}
-            {pointsData.annual.annualBonus > 0 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-success bg-opacity-10 px-3 py-1 text-sm font-semibold text-success">
-                🏆 {t('commissionReport.annualBonusEarned', { amount: pointsData.annual.annualBonus.toLocaleString() })}
-              </span>
-            )}
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6">
 
               {/* Left — selected month or current month points */}
               {(() => {
@@ -1166,65 +1160,6 @@ const CommissionReport = () => {
                   </div>
                 );
               })()}
-
-              {/* Right — annual bonus progress */}
-              <div>
-                <p className="mb-3 text-sm font-semibold text-black dark:text-white">
-                  {t('commissionReport.annualBonusProgress')} ({selectedYear})
-                </p>
-                <div className="flex flex-wrap gap-4 mb-4">
-                  <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
-                    <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.ytdPoints')}</p>
-                    <p className="text-2xl font-bold text-black dark:text-white">{pointsData.annual.totalPoints}</p>
-                    {pointsData.annual.zentactPoints > 0 && (
-                      <p className="text-xs text-[#6366F1] mt-1">incl. {pointsData.annual.zentactPoints} 💳</p>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
-                    <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.annualBonus')}</p>
-                    <p className={`text-2xl font-bold ${pointsData.annual.annualBonus > 0 ? 'text-success' : 'text-black dark:text-white'}`}>
-                      ${pointsData.annual.annualBonus.toLocaleString()}
-                    </p>
-                  </div>
-                  {pointsData.annual.zentactBonus > 0 && (
-                    <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
-                      <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.zentactBonusYtd')}</p>
-                      <p className="text-2xl font-bold text-[#6366F1]">${pointsData.annual.zentactBonus.toLocaleString()}</p>
-                    </div>
-                  )}
-                </div>
-                {/* Annual tier ladder */}
-                <div className="space-y-2">
-                  {pointsData.annual.tiers.map(tier => {
-                    const reached = pointsData.annual.totalPoints >= tier.points;
-                    const pct = Math.min(100, Math.round((pointsData.annual.totalPoints / tier.points) * 100));
-                    return (
-                      <div key={tier.points} className={`rounded-md border p-3 ${reached ? 'border-success bg-success bg-opacity-5' : 'border-stroke dark:border-strokedark'}`}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className={`text-xs font-semibold ${reached ? 'text-success' : 'text-body'}`}>
-                            {reached ? '✓' : ''} {tier.points} {t('commissionReport.pts')} → ${tier.bonus.toLocaleString()}
-                          </span>
-                          <span className="text-xs text-body">{pct}%</span>
-                        </div>
-                        <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-meta-4">
-                          <div
-                            className={`h-1.5 rounded-full ${reached ? 'bg-success' : 'bg-[#8B5CF6]'}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                {pointsData.annual.nextTier && !pointsData.annual.annualBonus && (
-                  <p className="mt-3 text-xs text-body">
-                    {t('commissionReport.ptsToNextTier', {
-                      count: pointsData.annual.ptsToNextTier,
-                      amount: pointsData.annual.nextTier.bonus.toLocaleString(),
-                    })}
-                  </p>
-                )}
-              </div>
             </div>
           </div>
         </div>
@@ -1486,71 +1421,54 @@ const CommissionReport = () => {
             {report.customers.length === 0 ? (
               <p className="text-sm text-body py-8 text-center">{t('commissionReport.noUnlockedCommissions')}</p>
             ) : (
-              <div className="max-h-[600px] overflow-y-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="border-b-2 border-stroke text-left dark:border-strokedark">
-                      <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-body">{t('commissionReport.customer')}</th>
-                      <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right text-body">{t('commissionReport.revenue')}</th>
-                      <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right text-body">{t('commissionReport.commission')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {report.customers.map((customer, idx) => {
-                      const isExpanded = expandedCustomer === customer.customerName;
-                      return (
-                      <React.Fragment key={customer.customerName}>
-                      <tr
-                        className={`border-b border-stroke dark:border-strokedark cursor-pointer hover:bg-gray-50 dark:hover:bg-meta-4/30 transition ${isExpanded ? 'bg-[#8B5CF6] bg-opacity-5' : ''}`}
-                        onClick={() => toggleCustomerDrill(customer.customerName)}
-                      >
-                        <td className="px-3 py-3">
-                          <div className="flex items-center gap-2.5">
-                            <svg className={`h-3.5 w-3.5 text-body transition-transform flex-shrink-0 ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                            </svg>
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-2 dark:bg-meta-4 text-xs font-bold text-body flex-shrink-0">
-                              {idx + 1}
-                            </span>
-                            <div>
-                              <p className="text-sm font-medium text-black dark:text-white truncate max-w-[200px]">
-                                {customer.customerName}
-                              </p>
-                              <p className="text-xs text-body">{customer.invoices} invoice{customer.invoices !== 1 ? 's' : ''}</p>
+              <div className="max-h-[600px] space-y-2 overflow-y-auto pr-1">
+                {(() => {
+                  const maxComm = Math.max(...report.customers.map(c => c.commission), 1);
+                  return report.customers.map((customer, idx) => {
+                    const isExpanded = expandedCustomer === customer.customerName;
+                    const pct = Math.max(2, Math.round((customer.commission / maxComm) * 100));
+                    return (
+                      <div key={customer.customerName} className={`rounded-lg border transition ${isExpanded ? 'border-primary/40 bg-primary/[0.03]' : 'border-stroke dark:border-strokedark'}`}>
+                        <button
+                          onClick={() => toggleCustomerDrill(customer.customerName)}
+                          className="flex w-full items-center gap-3 px-3 py-3 text-left"
+                        >
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-2 text-xs font-bold text-body dark:bg-meta-4">{idx + 1}</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="mb-1.5 flex items-center justify-between gap-3">
+                              <p className="truncate text-sm font-medium text-black dark:text-white">{customer.customerName}</p>
+                              <span className="shrink-0 text-sm font-bold text-black dark:text-white">{formatCurrency(customer.commission)}</span>
+                            </div>
+                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-meta-4">
+                              <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                            <div className="mt-1 flex items-center justify-between text-xs text-body">
+                              <span>{customer.invoices} {customer.invoices !== 1 ? t('commissionReport.invoicesLower') : t('commissionReport.invoiceLower')}</span>
+                              <span>{t('commissionReport.revenue')}: {formatCurrency(customer.revenue)}</span>
                             </div>
                           </div>
-                        </td>
-                        <td className="px-3 py-3 text-right text-sm text-body">
-                          {formatCurrency(customer.revenue)}
-                        </td>
-                        <td className="px-3 py-3 text-right text-sm font-medium text-black dark:text-white">
-                          {formatCurrency(customer.commission)}
-                        </td>
-                      </tr>
-                      {/* Expanded invoice drill-down */}
-                      {isExpanded && (
-                        <tr>
-                          <td colSpan={3} className="p-0">
-                            <div className="bg-[#8B5CF6] bg-opacity-[0.03] border-b border-[#8B5CF6] border-opacity-20 px-4 py-3">
-                              {loadingDrill ? (
-                                <div className="flex items-center justify-center py-4">
-                                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
-                                  <span className="ml-2 text-xs text-body">{t('commissionReport.loadingInvoices')}</span>
-                                </div>
-                              ) : drillInvoices.length === 0 ? (
-                                <p className="text-xs text-body py-2">{t('commissionReport.noQualifyingInvoices')}</p>
-                              ) : (
-                                renderInvoiceTable(drillInvoices)
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                      </React.Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                          <svg className={`h-4 w-4 shrink-0 text-body transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                        {isExpanded && (
+                          <div className="border-t border-stroke px-3 py-3 dark:border-strokedark">
+                            {loadingDrill ? (
+                              <div className="flex items-center justify-center py-4">
+                                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                                <span className="ml-2 text-xs text-body">{t('commissionReport.loadingInvoices')}</span>
+                              </div>
+                            ) : drillInvoices.length === 0 ? (
+                              <p className="py-2 text-xs text-body">{t('commissionReport.noQualifyingInvoices')}</p>
+                            ) : (
+                              renderInvoiceTable(drillInvoices)
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             )}
           </div>

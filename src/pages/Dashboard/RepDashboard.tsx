@@ -37,12 +37,21 @@ interface ReportResp {
     pending: { count: number; commission: number };
   };
 }
+interface AnnualData {
+  totalPoints: number;
+  annualBonus: number;
+  annualBonusEnabled?: boolean;
+  nextTier: { points: number; bonus: number } | null;
+  ptsToNextTier: number;
+  tiers: { points: number; bonus: number }[];
+}
 
 const RepDashboard: React.FC = () => {
   const { t, i18n } = useTranslation();
   const now = new Date();
   const [points, setPoints] = useState<PointsResp | null>(null);
   const [report, setReport] = useState<ReportResp | null>(null);
+  const [annual, setAnnual] = useState<AnnualData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -64,6 +73,15 @@ const RepDashboard: React.FC = () => {
         ]);
         setPoints(p.data);
         setReport(r.data);
+        // Annual bonus tracking (tier ladder) for the viewer.
+        const vn = (p.data.viewerName || '').toLowerCase();
+        const meRow = (p.data.reps || []).find((x: RepRow) => x.repName.toLowerCase() === vn);
+        if (meRow) {
+          try {
+            const a = await axios.get(`${API_URL}/api/crm/points/annual`, { headers, params: { year: now.getFullYear(), repName: meRow.repName } });
+            setAnnual(a.data.annual);
+          } catch { /* annual optional */ }
+        }
       } catch (e: any) {
         setError(e?.response?.data?.error || 'Failed to load dashboard');
       } finally { setLoading(false); }
@@ -183,7 +201,7 @@ const RepDashboard: React.FC = () => {
         ))}
       </div>
 
-      {/* Bonus progress */}
+      {/* Monthly bonus progress */}
       {(tier || next) && (
         <div className="mt-4 rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -193,6 +211,44 @@ const RepDashboard: React.FC = () => {
               {next && ` · ${t('repDashboard.nextTier', { count: next.points - pts, amount: fmt(next.bonus) })}`}
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Annual bonus tracking */}
+      {annual && (annual.tiers?.length > 0) && (
+        <div className="mt-4 rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-sm font-semibold text-black dark:text-white">🏆 {t('repDashboard.annualBonus', { year: now.getFullYear() })}</span>
+            {annual.annualBonusEnabled === false ? (
+              <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500 dark:bg-meta-4 dark:text-gray-300">{t('repDashboard.annualDisabled')}</span>
+            ) : annual.annualBonus > 0 ? (
+              <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success">{t('repDashboard.annualEarned', { amount: fmt(annual.annualBonus) })}</span>
+            ) : annual.nextTier ? (
+              <span className="text-xs text-gray-500">{t('repDashboard.annualNext', { count: annual.ptsToNextTier, amount: fmt(annual.nextTier.bonus) })}</span>
+            ) : null}
+          </div>
+          {annual.annualBonusEnabled === false ? (
+            <p className="text-xs text-gray-500">{t('repDashboard.annualDisabledNote')}</p>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-xs text-gray-500">{t('repDashboard.annualYtdPoints', { count: annual.totalPoints })}</p>
+              {annual.tiers.map(tr => {
+                const reached = annual.totalPoints >= tr.points;
+                const pct = Math.min(100, Math.round((annual.totalPoints / tr.points) * 100));
+                return (
+                  <div key={tr.points} className={`rounded-lg border p-2.5 ${reached ? 'border-success/40 bg-success/5' : 'border-stroke dark:border-strokedark'}`}>
+                    <div className="mb-1 flex items-center justify-between text-xs">
+                      <span className={`font-semibold ${reached ? 'text-success' : 'text-body'}`}>{reached ? '✓ ' : ''}{tr.points} pts → {fmt(tr.bonus)}</span>
+                      <span className="text-gray-400">{pct}%</span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-meta-4">
+                      <div className={`h-1.5 rounded-full ${reached ? 'bg-success' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
