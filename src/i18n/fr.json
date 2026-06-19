@@ -301,7 +301,9 @@
     "reportTitle": "Rapport de commission",
     "reportBody": "Le détail de tes commissions mensuelles, ce qui est débloqué vs en attente, et tes bulletins de paie.",
     "cleoTitle": "Je suis toujours là",
-    "cleoBody": "Clique sur moi à tout moment pour de l'aide, ou pour refaire cette visite. Bon Sales Hub !"
+    "cleoBody": "Clique sur moi à tout moment pour de l'aide, ou pour refaire cette visite. Bon Sales Hub !",
+    "askPlaceholder": "Pose une question à Cleo…",
+    "askError": "Désolée, une erreur est survenue — réessaie."
   },
   "repDashboard": {
     "title": "Mon tableau de bord",

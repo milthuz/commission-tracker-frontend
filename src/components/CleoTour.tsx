@@ -1,8 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import CleoAvatar from './CleoAvatar';
 
+const API_URL = import.meta.env.VITE_API_URL;
 const TOUR_KEY = 'cleo-tour-v1';
+
+interface ChatMsg { role: 'user' | 'assistant'; content: string; }
 
 interface Step { selector: string | null; titleKey: string; bodyKey: string; }
 
@@ -25,6 +29,32 @@ const CleoTour: React.FC = () => {
   const [run, setRun] = useState(false);
   const [idx, setIdx] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
+  // In-tour mini chat — ask Cleo a question without leaving the tour.
+  const [askMsgs, setAskMsgs] = useState<ChatMsg[]>([]);
+  const [askInput, setAskInput] = useState('');
+  const [askBusy, setAskBusy] = useState(false);
+  const askBodyRef = useRef<HTMLDivElement>(null);
+
+  const sendAsk = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const content = askInput.trim();
+    if (!content || askBusy) return;
+    setAskInput('');
+    const nextMsgs: ChatMsg[] = [...askMsgs, { role: 'user', content }];
+    setAskMsgs(nextMsgs);
+    setAskBusy(true);
+    try {
+      const token = localStorage.getItem('token');
+      const r = await axios.post(`${API_URL}/api/assistant/chat`,
+        { messages: nextMsgs.slice(-12) },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setAskMsgs([...nextMsgs, { role: 'assistant', content: r.data.reply || '…' }]);
+    } catch {
+      setAskMsgs([...nextMsgs, { role: 'assistant', content: t('tour.askError') as string }]);
+    } finally { setAskBusy(false); }
+  };
+
+  useEffect(() => { askBodyRef.current?.scrollTo({ top: askBodyRef.current.scrollHeight }); }, [askMsgs, askBusy]);
 
   // Resolve the visible steps (skip targets that don't exist for this user/page).
   const steps = STEPS.filter(s => s.selector === null || document.querySelector(s.selector));
@@ -57,7 +87,7 @@ const CleoTour: React.FC = () => {
     return () => { window.removeEventListener('cleo:tour', start); if (timer) clearTimeout(timer); };
   }, []);
 
-  const finish = () => { localStorage.setItem(TOUR_KEY, 'done'); setRun(false); setIdx(0); };
+  const finish = () => { localStorage.setItem(TOUR_KEY, 'done'); setRun(false); setIdx(0); setAskMsgs([]); setAskInput(''); };
   const next = () => { if (idx < steps.length - 1) setIdx(idx + 1); else finish(); };
   const back = () => setIdx(Math.max(0, idx - 1));
 
@@ -70,16 +100,16 @@ const CleoTour: React.FC = () => {
     width: rect.width + PAD * 2, height: rect.height + PAD * 2,
   } : null;
 
-  // Card placement: centered when no target; else below the target (or above if no room).
-  let cardStyle: React.CSSProperties;
+  // Card placement: centered when no target; else below the target, clamped to stay on-screen
+  // (the mini chat can make the card taller, so we cap height + allow internal scroll).
+  const EST = askMsgs.length ? 420 : 240;
+  let cardStyle: React.CSSProperties = { maxHeight: 'calc(100vh - 16px)' };
   if (!rect) {
-    cardStyle = { top: '50%', left: '50%', transform: 'translate(-50%,-50%)' };
+    cardStyle = { ...cardStyle, top: '50%', left: '50%', transform: 'translate(-50%,-50%)' };
   } else {
-    const below = rect.bottom + 12;
-    const placeAbove = below + 220 > vh && rect.top - 12 - 220 > 0;
-    const top = placeAbove ? Math.max(8, rect.top - 12 - 200) : below;
     const left = Math.min(Math.max(8, rect.left), vw - CARD_W - 8);
-    cardStyle = { top, left };
+    const top = Math.max(8, Math.min(rect.bottom + 12, vh - EST - 8));
+    cardStyle = { ...cardStyle, top, left };
   }
 
   return (
@@ -97,7 +127,8 @@ const CleoTour: React.FC = () => {
       )}
 
       {/* Cleo card */}
-      <div className="absolute w-[320px] max-w-[calc(100vw-16px)] rounded-2xl border border-white/10 bg-white p-4 shadow-2xl dark:bg-boxdark" style={cardStyle}>
+      <div className="absolute flex w-[320px] max-w-[calc(100vw-16px)] flex-col overflow-hidden rounded-2xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark" style={cardStyle}>
+        <div className="overflow-y-auto p-4">
         <div className="flex items-start gap-3">
           <CleoAvatar className="h-10 w-10 shrink-0" ring />
           <div className="min-w-0 flex-1">
@@ -105,7 +136,44 @@ const CleoTour: React.FC = () => {
             <p className="mt-1 text-sm leading-snug text-body dark:text-gray-300">{t(step.bodyKey)}</p>
           </div>
         </div>
-        <div className="mt-4 flex items-center justify-between">
+
+        {/* In-tour mini chat */}
+        <div ref={askBodyRef} className="mt-3 max-h-40 space-y-2 overflow-y-auto">
+          {askMsgs.map((m, i) => (
+            <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[88%] whitespace-pre-wrap rounded-xl px-3 py-2 text-xs leading-relaxed ${
+                m.role === 'user' ? 'rounded-br-sm bg-primary text-white' : 'rounded-tl-sm bg-gray-2 text-black dark:bg-meta-4 dark:text-white'}`}>
+                {m.content}
+              </div>
+            </div>
+          ))}
+          {askBusy && (
+            <div className="flex justify-start">
+              <div className="flex items-center gap-1 rounded-xl rounded-tl-sm bg-gray-2 px-3 py-2 dark:bg-meta-4">
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-body [animation-delay:0ms]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-body [animation-delay:150ms]" />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-body [animation-delay:300ms]" />
+              </div>
+            </div>
+          )}
+        </div>
+        <form onSubmit={sendAsk} className="mt-2 flex items-center gap-2">
+          <input
+            value={askInput}
+            onChange={(e) => setAskInput(e.target.value)}
+            placeholder={t('tour.askPlaceholder') as string}
+            maxLength={2000}
+            className="flex-1 rounded-full border border-stroke bg-white px-3 py-1.5 text-xs text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+          />
+          <button type="submit" disabled={askBusy || !askInput.trim()}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-white transition hover:bg-opacity-90 disabled:opacity-40">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" /></svg>
+          </button>
+        </form>
+        </div>
+
+        {/* Pinned footer: progress + navigation */}
+        <div className="flex items-center justify-between border-t border-stroke px-4 py-3 dark:border-strokedark">
           <div className="flex items-center gap-1.5">
             {steps.map((_, i) => (
               <span key={i} className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-4 bg-primary' : 'w-1.5 bg-gray-300 dark:bg-meta-4'}`} />

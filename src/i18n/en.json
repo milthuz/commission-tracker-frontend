@@ -301,7 +301,9 @@
     "reportTitle": "Commission Report",
     "reportBody": "Your detailed monthly commissions, what's unlocked vs pending, and your pay stubs.",
     "cleoTitle": "I'm always here",
-    "cleoBody": "Click me anytime for help, or to take this tour again. Enjoy Sales Hub!"
+    "cleoBody": "Click me anytime for help, or to take this tour again. Enjoy Sales Hub!",
+    "askPlaceholder": "Ask Cleo a question…",
+    "askError": "Sorry, something went wrong — try again."
   },
   "repDashboard": {
     "title": "My Dashboard",
