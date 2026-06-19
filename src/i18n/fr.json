@@ -285,6 +285,24 @@
     "collapse": "Réduire la barre latérale",
     "expand": "Agrandir la barre latérale"
   },
+  "tour": {
+    "skip": "Passer",
+    "back": "Retour",
+    "next": "Suivant",
+    "done": "Compris !",
+    "welcomeTitle": "Bonjour, je suis Cleo 👋",
+    "welcomeBody": "Laisse-moi te faire une petite visite de 30 secondes de Sales Hub. Tu peux passer à tout moment.",
+    "menuTitle": "Ton menu",
+    "menuBody": "Le menu de gauche reste replié pour rester épuré. Clique ici pour l'ouvrir ou le replier — survole une icône pour voir son nom.",
+    "dashTitle": "Tableau de bord",
+    "dashBody": "Ta page d'accueil — ta commission du mois, ta progression de quota, tes bonus et tes meilleurs clients en un coup d'œil.",
+    "trackerTitle": "Suivi des commissions",
+    "trackerBody": "Suis tes points et ta progression de quota — les deals et activations de paiement qui comptent pour tes bonus.",
+    "reportTitle": "Rapport de commission",
+    "reportBody": "Le détail de tes commissions mensuelles, ce qui est débloqué vs en attente, et tes bulletins de paie.",
+    "cleoTitle": "Je suis toujours là",
+    "cleoBody": "Clique sur moi à tout moment pour de l'aide, ou pour refaire cette visite. Bon Sales Hub !"
+  },
   "repDashboard": {
     "title": "Mon tableau de bord",
     "greeting": "Bonjour, {{name}} 👋",

@@ -179,7 +179,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             <ul className="mb-6 flex flex-col gap-1.5">
               {/* <!-- Menu Item Dashboard — "/" renders a role-appropriate dashboard for EVERYONE
                    (admin finance / manager team / rep personal), so always show the link. --> */}
-              <li>
+              <li data-tour="nav-dashboard">
                 <NavLink
                   to="/"
                   className={navLinkCls(pathname === '/')}
@@ -218,7 +218,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
               {/* <!-- Menu Item Commission Tracker (perm: tracker:view_*) --> */}
               {(isAdmin || can('tracker:view_own') || can('tracker:view_all_totals') || can('tracker:view_all_details')) && (
-              <li>
+              <li data-tour="nav-tracker">
                 <NavLink
                   to="/commission-tracker"
                   className={navLinkCls(pathname.includes('commission-tracker'))}
@@ -246,7 +246,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
               {/* <!-- Menu Item Commission Report (perm: report:view_*) --> */}
               {(isAdmin || can('report:view_own') || can('report:view_others')) && (
-              <li>
+              <li data-tour="nav-report">
                 <NavLink
                   to="/commission-report"
                   className={navLinkCls(pathname.includes('commission-report'))}
@@ -460,6 +460,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       {/* <!-- Desktop collapse toggle (Zoho-style, bottom-right) — hidden on mobile --> */}
       <button
         type="button"
+        data-tour="sidebar-toggle"
         onClick={() => setCollapsed(!collapsed)}
         title={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
         aria-label={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}

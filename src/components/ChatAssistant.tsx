@@ -91,6 +91,12 @@ const ChatAssistant: React.FC = () => {
                 <div className="mb-3 rounded-2xl rounded-tl-sm bg-gray-100 px-4 py-3 text-sm text-black dark:bg-meta-4 dark:text-white">
                   {t('assistant.greeting')}
                 </div>
+                <button
+                  onClick={() => { setOpen(false); window.dispatchEvent(new Event('cleo:tour')); }}
+                  className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#3c50e0] to-[#7a5af8] px-3 py-2.5 text-sm font-semibold text-white transition hover:opacity-90">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                  {t('assistant.startTour')}
+                </button>
                 <div className="flex flex-wrap gap-2">
                   {Array.isArray(suggestions) && suggestions.map((s) => (
                     <button key={s} onClick={() => send(s)}
@@ -152,6 +158,7 @@ const ChatAssistant: React.FC = () => {
 
       {/* Floating bubble — translucent glass with gradient sheen */}
       <button
+        data-tour="cleo-bubble"
         onClick={() => setOpen(!open)}
         title={t('assistant.title') as string}
         className="group fixed bottom-6 right-4 z-[9990] flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition-transform duration-200 hover:scale-110"

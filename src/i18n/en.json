@@ -285,6 +285,24 @@
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar"
   },
+  "tour": {
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "done": "Got it!",
+    "welcomeTitle": "Hi, I'm Cleo 👋",
+    "welcomeBody": "Let me give you a quick 30-second tour of Sales Hub. You can skip anytime.",
+    "menuTitle": "Your menu",
+    "menuBody": "The left menu stays collapsed to keep things tidy. Click here to expand or collapse it — hover any icon to see its name.",
+    "dashTitle": "Dashboard",
+    "dashBody": "Your home base — your commission this month, quota progress, bonuses and top customers at a glance.",
+    "trackerTitle": "Commission Tracker",
+    "trackerBody": "Track points and quota progress — deals and payment activations that count toward your bonuses.",
+    "reportTitle": "Commission Report",
+    "reportBody": "Your detailed monthly commissions, what's unlocked vs pending, and your pay stubs.",
+    "cleoTitle": "I'm always here",
+    "cleoBody": "Click me anytime for help, or to take this tour again. Enjoy Sales Hub!"
+  },
   "repDashboard": {
     "title": "My Dashboard",
     "greeting": "Hi, {{name}} 👋",
