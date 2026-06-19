@@ -317,6 +317,12 @@
     "you": "toi",
     "yourRank": "Tu es #{{rank}} sur {{total}}",
     "recentActivity": "Activité récente",
+    "topCustomers": "Top clients — {{year}}",
+    "topCustomersSub": "Ta commission débloquée par client, cumul de l'année.",
+    "revenueLabel": "Revenu",
+    "invoiceLower": "facture",
+    "invoicesLower": "factures",
+    "noInvoices": "Aucune facture.",
     "paymentActivation": "Activation de paiement",
     "noActivity": "Aucune activité ce mois-ci.",
     "noData": "Aucune donnée."

@@ -149,7 +149,6 @@ const CommissionReport = () => {
 
   // Drill-down state
   const [expandedMonth, setExpandedMonth] = useState<number | null>(null);
-  const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
   const [drillInvoices, setDrillInvoices] = useState<DrillInvoice[]>([]);
   const [loadingDrill, setLoadingDrill] = useState(false);
 
@@ -263,7 +262,6 @@ const CommissionReport = () => {
   useEffect(() => {
     // Reset drill-downs when filters change
     setExpandedMonth(null);
-    setExpandedCustomer(null);
     setDrillInvoices([]);
 
     const fetchReport = async () => {
@@ -501,7 +499,6 @@ const CommissionReport = () => {
       return;
     }
     setExpandedMonth(month);
-    setExpandedCustomer(null);
     setLoadingDrill(true);
     try {
       const token = localStorage.getItem('token');
@@ -543,33 +540,6 @@ const CommissionReport = () => {
   };
 
   // Drill-down: fetch invoices for a customer
-  const toggleCustomerDrill = async (customerName: string) => {
-    if (expandedCustomer === customerName) {
-      setExpandedCustomer(null);
-      setDrillInvoices([]);
-      return;
-    }
-    setExpandedCustomer(customerName);
-    setExpandedMonth(null);
-    setLoadingDrill(true);
-    try {
-      const token = localStorage.getItem('token');
-      const params: Record<string, string> = {
-        year: selectedYear,
-        customer: customerName,
-        repName: report?.repName || '',
-      };
-      if (selectedMonth !== 'all') params.month = selectedMonth;
-      const res = await axios.get(`${API_URL}/api/commissions/invoices`, {
-        headers: { Authorization: `Bearer ${token}` }, params,
-      });
-      setDrillInvoices(res.data.invoices || []);
-    } catch (e) {
-      console.error('Error fetching customer invoices:', e);
-    } finally {
-      setLoadingDrill(false);
-    }
-  };
 
   // Invoice preview
   const handlePreview = (invoiceNumber: string) => {
@@ -1411,68 +1381,6 @@ const CommissionReport = () => {
           </div>
         </div>
 
-        {/* Commission by Customer */}
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark min-w-0 overflow-hidden">
-          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.commByCustomer')}</h3>
-            <p className="text-sm text-body">{t('commissionReport.unlockedOnly')} · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ${selectedYear}` : `${selectedYear} ${t('commissionReport.ytd')}`} · {t('commissionReport.top50')}</p>
-          </div>
-          <div className="p-6">
-            {report.customers.length === 0 ? (
-              <p className="text-sm text-body py-8 text-center">{t('commissionReport.noUnlockedCommissions')}</p>
-            ) : (
-              <div className="max-h-[600px] space-y-2 overflow-y-auto pr-1">
-                {(() => {
-                  const maxComm = Math.max(...report.customers.map(c => c.commission), 1);
-                  return report.customers.map((customer, idx) => {
-                    const isExpanded = expandedCustomer === customer.customerName;
-                    const pct = Math.max(2, Math.round((customer.commission / maxComm) * 100));
-                    return (
-                      <div key={customer.customerName} className={`rounded-lg border transition ${isExpanded ? 'border-primary/40 bg-primary/[0.03]' : 'border-stroke dark:border-strokedark'}`}>
-                        <button
-                          onClick={() => toggleCustomerDrill(customer.customerName)}
-                          className="flex w-full items-center gap-3 px-3 py-3 text-left"
-                        >
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-2 text-xs font-bold text-body dark:bg-meta-4">{idx + 1}</span>
-                          <div className="min-w-0 flex-1">
-                            <div className="mb-1.5 flex items-center justify-between gap-3">
-                              <p className="truncate text-sm font-medium text-black dark:text-white">{customer.customerName}</p>
-                              <span className="shrink-0 text-sm font-bold text-black dark:text-white">{formatCurrency(customer.commission)}</span>
-                            </div>
-                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-meta-4">
-                              <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-                            </div>
-                            <div className="mt-1 flex items-center justify-between text-xs text-body">
-                              <span>{customer.invoices} {customer.invoices !== 1 ? t('commissionReport.invoicesLower') : t('commissionReport.invoiceLower')}</span>
-                              <span>{t('commissionReport.revenue')}: {formatCurrency(customer.revenue)}</span>
-                            </div>
-                          </div>
-                          <svg className={`h-4 w-4 shrink-0 text-body transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                          </svg>
-                        </button>
-                        {isExpanded && (
-                          <div className="border-t border-stroke px-3 py-3 dark:border-strokedark">
-                            {loadingDrill ? (
-                              <div className="flex items-center justify-center py-4">
-                                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                                <span className="ml-2 text-xs text-body">{t('commissionReport.loadingInvoices')}</span>
-                              </div>
-                            ) : drillInvoices.length === 0 ? (
-                              <p className="py-2 text-xs text-body">{t('commissionReport.noQualifyingInvoices')}</p>
-                            ) : (
-                              renderInvoiceTable(drillInvoices)
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  });
-                })()}
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Preview Modal */}

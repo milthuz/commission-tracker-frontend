@@ -28,9 +28,13 @@ interface RepRow {
   zentactMerchants: Merchant[];
 }
 interface PointsResp { viewerName?: string; reps: RepRow[]; }
+interface CustomerRow { customerName: string; invoices: number; revenue: number; commission: number; }
+interface DrillInvoice { invoiceNumber: string; date: string; commission: number; status: string; }
 interface ReportResp {
+  repName: string;
   baseSalary: number;
   months: { month: number; commission: number }[];
+  customers: CustomerRow[];
   summary: {
     currentMonth: { commission: number; revenue: number; invoices: number };
     ytd: { commission: number; revenue: number; invoices: number };
@@ -54,6 +58,24 @@ const RepDashboard: React.FC = () => {
   const [annual, setAnnual] = useState<AnnualData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [expandedCustomer, setExpandedCustomer] = useState<string | null>(null);
+  const [drillInvoices, setDrillInvoices] = useState<DrillInvoice[]>([]);
+  const [loadingDrill, setLoadingDrill] = useState(false);
+
+  const toggleCustomerDrill = async (customerName: string, repName: string) => {
+    if (expandedCustomer === customerName) { setExpandedCustomer(null); setDrillInvoices([]); return; }
+    setExpandedCustomer(customerName);
+    setLoadingDrill(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/invoices`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { year: now.getFullYear(), customer: customerName, repName },
+      });
+      setDrillInvoices(res.data.invoices || []);
+    } catch { setDrillInvoices([]); }
+    finally { setLoadingDrill(false); }
+  };
 
   const fmt = (v: number) =>
     (Number(v) || 0).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -290,6 +312,65 @@ const RepDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Top customers by commission (YTD) */}
+      {(report?.customers?.length ?? 0) > 0 && (
+        <div className="mt-4 rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="mb-3">
+            <h5 className="text-sm font-semibold text-black dark:text-white">💳 {t('repDashboard.topCustomers', { year: now.getFullYear() })}</h5>
+            <p className="text-xs text-gray-500">{t('repDashboard.topCustomersSub')}</p>
+          </div>
+          <div className="max-h-[480px] space-y-2 overflow-y-auto pr-1">
+            {(() => {
+              const maxComm = Math.max(...report!.customers.map(c => c.commission), 1);
+              return report!.customers.map((c, idx) => {
+                const open = expandedCustomer === c.customerName;
+                const pct = Math.max(2, Math.round((c.commission / maxComm) * 100));
+                return (
+                  <div key={c.customerName} className={`rounded-lg border transition ${open ? 'border-primary/40 bg-primary/[0.03]' : 'border-stroke dark:border-strokedark'}`}>
+                    <button onClick={() => toggleCustomerDrill(c.customerName, report!.repName)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-2 text-xs font-bold text-body dark:bg-meta-4">{idx + 1}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1.5 flex items-center justify-between gap-3">
+                          <p className="truncate text-sm font-medium text-black dark:text-white">{c.customerName}</p>
+                          <span className="shrink-0 text-sm font-bold text-black dark:text-white">{fmt2(c.commission)}</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-meta-4">
+                          <div className="h-1.5 rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                        </div>
+                        <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+                          <span>{c.invoices} {c.invoices !== 1 ? t('repDashboard.invoicesLower') : t('repDashboard.invoiceLower')}</span>
+                          <span>{t('repDashboard.revenueLabel')}: {fmt2(c.revenue)}</span>
+                        </div>
+                      </div>
+                      <svg className={`h-4 w-4 shrink-0 text-body transition-transform ${open ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                    {open && (
+                      <div className="border-t border-stroke px-3 py-2 dark:border-strokedark">
+                        {loadingDrill ? (
+                          <div className="flex items-center justify-center py-3"><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
+                        ) : drillInvoices.length === 0 ? (
+                          <p className="py-1.5 text-xs text-gray-500">{t('repDashboard.noInvoices')}</p>
+                        ) : (
+                          <div className="space-y-1">
+                            {drillInvoices.map(inv => (
+                              <div key={inv.invoiceNumber} className="flex items-center justify-between gap-2 text-xs">
+                                <span className="font-medium text-primary">{inv.invoiceNumber}</span>
+                                <span className="text-gray-500">{formatDateOnly(inv.date, i18n.language)}</span>
+                                <span className="font-semibold text-black dark:text-white">{fmt2(inv.commission)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </div>
+      )}
     </>
   );
 };
