@@ -349,19 +349,23 @@ const RepDashboard: React.FC = () => {
                       <div className="border-t border-stroke px-3 py-2 dark:border-strokedark">
                         {loadingDrill ? (
                           <div className="flex items-center justify-center py-3"><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
-                        ) : drillInvoices.length === 0 ? (
-                          <p className="py-1.5 text-xs text-gray-500">{t('repDashboard.noInvoices')}</p>
-                        ) : (
-                          <div className="space-y-1">
-                            {drillInvoices.map(inv => (
-                              <div key={inv.invoiceNumber} className="flex items-center justify-between gap-2 text-xs">
-                                <span className="font-medium text-primary">{inv.invoiceNumber}</span>
-                                <span className="text-gray-500">{formatDateOnly(inv.date, i18n.language)}</span>
-                                <span className="font-semibold text-black dark:text-white">{fmt2(inv.commission)}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        ) : (() => {
+                          // Only invoices that actually earned commission (the list total is commission-only).
+                          const rows = drillInvoices.filter(inv => inv.commission > 0);
+                          return rows.length === 0 ? (
+                            <p className="py-1.5 text-xs text-gray-500">{t('repDashboard.noInvoices')}</p>
+                          ) : (
+                            <div className="space-y-1">
+                              {rows.map(inv => (
+                                <div key={inv.invoiceNumber} className="flex items-center justify-between gap-2 text-xs">
+                                  <span className="font-medium text-primary">{inv.invoiceNumber}</span>
+                                  <span className="text-gray-500">{formatDateOnly(inv.date, i18n.language)}</span>
+                                  <span className="font-semibold text-black dark:text-white">{fmt2(inv.commission)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
