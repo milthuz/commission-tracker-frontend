@@ -1043,7 +1043,7 @@
     "usersSection": {
       "title": "Gestion des utilisateurs",
       "subtitle": "Rôles, accès administrateur, pré-assignation de rôles et utilisateurs externes",
-      "tabs": { "access": "Accès & rôles", "external": "Utilisateurs externes", "impersonation": "Impersonation" }
+      "tabs": { "access": "Accès", "external": "Utilisateurs externes", "impersonation": "Impersonation" }
     },
     "admins": {
       "title": "Accès utilisateurs",

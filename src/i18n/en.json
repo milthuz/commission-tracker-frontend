@@ -1043,7 +1043,7 @@
     "usersSection": {
       "title": "User Management",
       "subtitle": "Roles, admin access, role pre-assignment and external users",
-      "tabs": { "access": "Access & roles", "external": "External users", "impersonation": "Impersonation" }
+      "tabs": { "access": "Access", "external": "External users", "impersonation": "Impersonation" }
     },
     "admins": {
       "title": "User Access",
