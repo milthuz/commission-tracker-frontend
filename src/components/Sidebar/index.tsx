@@ -53,11 +53,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   }, [collapsed]);
 
   // CSS helpers for collapsed mode — applied to every NavLink and the label spans.
+  // Matches the Admin Panel button exactly so every rail item is consistent. Roominess comes
+  // from the list gap (below), not an oversized highlight.
   const navLinkCls = (active: boolean) =>
-    `group relative flex items-center font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-      collapsed
-        ? 'mx-auto h-11 w-11 justify-center rounded-xl'   // generous, evenly-spaced square (Wealthsimple-style)
-        : 'gap-2.5 rounded-sm px-4 py-2'
+    `group relative flex w-full items-center rounded-sm py-2.5 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+      collapsed ? 'justify-center px-2' : 'gap-2.5 px-4'
     } ${active ? 'bg-graydark dark:bg-meta-4' : ''}`;
   const labelCls = collapsed ? 'sr-only' : '';
 
@@ -310,7 +310,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       if (collapsed) setCollapsed(false);
                       setAdminMenuOpen(!adminMenuOpen);
                     }}
-                    className={`group relative flex w-full items-center rounded-sm py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                    className={`group relative flex w-full items-center rounded-sm py-2.5 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
                       collapsed ? 'justify-center px-2' : 'justify-between gap-2.5 px-4'
                     } ${pathname.includes('admin') ? 'bg-graydark dark:bg-meta-4' : ''}`}
                   >
