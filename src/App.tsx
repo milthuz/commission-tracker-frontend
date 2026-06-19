@@ -21,6 +21,7 @@ import Versions from './pages/Versions';
 import AdminPanel from './pages/AdminPanel';
 import Reseller from './pages/Reseller';
 import Revenue from './pages/Revenue';
+import Resources from './pages/Resources';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -178,6 +179,15 @@ function AppContent() {
               <>
                 <PageTitle title="Processing Revenue | Sales Hub" />
                 <Revenue />
+              </>
+            }
+          />
+          <Route
+            path="/resources"
+            element={
+              <>
+                <PageTitle title="Resources | Sales Hub" />
+                <Resources />
               </>
             }
           />

@@ -302,6 +302,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Menu Item Resources (perm: resources:view) --> */}
+              {(isAdmin || can('resources:view')) && (
+                <li>
+                  <NavLink
+                    to="/resources"
+                    className={navLinkCls(pathname.includes('resources'))}
+                  >
+                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.resources')}</span>
+                    <NewBadge path="/resources" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.resources') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Admin Panel (Admin Only) --> */}
               {isAdmin && (
                 <li>
