@@ -98,7 +98,8 @@ interface CustomerData {
 interface ReportData {
   repName: string;
   commissionRate: number;
-  baseSalary?: number;
+  baseSalary?: number | null;
+  canViewSalary?: boolean;
   year: string;
   months: MonthData[];
   customers: CustomerData[];
@@ -130,6 +131,7 @@ const CommissionReport = () => {
   // banner/cards flash $0, then the rep auto-select triggers a second fetch.
   const [selectedRep, setSelectedRep] = useState(() => localStorage.getItem('commissionReport.selectedRep') || '');
   const [salespeople, setSalespeople] = useState<string[]>([]);
+  const [canViewOthers, setCanViewOthers] = useState(false);
   // Years hidden by the admin (Admin → Import Commissions) — dropped from the year dropdown.
   const [disabledYears, setDisabledYears] = useState<number[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -228,26 +230,25 @@ const CommissionReport = () => {
     })();
   }, []);
 
-  // Fetch salespeople list (admin only)
+  // Fetch the reps the viewer may open (admin → all; manager → their team(s); else → self).
   useEffect(() => {
-    if (!isAdmin) return;
     const fetchReps = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`${API_URL}/api/salespeople`, {
+        const res = await axios.get(`${API_URL}/api/commissions/viewable-reps`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const reps: string[] = res.data.salespeople || [];
+        const reps: string[] = res.data.reps || [];
         setSalespeople(reps);
-        // If admin is not themselves a salesperson, auto-select the first one
-        // (otherwise the default empty selection falls back to admin's own name,
-        // which produces an empty report since they have no commissions).
-        // A restored selection that no longer exists in the list falls back too.
+        setCanViewOthers(!!res.data.canViewOthers);
+        // If the viewer isn't themselves a salesperson, auto-select the first rep
+        // (otherwise the empty selection falls back to their own name → empty report).
+        // A restored selection no longer in the list also falls back.
         if (!isSalesperson && reps.length > 0 && (!selectedRep || !reps.includes(selectedRep))) {
           setSelectedRep(reps[0]);
         }
       } catch (e) {
-        console.error('Error fetching salespeople:', e);
+        console.error('Error fetching viewable reps:', e);
       }
     };
     fetchReps();
@@ -840,7 +841,7 @@ const CommissionReport = () => {
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Rep Selector (Admin only) */}
-          {isAdmin && salespeople.length > 0 && (
+          {canViewOthers && salespeople.length > 0 && (
             <select
               value={selectedRep}
               onChange={(e) => setSelectedRep(e.target.value)}
@@ -952,7 +953,7 @@ const CommissionReport = () => {
       {/* Total Compensation — EARNED TO DATE: base salary accrued by pay period (26 bi-weekly
           periods/year, completed 14-day periods since Jan 1) + YTD commission + bonuses.
           The salary card shows both the earned amount and the full annual reference. */}
-      {(() => {
+      {report.canViewSalary !== false && (() => {
         const PAY_PERIODS = 26;
         const annualSalary = report.baseSalary || 0;
         const now = new Date();
