@@ -140,6 +140,11 @@ const RepDashboard: React.FC = () => {
             {zentactBonus > 0 && <span>+ {fmt(zentactBonus)} {t('repDashboard.activationBonus')}</span>}
             <span className="font-semibold">{t('repDashboard.periodTotal')}: {fmt2(periodTotal)}</span>
           </div>
+          {monthCommission === 0 && (
+            <p className="mt-2 rounded-md bg-white/15 px-3 py-1.5 text-[11px] leading-snug">
+              {t('repDashboard.zeroCommissionNote')}
+            </p>
+          )}
           <p className="mt-2 text-[11px] opacity-70">{t('repDashboard.beforeTax')}</p>
         </div>
         <div className="flex items-center gap-5 rounded-xl border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -165,14 +170,15 @@ const RepDashboard: React.FC = () => {
       {/* KPI row */}
       <div className="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-4">
         {[
-          { label: t('repDashboard.ytdEarnings'), value: fmt(ytd), accent: 'text-black dark:text-white' },
-          { label: t('repDashboard.pendingCommission'), value: fmt(pending), accent: 'text-warning' },
-          { label: t('repDashboard.activations'), value: String(me?.zentactActivations || 0), accent: 'text-black dark:text-white' },
-          { label: t('repDashboard.dealsClosed'), value: String(me?.deals.length || 0), accent: 'text-black dark:text-white' },
+          { label: t('repDashboard.ytdEarnings'), value: fmt(ytd), accent: 'text-black dark:text-white', hint: '' },
+          { label: t('repDashboard.pendingCommission'), value: fmt(pending), accent: 'text-warning', hint: t('repDashboard.pendingHint') },
+          { label: t('repDashboard.activations'), value: String(me?.zentactActivations || 0), accent: 'text-black dark:text-white', hint: '' },
+          { label: t('repDashboard.dealsClosed'), value: String(me?.deals.length || 0), accent: 'text-black dark:text-white', hint: '' },
         ].map((c, i) => (
           <div key={i} className="rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
             <p className="text-xs font-medium text-gray-500">{c.label}</p>
             <p className={`mt-1 text-2xl font-bold ${c.accent}`}>{c.value}</p>
+            {c.hint && <p className="mt-1 text-[11px] leading-snug text-gray-400">{c.hint}</p>}
           </div>
         ))}
       </div>

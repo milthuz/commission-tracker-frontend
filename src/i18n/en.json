@@ -299,6 +299,8 @@
     "ptsToQuota": "{{count}} pts to quota",
     "ytdEarnings": "YTD earnings",
     "pendingCommission": "Pending commission",
+    "pendingHint": "Earned but not yet paid — unlocks when the customer pays.",
+    "zeroCommissionNote": "No commission has unlocked yet this month. Commission unlocks when a sale is paid — your recent sales are in \"Pending commission\" below until then.",
     "activations": "Activations",
     "dealsClosed": "Deals closed",
     "bonusProgress": "Bonus progress",

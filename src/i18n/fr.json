@@ -299,6 +299,8 @@
     "ptsToQuota": "{{count}} pts avant le quota",
     "ytdEarnings": "Gains cumulés (YTD)",
     "pendingCommission": "Commission en attente",
+    "pendingHint": "Gagnée mais pas encore payée — se débloque quand le client paie.",
+    "zeroCommissionNote": "Aucune commission débloquée ce mois-ci. La commission se débloque quand une vente est payée — tes ventes récentes sont dans « Commission en attente » ci-dessous d'ici là.",
     "activations": "Activations",
     "dealsClosed": "Deals fermés",
     "bonusProgress": "Progression du bonus",
