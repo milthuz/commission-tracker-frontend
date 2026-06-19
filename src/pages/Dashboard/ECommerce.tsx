@@ -3,6 +3,7 @@ import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useTranslation } from 'react-i18next';
+import AdminActionItems from './AdminActionItems';
 const API_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 interface DashboardData {
@@ -248,6 +249,9 @@ const ECommerce: React.FC = () => {
           </select>
         </div>
       </div>
+
+      {/* ====== Action items (admin) ====== */}
+      <AdminActionItems />
 
       {/* ====== Stats Cards ====== */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 2xl:gap-7.5">

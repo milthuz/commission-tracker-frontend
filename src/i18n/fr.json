@@ -313,6 +313,18 @@
     "noActivity": "Aucune activité ce mois-ci.",
     "noData": "Aucune donnée."
   },
+  "adminActions": {
+    "payrollDue": "Paie à envoyer — {{month}}",
+    "repsToSend": "{{count}} rep(s) pas encore envoyé(s)",
+    "allSent": "Tous les reps envoyés ce mois",
+    "dueBy": "dû le",
+    "belowQuota": "Reps sous le quota",
+    "ofReps": "sur {{total}} reps ce mois",
+    "syncHealth": "Santé du sync",
+    "allFresh": "Tout est à jour",
+    "stale": "En retard : {{which}}",
+    "syncSub": "Books · CRM · Zentact"
+  },
   "managerDashboard": {
     "title": "Tableau d'équipe",
     "subtitle": "Performance de l'équipe — {{month}}",

@@ -313,6 +313,18 @@
     "noActivity": "No activity this month yet.",
     "noData": "No data yet."
   },
+  "adminActions": {
+    "payrollDue": "Payroll to send — {{month}}",
+    "repsToSend": "{{count}} rep(s) not yet sent",
+    "allSent": "All reps sent for this month",
+    "dueBy": "due",
+    "belowQuota": "Reps below quota",
+    "ofReps": "of {{total}} reps this month",
+    "syncHealth": "Sync health",
+    "allFresh": "All fresh",
+    "stale": "Stale: {{which}}",
+    "syncSub": "Books · CRM · Zentact"
+  },
   "managerDashboard": {
     "title": "Team Dashboard",
     "subtitle": "Team performance — {{month}}",
