@@ -176,8 +176,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             )}
 
             <ul className="mb-6 flex flex-col gap-1.5">
-              {/* <!-- Menu Item Dashboard (company-wide stats — perm: invoices:view_all) --> */}
-              {(isAdmin || can('invoices:view_all')) && (
+              {/* <!-- Menu Item Dashboard — "/" renders a role-appropriate dashboard for EVERYONE
+                   (admin finance / manager team / rep personal), so always show the link. --> */}
               <li>
                 <NavLink
                   to="/"
@@ -213,7 +213,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   <RailTip label={t('sidebar.dashboard') as string} />
                 </NavLink>
               </li>
-              )}
               {/* <!-- Menu Item Dashboard --> */}
 
               {/* <!-- Menu Item Commission Tracker (perm: tracker:view_*) --> */}
