@@ -54,8 +54,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
   // CSS helpers for collapsed mode — applied to every NavLink and the label spans.
   const navLinkCls = (active: boolean) =>
-    `group relative flex items-center rounded-sm py-2 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-      collapsed ? 'justify-center px-2' : 'gap-2.5 px-4'
+    `group relative flex items-center font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+      collapsed
+        ? 'mx-auto h-11 w-11 justify-center rounded-xl'   // generous, evenly-spaced square (Wealthsimple-style)
+        : 'gap-2.5 rounded-sm px-4 py-2'
     } ${active ? 'bg-graydark dark:bg-meta-4' : ''}`;
   const labelCls = collapsed ? 'sr-only' : '';
 
@@ -167,7 +169,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
       <div className={`no-scrollbar flex flex-col duration-300 ease-linear ${collapsed ? 'overflow-visible' : 'overflow-y-auto'}`}>
         {/* <!-- Sidebar Menu --> */}
-        <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
+        <nav className={`mt-5 py-4 lg:mt-9 ${collapsed ? 'px-2' : 'px-4 lg:px-6'}`}>
           {/* <!-- Menu Group --> */}
           <div>
             {!collapsed && (
@@ -176,7 +178,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </h3>
             )}
 
-            <ul className="mb-6 flex flex-col gap-1.5">
+            <ul className={`mb-6 flex flex-col ${collapsed ? 'gap-3' : 'gap-1.5'}`}>
               {/* <!-- Menu Item Dashboard — "/" renders a role-appropriate dashboard for EVERYONE
                    (admin finance / manager team / rep personal), so always show the link. --> */}
               <li data-tour="nav-dashboard">
