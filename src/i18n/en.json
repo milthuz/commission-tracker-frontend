@@ -317,6 +317,8 @@
     "fileCount": "{{count}} file(s)",
     "folderEmpty": "This folder is empty.",
     "searchResults": "{{count}} result(s)",
+    "viewList": "List view",
+    "viewGrid": "Grid view",
     "add": "Add resource",
     "addTitle": "Add a resource",
     "editTitle": "Edit resource",

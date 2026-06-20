@@ -317,6 +317,8 @@
     "fileCount": "{{count}} fichier(s)",
     "folderEmpty": "Ce dossier est vide.",
     "searchResults": "{{count}} résultat(s)",
+    "viewList": "Vue liste",
+    "viewGrid": "Vue grille",
     "add": "Ajouter une ressource",
     "addTitle": "Ajouter une ressource",
     "editTitle": "Modifier la ressource",

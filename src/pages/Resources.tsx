@@ -38,7 +38,9 @@ const Resources: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [q, setQ] = useState('');
   const [openFolder, setOpenFolder] = useState<string | null>(null); // null = folder landing
+  const [view, setView] = useState<'grid' | 'list'>(() => (localStorage.getItem('resourcesView') as 'grid' | 'list') || 'list');
   const [loading, setLoading] = useState(true);
+  useEffect(() => { localStorage.setItem('resourcesView', view); }, [view]);
   const [canManage, setCanManage] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -186,47 +188,60 @@ const Resources: React.FC = () => {
   const rootFiles = resources.filter(r => !r.category);
   const folderFiles = openFolder ? resources.filter(r => r.category === openFolder) : [];
 
-  const renderCard = (r: Resource) => {
+  // Lighter card (grid view). showCat=false inside a folder (the folder name is already the context).
+  const renderCard = (r: Resource, showCat: boolean) => {
     const icon = fileIcon(r.file_name, r.mime_type);
     return (
-      <div key={r.id} className="flex flex-col rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="flex items-start gap-3">
-          <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${icon.cls}`}>{icon.label}</span>
+      <div key={r.id} className="flex flex-col rounded-xl border border-stroke bg-white p-4 shadow-default transition hover:border-primary dark:border-strokedark dark:bg-boxdark">
+        <button onClick={() => openResource(r)} className="flex items-start gap-3 text-left">
+          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${icon.cls}`}>{icon.label}</span>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold text-black dark:text-white">{r.title}</p>
-            {r.category && <span className="mt-0.5 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-body dark:bg-meta-4">{r.category}</span>}
+            <p className="truncate text-sm font-medium text-black dark:text-white">{r.title}</p>
+            <p className="text-xs text-gray-400">{fmtSize(r.file_size)} · {formatDateOnly(r.updated_at, i18n.language)}</p>
+            {showCat && r.category && <p className="mt-0.5 truncate text-[11px] text-body">{r.category}</p>}
           </div>
-        </div>
-        {r.description && <p className="mt-3 line-clamp-3 text-sm text-body">{r.description}</p>}
-        {r.tags?.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">{r.tags.map(tag => <span key={tag} className="rounded bg-primary/5 px-1.5 py-0.5 text-[10px] text-primary">#{tag}</span>)}</div>
-        )}
-        <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
-          <span>{fmtSize(r.file_size)}</span><span>{formatDateOnly(r.updated_at, i18n.language)}</span>
-        </div>
-        <div className="mt-4 flex items-center gap-2">
-          <button onClick={() => openResource(r)} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+        </button>
+        <div className="mt-3 flex items-center justify-end gap-1 border-t border-stroke pt-2 dark:border-strokedark">
+          <button onClick={() => openResource(r)} title={t('resources.open') as string} className="rounded-lg p-1.5 text-primary hover:bg-primary/10">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            {t('resources.open')}
           </button>
           {canManage && (
-            <button onClick={() => openEdit(r)} title={t('common.edit') as string} className="rounded-lg border border-stroke p-2 text-body hover:text-primary dark:border-strokedark">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            </button>
+            <button onClick={() => openEdit(r)} title={t('common.edit') as string} className="rounded-lg p-1.5 text-body hover:text-primary"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
           )}
           {isAdmin && (
-            <button onClick={() => remove(r)} title={t('common.delete') as string} className="rounded-lg border border-stroke p-2 text-body hover:text-danger dark:border-strokedark">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-            </button>
+            <button onClick={() => remove(r)} title={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
           )}
         </div>
       </div>
     );
   };
 
-  const fileGrid = (list: Resource[]) => (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{list.map(renderCard)}</div>
-  );
+  // Row (list view) — dense, Drive-like.
+  const renderRow = (r: Resource, showCat: boolean) => {
+    const icon = fileIcon(r.file_name, r.mime_type);
+    return (
+      <div key={r.id} className="flex items-center gap-3 px-4 py-2.5 transition hover:bg-gray-1 dark:hover:bg-meta-4/40">
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[10px] font-bold ${icon.cls}`}>{icon.label}</span>
+        <button onClick={() => openResource(r)} className="min-w-0 flex-1 text-left">
+          <span className="block truncate text-sm font-medium text-black hover:text-primary dark:text-white">{r.title}</span>
+          {showCat && r.category && <span className="block truncate text-xs text-gray-400">{r.category}</span>}
+        </button>
+        <span className="hidden w-16 shrink-0 text-right text-xs text-gray-400 sm:block">{fmtSize(r.file_size)}</span>
+        <span className="hidden w-24 shrink-0 text-right text-xs text-gray-400 md:block">{formatDateOnly(r.updated_at, i18n.language)}</span>
+        <button onClick={() => openResource(r)} title={t('resources.open') as string} className="rounded-lg p-1.5 text-primary hover:bg-primary/10"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></button>
+        {canManage && <button onClick={() => openEdit(r)} title={t('common.edit') as string} className="rounded-lg p-1.5 text-body hover:text-primary"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>}
+        {isAdmin && <button onClick={() => remove(r)} title={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>}
+      </div>
+    );
+  };
+
+  // showCat: hide the category label when we're inside that folder (redundant).
+  const renderFiles = (list: Resource[]) => {
+    const showCat = isSearching || !openFolder;
+    return view === 'list'
+      ? <div className="divide-y divide-stroke overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:divide-strokedark dark:border-strokedark dark:bg-boxdark">{list.map(r => renderRow(r, showCat))}</div>
+      : <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">{list.map(r => renderCard(r, showCat))}</div>;
+  };
 
   return (
     <>
@@ -287,12 +302,23 @@ const Resources: React.FC = () => {
         </div>
       )}
 
-      {/* Search + categories */}
-      {/* Search */}
-      <div className="mb-5 relative max-w-md">
-        <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('resources.search') as string}
-          className="w-full rounded-lg border border-stroke bg-white py-2.5 pl-9 pr-3 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white" />
+      {/* Search + view toggle */}
+      <div className="mb-5 flex items-center gap-3">
+        <div className="relative max-w-md flex-1">
+          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('resources.search') as string}
+            className="w-full rounded-lg border border-stroke bg-white py-2.5 pl-9 pr-3 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white" />
+        </div>
+        <div className="flex shrink-0 overflow-hidden rounded-lg border border-stroke dark:border-strokedark">
+          <button onClick={() => setView('list')} title={t('resources.viewList') as string}
+            className={`p-2.5 ${view === 'list' ? 'bg-primary text-white' : 'bg-white text-body hover:bg-gray-1 dark:bg-boxdark dark:hover:bg-meta-4'}`}>
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+          <button onClick={() => setView('grid')} title={t('resources.viewGrid') as string}
+            className={`p-2.5 ${view === 'grid' ? 'bg-primary text-white' : 'bg-white text-body hover:bg-gray-1 dark:bg-boxdark dark:hover:bg-meta-4'}`}>
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v6H4zM14 15h6v6h-6z" /></svg>
+          </button>
+        </div>
       </div>
 
       {/* Breadcrumb (inside a folder) */}
@@ -311,12 +337,12 @@ const Resources: React.FC = () => {
         /* Flat search results across all folders */
         searchResults.length === 0
           ? <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.empty')}</p></div>
-          : (<><p className="mb-3 text-sm text-body">{t('resources.searchResults', { count: searchResults.length })}</p>{fileGrid(searchResults)}</>)
+          : (<><p className="mb-3 text-sm text-body">{t('resources.searchResults', { count: searchResults.length })}</p>{renderFiles(searchResults)}</>)
       ) : openFolder ? (
         /* Inside a folder */
         folderFiles.length === 0
           ? <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.folderEmpty')}</p></div>
-          : fileGrid(folderFiles)
+          : renderFiles(folderFiles)
       ) : resources.length === 0 ? (
         <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.empty')}</p></div>
       ) : (
@@ -340,7 +366,7 @@ const Resources: React.FC = () => {
           {rootFiles.length > 0 && (
             <div>
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{folders.length > 0 ? t('resources.rootFiles') : t('resources.files')}</p>
-              {fileGrid(rootFiles)}
+              {renderFiles(rootFiles)}
             </div>
           )}
         </div>
