@@ -48,6 +48,7 @@ const Resources: React.FC = () => {
   const [form, setForm] = useState({ title: '', description: '', category: '', tags: '' });
   const [files, setFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   // Category management + audit journal (admin)
   const [showCats, setShowCats] = useState(false);
@@ -126,6 +127,20 @@ const Resources: React.FC = () => {
     finally { setSaving(false); }
   };
 
+  const importZip = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    e.target.value = '';
+    if (!f) return;
+    setImporting(true);
+    try {
+      const fd = new FormData(); fd.append('file', f);
+      const r = await axios.post(`${API_URL}/api/resources/import-zip`, fd, { headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' } });
+      fetchResources(); if (showJournal) fetchAudit();
+      await dialog.alert(t('resources.importDone', { added: r.data.added, skipped: (r.data.skipped || []).length }));
+    } catch (err: any) { dialog.alert(err?.response?.data?.error || 'Import failed'); }
+    finally { setImporting(false); }
+  };
+
   const remove = async (r: Resource) => {
     if (!(await dialog.confirm(t('resources.deleteConfirm', { title: r.title }) as string))) return;
     try {
@@ -173,6 +188,16 @@ const Resources: React.FC = () => {
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" /></svg>
               {t('resources.manageCats')}
             </button>
+          )}
+          {canManage && (
+            <label className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 ${importing ? 'pointer-events-none opacity-50' : ''}`}>
+              {importing ? (
+                <><span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />{t('resources.importing')}</>
+              ) : (
+                <><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>{t('resources.importZip')}</>
+              )}
+              <input type="file" accept=".zip,application/zip,application/x-zip-compressed" className="hidden" disabled={importing} onChange={importZip} />
+            </label>
           )}
           {canManage && (
             <button onClick={openAdd} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-opacity-90">
