@@ -170,8 +170,8 @@ const Resources: React.FC = () => {
 
   return (
     <>
-      {/* Header */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header — title, then a tidy toolbar row so buttons never orphan beside the title */}
+      <div className="mb-6 flex flex-col gap-4">
         <div>
           <h2 className="text-2xl font-bold text-black dark:text-white">{t('resources.title')}</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('resources.subtitle')}</p>
