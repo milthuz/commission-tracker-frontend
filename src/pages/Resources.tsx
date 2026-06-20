@@ -37,7 +37,7 @@ const Resources: React.FC = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [q, setQ] = useState('');
-  const [activeCat, setActiveCat] = useState('');
+  const [openFolder, setOpenFolder] = useState<string | null>(null); // null = folder landing
   const [loading, setLoading] = useState(true);
   const [canManage, setCanManage] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -68,16 +68,18 @@ const Resources: React.FC = () => {
       }).catch(() => {});
   }, []);
 
+  // Fetch everything once; folder browsing + search are done client-side (modest library size)
+  // so we can show folder tiles, per-folder counts and root files without extra round-trips.
   const fetchResources = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/resources`, { headers: authHeaders(), params: { q, category: activeCat } });
+      const res = await axios.get(`${API_URL}/api/resources`, { headers: authHeaders() });
       setResources(res.data.resources || []);
       setCategories(res.data.categories || []);
     } catch { setResources([]); }
     finally { setLoading(false); }
   };
-  useEffect(() => { const id = setTimeout(fetchResources, q ? 250 : 0); return () => clearTimeout(id); }, [q, activeCat]);
+  useEffect(() => { fetchResources(); }, []);
 
   const fetchAudit = async () => {
     try { const r = await axios.get(`${API_URL}/api/resources/audit`, { headers: authHeaders() }); setAudit(r.data.events || []); }
@@ -93,7 +95,7 @@ const Resources: React.FC = () => {
     } catch { dialog.alert(t('resources.openError')); }
   };
 
-  const openAdd = () => { setEditing(null); setForm({ title: '', description: '', category: activeCat, tags: '' }); setFiles([]); setShowModal(true); };
+  const openAdd = () => { setEditing(null); setForm({ title: '', description: '', category: openFolder || '', tags: '' }); setFiles([]); setShowModal(true); };
   const openEdit = (r: Resource) => {
     setEditing(r);
     setForm({ title: r.title, description: r.description || '', category: r.category || '', tags: (r.tags || []).join(', ') });
@@ -173,6 +175,59 @@ const Resources: React.FC = () => {
 
   const toggleJournal = () => { const n = !showJournal; setShowJournal(n); if (n) fetchAudit(); };
 
+  // --- Folder/file derivation (Drive-style) ---
+  const ql = q.trim().toLowerCase();
+  const isSearching = ql.length > 0;
+  const matches = (r: Resource) =>
+    r.title.toLowerCase().includes(ql) || (r.description || '').toLowerCase().includes(ql) || (r.tags || []).join(',').toLowerCase().includes(ql);
+  const searchResults = resources.filter(matches);
+  const folderNames = Array.from(new Set([...categories, ...resources.map(r => r.category).filter(Boolean)]));
+  const folders = folderNames.map(name => ({ name, count: resources.filter(r => r.category === name).length }));
+  const rootFiles = resources.filter(r => !r.category);
+  const folderFiles = openFolder ? resources.filter(r => r.category === openFolder) : [];
+
+  const renderCard = (r: Resource) => {
+    const icon = fileIcon(r.file_name, r.mime_type);
+    return (
+      <div key={r.id} className="flex flex-col rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="flex items-start gap-3">
+          <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${icon.cls}`}>{icon.label}</span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold text-black dark:text-white">{r.title}</p>
+            {r.category && <span className="mt-0.5 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-body dark:bg-meta-4">{r.category}</span>}
+          </div>
+        </div>
+        {r.description && <p className="mt-3 line-clamp-3 text-sm text-body">{r.description}</p>}
+        {r.tags?.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">{r.tags.map(tag => <span key={tag} className="rounded bg-primary/5 px-1.5 py-0.5 text-[10px] text-primary">#{tag}</span>)}</div>
+        )}
+        <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
+          <span>{fmtSize(r.file_size)}</span><span>{formatDateOnly(r.updated_at, i18n.language)}</span>
+        </div>
+        <div className="mt-4 flex items-center gap-2">
+          <button onClick={() => openResource(r)} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            {t('resources.open')}
+          </button>
+          {canManage && (
+            <button onClick={() => openEdit(r)} title={t('common.edit') as string} className="rounded-lg border border-stroke p-2 text-body hover:text-primary dark:border-strokedark">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+            </button>
+          )}
+          {isAdmin && (
+            <button onClick={() => remove(r)} title={t('common.delete') as string} className="rounded-lg border border-stroke p-2 text-body hover:text-danger dark:border-strokedark">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const fileGrid = (list: Resource[]) => (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">{list.map(renderCard)}</div>
+  );
+
   return (
     <>
       {/* Header — title, then a tidy toolbar row so buttons never orphan beside the title */}
@@ -233,74 +288,61 @@ const Resources: React.FC = () => {
       )}
 
       {/* Search + categories */}
-      <div className="mb-5 flex flex-col gap-3">
-        <div className="relative max-w-md">
-          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('resources.search') as string}
-            className="w-full rounded-lg border border-stroke bg-white py-2.5 pl-9 pr-3 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white" />
-        </div>
-        {categories.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setActiveCat('')}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${activeCat === '' ? 'bg-primary text-white' : 'border border-stroke bg-white text-body hover:border-primary dark:border-strokedark dark:bg-boxdark'}`}>
-              {t('resources.allCategories')}
-            </button>
-            {categories.map(c => (
-              <button key={c} onClick={() => setActiveCat(c)}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${activeCat === c ? 'bg-primary text-white' : 'border border-stroke bg-white text-body hover:border-primary dark:border-strokedark dark:bg-boxdark'}`}>
-                {c}
-              </button>
-            ))}
-          </div>
-        )}
+      {/* Search */}
+      <div className="mb-5 relative max-w-md">
+        <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('resources.search') as string}
+          className="w-full rounded-lg border border-stroke bg-white py-2.5 pl-9 pr-3 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white" />
       </div>
 
-      {/* Grid */}
+      {/* Breadcrumb (inside a folder) */}
+      {!isSearching && openFolder && (
+        <div className="mb-4 flex items-center gap-1.5 text-sm">
+          <button onClick={() => setOpenFolder(null)} className="font-medium text-primary hover:underline">{t('resources.title')}</button>
+          <span className="text-gray-400">/</span>
+          <span className="font-medium text-black dark:text-white">{openFolder}</span>
+          <span className="ml-1 text-xs text-gray-400">({folderFiles.length})</span>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex h-40 items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+      ) : isSearching ? (
+        /* Flat search results across all folders */
+        searchResults.length === 0
+          ? <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.empty')}</p></div>
+          : (<><p className="mb-3 text-sm text-body">{t('resources.searchResults', { count: searchResults.length })}</p>{fileGrid(searchResults)}</>)
+      ) : openFolder ? (
+        /* Inside a folder */
+        folderFiles.length === 0
+          ? <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.folderEmpty')}</p></div>
+          : fileGrid(folderFiles)
       ) : resources.length === 0 ? (
-        <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-          <p className="text-sm text-gray-500">{t('resources.empty')}</p>
-        </div>
+        <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.empty')}</p></div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {resources.map(r => {
-            const icon = fileIcon(r.file_name, r.mime_type);
-            return (
-              <div key={r.id} className="flex flex-col rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-                <div className="flex items-start gap-3">
-                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${icon.cls}`}>{icon.label}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-black dark:text-white">{r.title}</p>
-                    {r.category && <span className="mt-0.5 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-body dark:bg-meta-4">{r.category}</span>}
-                  </div>
-                </div>
-                {r.description && <p className="mt-3 line-clamp-3 text-sm text-body">{r.description}</p>}
-                {r.tags?.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">{r.tags.map(tag => <span key={tag} className="rounded bg-primary/5 px-1.5 py-0.5 text-[10px] text-primary">#{tag}</span>)}</div>
-                )}
-                <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
-                  <span>{fmtSize(r.file_size)}</span><span>{formatDateOnly(r.updated_at, i18n.language)}</span>
-                </div>
-                <div className="mt-4 flex items-center gap-2">
-                  <button onClick={() => openResource(r)} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-opacity-90">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                    {t('resources.open')}
+        /* Landing: folder tiles + root files */
+        <div className="space-y-7">
+          {folders.length > 0 && (
+            <div>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{t('resources.folders')}</p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                {folders.map(f => (
+                  <button key={f.name} onClick={() => setOpenFolder(f.name)}
+                    className="group flex flex-col items-center rounded-xl border border-stroke bg-white p-5 text-center shadow-default transition hover:border-primary hover:shadow-md dark:border-strokedark dark:bg-boxdark">
+                    <svg className="h-10 w-10 text-[#fe6523]" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" /></svg>
+                    <span className="mt-2 w-full truncate text-sm font-medium text-black dark:text-white">{f.name}</span>
+                    <span className="text-xs text-gray-400">{t('resources.fileCount', { count: f.count })}</span>
                   </button>
-                  {canManage && (
-                    <button onClick={() => openEdit(r)} title={t('common.edit') as string} className="rounded-lg border border-stroke p-2 text-body hover:text-primary dark:border-strokedark">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                    </button>
-                  )}
-                  {isAdmin && (
-                    <button onClick={() => remove(r)} title={t('common.delete') as string} className="rounded-lg border border-stroke p-2 text-body hover:text-danger dark:border-strokedark">
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                  )}
-                </div>
+                ))}
               </div>
-            );
-          })}
+            </div>
+          )}
+          {rootFiles.length > 0 && (
+            <div>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{folders.length > 0 ? t('resources.rootFiles') : t('resources.files')}</p>
+              {fileGrid(rootFiles)}
+            </div>
+          )}
         </div>
       )}
 
