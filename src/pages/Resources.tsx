@@ -134,10 +134,15 @@ const Resources: React.FC = () => {
     setImporting(true);
     try {
       const fd = new FormData(); fd.append('file', f);
-      const r = await axios.post(`${API_URL}/api/resources/import-zip`, fd, { headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' } });
+      const r = await axios.post(`${API_URL}/api/resources/import-zip`, fd, {
+        headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' },
+        timeout: 120000,
+      });
+      // The server imports in the background; files land progressively. Refresh a few times.
+      await dialog.alert(t('resources.importQueued', { count: r.data.queued }));
       fetchResources(); if (showJournal) fetchAudit();
-      await dialog.alert(t('resources.importDone', { added: r.data.added, skipped: (r.data.skipped || []).length }));
-    } catch (err: any) { dialog.alert(err?.response?.data?.error || 'Import failed'); }
+      [4000, 10000, 20000].forEach(ms => setTimeout(() => { fetchResources(); if (showJournal) fetchAudit(); }, ms));
+    } catch (err: any) { dialog.alert(err?.response?.data?.error || t('resources.importError')); }
     finally { setImporting(false); }
   };
 
