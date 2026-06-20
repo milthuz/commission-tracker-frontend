@@ -51,6 +51,7 @@ const Resources: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState('');
 
   // Category management + audit journal (admin)
   const [showCats, setShowCats] = useState(false);
@@ -148,6 +149,53 @@ const Resources: React.FC = () => {
       [4000, 10000, 20000].forEach(ms => setTimeout(() => { fetchResources(); if (showJournal) fetchAudit(); }, ms));
     } catch (err: any) { dialog.alert(err?.response?.data?.error || t('resources.importError')); }
     finally { setImporting(false); }
+  };
+
+  // Import a whole folder (webkitdirectory). Each immediate sub-folder becomes a category.
+  // Uploaded in small size-bounded batches to the existing /bulk endpoint — safe for dyno RAM
+  // and avoids the 30s timeout; the browser keeps the files, we send them progressively.
+  const importFolder = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const all = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!all.length) return;
+    const valid = all.filter(f => {
+      const rel = (f as any).webkitRelativePath || f.name;
+      return f.name && !f.name.startsWith('.') && !rel.includes('__MACOSX') && f.size > 0 && f.size <= 25 * 1024 * 1024;
+    });
+    if (!valid.length) { dialog.alert(t('resources.empty')); return; }
+    // Group by category = the file's top sub-folder (segment after the picked root). Root files → none.
+    const groups: Record<string, File[]> = {};
+    for (const f of valid) {
+      const seg = ((f as any).webkitRelativePath || '').split('/').filter(Boolean);
+      const cat = seg.length >= 3 ? seg[1] : '';
+      (groups[cat] = groups[cat] || []).push(f);
+    }
+    // Size-bounded batches (≤15MB or 20 files) so each request stays light on the ~512MB dyno.
+    const batchify = (list: File[]) => {
+      const out: File[][] = []; let cur: File[] = []; let bytes = 0;
+      for (const f of list) {
+        if (cur.length && (bytes + f.size > 15 * 1024 * 1024 || cur.length >= 20)) { out.push(cur); cur = []; bytes = 0; }
+        cur.push(f); bytes += f.size;
+      }
+      if (cur.length) out.push(cur);
+      return out;
+    };
+    setImporting(true);
+    try {
+      let done = 0;
+      for (const [cat, list] of Object.entries(groups)) {
+        for (const batch of batchify(list)) {
+          const fd = new FormData(); fd.append('category', cat); fd.append('tags', '');
+          batch.forEach(f => fd.append('files', f));
+          await axios.post(`${API_URL}/api/resources/bulk`, fd, { headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' }, timeout: 120000 });
+          done += batch.length;
+          setImportMsg(t('resources.folderProgress', { done, total: valid.length }));
+        }
+      }
+      fetchResources(); if (showJournal) fetchAudit();
+      await dialog.alert(t('resources.folderDone', { count: valid.length }));
+    } catch (err: any) { dialog.alert(err?.response?.data?.error || t('resources.importError')); }
+    finally { setImporting(false); setImportMsg(''); }
   };
 
   const remove = async (r: Resource) => {
@@ -266,8 +314,15 @@ const Resources: React.FC = () => {
           )}
           {canManage && (
             <label className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 ${importing ? 'pointer-events-none opacity-50' : ''}`}>
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2zM12 11v5m0 0l-2-2m2 2l2-2" /></svg>
+              {t('resources.importFolder')}
+              <input type="file" multiple className="hidden" disabled={importing} onChange={importFolder} {...({ webkitdirectory: '', directory: '' } as any)} />
+            </label>
+          )}
+          {canManage && (
+            <label className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 ${importing ? 'pointer-events-none opacity-50' : ''}`}>
               {importing ? (
-                <><span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />{t('resources.importing')}</>
+                <><span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />{importMsg || t('resources.importing')}</>
               ) : (
                 <><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>{t('resources.importZip')}</>
               )}
