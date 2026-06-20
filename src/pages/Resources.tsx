@@ -198,6 +198,16 @@ const Resources: React.FC = () => {
     finally { setImporting(false); setImportMsg(''); }
   };
 
+  const deleteAll = async () => {
+    if (!(await dialog.confirm(t('resources.deleteAllConfirm', { count: resources.length }) as string, { danger: true, confirmText: t('resources.deleteAllBtn') as string }))) return;
+    try {
+      await axios.post(`${API_URL}/api/resources/delete-all`, { confirm: 'DELETE ALL' }, { headers: authHeaders() });
+      setShowCats(false); setOpenFolder(null);
+      fetchResources(); if (showJournal) fetchAudit();
+      await dialog.alert(t('resources.deleteAllDone'));
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+  };
+
   const remove = async (r: Resource) => {
     if (!(await dialog.confirm(t('resources.deleteConfirm', { title: r.title }) as string))) return;
     try {
@@ -346,7 +356,7 @@ const Resources: React.FC = () => {
             <div className="max-h-72 space-y-1.5 overflow-y-auto">
               {audit.map(e => (
                 <div key={e.id} className="flex items-center gap-3 text-xs">
-                  <span className={`shrink-0 rounded px-1.5 py-0.5 font-semibold ${e.action === 'delete' ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>{t(`resources.action_${e.action}`)}</span>
+                  <span className={`shrink-0 rounded px-1.5 py-0.5 font-semibold ${e.action.includes('delete') ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>{t(`resources.action_${e.action}`)}</span>
                   <span className="min-w-0 flex-1 truncate text-black dark:text-white">{e.title} <span className="text-gray-400">· {e.file_name}</span></span>
                   <span className="shrink-0 text-gray-400">{e.actor}</span>
                   <span className="shrink-0 text-gray-400">{new Date(e.created_at).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
@@ -491,6 +501,16 @@ const Resources: React.FC = () => {
               ))}
             </div>
             <p className="mt-3 text-xs text-gray-400">{t('resources.catNote')}</p>
+            {isAdmin && (
+              <div className="mt-4 rounded-lg border border-danger/30 bg-danger/5 p-3">
+                <p className="mb-2 text-xs font-semibold text-danger">{t('resources.dangerZone')}</p>
+                <button onClick={deleteAll} className="inline-flex items-center gap-2 rounded-lg border border-danger px-3 py-2 text-sm font-medium text-danger hover:bg-danger hover:text-white">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  {t('resources.deleteAllBtn')}
+                </button>
+                <p className="mt-1.5 text-[11px] text-body">{t('resources.deleteAllNote')}</p>
+              </div>
+            )}
           </div>
         </div>
       )}

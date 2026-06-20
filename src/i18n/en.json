@@ -353,7 +353,13 @@
     "journalTitle": "Activity journal — additions & deletions",
     "journalEmpty": "No activity yet.",
     "action_add": "ADDED",
-    "action_delete": "DELETED"
+    "action_delete": "DELETED",
+    "action_delete_all": "DELETED ALL",
+    "dangerZone": "Danger zone",
+    "deleteAllBtn": "Delete everything",
+    "deleteAllNote": "Permanently removes every file and category. Admin only.",
+    "deleteAllConfirm": "Permanently delete ALL {{count}} files and every category? This cannot be undone.",
+    "deleteAllDone": "All resources deleted."
   },
   "repDashboard": {
     "title": "My Dashboard",
