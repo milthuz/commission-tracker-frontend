@@ -56,6 +56,7 @@ const Resources: React.FC = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [q, setQ] = useState('');
+  const [zone, setZone] = useState<'shared' | 'personal'>('shared'); // shared = common library, personal = "My files"
   const [openFolder, setOpenFolder] = useState<string | null>(null); // null = folder landing
   const [view, setView] = useState<'grid' | 'list'>(() => (localStorage.getItem('resourcesView') as 'grid' | 'list') || 'list');
   const [loading, setLoading] = useState(true);
@@ -78,6 +79,11 @@ const Resources: React.FC = () => {
   const [showJournal, setShowJournal] = useState(false);
   const [audit, setAudit] = useState<AuditEvent[]>([]);
 
+  // Folder actions (context menu + rename modal)
+  const [menuFolder, setMenuFolder] = useState<string | null>(null);   // folder path whose ⋮ menu is open
+  const [renameTarget, setRenameTarget] = useState<{ path: string; name: string } | null>(null);
+  const [renameInput, setRenameInput] = useState('');
+
   const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
   useEffect(() => {
@@ -95,13 +101,14 @@ const Resources: React.FC = () => {
   const fetchResources = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/api/resources`, { headers: authHeaders() });
+      const res = await axios.get(`${API_URL}/api/resources`, { headers: authHeaders(), params: { zone } });
       setResources(res.data.resources || []);
       setCategories(res.data.categories || []);
     } catch { setResources([]); }
     finally { setLoading(false); }
   };
-  useEffect(() => { fetchResources(); }, []);
+  // Refetch whenever the zone changes (and reset folder navigation to that zone's root).
+  useEffect(() => { setOpenFolder(null); fetchResources(); /* eslint-disable-next-line */ }, [zone]);
 
   const fetchAudit = async () => {
     try { const r = await axios.get(`${API_URL}/api/resources/audit`, { headers: authHeaders() }); setAudit(r.data.events || []); }
@@ -133,13 +140,13 @@ const Resources: React.FC = () => {
       const headers = { ...authHeaders(), 'Content-Type': 'multipart/form-data' };
       if (multi) {
         const fd = new FormData();
-        fd.append('category', form.category); fd.append('tags', form.tags);
+        fd.append('category', form.category); fd.append('tags', form.tags); fd.append('zone', zone);
         files.forEach(f => fd.append('files', f));
         await axios.post(`${API_URL}/api/resources/bulk`, fd, { headers });
       } else {
         const fd = new FormData();
         fd.append('title', form.title); fd.append('description', form.description);
-        fd.append('category', form.category); fd.append('tags', form.tags);
+        fd.append('category', form.category); fd.append('tags', form.tags); fd.append('zone', zone);
         if (files[0]) fd.append('file', files[0]);
         if (editing) await axios.put(`${API_URL}/api/resources/${editing.id}`, fd, { headers });
         else await axios.post(`${API_URL}/api/resources`, fd, { headers });
@@ -157,7 +164,7 @@ const Resources: React.FC = () => {
     if (!f) return;
     setImporting(true);
     try {
-      const fd = new FormData(); fd.append('file', f);
+      const fd = new FormData(); fd.append('file', f); fd.append('zone', zone);
       const r = await axios.post(`${API_URL}/api/resources/import-zip`, fd, {
         headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' },
         timeout: 120000,
@@ -206,7 +213,7 @@ const Resources: React.FC = () => {
       let done = 0;
       for (const [cat, list] of Object.entries(groups)) {
         for (const batch of batchify(list)) {
-          const fd = new FormData(); fd.append('category', cat); fd.append('tags', '');
+          const fd = new FormData(); fd.append('category', cat); fd.append('tags', ''); fd.append('zone', zone);
           batch.forEach(f => fd.append('files', f));
           await axios.post(`${API_URL}/api/resources/bulk`, fd, { headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' }, timeout: 120000 });
           done += batch.length;
@@ -256,6 +263,33 @@ const Resources: React.FC = () => {
 
   const toggleJournal = () => { const n = !showJournal; setShowJournal(n); if (n) fetchAudit(); };
 
+  // --- Folder actions (rename / delete a whole folder) ---
+  const beginRename = (path: string) => {
+    setMenuFolder(null);
+    const name = path.split('/').pop() || '';
+    setRenameTarget({ path, name });
+    setRenameInput(name);
+  };
+  const renameFolder = async () => {
+    if (!renameTarget) return;
+    const newName = renameInput.trim();
+    if (!newName || newName.includes('/')) { dialog.alert(t('resources.folderNameInvalid')); return; }
+    try {
+      await axios.post(`${API_URL}/api/resources/folder/rename`, { zone, path: renameTarget.path, newName }, { headers: authHeaders() });
+      setRenameTarget(null);
+      fetchResources(); if (showJournal) fetchAudit();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+  };
+  const deleteFolder = async (path: string, count: number) => {
+    setMenuFolder(null);
+    const name = path.split('/').pop() || path;
+    if (!(await dialog.confirm(t('resources.folderDeleteConfirm', { name, count }) as string, { danger: true, confirmText: t('common.delete') as string }))) return;
+    try {
+      await axios.post(`${API_URL}/api/resources/folder/delete`, { zone, path }, { headers: authHeaders() });
+      fetchResources(); if (showJournal) fetchAudit();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+  };
+
   // --- Folder/file derivation (Drive-style, NESTED) ---
   // Categories are stored as "/"-separated paths (e.g. "Playbooks/2024"); openFolder holds the
   // current path prefix ('' / null = root). We derive each level's immediate sub-folders + the
@@ -265,6 +299,14 @@ const Resources: React.FC = () => {
   const matches = (r: Resource) =>
     r.title.toLowerCase().includes(ql) || (r.description || '').toLowerCase().includes(ql) || (r.tags || []).join(',').toLowerCase().includes(ql);
   const searchResults = resources.filter(matches);
+
+  // Personal zone = the user's own space (any viewer may add + manage their own folders);
+  // shared/common library needs resources:manage to add or change folders.
+  const personal = zone === 'personal';
+  const canAddHere = personal || canManage;
+  const canManageFolders = personal || canManage;
+  const canEditFiles = personal || canManage;     // edit a file (own personal file, or shared w/ manage)
+  const canDeleteFiles = personal || isAdmin;      // delete a file (own personal file, or shared as admin)
 
   const norm = (c?: string | null) => (c || '').trim();
   const cur = openFolder || '';
@@ -307,10 +349,10 @@ const Resources: React.FC = () => {
           <button onClick={() => openResource(r)} title={t('resources.open') as string} className="rounded-lg p-1.5 text-primary hover:bg-primary/10">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
           </button>
-          {canManage && (
+          {canEditFiles && (
             <button onClick={() => openEdit(r)} title={t('common.edit') as string} className="rounded-lg p-1.5 text-body hover:text-primary"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
           )}
-          {isAdmin && (
+          {canDeleteFiles && (
             <button onClick={() => remove(r)} title={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
           )}
         </div>
@@ -330,8 +372,8 @@ const Resources: React.FC = () => {
         <span className="hidden w-16 shrink-0 text-right text-xs text-gray-400 sm:block">{fmtSize(r.file_size)}</span>
         <span className="hidden w-24 shrink-0 text-right text-xs text-gray-400 md:block">{formatDateOnly(r.updated_at, i18n.language)}</span>
         <button onClick={() => openResource(r)} title={t('resources.open') as string} className="rounded-lg p-1.5 text-primary hover:bg-primary/10"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></button>
-        {canManage && <button onClick={() => openEdit(r)} title={t('common.edit') as string} className="rounded-lg p-1.5 text-body hover:text-primary"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>}
-        {isAdmin && <button onClick={() => remove(r)} title={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>}
+        {canEditFiles && <button onClick={() => openEdit(r)} title={t('common.edit') as string} className="rounded-lg p-1.5 text-body hover:text-primary"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>}
+        {canDeleteFiles && <button onClick={() => remove(r)} title={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>}
       </div>
     );
   };
@@ -359,20 +401,20 @@ const Resources: React.FC = () => {
               {t('resources.journal')}
             </button>
           )}
-          {canManage && (
+          {canManage && !personal && (
             <button onClick={() => setShowCats(true)} className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" /></svg>
               {t('resources.manageCats')}
             </button>
           )}
-          {canManage && (
+          {canAddHere && (
             <label className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 ${importing ? 'pointer-events-none opacity-50' : ''}`}>
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2zM12 11v5m0 0l-2-2m2 2l2-2" /></svg>
               {t('resources.importFolder')}
               <input type="file" multiple className="hidden" disabled={importing} onChange={importFolder} {...({ webkitdirectory: '', directory: '' } as any)} />
             </label>
           )}
-          {canManage && (
+          {canAddHere && (
             <label className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 ${importing ? 'pointer-events-none opacity-50' : ''}`}>
               {importing ? (
                 <><span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />{importMsg || t('resources.importing')}</>
@@ -382,13 +424,26 @@ const Resources: React.FC = () => {
               <input type="file" accept=".zip,application/zip,application/x-zip-compressed" className="hidden" disabled={importing} onChange={importZip} />
             </label>
           )}
-          {canManage && (
+          {canAddHere && (
             <button onClick={openAdd} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-opacity-90">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
               {t('resources.add')}
             </button>
           )}
         </div>
+      </div>
+
+      {/* Zone switch — common (shared) library vs the user's private "My files" */}
+      <div className="mb-5 inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
+        {(['shared', 'personal'] as const).map(z => (
+          <button key={z} onClick={() => { if (zone !== z) { setQ(''); setZone(z); } }}
+            className={`inline-flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-medium transition ${zone === z ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+            {z === 'shared'
+              ? <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a3 3 0 10-2.5-4.5" /></svg>
+              : <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+            {z === 'shared' ? t('resources.zoneShared') : t('resources.zonePersonal')}
+          </button>
+        ))}
       </div>
 
       {/* Journal (admin) */}
@@ -465,12 +520,37 @@ const Resources: React.FC = () => {
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{t('resources.folders')}</p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {folders.map(f => (
-                  <button key={f.path} onClick={() => setOpenFolder(f.path)}
-                    className="group flex flex-col items-center rounded-xl border border-stroke bg-white p-5 text-center shadow-default transition hover:border-primary hover:shadow-md dark:border-strokedark dark:bg-boxdark">
+                  <div key={f.path} role="button" tabIndex={0} onClick={() => setOpenFolder(f.path)}
+                    onContextMenu={canManageFolders ? (e) => { e.preventDefault(); setMenuFolder(menuFolder === f.path ? null : f.path); } : undefined}
+                    className="group relative flex cursor-pointer flex-col items-center rounded-xl border border-stroke bg-white p-5 text-center shadow-default transition hover:border-primary hover:shadow-md dark:border-strokedark dark:bg-boxdark">
+                    {canManageFolders && (
+                      <div className="absolute right-1.5 top-1.5">
+                        <button onClick={(e) => { e.stopPropagation(); setMenuFolder(menuFolder === f.path ? null : f.path); }}
+                          title={t('resources.folderActions') as string}
+                          className="rounded-md p-1 text-gray-400 transition hover:bg-gray-1 hover:text-body dark:hover:bg-meta-4">
+                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 2a2 2 0 100 4 2 2 0 000-4zm0 6a2 2 0 100 4 2 2 0 000-4z" /></svg>
+                        </button>
+                        {menuFolder === f.path && (
+                          <>
+                            <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuFolder(null); }} />
+                            <div className="absolute right-0 z-20 mt-1 w-40 overflow-hidden rounded-lg border border-stroke bg-white py-1 text-left shadow-lg dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+                              <button onClick={() => beginRename(f.path)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-body hover:bg-gray-1 dark:hover:bg-meta-4">
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                {t('resources.rename')}
+                              </button>
+                              <button onClick={() => deleteFolder(f.path, f.count)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/10">
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                {t('common.delete')}
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
                     <svg className="h-10 w-10 text-[#fe6523]" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" /></svg>
                     <span className="mt-2 w-full truncate text-sm font-medium text-black dark:text-white">{f.name}</span>
                     <span className="text-xs text-gray-400">{t('resources.fileCount', { count: f.count })}</span>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -481,6 +561,23 @@ const Resources: React.FC = () => {
               {renderFiles(folderFiles)}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Rename folder modal */}
+      {renameTarget && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setRenameTarget(null)}>
+          <div className="w-full max-w-sm rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('resources.renameTitle')}</h3>
+            <p className="mb-4 text-xs text-gray-400">{renameTarget.path}</p>
+            <input autoFocus value={renameInput} onChange={(e) => setRenameInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') renameFolder(); }}
+              className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setRenameTarget(null)} className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">{t('common.cancel')}</button>
+              <button onClick={renameFolder} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">{t('resources.rename')}</button>
+            </div>
+          </div>
         </div>
       )}
 
