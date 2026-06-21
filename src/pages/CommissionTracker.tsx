@@ -441,7 +441,7 @@ const CommissionTracker: React.FC = () => {
                       )}
                       {rep.zentactActivations > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-[#6366F1] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#6366F1]">
-                          💳 {t('commissionTracker.zentactBonusBadge', { count: rep.zentactActivations, amount: rep.zentactBonus.toLocaleString() })}
+                          {t('commissionTracker.zentactBonusBadge', { count: rep.zentactActivations, amount: rep.zentactBonus.toLocaleString() })}
                         </span>
                       )}
                     </div>
