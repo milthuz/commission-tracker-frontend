@@ -16,7 +16,7 @@ interface SidebarProps {
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const { t } = useTranslation();
   const appVersion = useAppVersion();
-  const { anyDotUnder } = useNewFeatures();
+  const { anyDotUnder, markSeenUnder } = useNewFeatures();
   const { user } = useAuth();
   // Permission check from the user's effective permissions ('*' = admin wildcard).
   const can = (p: string) => {
@@ -39,6 +39,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   // admin menu/tools during a "view as" session.
   const isAdmin = !!user?.isAdmin;
   const [adminMenuOpen, setAdminMenuOpen] = useState(pathname.includes('admin'));
+  // Opening the Admin section acknowledges its "new" features, so the aggregate orange dot
+  // clears even without visiting each sub-page (and covers feature paths that match no route).
+  useEffect(() => { if (adminMenuOpen) markSeenUnder('/admin'); }, [adminMenuOpen, markSeenUnder]);
 
   // Desktop collapse — independent from the mobile drawer (sidebarOpen).
   // When collapsed, only icons are visible; labels and section headers hide.

@@ -20,6 +20,7 @@ interface NewFeaturesCtx {
   showBadge: (path: string) => boolean;     // time-based "New" pill (stays a few days)
   hasDot: (path: string) => boolean;        // per-user unseen dot (clears immediately on visit)
   anyDotUnder: (prefix: string) => boolean; // any unseen-in-window feature under a path prefix
+  markSeenUnder: (prefix: string) => void;  // acknowledge all features under a prefix (e.g. opening a section)
   currentBanner: () => NewFeature | null;   // in-window, non-dismissed feature for the current page
   dismissBanner: (id: string) => void;      // hide the on-page banner for this user
 }
@@ -30,6 +31,7 @@ const Ctx = createContext<NewFeaturesCtx>({
   showBadge: () => false,
   hasDot: () => false,
   anyDotUnder: () => false,
+  markSeenUnder: () => {},
   currentBanner: () => null,
   dismissBanner: () => {},
 });
@@ -105,6 +107,18 @@ export function NewFeaturesProvider({ children }: { children: ReactNode }) {
     (prefix: string) => !!seen && features.some((f) => f.path.startsWith(prefix) && windowOpen(f) && !seen.includes(f.id)),
     [seen, features],
   );
+  // Acknowledge every in-window feature under a prefix at once — used when the user OPENS a
+  // section (e.g. expands the Admin menu), so the aggregate dot clears even without visiting
+  // each sub-page. Also covers features whose path never exactly matches a visited route.
+  const markSeenUnder = useCallback(
+    (prefix: string) => {
+      if (!seen) return;
+      features.forEach((f) => {
+        if (f.path.startsWith(prefix) && windowOpen(f) && !seen.includes(f.id)) markSeen(f.id);
+      });
+    },
+    [seen, features, markSeen],
+  );
   const currentBanner = useCallback((): NewFeature | null => {
     if (seen === null) return null;
     return features.find(
@@ -115,7 +129,7 @@ export function NewFeaturesProvider({ children }: { children: ReactNode }) {
   const dismissBanner = useCallback((id: string) => markSeen(bannerKey(id)), [markSeen]);
 
   return (
-    <Ctx.Provider value={{ showBadge, hasDot, anyDotUnder, currentBanner, dismissBanner }}>
+    <Ctx.Provider value={{ showBadge, hasDot, anyDotUnder, markSeenUnder, currentBanner, dismissBanner }}>
       {children}
     </Ctx.Provider>
   );
