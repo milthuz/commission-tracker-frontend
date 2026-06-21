@@ -170,9 +170,10 @@ const Resources: React.FC = () => {
     finally { setImporting(false); }
   };
 
-  // Import a whole folder (webkitdirectory). Each immediate sub-folder becomes a category.
-  // Uploaded in small size-bounded batches to the existing /bulk endpoint — safe for dyno RAM
-  // and avoids the 30s timeout; the browser keeps the files, we send them progressively.
+  // Import a whole folder (webkitdirectory). The picked folder's name + its full sub-folder
+  // structure are preserved: category = the file's full folder path (e.g. "Playbooks/2024"),
+  // browsed as nested folders. Uploaded in small size-bounded batches to the existing /bulk
+  // endpoint — safe for dyno RAM and avoids the 30s timeout; the browser sends files progressively.
   const importFolder = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const all = Array.from(e.target.files || []);
     e.target.value = '';
@@ -182,11 +183,12 @@ const Resources: React.FC = () => {
       return f.name && !f.name.startsWith('.') && !rel.includes('__MACOSX') && f.size > 0 && f.size <= 25 * 1024 * 1024;
     });
     if (!valid.length) { dialog.alert(t('resources.empty')); return; }
-    // Group by category = the file's top sub-folder (segment after the picked root). Root files → none.
+    // Group by category = the file's full folder path (all segments except the file name), so the
+    // picked root folder and every sub-folder are kept (e.g. "Root", "Root/Sub").
     const groups: Record<string, File[]> = {};
     for (const f of valid) {
       const seg = ((f as any).webkitRelativePath || '').split('/').filter(Boolean);
-      const cat = seg.length >= 3 ? seg[1] : '';
+      const cat = seg.slice(0, -1).join('/');
       (groups[cat] = groups[cat] || []).push(f);
     }
     // Size-bounded batches (≤15MB or 20 files) so each request stays light on the ~512MB dyno.
@@ -254,16 +256,40 @@ const Resources: React.FC = () => {
 
   const toggleJournal = () => { const n = !showJournal; setShowJournal(n); if (n) fetchAudit(); };
 
-  // --- Folder/file derivation (Drive-style) ---
+  // --- Folder/file derivation (Drive-style, NESTED) ---
+  // Categories are stored as "/"-separated paths (e.g. "Playbooks/2024"); openFolder holds the
+  // current path prefix ('' / null = root). We derive each level's immediate sub-folders + the
+  // files that sit directly at that level, so deep folder/zip imports browse as real nested folders.
   const ql = q.trim().toLowerCase();
   const isSearching = ql.length > 0;
   const matches = (r: Resource) =>
     r.title.toLowerCase().includes(ql) || (r.description || '').toLowerCase().includes(ql) || (r.tags || []).join(',').toLowerCase().includes(ql);
   const searchResults = resources.filter(matches);
-  const folderNames = Array.from(new Set([...categories, ...resources.map(r => r.category).filter(Boolean)]));
-  const folders = folderNames.map(name => ({ name, count: resources.filter(r => r.category === name).length }));
-  const rootFiles = resources.filter(r => !r.category);
-  const folderFiles = openFolder ? resources.filter(r => r.category === openFolder) : [];
+
+  const norm = (c?: string | null) => (c || '').trim();
+  const cur = openFolder || '';
+  const curDepth = cur ? cur.split('/').length : 0;
+  // Every folder path that exists, from files in use + admin-managed categories.
+  const allPaths = Array.from(new Set([
+    ...categories.filter(Boolean),
+    ...resources.map(r => norm(r.category)).filter(Boolean),
+  ]));
+  // Immediate sub-folders of the current path (next path segment below `cur`).
+  const childMap = new Map<string, string>();
+  for (const p of allPaths) {
+    if (cur && !(p === cur || p.startsWith(cur + '/'))) continue;
+    const segs = p.split('/');
+    if (segs.length <= curDepth) continue;
+    const name = segs[curDepth];
+    childMap.set(name, cur ? `${cur}/${name}` : name);
+  }
+  const countUnder = (path: string) =>
+    resources.filter(r => { const c = norm(r.category); return c === path || c.startsWith(path + '/'); }).length;
+  const folders = Array.from(childMap.entries())
+    .map(([name, path]) => ({ name, path, count: countUnder(path) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  // Files that live directly at the current level (root files when cur === '').
+  const folderFiles = resources.filter(r => norm(r.category) === cur);
 
   // Lighter card (grid view). showCat=false inside a folder (the folder name is already the context).
   const renderCard = (r: Resource, showCat: boolean) => {
@@ -403,13 +429,22 @@ const Resources: React.FC = () => {
         </div>
       </div>
 
-      {/* Breadcrumb (inside a folder) */}
-      {!isSearching && openFolder && (
-        <div className="mb-4 flex items-center gap-1.5 text-sm">
+      {/* Breadcrumb (inside a folder) — each segment is clickable to jump up the tree */}
+      {!isSearching && cur && (
+        <div className="mb-4 flex flex-wrap items-center gap-1.5 text-sm">
           <button onClick={() => setOpenFolder(null)} className="font-medium text-primary hover:underline">{t('resources.title')}</button>
-          <span className="text-gray-400">/</span>
-          <span className="font-medium text-black dark:text-white">{openFolder}</span>
-          <span className="ml-1 text-xs text-gray-400">({folderFiles.length})</span>
+          {cur.split('/').map((seg, i, arr) => {
+            const path = arr.slice(0, i + 1).join('/');
+            const last = i === arr.length - 1;
+            return (
+              <React.Fragment key={path}>
+                <span className="text-gray-400">/</span>
+                {last
+                  ? <span className="font-medium text-black dark:text-white">{seg}</span>
+                  : <button onClick={() => setOpenFolder(path)} className="font-medium text-primary hover:underline">{seg}</button>}
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
 
@@ -420,22 +455,17 @@ const Resources: React.FC = () => {
         searchResults.length === 0
           ? <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.empty')}</p></div>
           : (<><p className="mb-3 text-sm text-body">{t('resources.searchResults', { count: searchResults.length })}</p>{renderFiles(searchResults)}</>)
-      ) : openFolder ? (
-        /* Inside a folder */
-        folderFiles.length === 0
-          ? <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.folderEmpty')}</p></div>
-          : renderFiles(folderFiles)
-      ) : resources.length === 0 ? (
-        <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.empty')}</p></div>
+      ) : (folders.length === 0 && folderFiles.length === 0) ? (
+        <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t(cur ? 'resources.folderEmpty' : 'resources.empty')}</p></div>
       ) : (
-        /* Landing: folder tiles + root files */
+        /* Nested view: sub-folder tiles + the files directly at this level */
         <div className="space-y-7">
           {folders.length > 0 && (
             <div>
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{t('resources.folders')}</p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {folders.map(f => (
-                  <button key={f.name} onClick={() => setOpenFolder(f.name)}
+                  <button key={f.path} onClick={() => setOpenFolder(f.path)}
                     className="group flex flex-col items-center rounded-xl border border-stroke bg-white p-5 text-center shadow-default transition hover:border-primary hover:shadow-md dark:border-strokedark dark:bg-boxdark">
                     <svg className="h-10 w-10 text-[#fe6523]" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" /></svg>
                     <span className="mt-2 w-full truncate text-sm font-medium text-black dark:text-white">{f.name}</span>
@@ -445,10 +475,10 @@ const Resources: React.FC = () => {
               </div>
             </div>
           )}
-          {rootFiles.length > 0 && (
+          {folderFiles.length > 0 && (
             <div>
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">{folders.length > 0 ? t('resources.rootFiles') : t('resources.files')}</p>
-              {renderFiles(rootFiles)}
+              {renderFiles(folderFiles)}
             </div>
           )}
         </div>
