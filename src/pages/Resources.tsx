@@ -22,14 +22,33 @@ const fmtSize = (b: number) => {
   if (b >= 1024) return `${Math.round(b / 1024)} KB`;
   return `${b} B`;
 };
-const fileIcon = (name: string, mime: string) => {
+// Per-type label + brand-ish colour for the document icon.
+const fileMeta = (name: string, mime: string) => {
   const ext = (name.split('.').pop() || '').toLowerCase();
-  if (mime?.includes('pdf') || ext === 'pdf') return { label: 'PDF', cls: 'bg-danger/10 text-danger' };
-  if (['doc', 'docx'].includes(ext)) return { label: 'DOC', cls: 'bg-[#3c50e0]/10 text-[#3c50e0]' };
-  if (['xls', 'xlsx', 'csv'].includes(ext)) return { label: 'XLS', cls: 'bg-success/10 text-success' };
-  if (['ppt', 'pptx'].includes(ext)) return { label: 'PPT', cls: 'bg-[#fe6523]/10 text-[#fe6523]' };
-  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) return { label: 'IMG', cls: 'bg-[#7a5af8]/10 text-[#7a5af8]' };
-  return { label: ext.toUpperCase().slice(0, 4) || 'FILE', cls: 'bg-gray-200 text-body dark:bg-meta-4' };
+  if (mime?.includes('pdf') || ext === 'pdf') return { label: 'PDF', color: '#e2483d' };
+  if (['doc', 'docx'].includes(ext)) return { label: 'DOC', color: '#2b67c2' };  // Word blue
+  if (['xls', 'xlsx', 'csv'].includes(ext)) return { label: ext === 'csv' ? 'CSV' : 'XLS', color: '#1d8f5d' };  // Excel green
+  if (['ppt', 'pptx'].includes(ext)) return { label: 'PPT', color: '#d24726' };  // PowerPoint orange
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'heic'].includes(ext)) return { label: 'IMG', color: '#7a5af8' };
+  if (['zip', 'rar', '7z'].includes(ext)) return { label: 'ZIP', color: '#b45309' };
+  if (['mp4', 'mov', 'avi', 'webm'].includes(ext)) return { label: 'VID', color: '#db2777' };
+  return { label: ext.toUpperCase().slice(0, 4) || 'FILE', color: '#64748b' };
+};
+
+// A clean document-style file-type icon (page with folded corner + coloured type band).
+const FileIcon: React.FC<{ name: string; mime: string; className?: string }> = ({ name, mime, className = 'h-10 w-8' }) => {
+  const { label, color } = fileMeta(name, mime);
+  return (
+    <svg viewBox="0 0 32 40" className={`shrink-0 ${className}`} role="img" aria-label={label}>
+      {/* page */}
+      <path d="M5 2.5h14.5L27 10v25.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4.5a2 2 0 0 1 2-2z" fill="#ffffff" stroke="#e2e8f0" strokeWidth="1.2" />
+      {/* folded corner */}
+      <path d="M19.5 2.5L27 10h-5.5a2 2 0 0 1-2-2z" fill="#eef2f7" />
+      {/* type band */}
+      <rect x="3" y="22" width="22" height="12" rx="2.5" fill={color} />
+      <text x="14" y="30.5" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="#ffffff" fontFamily="Satoshi, system-ui, sans-serif" letterSpacing="0.3">{label}</text>
+    </svg>
+  );
 };
 
 const Resources: React.FC = () => {
@@ -248,11 +267,10 @@ const Resources: React.FC = () => {
 
   // Lighter card (grid view). showCat=false inside a folder (the folder name is already the context).
   const renderCard = (r: Resource, showCat: boolean) => {
-    const icon = fileIcon(r.file_name, r.mime_type);
     return (
       <div key={r.id} className="flex flex-col rounded-xl border border-stroke bg-white p-4 shadow-default transition hover:border-primary dark:border-strokedark dark:bg-boxdark">
         <button onClick={() => openResource(r)} className="flex items-start gap-3 text-left">
-          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold ${icon.cls}`}>{icon.label}</span>
+          <FileIcon name={r.file_name} mime={r.mime_type} className="h-11 w-auto" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-black dark:text-white">{r.title}</p>
             <p className="text-xs text-gray-400">{fmtSize(r.file_size)} · {formatDateOnly(r.updated_at, i18n.language)}</p>
@@ -276,10 +294,9 @@ const Resources: React.FC = () => {
 
   // Row (list view) — dense, Drive-like.
   const renderRow = (r: Resource, showCat: boolean) => {
-    const icon = fileIcon(r.file_name, r.mime_type);
     return (
       <div key={r.id} className="flex items-center gap-3 px-4 py-2.5 transition hover:bg-gray-1 dark:hover:bg-meta-4/40">
-        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[10px] font-bold ${icon.cls}`}>{icon.label}</span>
+        <FileIcon name={r.file_name} mime={r.mime_type} className="h-8 w-auto" />
         <button onClick={() => openResource(r)} className="min-w-0 flex-1 text-left">
           <span className="block truncate text-sm font-medium text-black hover:text-primary dark:text-white">{r.title}</span>
           {showCat && r.category && <span className="block truncate text-xs text-gray-400">{r.category}</span>}
