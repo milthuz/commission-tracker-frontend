@@ -79,10 +79,12 @@ const Resources: React.FC = () => {
   const [showJournal, setShowJournal] = useState(false);
   const [audit, setAudit] = useState<AuditEvent[]>([]);
 
-  // Folder actions (context menu + rename modal + drag-to-move)
-  const [menuFolder, setMenuFolder] = useState<string | null>(null);   // folder path whose ⋮ menu is open
+  // Folder actions (context menu + rename/create modals + drag-to-move)
+  const [menu, setMenu] = useState<{ path: string; count: number; x: number; y: number } | null>(null); // floating ⋮ menu
   const [renameTarget, setRenameTarget] = useState<{ path: string; name: string } | null>(null);
   const [renameInput, setRenameInput] = useState('');
+  const [creatingFolder, setCreatingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
   const [dragPath, setDragPath] = useState<string | null>(null);       // folder being dragged
   const [dropTarget, setDropTarget] = useState<string | null>(null);   // folder path (or '' = root) highlighted as drop zone
 
@@ -267,10 +269,19 @@ const Resources: React.FC = () => {
 
   // --- Folder actions (rename / delete a whole folder) ---
   const beginRename = (path: string) => {
-    setMenuFolder(null);
+    setMenu(null);
     const name = path.split('/').pop() || '';
     setRenameTarget({ path, name });
     setRenameInput(name);
+  };
+  const createFolder = async () => {
+    const name = newFolderName.trim();
+    if (!name || name.includes('/')) { dialog.alert(t('resources.folderNameInvalid')); return; }
+    try {
+      await axios.post(`${API_URL}/api/resources/folder/create`, { zone, path: openFolder || '', name }, { headers: authHeaders() });
+      setCreatingFolder(false); setNewFolderName('');
+      fetchResources(); if (showJournal) fetchAudit();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
   };
   const renameFolder = async () => {
     if (!renameTarget) return;
@@ -283,7 +294,7 @@ const Resources: React.FC = () => {
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
   };
   const deleteFolder = async (path: string, count: number) => {
-    setMenuFolder(null);
+    setMenu(null);
     const name = path.split('/').pop() || path;
     if (!(await dialog.confirm(t('resources.folderDeleteConfirm', { name, count }) as string, { danger: true, confirmText: t('common.delete') as string }))) return;
     try {
@@ -437,6 +448,12 @@ const Resources: React.FC = () => {
             </label>
           )}
           {canAddHere && (
+            <button onClick={() => { setNewFolderName(''); setCreatingFolder(true); }} className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2zM12 11v4m-2-2h4" /></svg>
+              {t('resources.newFolder')}
+            </button>
+          )}
+          {canAddHere && (
             <button onClick={openAdd} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-opacity-90">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
               {t('resources.add')}
@@ -541,37 +558,20 @@ const Resources: React.FC = () => {
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                 {folders.map(f => (
                   <div key={f.path} role="button" tabIndex={0} onClick={() => setOpenFolder(f.path)}
-                    onContextMenu={canManageFolders ? (e) => { e.preventDefault(); setMenuFolder(menuFolder === f.path ? null : f.path); } : undefined}
+                    onContextMenu={canManageFolders ? (e) => { e.preventDefault(); setMenu({ path: f.path, count: f.count, x: e.clientX, y: e.clientY }); } : undefined}
                     draggable={canManageFolders}
                     onDragStart={(e) => { e.stopPropagation(); setDragPath(f.path); e.dataTransfer.effectAllowed = 'move'; }}
                     onDragEnd={() => { setDragPath(null); setDropTarget(null); }}
                     onDragOver={(e) => { if (dragPath && canDrop(dragPath, f.path)) { e.preventDefault(); if (dropTarget !== f.path) setDropTarget(f.path); } }}
                     onDragLeave={() => setDropTarget(prev => (prev === f.path ? null : prev))}
                     onDrop={(e) => { e.preventDefault(); if (dragPath) moveFolder(dragPath, f.path); setDragPath(null); setDropTarget(null); }}
-                    className={`group relative flex cursor-pointer flex-col items-center rounded-xl border bg-white p-5 text-center shadow-default outline-none transition hover:border-primary hover:shadow-md focus:outline-none dark:bg-boxdark ${menuFolder === f.path ? 'z-30' : ''} ${dropTarget === f.path ? 'border-primary ring-2 ring-primary' : 'border-stroke dark:border-strokedark'} ${dragPath === f.path ? 'opacity-40' : ''}`}>
+                    className={`group relative flex cursor-pointer flex-col items-center rounded-xl border bg-white p-5 text-center shadow-default outline-none transition hover:border-primary hover:shadow-md focus:outline-none dark:bg-boxdark ${dropTarget === f.path ? 'border-primary ring-2 ring-primary' : 'border-stroke dark:border-strokedark'} ${dragPath === f.path ? 'opacity-40' : ''}`}>
                     {canManageFolders && (
-                      <div className="absolute right-1.5 top-1.5">
-                        <button onClick={(e) => { e.stopPropagation(); setMenuFolder(menuFolder === f.path ? null : f.path); }}
-                          title={t('resources.folderActions') as string}
-                          className="rounded-md p-1 text-gray-400 transition hover:bg-gray-1 hover:text-body dark:hover:bg-meta-4">
-                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 2a2 2 0 100 4 2 2 0 000-4zm0 6a2 2 0 100 4 2 2 0 000-4z" /></svg>
-                        </button>
-                        {menuFolder === f.path && (
-                          <>
-                            <div className="fixed inset-0 z-10" onClick={(e) => { e.stopPropagation(); setMenuFolder(null); }} />
-                            <div className="absolute right-0 z-20 mt-1 w-40 overflow-hidden rounded-lg border border-stroke bg-white py-1 text-left shadow-lg dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-                              <button onClick={() => beginRename(f.path)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-body hover:bg-gray-1 dark:hover:bg-meta-4">
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                {t('resources.rename')}
-                              </button>
-                              <button onClick={() => deleteFolder(f.path, f.count)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/10">
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                {t('common.delete')}
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
+                      <button onClick={(e) => { e.stopPropagation(); const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); setMenu({ path: f.path, count: f.count, x: r.right, y: r.bottom }); }}
+                        title={t('resources.folderActions') as string}
+                        className="absolute right-1.5 top-1.5 rounded-md p-1 text-gray-400 transition hover:bg-gray-1 hover:text-body dark:hover:bg-meta-4">
+                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 2a2 2 0 100 4 2 2 0 000-4zm0 6a2 2 0 100 4 2 2 0 000-4z" /></svg>
+                      </button>
                     )}
                     <svg className="h-10 w-10 text-[#fe6523]" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" /></svg>
                     <span className="mt-2 w-full truncate text-sm font-medium text-black dark:text-white">{f.name}</span>
@@ -587,6 +587,41 @@ const Resources: React.FC = () => {
               {renderFiles(folderFiles)}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Floating folder action menu (anchored to the ⋮ button / cursor, rendered above everything) */}
+      {menu && (
+        <>
+          <div className="fixed inset-0 z-[99998]" onClick={() => setMenu(null)} onContextMenu={(e) => { e.preventDefault(); setMenu(null); }} />
+          <div className="fixed z-[99999] w-44 overflow-hidden rounded-lg border border-stroke bg-white py-1 shadow-lg dark:border-strokedark dark:bg-boxdark"
+            style={{ top: Math.min(menu.y + 4, window.innerHeight - 100), left: Math.max(8, Math.min(menu.x - 176, window.innerWidth - 184)) }}>
+            <button onClick={() => beginRename(menu.path)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-body hover:bg-gray-1 dark:hover:bg-meta-4">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+              {t('resources.rename')}
+            </button>
+            <button onClick={() => deleteFolder(menu.path, menu.count)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/10">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              {t('common.delete')}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Create folder modal */}
+      {creatingFolder && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setCreatingFolder(false)}>
+          <div className="w-full max-w-sm rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('resources.newFolder')}</h3>
+            <p className="mb-4 text-xs text-gray-400">{openFolder ? `${t('resources.title')} / ${openFolder}` : t('resources.title')}{zone === 'personal' ? ` · ${t('resources.zonePersonal')}` : ''}</p>
+            <input autoFocus value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder={t('resources.folderNamePlaceholder') as string}
+              onKeyDown={(e) => { if (e.key === 'Enter') createFolder(); }}
+              className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setCreatingFolder(false)} className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">{t('common.cancel')}</button>
+              <button onClick={createFolder} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">{t('resources.createBtn')}</button>
+            </div>
+          </div>
         </div>
       )}
 
