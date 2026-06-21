@@ -281,6 +281,7 @@
     "reseller": "Activations revendeur",
     "revenue": "Revenus de paiements",
     "resources": "Ressources",
+    "resourcesAdmin": "Ressources (stockage)",
     "resellersAdmin": "Gestion revendeurs",
     "profile": "Profil",
     "collapse": "Réduire la barre latérale",
@@ -690,6 +691,23 @@
   },
   "admin": {
     "title": "Panneau d'administration",
+    "resources": {
+      "title": "Stockage des ressources",
+      "subtitle": "Définissez la limite globale de la bibliothèque et les limites de téléversement par utilisateur.",
+      "globalTitle": "Stockage de la bibliothèque",
+      "globalSubtitle": "Espace total utilisé par tous les fichiers de la bibliothèque de ressources.",
+      "used": "Utilisé",
+      "unlimited": "Illimité",
+      "limit": "Limite",
+      "limitHint": "Laissez vide pour aucune limite. Les téléversements sont bloqués une fois la limite atteinte.",
+      "saved": "Limite de stockage enregistrée.",
+      "perUserTitle": "Limites par utilisateur",
+      "perUserSubtitle": "Limitez l'espace que chaque utilisateur peut téléverser. Les utilisateurs sans limite ne sont soumis qu'à la limite globale.",
+      "userEmail": "Courriel de l'utilisateur",
+      "setLimit": "Définir la limite",
+      "noUsers": "Aucune limite par utilisateur définie pour l'instant.",
+      "perUserHint": "Réglez la limite à 0 (ou videz le champ) pour retirer la limite personnelle de l'utilisateur."
+    },
     "integrations": {
       "title": "Intégrations",
       "subtitle": "Gérer vos connexions Zoho Books et Zentact",

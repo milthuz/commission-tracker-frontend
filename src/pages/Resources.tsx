@@ -77,9 +77,6 @@ const Resources: React.FC = () => {
   const [newCat, setNewCat] = useState('');
   const [showJournal, setShowJournal] = useState(false);
   const [audit, setAudit] = useState<AuditEvent[]>([]);
-  const [storage, setStorage] = useState<{ used: number; limit: number | null } | null>(null);
-  const [limitInput, setLimitInput] = useState('');
-  const GB = 1073741824;
 
   const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
@@ -104,24 +101,7 @@ const Resources: React.FC = () => {
     } catch { setResources([]); }
     finally { setLoading(false); }
   };
-  const fetchStorage = async () => {
-    try {
-      const r = await axios.get(`${API_URL}/api/resources/storage`, { headers: authHeaders() });
-      setStorage(r.data);
-      setLimitInput(r.data.limit ? String(Math.round(r.data.limit / GB)) : '');
-    } catch { /* silent */ }
-  };
-  useEffect(() => { fetchResources(); fetchStorage(); }, []);
-
-  const saveLimit = async () => {
-    const gb = parseFloat(limitInput);
-    const limitBytes = (!limitInput || isNaN(gb) || gb <= 0) ? 0 : Math.round(gb * GB);
-    try {
-      await axios.put(`${API_URL}/api/resources/storage`, { limitBytes }, { headers: authHeaders() });
-      fetchStorage();
-      dialog.alert(t('resources.storageSaved'));
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
-  };
+  useEffect(() => { fetchResources(); }, []);
 
   const fetchAudit = async () => {
     try { const r = await axios.get(`${API_URL}/api/resources/audit`, { headers: authHeaders() }); setAudit(r.data.events || []); }
@@ -165,7 +145,7 @@ const Resources: React.FC = () => {
         else await axios.post(`${API_URL}/api/resources`, fd, { headers });
       }
       setShowModal(false);
-      fetchResources(); fetchStorage();
+      fetchResources();
       if (showJournal) fetchAudit();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save'); }
     finally { setSaving(false); }
@@ -184,8 +164,8 @@ const Resources: React.FC = () => {
       });
       // The server imports in the background; files land progressively. Refresh a few times.
       await dialog.alert(t('resources.importQueued', { count: r.data.queued }));
-      fetchResources(); fetchStorage(); if (showJournal) fetchAudit();
-      [4000, 10000, 20000].forEach(ms => setTimeout(() => { fetchResources(); fetchStorage(); if (showJournal) fetchAudit(); }, ms));
+      fetchResources(); if (showJournal) fetchAudit();
+      [4000, 10000, 20000].forEach(ms => setTimeout(() => { fetchResources(); if (showJournal) fetchAudit(); }, ms));
     } catch (err: any) { dialog.alert(err?.response?.data?.error || t('resources.importError')); }
     finally { setImporting(false); }
   };
@@ -231,7 +211,7 @@ const Resources: React.FC = () => {
           setImportMsg(t('resources.folderProgress', { done, total: valid.length }));
         }
       }
-      fetchResources(); fetchStorage(); if (showJournal) fetchAudit();
+      fetchResources(); if (showJournal) fetchAudit();
       await dialog.alert(t('resources.folderDone', { count: valid.length }));
     } catch (err: any) { dialog.alert(err?.response?.data?.error || t('resources.importError')); }
     finally { setImporting(false); setImportMsg(''); }
@@ -242,7 +222,7 @@ const Resources: React.FC = () => {
     try {
       await axios.post(`${API_URL}/api/resources/delete-all`, { confirm: 'DELETE ALL' }, { headers: authHeaders() });
       setShowCats(false); setOpenFolder(null);
-      fetchResources(); fetchStorage(); if (showJournal) fetchAudit();
+      fetchResources(); if (showJournal) fetchAudit();
       await dialog.alert(t('resources.deleteAllDone'));
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
   };
@@ -251,7 +231,7 @@ const Resources: React.FC = () => {
     if (!(await dialog.confirm(t('resources.deleteConfirm', { title: r.title }) as string))) return;
     try {
       await axios.delete(`${API_URL}/api/resources/${r.id}`, { headers: authHeaders() });
-      fetchResources(); fetchStorage(); if (showJournal) fetchAudit();
+      fetchResources(); if (showJournal) fetchAudit();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
   };
 
@@ -403,40 +383,6 @@ const Resources: React.FC = () => {
           )}
         </div>
       )}
-
-      {/* Storage usage (managers see usage; admins can set the limit) */}
-      {canManage && storage && (() => {
-        const usedGB = storage.used / GB;
-        const limitGB = storage.limit ? storage.limit / GB : null;
-        const pct = limitGB ? Math.min(100, Math.round((storage.used / storage.limit!) * 100)) : 0;
-        const barColor = pct >= 90 ? '#e2483d' : pct >= 75 ? '#d97706' : '#3c50e0';
-        return (
-          <div className="mb-5 rounded-xl border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm font-medium text-black dark:text-white">{t('resources.storage')}</span>
-              <span className="text-sm text-gray-500">
-                {usedGB < 0.1 ? `${(storage.used / 1048576).toFixed(0)} MB` : `${usedGB.toFixed(2)} GB`}
-                {limitGB ? ` / ${limitGB.toFixed(0)} GB (${pct}%)` : ` · ${t('resources.unlimited')}`}
-              </span>
-            </div>
-            {limitGB != null && (
-              <div className="mt-2 h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">
-                <div className="h-2 rounded-full transition-all" style={{ width: `${Math.max(2, pct)}%`, backgroundColor: barColor }} />
-              </div>
-            )}
-            {isAdmin && (
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="text-xs text-body">{t('resources.storageLimit')}</span>
-                <input type="number" min="0" value={limitInput} onChange={(e) => setLimitInput(e.target.value)} placeholder="∞"
-                  className="w-24 rounded-lg border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-                <span className="text-xs text-body">GB</span>
-                <button onClick={saveLimit} className="rounded-lg bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-opacity-90">{t('common.save')}</button>
-                <span className="text-[11px] text-gray-400">{t('resources.storageHint')}</span>
-              </div>
-            )}
-          </div>
-        );
-      })()}
 
       {/* Search + view toggle */}
       <div className="mb-5 flex items-center gap-3">

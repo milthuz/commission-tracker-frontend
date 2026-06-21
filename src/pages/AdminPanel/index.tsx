@@ -9,6 +9,7 @@ import { formatDateOnly } from '../../utils/date';
 import CommissionImport from './CommissionImport';
 import ExternalUsers from './ExternalUsers';
 import ResellerAdmin from './ResellerAdmin';
+import ResourcesAdmin from './ResourcesAdmin';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -1402,6 +1403,7 @@ const AdminPanel = () => {
              activeTab === 'roles' ? t('admin.roles.title') :
              activeTab === 'import-payments' ? t('admin.commissionImport.title') :
              activeTab === 'resellers' ? t('admin.resellers.title') :
+             activeTab === 'resources' ? t('admin.resources.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1413,6 +1415,7 @@ const AdminPanel = () => {
              activeTab === 'roles' ? t('admin.roles.subtitle') :
              activeTab === 'import-payments' ? t('admin.commissionImport.subtitle') :
              activeTab === 'resellers' ? t('admin.resellers.subtitle') :
+             activeTab === 'resources' ? t('admin.resources.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -3225,6 +3228,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {/* ==================== COMMISSION IMPORT TAB ==================== */}
           {activeTab === 'import-payments' && <CommissionImport />}
           {activeTab === 'resellers' && <ResellerAdmin />}
+          {activeTab === 'resources' && <ResourcesAdmin />}
 
           {/* ==================== ROLES TAB (under Users) ==================== */}
           {activeTab === 'users' && usersSub === 'roles' && (

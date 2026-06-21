@@ -281,6 +281,7 @@
     "reseller": "Reseller Activation",
     "revenue": "Processing Revenue",
     "resources": "Resources",
+    "resourcesAdmin": "Resources (storage)",
     "resellersAdmin": "Manage Resellers",
     "profile": "Profile",
     "collapse": "Collapse sidebar",
@@ -690,6 +691,23 @@
   },
   "admin": {
     "title": "Admin Panel",
+    "resources": {
+      "title": "Resources storage",
+      "subtitle": "Set the overall library storage cap and per-user upload limits.",
+      "globalTitle": "Library storage",
+      "globalSubtitle": "Total space used by all files in the Resources library.",
+      "used": "Used",
+      "unlimited": "Unlimited",
+      "limit": "Limit",
+      "limitHint": "Leave empty for no limit. Uploads are blocked once the cap is reached.",
+      "saved": "Storage limit saved.",
+      "perUserTitle": "Per-user limits",
+      "perUserSubtitle": "Cap how much each user can upload. Users without a limit fall under the library cap only.",
+      "userEmail": "User email",
+      "setLimit": "Set limit",
+      "noUsers": "No per-user limits set yet.",
+      "perUserHint": "Set a limit to 0 (or clear it) to remove the user's personal cap."
+    },
     "integrations": {
       "title": "Integrations",
       "subtitle": "Manage your Zoho Books and Zentact connections",
