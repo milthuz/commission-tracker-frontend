@@ -54,7 +54,10 @@ module.exports = {
           1: '#F58346',
           2: '#FBCDB5',
           3: '#B7F0D1',
-          4: '#D8CDFF',
+          // meta-4 is used throughout (incl. TailAdmin base components) as the DARK-mode
+          // surface/hover color via `dark:bg-meta-4`, so it must be a dark slate — not a
+          // light accent. (For the lavender accent use meta-7 / #D8CDFF instead.)
+          4: '#313D4A',
           5: '#FFD1E4',
           6: '#F58346',
           7: '#D8CDFF',
