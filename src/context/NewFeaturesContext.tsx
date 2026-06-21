@@ -26,6 +26,10 @@ interface NewFeaturesCtx {
 }
 
 const bannerKey = (id: string) => `${id}::banner`;
+// Separate "seen" namespace for the aggregate PARENT dot (e.g. Admin Panel). Opening the section
+// acknowledges this key so the parent dot clears, while the per-item pills (keyed by the plain
+// feature id) stay until each sub-page is opened individually.
+const sectionKey = (id: string) => `${id}::section`;
 
 const Ctx = createContext<NewFeaturesCtx>({
   showBadge: () => false,
@@ -103,18 +107,20 @@ export function NewFeaturesProvider({ children }: { children: ReactNode }) {
     (path: string) => !!seen && features.some((f) => f.path === path && windowOpen(f) && !seen.includes(f.id)),
     [seen, features],
   );
+  // Parent aggregate dot: shown while any in-window feature under the prefix hasn't had its
+  // SECTION key acknowledged (independent from the per-item pills).
   const anyDotUnder = useCallback(
-    (prefix: string) => !!seen && features.some((f) => f.path.startsWith(prefix) && windowOpen(f) && !seen.includes(f.id)),
+    (prefix: string) => !!seen && features.some((f) => f.path.startsWith(prefix) && windowOpen(f) && !seen.includes(sectionKey(f.id))),
     [seen, features],
   );
-  // Acknowledge every in-window feature under a prefix at once — used when the user OPENS a
-  // section (e.g. expands the Admin menu), so the aggregate dot clears even without visiting
-  // each sub-page. Also covers features whose path never exactly matches a visited route.
+  // Acknowledge the SECTION key for every in-window feature under a prefix — used when the user
+  // OPENS a section (e.g. expands the Admin menu): clears the parent dot WITHOUT touching the
+  // per-item pills, which stay until each sub-page is opened individually.
   const markSeenUnder = useCallback(
     (prefix: string) => {
       if (!seen) return;
       features.forEach((f) => {
-        if (f.path.startsWith(prefix) && windowOpen(f) && !seen.includes(f.id)) markSeen(f.id);
+        if (f.path.startsWith(prefix) && windowOpen(f) && !seen.includes(sectionKey(f.id))) markSeen(sectionKey(f.id));
       });
     },
     [seen, features, markSeen],
