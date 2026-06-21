@@ -8,18 +8,19 @@ const TOUR_KEY = 'cleo-tour-v1';
 
 interface ChatMsg { role: 'user' | 'assistant'; content: string; }
 
-interface Step { selector: string | null; titleKey: string; bodyKey: string; }
+interface Step { el: HTMLElement | null; title: string; body: string; }
 
-// Ordered steps. selector=null → centered (welcome). Steps whose target isn't on the page are
-// auto-skipped (e.g. a rep without a given nav item).
-const STEPS: Step[] = [
-  { selector: null,                          titleKey: 'tour.welcomeTitle', bodyKey: 'tour.welcomeBody' },
-  { selector: '[data-tour="sidebar-toggle"]', titleKey: 'tour.menuTitle',    bodyKey: 'tour.menuBody' },
-  { selector: '[data-tour="nav-dashboard"]',  titleKey: 'tour.dashTitle',    bodyKey: 'tour.dashBody' },
-  { selector: '[data-tour="nav-tracker"]',    titleKey: 'tour.trackerTitle', bodyKey: 'tour.trackerBody' },
-  { selector: '[data-tour="nav-report"]',     titleKey: 'tour.reportTitle',  bodyKey: 'tour.reportBody' },
-  { selector: '[data-tour="cleo-bubble"]',    titleKey: 'tour.cleoTitle',    bodyKey: 'tour.cleoBody' },
-];
+// Curated description per route. Any menu item without an entry here — including ones added
+// later — falls back to a generic blurb, so the tour stays in sync with the sidebar on its own.
+const NAV_DESC: Record<string, string> = {
+  '/': 'tour.dashBody',
+  '/commission-tracker': 'tour.trackerBody',
+  '/commission-report': 'tour.reportBody',
+  '/reseller': 'tour.resellerBody',
+  '/revenue': 'tour.revenueBody',
+  '/resources': 'tour.resourcesBody',
+  '/profile': 'tour.profileBody',
+};
 
 const PAD = 8;
 const CARD_W = 320;
@@ -28,6 +29,7 @@ const CleoTour: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [run, setRun] = useState(false);
   const [idx, setIdx] = useState(0);
+  const [steps, setSteps] = useState<Step[]>([]);
   const [rect, setRect] = useState<DOMRect | null>(null);
   // In-tour mini chat — ask Cleo a question without leaving the tour.
   const [askMsgs, setAskMsgs] = useState<ChatMsg[]>([]);
@@ -56,15 +58,37 @@ const CleoTour: React.FC = () => {
 
   useEffect(() => { askBodyRef.current?.scrollTo({ top: askBodyRef.current.scrollHeight }); }, [askMsgs, askBusy]);
 
-  // Resolve the visible steps (skip targets that don't exist for this user/page).
-  const steps = STEPS.filter(s => s.selector === null || document.querySelector(s.selector));
   const step = steps[idx];
+
+  // Build the tour from the LIVE sidebar: a welcome card, one step per top-level menu item
+  // actually present (so new menus appear automatically), then the Cleo bubble. Titles come
+  // from each item's label, so renamed menus update too.
+  const buildSteps = useCallback((): Step[] => {
+    const out: Step[] = [];
+    out.push({ el: null, title: t('tour.welcomeTitle'), body: t('tour.welcomeBody') });
+    const menu = document.querySelector('[data-tour-menu]');
+    menu?.querySelectorAll(':scope > li').forEach((li) => {
+      const top = li.querySelector(':scope > a, :scope > button') as HTMLElement | null;
+      if (!top) return;
+      const label = (top.querySelector('span')?.textContent || '').trim();
+      if (!label) return;
+      const route = top.getAttribute('href') || '';
+      const descKey = NAV_DESC[route];
+      out.push({
+        el: li as HTMLElement,
+        title: label,
+        body: descKey ? t(descKey) : (t('tour.sectionGeneric', { section: label }) as string),
+      });
+    });
+    const bubble = document.querySelector('[data-tour="cleo-bubble"]') as HTMLElement | null;
+    out.push({ el: bubble, title: t('tour.cleoTitle'), body: t('tour.cleoBody') });
+    return out;
+  }, [t]);
 
   const measure = useCallback(() => {
     if (!step) return;
-    if (!step.selector) { setRect(null); return; }
-    const el = document.querySelector(step.selector) as HTMLElement | null;
-    setRect(el ? el.getBoundingClientRect() : null);
+    if (!step.el) { setRect(null); return; }
+    setRect(step.el.getBoundingClientRect());
   }, [step]);
 
   useEffect(() => {
@@ -78,14 +102,14 @@ const CleoTour: React.FC = () => {
 
   // Start: auto on first login (desktop only), or on the 'cleo:tour' event (from Cleo chat).
   useEffect(() => {
-    const start = () => { setIdx(0); setRun(true); };
+    const start = () => { setSteps(buildSteps()); setIdx(0); setRun(true); };
     window.addEventListener('cleo:tour', start);
     let timer: any;
     if (!localStorage.getItem(TOUR_KEY) && window.innerWidth >= 1024) {
       timer = setTimeout(start, 900);
     }
     return () => { window.removeEventListener('cleo:tour', start); if (timer) clearTimeout(timer); };
-  }, []);
+  }, [buildSteps]);
 
   const finish = () => { localStorage.setItem(TOUR_KEY, 'done'); setRun(false); setIdx(0); setAskMsgs([]); setAskInput(''); };
   const next = () => { if (idx < steps.length - 1) setIdx(idx + 1); else finish(); };
@@ -132,8 +156,8 @@ const CleoTour: React.FC = () => {
         <div className="flex items-start gap-3">
           <CleoAvatar className="h-10 w-10 shrink-0" ring />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-black dark:text-white">{t(step.titleKey)}</p>
-            <p className="mt-1 text-sm leading-snug text-body dark:text-gray-300">{t(step.bodyKey)}</p>
+            <p className="text-sm font-semibold text-black dark:text-white">{step.title}</p>
+            <p className="mt-1 text-sm leading-snug text-body dark:text-gray-300">{step.body}</p>
           </div>
         </div>
 

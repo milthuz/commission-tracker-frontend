@@ -178,7 +178,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </h3>
             )}
 
-            <ul className={`mb-6 flex flex-col ${collapsed ? 'gap-3' : 'gap-1.5'}`}>
+            {/* data-tour-menu: the guided tour auto-builds one step per top-level <li> here,
+                so any menu item added below automatically joins the tour (no tour edits needed). */}
+            <ul data-tour-menu className={`mb-6 flex flex-col ${collapsed ? 'gap-3' : 'gap-1.5'}`}>
               {/* <!-- Menu Item Dashboard — "/" renders a role-appropriate dashboard for EVERYONE
                    (admin finance / manager team / rep personal), so always show the link. --> */}
               <li data-tour="nav-dashboard">
