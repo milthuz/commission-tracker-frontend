@@ -161,16 +161,16 @@ const ChatAssistant: React.FC = () => {
         data-tour="cleo-bubble"
         onClick={() => setOpen(!open)}
         title={t('assistant.title') as string}
-        className="group fixed bottom-6 right-4 z-[9990] flex h-14 w-14 items-center justify-center rounded-full shadow-default transition-transform duration-200 hover:scale-110"
+        className="group fixed bottom-6 right-4 z-[9990] flex h-12 w-12 items-center justify-center rounded-full shadow-default transition-transform duration-200 hover:scale-110"
       >
         {open ? (
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1c2434]">
-            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1c2434]">
+            <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>
           </span>
         ) : (
-          <CleoAvatar className="h-14 w-14" ring />
+          <CleoAvatar className="h-12 w-12" ring />
         )}
       </button>
     </>
