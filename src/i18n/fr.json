@@ -281,6 +281,7 @@
     "reseller": "Activations revendeur",
     "revenue": "Revenus de paiements",
     "resources": "Ressources",
+    "kaizenDemo": "Kaizen DEMO",
     "resourcesAdmin": "Ressources (stockage)",
     "resellersAdmin": "Gestion revendeurs",
     "profile": "Profil",
@@ -311,6 +312,18 @@
     "cleoBody": "Clique sur moi à tout moment pour de l'aide, ou pour refaire cette visite. Bon Sales Hub !",
     "askPlaceholder": "Pose une question à Cleo…",
     "askError": "Désolée, une erreur est survenue — réessaie."
+  },
+  "kaizenDemo": {
+    "title": "Kaizen DEMO",
+    "subtitle": "Lance une démo en direct du POS Kaizen, diffusée dans ton navigateur.",
+    "readyTitle": "Prêt à faire la démo du POS Kaizen",
+    "readyHint": "Clique ci-dessous pour démarrer une session interactive en direct. Elle s'ouvre dans cette page — laisse-lui quelques secondes au premier lancement.",
+    "launch": "Lancer la démo",
+    "launching": "Démarrage de ta session…",
+    "relaunch": "Relancer",
+    "fullscreen": "Plein écran",
+    "notConfigured": "La démo n'est pas encore configurée. Un administrateur doit terminer la configuration AWS AppStream.",
+    "error": "Impossible de démarrer la démo. Réessaie dans un instant."
   },
   "resources": {
     "title": "Ressources",

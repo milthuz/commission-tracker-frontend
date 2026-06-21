@@ -281,6 +281,7 @@
     "reseller": "Reseller Activation",
     "revenue": "Processing Revenue",
     "resources": "Resources",
+    "kaizenDemo": "Kaizen DEMO",
     "resourcesAdmin": "Resources (storage)",
     "resellersAdmin": "Manage Resellers",
     "profile": "Profile",
@@ -311,6 +312,18 @@
     "cleoBody": "Click me anytime for help, or to take this tour again. Enjoy Sales Hub!",
     "askPlaceholder": "Ask Cleo a question…",
     "askError": "Sorry, something went wrong — try again."
+  },
+  "kaizenDemo": {
+    "title": "Kaizen DEMO",
+    "subtitle": "Run a live demo of the Kaizen POS, streamed in your browser.",
+    "readyTitle": "Ready to demo the Kaizen POS",
+    "readyHint": "Click below to start a live, interactive session. It opens in this page — give it a few seconds to load the first time.",
+    "launch": "Launch the demo",
+    "launching": "Starting your session…",
+    "relaunch": "Restart",
+    "fullscreen": "Fullscreen",
+    "notConfigured": "The demo isn't configured yet. An administrator needs to finish the AWS AppStream setup.",
+    "error": "Couldn't start the demo. Please try again in a moment."
   },
   "resources": {
     "title": "Resources",
