@@ -79,10 +79,12 @@ const Resources: React.FC = () => {
   const [showJournal, setShowJournal] = useState(false);
   const [audit, setAudit] = useState<AuditEvent[]>([]);
 
-  // Folder actions (context menu + rename modal)
+  // Folder actions (context menu + rename modal + drag-to-move)
   const [menuFolder, setMenuFolder] = useState<string | null>(null);   // folder path whose ⋮ menu is open
   const [renameTarget, setRenameTarget] = useState<{ path: string; name: string } | null>(null);
   const [renameInput, setRenameInput] = useState('');
+  const [dragPath, setDragPath] = useState<string | null>(null);       // folder being dragged
+  const [dropTarget, setDropTarget] = useState<string | null>(null);   // folder path (or '' = root) highlighted as drop zone
 
   const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
@@ -289,6 +291,16 @@ const Resources: React.FC = () => {
       fetchResources(); if (showJournal) fetchAudit();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
   };
+  // Can `src` be dropped into `dest` ('' = root)? Not itself, not its own parent (no-op), not a descendant.
+  const canDrop = (src: string, dest: string) =>
+    src !== dest && dest !== src.split('/').slice(0, -1).join('/') && dest !== src && !dest.startsWith(src + '/');
+  const moveFolder = async (src: string, dest: string) => {
+    if (!canDrop(src, dest)) return;
+    try {
+      await axios.post(`${API_URL}/api/resources/folder/move`, { zone, path: src, destParent: dest }, { headers: authHeaders() });
+      fetchResources(); if (showJournal) fetchAudit();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+  };
 
   // --- Folder/file derivation (Drive-style, NESTED) ---
   // Categories are stored as "/"-separated paths (e.g. "Playbooks/2024"); openFolder holds the
@@ -484,24 +496,32 @@ const Resources: React.FC = () => {
         </div>
       </div>
 
-      {/* Breadcrumb (inside a folder) — each segment is clickable to jump up the tree */}
-      {!isSearching && cur && (
-        <div className="mb-4 flex flex-wrap items-center gap-1.5 text-sm">
-          <button onClick={() => setOpenFolder(null)} className="font-medium text-primary hover:underline">{t('resources.title')}</button>
-          {cur.split('/').map((seg, i, arr) => {
-            const path = arr.slice(0, i + 1).join('/');
-            const last = i === arr.length - 1;
-            return (
-              <React.Fragment key={path}>
-                <span className="text-gray-400">/</span>
-                {last
-                  ? <span className="font-medium text-black dark:text-white">{seg}</span>
-                  : <button onClick={() => setOpenFolder(path)} className="font-medium text-primary hover:underline">{seg}</button>}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      )}
+      {/* Breadcrumb (inside a folder) — clickable to jump up; also a drop target to move a folder up */}
+      {!isSearching && cur && (() => {
+        const bcDrop = (dest: string) => ({
+          onDragOver: (e: React.DragEvent) => { if (dragPath && canDrop(dragPath, dest)) { e.preventDefault(); if (dropTarget !== 'bc:' + dest) setDropTarget('bc:' + dest); } },
+          onDragLeave: () => setDropTarget(prev => (prev === 'bc:' + dest ? null : prev)),
+          onDrop: (e: React.DragEvent) => { e.preventDefault(); if (dragPath) moveFolder(dragPath, dest); setDragPath(null); setDropTarget(null); },
+        });
+        const hl = (dest: string) => (dropTarget === 'bc:' + dest ? 'rounded bg-primary/10 px-1 ring-1 ring-primary' : '');
+        return (
+          <div className="mb-4 flex flex-wrap items-center gap-1.5 text-sm">
+            <button onClick={() => setOpenFolder(null)} {...bcDrop('')} className={`font-medium text-primary hover:underline ${hl('')}`}>{t('resources.title')}</button>
+            {cur.split('/').map((seg, i, arr) => {
+              const path = arr.slice(0, i + 1).join('/');
+              const last = i === arr.length - 1;
+              return (
+                <React.Fragment key={path}>
+                  <span className="text-gray-400">/</span>
+                  {last
+                    ? <span className="font-medium text-black dark:text-white">{seg}</span>
+                    : <button onClick={() => setOpenFolder(path)} {...bcDrop(path)} className={`font-medium text-primary hover:underline ${hl(path)}`}>{seg}</button>}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {loading ? (
         <div className="flex h-40 items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
@@ -522,7 +542,13 @@ const Resources: React.FC = () => {
                 {folders.map(f => (
                   <div key={f.path} role="button" tabIndex={0} onClick={() => setOpenFolder(f.path)}
                     onContextMenu={canManageFolders ? (e) => { e.preventDefault(); setMenuFolder(menuFolder === f.path ? null : f.path); } : undefined}
-                    className="group relative flex cursor-pointer flex-col items-center rounded-xl border border-stroke bg-white p-5 text-center shadow-default transition hover:border-primary hover:shadow-md dark:border-strokedark dark:bg-boxdark">
+                    draggable={canManageFolders}
+                    onDragStart={(e) => { e.stopPropagation(); setDragPath(f.path); e.dataTransfer.effectAllowed = 'move'; }}
+                    onDragEnd={() => { setDragPath(null); setDropTarget(null); }}
+                    onDragOver={(e) => { if (dragPath && canDrop(dragPath, f.path)) { e.preventDefault(); if (dropTarget !== f.path) setDropTarget(f.path); } }}
+                    onDragLeave={() => setDropTarget(prev => (prev === f.path ? null : prev))}
+                    onDrop={(e) => { e.preventDefault(); if (dragPath) moveFolder(dragPath, f.path); setDragPath(null); setDropTarget(null); }}
+                    className={`group relative flex cursor-pointer flex-col items-center rounded-xl border bg-white p-5 text-center shadow-default outline-none transition hover:border-primary hover:shadow-md focus:outline-none dark:bg-boxdark ${menuFolder === f.path ? 'z-30' : ''} ${dropTarget === f.path ? 'border-primary ring-2 ring-primary' : 'border-stroke dark:border-strokedark'} ${dragPath === f.path ? 'opacity-40' : ''}`}>
                     {canManageFolders && (
                       <div className="absolute right-1.5 top-1.5">
                         <button onClick={(e) => { e.stopPropagation(); setMenuFolder(menuFolder === f.path ? null : f.path); }}
