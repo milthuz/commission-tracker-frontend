@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../lib/dialog';
 import { formatDateOnly } from '../utils/date';
+import PdfThumbPreview from './PdfThumbPreview';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -16,12 +17,6 @@ interface SentRow {
   id: number; estimateId: string; number: string; customerName: string; repEmail: string; toEmail: string;
   sentAt: string; status: string; viewed: boolean; viewedTime: string; acceptedDate: string; declinedDate: string;
 }
-
-const b64ToBlobUrl = (b64: string, type = 'application/pdf') => {
-  const bin = atob(b64); const arr = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-  return URL.createObjectURL(new Blob([arr], { type }));
-};
 
 const Proposals: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -41,7 +36,6 @@ const Proposals: React.FC = () => {
   const [logo, setLogo] = useState<string | null>(null);
   const [preparing, setPreparing] = useState(false);
   const [prepared, setPrepared] = useState<Prepared | null>(null);
-  const [previewUrl, setPreviewUrl] = useState('');
   // editable email
   const [to, setTo] = useState(''); const [cc, setCc] = useState('');
   const [subject, setSubject] = useState(''); const [body, setBody] = useState('');
@@ -86,10 +80,10 @@ const Proposals: React.FC = () => {
 
   const openBuilder = (e: Estimate) => {
     setSel(e); setLang(i18n.language?.startsWith('en') ? 'en' : 'fr'); setTitle(''); setLogo(null);
-    setPrepared(null); setPreviewUrl(''); setTo(''); setCc(''); setSubject(''); setBody('');
+    setPrepared(null); setTo(''); setCc(''); setSubject(''); setBody('');
     setSelPages([]); setInclEstimate(true);
   };
-  const closeBuilder = () => { if (previewUrl) URL.revokeObjectURL(previewUrl); setSel(null); setPrepared(null); setPreviewUrl(''); };
+  const closeBuilder = () => { setSel(null); setPrepared(null); };
 
   const onLogo = (f?: File) => {
     if (!f) { setLogo(null); return; }
@@ -103,18 +97,16 @@ const Proposals: React.FC = () => {
     if (!title.trim()) { dialog.alert(t('proposals.titleRequired')); return; }
     setPreparing(true);
     try {
+      // Always render the FULL document so every page shows as a thumbnail; the rep then toggles
+      // which pages to actually send (applied at send time).
       const r = await axios.post(`${API_URL}/api/proposals/prepare`,
-        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined,
-          selectedPages: selPages.length ? selPages : undefined, includeEstimate: inclEstimate },
+        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined, includeEstimate: true },
         { headers: authHeaders() });
       const p: Prepared = r.data;
       setPrepared(p);
-      // First prepare: default to all presentation pages selected.
-      if (selPages.length === 0 && p.presentationPageCount > 0) {
-        setSelPages(Array.from({ length: p.presentationPageCount }, (_, i) => i + 1));
-      }
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(b64ToBlobUrl(p.pdfBase64));
+      // Default: all presentation pages + the quote included.
+      setSelPages(Array.from({ length: p.presentationPageCount }, (_, i) => i + 1));
+      setInclEstimate(true);
       setTo(p.email?.to || ''); setSubject(p.email?.subject || ''); setBody(p.email?.body || '');
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('proposals.prepareError')); }
     finally { setPreparing(false); }
@@ -320,39 +312,11 @@ const Proposals: React.FC = () => {
                   {preparing ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('proposals.preparing')}</> : (prepared ? t('proposals.regenerate') : t('proposals.generatePreview'))}
                 </button>
 
-                {/* Page selection (after prepare) — choose which presentation pages + the quote */}
+                {/* Page selection now lives on the thumbnails in the preview (right). */}
                 {prepared && prepared.presentationPageCount > 0 && (
-                  <div className="space-y-2 border-t border-stroke pt-4 dark:border-strokedark">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-black dark:text-white">{t('proposals.pagesTitle')}</p>
-                      <div className="flex gap-2 text-xs">
-                        <button onClick={() => setSelPages(Array.from({ length: prepared.presentationPageCount }, (_, i) => i + 1))} className="text-primary hover:underline">{t('proposals.selectAll')}</button>
-                        <button onClick={() => setSelPages([])} className="text-body hover:underline">{t('proposals.selectNone')}</button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-400">{t('proposals.pagesHint')}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {Array.from({ length: prepared.presentationPageCount }, (_, i) => i + 1).map((n) => {
-                        const on = selPages.includes(n);
-                        return (
-                          <button key={n} onClick={() => setSelPages(on ? selPages.filter((x) => x !== n) : [...selPages, n].sort((a, b) => a - b))}
-                            className={`h-8 min-w-8 rounded-lg border px-2 text-xs font-medium ${on ? 'border-primary bg-primary text-white' : 'border-stroke text-body hover:border-primary dark:border-strokedark'}`}>
-                            {n}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {prepared.estimatePageCount > 0 && (
-                      <label className="mt-1 flex cursor-pointer items-center gap-2 text-sm text-body">
-                        <input type="checkbox" checked={inclEstimate} onChange={(e) => setInclEstimate(e.target.checked)} />
-                        {t('proposals.includeQuote', { count: prepared.estimatePageCount })}
-                      </label>
-                    )}
-                    <button onClick={prepare} disabled={preparing} className="inline-flex items-center gap-1.5 rounded-lg border border-stroke bg-white px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark dark:bg-boxdark">
-                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                      {t('proposals.updatePreview')}
-                    </button>
-                  </div>
+                  <p className="border-t border-stroke pt-4 text-xs text-gray-400 dark:border-strokedark">
+                    {t('proposals.pagesHintThumb', { count: selPages.length + (inclEstimate ? prepared.estimatePageCount : 0) })}
+                  </p>
                 )}
 
                 {/* Email draft (after prepare) */}
@@ -370,10 +334,16 @@ const Proposals: React.FC = () => {
                 )}
               </div>
 
-              {/* Right: PDF preview */}
-              <div className="hidden min-h-[400px] border-l border-stroke bg-gray-100 dark:border-strokedark dark:bg-meta-4/30 md:block">
-                {previewUrl ? (
-                  <iframe title="preview" src={previewUrl} className="h-full w-full" style={{ border: 0 }} />
+              {/* Right: clickable-thumbnail PDF preview (also drives page selection) */}
+              <div className="hidden min-h-[400px] border-l border-stroke md:block">
+                {prepared ? (
+                  <PdfThumbPreview
+                    pdfBase64={prepared.pdfBase64}
+                    presentationPageCount={prepared.presentationPageCount}
+                    estimatePageCount={prepared.estimatePageCount}
+                    selPages={selPages} setSelPages={setSelPages}
+                    inclEstimate={inclEstimate} setInclEstimate={setInclEstimate}
+                  />
                 ) : (
                   <div className="flex h-full items-center justify-center p-8 text-center text-sm text-gray-400">{t('proposals.previewHint')}</div>
                 )}
