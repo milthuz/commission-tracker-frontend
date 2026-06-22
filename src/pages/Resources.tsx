@@ -35,6 +35,18 @@ const fileMeta = (name: string, mime: string) => {
   return { label: ext.toUpperCase().slice(0, 4) || 'FILE', color: '#64748b' };
 };
 
+// Size-bounded batches (≤15MB or 20 files) so each upload request stays light on the ~512MB dyno
+// and under the /bulk multer .array('files',50) cap. Shared by folder import + the drag-&-drop zone.
+const batchify = (list: File[]) => {
+  const out: File[][] = []; let cur: File[] = []; let bytes = 0;
+  for (const f of list) {
+    if (cur.length && (bytes + f.size > 15 * 1024 * 1024 || cur.length >= 20)) { out.push(cur); cur = []; bytes = 0; }
+    cur.push(f); bytes += f.size;
+  }
+  if (cur.length) out.push(cur);
+  return out;
+};
+
 // A clean document-style file-type icon (page with folded corner + coloured type band).
 const FileIcon: React.FC<{ name: string; mime: string; className?: string }> = ({ name, mime, className = 'h-10 w-8' }) => {
   const { label, color } = fileMeta(name, mime);
@@ -72,6 +84,7 @@ const Resources: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState('');
+  const [dragOver, setDragOver] = useState(false); // drag-&-drop zone highlight
 
   // Category management + audit journal (admin)
   const [showCats, setShowCats] = useState(false);
@@ -202,16 +215,6 @@ const Resources: React.FC = () => {
       const cat = seg.slice(0, -1).join('/');
       (groups[cat] = groups[cat] || []).push(f);
     }
-    // Size-bounded batches (≤15MB or 20 files) so each request stays light on the ~512MB dyno.
-    const batchify = (list: File[]) => {
-      const out: File[][] = []; let cur: File[] = []; let bytes = 0;
-      for (const f of list) {
-        if (cur.length && (bytes + f.size > 15 * 1024 * 1024 || cur.length >= 20)) { out.push(cur); cur = []; bytes = 0; }
-        cur.push(f); bytes += f.size;
-      }
-      if (cur.length) out.push(cur);
-      return out;
-    };
     setImporting(true);
     try {
       let done = 0;
@@ -223,6 +226,29 @@ const Resources: React.FC = () => {
           done += batch.length;
           setImportMsg(t('resources.folderProgress', { done, total: valid.length }));
         }
+      }
+      fetchResources(); if (showJournal) fetchAudit();
+      await dialog.alert(t('resources.folderDone', { count: valid.length }));
+    } catch (err: any) { dialog.alert(err?.response?.data?.error || t('resources.importError')); }
+    finally { setImporting(false); setImportMsg(''); }
+  };
+
+  // Drag-&-drop (or click-to-pick) quick upload: each dropped file becomes a resource named after
+  // its file, landing in the current folder + active zone. Reuses the size-bounded batched /bulk
+  // upload so it's safe on the dyno. (Dropped folders aren't expanded — use "Import folder" for that.)
+  const uploadDropped = async (fileList: File[]) => {
+    const valid = fileList.filter(f => f.name && !f.name.startsWith('.') && f.size > 0 && f.size <= 25 * 1024 * 1024);
+    if (!valid.length) { dialog.alert(t('resources.dropInvalid')); return; }
+    setImporting(true);
+    try {
+      let done = 0;
+      for (const batch of batchify(valid)) {
+        const fd = new FormData();
+        fd.append('category', openFolder || ''); fd.append('tags', ''); fd.append('zone', zone);
+        batch.forEach(f => fd.append('files', f));
+        await axios.post(`${API_URL}/api/resources/bulk`, fd, { headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' }, timeout: 120000 });
+        done += batch.length;
+        setImportMsg(t('resources.folderProgress', { done, total: valid.length }));
       }
       fetchResources(); if (showJournal) fetchAudit();
       await dialog.alert(t('resources.folderDone', { count: valid.length }));
@@ -539,6 +565,28 @@ const Resources: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* Drag-&-drop zone — drop files (or click) to upload straight into the current folder/zone */}
+      {canAddHere && !isSearching && (
+        <label
+          onDragOver={(e) => { e.preventDefault(); if (!dragOver) setDragOver(true); }}
+          onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOver(false); }}
+          onDrop={(e) => { e.preventDefault(); setDragOver(false); const fs = Array.from(e.dataTransfer.files || []); if (fs.length) uploadDropped(fs); }}
+          className={`mb-5 flex cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed px-6 py-5 transition ${dragOver ? 'border-primary bg-primary/5' : 'border-stroke bg-gray-1/40 hover:border-primary/60 dark:border-strokedark dark:bg-meta-4/20'} ${importing ? 'pointer-events-none opacity-60' : ''}`}>
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+            {importing
+              ? <span className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              : <svg className="h-5 w-5 text-body" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19V5m0 0l-6 6m6-6l6 6" /></svg>}
+          </span>
+          <span className="text-sm text-black dark:text-white">
+            {importing
+              ? (importMsg || t('resources.importing'))
+              : <>{t('resources.dropPrefix')} <span className="font-medium text-primary">{t('resources.dropLink')}</span> {t('resources.dropSuffix')}</>}
+          </span>
+          <input type="file" multiple className="hidden" disabled={importing}
+            onChange={(e) => { const fs = Array.from(e.target.files || []); e.target.value = ''; if (fs.length) uploadDropped(fs); }} />
+        </label>
+      )}
 
       {loading ? (
         <div className="flex h-40 items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
