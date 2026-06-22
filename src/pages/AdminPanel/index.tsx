@@ -10,7 +10,6 @@ import CommissionImport from './CommissionImport';
 import ExternalUsers from './ExternalUsers';
 import ResellerAdmin from './ResellerAdmin';
 import ResourcesAdmin from './ResourcesAdmin';
-import ProposalDeckEditor from '../ProposalDeckEditor';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -1405,7 +1404,6 @@ const AdminPanel = () => {
              activeTab === 'import-payments' ? t('admin.commissionImport.title') :
              activeTab === 'resellers' ? t('admin.resellers.title') :
              activeTab === 'resources' ? t('admin.resources.title') :
-             activeTab === 'proposal-deck' ? t('admin.proposalDeck.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1418,7 +1416,6 @@ const AdminPanel = () => {
              activeTab === 'import-payments' ? t('admin.commissionImport.subtitle') :
              activeTab === 'resellers' ? t('admin.resellers.subtitle') :
              activeTab === 'resources' ? t('admin.resources.subtitle') :
-             activeTab === 'proposal-deck' ? t('admin.proposalDeck.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -3232,7 +3229,6 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'import-payments' && <CommissionImport />}
           {activeTab === 'resellers' && <ResellerAdmin />}
           {activeTab === 'resources' && <ResourcesAdmin />}
-          {activeTab === 'proposal-deck' && <ProposalDeckEditor />}
 
           {/* ==================== ROLES TAB (under Users) ==================== */}
           {activeTab === 'users' && usersSub === 'roles' && (
