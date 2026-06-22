@@ -362,7 +362,8 @@
     "statusDeclined": "Declined",
     "statusExpired": "Expired",
     "viewedOn": "viewed",
-    "acceptedOn": "accepted"
+    "acceptedOn": "accepted",
+    "deleteConfirm": "Remove the sent proposal for {{customer}} from the board? (The Zoho quote is not affected.)"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",

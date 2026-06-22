@@ -32,6 +32,7 @@ const Proposals: React.FC = () => {
   const [view, setView] = useState<'pending' | 'sent'>('pending');
   const [sent, setSent] = useState<SentRow[]>([]);
   const [sentLoading, setSentLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Builder state (when an estimate is selected)
   const [sel, setSel] = useState<Estimate | null>(null);
@@ -66,6 +67,19 @@ const Proposals: React.FC = () => {
     finally { setSentLoading(false); }
   };
   useEffect(() => { if (view === 'sent') fetchSent(); /* eslint-disable-next-line */ }, [view]);
+
+  // Admin status (from /api/auth/verify — never the raw JWT) drives the delete control.
+  useEffect(() => {
+    axios.get(`${API_URL}/api/auth/verify`, { headers: authHeaders() })
+      .then((r) => { const u = r.data?.user; setIsAdmin(!!u?.isAdmin || (u?.permissions || []).includes('*')); })
+      .catch(() => {});
+  }, []);
+
+  const deleteSent = async (r: SentRow) => {
+    if (!(await dialog.confirm(t('proposals.deleteConfirm', { customer: r.customerName }) as string, { danger: true, confirmText: t('common.delete') as string }))) return;
+    try { await axios.delete(`${API_URL}/api/proposals/sent/${r.id}`, { headers: authHeaders() }); fetchSent(); }
+    catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+  };
 
   const openBuilder = (e: Estimate) => {
     setSel(e); setLang(i18n.language?.startsWith('en') ? 'en' : 'fr'); setTitle(''); setLogo(null);
@@ -217,6 +231,7 @@ const Proposals: React.FC = () => {
                       <th className="px-4 py-3 text-left font-medium">{t('proposals.sentOn')}</th>
                       <th className="px-4 py-3 text-left font-medium">{t('proposals.to')}</th>
                       <th className="px-4 py-3 text-left font-medium">{t('proposals.colStatus')}</th>
+                      {isAdmin && <th className="px-4 py-3"></th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -234,6 +249,13 @@ const Proposals: React.FC = () => {
                             <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${b.cls}`}>{b.label}</span>
                             {detail && <span className="ml-2 text-xs text-gray-400">{detail}</span>}
                           </td>
+                          {isAdmin && (
+                            <td className="px-4 py-2.5 text-right">
+                              <button onClick={() => deleteSent(r)} title={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger">
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              </button>
+                            </td>
+                          )}
                         </tr>
                       );
                     })}

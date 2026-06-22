@@ -362,7 +362,8 @@
     "statusDeclined": "Refusée",
     "statusExpired": "Expirée",
     "viewedOn": "vue le",
-    "acceptedOn": "acceptée le"
+    "acceptedOn": "acceptée le",
+    "deleteConfirm": "Retirer du tableau la proposition envoyée à {{customer}} ? (Le devis Zoho n'est pas touché.)"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",
