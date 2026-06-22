@@ -113,6 +113,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   }, [sidebarExpanded]);
 
   return (
+    <>
     <aside
       ref={sidebar}
       className={`absolute left-0 top-0 z-9999 flex h-screen flex-col bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
@@ -165,21 +166,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               d="M19 8.175H2.98748L9.36248 1.6875C9.69998 1.35 9.69998 0.825 9.36248 0.4875C9.02498 0.15 8.49998 0.15 8.16248 0.4875L0.399976 8.3625C0.0624756 8.7 0.0624756 9.225 0.399976 9.5625L8.16248 17.4375C8.31248 17.5875 8.53748 17.7 8.76248 17.7C8.98748 17.7 9.17498 17.625 9.36248 17.475C9.69998 17.1375 9.69998 16.6125 9.36248 16.275L3.02498 9.8625H19C19.45 9.8625 19.825 9.4875 19.825 9.0375C19.825 8.55 19.45 8.175 19 8.175Z"
               fill=""
             />
-          </svg>
-        </button>
-
-        {/* Desktop collapse/expand toggle — in the header so it's ALWAYS visible
-            (the bottom position got pushed off-screen on shorter laptops as the menu grew). */}
-        <button
-          type="button"
-          data-tour="sidebar-toggle"
-          onClick={() => setCollapsed(!collapsed)}
-          title={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
-          aria-label={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
-          className="hidden lg:flex items-center justify-center h-8 w-8 shrink-0 rounded-md border border-bodydark2/30 bg-black/30 text-bodydark2 hover:bg-graydark hover:text-white transition-all"
-        >
-          <svg className={`h-4 w-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
       </div>
@@ -522,6 +508,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       </div>
 
     </aside>
+
+    {/* Floating collapse/expand toggle pinned to the sidebar's right edge — always visible,
+        independent of the menu length, on every screen size. Rendered as a SIBLING of <aside>
+        so the aside's transform/overflow can never clip it. Desktop only (mobile uses the drawer). */}
+    <button
+      type="button"
+      data-tour="sidebar-toggle"
+      onClick={() => setCollapsed(!collapsed)}
+      title={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
+      aria-label={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
+      style={{ left: collapsed ? '66px' : '276px' }}
+      className="hidden lg:flex fixed top-1/2 z-[99999] -translate-y-1/2 h-7 w-7 items-center justify-center rounded-full border border-stroke bg-white text-body shadow-md transition-all duration-300 hover:border-primary hover:bg-primary hover:text-white dark:border-strokedark dark:bg-boxdark dark:text-bodydark"
+    >
+      <svg className={`h-4 w-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+    </>
   );
 };
 
