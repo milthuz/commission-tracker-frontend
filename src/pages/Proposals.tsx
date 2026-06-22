@@ -12,6 +12,10 @@ interface Estimate {
   total: number; currency: string; date: string; status: string; salesperson: string;
 }
 interface Prepared { pdfBase64: string; fileName: string; email: { to: string; subject: string; body: string }; }
+interface SentRow {
+  id: number; estimateId: string; number: string; customerName: string; repEmail: string; toEmail: string;
+  sentAt: string; status: string; viewed: boolean; viewedTime: string; acceptedDate: string; declinedDate: string;
+}
 
 const b64ToBlobUrl = (b64: string, type = 'application/pdf') => {
   const bin = atob(b64); const arr = new Uint8Array(bin.length);
@@ -25,6 +29,9 @@ const Proposals: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
   const [error, setError] = useState('');
+  const [view, setView] = useState<'pending' | 'sent'>('pending');
+  const [sent, setSent] = useState<SentRow[]>([]);
+  const [sentLoading, setSentLoading] = useState(false);
 
   // Builder state (when an estimate is selected)
   const [sel, setSel] = useState<Estimate | null>(null);
@@ -51,6 +58,14 @@ const Proposals: React.FC = () => {
     } finally { setLoading(false); }
   };
   useEffect(() => { fetchEstimates(); /* eslint-disable-next-line */ }, []);
+
+  const fetchSent = async () => {
+    setSentLoading(true);
+    try { const r = await axios.get(`${API_URL}/api/proposals/sent`, { headers: authHeaders() }); setSent(r.data.proposals || []); }
+    catch { setSent([]); }
+    finally { setSentLoading(false); }
+  };
+  useEffect(() => { if (view === 'sent') fetchSent(); /* eslint-disable-next-line */ }, [view]);
 
   const openBuilder = (e: Estimate) => {
     setSel(e); setLang(i18n.language?.startsWith('en') ? 'en' : 'fr'); setTitle(''); setLogo(null);
@@ -88,11 +103,13 @@ const Proposals: React.FC = () => {
     if (!(await dialog.confirm(t('proposals.sendConfirm', { to: to.trim() }) as string, { confirmText: t('proposals.sendBtn') as string }))) return;
     setSending(true);
     try {
-      await axios.post(`${API_URL}/api/proposals/send`,
+      const resp = await axios.post(`${API_URL}/api/proposals/send`,
         { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body },
         { headers: authHeaders() });
-      await dialog.alert(t('proposals.sent', { to: to.trim() }));
+      const note = resp.data && resp.data.acceptLinkIncluded === false ? '\n\n' + t('proposals.noAcceptLink') : '';
+      await dialog.alert(t('proposals.sent', { to: to.trim() }) + note);
       closeBuilder();
+      setView('sent'); fetchSent();
     } catch (e: any) {
       const code = e?.response?.data?.error;
       dialog.alert(code === 'smtp_not_configured' ? t('proposals.smtpOff') : (e?.response?.data?.reason || e?.response?.data?.error || t('proposals.sendError')));
@@ -101,6 +118,13 @@ const Proposals: React.FC = () => {
 
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
   const money = (n: number, c: string) => `${(n || 0).toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${c || ''}`.trim();
+  const statusBadge = (r: SentRow): { label: string; cls: string } => {
+    if (r.status === 'accepted') return { label: t('proposals.statusAccepted'), cls: 'bg-success/15 text-success' };
+    if (r.status === 'declined') return { label: t('proposals.statusDeclined'), cls: 'bg-danger/15 text-danger' };
+    if (r.status === 'expired') return { label: t('proposals.statusExpired'), cls: 'bg-gray-200 text-gray-500 dark:bg-meta-4' };
+    if (r.viewed) return { label: t('proposals.statusViewed'), cls: 'bg-[#2b67c2]/15 text-[#2b67c2]' };
+    return { label: t('proposals.statusSent'), cls: 'bg-warning/15 text-warning' };
+  };
 
   return (
     <>
@@ -109,6 +133,16 @@ const Proposals: React.FC = () => {
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('proposals.subtitle')}</p>
       </div>
 
+      {/* Tabs */}
+      <div className="mb-5 inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
+        {(['pending', 'sent'] as const).map((v) => (
+          <button key={v} onClick={() => setView(v)} className={`rounded-md px-4 py-1.5 text-sm font-medium ${view === v ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+            {v === 'pending' ? t('proposals.tabPending') : t('proposals.tabSent')}
+          </button>
+        ))}
+      </div>
+
+      {view === 'pending' && (<>
       {/* Search */}
       <div className="mb-5 flex items-center gap-3">
         <div className="relative max-w-md flex-1">
@@ -158,6 +192,57 @@ const Proposals: React.FC = () => {
             </table>
           </div>
         </div>
+      )}
+      </>)}
+
+      {/* Sent proposals — status board */}
+      {view === 'sent' && (
+        <>
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t('proposals.sentSubtitle')}</p>
+            <button onClick={fetchSent} className="rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">{t('proposals.refresh')}</button>
+          </div>
+          {sentLoading ? (
+            <div className="flex h-40 items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+          ) : sent.length === 0 ? (
+            <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('proposals.sentEmpty')}</p></div>
+          ) : (
+            <div className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[760px] text-sm">
+                  <thead className="bg-gray-2 dark:bg-meta-4">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-medium">{t('proposals.customer')}</th>
+                      <th className="px-4 py-3 text-left font-medium">{t('proposals.number')}</th>
+                      <th className="px-4 py-3 text-left font-medium">{t('proposals.sentOn')}</th>
+                      <th className="px-4 py-3 text-left font-medium">{t('proposals.to')}</th>
+                      <th className="px-4 py-3 text-left font-medium">{t('proposals.colStatus')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sent.map((r) => {
+                      const b = statusBadge(r);
+                      const detail = r.acceptedDate ? `${t('proposals.acceptedOn')} ${formatDateOnly(r.acceptedDate, i18n.language)}`
+                        : r.viewedTime ? `${t('proposals.viewedOn')} ${formatDateOnly(r.viewedTime, i18n.language)}` : '';
+                      return (
+                        <tr key={r.id} className="border-t border-stroke dark:border-strokedark">
+                          <td className="px-4 py-2.5 font-medium text-black dark:text-white">{r.customerName}</td>
+                          <td className="px-4 py-2.5 text-body">{r.number}</td>
+                          <td className="px-4 py-2.5 text-body">{formatDateOnly(r.sentAt, i18n.language)}</td>
+                          <td className="px-4 py-2.5 text-body">{r.toEmail}</td>
+                          <td className="px-4 py-2.5">
+                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${b.cls}`}>{b.label}</span>
+                            {detail && <span className="ml-2 text-xs text-gray-400">{detail}</span>}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Builder modal */}

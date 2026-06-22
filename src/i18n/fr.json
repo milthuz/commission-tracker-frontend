@@ -348,7 +348,21 @@
     "sendConfirm": "Envoyer cette proposition à {{to}} ?",
     "sent": "Proposition envoyée à {{to}}.",
     "sendError": "Impossible d'envoyer la proposition.",
-    "smtpOff": "Le courriel n'est pas encore configuré — contacte un administrateur."
+    "smtpOff": "Le courriel n'est pas encore configuré — contacte un administrateur.",
+    "noAcceptLink": "Note : le lien d'acceptation en ligne n'a pas pu être ajouté (active accepter/refuser dans Zoho Books). La proposition a quand même été envoyée.",
+    "tabPending": "À envoyer",
+    "tabSent": "Envoyées",
+    "sentSubtitle": "Les propositions que tu as envoyées, avec leur statut Zoho en direct.",
+    "sentEmpty": "Aucune proposition envoyée pour l'instant.",
+    "sentOn": "Envoyée le",
+    "colStatus": "Statut",
+    "statusSent": "Envoyée",
+    "statusViewed": "Vue",
+    "statusAccepted": "Acceptée",
+    "statusDeclined": "Refusée",
+    "statusExpired": "Expirée",
+    "viewedOn": "vue le",
+    "acceptedOn": "acceptée le"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",

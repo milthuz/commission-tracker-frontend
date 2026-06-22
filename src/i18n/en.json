@@ -348,7 +348,21 @@
     "sendConfirm": "Send this proposal to {{to}}?",
     "sent": "Proposal sent to {{to}}.",
     "sendError": "Couldn't send the proposal.",
-    "smtpOff": "Email isn't configured yet — contact an administrator."
+    "smtpOff": "Email isn't configured yet — contact an administrator.",
+    "noAcceptLink": "Note: the online accept link couldn't be added (enable accept/decline in Zoho Books). The proposal was still sent.",
+    "tabPending": "To send",
+    "tabSent": "Sent",
+    "sentSubtitle": "Proposals you've sent, with live status from Zoho.",
+    "sentEmpty": "No proposals sent yet.",
+    "sentOn": "Sent on",
+    "colStatus": "Status",
+    "statusSent": "Sent",
+    "statusViewed": "Viewed",
+    "statusAccepted": "Accepted",
+    "statusDeclined": "Declined",
+    "statusExpired": "Expired",
+    "viewedOn": "viewed",
+    "acceptedOn": "accepted"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",
