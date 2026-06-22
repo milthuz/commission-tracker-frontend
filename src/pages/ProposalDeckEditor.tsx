@@ -91,6 +91,17 @@ const ProposalDeckEditor: React.FC = () => {
     catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save'); }
     finally { setSaving(false); }
   };
+  const loadStarter = async () => {
+    const hasContent = slides.some(s => s.elements.length > 0 || s.bgImageId != null);
+    if (hasContent && !(await dialog.confirm(t('deck.loadTemplateConfirm') as string, { danger: true, confirmText: t('deck.loadTemplate') as string }))) return;
+    setBusy(true);
+    try {
+      const r = await axios.get(`${API_URL}/api/proposals/deck/starter`, { headers: authHeaders() });
+      if (r.data.deck?.slides?.length) { setSlides(r.data.deck.slides); setSel(0); setSelId(null); setDirty(true); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    finally { setBusy(false); }
+  };
+
   const previewPdf = async () => {
     setBusy(true);
     try {
@@ -239,6 +250,11 @@ const ProposalDeckEditor: React.FC = () => {
     <div>
       {/* Top toolbar */}
       <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-stroke bg-white p-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <button onClick={loadStarter} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg border border-primary bg-primary/10 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 disabled:opacity-50">
+          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+          {t('deck.loadTemplate')}
+        </button>
+        <span className="mx-1 h-5 w-px bg-stroke dark:bg-strokedark" />
         <button onClick={addText} className={btn}>+ {t('deck.addText')}</button>
         <label className={`${btn} cursor-pointer`}>+ {t('deck.addImage')}<input ref={imgInputRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={(e) => { onAddImage(e.target.files?.[0]); if (imgInputRef.current) imgInputRef.current.value = ''; }} /></label>
         <button onClick={addRect} className={btn}>+ {t('deck.addRect')}</button>

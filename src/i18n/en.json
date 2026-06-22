@@ -371,6 +371,8 @@
     "unsaved": "Unsaved changes",
     "previewPdf": "View PDF",
     "previewError": "Couldn't render the preview.",
+    "loadTemplate": "Load Cluster template",
+    "loadTemplateConfirm": "Replace the current content with the Cluster company template? Your current pages will be overwritten.",
     "slide": "Page",
     "addSlide": "Add page",
     "delSlideConfirm": "Delete this page and its elements?",
