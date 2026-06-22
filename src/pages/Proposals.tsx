@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../lib/dialog';
 import { formatDateOnly } from '../utils/date';
-import ProposalDeckEditor from './ProposalDeckEditor';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -30,11 +29,10 @@ const Proposals: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
   const [error, setError] = useState('');
-  const [view, setView] = useState<'pending' | 'sent' | 'deck'>('pending');
+  const [view, setView] = useState<'pending' | 'sent'>('pending');
   const [sent, setSent] = useState<SentRow[]>([]);
   const [sentLoading, setSentLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [canManage, setCanManage] = useState(false);
 
   // Builder state (when an estimate is selected)
   const [sel, setSel] = useState<Estimate | null>(null);
@@ -73,11 +71,7 @@ const Proposals: React.FC = () => {
   // Admin status (from /api/auth/verify — never the raw JWT) drives the delete control.
   useEffect(() => {
     axios.get(`${API_URL}/api/auth/verify`, { headers: authHeaders() })
-      .then((r) => {
-        const u = r.data?.user; const perms: string[] = u?.permissions || [];
-        const admin = !!u?.isAdmin || perms.includes('*');
-        setIsAdmin(admin); setCanManage(admin || perms.includes('proposals:manage'));
-      })
+      .then((r) => { const u = r.data?.user; setIsAdmin(!!u?.isAdmin || (u?.permissions || []).includes('*')); })
       .catch(() => {});
   }, []);
 
@@ -155,14 +149,12 @@ const Proposals: React.FC = () => {
 
       {/* Tabs */}
       <div className="mb-5 inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
-        {((['pending', 'sent', ...(canManage ? ['deck'] : [])]) as ('pending' | 'sent' | 'deck')[]).map((v) => (
+        {(['pending', 'sent'] as const).map((v) => (
           <button key={v} onClick={() => setView(v)} className={`rounded-md px-4 py-1.5 text-sm font-medium ${view === v ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
-            {v === 'pending' ? t('proposals.tabPending') : v === 'sent' ? t('proposals.tabSent') : t('proposals.tabDeck')}
+            {v === 'pending' ? t('proposals.tabPending') : t('proposals.tabSent')}
           </button>
         ))}
       </div>
-
-      {view === 'deck' && canManage && <ProposalDeckEditor />}
 
       {view === 'pending' && (<>
       {/* Search */}

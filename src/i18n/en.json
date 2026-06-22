@@ -284,6 +284,7 @@
     "kaizenDemo": "Kaizen DEMO",
     "proposals": "Proposals",
     "resourcesAdmin": "Resources (storage)",
+    "proposalDeck": "Proposal deck",
     "resellersAdmin": "Manage Resellers",
     "profile": "Profile",
     "collapse": "Collapse sidebar",
@@ -844,6 +845,10 @@
       "libraryCapOnly": "Library cap only",
       "noUsers": "No users found.",
       "perUserHint": "Leave the field empty (or 0) to remove the custom cap and fall back to the role limit."
+    },
+    "proposalDeck": {
+      "title": "Proposal deck",
+      "subtitle": "Edit the company presentation pages used in client proposals (between the cover and the quote)."
     },
     "integrations": {
       "title": "Integrations",

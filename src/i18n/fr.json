@@ -284,6 +284,7 @@
     "kaizenDemo": "Kaizen DEMO",
     "proposals": "Propositions",
     "resourcesAdmin": "Ressources (stockage)",
+    "proposalDeck": "Deck de proposition",
     "resellersAdmin": "Gestion revendeurs",
     "profile": "Profil",
     "collapse": "Réduire la barre latérale",
@@ -844,6 +845,10 @@
       "libraryCapOnly": "Limite globale seulement",
       "noUsers": "Aucun utilisateur trouvé.",
       "perUserHint": "Videz le champ (ou 0) pour retirer la limite personnalisée et revenir à celle du rôle."
+    },
+    "proposalDeck": {
+      "title": "Deck de proposition",
+      "subtitle": "Modifie les pages de présentation de l'entreprise utilisées dans les propositions client (entre la couverture et le devis)."
     },
     "integrations": {
       "title": "Intégrations",
