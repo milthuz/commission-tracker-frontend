@@ -11,7 +11,7 @@ interface Estimate {
   estimateId: string; number: string; customerName: string;
   total: number; currency: string; date: string; status: string; salesperson: string;
 }
-interface Prepared { pdfBase64: string; fileName: string; email: { to: string; subject: string; body: string }; }
+interface Prepared { pdfBase64: string; fileName: string; presentationPageCount: number; estimatePageCount: number; email: { to: string; subject: string; body: string }; }
 interface SentRow {
   id: number; estimateId: string; number: string; customerName: string; repEmail: string; toEmail: string;
   sentAt: string; status: string; viewed: boolean; viewedTime: string; acceptedDate: string; declinedDate: string;
@@ -47,6 +47,9 @@ const Proposals: React.FC = () => {
   const [subject, setSubject] = useState(''); const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Page selection: which presentation pages to include + whether to attach the quote
+  const [selPages, setSelPages] = useState<number[]>([]); // 1-based; empty = all
+  const [inclEstimate, setInclEstimate] = useState(true);
 
   const fetchEstimates = async () => {
     setLoading(true); setError('');
@@ -84,6 +87,7 @@ const Proposals: React.FC = () => {
   const openBuilder = (e: Estimate) => {
     setSel(e); setLang(i18n.language?.startsWith('en') ? 'en' : 'fr'); setTitle(''); setLogo(null);
     setPrepared(null); setPreviewUrl(''); setTo(''); setCc(''); setSubject(''); setBody('');
+    setSelPages([]); setInclEstimate(true);
   };
   const closeBuilder = () => { if (previewUrl) URL.revokeObjectURL(previewUrl); setSel(null); setPrepared(null); setPreviewUrl(''); };
 
@@ -100,10 +104,15 @@ const Proposals: React.FC = () => {
     setPreparing(true);
     try {
       const r = await axios.post(`${API_URL}/api/proposals/prepare`,
-        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined },
+        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined,
+          selectedPages: selPages.length ? selPages : undefined, includeEstimate: inclEstimate },
         { headers: authHeaders() });
       const p: Prepared = r.data;
       setPrepared(p);
+      // First prepare: default to all presentation pages selected.
+      if (selPages.length === 0 && p.presentationPageCount > 0) {
+        setSelPages(Array.from({ length: p.presentationPageCount }, (_, i) => i + 1));
+      }
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(b64ToBlobUrl(p.pdfBase64));
       setTo(p.email?.to || ''); setSubject(p.email?.subject || ''); setBody(p.email?.body || '');
@@ -118,7 +127,8 @@ const Proposals: React.FC = () => {
     setSending(true);
     try {
       const resp = await axios.post(`${API_URL}/api/proposals/send`,
-        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body },
+        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body,
+          selectedPages: selPages.length ? selPages : undefined, includeEstimate: inclEstimate },
         { headers: authHeaders() });
       const note = resp.data && resp.data.acceptLinkIncluded === false ? '\n\n' + t('proposals.noAcceptLink') : '';
       await dialog.alert(t('proposals.sent', { to: to.trim() }) + note);
@@ -309,6 +319,41 @@ const Proposals: React.FC = () => {
                 <button onClick={prepare} disabled={preparing} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
                   {preparing ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('proposals.preparing')}</> : (prepared ? t('proposals.regenerate') : t('proposals.generatePreview'))}
                 </button>
+
+                {/* Page selection (after prepare) — choose which presentation pages + the quote */}
+                {prepared && prepared.presentationPageCount > 0 && (
+                  <div className="space-y-2 border-t border-stroke pt-4 dark:border-strokedark">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-black dark:text-white">{t('proposals.pagesTitle')}</p>
+                      <div className="flex gap-2 text-xs">
+                        <button onClick={() => setSelPages(Array.from({ length: prepared.presentationPageCount }, (_, i) => i + 1))} className="text-primary hover:underline">{t('proposals.selectAll')}</button>
+                        <button onClick={() => setSelPages([])} className="text-body hover:underline">{t('proposals.selectNone')}</button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400">{t('proposals.pagesHint')}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Array.from({ length: prepared.presentationPageCount }, (_, i) => i + 1).map((n) => {
+                        const on = selPages.includes(n);
+                        return (
+                          <button key={n} onClick={() => setSelPages(on ? selPages.filter((x) => x !== n) : [...selPages, n].sort((a, b) => a - b))}
+                            className={`h-8 min-w-8 rounded-lg border px-2 text-xs font-medium ${on ? 'border-primary bg-primary text-white' : 'border-stroke text-body hover:border-primary dark:border-strokedark'}`}>
+                            {n}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {prepared.estimatePageCount > 0 && (
+                      <label className="mt-1 flex cursor-pointer items-center gap-2 text-sm text-body">
+                        <input type="checkbox" checked={inclEstimate} onChange={(e) => setInclEstimate(e.target.checked)} />
+                        {t('proposals.includeQuote', { count: prepared.estimatePageCount })}
+                      </label>
+                    )}
+                    <button onClick={prepare} disabled={preparing} className="inline-flex items-center gap-1.5 rounded-lg border border-stroke bg-white px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark dark:bg-boxdark">
+                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                      {t('proposals.updatePreview')}
+                    </button>
+                  </div>
+                )}
 
                 {/* Email draft (after prepare) */}
                 {prepared && (
