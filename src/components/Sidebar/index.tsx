@@ -340,6 +340,22 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Menu Item Proposals (perm: proposals:send) — build & send client proposals --> */}
+              {(isAdmin || can('proposals:send')) && (
+                <li>
+                  <NavLink
+                    to="/proposals"
+                    className={navLinkCls(pathname.includes('proposals'))}
+                  >
+                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm0 2l4 4h-4V4zM8 13h8v2H8v-2zm0 4h8v2H8v-2z" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.proposals')}</span>
+                    <NewBadge path="/proposals" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.proposals') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Admin Panel (Admin Only) --> */}
               {isAdmin && (
                 <li>

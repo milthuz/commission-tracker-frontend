@@ -1,0 +1,237 @@
+import React, { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import { useTranslation } from 'react-i18next';
+import { dialog } from '../lib/dialog';
+import { formatDateOnly } from '../utils/date';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+
+interface Estimate {
+  estimateId: string; number: string; customerName: string;
+  total: number; currency: string; date: string; status: string; salesperson: string;
+}
+interface Prepared { pdfBase64: string; fileName: string; email: { to: string; subject: string; body: string }; }
+
+const b64ToBlobUrl = (b64: string, type = 'application/pdf') => {
+  const bin = atob(b64); const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return URL.createObjectURL(new Blob([arr], { type }));
+};
+
+const Proposals: React.FC = () => {
+  const { t, i18n } = useTranslation();
+  const [estimates, setEstimates] = useState<Estimate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState('');
+  const [error, setError] = useState('');
+
+  // Builder state (when an estimate is selected)
+  const [sel, setSel] = useState<Estimate | null>(null);
+  const [lang, setLang] = useState<'fr' | 'en'>('fr');
+  const [title, setTitle] = useState('');
+  const [logo, setLogo] = useState<string | null>(null);
+  const [preparing, setPreparing] = useState(false);
+  const [prepared, setPrepared] = useState<Prepared | null>(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  // editable email
+  const [to, setTo] = useState(''); const [cc, setCc] = useState('');
+  const [subject, setSubject] = useState(''); const [body, setBody] = useState('');
+  const [sending, setSending] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const fetchEstimates = async () => {
+    setLoading(true); setError('');
+    try {
+      const r = await axios.get(`${API_URL}/api/proposals/estimates`, { headers: authHeaders(), params: { q } });
+      setEstimates(r.data.estimates || []);
+    } catch (e: any) {
+      setError(e?.response?.data?.detail || e?.response?.data?.error || t('proposals.loadError'));
+      setEstimates([]);
+    } finally { setLoading(false); }
+  };
+  useEffect(() => { fetchEstimates(); /* eslint-disable-next-line */ }, []);
+
+  const openBuilder = (e: Estimate) => {
+    setSel(e); setLang(i18n.language?.startsWith('en') ? 'en' : 'fr'); setTitle(''); setLogo(null);
+    setPrepared(null); setPreviewUrl(''); setTo(''); setCc(''); setSubject(''); setBody('');
+  };
+  const closeBuilder = () => { if (previewUrl) URL.revokeObjectURL(previewUrl); setSel(null); setPrepared(null); setPreviewUrl(''); };
+
+  const onLogo = (f?: File) => {
+    if (!f) { setLogo(null); return; }
+    const reader = new FileReader();
+    reader.onload = () => setLogo(String(reader.result || ''));
+    reader.readAsDataURL(f);
+  };
+
+  const prepare = async () => {
+    if (!sel) return;
+    if (!title.trim()) { dialog.alert(t('proposals.titleRequired')); return; }
+    setPreparing(true);
+    try {
+      const r = await axios.post(`${API_URL}/api/proposals/prepare`,
+        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined },
+        { headers: authHeaders() });
+      const p: Prepared = r.data;
+      setPrepared(p);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(b64ToBlobUrl(p.pdfBase64));
+      setTo(p.email?.to || ''); setSubject(p.email?.subject || ''); setBody(p.email?.body || '');
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('proposals.prepareError')); }
+    finally { setPreparing(false); }
+  };
+
+  const send = async () => {
+    if (!sel || !prepared) return;
+    if (!to.trim()) { dialog.alert(t('proposals.toRequired')); return; }
+    if (!(await dialog.confirm(t('proposals.sendConfirm', { to: to.trim() }) as string, { confirmText: t('proposals.sendBtn') as string }))) return;
+    setSending(true);
+    try {
+      await axios.post(`${API_URL}/api/proposals/send`,
+        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body },
+        { headers: authHeaders() });
+      await dialog.alert(t('proposals.sent', { to: to.trim() }));
+      closeBuilder();
+    } catch (e: any) {
+      const code = e?.response?.data?.error;
+      dialog.alert(code === 'smtp_not_configured' ? t('proposals.smtpOff') : (e?.response?.data?.reason || e?.response?.data?.error || t('proposals.sendError')));
+    } finally { setSending(false); }
+  };
+
+  const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
+  const money = (n: number, c: string) => `${(n || 0).toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${c || ''}`.trim();
+
+  return (
+    <>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-black dark:text-white">{t('proposals.title')}</h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('proposals.subtitle')}</p>
+      </div>
+
+      {/* Search */}
+      <div className="mb-5 flex items-center gap-3">
+        <div className="relative max-w-md flex-1">
+          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+          <input value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') fetchEstimates(); }}
+            placeholder={t('proposals.search') as string}
+            className="w-full rounded-lg border border-stroke bg-white py-2.5 pl-9 pr-3 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white" />
+        </div>
+        <button onClick={fetchEstimates} className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-opacity-90">{t('proposals.refresh')}</button>
+      </div>
+
+      {loading ? (
+        <div className="flex h-40 items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+      ) : error ? (
+        <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-danger">{error}</p></div>
+      ) : estimates.length === 0 ? (
+        <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('proposals.empty')}</p></div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px] text-sm">
+              <thead className="bg-gray-2 dark:bg-meta-4">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">{t('proposals.number')}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('proposals.customer')}</th>
+                  <th className="px-4 py-3 text-right font-medium">{t('proposals.total')}</th>
+                  <th className="px-4 py-3 text-left font-medium">{t('proposals.date')}</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {estimates.map((e) => (
+                  <tr key={e.estimateId} className="border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
+                    <td className="px-4 py-2.5 font-medium text-black dark:text-white">{e.number}</td>
+                    <td className="px-4 py-2.5 text-body">{e.customerName}</td>
+                    <td className="px-4 py-2.5 text-right text-body">{money(e.total, e.currency)}</td>
+                    <td className="px-4 py-2.5 text-body">{formatDateOnly(e.date, i18n.language)}</td>
+                    <td className="px-4 py-2.5 text-right">
+                      <button onClick={() => openBuilder(e)} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        {t('proposals.prepare')}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Builder modal */}
+      {sel && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={closeBuilder}>
+          <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-stroke bg-white shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
+              <div>
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('proposals.builderTitle')}</h3>
+                <p className="text-xs text-gray-400">{sel.number} · {sel.customerName}</p>
+              </div>
+              <button onClick={closeBuilder} className="rounded-lg p-1.5 text-body hover:bg-gray-1 dark:hover:bg-meta-4"><svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+
+            <div className="grid flex-1 grid-cols-1 gap-0 overflow-hidden md:grid-cols-2">
+              {/* Left: form / email */}
+              <div className="space-y-4 overflow-y-auto p-6">
+                {/* Language */}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-body">{t('proposals.language')}</label>
+                  <div className="inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
+                    {(['fr', 'en'] as const).map((l) => (
+                      <button key={l} onClick={() => { setLang(l); setPrepared(null); }} className={`rounded-md px-4 py-1.5 text-sm font-medium ${lang === l ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>{l === 'fr' ? 'Français' : 'English'}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* Title */}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-body">{t('proposals.coverTitle')}</label>
+                  <input value={title} onChange={(e) => { setTitle(e.target.value); setPrepared(null); }} placeholder={t('proposals.coverTitlePlaceholder') as string} className={inputCls} />
+                </div>
+                {/* Logo */}
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-body">{t('proposals.logo')}</label>
+                  <div className="flex items-center gap-2">
+                    <input ref={fileRef} type="file" accept="image/png,image/jpeg" onChange={(e) => { onLogo(e.target.files?.[0]); setPrepared(null); }}
+                      className="text-sm text-body file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-white" />
+                    {logo && <button onClick={() => { setLogo(null); if (fileRef.current) fileRef.current.value = ''; }} className="text-xs text-danger hover:underline">{t('common.remove') || 'Retirer'}</button>}
+                  </div>
+                </div>
+
+                <button onClick={prepare} disabled={preparing} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+                  {preparing ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('proposals.preparing')}</> : (prepared ? t('proposals.regenerate') : t('proposals.generatePreview'))}
+                </button>
+
+                {/* Email draft (after prepare) */}
+                {prepared && (
+                  <div className="space-y-3 border-t border-stroke pt-4 dark:border-strokedark">
+                    <p className="text-sm font-semibold text-black dark:text-white">{t('proposals.emailDraft')}</p>
+                    <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.to')}</label><input value={to} onChange={(e) => setTo(e.target.value)} placeholder="client@example.com" className={inputCls} /></div>
+                    <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.cc')}</label><input value={cc} onChange={(e) => setCc(e.target.value)} className={inputCls} /></div>
+                    <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.subject')}</label><input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputCls} /></div>
+                    <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.message')}</label><textarea value={body} onChange={(e) => setBody(e.target.value)} rows={7} className={inputCls} /></div>
+                    <button onClick={send} disabled={sending} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+                      {sending ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('proposals.sending')}</> : <><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>{t('proposals.sendBtn')}</>}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Right: PDF preview */}
+              <div className="hidden min-h-[400px] border-l border-stroke bg-gray-100 dark:border-strokedark dark:bg-meta-4/30 md:block">
+                {previewUrl ? (
+                  <iframe title="preview" src={previewUrl} className="h-full w-full" style={{ border: 0 }} />
+                ) : (
+                  <div className="flex h-full items-center justify-center p-8 text-center text-sm text-gray-400">{t('proposals.previewHint')}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Proposals;

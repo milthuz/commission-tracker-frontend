@@ -23,6 +23,7 @@ import Reseller from './pages/Reseller';
 import Revenue from './pages/Revenue';
 import Resources from './pages/Resources';
 import KaizenDemo from './pages/KaizenDemo';
+import Proposals from './pages/Proposals';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -198,6 +199,15 @@ function AppContent() {
               <>
                 <PageTitle title="Kaizen DEMO | Sales Hub" />
                 <KaizenDemo />
+              </>
+            }
+          />
+          <Route
+            path="/proposals"
+            element={
+              <>
+                <PageTitle title="Propositions | Sales Hub" />
+                <Proposals />
               </>
             }
           />
