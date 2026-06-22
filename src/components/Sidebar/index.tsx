@@ -167,6 +167,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             />
           </svg>
         </button>
+
+        {/* Desktop collapse/expand toggle — in the header so it's ALWAYS visible
+            (the bottom position got pushed off-screen on shorter laptops as the menu grew). */}
+        <button
+          type="button"
+          data-tour="sidebar-toggle"
+          onClick={() => setCollapsed(!collapsed)}
+          title={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
+          aria-label={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
+          className="hidden lg:flex items-center justify-center h-8 w-8 shrink-0 rounded-md border border-bodydark2/30 bg-black/30 text-bodydark2 hover:bg-graydark hover:text-white transition-all"
+        >
+          <svg className={`h-4 w-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
       </div>
       {/* <!-- SIDEBAR HEADER --> */}
 
@@ -506,27 +521,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         {/* <!-- Sidebar Menu --> */}
       </div>
 
-      {/* <!-- Desktop collapse toggle (Zoho-style, bottom-right) — hidden on mobile --> */}
-      <button
-        type="button"
-        data-tour="sidebar-toggle"
-        onClick={() => setCollapsed(!collapsed)}
-        title={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
-        aria-label={collapsed ? (t('sidebar.expand') as string) : (t('sidebar.collapse') as string)}
-        className={`hidden lg:flex mt-auto mb-3 mx-3 items-center justify-center h-9 w-9 rounded-md border border-bodydark2/30 bg-black/30 text-bodydark2 hover:bg-graydark hover:text-white transition-all self-end ${
-          collapsed ? 'self-center' : ''
-        }`}
-      >
-        <svg
-          className={`h-4 w-4 transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
     </aside>
   );
 };
