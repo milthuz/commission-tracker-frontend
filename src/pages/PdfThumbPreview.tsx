@@ -74,7 +74,8 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, se
       const targetW = Math.min(560, (cv.parentElement?.clientWidth || 520) - 8);
       const vp = page.getViewport({ scale: (targetW * 2) / base.width }); // 2x for retina crispness
       cv.width = Math.ceil(vp.width); cv.height = Math.ceil(vp.height);
-      cv.style.width = '100%'; cv.style.height = 'auto';
+      // Let CSS fit the canvas inside the pane (max-h/max-w) so it never needs its own scrollbar.
+      cv.style.width = ''; cv.style.height = '';
       await page.render({ canvasContext: cv.getContext('2d')!, viewport: vp } as any).promise;
     })();
     return () => { cancelled = true; };
@@ -99,10 +100,9 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, se
 
   return (
     <div className="flex h-full">
-      {/* Thumbnail rail */}
+      {/* Thumbnail rail — the only scrollable area */}
       <div className="w-[160px] shrink-0 overflow-y-auto border-r border-stroke dark:border-strokedark">
-        <p className="sticky top-0 z-10 bg-white px-2 py-2 text-[11px] font-semibold text-body dark:bg-boxdark">{t('proposals.finalDoc', { count: totalIncluded })}</p>
-        <div className="space-y-2 p-2 pt-0">
+        <div className="space-y-2 p-2">
           {pages.map((p) => {
             const inc = included(p.num);
             const est = isEstimate(p.num);
@@ -134,8 +134,8 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, se
             </button>
           </div>
         )}
-        <div className="flex flex-1 items-start justify-center overflow-y-auto bg-gray-100 p-4 dark:bg-meta-4/30">
-          <canvas ref={bigRef} className={`rounded shadow-default ${included(focused) ? '' : 'opacity-40'}`} />
+        <div className="flex flex-1 items-center justify-center overflow-hidden bg-gray-100 p-4 dark:bg-meta-4/30">
+          <canvas ref={bigRef} className={`max-h-full max-w-full rounded shadow-default ${included(focused) ? '' : 'opacity-40'}`} />
         </div>
       </div>
     </div>
