@@ -342,6 +342,8 @@
     "pageInclude": "Inclure cette page",
     "pageExclude": "Exclure cette page",
     "quoteTag": "Devis",
+    "finalDoc": "Document final — {{count}} page(s)",
+    "downloadPdf": "Télécharger",
     "pagesTitle": "Pages à envoyer",
     "pagesHint": "Choisis les pages de présentation à inclure. Clique « Mettre à jour l'aperçu » pour rafraîchir.",
     "selectAll": "Toutes",

@@ -342,6 +342,8 @@
     "pageInclude": "Include this page",
     "pageExclude": "Exclude this page",
     "quoteTag": "Quote",
+    "finalDoc": "Final document — {{count}} page(s)",
+    "downloadPdf": "Download",
     "pagesTitle": "Pages to send",
     "pagesHint": "Pick which presentation pages to include. Click \"Update preview\" to refresh.",
     "selectAll": "All",

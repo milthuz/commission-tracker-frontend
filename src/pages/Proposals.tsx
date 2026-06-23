@@ -4,6 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { dialog } from '../lib/dialog';
 import { formatDateOnly } from '../utils/date';
 import PdfThumbPreview from './PdfThumbPreview';
+import { PDFDocument } from 'pdf-lib';
+
+const b64ToBytes = (b64: string) => {
+  const bin = atob(b64); const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+};
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -130,6 +137,26 @@ const Proposals: React.FC = () => {
       const code = e?.response?.data?.error;
       dialog.alert(code === 'smtp_not_configured' ? t('proposals.smtpOff') : (e?.response?.data?.reason || e?.response?.data?.error || t('proposals.sendError')));
     } finally { setSending(false); }
+  };
+
+  // Download the SAME PDF that will be sent — filter the prepared full doc client-side (pdf-lib).
+  const download = async () => {
+    if (!prepared) return;
+    try {
+      const full = await PDFDocument.load(b64ToBytes(prepared.pdfBase64));
+      const out = await PDFDocument.create();
+      const total = full.getPageCount();
+      const idxs: number[] = [];
+      for (let i = 1; i <= total; i++) {
+        const inc = i > prepared.presentationPageCount ? inclEstimate : selPages.includes(i);
+        if (inc) idxs.push(i - 1);
+      }
+      (await out.copyPages(full, idxs.length ? idxs : full.getPageIndices())).forEach((p) => out.addPage(p));
+      const blob = new Blob([await out.save() as BlobPart], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = prepared.fileName || 'proposition.pdf';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (e: any) { dialog.alert(e?.message || 'Download failed'); }
   };
 
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
@@ -327,9 +354,15 @@ const Proposals: React.FC = () => {
                     <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.cc')}</label><input value={cc} onChange={(e) => setCc(e.target.value)} className={inputCls} /></div>
                     <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.subject')}</label><input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputCls} /></div>
                     <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.message')}</label><textarea value={body} onChange={(e) => setBody(e.target.value)} rows={7} className={inputCls} /></div>
-                    <button onClick={send} disabled={sending} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
-                      {sending ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('proposals.sending')}</> : <><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>{t('proposals.sendBtn')}</>}
-                    </button>
+                    <div className="flex gap-2">
+                      <button onClick={download} className="inline-flex items-center justify-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2.5 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m6 5v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1" /></svg>
+                        {t('proposals.downloadPdf')}
+                      </button>
+                      <button onClick={send} disabled={sending} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+                        {sending ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('proposals.sending')}</> : <><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>{t('proposals.sendBtn')}</>}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

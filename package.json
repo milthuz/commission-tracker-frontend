@@ -23,6 +23,7 @@
     "jsvectormap": "^1.5.3",
     "lucide-react": "^0.554.0",
     "match-sorter": "^6.3.1",
+    "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.0.227",
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.1",

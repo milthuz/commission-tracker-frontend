@@ -81,6 +81,13 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, se
 
   const isEstimate = (num: number) => num > presentationPageCount;
   const included = (num: number) => isEstimate(num) ? inclEstimate : selPages.includes(num);
+  // Final page number = position among INCLUDED pages (so numbering follows the selection).
+  const finalNumber = (num: number) => {
+    let n = 0;
+    for (let i = 1; i <= num; i++) if (included(i)) n++;
+    return n;
+  };
+  const totalIncluded = finalNumber(pages.length);
   const toggle = (num: number) => {
     if (isEstimate(num)) { setInclEstimate(!inclEstimate); return; }
     setSelPages(selPages.includes(num) ? selPages.filter((x) => x !== num) : [...selPages, num].sort((a, b) => a - b));
@@ -92,23 +99,28 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, se
   return (
     <div className="flex h-full">
       {/* Thumbnail rail */}
-      <div className="w-[150px] shrink-0 space-y-2 overflow-y-auto border-r border-stroke p-2 dark:border-strokedark">
-        {pages.map((p) => {
-          const inc = included(p.num);
-          const est = isEstimate(p.num);
-          return (
-            <div key={p.num} className={`group relative cursor-pointer rounded-md border-2 transition ${focused === p.num ? 'border-primary' : 'border-transparent'}`} onClick={() => setFocused(p.num)}>
-              <img src={p.thumb} alt={`page ${p.num}`} className={`w-full rounded shadow-sm transition ${inc ? '' : 'opacity-30 grayscale'}`} />
-              {/* include toggle */}
-              <button onClick={(e) => { e.stopPropagation(); toggle(p.num); }}
-                title={(inc ? t('proposals.pageExclude') : t('proposals.pageInclude')) as string}
-                className={`absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold shadow ${inc ? 'border-primary bg-primary text-white' : 'border-stroke bg-white text-gray-400 dark:border-strokedark dark:bg-boxdark'}`}>
-                {inc ? '✓' : ''}
-              </button>
-              <span className="absolute bottom-1 left-1 rounded bg-black/55 px-1 text-[10px] font-medium text-white">{est ? t('proposals.quoteTag') : p.num}</span>
-            </div>
-          );
-        })}
+      <div className="w-[160px] shrink-0 overflow-y-auto border-r border-stroke dark:border-strokedark">
+        <p className="sticky top-0 z-10 bg-white px-2 py-2 text-[11px] font-semibold text-body dark:bg-boxdark">{t('proposals.finalDoc', { count: totalIncluded })}</p>
+        <div className="space-y-2 p-2 pt-0">
+          {pages.map((p) => {
+            const inc = included(p.num);
+            const est = isEstimate(p.num);
+            return (
+              <div key={p.num} className={`group relative cursor-pointer rounded-md border-2 transition ${focused === p.num ? 'border-primary' : 'border-transparent'}`} onClick={() => setFocused(p.num)}>
+                <img src={p.thumb} alt={`page ${p.num}`} className={`w-full rounded shadow-sm transition ${inc ? '' : 'opacity-25 grayscale'}`} />
+                {/* include toggle */}
+                <button onClick={(e) => { e.stopPropagation(); toggle(p.num); }}
+                  title={(inc ? t('proposals.pageExclude') : t('proposals.pageInclude')) as string}
+                  className={`absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold shadow ${inc ? 'border-primary bg-primary text-white' : 'border-stroke bg-white text-gray-400 dark:border-strokedark dark:bg-boxdark'}`}>
+                  {inc ? '✓' : ''}
+                </button>
+                {/* final page number (follows the selection) or excluded mark */}
+                <span className={`absolute bottom-1 left-1 rounded px-1 text-[10px] font-semibold ${inc ? 'bg-primary text-white' : 'bg-gray-500/70 text-white line-through'}`}>{inc ? finalNumber(p.num) : '✕'}</span>
+                {est && <span className="absolute bottom-1 right-1 rounded bg-black/55 px-1 text-[9px] font-medium text-white">{t('proposals.quoteTag')}</span>}
+              </div>
+            );
+          })}
+        </div>
       </div>
       {/* Focused page */}
       <div className="flex flex-1 items-start justify-center overflow-y-auto bg-gray-100 p-4 dark:bg-meta-4/30">
