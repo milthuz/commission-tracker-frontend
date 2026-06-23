@@ -20,7 +20,7 @@ interface HealthData {
   generatedAt: string;
   issues: {
     unassignedResellerActivations: number;
-    unassignedInvoices: { count: number; totalCommission: number };
+    unassignedInvoices: { count: number; totalCommission: number; items: { invoice_number: string; customer_name: string; commission: number; date: string }[] };
     unassignedZentactMerchants: number;
     repsNoRole: { count: number; names: string[] };
     unmappedResellerEmails: number;
@@ -37,6 +37,7 @@ const DataHealth: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [resolving, setResolving] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
   // Recipient list for the missing commission/points emails (empty = all admins).
   const [recipients, setRecipients] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState('');
@@ -96,13 +97,14 @@ const DataHealth: React.FC = () => {
   const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n || 0);
 
   const cards = i ? [
-    { key: 'resellerActivations', count: i.unassignedResellerActivations, to: '/reseller', detail: undefined as string | undefined },
+    { key: 'resellerActivations', count: i.unassignedResellerActivations, to: '/reseller', detail: undefined as string | undefined, expandable: false },
     { key: 'invoices', count: i.unassignedInvoices.count, to: '/admin/import-payments',
-      detail: i.unassignedInvoices.count > 0 ? t('dataHealth.cards.invoices.amount', { amount: money(i.unassignedInvoices.totalCommission) }) as string : undefined },
-    { key: 'zentactMerchants', count: i.unassignedZentactMerchants, to: '/commission-tracker', detail: undefined },
+      detail: i.unassignedInvoices.count > 0 ? t('dataHealth.cards.invoices.amount', { amount: money(i.unassignedInvoices.totalCommission) }) as string : undefined,
+      expandable: i.unassignedInvoices.items.length > 0 },
+    { key: 'zentactMerchants', count: i.unassignedZentactMerchants, to: '/commission-tracker', detail: undefined, expandable: false },
     { key: 'repsNoRole', count: i.repsNoRole.count, to: '/admin/users',
-      detail: i.repsNoRole.count > 0 ? i.repsNoRole.names.join(', ') : undefined },
-    { key: 'resellerEmails', count: i.unmappedResellerEmails, to: '/admin/resellers', detail: undefined },
+      detail: undefined, expandable: i.repsNoRole.count > 0 },
+    { key: 'resellerEmails', count: i.unmappedResellerEmails, to: '/admin/resellers', detail: undefined, expandable: false },
   ] : [];
 
   const reports = i?.userReports.items || [];
@@ -185,14 +187,63 @@ const DataHealth: React.FC = () => {
                   </div>
                   <p className="mb-3 flex-1 text-xs text-gray-500 dark:text-gray-400">{t(`dataHealth.cards.${c.key}.desc`)}</p>
                   {c.detail && <p className="mb-3 rounded-md bg-gray-1 px-2.5 py-1.5 text-xs text-body dark:bg-meta-4 dark:text-bodydark">{c.detail}</p>}
-                  <NavLink to={c.to} className={`inline-flex items-center gap-1.5 self-start text-sm font-medium ${ok ? 'pointer-events-none text-gray-400' : 'text-primary hover:underline'}`}>
-                    {ok ? t('dataHealth.cards.resolved') : t('dataHealth.cards.fix')}
-                    {!ok && <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>}
-                  </NavLink>
+                  <div className="flex items-center gap-3">
+                    {c.expandable && (
+                      <button onClick={() => setExpanded(expanded === c.key ? null : c.key)} className="inline-flex items-center gap-1 text-sm font-medium text-body hover:text-primary">
+                        {expanded === c.key ? t('dataHealth.cards.hide') : t('dataHealth.cards.view')}
+                      </button>
+                    )}
+                    <NavLink to={c.to} className={`inline-flex items-center gap-1.5 self-start text-sm font-medium ${ok ? 'pointer-events-none text-gray-400' : 'text-primary hover:underline'}`}>
+                      {ok ? t('dataHealth.cards.resolved') : t('dataHealth.cards.fix')}
+                      {!ok && <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>}
+                    </NavLink>
+                  </div>
                 </div>
               );
             })}
           </div>
+
+          {/* Expanded detail lists */}
+          {expanded === 'invoices' && i && (
+            <div className="mt-4 overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-5 py-3 dark:border-strokedark">
+                <h4 className="text-sm font-semibold text-black dark:text-white">{t('dataHealth.cards.invoices.title')}</h4>
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t('dataHealth.invoiceList.hint')}</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[480px] text-sm">
+                  <thead>
+                    <tr className="border-b border-stroke text-left text-xs text-gray-500 dark:border-strokedark">
+                      <th className="px-5 py-2 font-medium">{t('dataHealth.invoiceList.invoice')}</th>
+                      <th className="px-5 py-2 font-medium">{t('dataHealth.invoiceList.customer')}</th>
+                      <th className="px-5 py-2 font-medium">{t('dataHealth.invoiceList.date')}</th>
+                      <th className="px-5 py-2 text-right font-medium">{t('dataHealth.invoiceList.commission')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {i.unassignedInvoices.items.map((inv) => (
+                      <tr key={inv.invoice_number} className="border-b border-stroke last:border-0 dark:border-strokedark">
+                        <td className="whitespace-nowrap px-5 py-2 font-medium text-black dark:text-white">{inv.invoice_number}</td>
+                        <td className="px-5 py-2 text-body dark:text-bodydark">{inv.customer_name}</td>
+                        <td className="whitespace-nowrap px-5 py-2 text-body dark:text-bodydark">{inv.date}</td>
+                        <td className="whitespace-nowrap px-5 py-2 text-right text-body dark:text-bodydark">{money(inv.commission)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          {expanded === 'repsNoRole' && i && (
+            <div className="mt-4 rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('dataHealth.cards.repsNoRole.title')}</h4>
+              <div className="flex flex-wrap gap-2">
+                {i.repsNoRole.names.map((n) => (
+                  <span key={n} className="rounded-full bg-gray-1 px-2.5 py-1 text-xs text-body dark:bg-meta-4 dark:text-bodydark">{n}</span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {reports.length > 0 && (
             <div className="mt-6 rounded-xl border border-warning/40 bg-white shadow-default dark:bg-boxdark">

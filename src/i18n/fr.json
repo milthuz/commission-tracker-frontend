@@ -406,6 +406,8 @@
     "lastChecked": "Dernière vérification à {{time}}",
     "cards": {
       "fix": "Vérifier et corriger",
+      "view": "Voir la liste",
+      "hide": "Masquer la liste",
       "resolved": "Réglé",
       "resellerActivations": {
         "title": "Activations revendeur non attribuées",
@@ -441,12 +443,19 @@
     },
     "recipients": {
       "title": "Destinataires des signalements",
-      "desc": "Qui reçoit les courriels de commission / points manquants. Laisse vide pour envoyer à tous les administrateurs.",
-      "emptyNote": "Aucune liste définie — envoi à tous les administrateurs.",
+      "desc": "Qui reçoit les courriels de commission / points manquants. Si vide, aucun courriel n'est envoyé — les signalements apparaissent seulement dans ce tableau.",
+      "emptyNote": "Aucun destinataire — les signalements vont seulement dans ce tableau (aucun courriel).",
       "placeholder": "courriel@exemple.com",
       "add": "Ajouter",
       "save": "Enregistrer",
       "saved": "Enregistré"
+    },
+    "invoiceList": {
+      "hint": "Corrige l'attribution dans Zoho Books (une synchro écrase les modifications locales).",
+      "invoice": "Facture",
+      "customer": "Client",
+      "date": "Date",
+      "commission": "Commission"
     }
   },
   "resources": {

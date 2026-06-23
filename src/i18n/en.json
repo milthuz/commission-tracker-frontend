@@ -406,6 +406,8 @@
     "lastChecked": "Last checked at {{time}}",
     "cards": {
       "fix": "Review & fix",
+      "view": "View list",
+      "hide": "Hide list",
       "resolved": "Resolved",
       "resellerActivations": {
         "title": "Unassigned reseller activations",
@@ -441,12 +443,19 @@
     },
     "recipients": {
       "title": "Report email recipients",
-      "desc": "Who gets the missing commission / points emails. Leave empty to send to all administrators.",
-      "emptyNote": "No list set — sending to all administrators.",
+      "desc": "Who gets the missing commission / points emails. If empty, no email is sent — reports appear in this dashboard only.",
+      "emptyNote": "No recipients — reports go to this dashboard only (no email sent).",
       "placeholder": "email@example.com",
       "add": "Add",
       "save": "Save",
       "saved": "Saved"
+    },
+    "invoiceList": {
+      "hint": "Fix attribution in Zoho Books (a sync overwrites local edits).",
+      "invoice": "Invoice",
+      "customer": "Customer",
+      "date": "Date",
+      "commission": "Commission"
     }
   },
   "resources": {
