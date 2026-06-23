@@ -103,7 +103,6 @@ const Proposals: React.FC = () => {
 
   const prepare = async () => {
     if (!sel) return;
-    if (!title.trim()) { dialog.alert(t('proposals.titleRequired')); return; }
     setPreparing(true);
     try {
       // Always render the FULL document so every page shows as a thumbnail; the rep then toggles
@@ -321,11 +320,6 @@ const Proposals: React.FC = () => {
                       <button key={l} onClick={() => { setLang(l); setPrepared(null); }} className={`rounded-md px-4 py-1.5 text-sm font-medium ${lang === l ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>{l === 'fr' ? 'Français' : 'English'}</button>
                     ))}
                   </div>
-                </div>
-                {/* Title */}
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-body">{t('proposals.coverTitle')}</label>
-                  <input value={title} onChange={(e) => { setTitle(e.target.value); setPrepared(null); }} placeholder={t('proposals.coverTitlePlaceholder') as string} className={inputCls} />
                 </div>
                 {/* Cover co-branding: client name OR client logo (rep's choice) */}
                 <div>
