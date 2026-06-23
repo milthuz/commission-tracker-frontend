@@ -31,13 +31,13 @@ import { NewFeaturesProvider } from './context/NewFeaturesContext';
 import DialogHost from './components/DialogHost';
 
 // "/" adapts to the user's role:
-//   • Admin (* / admin:access) → finance dashboard (full edit access)
+//   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
 //   • Manager (report:view_others, not admin) → team-performance dashboard
 //   • everyone else (Sales Rep) → personal RepDashboard
 function HomeRoute() {
   const { user } = useAuth();
   const perms = user?.permissions || [];
-  const isAdmin = !!user?.isAdmin || perms.includes('*') || perms.includes('admin:access');
+  const isAdmin = !!user?.isAdmin || perms.includes('*') || perms.includes('admin:access') || perms.includes('dashboard:view_admin');
   const isManager = perms.includes('report:view_others') || perms.includes('tracker:view_all_details');
   return (
     <>
