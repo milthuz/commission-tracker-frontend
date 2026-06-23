@@ -51,6 +51,8 @@ const Proposals: React.FC = () => {
   // Page selection: which presentation pages to include + whether to attach the quote
   const [selPages, setSelPages] = useState<number[]>([]); // 1-based; empty = all
   const [inclEstimate, setInclEstimate] = useState(true);
+  // Cover co-branding: show the client NAME (default) or the client LOGO
+  const [branding, setBranding] = useState<'name' | 'logo'>('name');
 
   const fetchEstimates = async () => {
     setLoading(true); setError('');
@@ -88,7 +90,7 @@ const Proposals: React.FC = () => {
   const openBuilder = (e: Estimate) => {
     setSel(e); setLang(i18n.language?.startsWith('en') ? 'en' : 'fr'); setTitle(''); setLogo(null);
     setPrepared(null); setTo(''); setCc(''); setSubject(''); setBody('');
-    setSelPages([]); setInclEstimate(true);
+    setSelPages([]); setInclEstimate(true); setBranding('name');
   };
   const closeBuilder = () => { setSel(null); setPrepared(null); };
 
@@ -107,7 +109,7 @@ const Proposals: React.FC = () => {
       // Always render the FULL document so every page shows as a thumbnail; the rep then toggles
       // which pages to actually send (applied at send time).
       const r = await axios.post(`${API_URL}/api/proposals/prepare`,
-        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined, includeEstimate: true },
+        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: branding === 'logo' ? (logo || undefined) : undefined, includeEstimate: true },
         { headers: authHeaders() });
       const p: Prepared = r.data;
       setPrepared(p);
@@ -126,7 +128,7 @@ const Proposals: React.FC = () => {
     setSending(true);
     try {
       const resp = await axios.post(`${API_URL}/api/proposals/send`,
-        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: logo || undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body,
+        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: branding === 'logo' ? (logo || undefined) : undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body,
           selectedPages: selPages.length ? selPages : undefined, includeEstimate: inclEstimate },
         { headers: authHeaders() });
       const note = resp.data && resp.data.acceptLinkIncluded === false ? '\n\n' + t('proposals.noAcceptLink') : '';
@@ -325,14 +327,24 @@ const Proposals: React.FC = () => {
                   <label className="mb-1 block text-xs font-medium text-body">{t('proposals.coverTitle')}</label>
                   <input value={title} onChange={(e) => { setTitle(e.target.value); setPrepared(null); }} placeholder={t('proposals.coverTitlePlaceholder') as string} className={inputCls} />
                 </div>
-                {/* Logo */}
+                {/* Cover co-branding: client name OR client logo (rep's choice) */}
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-body">{t('proposals.logo')}</label>
-                  <div className="flex items-center gap-2">
-                    <input ref={fileRef} type="file" accept="image/png,image/jpeg" onChange={(e) => { onLogo(e.target.files?.[0]); setPrepared(null); }}
-                      className="text-sm text-body file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-white" />
-                    {logo && <button onClick={() => { setLogo(null); if (fileRef.current) fileRef.current.value = ''; }} className="text-xs text-danger hover:underline">{t('common.remove') || 'Retirer'}</button>}
+                  <label className="mb-1 block text-xs font-medium text-body">{t('proposals.branding')}</label>
+                  <div className="inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
+                    {(['name', 'logo'] as const).map((m) => (
+                      <button key={m} onClick={() => { setBranding(m); setPrepared(null); }}
+                        className={`rounded-md px-4 py-1.5 text-sm font-medium ${branding === m ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+                        {m === 'name' ? t('proposals.brandingName') : t('proposals.brandingLogo')}
+                      </button>
+                    ))}
                   </div>
+                  {branding === 'logo' && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <input ref={fileRef} type="file" accept="image/png,image/jpeg" onChange={(e) => { onLogo(e.target.files?.[0]); setPrepared(null); }}
+                        className="text-sm text-body file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-white" />
+                      {logo && <button onClick={() => { setLogo(null); if (fileRef.current) fileRef.current.value = ''; }} className="text-xs text-danger hover:underline">{t('common.remove') || 'Retirer'}</button>}
+                    </div>
+                  )}
                 </div>
 
                 <button onClick={prepare} disabled={preparing} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
