@@ -1391,6 +1391,7 @@
       "type_pending": "Never logged in",
       "editRoles": "Edit Roles",
       "assignRoles": "Assign Roles",
+      "rolesVsAdminHint": "For full access, use the Admin toggle instead — it grants everything (all menus + the Admin Panel). Roles are for non-admin users (e.g. Management, Sales Rep).",
       "managedTeams": "Managed teams",
       "managedTeamsHint": "This manager will see only the selected team(s) on their dashboard and in the tracker.",
       "noTeams": "No teams created yet."

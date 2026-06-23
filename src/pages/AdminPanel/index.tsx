@@ -3440,6 +3440,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <p className="text-sm text-body mt-1">{editingUserRoles}</p>
                 </div>
                 <div className="p-6">
+                  <p className="mb-3 rounded-md bg-primary/5 px-3 py-2 text-xs text-body dark:bg-meta-4">
+                    {t('admin.admins.rolesVsAdminHint')}
+                  </p>
                   <div className="space-y-2">
                     {roles.map(role => (
                       <label key={role.id} className="flex items-start gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-meta-4 px-3 py-2 rounded">

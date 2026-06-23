@@ -1391,6 +1391,7 @@
       "type_pending": "Jamais connecté",
       "editRoles": "Modifier les rôles",
       "assignRoles": "Assigner des rôles",
+      "rolesVsAdminHint": "Pour un accès complet, utilise plutôt le bouton Admin — il donne tout (tous les menus + le Panneau d'admin). Les rôles servent aux utilisateurs non-admins (ex. Management, Sales Rep).",
       "managedTeams": "Équipes gérées",
       "managedTeamsHint": "Ce manager ne verra que la ou les équipes sélectionnées sur son tableau de bord et dans le suivi.",
       "noTeams": "Aucune équipe créée pour l'instant."
