@@ -438,6 +438,15 @@
         "missing_commission": "Missing commission",
         "missing_points": "Missing points"
       }
+    },
+    "recipients": {
+      "title": "Report email recipients",
+      "desc": "Who gets the missing commission / points emails. Leave empty to send to all administrators.",
+      "emptyNote": "No list set — sending to all administrators.",
+      "placeholder": "email@example.com",
+      "add": "Add",
+      "save": "Save",
+      "saved": "Saved"
     }
   },
   "resources": {

@@ -37,6 +37,11 @@ const DataHealth: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [resolving, setResolving] = useState<number | null>(null);
+  // Recipient list for the missing commission/points emails (empty = all admins).
+  const [recipients, setRecipients] = useState<string[]>([]);
+  const [newEmail, setNewEmail] = useState('');
+  const [savingRecipients, setSavingRecipients] = useState(false);
+  const [recipientsSaved, setRecipientsSaved] = useState(false);
 
   const load = async (fresh = false) => {
     setLoading(true); setError(null);
@@ -49,7 +54,33 @@ const DataHealth: React.FC = () => {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { load(false); }, []);
+  const loadRecipients = async () => {
+    try {
+      const r = await fetch(`${API_URL}/api/admin/report-recipients`, { headers: authHeaders() });
+      if (r.ok) setRecipients((await r.json()).recipients || []);
+    } catch { /* ignore */ }
+  };
+  useEffect(() => { load(false); loadRecipients(); }, []);
+
+  const addRecipient = () => {
+    const e = newEmail.trim().toLowerCase();
+    if (!e || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) || recipients.includes(e)) return;
+    setRecipients(r => [...r, e]); setNewEmail(''); setRecipientsSaved(false);
+  };
+  const removeRecipient = (e: string) => { setRecipients(r => r.filter(x => x !== e)); setRecipientsSaved(false); };
+  const saveRecipients = async () => {
+    setSavingRecipients(true);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/report-recipients`, {
+        method: 'PUT',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails: recipients }),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      setRecipientsSaved(true);
+    } catch { setError(t('dataHealth.error') as string); }
+    finally { setSavingRecipients(false); }
+  };
 
   const resolveReport = async (id: number) => {
     setResolving(id);
@@ -78,6 +109,40 @@ const DataHealth: React.FC = () => {
 
   return (
     <div>
+      {/* Recipients for missing commission / points emails (empty = all admins) */}
+      <div className="mb-4 rounded-xl border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <h4 className="text-sm font-semibold text-black dark:text-white">{t('dataHealth.recipients.title')}</h4>
+        <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t('dataHealth.recipients.desc')}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {recipients.length === 0 && <span className="text-xs italic text-body">{t('dataHealth.recipients.emptyNote')}</span>}
+          {recipients.map((e) => (
+            <span key={e} className="inline-flex items-center gap-1.5 rounded-full bg-gray-1 px-2.5 py-1 text-xs text-body dark:bg-meta-4 dark:text-bodydark">
+              {e}
+              <button onClick={() => removeRecipient(e)} aria-label="remove" className="text-gray-400 hover:text-danger">
+                <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <input
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addRecipient(); } }}
+            placeholder={t('dataHealth.recipients.placeholder') as string}
+            className="w-full max-w-xs rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+          />
+          <button onClick={addRecipient} className="rounded-md border border-stroke px-3 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">
+            {t('dataHealth.recipients.add')}
+          </button>
+          <button onClick={saveRecipients} disabled={savingRecipients} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+            {savingRecipients ? '…' : t('dataHealth.recipients.save')}
+          </button>
+          {recipientsSaved && <span className="text-xs font-medium text-success">{t('dataHealth.recipients.saved')}</span>}
+        </div>
+      </div>
+
       <div className="mb-4 flex justify-end">
         <button
           onClick={() => load(true)}

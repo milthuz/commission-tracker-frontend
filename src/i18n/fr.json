@@ -438,6 +438,15 @@
         "missing_commission": "Commission manquante",
         "missing_points": "Points manquants"
       }
+    },
+    "recipients": {
+      "title": "Destinataires des signalements",
+      "desc": "Qui reçoit les courriels de commission / points manquants. Laisse vide pour envoyer à tous les administrateurs.",
+      "emptyNote": "Aucune liste définie — envoi à tous les administrateurs.",
+      "placeholder": "courriel@exemple.com",
+      "add": "Ajouter",
+      "save": "Enregistrer",
+      "saved": "Enregistré"
     }
   },
   "resources": {
