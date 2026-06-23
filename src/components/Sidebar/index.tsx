@@ -38,6 +38,30 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   // Not from the raw JWT — that stays admin while impersonating and would leak the
   // admin menu/tools during a "view as" session.
   const isAdmin = !!user?.isAdmin;
+
+  // "Needs attention" (À corriger) badge: poll the aggregate data-health count so the
+  // rail shows a red counter when there's something to fix. Server-cached 60s; we refresh
+  // every 2 min. Only fetched for users who can see the page.
+  const canHealth = isAdmin || can('admin:data_health');
+  const [healthCount, setHealthCount] = useState<number>(0);
+  useEffect(() => {
+    if (!canHealth) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const r = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/admin/data-health`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!cancelled) setHealthCount(d.totalIssues || 0);
+      } catch { /* ignore */ }
+    };
+    load();
+    const id = setInterval(load, 120000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [canHealth]);
+
   const [adminMenuOpen, setAdminMenuOpen] = useState(pathname.includes('admin'));
   // Opening the Admin section acknowledges its "new" features, so the aggregate orange dot
   // clears even without visiting each sub-page (and covers feature paths that match no route).
@@ -353,6 +377,29 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     <span className={labelCls}>{t('sidebar.proposals')}</span>
                     <NewBadge path="/proposals" collapsed={collapsed} />
                     <RailTip label={t('sidebar.proposals') as string} />
+                  </NavLink>
+                </li>
+              )}
+              {/* <!-- Menu Item Needs attention / À corriger (perm: admin:data_health) --> */}
+              {canHealth && (
+                <li>
+                  <NavLink
+                    to="/admin/data-health"
+                    className={navLinkCls(pathname.includes('data-health'))}
+                  >
+                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.dataHealth')}</span>
+                    {healthCount > 0 && !collapsed && (
+                      <span className="ml-auto inline-flex min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-xs font-semibold text-white">
+                        {healthCount}
+                      </span>
+                    )}
+                    {healthCount > 0 && collapsed && (
+                      <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" aria-hidden />
+                    )}
+                    <RailTip label={t('sidebar.dataHealth') as string} />
                   </NavLink>
                 </li>
               )}

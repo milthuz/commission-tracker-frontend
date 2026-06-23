@@ -284,6 +284,7 @@
     "resources": "Ressources",
     "kaizenDemo": "Kaizen DEMO",
     "proposals": "Propositions",
+    "dataHealth": "À corriger",
     "resourcesAdmin": "Ressources (stockage)",
     "resellersAdmin": "Gestion revendeurs",
     "profile": "Profil",
@@ -394,6 +395,40 @@
     "safariHint": "Sur Safari, la vue intégrée peut rester noire à cause de la protection contre le suivi entre sites. Utilise « Ouvrir dans un nouvel onglet » pour une meilleure expérience (ou essaie Chrome).",
     "notConfigured": "La démo n'est pas encore configurée. Un administrateur doit terminer la configuration AWS AppStream.",
     "error": "Impossible de démarrer la démo. Réessaie dans un instant."
+  },
+  "dataHealth": {
+    "title": "À corriger",
+    "subtitle": "Données à vérifier et corriger — enregistrements non attribués, rôles et associations manquants.",
+    "refresh": "Rafraîchir",
+    "error": "Impossible de charger le résumé. Réessaie.",
+    "allClearTitle": "Tout est en ordre",
+    "allClearHint": "Aucun enregistrement non attribué ni association manquante pour le moment.",
+    "lastChecked": "Dernière vérification à {{time}}",
+    "cards": {
+      "fix": "Vérifier et corriger",
+      "resolved": "Réglé",
+      "resellerActivations": {
+        "title": "Activations revendeur non attribuées",
+        "desc": "Activations POS sans revendeur reconnu (nom non trouvé, pas d'email). Associe-les à un revendeur dans la section Revendeur."
+      },
+      "invoices": {
+        "title": "Factures non assignées",
+        "desc": "Factures avec commission mais sans vendeur. Corrige l'attribution dans Zoho Books.",
+        "amount": "{{amount}} de commission non attribuée"
+      },
+      "zentactMerchants": {
+        "title": "Marchands Zentact sans rep",
+        "desc": "Marchands Zentact actifs non assignés à un rep (et non rattachés à un revendeur). Assigne-les dans le Commission Tracker."
+      },
+      "repsNoRole": {
+        "title": "Reps sans rôle",
+        "desc": "Vendeurs actifs sans rôle — ils voient un menu vide à la connexion. Assigne un rôle dans Utilisateurs."
+      },
+      "resellerEmails": {
+        "title": "Emails revendeur non mappés",
+        "desc": "Emails de revendeur vus dans des activations mais non liés à un revendeur géré. Associe-les dans Gérer les revendeurs."
+      }
+    }
   },
   "resources": {
     "title": "Ressources",

@@ -284,6 +284,7 @@
     "resources": "Resources",
     "kaizenDemo": "Kaizen DEMO",
     "proposals": "Proposals",
+    "dataHealth": "Needs attention",
     "resourcesAdmin": "Resources (storage)",
     "resellersAdmin": "Manage Resellers",
     "profile": "Profile",
@@ -394,6 +395,40 @@
     "safariHint": "On Safari, the embedded view may stay black because of cross-site tracking protection. Use \"Open in new tab\" for the best experience (or try Chrome).",
     "notConfigured": "The demo isn't configured yet. An administrator needs to finish the AWS AppStream setup.",
     "error": "Couldn't start the demo. Please try again in a moment."
+  },
+  "dataHealth": {
+    "title": "Needs attention",
+    "subtitle": "Data that should be reviewed and fixed — unassigned records, missing roles and mappings.",
+    "refresh": "Refresh",
+    "error": "Couldn't load the data-health summary. Please try again.",
+    "allClearTitle": "Everything looks good",
+    "allClearHint": "No unassigned records or missing mappings right now.",
+    "lastChecked": "Last checked at {{time}}",
+    "cards": {
+      "fix": "Review & fix",
+      "resolved": "Resolved",
+      "resellerActivations": {
+        "title": "Unassigned reseller activations",
+        "desc": "POS activations with no recognized reseller (no matching name, no email). Map them to a reseller in the Reseller section."
+      },
+      "invoices": {
+        "title": "Unassigned invoices",
+        "desc": "Invoices earning commission but with no salesperson. Fix the attribution in Zoho Books.",
+        "amount": "{{amount}} in unattributed commission"
+      },
+      "zentactMerchants": {
+        "title": "Zentact merchants with no rep",
+        "desc": "Active Zentact merchants not assigned to a rep (and not reseller-boarded). Assign them in the Commission Tracker."
+      },
+      "repsNoRole": {
+        "title": "Reps with no role",
+        "desc": "Active salespeople with no role — they see an empty menu when they log in. Assign a role in Users."
+      },
+      "resellerEmails": {
+        "title": "Unmapped reseller emails",
+        "desc": "Reseller emails seen in activations but not linked to any managed reseller. Map them in Manage Resellers."
+      }
+    }
   },
   "resources": {
     "title": "Resources",
