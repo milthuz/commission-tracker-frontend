@@ -311,7 +311,7 @@ const Proposals: React.FC = () => {
 
             <div className="grid flex-1 grid-cols-1 gap-0 overflow-hidden md:grid-cols-2">
               {/* Left: form / email */}
-              <div className="space-y-4 overflow-y-auto p-6">
+              <div className="thin-scrollbar space-y-4 overflow-y-auto p-6">
                 {/* Language */}
                 <div>
                   <label className="mb-1 block text-xs font-medium text-body">{t('proposals.language')}</label>

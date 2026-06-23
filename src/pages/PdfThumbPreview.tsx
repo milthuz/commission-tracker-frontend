@@ -100,8 +100,8 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, se
 
   return (
     <div className="flex h-full">
-      {/* Thumbnail rail — the only scrollable area */}
-      <div className="w-[160px] shrink-0 overflow-y-auto border-r border-stroke dark:border-strokedark">
+      {/* Thumbnail rail — scrolls on wheel/trackpad, scrollbar hidden for a clean look */}
+      <div className="no-scrollbar w-[160px] shrink-0 overflow-y-auto border-r border-stroke dark:border-strokedark">
         <div className="space-y-2 p-2">
           {pages.map((p) => {
             const inc = included(p.num);
