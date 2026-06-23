@@ -376,6 +376,7 @@ const Proposals: React.FC = () => {
                     estimatePageCount={prepared.estimatePageCount}
                     selPages={selPages} setSelPages={setSelPages}
                     inclEstimate={inclEstimate} setInclEstimate={setInclEstimate}
+                    onDownload={download}
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center p-8 text-center text-sm text-gray-400">{t('proposals.previewHint')}</div>
