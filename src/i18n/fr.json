@@ -1373,7 +1373,7 @@
       "adminCount": "Administrateurs",
       "email": "Courriel",
       "lastLogin": "Dernière connexion",
-      "role": "Rôle",
+      "role": "Statut admin",
       "admin": "Administrateur",
       "user": "Utilisateur",
       "grantAdmin": "Accorder l'accès",

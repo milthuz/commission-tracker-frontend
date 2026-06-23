@@ -1373,7 +1373,7 @@
       "adminCount": "Admins",
       "email": "Email",
       "lastLogin": "Last Login",
-      "role": "Role",
+      "role": "Admin status",
       "admin": "Admin",
       "user": "User",
       "grantAdmin": "Grant Admin",
