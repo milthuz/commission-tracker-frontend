@@ -390,6 +390,8 @@
     "launching": "Démarrage de ta session…",
     "relaunch": "Relancer",
     "fullscreen": "Plein écran",
+    "openNewTab": "Ouvrir dans un nouvel onglet",
+    "safariHint": "Sur Safari, la vue intégrée peut rester noire à cause de la protection contre le suivi entre sites. Utilise « Ouvrir dans un nouvel onglet » pour une meilleure expérience (ou essaie Chrome).",
     "notConfigured": "La démo n'est pas encore configurée. Un administrateur doit terminer la configuration AWS AppStream.",
     "error": "Impossible de démarrer la démo. Réessaie dans un instant."
   },

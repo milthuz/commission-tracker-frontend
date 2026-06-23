@@ -390,6 +390,8 @@
     "launching": "Starting your session…",
     "relaunch": "Restart",
     "fullscreen": "Fullscreen",
+    "openNewTab": "Open in new tab",
+    "safariHint": "On Safari, the embedded view may stay black because of cross-site tracking protection. Use \"Open in new tab\" for the best experience (or try Chrome).",
     "notConfigured": "The demo isn't configured yet. An administrator needs to finish the AWS AppStream setup.",
     "error": "Couldn't start the demo. Please try again in a moment."
   },

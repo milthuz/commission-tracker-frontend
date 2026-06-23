@@ -15,6 +15,11 @@ const KaizenDemo: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
 
+  // Safari blocks the cross-origin storage the embedded AppStream stream needs (cross-site
+  // tracking protection), so the iframe stays black. Opening the URL as a first-party tab works.
+  const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  const openInNewTab = () => { if (url) window.open(url, '_blank', 'noopener,noreferrer'); };
+
   const launch = async () => {
     setLoading(true); setError(null);
     try {
@@ -37,6 +42,10 @@ const KaizenDemo: React.FC = () => {
         </div>
         {url && (
           <div className="flex shrink-0 items-center gap-2">
+            <button onClick={openInNewTab} className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+              {t('kaizenDemo.openNewTab')}
+            </button>
             <button onClick={fullscreen} className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
               {t('kaizenDemo.fullscreen')}
@@ -68,6 +77,12 @@ const KaizenDemo: React.FC = () => {
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-stroke bg-black shadow-default dark:border-strokedark">
+          {isSafari && (
+            <div className="flex items-start gap-2 bg-warning/15 px-4 py-3 text-sm text-[#9D5425] dark:text-warning">
+              <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+              <span>{t('kaizenDemo.safariHint')}</span>
+            </div>
+          )}
           <iframe
             ref={frameRef}
             src={url}
