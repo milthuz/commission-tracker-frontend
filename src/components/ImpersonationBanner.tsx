@@ -6,11 +6,13 @@ import { useTranslation } from 'react-i18next';
 const ImpersonationBanner: React.FC = () => {
   const { t } = useTranslation();
   const impersonateAs = typeof window !== 'undefined' ? localStorage.getItem('impersonateAs') : null;
+  const impersonateName = (typeof window !== 'undefined' ? localStorage.getItem('impersonateAsName') : null) || impersonateAs;
 
   if (!impersonateAs) return null;
 
   const stopImpersonating = () => {
     localStorage.removeItem('impersonateAs');
+    localStorage.removeItem('impersonateAsName');
     window.location.reload();
   };
 
@@ -19,7 +21,7 @@ const ImpersonationBanner: React.FC = () => {
       <div className="flex items-center gap-2">
         <span>🎭</span>
         <span>
-          {t('impersonation.banner', { name: impersonateAs })}
+          {t('impersonation.banner', { name: impersonateName })}
         </span>
       </div>
       <button

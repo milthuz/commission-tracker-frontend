@@ -49,6 +49,7 @@ interface Team {
 
 interface AdminUser {
   email: string;
+  displayName?: string | null;
   isAdmin: boolean;
   createdAt: string | null;
   lastLogin: string | null;
@@ -3024,7 +3025,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 </div>
                 {localStorage.getItem('impersonateAs') && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F59E0B] bg-opacity-10 px-3 py-1 text-xs font-semibold text-[#F59E0B]">
-                    {t('admin.impersonate.active', { name: localStorage.getItem('impersonateAs') })}
+                    {t('admin.impersonate.active', { name: localStorage.getItem('impersonateAsName') || localStorage.getItem('impersonateAs') })}
                   </span>
                 )}
               </div>
@@ -3038,23 +3039,31 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     onChange={(e) => {
                       const val = e.target.value;
                       if (val) {
+                        const u = adminUsers.find(x => x.email === val);
                         localStorage.setItem('impersonateAs', val);
+                        localStorage.setItem('impersonateAsName', (u?.displayName || val));
                       } else {
                         localStorage.removeItem('impersonateAs');
+                        localStorage.removeItem('impersonateAsName');
                       }
                       window.location.reload();
                     }}
                     className="rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
                   >
                     <option value="">{t('admin.impersonate.noImpersonation')}</option>
-                    {salespeople.filter(sp => sp.isActive).map(sp => (
-                      <option key={sp.name} value={sp.name}>{sp.name}</option>
-                    ))}
+                    {[...adminUsers]
+                      .sort((a, b) => (a.displayName || a.email).localeCompare(b.displayName || b.email))
+                      .map(u => (
+                        <option key={u.email} value={u.email}>
+                          {(u.displayName || u.email)}{u.displayName ? ` (${u.email})` : ''}{u.isAdmin ? ' — admin' : ''}
+                        </option>
+                      ))}
                   </select>
                   {localStorage.getItem('impersonateAs') && (
                     <button
                       onClick={() => {
                         localStorage.removeItem('impersonateAs');
+                        localStorage.removeItem('impersonateAsName');
                         window.location.reload();
                       }}
                       className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"

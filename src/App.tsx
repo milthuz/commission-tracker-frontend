@@ -39,10 +39,18 @@ function HomeRoute() {
   const perms = user?.permissions || [];
   const isAdmin = !!user?.isAdmin || perms.includes('*') || perms.includes('admin:access') || perms.includes('dashboard:view_admin');
   const isManager = perms.includes('report:view_others') || perms.includes('tracker:view_all_details');
+  const canRepDash = perms.includes('dashboard:view_own');
+  let body;
+  if (isAdmin) body = <ECommerce />;
+  else if (isManager) body = <ManagerDashboard />;
+  else if (canRepDash) body = <RepDashboard />;
+  // No dashboard permission → send them to a page they can use.
+  else if (perms.includes('report:view_own') || perms.includes('report:view_others')) body = <Navigate to="/commission-report" replace />;
+  else body = <Navigate to="/profile" replace />;
   return (
     <>
       <PageTitle title="Sales Hub" />
-      {isAdmin ? <ECommerce /> : isManager ? <ManagerDashboard /> : <RepDashboard />}
+      {body}
     </>
   );
 }
