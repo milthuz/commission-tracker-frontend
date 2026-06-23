@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { dialog } from '../lib/dialog';
 import { formatDateOnly } from '../utils/date';
 import PdfThumbPreview from './PdfThumbPreview';
-import { PDFDocument } from 'pdf-lib';
 
 const b64ToBytes = (b64: string) => {
   const bin = atob(b64); const arr = new Uint8Array(bin.length);
@@ -47,6 +46,7 @@ const Proposals: React.FC = () => {
   const [to, setTo] = useState(''); const [cc, setCc] = useState('');
   const [subject, setSubject] = useState(''); const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   // Page selection: which presentation pages to include + whether to attach the quote
   const [selPages, setSelPages] = useState<number[]>([]); // 1-based; empty = all
@@ -140,24 +140,23 @@ const Proposals: React.FC = () => {
     } finally { setSending(false); }
   };
 
-  // Download the SAME PDF that will be sent — filter the prepared full doc client-side (pdf-lib).
+  // Download the EXACT PDF that will be sent — rebuilt server-side with the current page selection
+  // (so footers are renumbered) + the quote toggle.
   const download = async () => {
-    if (!prepared) return;
+    if (!sel || !prepared) return;
+    setDownloading(true);
     try {
-      const full = await PDFDocument.load(b64ToBytes(prepared.pdfBase64));
-      const out = await PDFDocument.create();
-      const total = full.getPageCount();
-      const idxs: number[] = [];
-      for (let i = 1; i <= total; i++) {
-        const inc = i > prepared.presentationPageCount ? inclEstimate : selPages.includes(i);
-        if (inc) idxs.push(i - 1);
-      }
-      (await out.copyPages(full, idxs.length ? idxs : full.getPageIndices())).forEach((p) => out.addPage(p));
-      const blob = new Blob([await out.save() as BlobPart], { type: 'application/pdf' });
+      const r = await axios.post(`${API_URL}/api/proposals/prepare`,
+        { estimateId: sel.estimateId, lang, clientName: sel.customerName,
+          logoBase64: branding === 'logo' ? (logo || undefined) : undefined,
+          selectedPages: selPages.length ? selPages : undefined, includeEstimate: inclEstimate },
+        { headers: authHeaders() });
+      const blob = new Blob([b64ToBytes(r.data.pdfBase64) as BlobPart], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = prepared.fileName || 'proposition.pdf';
+      const a = document.createElement('a'); a.href = url; a.download = r.data.fileName || 'proposition.pdf';
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
-    } catch (e: any) { dialog.alert(e?.message || 'Download failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Download failed'); }
+    finally { setDownloading(false); }
   };
 
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
@@ -361,8 +360,8 @@ const Proposals: React.FC = () => {
                     <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.subject')}</label><input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputCls} /></div>
                     <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.message')}</label><textarea value={body} onChange={(e) => setBody(e.target.value)} rows={7} className={inputCls} /></div>
                     <div className="flex gap-2">
-                      <button onClick={download} className="inline-flex items-center justify-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2.5 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m6 5v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1" /></svg>
+                      <button onClick={download} disabled={downloading} className="inline-flex items-center justify-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2.5 text-sm font-medium text-body hover:border-primary hover:text-primary disabled:opacity-60 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+                        {downloading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" /> : <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m6 5v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1" /></svg>}
                         {t('proposals.downloadPdf')}
                       </button>
                       <button onClick={send} disabled={sending} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
@@ -382,7 +381,7 @@ const Proposals: React.FC = () => {
                     estimatePageCount={prepared.estimatePageCount}
                     selPages={selPages} setSelPages={setSelPages}
                     inclEstimate={inclEstimate} setInclEstimate={setInclEstimate}
-                    onDownload={download}
+                    onDownload={download} downloading={downloading}
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center p-8 text-center text-sm text-gray-400">{t('proposals.previewHint')}</div>

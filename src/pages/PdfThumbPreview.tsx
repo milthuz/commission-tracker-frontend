@@ -14,6 +14,7 @@ interface Props {
   inclEstimate: boolean;
   setInclEstimate: (b: boolean) => void;
   onDownload?: () => void;           // download the final (filtered) PDF
+  downloading?: boolean;
 }
 
 interface RenderedPage { num: number; thumb: string; w: number; h: number; }
@@ -26,7 +27,7 @@ const b64ToBytes = (b64: string) => {
 
 // Clickable-thumbnail PDF preview: each presentation page can be toggled in/out of the proposal,
 // estimate pages are governed by the "include quote" toggle, and the focused page shows large.
-const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, selPages, setSelPages, inclEstimate, setInclEstimate, onDownload }) => {
+const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, selPages, setSelPages, inclEstimate, setInclEstimate, onDownload, downloading }) => {
   const { t } = useTranslation();
   const [pages, setPages] = useState<RenderedPage[]>([]);
   const [focused, setFocused] = useState(1);
@@ -128,8 +129,8 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, se
         {onDownload && (
           <div className="flex items-center justify-between border-b border-stroke px-3 py-2 dark:border-strokedark">
             <span className="text-xs text-gray-400">{t('proposals.finalDoc', { count: totalIncluded })}</span>
-            <button onClick={onDownload} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m6 5v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1" /></svg>
+            <button onClick={onDownload} disabled={downloading} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+              {downloading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m6 5v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1" /></svg>}
               {t('proposals.downloadPdf')}
             </button>
           </div>
