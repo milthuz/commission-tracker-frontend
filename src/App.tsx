@@ -19,7 +19,6 @@ import Profile from './pages/Profile';
 import { Navigate } from 'react-router-dom';
 import Versions from './pages/Versions';
 import AdminPanel from './pages/AdminPanel';
-import DataHealth from './pages/AdminPanel/DataHealth';
 import Reseller from './pages/Reseller';
 import Revenue from './pages/Revenue';
 import Resources from './pages/Resources';
@@ -209,15 +208,6 @@ function AppContent() {
               <>
                 <PageTitle title="Propositions | Sales Hub" />
                 <Proposals />
-              </>
-            }
-          />
-          <Route
-            path="/admin/data-health"
-            element={
-              <>
-                <PageTitle title="À corriger | Sales Hub" />
-                <DataHealth />
               </>
             }
           />

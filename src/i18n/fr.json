@@ -428,6 +428,16 @@
         "title": "Emails revendeur non mappés",
         "desc": "Emails de revendeur vus dans des activations mais non liés à un revendeur géré. Associe-les dans Gérer les revendeurs."
       }
+    },
+    "reports": {
+      "title": "Signalements des utilisateurs",
+      "subtitle": "Commission / points manquants signalés par les reps. Marque comme réglé une fois traité.",
+      "resolve": "Marquer réglé",
+      "resolving": "…",
+      "type": {
+        "missing_commission": "Commission manquante",
+        "missing_points": "Points manquants"
+      }
     }
   },
   "resources": {
@@ -614,6 +624,18 @@
     "title": "Suivi des commissions",
     "loadingPoints": "Chargement des données de points depuis le CRM...",
     "subtitle": "{{month}} {{year}} · {{count}} ventes conclues",
+    "missing": {
+      "button": "Points manquants ?",
+      "title": "Signaler des points manquants",
+      "subtitle": "Tu penses que des points sont manquants ou erronés ? Envoie les détails à un administrateur.",
+      "refLabel": "Marchand ou dossier (optionnel)",
+      "refPlaceholder": "ex. un nom de marchand ou de dossier",
+      "messageLabel": "Qu'est-ce qui semble manquer ?",
+      "messagePlaceholder": "Décris le dossier/l'activation et les points attendus…",
+      "send": "Envoyer",
+      "sending": "Envoi…",
+      "sent": "Envoyé — un administrateur va le vérifier."
+    },
     "totalTeamPoints": "Points totaux de l'équipe",
     "teamsTitle": "Équipes",
     "notCounted": "Hors quota",
@@ -741,6 +763,8 @@
     "ytdCommission": "Commission cumulative",
     "ytdRevenue": "Revenus cumulatifs",
     "totalComp": "Rémunération totale",
+    "salaryHide": "Masquer les montants",
+    "salaryShow": "Afficher les montants",
     "compBase": "Salaire de base",
     "compCommission": "Commission (cumul)",
     "compAnnualBonus": "Bonus annuel",

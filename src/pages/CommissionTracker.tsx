@@ -97,6 +97,24 @@ const CommissionTracker: React.FC = () => {
   const [editingDealSource, setEditingDealSource] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeReps, setActiveReps] = useState<string[]>([]);
+  // "Missing points" report — flagged by a rep, persisted + emailed to admins (see À corriger).
+  const [missingModal, setMissingModal] = useState({ open: false, reference: '', message: '', sending: false });
+  const submitMissingPoints = async () => {
+    if (!missingModal.message.trim()) return;
+    setMissingModal(m => ({ ...m, sending: true }));
+    try {
+      const token = localStorage.getItem('token');
+      const period = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+      await axios.post(`${API_URL}/api/commissions/missing-points-report`,
+        { reference: missingModal.reference, period, message: missingModal.message },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setMissingModal({ open: false, reference: '', message: '', sending: false });
+      dialog.alert(t('commissionTracker.missing.sent') as string);
+    } catch (e: any) {
+      setMissingModal(m => ({ ...m, sending: false }));
+      dialog.alert(e?.response?.data?.error || 'Failed to send');
+    }
+  };
 
   // Locale-aware month names (short), e.g. "Jan" / "Jan." / "janv."
   const MONTH_NAMES = Array.from({ length: 12 }, (_, i) =>
@@ -259,6 +277,16 @@ const CommissionTracker: React.FC = () => {
               count: agDeals,
             })}
           </p>
+          {/* Missing points — discreet link (any rep viewing the tracker can flag a gap) */}
+          <button
+            onClick={() => setMissingModal({ open: true, reference: '', message: '', sending: false })}
+            className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-body transition hover:text-primary"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.33 16a2 2 0 001.74 3z" />
+            </svg>
+            {t('commissionTracker.missing.button')}
+          </button>
         </div>
         <div className="flex items-center gap-2">
           <select
@@ -283,6 +311,42 @@ const CommissionTracker: React.FC = () => {
           </select>
         </div>
       </div>
+
+      {/* Missing points modal */}
+      {missingModal.open && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('commissionTracker.missing.title')}</h3>
+            <p className="mb-4 text-sm text-body">{t('commissionTracker.missing.subtitle')}</p>
+            <label className="mb-1 block text-xs font-medium text-body">{t('commissionTracker.missing.refLabel')}</label>
+            <input
+              type="text"
+              value={missingModal.reference}
+              onChange={(e) => setMissingModal(m => ({ ...m, reference: e.target.value }))}
+              placeholder={t('commissionTracker.missing.refPlaceholder') as string}
+              className="mb-3 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+            />
+            <label className="mb-1 block text-xs font-medium text-body">{t('commissionTracker.missing.messageLabel')}</label>
+            <textarea
+              value={missingModal.message}
+              onChange={(e) => setMissingModal(m => ({ ...m, message: e.target.value }))}
+              rows={4}
+              placeholder={t('commissionTracker.missing.messagePlaceholder') as string}
+              className="mb-4 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+            />
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setMissingModal(m => ({ ...m, open: false }))} disabled={missingModal.sending}
+                className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark">
+                {t('common.cancel')}
+              </button>
+              <button onClick={submitMissingPoints} disabled={missingModal.sending || !missingModal.message.trim()}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                {missingModal.sending ? t('commissionTracker.missing.sending') : t('commissionTracker.missing.send')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Compact company summary */}
       <div className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-sm border border-stroke bg-white px-6 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">

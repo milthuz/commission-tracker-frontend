@@ -10,6 +10,7 @@ import CommissionImport from './CommissionImport';
 import ExternalUsers from './ExternalUsers';
 import ResellerAdmin from './ResellerAdmin';
 import ResourcesAdmin from './ResourcesAdmin';
+import DataHealth from './DataHealth';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -1404,6 +1405,7 @@ const AdminPanel = () => {
              activeTab === 'import-payments' ? t('admin.commissionImport.title') :
              activeTab === 'resellers' ? t('admin.resellers.title') :
              activeTab === 'resources' ? t('admin.resources.title') :
+             activeTab === 'data-health' ? t('dataHealth.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1416,6 +1418,7 @@ const AdminPanel = () => {
              activeTab === 'import-payments' ? t('admin.commissionImport.subtitle') :
              activeTab === 'resellers' ? t('admin.resellers.subtitle') :
              activeTab === 'resources' ? t('admin.resources.subtitle') :
+             activeTab === 'data-health' ? t('dataHealth.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -1433,6 +1436,7 @@ const AdminPanel = () => {
       </div>
 
       {/* Content */}
+          {activeTab === 'data-health' && <DataHealth />}
           {activeTab === 'sync' && (
             <>
             <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">

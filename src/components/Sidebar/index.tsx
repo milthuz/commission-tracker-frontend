@@ -380,29 +380,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
-              {/* <!-- Menu Item Needs attention / À corriger (perm: admin:data_health) --> */}
-              {canHealth && (
-                <li>
-                  <NavLink
-                    to="/admin/data-health"
-                    className={navLinkCls(pathname.includes('data-health'))}
-                  >
-                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z" />
-                    </svg>
-                    <span className={labelCls}>{t('sidebar.dataHealth')}</span>
-                    {healthCount > 0 && !collapsed && (
-                      <span className="ml-auto inline-flex min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-xs font-semibold text-white">
-                        {healthCount}
-                      </span>
-                    )}
-                    {healthCount > 0 && collapsed && (
-                      <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" aria-hidden />
-                    )}
-                    <RailTip label={t('sidebar.dataHealth') as string} />
-                  </NavLink>
-                </li>
-              )}
               {/* <!-- Menu Item Admin Panel (Admin Only) --> */}
               {isAdmin && (
                 <li>
@@ -429,9 +406,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       {anyDotUnder('/admin') && !collapsed && (
                         <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
                       )}
+                      {healthCount > 0 && !collapsed && (
+                        <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-xs font-semibold text-white">
+                          {healthCount}
+                        </span>
+                      )}
                     </div>
-                    {anyDotUnder('/admin') && collapsed && (
-                      <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" aria-hidden />
+                    {(anyDotUnder('/admin') || healthCount > 0) && collapsed && (
+                      <span className={`absolute right-1.5 top-1.5 h-2 w-2 rounded-full ${healthCount > 0 ? 'bg-danger' : 'bg-primary'}`} aria-hidden />
                     )}
                     {!collapsed && (
                       <svg
@@ -450,6 +432,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       adminMenuOpen && !collapsed ? 'max-h-[32rem] opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
+                    {canHealth && (
+                      <li>
+                        <NavLink
+                          to="/admin/data-health"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname === '/admin/data-health' ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('sidebar.dataHealth')}
+                          {healthCount > 0 && (
+                            <span className="inline-flex min-w-[18px] items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-[11px] font-semibold text-white">
+                              {healthCount}
+                            </span>
+                          )}
+                        </NavLink>
+                      </li>
+                    )}
                     <li>
                       <NavLink
                         to="/admin/sync"

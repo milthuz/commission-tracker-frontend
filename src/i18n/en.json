@@ -428,6 +428,16 @@
         "title": "Unmapped reseller emails",
         "desc": "Reseller emails seen in activations but not linked to any managed reseller. Map them in Manage Resellers."
       }
+    },
+    "reports": {
+      "title": "User reports",
+      "subtitle": "Missing commission / points flagged by reps. Resolve once handled.",
+      "resolve": "Mark resolved",
+      "resolving": "…",
+      "type": {
+        "missing_commission": "Missing commission",
+        "missing_points": "Missing points"
+      }
     }
   },
   "resources": {
@@ -614,6 +624,18 @@
     "title": "Commission Tracker",
     "loadingPoints": "Loading points data from CRM...",
     "subtitle": "{{month}} {{year}} · {{count}} SOLD deals",
+    "missing": {
+      "button": "Missing points?",
+      "title": "Report missing points",
+      "subtitle": "Think points are missing or wrong? Send the details to an administrator.",
+      "refLabel": "Merchant or deal (optional)",
+      "refPlaceholder": "e.g. a merchant name or deal",
+      "messageLabel": "What seems to be missing?",
+      "messagePlaceholder": "Describe the deal/activation and the points you expected…",
+      "send": "Send",
+      "sending": "Sending…",
+      "sent": "Sent — an administrator will review it."
+    },
     "totalTeamPoints": "Total team points",
     "teamsTitle": "Teams",
     "notCounted": "Not counted",
@@ -741,6 +763,8 @@
     "ytdCommission": "YTD Commission",
     "ytdRevenue": "YTD Revenue",
     "totalComp": "Total Compensation",
+    "salaryHide": "Hide amounts",
+    "salaryShow": "Show amounts",
     "compBase": "Base salary",
     "compCommission": "Commission (YTD)",
     "compAnnualBonus": "Annual bonus",
