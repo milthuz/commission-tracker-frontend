@@ -16,7 +16,7 @@ const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency
 
 // Analyze a competitor merchant statement → savings vs Cluster. Mirrors "Rate Calculator v1.xlsx".
 const SavingsCalculator: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [merchant, setMerchant] = useState('');
   const [vol, setVol] = useState<Record<Cat, Vol>>({ debit: { trx: 0, amount: 0 }, credit: { trx: 0, amount: 0 }, amex: { trx: 0, amount: 0 } });
   const [curRates, setCurRates] = useState<Record<Cat, RatePair>>({
@@ -83,6 +83,19 @@ const SavingsCalculator: React.FC = () => {
       }, { headers: authHeaders() });
       dialog.alert(t('savingsCalc.saved') as string);
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save'); }
+  };
+
+  const downloadPdf = async () => {
+    if (!results) return;
+    try {
+      const r = await axios.post(`${API_URL}/api/savings/pdf`,
+        { ...reqBody, merchantName: merchant, lang: (i18n.language || 'fr').startsWith('en') ? 'en' : 'fr' },
+        { headers: authHeaders(), responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([r.data], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = `savings-${(merchant || 'offer').replace(/[^a-z0-9]+/gi, '-') || 'offer'}.pdf`;
+      a.click(); URL.revokeObjectURL(url);
+    } catch { dialog.alert(t('savingsCalc.pdfError') as string); }
   };
 
   const catLabel: Record<Cat, string> = { debit: t('savingsCalc.debit') as string, credit: t('savingsCalc.credit') as string, amex: t('savingsCalc.amex') as string };
@@ -226,7 +239,8 @@ const SavingsCalculator: React.FC = () => {
                     <p className="mt-1 text-lg font-bold text-black dark:text-white">{money(results.margin.total)}<span className="ml-2 text-xs font-normal text-gray-500">{(results.margin.pctOfVolume * 100).toFixed(2)}% {t('savingsCalc.ofVolume')}</span></p>
                   </div>
                 )}
-                <button onClick={save} className="mt-4 w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{t('savingsCalc.save')}</button>
+                <button onClick={downloadPdf} className="mt-4 w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{t('savingsCalc.downloadPdf')}</button>
+                <button onClick={save} className="mt-2 w-full rounded-lg border border-stroke py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">{t('savingsCalc.save')}</button>
               </>
             )}
           </div>

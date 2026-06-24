@@ -507,7 +507,9 @@
     "clusterMargin": "Marge Cluster (interne)",
     "ofVolume": "du volume",
     "save": "Sauvegarder cette analyse",
-    "saved": "Analyse sauvegardée."
+    "saved": "Analyse sauvegardée.",
+    "downloadPdf": "Télécharger l'offre (PDF)",
+    "pdfError": "Impossible de générer le PDF."
   },
   "savingsPricing": {
     "title": "Modèles de tarifs (calculateur)",

@@ -507,7 +507,9 @@
     "clusterMargin": "Cluster margin (internal)",
     "ofVolume": "of volume",
     "save": "Save this analysis",
-    "saved": "Analysis saved."
+    "saved": "Analysis saved.",
+    "downloadPdf": "Download the offer (PDF)",
+    "pdfError": "Couldn't generate the PDF."
   },
   "savingsPricing": {
     "title": "Savings pricing templates",
