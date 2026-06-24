@@ -598,6 +598,20 @@ const AdminPanel = () => {
     }
   };
 
+  const deleteUser = async (email: string) => {
+    if (!(await dialog.confirm(t('admin.admins.confirmDelete', { email }) as string))) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/admin/users/${encodeURIComponent(email)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAdminUsers(prev => prev.filter(u => u.email !== email));
+    } catch (error: any) {
+      const code = error.response?.data?.error;
+      dialog.alert(code === 'cannot_delete_self' ? (t('admin.admins.cannotDeleteSelf') as string) : (code || t('admin.admins.failedUpdate')));
+    }
+  };
+
   useEffect(() => {
     if (isAdmin) {
       fetchSalespeople();
@@ -3136,7 +3150,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     </button>
                     <span className="text-xs text-body">{t('admin.admins.preassignHint')}</span>
                   </form>
-                  <div className="max-h-[600px] overflow-y-auto">
+                  <div className="overflow-x-auto">
                     <table className="w-full table-auto">
                       <thead>
                         <tr className="bg-gray-2 text-left dark:bg-meta-4">
@@ -3216,6 +3230,12 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 {user.isAdmin ? t('admin.admins.revokeAdmin') : t('admin.admins.grantAdmin')}
                               </button>
                               )}
+                              <button
+                                onClick={() => deleteUser(user.email)}
+                                className="inline-flex items-center justify-center rounded-md border border-danger border-opacity-40 px-3 py-1.5 text-xs font-medium text-danger transition hover:bg-danger hover:bg-opacity-10"
+                              >
+                                {t('admin.admins.deleteUser')}
+                              </button>
                               </div>
                             </td>
                           </tr>
