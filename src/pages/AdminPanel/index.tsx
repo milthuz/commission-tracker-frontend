@@ -11,6 +11,7 @@ import ExternalUsers from './ExternalUsers';
 import ResellerAdmin from './ResellerAdmin';
 import ResourcesAdmin from './ResourcesAdmin';
 import DataHealth from './DataHealth';
+import SavingsPricingAdmin from './SavingsPricingAdmin';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -1421,6 +1422,7 @@ const AdminPanel = () => {
              activeTab === 'resellers' ? t('admin.resellers.title') :
              activeTab === 'resources' ? t('admin.resources.title') :
              activeTab === 'data-health' ? t('dataHealth.title') :
+             activeTab === 'savings-pricing' ? t('savingsPricing.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1434,6 +1436,7 @@ const AdminPanel = () => {
              activeTab === 'resellers' ? t('admin.resellers.subtitle') :
              activeTab === 'resources' ? t('admin.resources.subtitle') :
              activeTab === 'data-health' ? t('dataHealth.subtitle') :
+             activeTab === 'savings-pricing' ? t('savingsPricing.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -1452,6 +1455,7 @@ const AdminPanel = () => {
 
       {/* Content */}
           {activeTab === 'data-health' && <DataHealth />}
+          {activeTab === 'savings-pricing' && <SavingsPricingAdmin />}
           {activeTab === 'sync' && (
             <>
             <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">

@@ -466,6 +466,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     )}
                     <li>
                       <NavLink
+                        to="/admin/savings-pricing"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/savings-pricing' ? 'text-white' : ''
+                        }`}
+                      >
+                        {t('sidebar.savingsPricing')}
+                        <NewBadge path="/admin/savings-pricing" />
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
                         to="/admin/sync"
                         className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
                           pathname === '/admin/sync' || pathname === '/admin' ? 'text-white' : ''
