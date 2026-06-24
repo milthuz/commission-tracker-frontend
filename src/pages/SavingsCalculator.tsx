@@ -34,6 +34,9 @@ const SavingsCalculator: React.FC = () => {
   const [clusterResolved, setClusterResolved] = useState<any>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loadingTpl, setLoadingTpl] = useState(true);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [parsing, setParsing] = useState(false);
+  const [parseNotes, setParseNotes] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -98,6 +101,40 @@ const SavingsCalculator: React.FC = () => {
     } catch { dialog.alert(t('savingsCalc.pdfError') as string); }
   };
 
+  // Phase 2: upload a competitor statement PDF → Claude extracts → prefill the form.
+  const onStatementFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; if (!f) return;
+    setParsing(true); setParseNotes(null);
+    try {
+      const fd = new FormData(); fd.append('file', f);
+      const r = await axios.post(`${API_URL}/api/savings/parse-statement`, fd, { headers: authHeaders() });
+      const d = r.data.extracted || {};
+      if (d.merchantName) setMerchant(d.merchantName);
+      if (d.volumes) setVol({
+        debit: { trx: num(d.volumes.debit?.trx), amount: num(d.volumes.debit?.amount) },
+        credit: { trx: num(d.volumes.credit?.trx), amount: num(d.volumes.credit?.amount) },
+        amex: { trx: num(d.volumes.amex?.trx), amount: num(d.volumes.amex?.amount) },
+      });
+      if (d.currentRates) setCurRates({
+        debit: { rate: num(d.currentRates.debit?.ratePct), perTrx: num(d.currentRates.debit?.perTrx) },
+        credit: { rate: num(d.currentRates.credit?.ratePct), perTrx: num(d.currentRates.credit?.perTrx) },
+        amex: { rate: num(d.currentRates.amex?.ratePct), perTrx: num(d.currentRates.amex?.perTrx) },
+      });
+      setCurInterchange(num(d.interchange));
+      if (Array.isArray(d.currentFixed) && d.currentFixed.length) {
+        setCurFixed(d.currentFixed.map((x: any) => ({ label: String(x.label || ''), qty: num(x.qty), unit: num(x.unit) })));
+      }
+      setParseNotes(d.notes || '');
+    } catch (e: any) {
+      const code = e?.response?.data?.error;
+      dialog.alert(
+        code === 'ai_not_configured' ? t('savingsCalc.aiNotConfigured') as string
+        : code === 'refused' ? t('savingsCalc.aiRefused') as string
+        : t('savingsCalc.parseError') as string
+      );
+    } finally { setParsing(false); if (fileRef.current) fileRef.current.value = ''; }
+  };
+
   const catLabel: Record<Cat, string> = { debit: t('savingsCalc.debit') as string, credit: t('savingsCalc.credit') as string, amex: t('savingsCalc.amex') as string };
   const cats: Cat[] = ['debit', 'credit', 'amex'];
   const inputCls = 'w-full rounded border border-stroke bg-transparent px-2.5 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white';
@@ -112,10 +149,27 @@ const SavingsCalculator: React.FC = () => {
           <h2 className="text-2xl font-bold text-black dark:text-white">{t('savingsCalc.title')}</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('savingsCalc.subtitle')}</p>
         </div>
-        <input value={merchant} onChange={e => setMerchant(e.target.value)} placeholder={t('savingsCalc.merchantName') as string}
-          className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white sm:w-72" />
+        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+          <input value={merchant} onChange={e => setMerchant(e.target.value)} placeholder={t('savingsCalc.merchantName') as string}
+            className="w-full rounded-lg border border-stroke bg-white px-3 py-2 text-sm shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white sm:w-64" />
+          <input ref={fileRef} type="file" accept="application/pdf" className="hidden" onChange={onStatementFile} />
+          <button onClick={() => fileRef.current?.click()} disabled={parsing}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+            {parsing ? (
+              <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('savingsCalc.parsing')}</>
+            ) : (
+              <><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9m0 0L8.25 12.75M12 9l3.75 3.75M3 17.25V18A2.25 2.25 0 005.25 20.25h13.5A2.25 2.25 0 0021 18v-.75" /></svg>{t('savingsCalc.uploadStatement')}</>
+            )}
+          </button>
+        </div>
       </div>
 
+      {parseNotes && (
+        <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+          <p className="font-medium text-primary">{t('savingsCalc.parsedTitle')}</p>
+          <p className="mt-1 whitespace-pre-wrap text-body dark:text-bodydark">{parseNotes}</p>
+        </div>
+      )}
       {err && <p className="mb-4 rounded-lg bg-danger/10 px-4 py-2 text-sm text-danger">{err}</p>}
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">

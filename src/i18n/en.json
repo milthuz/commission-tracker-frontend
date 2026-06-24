@@ -509,7 +509,13 @@
     "save": "Save this analysis",
     "saved": "Analysis saved.",
     "downloadPdf": "Download the offer (PDF)",
-    "pdfError": "Couldn't generate the PDF."
+    "pdfError": "Couldn't generate the PDF.",
+    "uploadStatement": "Import a statement (AI)",
+    "parsing": "Reading the statement…",
+    "parsedTitle": "Statement read — please verify the values below",
+    "parseError": "Couldn't read the statement. Enter the values manually.",
+    "aiNotConfigured": "AI parsing isn't configured. An administrator needs to set the API key.",
+    "aiRefused": "The AI declined to process this document. Enter the values manually."
   },
   "savingsPricing": {
     "title": "Savings pricing templates",

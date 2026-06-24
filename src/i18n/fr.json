@@ -509,7 +509,13 @@
     "save": "Sauvegarder cette analyse",
     "saved": "Analyse sauvegardée.",
     "downloadPdf": "Télécharger l'offre (PDF)",
-    "pdfError": "Impossible de générer le PDF."
+    "pdfError": "Impossible de générer le PDF.",
+    "uploadStatement": "Importer un relevé (IA)",
+    "parsing": "Lecture du relevé…",
+    "parsedTitle": "Relevé lu — vérifie les valeurs ci-dessous",
+    "parseError": "Impossible de lire le relevé. Entre les valeurs manuellement.",
+    "aiNotConfigured": "L'analyse IA n'est pas configurée. Un administrateur doit définir la clé API.",
+    "aiRefused": "L'IA a refusé de traiter ce document. Entre les valeurs manuellement."
   },
   "savingsPricing": {
     "title": "Modèles de tarifs (calculateur)",
