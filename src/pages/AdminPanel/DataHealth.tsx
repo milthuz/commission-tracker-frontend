@@ -98,7 +98,7 @@ const DataHealth: React.FC = () => {
 
   const cards = i ? [
     { key: 'resellerActivations', count: i.unassignedResellerActivations, to: '/reseller', detail: undefined as string | undefined, expandable: false },
-    { key: 'invoices', count: i.unassignedInvoices.count, to: '/admin/import-payments',
+    { key: 'invoices', count: i.unassignedInvoices.count, to: undefined as string | undefined,
       detail: i.unassignedInvoices.count > 0 ? t('dataHealth.cards.invoices.amount', { amount: money(i.unassignedInvoices.totalCommission) }) as string : undefined,
       expandable: i.unassignedInvoices.items.length > 0 },
     { key: 'zentactMerchants', count: i.unassignedZentactMerchants, to: '/commission-tracker', detail: undefined, expandable: false },
@@ -187,16 +187,23 @@ const DataHealth: React.FC = () => {
                   </div>
                   <p className="mb-3 flex-1 text-xs text-gray-500 dark:text-gray-400">{t(`dataHealth.cards.${c.key}.desc`)}</p>
                   {c.detail && <p className="mb-3 rounded-md bg-gray-1 px-2.5 py-1.5 text-xs text-body dark:bg-meta-4 dark:text-bodydark">{c.detail}</p>}
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
+                    {/* Expandable cards (invoices, reps) → the list IS the main action (primary) */}
                     {c.expandable && (
-                      <button onClick={() => setExpanded(expanded === c.key ? null : c.key)} className="inline-flex items-center gap-1 text-sm font-medium text-body hover:text-primary">
+                      <button onClick={() => setExpanded(expanded === c.key ? null : c.key)} className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
                         {expanded === c.key ? t('dataHealth.cards.hide') : t('dataHealth.cards.view')}
+                        <svg className={`h-3.5 w-3.5 transition-transform ${expanded === c.key ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                       </button>
                     )}
-                    <NavLink to={c.to} className={`inline-flex items-center gap-1.5 self-start text-sm font-medium ${ok ? 'pointer-events-none text-gray-400' : 'text-primary hover:underline'}`}>
-                      {ok ? t('dataHealth.cards.resolved') : t('dataHealth.cards.fix')}
-                      {!ok && <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>}
-                    </NavLink>
+                    {/* A real fix destination (when one exists) */}
+                    {ok ? (
+                      <span className="text-sm font-medium text-gray-400">{t('dataHealth.cards.resolved')}</span>
+                    ) : c.to ? (
+                      <NavLink to={c.to} className={`inline-flex items-center gap-1.5 text-sm font-medium ${c.expandable ? 'text-body hover:text-primary' : 'text-primary hover:underline'}`}>
+                        {t('dataHealth.cards.fix')}
+                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                      </NavLink>
+                    ) : null}
                   </div>
                 </div>
               );
