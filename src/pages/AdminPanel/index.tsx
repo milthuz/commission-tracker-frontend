@@ -3184,7 +3184,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                             <td className="px-4 py-5">
                               <div className="flex flex-wrap gap-1">
                                 {(user.roles || []).map(r => (
-                                  <span key={r.id} className="inline-flex rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-xs font-medium text-[#8B5CF6]">
+                                  <span key={r.id} className="inline-flex rounded-md bg-[#8B5CF6] bg-opacity-10 px-2 py-1 text-xs font-medium leading-tight text-[#8B5CF6]">
                                     {r.name}
                                   </span>
                                 ))}

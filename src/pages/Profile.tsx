@@ -11,6 +11,7 @@ interface UserProfile {
   name: string;
   photo: string | null;
   isAdmin: boolean;
+  roles?: string[];
   preferences: {
     language: string;
     currency: string;
@@ -317,7 +318,11 @@ const Profile = () => {
                   </label>
                   <input
                     type="text"
-                    value={profile.isAdmin ? t('profile.administrator') : t('profile.salesRepresentative')}
+                    value={profile.isAdmin
+                      ? t('profile.administrator') as string
+                      : (profile.roles && profile.roles.length > 0
+                          ? profile.roles.join(', ')
+                          : t('profile.salesRepresentative') as string)}
                     disabled
                     className="w-full rounded-lg border border-stroke bg-whiter py-3 px-5 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white cursor-not-allowed opacity-70"
                   />
