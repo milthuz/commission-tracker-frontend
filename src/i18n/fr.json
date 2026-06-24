@@ -394,6 +394,7 @@
     "openNewTab": "Ouvrir dans un nouvel onglet",
     "safariHint": "Sur Safari, la vue intégrée peut rester noire à cause de la protection contre le suivi entre sites. Utilise « Ouvrir dans un nouvel onglet » pour une meilleure expérience (ou essaie Chrome).",
     "notConfigured": "La démo n'est pas encore configurée. Un administrateur doit terminer la configuration AWS AppStream.",
+    "fleetStopped": "La démo est disponible de 7h00 à 21h00 (heure de Montréal). Elle est actuellement éteinte pour réduire les coûts — réessaie pendant ces heures (laisse quelques minutes après 7h00 pour le démarrage).",
     "error": "Impossible de démarrer la démo. Réessaie dans un instant."
   },
   "dataHealth": {

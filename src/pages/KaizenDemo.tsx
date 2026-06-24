@@ -27,7 +27,11 @@ const KaizenDemo: React.FC = () => {
       setUrl(r.data.url);
     } catch (e: any) {
       const code = e?.response?.data?.error;
-      setError(code === 'demo_not_configured' ? t('kaizenDemo.notConfigured') : (e?.response?.data?.detail || t('kaizenDemo.error')));
+      setError(
+        code === 'demo_not_configured' ? t('kaizenDemo.notConfigured')
+        : code === 'fleet_stopped' ? t('kaizenDemo.fleetStopped')
+        : (e?.response?.data?.detail || t('kaizenDemo.error'))
+      );
     } finally { setLoading(false); }
   };
 

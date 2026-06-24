@@ -394,6 +394,7 @@
     "openNewTab": "Open in new tab",
     "safariHint": "On Safari, the embedded view may stay black because of cross-site tracking protection. Use \"Open in new tab\" for the best experience (or try Chrome).",
     "notConfigured": "The demo isn't configured yet. An administrator needs to finish the AWS AppStream setup.",
+    "fleetStopped": "The demo is available from 7:00 AM to 9:00 PM (Montreal time). It's currently off to save costs — please try again during those hours (allow a few minutes after 7:00 AM for it to start).",
     "error": "Couldn't start the demo. Please try again in a moment."
   },
   "dataHealth": {
