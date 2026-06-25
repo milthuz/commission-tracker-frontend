@@ -7,6 +7,7 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL;
 
 type Tab = 'byRep' | 'byReseller';
+type Store = { storeId: string; storeReferenceId?: string | null };
 type Row = {
   merchant_account_id: string;
   business_name: string;
@@ -17,6 +18,14 @@ type Row = {
   other_revenue: number;
   volume: number;
   payments_count: number;
+  stores?: Store[];
+};
+
+// Zentact has no per-store display name — storeReferenceId is a slug derived from
+// the location name ("Cantine_Des_Sources"). Prettify it; fall back to the storeId.
+const storeName = (s: Store) => {
+  const ref = (s.storeReferenceId || '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+  return ref || s.storeId;
 };
 type Filter = { month: string; search: string };
 
@@ -214,13 +223,14 @@ export default function Revenue() {
   // Drill-down: per-merchant breakdown for the clicked dimension (same filtered period).
   const drillMerchants = useMemo(() => {
     if (!drill) return [];
-    const map = new Map<string, { name: string; profit: number; other: number }>();
+    const map = new Map<string, { name: string; profit: number; other: number; stores: Store[] }>();
     for (const r of filtered) {
       if ((dimOf(r) || t('revenue.unassigned')) !== drill) continue;
       const key = r.merchant_account_id;
-      if (!map.has(key)) map.set(key, { name: r.business_name || r.merchant_account_id, profit: 0, other: 0 });
+      if (!map.has(key)) map.set(key, { name: r.business_name || r.merchant_account_id, profit: 0, other: 0, stores: r.stores || [] });
       const m = map.get(key)!;
       m.profit += r.transaction_profit; m.other += r.other_revenue;
+      if ((!m.stores || !m.stores.length) && r.stores?.length) m.stores = r.stores;
     }
     let rows = [...map.values()].map((m) => ({ ...m, total: m.profit + m.other }));
     if (drillSearch.trim()) {
@@ -437,8 +447,18 @@ export default function Revenue() {
                 </thead>
                 <tbody>
                   {drillMerchants.map((m) => (
-                    <tr key={m.name} className="border-t border-stroke dark:border-strokedark">
-                      <td className="px-6 py-3 text-black dark:text-white">{m.name}</td>
+                    <tr key={m.name} className="border-t border-stroke align-top dark:border-strokedark">
+                      <td className="px-6 py-3 text-black dark:text-white">
+                        {m.name}
+                        {m.stores && m.stores.length > 1 && (
+                          <div className="mt-1 flex flex-col gap-0.5 text-xs font-normal text-body">
+                            <span className="font-medium">{t('revenue.storesCount', { count: m.stores.length })}</span>
+                            {m.stores.map((s) => (
+                              <span key={s.storeId} className="pl-3">• {storeName(s)}</span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
                       <td className="px-6 py-3 text-right text-body">{money(m.profit)}</td>
                       <td className="px-6 py-3 text-right text-body">{money(m.other)}</td>
                       <td className="px-6 py-3 text-right font-semibold text-primary">{money(m.total)}</td>
