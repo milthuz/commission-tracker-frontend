@@ -6,6 +6,19 @@
   body {
     @apply font-satoshi font-normal text-base text-body bg-whiten relative z-1;
   }
+
+  /* Native <select> dropdown options render in the OS popup (white background).
+     Our selects use `dark:text-white`, so in dark mode the option text was
+     white-on-white = invisible (only the hovered/selected row showed). Set
+     explicit option colors so the popup is readable in BOTH themes. */
+  select option {
+    background-color: #ffffff;
+    color: #1c2434;
+  }
+  .dark select option {
+    background-color: #24303f; /* boxdark */
+    color: #ffffff;
+  }
 }
 
 @layer components {
