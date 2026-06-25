@@ -399,7 +399,34 @@
     "safariHint": "On Safari, the embedded view may stay black because of cross-site tracking protection. Use \"Open in new tab\" for the best experience (or try Chrome).",
     "notConfigured": "The demo isn't configured yet. An administrator needs to finish the AWS AppStream setup.",
     "fleetStopped": "The demo is available from 7:00 AM to 9:00 PM (Montreal time). It's currently off to save costs — please try again during those hours (allow a few minutes after 7:00 AM for it to start).",
-    "error": "Couldn't start the demo. Please try again in a moment."
+    "error": "Couldn't start the demo. Please try again in a moment.",
+    "sessions": {
+      "button": "Sessions",
+      "title": "Sessions & capacity",
+      "refresh": "Refresh",
+      "available": "Available",
+      "inUse": "In use",
+      "running": "Running",
+      "desired": "Capacity",
+      "activeCount_one": "{{count}} active session",
+      "activeCount_other": "{{count}} active sessions",
+      "none": "No active sessions right now.",
+      "colUser": "User",
+      "colState": "State",
+      "colSince": "Connected for",
+      "you": "you",
+      "anonUser": "In use",
+      "notConnected": "not connected",
+      "hintStopped": "The fleet is stopped — no one can stream until it starts. An admin can start it in the AWS AppStream console (or wait for the scheduled start).",
+      "hintFull": "All instances are in use — that's why \"No streaming resources are available\" appears. Wait for a session below to free up, or increase the fleet's capacity in AWS.",
+      "state": {
+        "RUNNING": "Running",
+        "STOPPED": "Stopped",
+        "STARTING": "Starting",
+        "STOPPING": "Stopping",
+        "UNKNOWN": "Unknown"
+      }
+    }
   },
   "dataHealth": {
     "title": "Needs attention",

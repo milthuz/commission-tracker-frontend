@@ -399,7 +399,34 @@
     "safariHint": "Sur Safari, la vue intégrée peut rester noire à cause de la protection contre le suivi entre sites. Utilise « Ouvrir dans un nouvel onglet » pour une meilleure expérience (ou essaie Chrome).",
     "notConfigured": "La démo n'est pas encore configurée. Un administrateur doit terminer la configuration AWS AppStream.",
     "fleetStopped": "La démo est disponible de 7h00 à 21h00 (heure de Montréal). Elle est actuellement éteinte pour réduire les coûts — réessaie pendant ces heures (laisse quelques minutes après 7h00 pour le démarrage).",
-    "error": "Impossible de démarrer la démo. Réessaie dans un instant."
+    "error": "Impossible de démarrer la démo. Réessaie dans un instant.",
+    "sessions": {
+      "button": "Sessions",
+      "title": "Sessions et capacité",
+      "refresh": "Actualiser",
+      "available": "Disponibles",
+      "inUse": "Utilisées",
+      "running": "En cours",
+      "desired": "Capacité",
+      "activeCount_one": "{{count}} session active",
+      "activeCount_other": "{{count}} sessions actives",
+      "none": "Aucune session active en ce moment.",
+      "colUser": "Utilisateur",
+      "colState": "État",
+      "colSince": "Connecté depuis",
+      "you": "toi",
+      "anonUser": "Occupée",
+      "notConnected": "non connecté",
+      "hintStopped": "La flotte est arrêtée — personne ne peut diffuser tant qu'elle n'est pas démarrée. Un admin peut la démarrer dans la console AWS AppStream (ou attendre le démarrage planifié).",
+      "hintFull": "Toutes les instances sont utilisées — c'est pourquoi « No streaming resources are available » s'affiche. Attends qu'une session ci-dessous se libère, ou augmente la capacité de la flotte dans AWS.",
+      "state": {
+        "RUNNING": "En cours",
+        "STOPPED": "Arrêtée",
+        "STARTING": "Démarrage",
+        "STOPPING": "Arrêt",
+        "UNKNOWN": "Inconnu"
+      }
+    }
   },
   "dataHealth": {
     "title": "À corriger",
