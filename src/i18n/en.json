@@ -935,7 +935,7 @@
     "searchNoResults": "No invoice matches your search for this year.",
     "processing": {
       "title": "My payment revenue (merchants)",
-      "subtitle": "Your payment merchants, their processing revenue, and the processing-bonus commission paid on each.",
+      "subtitle": "Your payment merchants and the processing-bonus commission paid on each.",
       "totalRevenue": "Total processing revenue",
       "totalBonus": "Total commission paid",
       "merchant": "Merchant",

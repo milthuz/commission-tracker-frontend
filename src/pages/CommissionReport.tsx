@@ -197,13 +197,13 @@ const CommissionReport = () => {
   };
 
   // Rep's payment (Zentact) merchants + processing-bonus commission paid.
-  type ProcMerchant = { merchantId: string; name: string; status: string; profit: number; other: number; revenue: number; bonusPaid: boolean; bonusAmount: number; bonusDate: string | null };
-  const [processing, setProcessing] = useState<{ merchants: ProcMerchant[]; totals: { revenue: number; profit: number; other: number; bonus: number } } | null>(null);
+  type ProcMerchant = { merchantId: string; name: string; status: string; bonusPaid: boolean; bonusAmount: number; bonusDate: string | null };
+  const [processing, setProcessing] = useState<{ merchants: ProcMerchant[]; totals: { bonus: number } } | null>(null);
   useEffect(() => {
     if (!report?.repName) { setProcessing(null); return; }
     const token = localStorage.getItem('token');
     axios.get(`${API_URL}/api/commissions/my-processing`, { headers: { Authorization: `Bearer ${token}` }, params: { repName: report.repName } })
-      .then(r => setProcessing({ merchants: r.data.merchants || [], totals: r.data.totals || { revenue: 0, profit: 0, other: 0, bonus: 0 } }))
+      .then(r => setProcessing({ merchants: r.data.merchants || [], totals: r.data.totals || { bonus: 0 } }))
       .catch(() => setProcessing(null));
   }, [report?.repName]);
 
@@ -1493,7 +1493,6 @@ const CommissionReport = () => {
                   <thead>
                     <tr className="border-b border-stroke dark:border-strokedark">
                       <th className="px-3 py-2 text-left text-xs font-medium text-body">{t('commissionReport.processing.merchant')}</th>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-body">{t('commissionReport.processing.revenue')}</th>
                       <th className="px-3 py-2 text-right text-xs font-medium text-body">{t('commissionReport.processing.bonus')}</th>
                     </tr>
                   </thead>
@@ -1501,7 +1500,6 @@ const CommissionReport = () => {
                     {processing.merchants.map(m => (
                       <tr key={m.merchantId} className="border-b border-stroke/50 dark:border-strokedark/50">
                         <td className="px-3 py-2.5 font-medium text-black dark:text-white">{m.name}</td>
-                        <td className="px-3 py-2.5 text-right text-body">{formatCurrency(m.revenue)}</td>
                         <td className="px-3 py-2.5 text-right">
                           {m.bonusPaid
                             ? <span className="font-semibold text-success">{formatCurrency(m.bonusAmount)}{m.bonusDate ? ` · ${formatDateOnly(m.bonusDate, i18n.language)}` : ''}</span>

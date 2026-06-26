@@ -935,7 +935,7 @@
     "searchNoResults": "Aucune facture ne correspond à votre recherche pour cette année.",
     "processing": {
       "title": "Mes revenus de paiement (marchands)",
-      "subtitle": "Vos marchands de paiement, leur revenu de traitement, et la commission (bonus de paiement) versée pour chacun.",
+      "subtitle": "Vos marchands de paiement et la commission (bonus de paiement) versée pour chacun.",
       "totalRevenue": "Revenu de traitement total",
       "totalBonus": "Commission totale versée",
       "merchant": "Marchand",
