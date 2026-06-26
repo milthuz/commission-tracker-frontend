@@ -1484,10 +1484,6 @@ const CommissionReport = () => {
             <div className="p-6">
               <div className="mb-4 flex flex-wrap gap-4">
                 <div className="rounded-md border border-stroke px-4 py-3 dark:border-strokedark">
-                  <p className="text-xs uppercase text-body">{t('commissionReport.processing.totalRevenue')}</p>
-                  <p className="text-xl font-bold text-black dark:text-white">{formatCurrency(processing.totals.revenue)}</p>
-                </div>
-                <div className="rounded-md border border-stroke px-4 py-3 dark:border-strokedark">
                   <p className="text-xs uppercase text-body">{t('commissionReport.processing.totalBonus')}</p>
                   <p className="text-xl font-bold text-success">{formatCurrency(processing.totals.bonus)}</p>
                 </div>
