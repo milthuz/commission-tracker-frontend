@@ -457,7 +457,10 @@ export default function Revenue() {
                           <div className="mt-1 flex flex-col gap-0.5 text-xs font-normal text-body">
                             <span className="font-medium">{t('revenue.storesCount', { count: m.stores.length })}</span>
                             {m.stores.map((s) => (
-                              <span key={s.storeId} className="pl-3">• {storeName(s) || t('revenue.storeUnnamed')}</span>
+                              // Zentact's API exposes no per-store name. When storeReferenceId is a
+                              // readable name, show it; otherwise this is the merchant's primary store,
+                              // which Zentact UI labels "<merchant> Store" — replicate that.
+                              <span key={s.storeId} className="pl-3">• {storeName(s) || `${m.name} Store`}</span>
                             ))}
                           </div>
                         )}
