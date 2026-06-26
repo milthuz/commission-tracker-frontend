@@ -884,22 +884,22 @@ const CommissionReport = () => {
           </select>
 
           {/* Client / invoice search — finds matching invoices across the whole selected year */}
-          <div className="flex items-center">
+          <div className="relative">
+            <button
+              onClick={runSearch}
+              title={t('commissionReport.search') as string}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-body transition hover:text-primary"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" /></svg>
+            </button>
             <input
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') runSearch(); }}
               placeholder={t('commissionReport.searchPlaceholder') as string}
-              className="w-48 rounded-l border border-r-0 border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+              className="w-56 rounded border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
             />
-            <button
-              onClick={runSearch}
-              title={t('commissionReport.search') as string}
-              className="rounded-r border border-stroke bg-primary px-3 py-2 text-white hover:bg-opacity-90 dark:border-form-strokedark"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" /></svg>
-            </button>
           </div>
 
           {/* Pay Stub — per month; disabled on "All Months" */}
