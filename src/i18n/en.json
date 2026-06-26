@@ -186,7 +186,8 @@
     "accountsSubtitle_other": "{{count}} accounts",
     "searchAccounts": "Search merchants…",
     "storesCount_one": "{{count}} store:",
-    "storesCount_other": "{{count}} stores:"
+    "storesCount_other": "{{count}} stores:",
+    "storeUnnamed": "(unnamed location)"
   },
   "newFeatures": {
     "adminDataTools": {

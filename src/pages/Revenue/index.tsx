@@ -21,11 +21,14 @@ type Row = {
   stores?: Store[];
 };
 
-// Zentact has no per-store display name — storeReferenceId is a slug derived from
-// the location name ("Cantine_Des_Sources"). Prettify it; fall back to the storeId.
+// Zentact has no real per-store display name. `storeReferenceId` is SOMETIMES a slug
+// derived from the location name ("Cantine_Des_Sources" → "Cantine Des Sources"), but
+// it's often empty (→ only the opaque storeId is left) or set to a code like
+// "STR9PHSYZZZL8". Only treat it as a name if it actually reads like one (has a space or
+// a lowercase letter); otherwise return '' so the UI shows a clean "unnamed" placeholder.
 const storeName = (s: Store) => {
   const ref = (s.storeReferenceId || '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
-  return ref || s.storeId;
+  return ref && (/\s/.test(ref) || /[a-z]/.test(ref)) ? ref : '';
 };
 type Filter = { month: string; search: string };
 
@@ -454,7 +457,7 @@ export default function Revenue() {
                           <div className="mt-1 flex flex-col gap-0.5 text-xs font-normal text-body">
                             <span className="font-medium">{t('revenue.storesCount', { count: m.stores.length })}</span>
                             {m.stores.map((s) => (
-                              <span key={s.storeId} className="pl-3">• {storeName(s)}</span>
+                              <span key={s.storeId} className="pl-3">• {storeName(s) || t('revenue.storeUnnamed')}</span>
                             ))}
                           </div>
                         )}
