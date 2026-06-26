@@ -933,6 +933,16 @@
     "searchResultsTitle": "Résultats de recherche",
     "searchResultsCount": "{{count}} facture(s) correspondant à « {{q}} » en {{year}}",
     "searchNoResults": "Aucune facture ne correspond à votre recherche pour cette année.",
+    "processing": {
+      "title": "Mes revenus de paiement (marchands)",
+      "subtitle": "Vos marchands de paiement Zentact, leur revenu de traitement, et la commission (bonus de paiement) versée pour chacun.",
+      "totalRevenue": "Revenu de traitement total",
+      "totalBonus": "Commission totale versée",
+      "merchant": "Marchand",
+      "revenue": "Revenu de traitement",
+      "bonus": "Commission versée",
+      "notPaid": "Pas encore versée"
+    },
     "noQualifyingInvoices": "Aucune facture admissible trouvée",
     "noPaidCommissions": "Aucune commission payée pour cette période",
     "commStatus": "Statut comm.",

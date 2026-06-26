@@ -196,6 +196,17 @@ const CommissionReport = () => {
     }
   };
 
+  // Rep's payment (Zentact) merchants + processing-bonus commission paid.
+  type ProcMerchant = { merchantId: string; name: string; status: string; profit: number; other: number; revenue: number; bonusPaid: boolean; bonusAmount: number; bonusDate: string | null };
+  const [processing, setProcessing] = useState<{ merchants: ProcMerchant[]; totals: { revenue: number; profit: number; other: number; bonus: number } } | null>(null);
+  useEffect(() => {
+    if (!report?.repName) { setProcessing(null); return; }
+    const token = localStorage.getItem('token');
+    axios.get(`${API_URL}/api/commissions/my-processing`, { headers: { Authorization: `Bearer ${token}` }, params: { repName: report.repName } })
+      .then(r => setProcessing({ merchants: r.data.merchants || [], totals: r.data.totals || { revenue: 0, profit: 0, other: 0, bonus: 0 } }))
+      .catch(() => setProcessing(null));
+  }, [report?.repName]);
+
   const submitMissing = async () => {
     if (!missingModal.message.trim()) return;
     setMissingModal(m => ({ ...m, sending: true }));
@@ -1462,6 +1473,52 @@ const CommissionReport = () => {
             </table>
           </div>
         </div>
+
+        {/* My payment (Zentact) merchants + processing-bonus commission paid */}
+        {processing && processing.merchants.length > 0 && (
+          <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+              <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.processing.title')}</h3>
+              <p className="text-sm text-body">{t('commissionReport.processing.subtitle')}</p>
+            </div>
+            <div className="p-6">
+              <div className="mb-4 flex flex-wrap gap-4">
+                <div className="rounded-md border border-stroke px-4 py-3 dark:border-strokedark">
+                  <p className="text-xs uppercase text-body">{t('commissionReport.processing.totalRevenue')}</p>
+                  <p className="text-xl font-bold text-black dark:text-white">{formatCurrency(processing.totals.revenue)}</p>
+                </div>
+                <div className="rounded-md border border-stroke px-4 py-3 dark:border-strokedark">
+                  <p className="text-xs uppercase text-body">{t('commissionReport.processing.totalBonus')}</p>
+                  <p className="text-xl font-bold text-success">{formatCurrency(processing.totals.bonus)}</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[600px] text-sm">
+                  <thead>
+                    <tr className="border-b border-stroke dark:border-strokedark">
+                      <th className="px-3 py-2 text-left text-xs font-medium text-body">{t('commissionReport.processing.merchant')}</th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-body">{t('commissionReport.processing.revenue')}</th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-body">{t('commissionReport.processing.bonus')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {processing.merchants.map(m => (
+                      <tr key={m.merchantId} className="border-b border-stroke/50 dark:border-strokedark/50">
+                        <td className="px-3 py-2.5 font-medium text-black dark:text-white">{m.name}</td>
+                        <td className="px-3 py-2.5 text-right text-body">{formatCurrency(m.revenue)}</td>
+                        <td className="px-3 py-2.5 text-right">
+                          {m.bonusPaid
+                            ? <span className="font-semibold text-success">{formatCurrency(m.bonusAmount)}{m.bonusDate ? ` · ${formatDateOnly(m.bonusDate, i18n.language)}` : ''}</span>
+                            : <span className="text-xs text-body">{t('commissionReport.processing.notPaid')}</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
 

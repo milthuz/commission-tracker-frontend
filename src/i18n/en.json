@@ -933,6 +933,16 @@
     "searchResultsTitle": "Search results",
     "searchResultsCount": "{{count}} invoice(s) matching “{{q}}” in {{year}}",
     "searchNoResults": "No invoice matches your search for this year.",
+    "processing": {
+      "title": "My payment revenue (merchants)",
+      "subtitle": "Your Zentact payment merchants, their processing revenue, and the processing-bonus commission paid on each.",
+      "totalRevenue": "Total processing revenue",
+      "totalBonus": "Total commission paid",
+      "merchant": "Merchant",
+      "revenue": "Processing revenue",
+      "bonus": "Commission paid",
+      "notPaid": "Not yet paid"
+    },
     "noQualifyingInvoices": "No qualifying invoices found",
     "noPaidCommissions": "No paid commissions for this period",
     "commStatus": "Comm. Status",
