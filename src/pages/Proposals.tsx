@@ -22,6 +22,7 @@ interface Prepared { pdfBase64: string; fileName: string; presentationPageCount:
 interface SentRow {
   id: number; estimateId: string; number: string; customerName: string; repEmail: string; toEmail: string;
   sentAt: string; status: string; viewed: boolean; viewedTime: string; acceptedDate: string; declinedDate: string;
+  emailOpened: boolean; emailOpenedAt: string; emailOpenCount: number;
 }
 
 const Proposals: React.FC = () => {
@@ -259,6 +260,7 @@ const Proposals: React.FC = () => {
                       <th className="px-4 py-3 text-left font-medium">{t('proposals.number')}</th>
                       <th className="px-4 py-3 text-left font-medium">{t('proposals.sentOn')}</th>
                       <th className="px-4 py-3 text-left font-medium">{t('proposals.to')}</th>
+                      <th className="px-4 py-3 text-left font-medium">{t('proposals.colEmail')}</th>
                       <th className="px-4 py-3 text-left font-medium">{t('proposals.colStatus')}</th>
                       {isAdmin && <th className="px-4 py-3"></th>}
                     </tr>
@@ -274,6 +276,15 @@ const Proposals: React.FC = () => {
                           <td className="px-4 py-2.5 text-body">{r.number}</td>
                           <td className="px-4 py-2.5 text-body">{formatDateOnly(r.sentAt, i18n.language)}</td>
                           <td className="px-4 py-2.5 text-body">{r.toEmail}</td>
+                          <td className="px-4 py-2.5">
+                            {r.emailOpened ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-success" title={r.emailOpenedAt ? `${formatDateOnly(r.emailOpenedAt, i18n.language)}${r.emailOpenCount > 1 ? ` · ×${r.emailOpenCount}` : ''}` : ''}>
+                                ✓ {t('proposals.emailOpened')}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-400">{t('proposals.emailNotOpened')}</span>
+                            )}
+                          </td>
                           <td className="px-4 py-2.5">
                             <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${b.cls}`}>{b.label}</span>
                             {detail && <span className="ml-2 text-xs text-gray-400">{detail}</span>}
