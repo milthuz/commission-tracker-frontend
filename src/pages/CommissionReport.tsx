@@ -176,6 +176,25 @@ const CommissionReport = () => {
   const [missingModal, setMissingModal] = useState<{ open: boolean; invoiceNumber: string; message: string; sending: boolean }>({
     open: false, invoiceNumber: '', message: '', sending: false,
   });
+  // Client/invoice search across the whole selected year (rep can find a specific deal fast).
+  const [searchInput, setSearchInput] = useState('');
+  const [searchModal, setSearchModal] = useState<{ open: boolean; q: string; loading: boolean; results: DrillInvoice[] }>({
+    open: false, q: '', loading: false, results: [],
+  });
+  const runSearch = async () => {
+    const q = searchInput.trim();
+    if (!q) return;
+    setSearchModal({ open: true, q, loading: true, results: [] });
+    try {
+      const token = localStorage.getItem('token');
+      const params: Record<string, string> = { year: selectedYear, q };
+      if (report) params.repName = report.repName;
+      const res = await axios.get(`${API_URL}/api/commissions/invoices`, { headers: { Authorization: `Bearer ${token}` }, params });
+      setSearchModal({ open: true, q, loading: false, results: res.data.invoices || [] });
+    } catch (e) {
+      setSearchModal({ open: true, q, loading: false, results: [] });
+    }
+  };
 
   const submitMissing = async () => {
     if (!missingModal.message.trim()) return;
@@ -853,6 +872,25 @@ const CommissionReport = () => {
               ))}
           </select>
 
+          {/* Client / invoice search — finds matching invoices across the whole selected year */}
+          <div className="flex items-center">
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') runSearch(); }}
+              placeholder={t('commissionReport.searchPlaceholder') as string}
+              className="w-48 rounded-l border border-r-0 border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+            />
+            <button
+              onClick={runSearch}
+              title={t('commissionReport.search') as string}
+              className="rounded-r border border-stroke bg-primary px-3 py-2 text-white hover:bg-opacity-90 dark:border-form-strokedark"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" /></svg>
+            </button>
+          </div>
+
           {/* Pay Stub — per month; disabled on "All Months" */}
           {canViewPaystub && (
             <button
@@ -906,6 +944,32 @@ const CommissionReport = () => {
                 className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
                 {missingModal.sending ? t('commissionReport.missing.sending') : t('commissionReport.missing.send')}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Client / invoice search results */}
+      {searchModal.open && (
+        <div className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black bg-opacity-50 p-4 pt-16" onClick={() => setSearchModal(s => ({ ...s, open: false }))}>
+          <div className="w-full max-w-4xl rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
+              <div>
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.searchResultsTitle')}</h3>
+                <p className="text-sm text-body">
+                  {searchModal.loading ? t('commissionReport.loadingInvoices') : t('commissionReport.searchResultsCount', { count: searchModal.results.length, q: searchModal.q, year: selectedYear })}
+                </p>
+              </div>
+              <button onClick={() => setSearchModal(s => ({ ...s, open: false }))} className="text-body hover:text-black dark:hover:text-white"><X className="h-5 w-5" /></button>
+            </div>
+            <div className="max-h-[70vh] overflow-auto p-4">
+              {searchModal.loading ? (
+                <div className="flex items-center justify-center py-8"><div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
+              ) : searchModal.results.length === 0 ? (
+                <p className="py-6 text-center text-sm text-body">{t('commissionReport.searchNoResults')}</p>
+              ) : (
+                renderInvoiceTable(searchModal.results)
+              )}
             </div>
           </div>
         </div>
