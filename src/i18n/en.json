@@ -382,6 +382,8 @@
     "emailOpened": "Opened",
     "emailFirstOpened": "First opened",
     "emailNotOpened": "Not opened",
+    "linkClicked": "Quote link opened",
+    "linkLastClicked": "Last clicked",
     "statusSent": "Sent",
     "statusViewed": "Viewed",
     "statusAccepted": "Accepted",

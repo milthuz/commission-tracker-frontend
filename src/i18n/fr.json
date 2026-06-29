@@ -382,6 +382,8 @@
     "emailOpened": "Ouvert",
     "emailFirstOpened": "Première ouverture",
     "emailNotOpened": "Non ouvert",
+    "linkClicked": "Lien du devis ouvert",
+    "linkLastClicked": "Dernier clic",
     "statusSent": "Envoyée",
     "statusViewed": "Vue",
     "statusAccepted": "Acceptée",
