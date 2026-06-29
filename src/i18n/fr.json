@@ -1130,6 +1130,29 @@
       "logoHint": "PNG ou JPG, max 2 Mo. Affiché dans le portail revendeur.",
       "confirmRemoveLogo": "Retirer le logo de « {{name}} » ?"
     },
+    "emailPreview": {
+      "tab": "Courriels",
+      "title": "Aperçu et test des courriels",
+      "subtitle": "Prévisualisez chaque courriel transactionnel avec des données d'exemple et envoyez-vous un test.",
+      "template": "Modèle",
+      "language": "Langue",
+      "recipient": "Envoyer le test à",
+      "recipientPlaceholder": "votre courriel (vous par défaut)",
+      "sendTest": "Envoyer un test",
+      "sending": "Envoi…",
+      "sent": "Courriel de test envoyé à {{to}}.",
+      "failed": "Échec de l'envoi : {{error}}",
+      "subjectLabel": "Objet",
+      "types": {
+        "invitation": "Invitation utilisateur externe",
+        "reset": "Réinitialisation du mot de passe",
+        "paystub": "Bulletin de paie",
+        "payroll": "Sommaire de paie",
+        "feature_request": "Demande de fonctionnalité",
+        "missing_commission": "Signalement de commission manquante",
+        "missing_points": "Signalement de points manquants"
+      }
+    },
     "recalculate": {
       "title": "Recalcul des commissions",
       "subtitle": "Applique le modèle de commission à toutes les factures (SaaS 1er mois 100 %, renouvellements 0 %, hardware 10 % dans les 3 mois après le 1er SaaS). Utilise les données déjà enrichies — lancez l'Enrichissement d'abord.",

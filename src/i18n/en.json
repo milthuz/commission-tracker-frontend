@@ -1130,6 +1130,29 @@
       "logoHint": "PNG or JPG, max 2 MB. Shown in the reseller portal.",
       "confirmRemoveLogo": "Remove the logo for \"{{name}}\"?"
     },
+    "emailPreview": {
+      "tab": "Emails",
+      "title": "Email preview & test",
+      "subtitle": "Preview every transactional email with sample data and send yourself a test copy.",
+      "template": "Template",
+      "language": "Language",
+      "recipient": "Send test to",
+      "recipientPlaceholder": "your email (defaults to you)",
+      "sendTest": "Send test",
+      "sending": "Sending…",
+      "sent": "Test email sent to {{to}}.",
+      "failed": "Send failed: {{error}}",
+      "subjectLabel": "Subject",
+      "types": {
+        "invitation": "External user invitation",
+        "reset": "Password reset",
+        "paystub": "Pay stub",
+        "payroll": "Payroll summary",
+        "feature_request": "Feature request",
+        "missing_commission": "Missing commission report",
+        "missing_points": "Missing points report"
+      }
+    },
     "recalculate": {
       "title": "Commission Recalculation",
       "subtitle": "Apply the commission model to every invoice (SaaS first month 100%, renewals 0%, hardware 10% within 3 months of first SaaS). Uses already-enriched data — run Enrich first.",
