@@ -7,7 +7,7 @@ const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('toke
 
 interface UserReport {
   id: number;
-  report_type: 'missing_commission' | 'missing_points';
+  report_type: 'missing_commission' | 'missing_points' | 'feature_request';
   reporter_email: string | null;
   reporter_name: string | null;
   reference: string | null;
@@ -265,7 +265,7 @@ const DataHealth: React.FC = () => {
                   <li key={rep.id} className="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <div className="mb-1 flex flex-wrap items-center gap-2">
-                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${rep.report_type === 'missing_points' ? 'bg-primary/10 text-primary' : 'bg-warning/15 text-[#9D5425] dark:text-warning'}`}>
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${rep.report_type === 'feature_request' ? 'bg-[#6366F1]/10 text-[#6366F1]' : rep.report_type === 'missing_points' ? 'bg-primary/10 text-primary' : 'bg-warning/15 text-[#9D5425] dark:text-warning'}`}>
                           {t(`dataHealth.reports.type.${rep.report_type}`)}
                         </span>
                         <span className="text-sm font-medium text-black dark:text-white">{rep.reporter_name || rep.reporter_email || '—'}</span>

@@ -474,7 +474,8 @@
       "resolving": "…",
       "type": {
         "missing_commission": "Missing commission",
-        "missing_points": "Missing points"
+        "missing_points": "Missing points",
+        "feature_request": "Feature request"
       }
     },
     "recipients": {
