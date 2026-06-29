@@ -380,6 +380,7 @@
     "colStatus": "Status",
     "colEmail": "Email",
     "emailOpened": "Opened",
+    "emailFirstOpened": "First opened",
     "emailNotOpened": "Not opened",
     "statusSent": "Sent",
     "statusViewed": "Viewed",

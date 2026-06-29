@@ -278,9 +278,16 @@ const Proposals: React.FC = () => {
                           <td className="px-4 py-2.5 text-body">{r.toEmail}</td>
                           <td className="px-4 py-2.5">
                             {r.emailOpened ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-success" title={r.emailOpenedAt ? `${formatDateOnly(r.emailOpenedAt, i18n.language)}${r.emailOpenCount > 1 ? ` · ×${r.emailOpenCount}` : ''}` : ''}>
-                                ✓ {t('proposals.emailOpened')}
-                              </span>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="inline-flex w-fit items-center gap-1 rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-success">
+                                  ✓ {t('proposals.emailOpened')}{r.emailOpenCount > 0 ? ` · ${r.emailOpenCount}×` : ''}
+                                </span>
+                                {r.emailOpenedAt && (
+                                  <span className="text-[11px] text-gray-400" title={t('proposals.emailFirstOpened') as string}>
+                                    {new Date(r.emailOpenedAt).toLocaleString(i18n.language, { dateStyle: 'short', timeStyle: 'short' })}
+                                  </span>
+                                )}
+                              </div>
                             ) : (
                               <span className="text-xs text-gray-400">{t('proposals.emailNotOpened')}</span>
                             )}

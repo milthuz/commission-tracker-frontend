@@ -380,6 +380,7 @@
     "colStatus": "Statut",
     "colEmail": "Courriel",
     "emailOpened": "Ouvert",
+    "emailFirstOpened": "Première ouverture",
     "emailNotOpened": "Non ouvert",
     "statusSent": "Envoyée",
     "statusViewed": "Vue",
