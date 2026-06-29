@@ -1122,7 +1122,13 @@
       "none": "Aucun revendeur pour l'instant.",
       "unassignedTitle": "Emails de revendeurs non assignés",
       "unassignedHint": "Ces emails apparaissent dans les activations POS mais ne sont rattachés à aucun revendeur. Assignez-les.",
-      "assignTo": "Assigner à…"
+      "assignTo": "Assigner à…",
+      "logo": "Logo",
+      "logoUpload": "Téléverser un logo",
+      "logoChange": "Changer",
+      "logoRemove": "Retirer",
+      "logoHint": "PNG ou JPG, max 2 Mo. Affiché dans le portail revendeur.",
+      "confirmRemoveLogo": "Retirer le logo de « {{name}} » ?"
     },
     "recalculate": {
       "title": "Recalcul des commissions",

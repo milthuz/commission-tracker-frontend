@@ -56,6 +56,27 @@ export default function ResellerAdmin() {
     await load();
   };
 
+  const uploadLogo = async (r: any, file: File | undefined) => {
+    if (!file) return;
+    setSavingId(r.id);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      await axios.post(`${API_URL}/api/resellers/${r.id}/logo`, fd,
+        { headers: { ...headers(), 'Content-Type': 'multipart/form-data' } });
+      await load();
+    } catch { dialog.alert(t('admin.resellers.logoHint')); } finally { setSavingId(null); }
+  };
+
+  const removeLogo = async (r: any) => {
+    if (!(await dialog.confirm(t('admin.resellers.confirmRemoveLogo', { name: r.name })))) return;
+    await axios.delete(`${API_URL}/api/resellers/${r.id}/logo`, { headers: headers() });
+    await load();
+  };
+
+  // Cache-bust the <img> when a logo changes (logo_updated_at is an epoch from the API).
+  const logoSrc = (r: any) => `${API_URL}/api/resellers/${r.id}/logo?v=${r.logo_updated_at || 0}`;
+
   const assignEmail = async (email: string, resellerId: number) => {
     const r = resellers.find((x) => x.id === resellerId);
     if (!r) return;
@@ -109,6 +130,7 @@ export default function ResellerAdmin() {
         <table className="w-full table-auto text-sm">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
+              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.logo')}</th>
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.name')}</th>
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.emails')}</th>
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.zentactKey')}</th>
@@ -121,6 +143,25 @@ export default function ResellerAdmin() {
           <tbody>
             {resellers.map((r) => (
               <tr key={r.id} className="border-b border-stroke align-top dark:border-strokedark">
+                <td className="px-3 py-2">
+                  <div className="flex flex-col items-start gap-1.5">
+                    <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-md border border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4">
+                      {r.has_logo
+                        ? <img src={logoSrc(r)} alt={r.name} className="h-full w-full object-contain" />
+                        : <span className="text-[10px] font-medium text-body">—</span>}
+                    </div>
+                    <div className="flex items-center gap-2 whitespace-nowrap text-xs">
+                      <label className="cursor-pointer font-medium text-primary hover:underline">
+                        {r.has_logo ? t('admin.resellers.logoChange') : t('admin.resellers.logoUpload')}
+                        <input type="file" accept="image/*" className="hidden"
+                          onChange={(e) => { uploadLogo(r, e.target.files?.[0]); e.currentTarget.value = ''; }} />
+                      </label>
+                      {r.has_logo && (
+                        <button onClick={() => removeLogo(r)} className="font-medium text-danger hover:underline">{t('admin.resellers.logoRemove')}</button>
+                      )}
+                    </div>
+                  </div>
+                </td>
                 <td className="px-3 py-2"><input value={r.name} onChange={(e) => patchLocal(r.id, { name: e.target.value })} className={inputCls} /></td>
                 <td className="px-3 py-2"><input value={r.emailsText} onChange={(e) => patchLocal(r.id, { emailsText: e.target.value })} placeholder="a@b.com, c@d.com" className={inputCls + ' min-w-[14rem]'} /></td>
                 <td className="px-3 py-2"><input list="zentact-names" value={r.zentact_key || ''} onChange={(e) => patchLocal(r.id, { zentact_key: e.target.value })} className={inputCls} /></td>
@@ -139,7 +180,7 @@ export default function ResellerAdmin() {
               </tr>
             ))}
             {resellers.length === 0 && (
-              <tr><td colSpan={7} className="px-3 py-6 text-center text-sm text-body">{t('admin.resellers.none')}</td></tr>
+              <tr><td colSpan={8} className="px-3 py-6 text-center text-sm text-body">{t('admin.resellers.none')}</td></tr>
             )}
           </tbody>
         </table>

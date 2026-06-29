@@ -91,6 +91,34 @@ function NotConnected({ source }: { source: string }) {
   return <EmptyCard title={t('reseller.notConnectedTitle')} desc={t('reseller.notConnectedDesc', { source })} />;
 }
 
+// Reseller logos (uploaded in Admin → Resellers). Keyed by exact reseller name so we can
+// render each reseller's logo next to its name in the lists and as a hero when one is selected.
+type ResellerMeta = Record<string, { id: number; hasLogo: boolean; logoV: number }>;
+const logoUrl = (m: { id: number; logoV: number }) => `${API_URL}/api/resellers/${m.id}/logo?v=${m.logoV}`;
+
+// A reseller name with its logo thumbnail (if any) inline before it.
+function ResellerCell({ name, meta }: { name: string; meta: ResellerMeta }) {
+  const m = name ? meta[name] : undefined;
+  return (
+    <span className="flex items-center gap-2">
+      {m?.hasLogo && <img src={logoUrl(m)} alt="" className="h-6 w-6 shrink-0 rounded object-contain" />}
+      <span>{name || '—'}</span>
+    </span>
+  );
+}
+
+// Large logo header shown when the filter is narrowed to a single reseller that has a logo.
+function ResellerHero({ name, meta }: { name: string; meta: ResellerMeta }) {
+  const m = meta[name];
+  if (!m?.hasLogo) return null;
+  return (
+    <div className="mb-6 flex items-center gap-4">
+      <img src={logoUrl(m)} alt={name} className="h-16 max-w-[200px] object-contain" />
+      <h3 className="text-xl font-semibold text-black dark:text-white">{name}</h3>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Filter bar — year / month / reseller / search, shared across tabs
 // ---------------------------------------------------------------------------
@@ -304,11 +332,13 @@ function ActivationsTab({
   filter,
   setFilter,
   defaultFilter,
+  meta,
 }: {
   data: any;
   filter: Filter;
   setFilter: (f: Filter) => void;
   defaultFilter: Filter;
+  meta: ResellerMeta;
 }) {
   const { t } = useTranslation();
   const rows = data?.activations || [];
@@ -362,6 +392,8 @@ function ActivationsTab({
     <div>
       <FilterBar years={years} resellers={resellers} filter={filter} setFilter={setFilter} count={filtered.length} defaultFilter={defaultFilter} />
 
+      {filter.reseller !== 'all' && <ResellerHero name={filter.reseller} meta={meta} />}
+
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('reseller.kpi.licenses')} value={kpis.licenses} color="bg-primary bg-opacity-10 text-primary" iconD={ICONS.licenses} />
         <KpiCard label={t('reseller.kpi.locations')} value={kpis.locations} color="bg-success bg-opacity-10 text-success" iconD={ICONS.locations} />
@@ -387,7 +419,7 @@ function ActivationsTab({
             <tbody>
               {filtered.map((a: any) => (
                 <tr key={a.id} className="border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
-                  <td className="px-4 py-3 font-medium text-black dark:text-white">{a.reseller_name || '—'}</td>
+                  <td className="px-4 py-3 font-medium text-black dark:text-white"><ResellerCell name={a.reseller_name} meta={meta} /></td>
                   <td className="px-4 py-3 text-body">{a.customer_name || '—'}</td>
                   <td className="px-4 py-3 text-right text-body">{a.quantity}</td>
                   <td className="px-4 py-3 text-body">
@@ -408,11 +440,13 @@ function PaymentsTab({
   filter,
   setFilter,
   defaultFilter,
+  meta,
 }: {
   data: any;
   filter: Filter;
   setFilter: (f: Filter) => void;
   defaultFilter: Filter;
+  meta: ResellerMeta;
 }) {
   const { t } = useTranslation();
   const sales = data?.sales || [];
@@ -465,6 +499,8 @@ function PaymentsTab({
     <div>
       <FilterBar years={years} resellers={resellers} filter={filter} setFilter={setFilter} count={filtered.length} defaultFilter={defaultFilter} />
 
+      {filter.reseller !== 'all' && <ResellerHero name={filter.reseller} meta={meta} />}
+
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('reseller.kpi.profit')} value={moneyCompact(kpis.profit)} title={money(kpis.profit)} color="bg-primary bg-opacity-10 text-primary" iconD={ICONS.profit} />
         <KpiCard label={t('reseller.kpi.merchants')} value={kpis.merchants} color="bg-success bg-opacity-10 text-success" iconD={ICONS.merchants} />
@@ -491,7 +527,7 @@ function PaymentsTab({
             <tbody>
               {filtered.map((s: any, i: number) => (
                 <tr key={i} className="border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
-                  <td className="px-4 py-3 font-medium text-black dark:text-white">{s.reseller_name}</td>
+                  <td className="px-4 py-3 font-medium text-black dark:text-white"><ResellerCell name={s.reseller_name} meta={meta} /></td>
                   <td className="px-4 py-3 text-body">{s.business_name || '—'}</td>
                   <td className="px-4 py-3 text-right font-semibold text-primary">{money(Number(s.transaction_profit) || 0)}</td>
                   <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
@@ -518,6 +554,7 @@ export default function Reseller() {
   const [filter, setFilter] = useState<Filter>(() => makeDefaultFilter());
   const [activations, setActivations] = useState<any>(null);
   const [residuals, setResiduals] = useState<any>(null);
+  const [meta, setMeta] = useState<ResellerMeta>({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -530,6 +567,14 @@ export default function Reseller() {
       .get(`${API_URL}/api/resellers/residuals`, { headers })
       .then((r) => setResiduals(r.data))
       .catch(() => setResiduals({ connected: false, sales: [] }));
+    axios
+      .get(`${API_URL}/api/resellers`, { headers })
+      .then((r) => {
+        const m: ResellerMeta = {};
+        for (const x of r.data.resellers || []) m[x.name] = { id: x.id, hasLogo: !!x.has_logo, logoV: x.logo_updated_at || 0 };
+        setMeta(m);
+      })
+      .catch(() => setMeta({}));
   }, []);
 
   const tabBtn = (id: Tab, label: string) => (
@@ -559,8 +604,8 @@ export default function Reseller() {
         </div>
 
         <div className="p-6">
-          {tab === 'activations' && <ActivationsTab data={activations} filter={filter} setFilter={setFilter} defaultFilter={defaultFilter} />}
-          {tab === 'payments' && <PaymentsTab data={residuals} filter={filter} setFilter={setFilter} defaultFilter={defaultFilter} />}
+          {tab === 'activations' && <ActivationsTab data={activations} filter={filter} setFilter={setFilter} defaultFilter={defaultFilter} meta={meta} />}
+          {tab === 'payments' && <PaymentsTab data={residuals} filter={filter} setFilter={setFilter} defaultFilter={defaultFilter} meta={meta} />}
         </div>
       </div>
     </>

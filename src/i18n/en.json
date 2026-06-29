@@ -1122,7 +1122,13 @@
       "none": "No resellers yet.",
       "unassignedTitle": "Unassigned reseller emails",
       "unassignedHint": "These emails appear in POS activations but aren't mapped to any reseller. Assign each to a reseller.",
-      "assignTo": "Assign to…"
+      "assignTo": "Assign to…",
+      "logo": "Logo",
+      "logoUpload": "Upload logo",
+      "logoChange": "Change",
+      "logoRemove": "Remove",
+      "logoHint": "PNG or JPG, max 2 MB. Shown in the reseller portal.",
+      "confirmRemoveLogo": "Remove the logo for \"{{name}}\"?"
     },
     "recalculate": {
       "title": "Commission Recalculation",
