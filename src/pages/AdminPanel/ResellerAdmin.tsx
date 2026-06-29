@@ -23,7 +23,11 @@ export default function ResellerAdmin() {
       axios.get(`${API_URL}/api/resellers/unassigned-emails`, { headers: headers() }),
       axios.get(`${API_URL}/api/resellers/zentact-names`, { headers: headers() }),
     ]);
-    setResellers((r.data.resellers || []).map((x: any) => ({ ...x, emailsText: (x.emails || []).join(', ') })));
+    setResellers((r.data.resellers || []).map((x: any) => ({
+      ...x,
+      emailsText: (x.emails || []).join(', '),
+      aliasesText: (x.name_aliases || []).join(', '),
+    })));
     setUnassigned(u.data.emails || []);
     setZentactNames(z.data.names || []);
   };
@@ -36,8 +40,9 @@ export default function ResellerAdmin() {
     setSavingId(r.id);
     try {
       const emails = String(r.emailsText || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+      const name_aliases = String(r.aliasesText || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
       await axios.put(`${API_URL}/api/resellers/${r.id}`,
-        { name: r.name, active: r.active, emails, zentact_key: r.zentact_key || null },
+        { name: r.name, active: r.active, emails, name_aliases, zentact_key: r.zentact_key || null },
         { headers: headers() });
       await load();
     } catch { /* ignore */ } finally { setSavingId(null); }
@@ -132,6 +137,7 @@ export default function ResellerAdmin() {
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.logo')}</th>
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.name')}</th>
+              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.aliases')}</th>
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.emails')}</th>
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.zentactKey')}</th>
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('reseller.activations.locations')}</th>
@@ -163,6 +169,7 @@ export default function ResellerAdmin() {
                   </div>
                 </td>
                 <td className="px-3 py-2"><input value={r.name} onChange={(e) => patchLocal(r.id, { name: e.target.value })} className={inputCls} /></td>
+                <td className="px-3 py-2"><input value={r.aliasesText} onChange={(e) => patchLocal(r.id, { aliasesText: e.target.value })} placeholder={t('admin.resellers.aliasesPlaceholder') as string} title={t('admin.resellers.aliasesHint') as string} className={inputCls + ' min-w-[10rem]'} /></td>
                 <td className="px-3 py-2"><input value={r.emailsText} onChange={(e) => patchLocal(r.id, { emailsText: e.target.value })} placeholder="a@b.com, c@d.com" className={inputCls + ' min-w-[14rem]'} /></td>
                 <td className="px-3 py-2"><input list="zentact-names" value={r.zentact_key || ''} onChange={(e) => patchLocal(r.id, { zentact_key: e.target.value })} className={inputCls} /></td>
                 <td className="px-3 py-2 text-body">{r.locations}</td>
@@ -180,7 +187,7 @@ export default function ResellerAdmin() {
               </tr>
             ))}
             {resellers.length === 0 && (
-              <tr><td colSpan={8} className="px-3 py-6 text-center text-sm text-body">{t('admin.resellers.none')}</td></tr>
+              <tr><td colSpan={9} className="px-3 py-6 text-center text-sm text-body">{t('admin.resellers.none')}</td></tr>
             )}
           </tbody>
         </table>
