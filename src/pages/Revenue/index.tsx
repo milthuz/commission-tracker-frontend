@@ -144,6 +144,8 @@ export default function Revenue() {
   useEffect(() => { setDrillSearch(''); }, [drill]); // fresh search per drill-down
   const [activeReps, setActiveReps] = useState<Set<string> | null>(null);
   const [activeResellers, setActiveResellers] = useState<Set<string> | null>(null);
+  // Reseller logos, keyed by lowercased name → { id, logoV } (only resellers that have one).
+  const [resellerLogos, setResellerLogos] = useState<Record<string, { id: number; logoV: number }>>({});
 
   // Load active salespeople + active resellers so the report shows only active ones.
   useEffect(() => {
@@ -155,9 +157,22 @@ export default function Revenue() {
       .catch(() => setActiveReps(null));
     axios
       .get(`${API_URL}/api/resellers`, h)
-      .then((r) => setActiveResellers(new Set((r.data.resellers || []).filter((x: any) => x.active).map((x: any) => String(x.name).toLowerCase()))))
+      .then((r) => {
+        const list = r.data.resellers || [];
+        setActiveResellers(new Set(list.filter((x: any) => x.active).map((x: any) => String(x.name).toLowerCase())));
+        const logos: Record<string, { id: number; logoV: number }> = {};
+        for (const x of list) if (x.has_logo) logos[String(x.name).toLowerCase()] = { id: x.id, logoV: x.logo_updated_at || 0 };
+        setResellerLogos(logos);
+      })
       .catch(() => setActiveResellers(null)); // no reseller:view → don't filter
   }, []);
+
+  // Logo thumbnail for a reseller dimension name (nothing if no logo / not the reseller tab).
+  const resellerLogo = (name: string) => {
+    const m = resellerLogos[String(name).toLowerCase()];
+    if (!m) return null;
+    return <img src={`${API_URL}/api/resellers/${m.id}/logo?v=${m.logoV}`} alt="" className="h-6 w-6 shrink-0 rounded object-contain" />;
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -361,13 +376,16 @@ export default function Revenue() {
                       {grouped.map((g) => (
                         <tr key={g.name} className="border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
                           <td className="px-4 py-3">
-                            <button
-                              onClick={() => setDrill(g.name)}
-                              className="font-medium text-primary hover:underline"
-                              title={t('revenue.viewAccounts')}
-                            >
-                              {g.name}
-                            </button>
+                            <span className="flex items-center gap-2">
+                              {tab === 'byReseller' && resellerLogo(g.name)}
+                              <button
+                                onClick={() => setDrill(g.name)}
+                                className="font-medium text-primary hover:underline"
+                                title={t('revenue.viewAccounts')}
+                              >
+                                {g.name}
+                              </button>
+                            </span>
                           </td>
                           <td className="px-4 py-3 text-right text-body">{money(g.profit)}</td>
                           <td className="px-4 py-3 text-right text-body">{money(g.other)}</td>
@@ -396,11 +414,14 @@ export default function Revenue() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
-              <div>
-                <h3 className="text-lg font-semibold text-black dark:text-white">{drill}</h3>
-                <p className="text-sm text-body">
-                  {t('revenue.accountsSubtitle', { count: drillMerchants.length })} · {money(drillTotal)}
-                </p>
+              <div className="flex items-center gap-3">
+                {tab === 'byReseller' && resellerLogo(drill)}
+                <div>
+                  <h3 className="text-lg font-semibold text-black dark:text-white">{drill}</h3>
+                  <p className="text-sm text-body">
+                    {t('revenue.accountsSubtitle', { count: drillMerchants.length })} · {money(drillTotal)}
+                  </p>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="relative hidden sm:block">
