@@ -763,6 +763,8 @@
     "activeSubscriptions": "Abonnements actifs",
     "churnRate": "Taux d'attrition",
     "thisMonth": "ce mois",
+    "byOrg": "par organisation",
+    "byOrgHint": "cliquer pour le détail par org",
     "recentInvoices": "Factures récentes",
     "invoiceNumber": "# Facture",
     "customer": "Client",

@@ -55,8 +55,10 @@ const ECommerce: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
   // Zoho Billing board metrics (MRR/ARPU/active/churn/LTV) — fetched once, point-in-time.
-  const [billing, setBilling] = useState<{ mrr: number; arr: number; activeSubs: number; arpu: number; churnedThisMonth: number; churnRate: number; ltv: number; orgCount: number } | null>(null);
+  type OrgMetrics = { orgId: string; name: string; mrr: number; arr: number; activeSubs: number; arpu: number; churned: number; churnRate: number; ltv: number };
+  const [billing, setBilling] = useState<{ mrr: number; arr: number; activeSubs: number; arpu: number; churnedThisMonth: number; churnRate: number; ltv: number; orgCount: number; perOrg: OrgMetrics[] } | null>(null);
   const [billingErr, setBillingErr] = useState<string | null>(null);
+  const [drillMetric, setDrillMetric] = useState<keyof OrgMetrics | null>(null); // tile clicked → per-org breakdown
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -64,6 +66,15 @@ const ECommerce: React.FC = () => {
       .then(r => { setBilling(r.data); setBillingErr(null); })
       .catch(e => setBillingErr(e.response?.data?.detail || e.response?.data?.error || 'unavailable'));
   }, []);
+
+  // Shared label + formatter for a billing metric (used by the tiles and the per-org modal).
+  const billLabel = (key: string) => (({ mrr: t('dashboard.mrr'), activeSubs: t('dashboard.activeSubscriptions'), arpu: 'ARPU', churnRate: t('dashboard.churnRate'), ltv: 'LTV' } as Record<string, string>)[key] || key);
+  const billFmt = (key: string, n: number) => {
+    if (key === 'activeSubs') return Number(n).toLocaleString();
+    if (key === 'churnRate') return Number(n).toFixed(2) + '%';
+    if (key === 'arpu' || key === 'ltv') return formatCurrencyFull(n);
+    return formatCurrency(n); // mrr / arr
+  };
 
   useEffect(() => {
     fetchDashboard();
@@ -259,31 +270,55 @@ const ECommerce: React.FC = () => {
           <div className="rounded-sm border border-stroke bg-white px-5 py-8 text-center text-sm text-gray-400 shadow-default dark:border-strokedark dark:bg-boxdark">{t('dashboard.billingLoading')}</div>
         ) : (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5 2xl:gap-7.5">
-            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.mrr')}</span>
-              <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{formatCurrency(billing.mrr)}</h4>
-              <span className="text-xs text-gray-400">ARR {formatCurrency(billing.arr)}</span>
-            </div>
-            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.activeSubscriptions')}</span>
-              <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{billing.activeSubs.toLocaleString()}</h4>
-            </div>
-            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">ARPU</span>
-              <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(billing.arpu)}</h4>
-            </div>
-            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.churnRate')}</span>
-              <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{billing.churnRate.toFixed(2)}%</h4>
-              <span className="text-xs text-gray-400">{billing.churnedThisMonth} {t('dashboard.thisMonth')}</span>
-            </div>
-            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">LTV</span>
-              <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(billing.ltv)}</h4>
-            </div>
+            {([
+              { key: 'mrr', sub: 'ARR ' + formatCurrency(billing.arr) },
+              { key: 'activeSubs' },
+              { key: 'arpu' },
+              { key: 'churnRate', sub: `${billing.churnedThisMonth} ${t('dashboard.thisMonth')}` },
+              { key: 'ltv' },
+            ] as { key: keyof OrgMetrics; sub?: string }[]).map((m) => (
+              <button
+                key={m.key as string}
+                onClick={() => setDrillMetric(m.key)}
+                title={t('dashboard.byOrg') as string}
+                className="rounded-sm border border-stroke bg-white px-6 py-6 text-left shadow-default transition hover:border-primary dark:border-strokedark dark:bg-boxdark"
+              >
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{billLabel(m.key as string)}</span>
+                <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{billFmt(m.key as string, billing[m.key as keyof typeof billing] as number)}</h4>
+                <span className="text-xs text-gray-400">{m.sub || t('dashboard.byOrgHint')}</span>
+              </button>
+            ))}
           </div>
         )}
       </div>
+
+      {/* Per-org breakdown modal for a clicked billing tile */}
+      {drillMetric && billing && (
+        <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4" onClick={() => setDrillMetric(null)}>
+          <div className="w-full max-w-md overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
+              <h3 className="text-lg font-semibold text-black dark:text-white">{billLabel(drillMetric as string)} · {t('dashboard.byOrg')}</h3>
+              <button onClick={() => setDrillMetric(null)} className="text-body hover:text-black dark:hover:text-white">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <table className="w-full text-sm">
+              <tbody>
+                {billing.perOrg.map((o) => (
+                  <tr key={o.orgId} className="border-b border-stroke dark:border-strokedark">
+                    <td className="px-6 py-3 text-black dark:text-white">{o.name}</td>
+                    <td className="px-6 py-3 text-right font-semibold text-black dark:text-white">{billFmt(drillMetric as string, o[drillMetric] as number)}</td>
+                  </tr>
+                ))}
+                <tr className="bg-gray-1 dark:bg-meta-4/40">
+                  <td className="px-6 py-3 font-semibold text-black dark:text-white">{t('dashboard.total')}</td>
+                  <td className="px-6 py-3 text-right font-bold text-primary">{billFmt(drillMetric as string, billing[drillMetric as keyof typeof billing] as number)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* ====== Board averages (monthly run-rate): processing / combined per merchant ====== */}
       <div className="mt-4 grid grid-cols-1 gap-4 md:mt-6 md:grid-cols-2 2xl:gap-7.5">

@@ -763,6 +763,8 @@
     "activeSubscriptions": "Active subscriptions",
     "churnRate": "Churn rate",
     "thisMonth": "this month",
+    "byOrg": "by organization",
+    "byOrgHint": "click for org breakdown",
     "recentInvoices": "Recent Invoices",
     "invoiceNumber": "Invoice #",
     "customer": "Customer",
