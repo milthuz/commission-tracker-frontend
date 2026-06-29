@@ -54,6 +54,16 @@ const ECommerce: React.FC = () => {
   const [error, setError] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
+  // Zoho Billing board metrics (MRR/ARPU/active/churn/LTV) — fetched once, point-in-time.
+  const [billing, setBilling] = useState<{ mrr: number; arr: number; activeSubs: number; arpu: number; churnedThisMonth: number; churnRate: number; ltv: number; orgCount: number } | null>(null);
+  const [billingErr, setBillingErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    axios.get(`${API_URL}/api/billing/metrics`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => { setBilling(r.data); setBillingErr(null); })
+      .catch(e => setBillingErr(e.response?.data?.detail || e.response?.data?.error || 'unavailable'));
+  }, []);
 
   useEffect(() => {
     fetchDashboard();
@@ -235,22 +245,48 @@ const ECommerce: React.FC = () => {
       {/* ====== Action items (admin) ====== */}
       <AdminActionItems />
 
-      {/* ====== Board averages (monthly run-rate): SaaS / processing / combined per merchant ====== */}
-      <div className="mt-4 grid grid-cols-1 gap-4 md:mt-6 md:grid-cols-3 2xl:gap-7.5">
-        {/* Average monthly SaaS revenue per client */}
-        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-cyan-100 dark:bg-cyan-500/20">
-            <svg className="stroke-cyan-600 dark:stroke-cyan-400" width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M2 11h20M6 3h12" />
-            </svg>
-          </div>
-          <div className="mt-4">
-            <h4 className="text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(data.avgSaas?.monthly || 0)}</h4>
-            <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.avgSaasPerClient')}</span>
-            <span className="text-xs font-medium text-gray-400">{data.avgSaas?.clients || 0} {t('dashboard.clientsCount')}</span>
-          </div>
+      {/* ====== Zoho Billing — SaaS metrics (board), live across all billing orgs ====== */}
+      <div className="mt-4 md:mt-6">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h5 className="text-lg font-semibold text-black dark:text-white">{t('dashboard.billingTitle')}</h5>
+          {billing && <span className="text-xs text-gray-400">{t('dashboard.billingSubtitle', { count: billing.orgCount })}</span>}
         </div>
+        {billingErr ? (
+          <div className="rounded-sm border border-stroke bg-white px-5 py-4 text-sm text-gray-500 shadow-default dark:border-strokedark dark:bg-boxdark dark:text-gray-400">
+            {t('dashboard.billingUnavailable')} <span className="text-xs text-gray-400">({billingErr})</span>
+          </div>
+        ) : !billing ? (
+          <div className="rounded-sm border border-stroke bg-white px-5 py-8 text-center text-sm text-gray-400 shadow-default dark:border-strokedark dark:bg-boxdark">{t('dashboard.billingLoading')}</div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5 2xl:gap-7.5">
+            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.mrr')}</span>
+              <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{formatCurrency(billing.mrr)}</h4>
+              <span className="text-xs text-gray-400">ARR {formatCurrency(billing.arr)}</span>
+            </div>
+            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.activeSubscriptions')}</span>
+              <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{billing.activeSubs.toLocaleString()}</h4>
+            </div>
+            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">ARPU</span>
+              <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(billing.arpu)}</h4>
+            </div>
+            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.churnRate')}</span>
+              <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{billing.churnRate.toFixed(2)}%</h4>
+              <span className="text-xs text-gray-400">{billing.churnedThisMonth} {t('dashboard.thisMonth')}</span>
+            </div>
+            <div className="rounded-sm border border-stroke bg-white px-6 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">LTV</span>
+              <h4 className="mt-1 text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(billing.ltv)}</h4>
+            </div>
+          </div>
+        )}
+      </div>
 
+      {/* ====== Board averages (monthly run-rate): processing / combined per merchant ====== */}
+      <div className="mt-4 grid grid-cols-1 gap-4 md:mt-6 md:grid-cols-2 2xl:gap-7.5">
         {/* Average monthly processing profit per merchant — revenue-gated */}
         {data.avgProcessing && (
           <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
