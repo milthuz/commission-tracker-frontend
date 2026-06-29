@@ -1168,6 +1168,7 @@
       "linkHint": "Pick the Zoho Billing customer that is this merchant.",
       "colMerchant": "Merchant",
       "colStatus": "Status",
+      "colActivated": "Active (payments)",
       "colProcessing": "Processing / mo",
       "colSaas": "SaaS / mo",
       "colCombined": "Combined / mo",

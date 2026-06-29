@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const money = (n: number) => '$' + (Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 type Row = {
-  merchantAccountId: string; businessName: string; active: string;
+  merchantAccountId: string; businessName: string; active: string; activatedAt: string | null;
   processingMonthly: number; saasMonthly: number; combinedMonthly: number;
   status: 'manual' | 'auto' | 'no_saas' | 'unmatched'; linkedCustomer: string | null;
 };
@@ -119,6 +119,7 @@ export default function MerchantSaasLinks() {
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="px-4 py-3 font-medium text-black dark:text-white">{t('admin.merchantLinks.colMerchant')}</th>
               <th className="px-4 py-3 font-medium text-black dark:text-white">{t('admin.merchantLinks.colStatus')}</th>
+              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('admin.merchantLinks.colActivated')}</th>
               <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('admin.merchantLinks.colProcessing')}</th>
               <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('admin.merchantLinks.colSaas')}</th>
               <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('admin.merchantLinks.colCombined')}</th>
@@ -127,9 +128,9 @@ export default function MerchantSaasLinks() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-body">…</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-body">…</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-body">{t('admin.merchantLinks.none')}</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-body">{t('admin.merchantLinks.none')}</td></tr>
             ) : filtered.map((r) => (
               <tr key={r.merchantAccountId} className="border-t border-stroke dark:border-strokedark">
                 <td className="px-4 py-3">
@@ -137,6 +138,7 @@ export default function MerchantSaasLinks() {
                   {r.linkedCustomer && <div className="text-xs text-body">→ {r.linkedCustomer}</div>}
                 </td>
                 <td className="px-4 py-3">{badge(r.status)}</td>
+                <td className="px-4 py-3 whitespace-nowrap text-body">{r.activatedAt ? new Date(r.activatedAt).toLocaleDateString() : '—'}</td>
                 <td className="px-4 py-3 text-right text-body">{money(r.processingMonthly)}</td>
                 <td className="px-4 py-3 text-right text-body">{money(r.saasMonthly)}</td>
                 <td className="px-4 py-3 text-right font-semibold text-primary">{money(r.combinedMonthly)}</td>

@@ -1168,6 +1168,7 @@
       "linkHint": "Choisissez le client Zoho Billing qui correspond à ce marchand.",
       "colMerchant": "Marchand",
       "colStatus": "Statut",
+      "colActivated": "Activé (paiements)",
       "colProcessing": "Processing / mois",
       "colSaas": "SaaS / mois",
       "colCombined": "Combiné / mois",
