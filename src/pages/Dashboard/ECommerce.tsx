@@ -19,6 +19,8 @@ interface DashboardData {
   commissionsByRep: { name: string; invoices: number; sales: number; commission: number }[];
   statusBreakdown: { status: string; count: number; total: number }[];
   topCustomers: { name: string; invoices: number; total: number }[];
+  saasByCustomer: { name: string; invoices: number; total: number }[];
+  paymentByCustomer: { name: string; total: number; other: number; months: number }[];
   recentInvoices: {
     invoiceNumber: string;
     customer: string;
@@ -396,6 +398,60 @@ const ECommerce: React.FC = () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* ====== Revenue per client: SaaS (SH-8) + Payment (SH-9) ====== */}
+      <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:gap-7.5">
+        {/* SaaS revenue per client */}
+        <div className={`col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark ${(data.paymentByCustomer?.length ?? 0) > 0 ? 'xl:col-span-6' : 'xl:col-span-12'}`}>
+          <h5 className="mb-4 text-xl font-semibold text-black dark:text-white">{t('dashboard.saasByCustomer')}</h5>
+          <div className="grid grid-cols-1 gap-3">
+            {(data.saasByCustomer || []).map((c, index) => {
+              const maxTotal = data.saasByCustomer[0]?.total || 1;
+              const percentage = (c.total / maxTotal) * 100;
+              return (
+                <div key={index}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-black dark:text-white truncate max-w-[60%]">{index + 1}. {c.name}</span>
+                    <span className="text-sm font-semibold text-black dark:text-white">{formatCurrencyFull(c.total)}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-meta-4">
+                    <div className="bg-primary h-2 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{c.invoices} {t('dashboard.invoices')}</span>
+                </div>
+              );
+            })}
+            {(data.saasByCustomer?.length ?? 0) === 0 && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">{t('dashboard.noCustomerData')}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Payment (processing) revenue per client — only when the viewer can see revenue */}
+        {(data.paymentByCustomer?.length ?? 0) > 0 && (
+          <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-6">
+            <h5 className="mb-4 text-xl font-semibold text-black dark:text-white">{t('dashboard.paymentByCustomer')}</h5>
+            <div className="grid grid-cols-1 gap-3">
+              {data.paymentByCustomer.map((c, index) => {
+                const maxTotal = data.paymentByCustomer[0]?.total || 1;
+                const percentage = (c.total / maxTotal) * 100;
+                return (
+                  <div key={index}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-black dark:text-white truncate max-w-[60%]">{index + 1}. {c.name}</span>
+                      <span className="text-sm font-semibold text-black dark:text-white">{formatCurrencyFull(c.total)}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-meta-4">
+                      <div className="bg-[#10B981] h-2 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{c.months} {t('dashboard.months')}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ====== {t('dashboard.recentInvoices')} Table ====== */}
