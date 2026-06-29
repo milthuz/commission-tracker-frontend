@@ -162,11 +162,17 @@ export default function MerchantSaasLinks() {
 
       {/* Link modal: search Billing customers */}
       {linking && (
-        <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4" onClick={() => setLinking(null)}>
-          <div className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <div className="border-b border-stroke px-5 py-3 dark:border-strokedark">
-              <h3 className="font-semibold text-black dark:text-white">{t('admin.merchantLinks.linkTitle', { name: linking.businessName })}</h3>
-              <p className="text-xs text-body">{t('admin.merchantLinks.linkHint')}</p>
+        <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4">
+          <div className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="flex items-start justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
+              <div>
+                <h3 className="font-semibold text-black dark:text-white">{t('admin.merchantLinks.linkTitle', { name: linking.businessName })}</h3>
+                <p className="text-xs text-body">{t('admin.merchantLinks.linkHint')}</p>
+              </div>
+              <button onClick={() => setLinking(null)} aria-label={t('common.close') as string}
+                className="ml-3 shrink-0 rounded-lg p-1.5 text-body hover:bg-gray-1 hover:text-black dark:hover:bg-meta-4 dark:hover:text-white">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
             </div>
             <div className="p-4">
               <input autoFocus value={custQuery} onChange={(e) => setCustQuery(e.target.value)} placeholder={t('admin.merchantLinks.searchCustomer') as string}
