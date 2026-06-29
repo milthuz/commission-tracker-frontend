@@ -19,17 +19,8 @@ interface DashboardData {
   commissionsByRep: { name: string; invoices: number; sales: number; commission: number }[];
   statusBreakdown: { status: string; count: number; total: number }[];
   topCustomers: { name: string; invoices: number; total: number }[];
-  saasByCustomer: { name: string; invoices: number; total: number }[];
-  paymentByCustomer: { name: string; total: number; other: number; months: number }[];
-  recentInvoices: {
-    invoiceNumber: string;
-    customer: string;
-    salesperson: string;
-    total: number;
-    commission: number;
-    status: string;
-    date: string;
-  }[];
+  avgSaas: { total: number; clients: number; avg: number };
+  avgProcessing: { total: number; clients: number; avg: number } | null;
   year: number;
 }
 
@@ -41,18 +32,6 @@ const formatCurrency = (val: number) => {
 
 const formatCurrencyFull = (val: number) => {
   return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(val);
-};
-
-const statusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'paid': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400';
-    case 'overdue': return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400';
-    case 'sent': return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400';
-    case 'draft': return 'bg-gray-100 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400';
-    case 'partially_paid': return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400';
-    case 'void': return 'bg-gray-100 text-gray-500 dark:bg-gray-500/20 dark:text-gray-500';
-    default: return 'bg-gray-100 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400';
-  }
 };
 
 const statusPieColor = (status: string) => {
@@ -325,6 +304,39 @@ const ECommerce: React.FC = () => {
         </div>
       </div>
 
+      {/* ====== Board averages: per-client SaaS + processing ====== */}
+      <div className="mt-4 grid grid-cols-1 gap-4 md:mt-6 md:grid-cols-2 2xl:gap-7.5">
+        {/* Average SaaS revenue per client */}
+        <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-cyan-100 dark:bg-cyan-500/20">
+            <svg className="stroke-cyan-600 dark:stroke-cyan-400" width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M2 11h20M6 3h12" />
+            </svg>
+          </div>
+          <div className="mt-4">
+            <h4 className="text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(data.avgSaas?.avg || 0)}</h4>
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.avgSaasPerClient')}</span>
+            <span className="ml-2 text-xs font-medium text-gray-400">{data.avgSaas?.clients || 0} {t('dashboard.clientsCount')}</span>
+          </div>
+        </div>
+
+        {/* Average processing revenue per client — only when the viewer can see revenue */}
+        {data.avgProcessing && (
+          <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/20">
+              <svg className="stroke-emerald-600 dark:stroke-emerald-400" width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" />
+              </svg>
+            </div>
+            <div className="mt-4">
+              <h4 className="text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(data.avgProcessing.avg || 0)}</h4>
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.avgProcessingPerClient')}</span>
+              <span className="ml-2 text-xs font-medium text-gray-400">{data.avgProcessing.clients || 0} {t('dashboard.clientsCount')}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* ====== Charts Row 1: Revenue Trend ====== */}
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
         {/* Monthly Revenue Trend - Full Width */}
@@ -400,141 +412,6 @@ const ECommerce: React.FC = () => {
         </div>
       </div>
 
-      {/* ====== Revenue per client: SaaS (SH-8) + Payment (SH-9) ====== */}
-      <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:gap-7.5">
-        {/* SaaS revenue per client */}
-        <div className={`col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark ${(data.paymentByCustomer?.length ?? 0) > 0 ? 'xl:col-span-6' : 'xl:col-span-12'}`}>
-          <h5 className="mb-4 text-xl font-semibold text-black dark:text-white">{t('dashboard.saasByCustomer')}</h5>
-          <div className="grid grid-cols-1 gap-3">
-            {(data.saasByCustomer || []).map((c, index) => {
-              const maxTotal = data.saasByCustomer[0]?.total || 1;
-              const percentage = (c.total / maxTotal) * 100;
-              return (
-                <div key={index}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-black dark:text-white truncate max-w-[60%]">{index + 1}. {c.name}</span>
-                    <span className="text-sm font-semibold text-black dark:text-white">{formatCurrencyFull(c.total)}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-meta-4">
-                    <div className="bg-primary h-2 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">{c.invoices} {t('dashboard.invoices')}</span>
-                </div>
-              );
-            })}
-            {(data.saasByCustomer?.length ?? 0) === 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">{t('dashboard.noCustomerData')}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Payment (processing) revenue per client — only when the viewer can see revenue */}
-        {(data.paymentByCustomer?.length ?? 0) > 0 && (
-          <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-6">
-            <h5 className="mb-4 text-xl font-semibold text-black dark:text-white">{t('dashboard.paymentByCustomer')}</h5>
-            <div className="grid grid-cols-1 gap-3">
-              {data.paymentByCustomer.map((c, index) => {
-                const maxTotal = data.paymentByCustomer[0]?.total || 1;
-                const percentage = (c.total / maxTotal) * 100;
-                return (
-                  <div key={index}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-black dark:text-white truncate max-w-[60%]">{index + 1}. {c.name}</span>
-                      <span className="text-sm font-semibold text-black dark:text-white">{formatCurrencyFull(c.total)}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-meta-4">
-                      <div className="bg-[#10B981] h-2 rounded-full transition-all duration-500" style={{ width: `${percentage}%` }}></div>
-                    </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{c.months} {t('dashboard.months')}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ====== {t('dashboard.recentInvoices')} Table ====== */}
-      <div className="mt-4 md:mt-6 2xl:mt-7.5">
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="px-4 py-6 md:px-6 xl:px-7.5">
-            <h4 className="text-xl font-semibold text-black dark:text-white">
-              {t('dashboard.recentInvoices')}
-            </h4>
-          </div>
-
-          {/* Table Header */}
-          <div className="grid grid-cols-7 border-t border-stroke px-4 py-4.5 dark:border-strokedark md:px-6 2xl:px-7.5">
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('dashboard.invoiceNumber')}</p>
-            </div>
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('dashboard.customer')}</p>
-            </div>
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('dashboard.salesRep')}</p>
-            </div>
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400">{t('dashboard.date')}</p>
-            </div>
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">{t('dashboard.total')}</p>
-            </div>
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-right">{t('dashboard.commission')}</p>
-            </div>
-            <div className="col-span-1">
-              <p className="font-medium text-sm text-gray-500 dark:text-gray-400 text-center">{t('dashboard.status')}</p>
-            </div>
-          </div>
-
-          {/* Table Body */}
-          {data.recentInvoices.map((inv, index) => (
-            <div
-              key={inv.invoiceNumber}
-              className={`grid grid-cols-7 border-t border-stroke px-4 py-4 dark:border-strokedark md:px-6 2xl:px-7.5 ${
-                index % 2 === 0 ? '' : 'bg-gray-50 dark:bg-meta-4/30'
-              }`}
-            >
-              <div className="col-span-1 flex items-center">
-                <p className="text-sm font-medium text-primary">{inv.invoiceNumber}</p>
-              </div>
-              <div className="col-span-1 flex items-center">
-                <p className="text-sm text-black dark:text-white truncate">{inv.customer}</p>
-              </div>
-              <div className="col-span-1 flex items-center">
-                <p className="text-sm text-black dark:text-white truncate">{inv.salesperson}</p>
-              </div>
-              <div className="col-span-1 flex items-center">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {new Date(inv.date).toLocaleDateString('en-CA')}
-                </p>
-              </div>
-              <div className="col-span-1 flex items-center justify-end">
-                <p className="text-sm font-medium text-black dark:text-white">
-                  {formatCurrencyFull(inv.total)}
-                </p>
-              </div>
-              <div className="col-span-1 flex items-center justify-end">
-                <p className="text-sm text-emerald-600 dark:text-emerald-400">
-                  {formatCurrencyFull(inv.commission)}
-                </p>
-              </div>
-              <div className="col-span-1 flex items-center justify-center">
-                <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${statusColor(inv.status)}`}>
-                  {inv.status.charAt(0).toUpperCase() + inv.status.slice(1)}
-                </span>
-              </div>
-            </div>
-          ))}
-
-          {data.recentInvoices.length === 0 && (
-            <div className="border-t border-stroke px-4 py-8 text-center dark:border-strokedark">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.noInvoicesFor')} {selectedYear}</p>
-            </div>
-          )}
-        </div>
-      </div>
     </>
   );
 };
