@@ -21,7 +21,7 @@ interface DashboardData {
   topCustomers: { name: string; invoices: number; total: number }[];
   avgSaas: { total: number; clients: number; monthly: number };
   avgProcessing: { total: number; clients: number; monthly: number } | null;
-  avgRevenuePerMerchant: { total: number; merchants: number; monthly: number; saasMonthly?: number; processingMonthly?: number; linkedMerchants?: number } | null;
+  avgRevenuePerMerchant: { total: number; merchants: number; monthly: number; saasMonthly?: number; processingMonthly?: number } | null;
   year: number;
 }
 
@@ -338,9 +338,11 @@ const ECommerce: React.FC = () => {
           </div>
         )}
 
-        {/* Combined revenue per merchant (SaaS + processing) — revenue-gated */}
+        {/* Combined revenue per merchant (SaaS + processing) — revenue-gated.
+            Denominator = merchants we matched to a SaaS; tooltip explains it. */}
         {data.avgRevenuePerMerchant && (
-          <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div title={t('dashboard.avgRevenuePerMerchantTip') as string}
+            className="cursor-help rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-500/20">
               <svg className="stroke-indigo-600 dark:stroke-indigo-400" width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 3v18h18" /><path d="M7 15l4-4 3 3 5-6" />
@@ -349,11 +351,10 @@ const ECommerce: React.FC = () => {
             <div className="mt-4">
               <h4 className="text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(data.avgRevenuePerMerchant.monthly || 0)}</h4>
               <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.avgRevenuePerMerchant')}</span>
-              <span className="text-xs font-medium text-gray-400">{data.avgRevenuePerMerchant.merchants || 0} {t('dashboard.merchantsCount')}</span>
+              <span className="text-xs font-medium text-gray-400">{data.avgRevenuePerMerchant.merchants || 0} {t('dashboard.merchantsWithSaas')}</span>
               {(data.avgRevenuePerMerchant.saasMonthly != null) && (
                 <span className="mt-1 block text-xs font-medium text-gray-400">
                   {t('dashboard.saasShort')} {formatCurrencyFull(data.avgRevenuePerMerchant.saasMonthly || 0)} · {t('dashboard.processingShort')} {formatCurrencyFull(data.avgRevenuePerMerchant.processingMonthly || 0)}
-                  {data.avgRevenuePerMerchant.linkedMerchants != null && ` · ${data.avgRevenuePerMerchant.linkedMerchants} ${t('dashboard.linkedShort')}`}
                 </span>
               )}
             </div>
