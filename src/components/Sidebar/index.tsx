@@ -477,6 +477,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </li>
                     <li>
                       <NavLink
+                        to="/admin/notifications"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/notifications' ? 'text-white' : ''
+                        }`}
+                      >
+                        {t('sidebar.notifications')}<NewBadge path="/admin/notifications" />
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
                         to="/admin/sync"
                         className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
                           pathname === '/admin/sync' || pathname === '/admin' ? 'text-white' : ''

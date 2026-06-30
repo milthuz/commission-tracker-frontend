@@ -298,6 +298,7 @@
     "resourcesAdmin": "Resources (storage)",
     "resellersAdmin": "Manage Resellers",
     "merchantLinks": "Merchant ↔ SaaS",
+    "notifications": "Notifications",
     "profile": "Profile",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar"
@@ -1159,6 +1160,21 @@
       "logoHint": "PNG or JPG, max 2 MB. Shown in the reseller portal.",
       "confirmRemoveLogo": "Remove the logo for \"{{name}}\"?"
     },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Choose who receives each automated email notification.",
+      "sendingTo": "Sending to",
+      "noRecipients": "No recipients yet — nobody will be notified.",
+      "pickUser": "+ Add from users…",
+      "manualPlaceholder": "or type an email address…",
+      "add": "Add",
+      "invalidEmail": "Please enter a valid email address.",
+      "saved": "Recipients saved.",
+      "saveError": "Could not save recipients.",
+      "probationTitle": "Probation-ending notifications",
+      "probationHint": "These people are emailed 45, 30 and 15 days before a rep's 3-month probation ends.",
+      "moreSoon": "More notification types will appear here as they are added."
+    },
     "merchantLinks": {
       "title": "Merchant ↔ SaaS links",
       "subtitle": "Match each payment merchant to its Zoho Billing customer so combined revenue per merchant is accurate. Auto-matched by name; curate the rest.",
@@ -1214,7 +1230,8 @@
         "payroll": "Payroll summary",
         "feature_request": "Feature request",
         "missing_commission": "Missing commission report",
-        "missing_points": "Missing points report"
+        "missing_points": "Missing points report",
+        "probation": "Probation ending"
       }
     },
     "recalculate": {

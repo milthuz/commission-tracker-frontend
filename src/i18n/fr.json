@@ -298,6 +298,7 @@
     "resourcesAdmin": "Ressources (stockage)",
     "resellersAdmin": "Gestion revendeurs",
     "merchantLinks": "Marchand ↔ SaaS",
+    "notifications": "Notifications",
     "profile": "Profil",
     "collapse": "Réduire la barre latérale",
     "expand": "Agrandir la barre latérale"
@@ -1159,6 +1160,21 @@
       "logoHint": "PNG ou JPG, max 2 Mo. Affiché dans le portail revendeur.",
       "confirmRemoveLogo": "Retirer le logo de « {{name}} » ?"
     },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Choisissez qui reçoit chaque notification courriel automatisée.",
+      "sendingTo": "Envoyé à",
+      "noRecipients": "Aucun destinataire — personne ne sera avisé.",
+      "pickUser": "+ Ajouter depuis les utilisateurs…",
+      "manualPlaceholder": "ou saisir une adresse courriel…",
+      "add": "Ajouter",
+      "invalidEmail": "Veuillez saisir une adresse courriel valide.",
+      "saved": "Destinataires enregistrés.",
+      "saveError": "Impossible d'enregistrer les destinataires.",
+      "probationTitle": "Notifications de fin de probation",
+      "probationHint": "Ces personnes reçoivent un courriel 45, 30 et 15 jours avant la fin de la probation de 3 mois d'un vendeur.",
+      "moreSoon": "D'autres types de notifications apparaîtront ici au fur et à mesure."
+    },
     "merchantLinks": {
       "title": "Liens Marchand ↔ SaaS",
       "subtitle": "Reliez chaque marchand de paiement à son client Zoho Billing pour un revenu combiné par marchand exact. Auto-rapproché par nom ; cure le reste.",
@@ -1214,7 +1230,8 @@
         "payroll": "Sommaire de paie",
         "feature_request": "Demande de fonctionnalité",
         "missing_commission": "Signalement de commission manquante",
-        "missing_points": "Signalement de points manquants"
+        "missing_points": "Signalement de points manquants",
+        "probation": "Fin de probation"
       }
     },
     "recalculate": {

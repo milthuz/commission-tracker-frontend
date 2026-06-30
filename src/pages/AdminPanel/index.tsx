@@ -11,6 +11,7 @@ import ExternalUsers from './ExternalUsers';
 import EmailPreview from './EmailPreview';
 import ResellerAdmin from './ResellerAdmin';
 import MerchantSaasLinks from './MerchantSaasLinks';
+import NotificationsAdmin from './NotificationsAdmin';
 import ProbationBadge from '../../components/ProbationBadge';
 import ResourcesAdmin from './ResourcesAdmin';
 import DataHealth from './DataHealth';
@@ -93,7 +94,6 @@ const AdminPanel = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [newTeamName, setNewTeamName] = useState('');
   const [newSalespersonName, setNewSalespersonName] = useState('');
-  const [probationRecipients, setProbationRecipients] = useState('');
   const [dealGroups, setDealGroups] = useState<{ sourceGroup: string; points: number; isCustom: boolean }[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -307,22 +307,6 @@ const AdminPanel = () => {
     } catch (error) {
       console.error('Error fetching teams:', error);
     }
-  };
-
-  const fetchProbationRecipients = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const r = await axios.get(`${API_URL}/api/admin/probation-recipients`, { headers: { Authorization: `Bearer ${token}` } });
-      setProbationRecipients((r.data.recipients || []).join(', '));
-    } catch { /* ignore */ }
-  };
-  const saveProbationRecipients = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const emails = probationRecipients.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-      await axios.put(`${API_URL}/api/admin/probation-recipients`, { emails }, { headers: { Authorization: `Bearer ${token}` } });
-      dialog.alert(t('admin.salespeople.probationRecipientsSaved') as string);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
   };
 
   const addSalesperson = async () => {
@@ -663,7 +647,6 @@ const AdminPanel = () => {
       fetchAdminUsers();
       fetchPermCatalog();
       fetchRoles();
-      fetchProbationRecipients();
     }
   }, [isAdmin]);
 
@@ -1450,6 +1433,7 @@ const AdminPanel = () => {
         <div>
           <h2 className="text-title-md2 font-semibold text-black dark:text-white">
             {activeTab === 'sync' ? t('admin.integrations.title') :
+             activeTab === 'notifications' ? t('admin.notifications.title') :
              activeTab === 'salespeople' ? t('admin.salespeople.title') :
              activeTab === 'customers' ? t('admin.customers.title') :
              activeTab === 'releases' ? t('admin.releases.title') :
@@ -1465,6 +1449,7 @@ const AdminPanel = () => {
           </h2>
           <p className="text-sm text-body">
             {activeTab === 'sync' ? t('admin.integrations.subtitle') :
+             activeTab === 'notifications' ? t('admin.notifications.subtitle') :
              activeTab === 'salespeople' ? t('admin.salespeople.subtitle') :
              activeTab === 'customers' ? t('admin.customers.subtitle') :
              activeTab === 'releases' ? `${t('admin.releases.currentVersion')}: v${appVersion}` :
@@ -2384,16 +2369,6 @@ Joker Pub,Jay Daoust,2024-04-01`}
             </>)}
 
             {spSub === 'reps' && (<>
-            {/* Probation-ending notification recipients (45/30/15 days before end) */}
-            <div className="mb-6 rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <h3 className="text-sm font-semibold text-black dark:text-white">{t('admin.salespeople.probationRecipientsTitle')}</h3>
-              <p className="mb-3 text-xs text-body">{t('admin.salespeople.probationRecipientsHint')}</p>
-              <div className="flex flex-wrap items-center gap-2">
-                <input value={probationRecipients} onChange={(e) => setProbationRecipients(e.target.value)} placeholder="a@b.com, c@d.com"
-                  className="grow rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
-                <button onClick={saveProbationRecipients} className="whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">{t('common.save')}</button>
-              </div>
-            </div>
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
                 <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.salespeople.title')}</h3>
@@ -3336,6 +3311,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'resellers' && <ResellerAdmin />}
           {activeTab === 'resources' && <ResourcesAdmin />}
           {activeTab === 'merchant-links' && <MerchantSaasLinks />}
+          {activeTab === 'notifications' && <NotificationsAdmin />}
 
           {/* ==================== ROLES TAB (under Users) ==================== */}
           {activeTab === 'users' && usersSub === 'roles' && (
