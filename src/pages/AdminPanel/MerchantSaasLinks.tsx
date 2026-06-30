@@ -23,7 +23,8 @@ export default function MerchantSaasLinks() {
   const [filter, setFilter] = useState<'all' | 'unmatched' | 'auto' | 'manual' | 'no_saas'>('unmatched');
   const [search, setSearch] = useState('');
   const [recentOnly, setRecentOnly] = useState(false);
-  const [dateSort, setDateSort] = useState<'none' | 'desc' | 'asc'>('none');
+  const [sort, setSort] = useState<{ col: string; dir: 'asc' | 'desc' } | null>(null);
+  const toggleSort = (col: string) => setSort(s => (s && s.col === col) ? { col, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { col, dir: 'asc' });
   const [busyId, setBusyId] = useState<string | null>(null);
   // Link modal
   const [linking, setLinking] = useState<Row | null>(null);
@@ -73,18 +74,27 @@ export default function MerchantSaasLinks() {
   };
 
   const isRecent = (d: string | null) => !!d && (Date.now() - new Date(d).getTime()) < 30 * 24 * 3600 * 1000;
+  const NUM_COLS = new Set(['processingMonthly', 'saasMonthly', 'combinedMonthly']);
+  const sortVal = (r: Row, col: string): number | string => {
+    if (col === 'activatedAt') return r.activatedAt ? new Date(r.activatedAt).getTime() : 0;
+    if (NUM_COLS.has(col)) return (r as any)[col] as number;
+    return String((r as any)[col] ?? '').toLowerCase();
+  };
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     let list = rows.filter(r =>
       (filter === 'all' || r.status === filter) &&
       (!q || r.businessName.toLowerCase().includes(q)) &&
       (!recentOnly || isRecent(r.activatedAt)));
-    if (dateSort !== 'none') {
-      const ts = (d: string | null) => (d ? new Date(d).getTime() : 0);
-      list = [...list].sort((a, b) => dateSort === 'desc' ? ts(b.activatedAt) - ts(a.activatedAt) : ts(a.activatedAt) - ts(b.activatedAt));
+    if (sort) {
+      list = [...list].sort((a, b) => {
+        const va = sortVal(a, sort.col), vb = sortVal(b, sort.col);
+        const c = typeof va === 'number' && typeof vb === 'number' ? va - vb : String(va).localeCompare(String(vb));
+        return sort.dir === 'asc' ? c : -c;
+      });
     }
     return list;
-  }, [rows, filter, search, recentOnly, dateSort]);
+  }, [rows, filter, search, recentOnly, sort]);
 
   const badge = (s: Row['status']) => {
     const map: Record<string, string> = {
@@ -101,6 +111,15 @@ export default function MerchantSaasLinks() {
       className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${filter === key ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
       {t(`admin.merchantLinks.filter_${key}`)}{typeof n === 'number' ? ` (${n})` : ''}
     </button>
+  );
+
+  // Sortable column header — click to sort by that column (asc ▲ / desc ▼).
+  const sortTh = (col: string, labelKey: string, right = false) => (
+    <th className={`px-4 py-3 font-medium text-black dark:text-white ${right ? 'text-right' : ''}`}>
+      <button onClick={() => toggleSort(col)} className={`inline-flex items-center gap-1 hover:text-primary ${right ? 'flex-row-reverse' : ''}`}>
+        {t(labelKey)}<span className="text-xs">{sort?.col === col ? (sort.dir === 'asc' ? '▲' : '▼') : ''}</span>
+      </button>
+    </th>
   );
 
   return (
@@ -132,16 +151,12 @@ export default function MerchantSaasLinks() {
         <table className="w-full min-w-[44rem] table-auto text-sm">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('admin.merchantLinks.colMerchant')}</th>
-              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('admin.merchantLinks.colStatus')}</th>
-              <th className="px-4 py-3 font-medium text-black dark:text-white">
-                <button onClick={() => setDateSort(s => s === 'desc' ? 'asc' : s === 'asc' ? 'none' : 'desc')} className="inline-flex items-center gap-1 hover:text-primary">
-                  {t('admin.merchantLinks.colActivated')}{dateSort === 'desc' ? ' ▼' : dateSort === 'asc' ? ' ▲' : ''}
-                </button>
-              </th>
-              <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('admin.merchantLinks.colProcessing')}</th>
-              <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('admin.merchantLinks.colSaas')}</th>
-              <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('admin.merchantLinks.colCombined')}</th>
+              {sortTh('businessName', 'admin.merchantLinks.colMerchant')}
+              {sortTh('status', 'admin.merchantLinks.colStatus')}
+              {sortTh('activatedAt', 'admin.merchantLinks.colActivated')}
+              {sortTh('processingMonthly', 'admin.merchantLinks.colProcessing', true)}
+              {sortTh('saasMonthly', 'admin.merchantLinks.colSaas', true)}
+              {sortTh('combinedMonthly', 'admin.merchantLinks.colCombined', true)}
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
