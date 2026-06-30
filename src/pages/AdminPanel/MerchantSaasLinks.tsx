@@ -9,9 +9,9 @@ const money = (n: number) => '$' + (Number(n) || 0).toLocaleString(undefined, { 
 type Row = {
   merchantAccountId: string; businessName: string; active: string; activatedAt: string | null;
   processingMonthly: number; saasMonthly: number; combinedMonthly: number;
-  status: 'manual' | 'auto' | 'no_saas' | 'unmatched'; linkedCustomer: string | null;
+  status: 'manual' | 'auto' | 'no_saas' | 'unmatched'; linkedCustomer: string | null; linkedSubscription: string | null;
 };
-type Customer = { customerName: string; subscriptionNumber: string | null; mrr: number };
+type Sub = { subscriptionNumber: string; customerName: string; plan: string; mrr: number };
 
 // Admin tool (SH-14): match each Zentact payment merchant to its Zoho Billing SaaS customer so
 // combined revenue per merchant is accurate. Auto-matches by name; admin curates the rest.
@@ -29,7 +29,7 @@ export default function MerchantSaasLinks() {
   // Link modal
   const [linking, setLinking] = useState<Row | null>(null);
   const [custQuery, setCustQuery] = useState('');
-  const [custResults, setCustResults] = useState<Customer[]>([]);
+  const [custResults, setCustResults] = useState<Sub[]>([]);
   const [custLoading, setCustLoading] = useState(false);
 
   const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -52,7 +52,7 @@ export default function MerchantSaasLinks() {
     const tmr = setTimeout(async () => {
       try {
         const r = await axios.get(`${API_URL}/api/admin/billing-customers`, { params: { q: term }, headers: headers() });
-        setCustResults(r.data.customers || []);
+        setCustResults(r.data.subscriptions || []);
       } catch { setCustResults([]); } finally { setCustLoading(false); }
     }, 300);
     return () => clearTimeout(tmr);
@@ -67,10 +67,10 @@ export default function MerchantSaasLinks() {
   };
 
   const openLink = (row: Row) => { setLinking(row); setCustQuery(row.businessName); setCustResults([]); };
-  const chooseCustomer = async (c: Customer) => {
+  const chooseSub = async (s: Sub) => {
     const row = linking; if (!row) return;
     setLinking(null);
-    await put(row.merchantAccountId, { customerName: c.customerName, subscriptionNumber: c.subscriptionNumber });
+    await put(row.merchantAccountId, { customerName: s.customerName, subscriptionNumber: s.subscriptionNumber });
   };
 
   const isRecent = (d: string | null) => !!d && (Date.now() - new Date(d).getTime()) < 30 * 24 * 3600 * 1000;
@@ -169,7 +169,7 @@ export default function MerchantSaasLinks() {
               <tr key={r.merchantAccountId} className="border-t border-stroke dark:border-strokedark">
                 <td className="px-4 py-3">
                   <div className="font-medium text-black dark:text-white">{r.businessName || r.merchantAccountId}</div>
-                  {r.linkedCustomer && <div className="text-xs text-body">→ {r.linkedCustomer}</div>}
+                  {r.linkedCustomer && <div className="text-xs text-body">→ {r.linkedCustomer}{r.linkedSubscription ? ` · ${r.linkedSubscription}` : ''}</div>}
                 </td>
                 <td className="px-4 py-3">{badge(r.status)}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-body">{r.activatedAt ? new Date(r.activatedAt).toLocaleDateString() : '—'}</td>
@@ -217,11 +217,14 @@ export default function MerchantSaasLinks() {
             <div className="max-h-[50vh] overflow-y-auto px-2 pb-3">
               {custLoading ? <p className="px-3 py-4 text-sm text-body">…</p>
                 : custResults.length === 0 ? <p className="px-3 py-4 text-sm text-body">{t('admin.merchantLinks.noCustomers')}</p>
-                : custResults.map((c) => (
-                  <button key={c.customerName + (c.subscriptionNumber || '')} onClick={() => chooseCustomer(c)}
-                    className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-gray-1 dark:hover:bg-meta-4">
-                    <span className="text-black dark:text-white">{c.customerName}</span>
-                    <span className="text-xs text-body">{money(c.mrr)}/mo</span>
+                : custResults.map((s) => (
+                  <button key={s.subscriptionNumber} onClick={() => chooseSub(s)}
+                    className="flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm hover:bg-gray-1 dark:hover:bg-meta-4">
+                    <span className="min-w-0">
+                      <span className="block truncate text-black dark:text-white">{s.customerName}</span>
+                      <span className="block truncate text-xs text-body">{s.subscriptionNumber}{s.plan ? ` · ${s.plan}` : ''}</span>
+                    </span>
+                    <span className="shrink-0 text-xs font-medium text-body">{money(s.mrr)}/mo</span>
                   </button>
                 ))}
             </div>
