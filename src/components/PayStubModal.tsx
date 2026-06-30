@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../lib/dialog';
+import ProbationBadge from './ProbationBadge';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -35,7 +36,7 @@ export interface PayStubData {
   missed?: PayStubMissed[];  // earned this period per the app but NOT paid (imported stubs)
   missedTotal?: number;
   // Quota-gate context (generated stubs, payroll admins only) — plan v7.7 §2
-  quota?: { points: number; required: number; met: boolean; ramp: boolean; waived: boolean } | null;
+  quota?: { points: number; required: number; met: boolean; ramp: boolean; waived: boolean; probation?: { inProbation: boolean; endDate: string | null; daysLeft: number | null } | null } | null;
 }
 
 // Shared pay-stub detail modal — used by the admin import history AND the rep-facing
@@ -337,6 +338,14 @@ const PayStubModal: React.FC<{
           {data.source === 'imported' && !data.linesStored && (
             <div className="mb-4 rounded-md border border-warning border-opacity-40 bg-warning bg-opacity-10 px-4 py-3 text-xs text-black dark:text-white">
               ⚠ {tp('reconstructedBanner')}
+            </div>
+          )}
+
+          {/* Probation (new-hire ramp): show the quota progress but flag it's not enforced */}
+          {data.quota?.probation?.inProbation && (
+            <div className="mb-4 flex flex-wrap items-center gap-2 rounded-md border border-warning border-opacity-40 bg-warning bg-opacity-5 px-4 py-3 text-xs text-black dark:text-white">
+              <ProbationBadge probation={data.quota.probation} />
+              <span>{tp('quotaProbationNote')} ({data.quota.points}/{data.quota.required} pts)</span>
             </div>
           )}
 

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { formatDateOnly } from '../../utils/date';
+import ProbationBadge from '../../components/ProbationBadge';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const QUOTA = 15;
@@ -33,6 +34,7 @@ interface DrillInvoice { invoiceNumber: string; date: string; commission: number
 interface ReportResp {
   repName: string;
   baseSalary: number;
+  probation?: { inProbation: boolean; endDate: string | null; daysLeft: number | null } | null;
   months: { month: number; commission: number }[];
   customers: CustomerRow[];
   summary: {
@@ -161,7 +163,10 @@ const RepDashboard: React.FC = () => {
           <h2 className="text-2xl font-bold text-black dark:text-white">
             {firstName ? t('repDashboard.greeting', { name: firstName }) : t('repDashboard.title')}
           </h2>
-          <p className="text-sm capitalize text-gray-500 dark:text-gray-400">{t('repDashboard.subtitle', { month: monthName })}</p>
+          <p className="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <span className="capitalize">{t('repDashboard.subtitle', { month: monthName })}</span>
+            <ProbationBadge probation={report?.probation} />
+          </p>
         </div>
         <div className="flex gap-2">
           <Link to="/commission-report" className="rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-black hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:text-white dark:hover:bg-meta-4">

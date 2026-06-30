@@ -11,6 +11,7 @@ import ExternalUsers from './ExternalUsers';
 import EmailPreview from './EmailPreview';
 import ResellerAdmin from './ResellerAdmin';
 import MerchantSaasLinks from './MerchantSaasLinks';
+import ProbationBadge from '../../components/ProbationBadge';
 import ResourcesAdmin from './ResourcesAdmin';
 import DataHealth from './DataHealth';
 import SavingsPricingAdmin from './SavingsPricingAdmin';
@@ -32,6 +33,7 @@ interface Salesperson {
   signupBonusEnabled: boolean;
   monthlyQuota: number | null;
   hireDate?: string | null;
+  probation?: { inProbation: boolean; endDate: string | null; daysLeft: number | null } | null;
   quotaGateEnabled?: boolean;
   processingBonusEnabled?: boolean;
   annualBonusEnabled?: boolean;
@@ -2455,7 +2457,8 @@ Joker Pub,Jay Daoust,2024-04-01`}
                           <div className="mb-4 flex items-start justify-between gap-3 border-b border-stroke pb-3 dark:border-strokedark">
                             <div className="min-w-0">
                               <p className="truncate font-semibold text-black dark:text-white">{person.name}</p>
-                              <p className="text-xs text-body">{person.invoiceCount} {t('common.invoices').toLowerCase()}</p>
+                              <ProbationBadge probation={person.probation} className="mt-1" />
+                              <p className="mt-1 text-xs text-body">{person.invoiceCount} {t('common.invoices').toLowerCase()}</p>
                             </div>
                             <button
                               onClick={() => toggleSalesperson(person.name, person.isActive)}

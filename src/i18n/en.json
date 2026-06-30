@@ -268,6 +268,11 @@
     "managedByZoho": "Managed by Zoho",
     "TOTAL": "TOTAL"
   },
+  "probation": {
+    "badge": "Probation",
+    "until": "until {{date}}",
+    "tooltip": "New-hire probation (first 3 months) — quota not enforced; commission paid regardless of points."
+  },
   "sidebar": {
     "menu": "MENU",
     "dashboard": "Dashboard",
@@ -870,6 +875,7 @@
       "statusPending": "Pending approval",
       "statusPaid": "Paid",
       "quotaMet": "Quota met",
+      "quotaProbationNote": "Quota not enforced during probation",
       "quotaNotMet": "Quota NOT met — this month's hardware/SaaS commissions are withheld",
       "quotaWaived": "Override active — this month is paid despite the missed quota",
       "quotaWaive": "Pay anyway",

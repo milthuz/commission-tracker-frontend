@@ -268,6 +268,11 @@
     "managedByZoho": "Géré par Zoho",
     "TOTAL": "TOTAL"
   },
+  "probation": {
+    "badge": "Probation",
+    "until": "jusqu'au {{date}}",
+    "tooltip": "Probation (3 premiers mois) — quota non appliqué ; commission payée peu importe les points."
+  },
   "sidebar": {
     "menu": "MENU",
     "dashboard": "Tableau de bord",
@@ -870,6 +875,7 @@
       "statusPending": "En attente d'approbation",
       "statusPaid": "Payé",
       "quotaMet": "Quota atteint",
+      "quotaProbationNote": "Quota non appliqué pendant la probation",
       "quotaNotMet": "Quota NON atteint — les commissions matériel/SaaS du mois sont retenues",
       "quotaWaived": "Exemption active — ce mois est payé malgré le quota manqué",
       "quotaWaive": "Payer quand même",

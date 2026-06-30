@@ -7,6 +7,7 @@ import { ApexOptions } from 'apexcharts';
 import { Eye, Download, X } from 'lucide-react';
 import { formatDateOnly } from '../utils/date';
 import PayStubModal, { PayStubData } from '../components/PayStubModal';
+import ProbationBadge from '../components/ProbationBadge';
 import { dialog } from '../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -100,6 +101,7 @@ interface ReportData {
   commissionRate: number;
   baseSalary?: number | null;
   canViewSalary?: boolean;
+  probation?: { inProbation: boolean; endDate: string | null; daysLeft: number | null } | null;
   year: string;
   months: MonthData[];
   customers: CustomerData[];
@@ -827,8 +829,9 @@ const CommissionReport = () => {
           <h2 className="text-title-md2 font-semibold text-black dark:text-white">
             Commission Report
           </h2>
-          <p className="text-sm text-body">
-            {report.repName} · {report.commissionRate}% rate · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ` : ''}{selectedYear}
+          <p className="flex flex-wrap items-center gap-2 text-sm text-body">
+            <span>{report.repName} · {report.commissionRate}% rate · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ` : ''}{selectedYear}</span>
+            <ProbationBadge probation={report.probation} />
           </p>
           {/* Missing commission — discreet link (any rep viewing their own report can flag a gap) */}
           <button
