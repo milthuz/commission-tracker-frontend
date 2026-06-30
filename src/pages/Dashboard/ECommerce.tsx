@@ -35,18 +35,6 @@ const formatCurrencyFull = (val: number) => {
   return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(val);
 };
 
-const statusPieColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'paid': return '#10B981';
-    case 'overdue': return '#EF4444';
-    case 'sent': return '#3B82F6';
-    case 'draft': return '#9CA3AF';
-    case 'partially_paid': return '#F59E0B';
-    case 'void': return '#6B7280';
-    default: return '#D1D5DB';
-  }
-};
-
 const ECommerce: React.FC = () => {
   const { t } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -153,34 +141,6 @@ const ECommerce: React.FC = () => {
     { name: t('dashboard.overdueSeries'), data: data?.monthlyTrend.map(m => m.overdue) || [] },
     { name: t('dashboard.commissionSeries'), data: data?.monthlyTrend.map(m => m.commission) || [] },
   ];
-
-  const statusChartOptions: ApexOptions = {
-    chart: { type: 'donut', fontFamily: 'Satoshi, sans-serif' },
-    colors: data?.statusBreakdown.map(s => statusPieColor(s.status)) || [],
-    labels: data?.statusBreakdown.map(s => s.status.charAt(0).toUpperCase() + s.status.slice(1)) || [],
-    legend: { position: 'bottom', fontSize: '13px' },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: '65%',
-          labels: {
-            show: true,
-            total: {
-              show: true,
-              label: 'Total',
-              formatter: function (w: any) {
-                return w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0).toString();
-              },
-            },
-          },
-        },
-      },
-    },
-    dataLabels: { enabled: false },
-    responsive: [{ breakpoint: 480, options: { chart: { width: 280 }, legend: { position: 'bottom' } } }],
-  };
-
-  const statusChartSeries = data?.statusBreakdown.map(s => s.count) || [];
 
   if (loading) {
     return (
@@ -365,7 +325,7 @@ const ECommerce: React.FC = () => {
       {/* ====== Charts Row 1: Revenue Trend ====== */}
       <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
         {/* Monthly Revenue Trend - Full Width */}
-        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-8">
+        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="mb-3 flex items-center justify-between">
             <h5 className="text-xl font-semibold text-black dark:text-white">
               {t('dashboard.monthlyRevenueTrend')} — {selectedYear}
@@ -377,21 +337,6 @@ const ECommerce: React.FC = () => {
               series={revenueChartSeries}
               type="area"
               height={350}
-            />
-          </div>
-        </div>
-
-        {/* {t('dashboard.invoiceStatus')} Breakdown - Donut */}
-        <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark xl:col-span-4">
-          <h5 className="mb-3 text-xl font-semibold text-black dark:text-white">
-            {t('dashboard.invoiceStatus')}
-          </h5>
-          <div className="flex items-center justify-center">
-            <ReactApexChart
-              options={statusChartOptions}
-              series={statusChartSeries}
-              type="donut"
-              height={340}
             />
           </div>
         </div>
