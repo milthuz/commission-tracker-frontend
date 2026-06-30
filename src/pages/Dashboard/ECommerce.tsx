@@ -21,7 +21,7 @@ interface DashboardData {
   topCustomers: { name: string; invoices: number; total: number }[];
   avgSaas: { total: number; clients: number; monthly: number };
   avgProcessing: { total: number; clients: number; monthly: number } | null;
-  avgRevenuePerMerchant: { total: number; merchants: number; monthly: number } | null;
+  avgRevenuePerMerchant: { total: number; merchants: number; monthly: number; saasMonthly?: number; processingMonthly?: number; linkedMerchants?: number } | null;
   year: number;
 }
 
@@ -350,6 +350,12 @@ const ECommerce: React.FC = () => {
               <h4 className="text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(data.avgRevenuePerMerchant.monthly || 0)}</h4>
               <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.avgRevenuePerMerchant')}</span>
               <span className="text-xs font-medium text-gray-400">{data.avgRevenuePerMerchant.merchants || 0} {t('dashboard.merchantsCount')}</span>
+              {(data.avgRevenuePerMerchant.saasMonthly != null) && (
+                <span className="mt-1 block text-xs font-medium text-gray-400">
+                  {t('dashboard.saasShort')} {formatCurrencyFull(data.avgRevenuePerMerchant.saasMonthly || 0)} · {t('dashboard.processingShort')} {formatCurrencyFull(data.avgRevenuePerMerchant.processingMonthly || 0)}
+                  {data.avgRevenuePerMerchant.linkedMerchants != null && ` · ${data.avgRevenuePerMerchant.linkedMerchants} ${t('dashboard.linkedShort')}`}
+                </span>
+              )}
             </div>
           </div>
         )}
