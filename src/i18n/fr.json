@@ -1169,6 +1169,7 @@
       "colMerchant": "Marchand",
       "colStatus": "Statut",
       "colActivated": "Activé (paiements)",
+      "recentOnly": "Activés < 30 j",
       "colProcessing": "Processing / mois",
       "colSaas": "SaaS / mois",
       "colCombined": "Combiné / mois",

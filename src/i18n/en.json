@@ -1169,6 +1169,7 @@
       "colMerchant": "Merchant",
       "colStatus": "Status",
       "colActivated": "Active (payments)",
+      "recentOnly": "Activated < 30 days",
       "colProcessing": "Processing / mo",
       "colSaas": "SaaS / mo",
       "colCombined": "Combined / mo",

@@ -22,6 +22,8 @@ export default function MerchantSaasLinks() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unmatched' | 'auto' | 'manual' | 'no_saas'>('unmatched');
   const [search, setSearch] = useState('');
+  const [recentOnly, setRecentOnly] = useState(false);
+  const [dateSort, setDateSort] = useState<'none' | 'desc' | 'asc'>('none');
   const [busyId, setBusyId] = useState<string | null>(null);
   // Link modal
   const [linking, setLinking] = useState<Row | null>(null);
@@ -70,10 +72,19 @@ export default function MerchantSaasLinks() {
     await put(row.merchantAccountId, { customerName: c.customerName, subscriptionNumber: c.subscriptionNumber });
   };
 
+  const isRecent = (d: string | null) => !!d && (Date.now() - new Date(d).getTime()) < 30 * 24 * 3600 * 1000;
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return rows.filter(r => (filter === 'all' || r.status === filter) && (!q || r.businessName.toLowerCase().includes(q)));
-  }, [rows, filter, search]);
+    let list = rows.filter(r =>
+      (filter === 'all' || r.status === filter) &&
+      (!q || r.businessName.toLowerCase().includes(q)) &&
+      (!recentOnly || isRecent(r.activatedAt)));
+    if (dateSort !== 'none') {
+      const ts = (d: string | null) => (d ? new Date(d).getTime() : 0);
+      list = [...list].sort((a, b) => dateSort === 'desc' ? ts(b.activatedAt) - ts(a.activatedAt) : ts(a.activatedAt) - ts(b.activatedAt));
+    }
+    return list;
+  }, [rows, filter, search, recentOnly, dateSort]);
 
   const badge = (s: Row['status']) => {
     const map: Record<string, string> = {
@@ -109,6 +120,10 @@ export default function MerchantSaasLinks() {
         <div className="flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 dark:border-strokedark dark:bg-boxdark">
           {filterBtn('unmatched', summary?.unmatched)}{filterBtn('auto', summary?.auto)}{filterBtn('manual', summary?.manual)}{filterBtn('no_saas', summary?.noSaas)}{filterBtn('all', summary?.total)}
         </div>
+        <button onClick={() => setRecentOnly(v => !v)}
+          className={`rounded-md border px-3 py-1.5 text-sm font-medium transition ${recentOnly ? 'border-primary bg-primary text-white' : 'border-stroke text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4'}`}>
+          {t('admin.merchantLinks.recentOnly')}
+        </button>
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('admin.merchantLinks.searchPlaceholder') as string}
           className="ml-auto w-60 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white" />
       </div>
@@ -119,7 +134,11 @@ export default function MerchantSaasLinks() {
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="px-4 py-3 font-medium text-black dark:text-white">{t('admin.merchantLinks.colMerchant')}</th>
               <th className="px-4 py-3 font-medium text-black dark:text-white">{t('admin.merchantLinks.colStatus')}</th>
-              <th className="px-4 py-3 font-medium text-black dark:text-white">{t('admin.merchantLinks.colActivated')}</th>
+              <th className="px-4 py-3 font-medium text-black dark:text-white">
+                <button onClick={() => setDateSort(s => s === 'desc' ? 'asc' : s === 'asc' ? 'none' : 'desc')} className="inline-flex items-center gap-1 hover:text-primary">
+                  {t('admin.merchantLinks.colActivated')}{dateSort === 'desc' ? ' ▼' : dateSort === 'asc' ? ' ▲' : ''}
+                </button>
+              </th>
               <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('admin.merchantLinks.colProcessing')}</th>
               <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('admin.merchantLinks.colSaas')}</th>
               <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('admin.merchantLinks.colCombined')}</th>
