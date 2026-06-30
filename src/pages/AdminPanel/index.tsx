@@ -90,6 +90,7 @@ const AdminPanel = () => {
   const [salespeople, setSalespeople] = useState<Salesperson[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [newTeamName, setNewTeamName] = useState('');
+  const [newSalespersonName, setNewSalespersonName] = useState('');
   const [dealGroups, setDealGroups] = useState<{ sourceGroup: string; points: number; isCustom: boolean }[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -302,6 +303,20 @@ const AdminPanel = () => {
       setTeams(res.data.teams || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
+    }
+  };
+
+  const addSalesperson = async () => {
+    const name = newSalespersonName.trim();
+    if (!name) return;
+    try {
+      const token = localStorage.getItem('token');
+      const r = await axios.post(`${API_URL}/api/salespeople`, { name }, { headers: { Authorization: `Bearer ${token}` } });
+      setNewSalespersonName('');
+      await fetchSalespeople();
+      if (r.data && r.data.created === false) dialog.alert(t('admin.salespeople.alreadyExists', { name }) as string);
+    } catch (error: any) {
+      dialog.alert(error?.response?.data?.error || 'Failed to add salesperson');
     }
   };
 
@@ -2370,6 +2385,22 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     <span className="text-2xl font-bold text-danger">{inactivePeople.length}</span>
                     <span className="ml-2 text-sm text-body">{t('admin.salespeople.inactiveSalespeople')}</span>
                   </div>
+                </div>
+              </div>
+
+              {/* Add a salesperson manually (e.g. an estimate-only rep not auto-created) */}
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    value={newSalespersonName}
+                    onChange={(e) => setNewSalespersonName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') addSalesperson(); }}
+                    placeholder={t('admin.salespeople.addPlaceholder') as string}
+                    className="w-72 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                  />
+                  <button onClick={addSalesperson} className="whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+                    + {t('admin.salespeople.addSalesperson')}
+                  </button>
                 </div>
               </div>
 
