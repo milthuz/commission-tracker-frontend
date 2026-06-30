@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { formatDateOnly } from '../utils/date';
 import { dialog } from '../lib/dialog';
+import ProbationBadge from '../components/ProbationBadge';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -31,6 +32,7 @@ interface ZentactMerchant {
 
 interface RepData {
   repName: string;
+  probation?: { inProbation: boolean; endDate: string | null; daysLeft: number | null } | null;
   totalPoints: number;
   crmPoints: number;
   zentactPoints: number;
@@ -487,8 +489,9 @@ const CommissionTracker: React.FC = () => {
 
                   {/* Name + quota bar */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1.5">
+                    <div className="flex flex-wrap items-center gap-3 mb-1.5">
                       <p className="font-semibold text-black dark:text-white">{rep.repName}</p>
+                      <ProbationBadge probation={rep.probation} />
                       {rep.quotaMet ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-success bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-success">
                           {t('commissionTracker.quotaMet')}
