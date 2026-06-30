@@ -824,7 +824,7 @@ const CommissionReport = () => {
   return (
     <div>
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-title-md2 font-semibold text-black dark:text-white">
             Commission Report
