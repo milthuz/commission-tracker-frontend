@@ -67,6 +67,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   // clears even without visiting each sub-page (and covers feature paths that match no route).
   useEffect(() => { if (adminMenuOpen) markSeenUnder('/admin'); }, [adminMenuOpen, markSeenUnder]);
 
+  const [commissionMenuOpen, setCommissionMenuOpen] = useState(
+    pathname.includes('commission') || pathname === '/admin/deals',
+  );
+
   // Desktop collapse — independent from the mobile drawer (sidebarOpen).
   // When collapsed, only icons are visible; labels and section headers hide.
   // Default to collapsed (icons-only) when no preference is stored yet.
@@ -248,57 +252,97 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </li>
               {/* <!-- Menu Item Dashboard --> */}
 
-              {/* <!-- Menu Item Commission Tracker (perm: tracker:view_*) --> */}
-              {(isAdmin || can('tracker:view_own') || can('tracker:view_all_totals') || can('tracker:view_all_details')) && (
-              <li data-tour="nav-tracker">
-                <NavLink
-                  to="/commission-tracker"
-                  className={navLinkCls(pathname.includes('commission-tracker'))}
-                >
-                  <svg
-                    className="fill-current"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
+              {/* <!-- Menu Group Commission (Tracker / Report / Deals) --> */}
+              {(isAdmin || can('tracker:view_own') || can('tracker:view_all_totals') || can('tracker:view_all_details') || can('report:view_own') || can('report:view_others')) && (
+                <li data-tour="nav-commission">
+                  <button
+                    onClick={() => {
+                      if (collapsed) setCollapsed(false);
+                      setCommissionMenuOpen(!commissionMenuOpen);
+                    }}
+                    className={`group relative flex w-full items-center rounded-sm py-2.5 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                      collapsed ? 'justify-center px-2' : 'justify-between gap-2.5 px-4'
+                    } ${pathname.includes('commission') || pathname === '/admin/deals' ? 'bg-graydark dark:bg-meta-4' : ''}`}
                   >
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.94s4.18 1.36 4.18 3.85c0 1.89-1.44 2.98-3.12 3.19z"
-                      fill=""
-                    />
-                  </svg>
-                  <span className={labelCls}>{t('sidebar.commissionTracker')}</span>
-                  <NewBadge path="/commission-tracker" collapsed={collapsed} />
-                  <RailTip label={t('sidebar.commissionTracker') as string} />
-                </NavLink>
-              </li>
-              )}
-              {/* <!-- Menu Item Commission Tracker --> */}
-
-              {/* <!-- Menu Item Commission Report (perm: report:view_*) --> */}
-              {(isAdmin || can('report:view_own') || can('report:view_others')) && (
-              <li data-tour="nav-report">
-                <NavLink
-                  to="/commission-report"
-                  className={navLinkCls(pathname.includes('commission-report'))}
-                >
-                  <svg
-                    className="fill-current"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
+                    <div className={`flex items-center ${collapsed ? '' : 'gap-2.5'}`}>
+                      <svg
+                        className="fill-current"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.94s4.18 1.36 4.18 3.85c0 1.89-1.44 2.98-3.12 3.19z"
+                          fill=""
+                        />
+                      </svg>
+                      <span className={labelCls}>{t('sidebar.commission')}</span>
+                    </div>
+                    {!collapsed && (
+                      <svg
+                        className={`fill-current transition-transform duration-200 ${commissionMenuOpen ? 'rotate-180' : ''}`}
+                        width="12"
+                        height="8"
+                        viewBox="0 0 12 8"
+                      >
+                        <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" />
+                      </svg>
+                    )}
+                    <RailTip label={t('sidebar.commission') as string} />
+                  </button>
+                  <ul
+                    className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 overflow-hidden transition-all duration-200 ${
+                      commissionMenuOpen && !collapsed ? 'max-h-[16rem] opacity-100' : 'max-h-0 opacity-0'
+                    }`}
                   >
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z" />
-                  </svg>
-                  <span className={labelCls}>{t('sidebar.commissionReport')}</span>
-                  <NewBadge path="/commission-report" collapsed={collapsed} />
-                  <RailTip label={t('sidebar.commissionReport') as string} />
-                </NavLink>
-              </li>
+                    {/* <!-- Menu Item Commission Tracker (perm: tracker:view_*) --> */}
+                    {(isAdmin || can('tracker:view_own') || can('tracker:view_all_totals') || can('tracker:view_all_details')) && (
+                      <li data-tour="nav-tracker">
+                        <NavLink
+                          to="/commission-tracker"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname.includes('commission-tracker') ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('sidebar.commissionTracker')}
+                          <NewBadge path="/commission-tracker" />
+                        </NavLink>
+                      </li>
+                    )}
+                    {/* <!-- Menu Item Commission Report (perm: report:view_*) --> */}
+                    {(isAdmin || can('report:view_own') || can('report:view_others')) && (
+                      <li data-tour="nav-report">
+                        <NavLink
+                          to="/commission-report"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname.includes('commission-report') ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('sidebar.commissionReport')}
+                          <NewBadge path="/commission-report" />
+                        </NavLink>
+                      </li>
+                    )}
+                    {/* <!-- Menu Item Deals (Admin Only) --> */}
+                    {isAdmin && (
+                      <li>
+                        <NavLink
+                          to="/admin/deals"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname === '/admin/deals' ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('sidebar.deals')}
+                          <NewBadge path="/admin/deals" />
+                        </NavLink>
+                      </li>
+                    )}
+                  </ul>
+                </li>
               )}
-              {/* <!-- Menu Item Commission Report --> */}
+              {/* <!-- Menu Group Commission --> */}
 
               {/* <!-- Menu Item Reseller (perm: reseller:view) --> */}
               {can('reseller:view') && (
@@ -574,16 +618,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         }`}
                       >
                         {t('sidebar.merchantLinks')}<NewBadge path="/admin/merchant-links" />
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink
-                        to="/admin/deals"
-                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                          pathname === '/admin/deals' ? 'text-white' : ''
-                        }`}
-                      >
-                        {t('sidebar.deals')}<NewBadge path="/admin/deals" />
                       </NavLink>
                     </li>
                   </ul>

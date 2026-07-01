@@ -276,6 +276,7 @@
   "sidebar": {
     "menu": "MENU",
     "dashboard": "Tableau de bord",
+    "commission": "Commission",
     "commissionTracker": "Suivi des commissions",
     "commissionReport": "Rapport de commissions",
     "adminPanel": "Panneau d'admin",

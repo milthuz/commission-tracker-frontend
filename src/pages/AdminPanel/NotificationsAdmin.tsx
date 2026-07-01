@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
+import EmailPreview from './EmailPreview';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -173,6 +174,9 @@ export default function NotificationsAdmin() {
           </button>
         </div>
       </div>
+
+      {/* Email templates: preview every transactional email and send yourself a test copy */}
+      <EmailPreview />
 
       {/* Hint that future notification types land here automatically */}
       <p className="text-xs italic text-body">{t('admin.notifications.moreSoon')}</p>

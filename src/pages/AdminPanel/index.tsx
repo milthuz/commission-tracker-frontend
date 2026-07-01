@@ -8,7 +8,6 @@ import { useAppVersion } from '../../hooks/useAppVersion';
 import { formatDateOnly } from '../../utils/date';
 import CommissionImport from './CommissionImport';
 import ExternalUsers from './ExternalUsers';
-import EmailPreview from './EmailPreview';
 import ResellerAdmin from './ResellerAdmin';
 import MerchantSaasLinks from './MerchantSaasLinks';
 import NotificationsAdmin from './NotificationsAdmin';
@@ -166,7 +165,7 @@ const AdminPanel = () => {
   // Sub-tab state for the reorganized Admin sections.
   const [syncSub, setSyncSub] = useState<'connections' | 'data'>('connections');
   const [spSub, setSpSub] = useState<'reps' | 'teams' | 'points'>('reps');
-  const [usersSub, setUsersSub] = useState<'access' | 'external' | 'impersonation' | 'roles' | 'emails'>(rawTab === 'roles' ? 'roles' : 'access');
+  const [usersSub, setUsersSub] = useState<'access' | 'external' | 'impersonation' | 'roles'>(rawTab === 'roles' ? 'roles' : 'access');
   const [editingUserRoleIds, setEditingUserRoleIds] = useState<number[]>([]);
   const [editingManagedTeamIds, setEditingManagedTeamIds] = useState<number[]>([]); // team-scoped managers
   type Tier = { points: number; bonus: number };
@@ -3067,8 +3066,8 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'users' && (
             <>
             <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-              {([['access', t('admin.usersSection.tabs.access')], ['roles', t('admin.roles.title')], ['external', t('admin.usersSection.tabs.external')], ['emails', t('admin.emailPreview.tab')], ['impersonation', t('admin.usersSection.tabs.impersonation')]] as const).map(([key, label]) => (
-                <button key={key} onClick={() => setUsersSub(key as 'access' | 'external' | 'impersonation' | 'roles' | 'emails')}
+              {([['access', t('admin.usersSection.tabs.access')], ['roles', t('admin.roles.title')], ['external', t('admin.usersSection.tabs.external')], ['impersonation', t('admin.usersSection.tabs.impersonation')]] as const).map(([key, label]) => (
+                <button key={key} onClick={() => setUsersSub(key as 'access' | 'external' | 'impersonation' | 'roles')}
                   className={`rounded-md px-4 py-2 text-sm font-medium transition ${usersSub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
                   {label}
                 </button>
@@ -3305,9 +3304,6 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
           {/* ExternalUsers lives under the Users → "External" sub-tab */}
           {activeTab === 'users' && usersSub === 'external' && <ExternalUsers />}
-
-          {/* Email preview & test lives under the Users → "Emails" sub-tab */}
-          {activeTab === 'users' && usersSub === 'emails' && <EmailPreview />}
 
           {/* ==================== COMMISSION IMPORT TAB ==================== */}
           {activeTab === 'import-payments' && <CommissionImport />}
