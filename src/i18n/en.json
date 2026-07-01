@@ -276,7 +276,6 @@
   "sidebar": {
     "menu": "MENU",
     "dashboard": "Dashboard",
-    "commission": "Commission",
     "commissionTracker": "Commission Tracker",
     "commissionReport": "Commission Report",
     "adminPanel": "Admin Panel",
@@ -1463,6 +1462,7 @@
         "payroll": "Payroll",
         "bonus": "Bonus",
         "adjustments": "Adjustments",
+        "deals": "Deals",
         "settings": "Settings"
       },
       "uploadTitle": "Upload Excel Report",

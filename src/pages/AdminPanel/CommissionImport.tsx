@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import PayStubModal, { PayStubData } from '../../components/PayStubModal';
+import DealsAdmin from './DealsAdmin';
 import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -104,7 +105,7 @@ const toPayStub = (d: StubDetail): PayStubData => ({
   linesStored: d.lines.length > 0,
 });
 
-const SUBTABS = ['import', 'coverage', 'payroll', 'bonus', 'adjustments', 'settings'] as const;
+const SUBTABS = ['import', 'coverage', 'payroll', 'bonus', 'adjustments', 'deals', 'settings'] as const;
 type SubTab = typeof SUBTABS[number];
 
 const CommissionImport: React.FC = () => {
@@ -1544,6 +1545,8 @@ const CommissionImport: React.FC = () => {
       )}
 
       </>)}
+
+      {subTab === 'deals' && <DealsAdmin />}
 
       {/* Pay Stub detail modal (shared component) */}
       <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc onQuotaWaive={waiveQuota} onAdjusted={() => { fetchCoverage(); fetchAdjustments(); }} />

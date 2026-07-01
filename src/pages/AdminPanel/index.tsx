@@ -11,7 +11,6 @@ import ExternalUsers from './ExternalUsers';
 import ResellerAdmin from './ResellerAdmin';
 import MerchantSaasLinks from './MerchantSaasLinks';
 import NotificationsAdmin from './NotificationsAdmin';
-import DealsAdmin from './DealsAdmin';
 import ProbationBadge from '../../components/ProbationBadge';
 import ResourcesAdmin from './ResourcesAdmin';
 import DataHealth from './DataHealth';
@@ -1443,7 +1442,6 @@ const AdminPanel = () => {
              activeTab === 'resellers' ? t('admin.resellers.title') :
              activeTab === 'resources' ? t('admin.resources.title') :
              activeTab === 'merchant-links' ? t('admin.merchantLinks.title') :
-             activeTab === 'deals' ? t('admin.deals.title') :
              activeTab === 'data-health' ? t('dataHealth.title') :
              activeTab === 'savings-pricing' ? t('savingsPricing.title') :
              t('admin.title')}
@@ -1460,7 +1458,6 @@ const AdminPanel = () => {
              activeTab === 'resellers' ? t('admin.resellers.subtitle') :
              activeTab === 'resources' ? t('admin.resources.subtitle') :
              activeTab === 'merchant-links' ? t('admin.merchantLinks.subtitle') :
-             activeTab === 'deals' ? t('admin.deals.subtitle') :
              activeTab === 'data-health' ? t('dataHealth.subtitle') :
              activeTab === 'savings-pricing' ? t('savingsPricing.subtitle') :
              t('admin.title')}
@@ -3311,7 +3308,6 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'resources' && <ResourcesAdmin />}
           {activeTab === 'merchant-links' && <MerchantSaasLinks />}
           {activeTab === 'notifications' && <NotificationsAdmin />}
-          {activeTab === 'deals' && <DealsAdmin />}
 
           {/* ==================== ROLES TAB (under Users) ==================== */}
           {activeTab === 'users' && usersSub === 'roles' && (
