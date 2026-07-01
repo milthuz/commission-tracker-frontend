@@ -168,10 +168,10 @@ export default function Revenue() {
   }, []);
 
   // Logo thumbnail for a reseller dimension name (nothing if no logo / not the reseller tab).
-  const resellerLogo = (name: string) => {
+  const resellerLogo = (name: string, className = 'h-6 w-6 shrink-0 rounded object-contain') => {
     const m = resellerLogos[String(name).toLowerCase()];
     if (!m) return null;
-    return <img src={`${API_URL}/api/resellers/${m.id}/logo?v=${m.logoV}`} alt="" className="h-6 w-6 shrink-0 rounded object-contain" />;
+    return <img src={`${API_URL}/api/resellers/${m.id}/logo?v=${m.logoV}`} alt={name} className={className} />;
   };
 
   useEffect(() => {
@@ -373,19 +373,18 @@ export default function Revenue() {
                       </tr>
                     </thead>
                     <tbody>
-                      {grouped.map((g) => (
+                      {grouped.map((g) => {
+                        const logo = tab === 'byReseller' ? resellerLogo(g.name, 'h-8 w-auto max-w-[8rem] object-contain') : null;
+                        return (
                         <tr key={g.name} className="border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
                           <td className="px-4 py-3">
-                            <span className="flex items-center gap-2">
-                              {tab === 'byReseller' && resellerLogo(g.name)}
-                              <button
-                                onClick={() => setDrill(g.name)}
-                                className="font-medium text-primary hover:underline"
-                                title={t('revenue.viewAccounts')}
-                              >
-                                {g.name}
-                              </button>
-                            </span>
+                            <button
+                              onClick={() => setDrill(g.name)}
+                              className={logo ? 'flex items-center' : 'font-medium text-primary hover:underline'}
+                              title={logo ? g.name : t('revenue.viewAccounts')}
+                            >
+                              {logo || g.name}
+                            </button>
                           </td>
                           <td className="px-4 py-3 text-right text-body">{money(g.profit)}</td>
                           <td className="px-4 py-3 text-right text-body">{money(g.other)}</td>
@@ -393,7 +392,8 @@ export default function Revenue() {
                           <td className="px-4 py-3 text-right text-body">{g.merchants}</td>
                           <td className="px-4 py-3 text-right text-body">{money(g.merchants ? g.total / g.merchants : 0)}</td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

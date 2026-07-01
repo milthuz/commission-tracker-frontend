@@ -17,7 +17,6 @@ interface DashboardData {
   };
   monthlyTrend: { month: string; revenue: number; overdue: number; commission: number }[];
   commissionsByRep: { name: string; invoices: number; sales: number; commission: number }[];
-  statusBreakdown: { status: string; count: number; total: number }[];
   topCustomers: { name: string; invoices: number; total: number }[];
   avgSaas: { total: number; clients: number; monthly: number };
   avgProcessing: { total: number; clients: number; monthly: number } | null;
