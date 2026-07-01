@@ -299,6 +299,7 @@
     "resellersAdmin": "Gestion revendeurs",
     "merchantLinks": "Marchand ↔ SaaS",
     "notifications": "Notifications",
+    "deals": "Transactions",
     "profile": "Profil",
     "collapse": "Réduire la barre latérale",
     "expand": "Agrandir la barre latérale"
@@ -1178,6 +1179,24 @@
       "probationTitle": "Notifications de fin de probation",
       "probationHint": "Ces personnes reçoivent un courriel 45, 30 et 15 jours avant la fin de la probation de 3 mois d'un vendeur.",
       "moreSoon": "D'autres types de notifications apparaîtront ici au fur et à mesure."
+    },
+    "deals": {
+      "title": "Transactions",
+      "subtitle": "Déplacez une transaction (et ses points) vers un autre mois — ex. une transaction soumise le mois dernier mais synchronisée seulement maintenant à cause d'un délai interne.",
+      "searchPlaceholder": "Rechercher par nom de transaction, compte ou vendeur…",
+      "search": "Rechercher",
+      "searching": "Recherche…",
+      "searchError": "La recherche a échoué.",
+      "noResults": "Aucune transaction ne correspond à cette recherche.",
+      "colDeal": "Transaction",
+      "colRep": "Vendeur",
+      "colPoints": "Points",
+      "colCurrentMonth": "Compte actuellement pour",
+      "colNewDate": "Nouvelle date",
+      "moveToPrevMonth": "Régler la date au même jour, un mois plus tôt",
+      "moveToPrevMonthShort": "← Mois précédent",
+      "saved": "Transaction déplacée.",
+      "saveError": "Impossible d'enregistrer."
     },
     "merchantLinks": {
       "title": "Liens Marchand ↔ SaaS",

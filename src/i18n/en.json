@@ -299,6 +299,7 @@
     "resellersAdmin": "Manage Resellers",
     "merchantLinks": "Merchant ↔ SaaS",
     "notifications": "Notifications",
+    "deals": "Deals",
     "profile": "Profile",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar"
@@ -1178,6 +1179,24 @@
       "probationTitle": "Probation-ending notifications",
       "probationHint": "These people are emailed 45, 30 and 15 days before a rep's 3-month probation ends.",
       "moreSoon": "More notification types will appear here as they are added."
+    },
+    "deals": {
+      "title": "Deals",
+      "subtitle": "Move a deal (and its points) to a different month — e.g. a deal submitted last month but only just synced from Zoho.",
+      "searchPlaceholder": "Search by deal name, account, or rep…",
+      "search": "Search",
+      "searching": "Searching…",
+      "searchError": "Search failed.",
+      "noResults": "No deals match that search.",
+      "colDeal": "Deal",
+      "colRep": "Rep",
+      "colPoints": "Points",
+      "colCurrentMonth": "Currently counts toward",
+      "colNewDate": "New date",
+      "moveToPrevMonth": "Set the date to the same day, one month earlier",
+      "moveToPrevMonthShort": "← Prev month",
+      "saved": "Deal moved.",
+      "saveError": "Could not save."
     },
     "merchantLinks": {
       "title": "Merchant ↔ SaaS links",
