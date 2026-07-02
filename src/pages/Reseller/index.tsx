@@ -96,15 +96,14 @@ function NotConnected({ source }: { source: string }) {
 type ResellerMeta = Record<string, { id: number; hasLogo: boolean; logoV: number }>;
 const logoUrl = (m: { id: number; logoV: number }) => `${API_URL}/api/resellers/${m.id}/logo?v=${m.logoV}`;
 
-// A reseller name with its logo thumbnail (if any) inline before it.
+// The reseller's logo alone when one is uploaded (name on hover), the name otherwise —
+// same convention as the Processing Revenue page.
 function ResellerCell({ name, meta }: { name: string; meta: ResellerMeta }) {
   const m = name ? meta[name] : undefined;
-  return (
-    <span className="flex items-center gap-2">
-      {m?.hasLogo && <img src={logoUrl(m)} alt="" className="h-6 w-6 shrink-0 rounded object-contain" />}
-      <span>{name || '—'}</span>
-    </span>
-  );
+  if (m?.hasLogo) {
+    return <img src={logoUrl(m)} alt={name} title={name} className="h-8 w-auto max-w-[8rem] object-contain" />;
+  }
+  return <span>{name || '—'}</span>;
 }
 
 // Large logo header shown when the filter is narrowed to a single reseller that has a logo.
