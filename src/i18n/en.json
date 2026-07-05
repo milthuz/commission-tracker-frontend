@@ -489,15 +489,6 @@
         "feature_request": "Feature request"
       }
     },
-    "recipients": {
-      "title": "Report email recipients",
-      "desc": "Who gets the missing commission / points emails. If empty, no email is sent — reports appear in this dashboard only.",
-      "emptyNote": "No recipients — reports go to this dashboard only (no email sent).",
-      "placeholder": "email@example.com",
-      "add": "Add",
-      "save": "Save",
-      "saved": "Saved"
-    },
     "invoiceList": {
       "hint": "Fix attribution in Zoho Books (a sync overwrites local edits).",
       "invoice": "Invoice",
@@ -1178,6 +1169,10 @@
       "saveError": "Could not save recipients.",
       "probationTitle": "Probation-ending notifications",
       "probationHint": "These people are emailed 45, 30 and 15 days before a rep's 3-month probation ends.",
+      "reportsTitle": "Missing commission / points reports",
+      "reportsHint": "These people are emailed when a rep reports a missing commission or missing points. If empty, no email is sent — reports appear in the \"Needs attention\" dashboard only.",
+      "newUserTitle": "New user without a role",
+      "newUserHint": "These people are emailed when someone signs in to Sales Hub for the first time without any role — their menu stays empty until a role is assigned. If empty, nobody is notified.",
       "moreSoon": "More notification types will appear here as they are added."
     },
     "deals": {
@@ -1254,7 +1249,8 @@
         "feature_request": "Feature request",
         "missing_commission": "Missing commission report",
         "missing_points": "Missing points report",
-        "probation": "Probation ending"
+        "probation": "Probation ending",
+        "new_user": "New user without a role"
       }
     },
     "recalculate": {

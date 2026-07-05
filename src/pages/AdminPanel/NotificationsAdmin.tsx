@@ -110,39 +110,31 @@ function RecipientPicker({
   );
 }
 
-// Admin → Notifications: central place to configure who receives each automated
-// email notification. Pre-populated user list + manual emails + visible recipients.
-export default function NotificationsAdmin() {
+// One card per notification type: loads its recipient list from `endpoint` on mount and
+// saves it back (both are the same GET/PUT app_settings-backed route).
+function RecipientListCard({
+  icon, title, hint, endpoint, users,
+}: {
+  icon: string; title: string; hint: string; endpoint: string; users: KnownUser[];
+}) {
   const { t } = useTranslation();
-  const [users, setUsers] = useState<KnownUser[]>([]);
-  const [probation, setProbation] = useState<string[]>([]);
+  const [recipients, setRecipients] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
   useEffect(() => {
-    (async () => {
-      try {
-        const [u, p] = await Promise.all([
-          axios.get(`${API_URL}/api/admin/users`, { headers: headers() }),
-          axios.get(`${API_URL}/api/admin/probation-recipients`, { headers: headers() }),
-        ]);
-        setUsers(u.data.users || []);
-        setProbation((p.data.recipients || []).map((s: string) => s.toLowerCase()));
-      } catch {
-        /* ignore */
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+    axios.get(endpoint, { headers: headers() })
+      .then((r) => setRecipients((r.data.recipients || []).map((s: string) => s.toLowerCase())))
+      .catch(() => { /* ignore */ })
+      .finally(() => setLoading(false));
+  }, [endpoint]);
 
-  const saveProbation = async () => {
+  const save = async () => {
     setSaving(true);
     try {
-      await axios.put(`${API_URL}/api/admin/probation-recipients`,
-        { emails: probation }, { headers: headers() });
+      await axios.put(endpoint, { emails: recipients }, { headers: headers() });
       dialog.alert(t('admin.notifications.saved') as string);
     } catch {
       dialog.alert(t('admin.notifications.saveError') as string);
@@ -151,29 +143,71 @@ export default function NotificationsAdmin() {
     }
   };
 
+  return (
+    <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="mb-1 flex items-center gap-2">
+        <span className="text-lg">{icon}</span>
+        <h3 className="text-base font-semibold text-black dark:text-white">{title}</h3>
+      </div>
+      <p className="mb-4 text-xs text-body">{hint}</p>
+
+      {loading ? (
+        <p className="text-xs text-body">{t('common.loading')}</p>
+      ) : (
+        <>
+          <RecipientPicker recipients={recipients} onChange={setRecipients} users={users} />
+          <div className="mt-4 flex justify-end">
+            <button onClick={save} disabled={saving}
+              className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+              {saving ? t('common.saving') : t('common.save')}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Admin → Notifications: central place to configure who receives each automated
+// email notification. Pre-populated user list + manual emails + visible recipients.
+export default function NotificationsAdmin() {
+  const { t } = useTranslation();
+  const [users, setUsers] = useState<KnownUser[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get(`${API_URL}/api/admin/users`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    })
+      .then((r) => setUsers(r.data.users || []))
+      .catch(() => { /* ignore */ })
+      .finally(() => setLoading(false));
+  }, []);
+
   if (loading) return <div className="p-6 text-sm text-body">{t('common.loading')}</div>;
 
   return (
     <div className="flex flex-col gap-6">
       {/* Probation-ending notification */}
-      <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="mb-1 flex items-center gap-2">
-          <span className="text-lg">⏳</span>
-          <h3 className="text-base font-semibold text-black dark:text-white">
-            {t('admin.notifications.probationTitle')}
-          </h3>
-        </div>
-        <p className="mb-4 text-xs text-body">{t('admin.notifications.probationHint')}</p>
+      <RecipientListCard icon="⏳"
+        title={t('admin.notifications.probationTitle')}
+        hint={t('admin.notifications.probationHint')}
+        endpoint={`${API_URL}/api/admin/probation-recipients`}
+        users={users} />
 
-        <RecipientPicker recipients={probation} onChange={setProbation} users={users} />
+      {/* Missing commission / points report emails (moved here from the Data-health page) */}
+      <RecipientListCard icon="📬"
+        title={t('admin.notifications.reportsTitle')}
+        hint={t('admin.notifications.reportsHint')}
+        endpoint={`${API_URL}/api/admin/report-recipients`}
+        users={users} />
 
-        <div className="mt-4 flex justify-end">
-          <button onClick={saveProbation} disabled={saving}
-            className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
-            {saving ? t('common.saving') : t('common.save')}
-          </button>
-        </div>
-      </div>
+      {/* New user signed in without any role → empty menu until an admin assigns one */}
+      <RecipientListCard icon="🆕"
+        title={t('admin.notifications.newUserTitle')}
+        hint={t('admin.notifications.newUserHint')}
+        endpoint={`${API_URL}/api/admin/new-user-recipients`}
+        users={users} />
 
       {/* Email templates: preview every transactional email and send yourself a test copy */}
       <EmailPreview />

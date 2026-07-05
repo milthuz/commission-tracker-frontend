@@ -489,15 +489,6 @@
         "feature_request": "Demande de fonctionnalité"
       }
     },
-    "recipients": {
-      "title": "Destinataires des signalements",
-      "desc": "Qui reçoit les courriels de commission / points manquants. Si vide, aucun courriel n'est envoyé — les signalements apparaissent seulement dans ce tableau.",
-      "emptyNote": "Aucun destinataire — les signalements vont seulement dans ce tableau (aucun courriel).",
-      "placeholder": "courriel@exemple.com",
-      "add": "Ajouter",
-      "save": "Enregistrer",
-      "saved": "Enregistré"
-    },
     "invoiceList": {
       "hint": "Corrige l'attribution dans Zoho Books (une synchro écrase les modifications locales).",
       "invoice": "Facture",
@@ -1178,6 +1169,10 @@
       "saveError": "Impossible d'enregistrer les destinataires.",
       "probationTitle": "Notifications de fin de probation",
       "probationHint": "Ces personnes reçoivent un courriel 45, 30 et 15 jours avant la fin de la probation de 3 mois d'un vendeur.",
+      "reportsTitle": "Signalements de commission / points manquants",
+      "reportsHint": "Ces personnes reçoivent un courriel quand un vendeur signale une commission ou des points manquants. Si vide, aucun courriel n'est envoyé — les signalements apparaissent seulement dans le tableau « À corriger ».",
+      "newUserTitle": "Nouvel utilisateur sans rôle",
+      "newUserHint": "Ces personnes reçoivent un courriel quand quelqu'un se connecte à Sales Hub pour la première fois sans aucun rôle — son menu reste vide tant qu'un rôle ne lui est pas assigné. Si vide, personne n'est notifié.",
       "moreSoon": "D'autres types de notifications apparaîtront ici au fur et à mesure."
     },
     "deals": {
@@ -1254,7 +1249,8 @@
         "feature_request": "Demande de fonctionnalité",
         "missing_commission": "Signalement de commission manquante",
         "missing_points": "Signalement de points manquants",
-        "probation": "Fin de probation"
+        "probation": "Fin de probation",
+        "new_user": "Nouvel utilisateur sans rôle"
       }
     },
     "recalculate": {
