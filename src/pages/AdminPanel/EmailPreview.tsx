@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 // All transactional email templates, in the order shown in the dropdown. Labels are i18n keys.
 const TEMPLATE_TYPES = [
-  'invitation', 'reset', 'paystub', 'payroll', 'feature_request', 'missing_commission', 'missing_points', 'probation',
+  'invitation', 'reset', 'paystub', 'payroll', 'feature_request', 'missing_commission', 'missing_points', 'probation', 'new_user',
 ] as const;
 type TemplateType = (typeof TEMPLATE_TYPES)[number];
 
