@@ -323,7 +323,7 @@ const PayStubModal: React.FC<{
                   onChange={(e) => setEmailTo(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') sendEmail(); }}
                   placeholder={tp('emailPlaceholder') as string}
-                  className="w-56 rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+                  className="min-w-0 flex-1 rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white sm:flex-none sm:w-56"
                 />
                 <button onClick={sendEmail} disabled={emailSending || !emailTo.trim()}
                   className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">

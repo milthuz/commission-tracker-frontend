@@ -560,7 +560,8 @@ const CommissionTracker: React.FC = () => {
                         <span className="text-xs font-medium text-body">{t('commissionTracker.dealsDoNotCount', { team: rep.team?.name || '' })}</span>
                       </div>
                     )}
-                    <table className="w-full table-auto">
+                    <div className="overflow-x-auto">
+                    <table className="w-full min-w-[480px] table-auto">
                       <thead>
                         <tr className="bg-gray-50 dark:bg-meta-4/50">
                           <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.dealAccount')}</th>
@@ -636,6 +637,7 @@ const CommissionTracker: React.FC = () => {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                     </>
                   )}
 
@@ -648,7 +650,8 @@ const CommissionTracker: React.FC = () => {
                         </svg>
                         <span className="text-xs font-semibold text-[#6366F1] dark:text-[#a5b4fc]">{t('commissionTracker.zentactSection')}</span>
                       </div>
-                      <table className="w-full table-auto">
+                      <div className="overflow-x-auto">
+                      <table className="w-full min-w-[480px] table-auto">
                         <thead>
                           <tr className="bg-[#6366F1] bg-opacity-5">
                             <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.merchant')}</th>
@@ -704,6 +707,7 @@ const CommissionTracker: React.FC = () => {
                           ))}
                         </tbody>
                       </table>
+                      </div>
                     </div>
                   )}
 

@@ -887,7 +887,7 @@ const CommissionReport = () => {
           </select>
 
           {/* Client / invoice search — finds matching invoices across the whole selected year */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <button
               onClick={runSearch}
               title={t('commissionReport.search') as string}
@@ -901,7 +901,7 @@ const CommissionReport = () => {
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') runSearch(); }}
               placeholder={t('commissionReport.searchPlaceholder') as string}
-              className="w-56 rounded border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+              className="w-full rounded border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white sm:w-56"
             />
           </div>
 
