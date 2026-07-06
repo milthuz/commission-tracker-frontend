@@ -1531,7 +1531,8 @@
         "sugReason": "Raison",
         "sugApply": "Appliquer",
         "sugIgnore": "Ignorer",
-        "sugApplyConfirm": "Appliquer cet ajustement ? {{rep}} — {{amount}} ({{reason}}), sur le bulletin du mois courant.",
+        "sugApplyConfirm": "Appliquer cet ajustement ? {{rep}} — {{amount}} ({{reason}}), sur le bulletin de {{month}}.",
+        "sugTargetLabel": "Appliquer au mois :",
         "sugType": {
           "over_activation": "Activation — client existant",
           "over_void": "Facture annulée",

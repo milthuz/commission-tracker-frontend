@@ -345,6 +345,9 @@ const CommissionImport: React.FC = () => {
   };
   const [suggestions, setSuggestions] = useState<AdjSuggestion[]>([]);
   const [sugBusy, setSugBusy] = useState<string | null>(null);
+  // Target pay month for applied suggestions — defaults to the current month, admin can change.
+  const [sugMonth, setSugMonth] = useState(new Date().getMonth() + 1);
+  const [sugYear, setSugYear] = useState(new Date().getFullYear());
   const fetchSuggestions = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -356,20 +359,20 @@ const CommissionImport: React.FC = () => {
   const applySuggestion = async (s: AdjSuggestion) => {
     const label = t(`admin.commissionImport.adjustments.sugType.${s.type}`);
     if (!(await dialog.confirm(t('admin.commissionImport.adjustments.sugApplyConfirm',
-      { rep: s.repName, amount: fmt(s.amount), reason: label }) as string))) return;
+      { rep: s.repName, amount: fmt(s.amount), reason: label,
+        month: `${monthName(sugMonth)} ${sugYear}` }) as string))) return;
     setSugBusy(s.key);
     try {
       const token = localStorage.getItem('token');
-      const now = new Date();
       const src = s.sourcePeriod ? new Date(s.sourcePeriod) : null;
       if (s.type === 'never_paid') {
         await axios.post(`${API_URL}/api/commissions/adjustments`,
-          { repName: s.repName, year: now.getFullYear(), month: now.getMonth() + 1,
+          { repName: s.repName, year: sugYear, month: sugMonth,
             invoiceNumbers: [s.invoiceNumber], description: label },
           { headers: { Authorization: `Bearer ${token}` } });
       } else {
         await axios.post(`${API_URL}/api/commissions/adjustments`,
-          { repName: s.repName, year: now.getFullYear(), month: now.getMonth() + 1,
+          { repName: s.repName, year: sugYear, month: sugMonth,
             amount: s.amount, description: `${label} — ${s.customer || ''}`.trim(),
             sourceYear: src ? src.getUTCFullYear() : null, sourceMonth: src ? src.getUTCMonth() + 1 : null,
             refInvoiceNumber: s.invoiceNumber, refCustomer: s.customer },
@@ -1521,6 +1524,17 @@ const CommissionImport: React.FC = () => {
                 <p className="mt-1 text-sm text-body">{t('admin.commissionImport.adjustments.sugEmptyHint')}</p>
               </div>
             ) : (
+              <>
+              {/* Where applied suggestions land — defaults to the current month */}
+              <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+                <label className="text-xs font-medium text-body">{t('admin.commissionImport.adjustments.sugTargetLabel')}</label>
+                <select value={sugMonth} onChange={(e) => setSugMonth(parseInt(e.target.value))}
+                  className="rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white">
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthName(m)}</option>)}
+                </select>
+                <input type="number" value={sugYear} onChange={(e) => setSugYear(parseInt(e.target.value) || sugYear)}
+                  className="w-20 rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+              </div>
               <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
                 <table className="w-full min-w-[640px] text-sm">
                   <thead className="bg-gray-2 dark:bg-meta-4">
@@ -1581,6 +1595,7 @@ const CommissionImport: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+              </>
             )
           )}
 

@@ -1531,7 +1531,8 @@
         "sugReason": "Reason",
         "sugApply": "Apply",
         "sugIgnore": "Ignore",
-        "sugApplyConfirm": "Apply this adjustment? {{rep}} — {{amount}} ({{reason}}), on the current month's pay stub.",
+        "sugApplyConfirm": "Apply this adjustment? {{rep}} — {{amount}} ({{reason}}), on the {{month}} pay stub.",
+        "sugTargetLabel": "Apply to month:",
         "sugType": {
           "over_activation": "Activation — existing customer",
           "over_void": "Voided invoice",
