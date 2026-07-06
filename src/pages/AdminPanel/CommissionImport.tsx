@@ -313,6 +313,57 @@ const CommissionImport: React.FC = () => {
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to create adjustment'); }
     finally { setAdjBusy(false); }
   };
+  // Reconciliation-driven suggestions (overpaid activations, void-but-paid, double-paid,
+  // never-paid) — one click applies the matching adjustment to the CURRENT month.
+  interface AdjSuggestion { key: string; type: string; repName: string; invoiceNumber: string; customer: string | null; amount: number; sourcePeriod: string | null; times?: number; }
+  const [suggestions, setSuggestions] = useState<AdjSuggestion[]>([]);
+  const [sugBusy, setSugBusy] = useState<string | null>(null);
+  const fetchSuggestions = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/adjustments/suggestions`,
+        { headers: { Authorization: `Bearer ${token}` } });
+      setSuggestions(res.data.suggestions || []);
+    } catch (_e) { /* silent */ }
+  };
+  const applySuggestion = async (s: AdjSuggestion) => {
+    const label = t(`admin.commissionImport.adjustments.sugType.${s.type}`);
+    if (!(await dialog.confirm(t('admin.commissionImport.adjustments.sugApplyConfirm',
+      { rep: s.repName, amount: fmt(s.amount), reason: label }) as string))) return;
+    setSugBusy(s.key);
+    try {
+      const token = localStorage.getItem('token');
+      const now = new Date();
+      const src = s.sourcePeriod ? new Date(s.sourcePeriod) : null;
+      if (s.type === 'never_paid') {
+        await axios.post(`${API_URL}/api/commissions/adjustments`,
+          { repName: s.repName, year: now.getFullYear(), month: now.getMonth() + 1,
+            invoiceNumbers: [s.invoiceNumber], description: label },
+          { headers: { Authorization: `Bearer ${token}` } });
+      } else {
+        await axios.post(`${API_URL}/api/commissions/adjustments`,
+          { repName: s.repName, year: now.getFullYear(), month: now.getMonth() + 1,
+            amount: s.amount, description: `${label} — ${s.customer || ''}`.trim(),
+            sourceYear: src ? src.getUTCFullYear() : null, sourceMonth: src ? src.getUTCMonth() + 1 : null,
+            refInvoiceNumber: s.invoiceNumber, refCustomer: s.customer },
+          { headers: { Authorization: `Bearer ${token}` } });
+      }
+      await Promise.all([fetchSuggestions(), fetchAdjustments()]);
+      if (adjRep) await fetchAdjUnpaid(adjRep);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to apply suggestion'); }
+    finally { setSugBusy(null); }
+  };
+  const dismissSuggestion = async (s: AdjSuggestion) => {
+    setSugBusy(s.key);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/commissions/adjustments/suggestions/dismiss`,
+        { key: s.key }, { headers: { Authorization: `Bearer ${token}` } });
+      setSuggestions(prev => prev.filter(x => x.key !== s.key));
+    } catch (_e) { /* silent */ }
+    finally { setSugBusy(null); }
+  };
+
   // Free-form (±) adjustment — e.g. deduct an overpayment from a past period on a future stub.
   const [freeAdjAmount, setFreeAdjAmount] = useState('');
   const [freeAdjDesc, setFreeAdjDesc] = useState('');
@@ -509,7 +560,7 @@ const CommissionImport: React.FC = () => {
     })();
   }, []);
   // Load the full manual-bonus + adjustment history once (both span all periods).
-  useEffect(() => { fetchManualBonuses(); fetchAdjustments(); fetchPayRecipients(); fetchPaySends(); }, []);
+  useEffect(() => { fetchManualBonuses(); fetchAdjustments(); fetchSuggestions(); fetchPayRecipients(); fetchPaySends(); }, []);
 
   // Update a single entry by id
   const updateEntry = (id: string, patch: Partial<FileEntry>) => {
@@ -1405,6 +1456,60 @@ const CommissionImport: React.FC = () => {
       </>)}
 
       {subTab === 'adjustments' && (<>
+      {/* Reconciliation suggestions — anomalies detected in the paid/unpaid data, each with a
+          one-click adjustment (applied to the CURRENT month's stub). */}
+      {suggestions.length > 0 && (
+        <div className="mb-6 rounded-sm border border-warning/40 bg-white shadow-default dark:bg-boxdark">
+          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+            <h3 className="text-lg font-semibold text-black dark:text-white">
+              {t('admin.commissionImport.adjustments.sugTitle')} <span className="text-warning">({suggestions.length})</span>
+            </h3>
+            <p className="text-sm text-body">{t('admin.commissionImport.adjustments.sugSubtitle')}</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead className="bg-gray-2 dark:bg-meta-4">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugReason')}</th>
+                  <th className="px-4 py-2 text-left font-medium">Rep</th>
+                  <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
+                  <th className="px-4 py-2 text-left font-medium">Client</th>
+                  <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
+                  <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                  <th className="px-4 py-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {suggestions.map(s => (
+                  <tr key={s.key} className="border-t border-stroke dark:border-strokedark">
+                    <td className="px-4 py-2">
+                      <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${s.amount < 0 ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
+                        {t(`admin.commissionImport.adjustments.sugType.${s.type}`)}{s.times ? ` ×${s.times}` : ''}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-black dark:text-white whitespace-nowrap">{s.repName}</td>
+                    <td className="px-4 py-2 font-medium text-primary">{s.invoiceNumber}</td>
+                    <td className="px-4 py-2 text-body">{s.customer || '—'}</td>
+                    <td className="px-4 py-2 text-body whitespace-nowrap">{s.sourcePeriod ? `${monthName(new Date(s.sourcePeriod).getUTCMonth() + 1)} ${new Date(s.sourcePeriod).getUTCFullYear()}` : '—'}</td>
+                    <td className={`px-4 py-2 text-right font-semibold whitespace-nowrap ${s.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(s.amount)}</td>
+                    <td className="px-4 py-2 text-right whitespace-nowrap">
+                      <button onClick={() => applySuggestion(s)} disabled={sugBusy === s.key}
+                        className="mr-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                        {sugBusy === s.key ? '…' : t('admin.commissionImport.adjustments.sugApply')}
+                      </button>
+                      <button onClick={() => dismissSuggestion(s)} disabled={sugBusy === s.key}
+                        className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+                        {t('admin.commissionImport.adjustments.sugIgnore')}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Commission adjustments — carry an unpaid commission from a past month to a target month */}
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">

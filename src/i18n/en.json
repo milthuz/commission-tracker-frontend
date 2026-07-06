@@ -1523,7 +1523,19 @@
         "freeDescPlaceholder": "e.g. April 2026 overpayment — INV-083716",
         "freeAdd": "Add adjustment",
         "freeNeedRep": "Pick a rep above first.",
-        "freeNeedAmount": "Pick a rep and enter a non-zero amount."
+        "freeNeedAmount": "Pick a rep and enter a non-zero amount.",
+        "sugTitle": "Suggested adjustments",
+        "sugSubtitle": "Anomalies detected by reconciliation. Apply creates the adjustment on the CURRENT month's pay stub; Ignore hides the suggestion permanently.",
+        "sugReason": "Reason",
+        "sugApply": "Apply",
+        "sugIgnore": "Ignore",
+        "sugApplyConfirm": "Apply this adjustment? {{rep}} — {{amount}} ({{reason}}), on the current month's pay stub.",
+        "sugType": {
+          "over_activation": "Activation paid on existing customer",
+          "over_void": "Paid but invoice voided",
+          "double_paid": "Paid more than once",
+          "never_paid": "Unlocked, never paid"
+        }
       },
       "payroll": {
         "title": "Send to Payroll",

@@ -1523,7 +1523,19 @@
         "freeDescPlaceholder": "ex. Trop-payé avril 2026 — INV-083716",
         "freeAdd": "Ajouter l'ajustement",
         "freeNeedRep": "Choisis d'abord un vendeur ci-dessus.",
-        "freeNeedAmount": "Choisis un vendeur et entre un montant non nul."
+        "freeNeedAmount": "Choisis un vendeur et entre un montant non nul.",
+        "sugTitle": "Ajustements suggérés",
+        "sugSubtitle": "Anomalies détectées par la réconciliation. Appliquer crée l'ajustement sur le bulletin du mois COURANT; Ignorer masque la suggestion définitivement.",
+        "sugReason": "Raison",
+        "sugApply": "Appliquer",
+        "sugIgnore": "Ignorer",
+        "sugApplyConfirm": "Appliquer cet ajustement ? {{rep}} — {{amount}} ({{reason}}), sur le bulletin du mois courant.",
+        "sugType": {
+          "over_activation": "Activation payée sur client existant",
+          "over_void": "Payée mais facture annulée",
+          "double_paid": "Payée plus d'une fois",
+          "never_paid": "Débloquée, jamais payée"
+        }
       },
       "payroll": {
         "title": "Envoyer à la paie",
