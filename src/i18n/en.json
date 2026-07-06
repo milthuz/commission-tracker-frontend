@@ -1524,6 +1524,7 @@
         "freeAdd": "Add adjustment",
         "freeNeedRep": "Pick a rep above first.",
         "freeNeedAmount": "Pick a rep and enter a non-zero amount.",
+        "freeDescRequired": "Description required — it is the reason the rep sees on their pay stub.",
         "sugTitle": "Suggested adjustments",
         "sugSubtitle": "Anomalies detected by reconciliation. Apply creates the adjustment on the CURRENT month's pay stub; Ignore hides the suggestion permanently.",
         "sugReason": "Reason",

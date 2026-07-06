@@ -1524,6 +1524,7 @@
         "freeAdd": "Ajouter l'ajustement",
         "freeNeedRep": "Choisis d'abord un vendeur ci-dessus.",
         "freeNeedAmount": "Choisis un vendeur et entre un montant non nul.",
+        "freeDescRequired": "La description est obligatoire — c'est la raison que le vendeur verra sur son bulletin.",
         "sugTitle": "Ajustements suggérés",
         "sugSubtitle": "Anomalies détectées par la réconciliation. Appliquer crée l'ajustement sur le bulletin du mois COURANT; Ignorer masque la suggestion définitivement.",
         "sugReason": "Raison",

@@ -1702,7 +1702,9 @@ const CommissionImport: React.FC = () => {
                     placeholder={t('admin.commissionImport.adjustments.freeDescPlaceholder') as string}
                     className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
                 </div>
-                <button onClick={createFreeAdjustment} disabled={freeAdjBusy || !adjRep || !freeAdjAmount}
+                {/* Description required: it IS the reason line the rep reads on their stub */}
+                <button onClick={createFreeAdjustment} disabled={freeAdjBusy || !adjRep || !freeAdjAmount || !freeAdjDesc.trim()}
+                  title={!freeAdjDesc.trim() ? (t('admin.commissionImport.adjustments.freeDescRequired') as string) : undefined}
                   className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
                   {freeAdjBusy ? '…' : t('admin.commissionImport.adjustments.freeAdd')}
                 </button>

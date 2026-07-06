@@ -450,7 +450,8 @@ const PayStubModal: React.FC<{
                           <tr key={i} className="border-t border-stroke dark:border-strokedark">
                             <td className="px-3 py-2 text-black dark:text-white">{bonusLabel(b.bonus_type)}</td>
                             <td className="px-3 py-2 text-black dark:text-white">{b.merchant_name || '—'}</td>
-                            <td className="px-3 py-2 text-right font-semibold text-success">{fmt(b.amount)}</td>
+                            {/* Negative adjustments (overpayment clawbacks) must read as deductions */}
+                            <td className={`px-3 py-2 text-right font-semibold ${b.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(b.amount)}</td>
                           </tr>
                         ))}
                       </tbody>
