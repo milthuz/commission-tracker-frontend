@@ -1498,18 +1498,20 @@ const CommissionImport: React.FC = () => {
                 <table className="w-full min-w-[640px] text-sm">
                   <thead className="bg-gray-2 dark:bg-meta-4">
                     <tr>
-                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugReason')}</th>
-                      <th className="px-4 py-2 text-left font-medium">Rep</th>
-                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugInvoiceClient')}</th>
-                      <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
-                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
-                      <th className="px-4 py-2"></th>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugReason')}</th>
+                      <th className="px-3 py-2 text-left font-medium">Rep</th>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugInvoiceClient')}</th>
+                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
+                      <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                      {/* Actions column is sticky-right so Apply/Ignore stay visible even when
+                          the table scrolls horizontally (narrow window / open sidebar). */}
+                      <th className="sticky right-0 bg-gray-2 px-3 py-2 dark:bg-meta-4"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {suggestions.map(s => (
                       <tr key={s.key} className="border-t border-stroke dark:border-strokedark">
-                        <td className="px-4 py-2 whitespace-nowrap">
+                        <td className="px-3 py-2 whitespace-nowrap">
                           {/* Compact one-line reason: colored icon + short label; full sentence on hover */}
                           <span className="inline-flex items-center gap-2" title={t(`admin.commissionImport.adjustments.sugTypeHint.${s.type}`) as string}>
                             <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${s.amount < 0 ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
@@ -1524,15 +1526,15 @@ const CommissionImport: React.FC = () => {
                             </span>
                           </span>
                         </td>
-                        <td className="px-4 py-2 text-black dark:text-white whitespace-nowrap">{s.repName}</td>
-                        <td className="px-4 py-2">
+                        <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{s.repName}</td>
+                        <td className="px-3 py-2">
                           {/* Invoice + client merged: number on top, client as muted subtext */}
                           <p className="font-medium text-primary whitespace-nowrap">{s.invoiceNumber}</p>
-                          <p className="max-w-[220px] truncate text-xs text-body" title={s.customer || ''}>{s.customer || '—'}</p>
+                          <p className="max-w-[200px] truncate text-xs text-body" title={s.customer || ''}>{s.customer || '—'}</p>
                         </td>
-                        <td className="px-4 py-2 text-body whitespace-nowrap">{s.sourcePeriod ? `${monthName(new Date(s.sourcePeriod).getUTCMonth() + 1)} ${new Date(s.sourcePeriod).getUTCFullYear()}` : '—'}</td>
-                        <td className={`px-4 py-2 text-right font-semibold whitespace-nowrap ${s.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(s.amount)}</td>
-                        <td className="px-4 py-2 text-right whitespace-nowrap">
+                        <td className="px-3 py-2 text-body whitespace-nowrap">{s.sourcePeriod ? `${monthName(new Date(s.sourcePeriod).getUTCMonth() + 1)} ${new Date(s.sourcePeriod).getUTCFullYear()}` : '—'}</td>
+                        <td className={`px-3 py-2 text-right font-semibold whitespace-nowrap ${s.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(s.amount)}</td>
+                        <td className="sticky right-0 bg-white px-3 py-2 text-right whitespace-nowrap dark:bg-boxdark">
                           <span className="inline-flex items-center gap-1.5">
                             <button onClick={() => applySuggestion(s)} disabled={sugBusy === s.key}
                               className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
