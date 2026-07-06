@@ -1560,6 +1560,7 @@
           "carry": "Coche des commissions impayées ci-dessous — elles seront déplacées vers le mois cible et payées avec lui.",
           "free": "Montant positif ou négatif (ex. -118.00 pour un trop-payé) ajouté au bulletin du mois cible."
         },
+        "sugInvoiceClient": "Facture · Client",
         "sugEmptyTitle": "Aucune anomalie détectée",
         "sugEmptyHint": "La réconciliation n'a rien trouvé à corriger. Les nouvelles anomalies apparaîtront ici.",
         "historyEmpty": "Aucun ajustement créé pour l'instant."

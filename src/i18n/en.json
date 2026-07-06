@@ -1560,6 +1560,7 @@
           "carry": "Check unpaid commissions below — they move to the target month and get paid with it.",
           "free": "Positive or negative amount (e.g. -118.00 for an overpayment) added to the target month's stub."
         },
+        "sugInvoiceClient": "Invoice · Client",
         "sugEmptyTitle": "No anomalies detected",
         "sugEmptyHint": "Reconciliation found nothing to correct. New anomalies will show up here.",
         "historyEmpty": "No adjustments created yet."

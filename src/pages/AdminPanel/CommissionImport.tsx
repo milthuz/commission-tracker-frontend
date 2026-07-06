@@ -1495,13 +1495,12 @@ const CommissionImport: React.FC = () => {
               </div>
             ) : (
               <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
-                <table className="w-full min-w-[760px] text-sm">
+                <table className="w-full min-w-[640px] text-sm">
                   <thead className="bg-gray-2 dark:bg-meta-4">
                     <tr>
                       <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugReason')}</th>
                       <th className="px-4 py-2 text-left font-medium">Rep</th>
-                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
-                      <th className="px-4 py-2 text-left font-medium">Client</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugInvoiceClient')}</th>
                       <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
                       <th className="px-4 py-2"></th>
@@ -1526,19 +1525,26 @@ const CommissionImport: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-4 py-2 text-black dark:text-white whitespace-nowrap">{s.repName}</td>
-                        <td className="px-4 py-2 font-medium text-primary">{s.invoiceNumber}</td>
-                        <td className="px-4 py-2 text-body">{s.customer || '—'}</td>
+                        <td className="px-4 py-2">
+                          {/* Invoice + client merged: number on top, client as muted subtext */}
+                          <p className="font-medium text-primary whitespace-nowrap">{s.invoiceNumber}</p>
+                          <p className="max-w-[220px] truncate text-xs text-body" title={s.customer || ''}>{s.customer || '—'}</p>
+                        </td>
                         <td className="px-4 py-2 text-body whitespace-nowrap">{s.sourcePeriod ? `${monthName(new Date(s.sourcePeriod).getUTCMonth() + 1)} ${new Date(s.sourcePeriod).getUTCFullYear()}` : '—'}</td>
                         <td className={`px-4 py-2 text-right font-semibold whitespace-nowrap ${s.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(s.amount)}</td>
                         <td className="px-4 py-2 text-right whitespace-nowrap">
-                          <button onClick={() => applySuggestion(s)} disabled={sugBusy === s.key}
-                            className="mr-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
-                            {sugBusy === s.key ? '…' : t('admin.commissionImport.adjustments.sugApply')}
-                          </button>
-                          <button onClick={() => dismissSuggestion(s)} disabled={sugBusy === s.key}
-                            className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
-                            {t('admin.commissionImport.adjustments.sugIgnore')}
-                          </button>
+                          <span className="inline-flex items-center gap-1.5">
+                            <button onClick={() => applySuggestion(s)} disabled={sugBusy === s.key}
+                              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                              {sugBusy === s.key ? '…' : t('admin.commissionImport.adjustments.sugApply')}
+                            </button>
+                            {/* Compact dismiss: icon-only, label on hover */}
+                            <button onClick={() => dismissSuggestion(s)} disabled={sugBusy === s.key}
+                              title={t('admin.commissionImport.adjustments.sugIgnore') as string}
+                              className="flex h-7 w-7 items-center justify-center rounded-md border border-stroke text-body hover:bg-gray-1 hover:text-danger disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </span>
                         </td>
                       </tr>
                     ))}
