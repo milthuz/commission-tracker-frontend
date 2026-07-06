@@ -1541,7 +1541,28 @@
           "over_void": "The commission was paid but the invoice has since been voided/deleted in Zoho — overpayment to deduct.",
           "double_paid": "The same invoice appears in more than one pay file or commit — the excess should be deducted.",
           "never_paid": "Commission unlocked in a closed month but never paid out — carry it to the current month."
-        }
+        },
+        "view": {
+          "suggestions": "Suggestions",
+          "create": "New adjustment",
+          "history": "History"
+        },
+        "viewHint": {
+          "suggestions": "Anomalies detected by reconciliation — apply or ignore each proposal.",
+          "create": "Carry unpaid commissions to a pay month, or add a free (±) amount.",
+          "history": "Every adjustment created, newest first."
+        },
+        "mode": {
+          "carry": "Carry invoices",
+          "free": "Free amount (±)"
+        },
+        "modeHint": {
+          "carry": "Check unpaid commissions below — they move to the target month and get paid with it.",
+          "free": "Positive or negative amount (e.g. -118.00 for an overpayment) added to the target month's stub."
+        },
+        "sugEmptyTitle": "No anomalies detected",
+        "sugEmptyHint": "Reconciliation found nothing to correct. New anomalies will show up here.",
+        "historyEmpty": "No adjustments created yet."
       },
       "payroll": {
         "title": "Send to Payroll",

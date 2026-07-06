@@ -1541,7 +1541,28 @@
           "over_void": "La commission a été payée, mais la facture a depuis été annulée/supprimée dans Zoho — trop-payé à déduire.",
           "double_paid": "La même facture apparaît dans plus d'un fichier de paie ou commit — le surplus est à déduire.",
           "never_paid": "Commission débloquée dans un mois clos mais jamais versée — à reporter sur le mois courant."
-        }
+        },
+        "view": {
+          "suggestions": "Suggestions",
+          "create": "Nouvel ajustement",
+          "history": "Historique"
+        },
+        "viewHint": {
+          "suggestions": "Anomalies détectées par la réconciliation — applique ou ignore chaque proposition.",
+          "create": "Reporte des commissions impayées vers un mois de paie, ou ajoute un montant libre (±).",
+          "history": "Tous les ajustements créés, du plus récent au plus ancien."
+        },
+        "mode": {
+          "carry": "Reporter des factures",
+          "free": "Montant libre (±)"
+        },
+        "modeHint": {
+          "carry": "Coche des commissions impayées ci-dessous — elles seront déplacées vers le mois cible et payées avec lui.",
+          "free": "Montant positif ou négatif (ex. -118.00 pour un trop-payé) ajouté au bulletin du mois cible."
+        },
+        "sugEmptyTitle": "Aucune anomalie détectée",
+        "sugEmptyHint": "La réconciliation n'a rien trouvé à corriger. Les nouvelles anomalies apparaîtront ici.",
+        "historyEmpty": "Aucun ajustement créé pour l'instant."
       },
       "payroll": {
         "title": "Envoyer à la paie",

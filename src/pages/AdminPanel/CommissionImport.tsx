@@ -364,6 +364,11 @@ const CommissionImport: React.FC = () => {
     finally { setSugBusy(null); }
   };
 
+  // Inner views of the Adjustments subtab (it grew too dense as one stacked page):
+  // suggestions (reconciliation anomalies) / create (carry-forward OR free ±) / history.
+  const [adjView, setAdjView] = useState<'suggestions' | 'create' | 'history'>('suggestions');
+  const [adjMode, setAdjMode] = useState<'carry' | 'free'>('carry');
+
   // Free-form (±) adjustment — e.g. deduct an overpayment from a past period on a future stub.
   const [freeAdjAmount, setFreeAdjAmount] = useState('');
   const [freeAdjDesc, setFreeAdjDesc] = useState('');
@@ -1456,149 +1461,85 @@ const CommissionImport: React.FC = () => {
       </>)}
 
       {subTab === 'adjustments' && (<>
-      {/* Reconciliation suggestions — anomalies detected in the paid/unpaid data, each with a
-          one-click adjustment (applied to the CURRENT month's stub). */}
-      {suggestions.length > 0 && (
-        <div className="mb-6 rounded-sm border border-warning/40 bg-white shadow-default dark:bg-boxdark">
-          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">
-              {t('admin.commissionImport.adjustments.sugTitle')} <span className="text-warning">({suggestions.length})</span>
-            </h3>
-            <p className="text-sm text-body">{t('admin.commissionImport.adjustments.sugSubtitle')}</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-sm">
-              <thead className="bg-gray-2 dark:bg-meta-4">
-                <tr>
-                  <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugReason')}</th>
-                  <th className="px-4 py-2 text-left font-medium">Rep</th>
-                  <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
-                  <th className="px-4 py-2 text-left font-medium">Client</th>
-                  <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
-                  <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
-                  <th className="px-4 py-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {suggestions.map(s => (
-                  <tr key={s.key} className="border-t border-stroke dark:border-strokedark">
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      {/* Compact one-line reason: colored icon + short label; full sentence on hover */}
-                      <span className="inline-flex items-center gap-2" title={t(`admin.commissionImport.adjustments.sugTypeHint.${s.type}`) as string}>
-                        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${s.amount < 0 ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
-                          {s.amount < 0 ? (
-                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-                          ) : (
-                            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
-                          )}
-                        </span>
-                        <span className="text-xs font-medium text-black dark:text-white">
-                          {t(`admin.commissionImport.adjustments.sugType.${s.type}`)}{s.times ? ` ×${s.times}` : ''}
-                        </span>
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 text-black dark:text-white whitespace-nowrap">{s.repName}</td>
-                    <td className="px-4 py-2 font-medium text-primary">{s.invoiceNumber}</td>
-                    <td className="px-4 py-2 text-body">{s.customer || '—'}</td>
-                    <td className="px-4 py-2 text-body whitespace-nowrap">{s.sourcePeriod ? `${monthName(new Date(s.sourcePeriod).getUTCMonth() + 1)} ${new Date(s.sourcePeriod).getUTCFullYear()}` : '—'}</td>
-                    <td className={`px-4 py-2 text-right font-semibold whitespace-nowrap ${s.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(s.amount)}</td>
-                    <td className="px-4 py-2 text-right whitespace-nowrap">
-                      <button onClick={() => applySuggestion(s)} disabled={sugBusy === s.key}
-                        className="mr-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
-                        {sugBusy === s.key ? '…' : t('admin.commissionImport.adjustments.sugApply')}
-                      </button>
-                      <button onClick={() => dismissSuggestion(s)} disabled={sugBusy === s.key}
-                        className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
-                        {t('admin.commissionImport.adjustments.sugIgnore')}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Commission adjustments — carry an unpaid commission from a past month to a target month */}
+      {/* One card, three inner views (the stacked version was too dense):
+          Suggestions (reconciliation anomalies) · Create (carry OR free ±) · History */}
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.adjustments.title')}</h3>
-          <p className="text-sm text-body">{t('admin.commissionImport.adjustments.subtitle')}</p>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <div>
+            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.adjustments.title')}</h3>
+            <p className="text-sm text-body">{t(`admin.commissionImport.adjustments.viewHint.${adjView}`)}</p>
+          </div>
+          <div className="flex gap-1 rounded-lg bg-gray-2 p-1 dark:bg-meta-4/60">
+            {(['suggestions', 'create', 'history'] as const).map(v => (
+              <button key={v} onClick={() => setAdjView(v)}
+                className={`rounded-md px-4 py-2 text-sm font-medium transition ${adjView === v ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+                {t(`admin.commissionImport.adjustments.view.${v}`)}
+                {v === 'suggestions' && suggestions.length > 0 && (
+                  <span className={`ml-1.5 inline-flex min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-bold ${adjView === v ? 'bg-white/25' : 'bg-warning/15 text-warning'}`}>{suggestions.length}</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="px-6 py-4">
-          <div className="flex flex-wrap items-end gap-3">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-body">Rep</label>
-              <select value={adjRep} onChange={(e) => { setAdjRep(e.target.value); fetchAdjUnpaid(e.target.value); }}
-                className="w-48 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                <option value="">{t('admin.commissionImport.manualBonus.selectRep')}</option>
-                {reps.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.targetMonth')}</label>
-              <div className="flex gap-2">
-                <select value={adjMonth} onChange={(e) => setAdjMonth(parseInt(e.target.value))}
-                  className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthName(m)}</option>)}
-                </select>
-                <input type="number" value={adjYear} onChange={(e) => setAdjYear(parseInt(e.target.value) || adjYear)}
-                  className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-              </div>
-            </div>
-            <div className="flex-1 min-w-[180px]">
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
-              <input type="text" value={adjDesc} onChange={(e) => setAdjDesc(e.target.value)}
-                placeholder={t('admin.commissionImport.adjustments.descPlaceholder') as string}
-                className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-            </div>
-            <button onClick={createAdjustments} disabled={adjBusy || adjSelected.size === 0}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
-              {adjBusy ? '…' : t('admin.commissionImport.adjustments.carry', { count: adjSelected.size })}
-            </button>
-          </div>
 
-          {/* Unpaid commissions for the selected rep — pick which to carry forward */}
-          {adjRep && (
-            <label className="mt-3 flex items-center gap-2 text-xs font-medium text-body">
-              <input type="checkbox" checked={adjHidePre2026}
-                onChange={(e) => {
-                  setAdjHidePre2026(e.target.checked);
-                  if (e.target.checked) setAdjSelected(prev => {
-                    const next = new Set<string>();
-                    adjUnpaid.forEach(u => { if (prev.has(u.invoice_number) && (!u.payable_date || new Date(u.payable_date).getUTCFullYear() >= 2026)) next.add(u.invoice_number); });
-                    return next;
-                  });
-                }} />
-              {t('admin.commissionImport.adjustments.hide2025')}
-            </label>
-          )}
-          {adjRep && (
-            adjUnpaidShown.length === 0 ? (
-              <p className="mt-4 text-sm text-body">{t('admin.commissionImport.adjustments.noUnpaid')}</p>
+          {/* ── VIEW 1: reconciliation suggestions ── */}
+          {adjView === 'suggestions' && (
+            suggestions.length === 0 ? (
+              <div className="flex flex-col items-center py-10 text-center">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
+                  <svg className="h-6 w-6 text-success" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                </div>
+                <p className="font-medium text-black dark:text-white">{t('admin.commissionImport.adjustments.sugEmptyTitle')}</p>
+                <p className="mt-1 text-sm text-body">{t('admin.commissionImport.adjustments.sugEmptyHint')}</p>
+              </div>
             ) : (
-              <div className="mt-4 overflow-x-auto rounded border border-stroke dark:border-strokedark">
-                <table className="w-full min-w-[640px] text-sm">
+              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                <table className="w-full min-w-[760px] text-sm">
                   <thead className="bg-gray-2 dark:bg-meta-4">
                     <tr>
-                      <th className="px-3 py-2 w-8"></th>
-                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
-                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.manualBonus.period')}</th>
-                      <th className="px-3 py-2 text-left font-medium">Client</th>
-                      <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugReason')}</th>
+                      <th className="px-4 py-2 text-left font-medium">Rep</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
+                      <th className="px-4 py-2 text-left font-medium">Client</th>
+                      <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
+                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                      <th className="px-4 py-2"></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {adjUnpaidShown.map(u => (
-                      <tr key={u.invoice_number} className={`border-t border-stroke dark:border-strokedark ${adjSelected.has(u.invoice_number) ? 'bg-primary/5' : ''}`}>
-                        <td className="px-3 py-2 text-center">
-                          <input type="checkbox" checked={adjSelected.has(u.invoice_number)} onChange={() => toggleAdjSel(u.invoice_number)} />
+                    {suggestions.map(s => (
+                      <tr key={s.key} className="border-t border-stroke dark:border-strokedark">
+                        <td className="px-4 py-2 whitespace-nowrap">
+                          {/* Compact one-line reason: colored icon + short label; full sentence on hover */}
+                          <span className="inline-flex items-center gap-2" title={t(`admin.commissionImport.adjustments.sugTypeHint.${s.type}`) as string}>
+                            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${s.amount < 0 ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
+                              {s.amount < 0 ? (
+                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                              ) : (
+                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                              )}
+                            </span>
+                            <span className="text-xs font-medium text-black dark:text-white">
+                              {t(`admin.commissionImport.adjustments.sugType.${s.type}`)}{s.times ? ` ×${s.times}` : ''}
+                            </span>
+                          </span>
                         </td>
-                        <td className="px-3 py-2 font-medium text-primary">{u.invoice_number}</td>
-                        <td className="px-3 py-2 text-body whitespace-nowrap">{u.payable_date ? `${monthName(new Date(u.payable_date).getUTCMonth() + 1)} ${new Date(u.payable_date).getUTCFullYear()}` : '—'}</td>
-                        <td className="px-3 py-2 text-black dark:text-white">{u.customer || '—'}</td>
-                        <td className="px-3 py-2 text-right font-semibold text-black dark:text-white whitespace-nowrap">{fmt(u.commission)}</td>
+                        <td className="px-4 py-2 text-black dark:text-white whitespace-nowrap">{s.repName}</td>
+                        <td className="px-4 py-2 font-medium text-primary">{s.invoiceNumber}</td>
+                        <td className="px-4 py-2 text-body">{s.customer || '—'}</td>
+                        <td className="px-4 py-2 text-body whitespace-nowrap">{s.sourcePeriod ? `${monthName(new Date(s.sourcePeriod).getUTCMonth() + 1)} ${new Date(s.sourcePeriod).getUTCFullYear()}` : '—'}</td>
+                        <td className={`px-4 py-2 text-right font-semibold whitespace-nowrap ${s.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(s.amount)}</td>
+                        <td className="px-4 py-2 text-right whitespace-nowrap">
+                          <button onClick={() => applySuggestion(s)} disabled={sugBusy === s.key}
+                            className="mr-2 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                            {sugBusy === s.key ? '…' : t('admin.commissionImport.adjustments.sugApply')}
+                          </button>
+                          <button onClick={() => dismissSuggestion(s)} disabled={sugBusy === s.key}
+                            className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+                            {t('admin.commissionImport.adjustments.sugIgnore')}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1607,41 +1548,138 @@ const CommissionImport: React.FC = () => {
             )
           )}
 
-          {/* Free-form (±) adjustment — no invoice: e.g. deduct an overpayment from a past
-              period on the target month's stub. Uses the same rep + target month selectors. */}
-          <div className="mt-6 rounded border border-stroke p-4 dark:border-strokedark">
-            <h4 className="text-sm font-semibold text-black dark:text-white">{t('admin.commissionImport.adjustments.freeTitle')}</h4>
-            <p className="mb-3 mt-0.5 text-xs text-body">{t('admin.commissionImport.adjustments.freeHint')}</p>
+          {/* ── VIEW 2: create an adjustment (carry-forward OR free ±) ── */}
+          {adjView === 'create' && (<>
+            {/* Shared: who + which pay month it lands on */}
             <div className="flex flex-wrap items-end gap-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.amount')}</label>
-                <input type="number" step="0.01" value={freeAdjAmount} onChange={(e) => setFreeAdjAmount(e.target.value)}
-                  placeholder="-118.00"
-                  className="w-32 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                <label className="mb-1 block text-xs font-medium text-body">Rep</label>
+                <select value={adjRep} onChange={(e) => { setAdjRep(e.target.value); fetchAdjUnpaid(e.target.value); }}
+                  className="w-48 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
+                  <option value="">{t('admin.commissionImport.manualBonus.selectRep')}</option>
+                  {reps.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.freeSource')}</label>
-                <input type="month" value={freeAdjSourceYm} onChange={(e) => setFreeAdjSourceYm(e.target.value)}
-                  className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.targetMonth')}</label>
+                <div className="flex gap-2">
+                  <select value={adjMonth} onChange={(e) => setAdjMonth(parseInt(e.target.value))}
+                    className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthName(m)}</option>)}
+                  </select>
+                  <input type="number" value={adjYear} onChange={(e) => setAdjYear(parseInt(e.target.value) || adjYear)}
+                    className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                </div>
               </div>
-              <div className="flex-1 min-w-[180px]">
-                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
-                <input type="text" value={freeAdjDesc} onChange={(e) => setFreeAdjDesc(e.target.value)}
-                  placeholder={t('admin.commissionImport.adjustments.freeDescPlaceholder') as string}
-                  className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+              {/* Mode: carry unpaid invoices vs free ± amount */}
+              <div className="flex gap-1 rounded-lg bg-gray-2 p-1 dark:bg-meta-4/60">
+                {(['carry', 'free'] as const).map(m => (
+                  <button key={m} onClick={() => setAdjMode(m)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${adjMode === m ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+                    {t(`admin.commissionImport.adjustments.mode.${m}`)}
+                  </button>
+                ))}
               </div>
-              <button onClick={createFreeAdjustment} disabled={freeAdjBusy || !adjRep || !freeAdjAmount}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
-                {freeAdjBusy ? '…' : t('admin.commissionImport.adjustments.freeAdd')}
-              </button>
             </div>
-            {!adjRep && <p className="mt-2 text-xs italic text-body">{t('admin.commissionImport.adjustments.freeNeedRep')}</p>}
-          </div>
+            <p className="mt-2 text-xs text-body">{t(`admin.commissionImport.adjustments.modeHint.${adjMode}`)}</p>
 
-          {/* History of adjustments */}
-          {adjList.length > 0 && (
-            <div className="mt-6">
-              <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('admin.commissionImport.adjustments.historyTitle')}</h4>
+            {adjMode === 'carry' && (<>
+              <div className="mt-3 flex flex-wrap items-end gap-3">
+                <div className="flex-1 min-w-[180px]">
+                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
+                  <input type="text" value={adjDesc} onChange={(e) => setAdjDesc(e.target.value)}
+                    placeholder={t('admin.commissionImport.adjustments.descPlaceholder') as string}
+                    className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                </div>
+                <button onClick={createAdjustments} disabled={adjBusy || adjSelected.size === 0}
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                  {adjBusy ? '…' : t('admin.commissionImport.adjustments.carry', { count: adjSelected.size })}
+                </button>
+              </div>
+
+              {/* Unpaid commissions for the selected rep — pick which to carry forward */}
+              {adjRep && (
+                <label className="mt-3 flex items-center gap-2 text-xs font-medium text-body">
+                  <input type="checkbox" checked={adjHidePre2026}
+                    onChange={(e) => {
+                      setAdjHidePre2026(e.target.checked);
+                      if (e.target.checked) setAdjSelected(prev => {
+                        const next = new Set<string>();
+                        adjUnpaid.forEach(u => { if (prev.has(u.invoice_number) && (!u.payable_date || new Date(u.payable_date).getUTCFullYear() >= 2026)) next.add(u.invoice_number); });
+                        return next;
+                      });
+                    }} />
+                  {t('admin.commissionImport.adjustments.hide2025')}
+                </label>
+              )}
+              {!adjRep && <p className="mt-4 text-sm italic text-body">{t('admin.commissionImport.adjustments.freeNeedRep')}</p>}
+              {adjRep && (
+                adjUnpaidShown.length === 0 ? (
+                  <p className="mt-4 text-sm text-body">{t('admin.commissionImport.adjustments.noUnpaid')}</p>
+                ) : (
+                  <div className="mt-4 overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                    <table className="w-full min-w-[640px] text-sm">
+                      <thead className="bg-gray-2 dark:bg-meta-4">
+                        <tr>
+                          <th className="px-3 py-2 w-8"></th>
+                          <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
+                          <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.manualBonus.period')}</th>
+                          <th className="px-3 py-2 text-left font-medium">Client</th>
+                          <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {adjUnpaidShown.map(u => (
+                          <tr key={u.invoice_number} className={`border-t border-stroke dark:border-strokedark ${adjSelected.has(u.invoice_number) ? 'bg-primary/5' : ''}`}>
+                            <td className="px-3 py-2 text-center">
+                              <input type="checkbox" checked={adjSelected.has(u.invoice_number)} onChange={() => toggleAdjSel(u.invoice_number)} />
+                            </td>
+                            <td className="px-3 py-2 font-medium text-primary">{u.invoice_number}</td>
+                            <td className="px-3 py-2 text-body whitespace-nowrap">{u.payable_date ? `${monthName(new Date(u.payable_date).getUTCMonth() + 1)} ${new Date(u.payable_date).getUTCFullYear()}` : '—'}</td>
+                            <td className="px-3 py-2 text-black dark:text-white">{u.customer || '—'}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-black dark:text-white whitespace-nowrap">{fmt(u.commission)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              )}
+            </>)}
+
+            {adjMode === 'free' && (<>
+              <div className="mt-3 flex flex-wrap items-end gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.amount')}</label>
+                  <input type="number" step="0.01" value={freeAdjAmount} onChange={(e) => setFreeAdjAmount(e.target.value)}
+                    placeholder="-118.00"
+                    className="w-32 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.freeSource')}</label>
+                  <input type="month" value={freeAdjSourceYm} onChange={(e) => setFreeAdjSourceYm(e.target.value)}
+                    className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                </div>
+                <div className="flex-1 min-w-[180px]">
+                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
+                  <input type="text" value={freeAdjDesc} onChange={(e) => setFreeAdjDesc(e.target.value)}
+                    placeholder={t('admin.commissionImport.adjustments.freeDescPlaceholder') as string}
+                    className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                </div>
+                <button onClick={createFreeAdjustment} disabled={freeAdjBusy || !adjRep || !freeAdjAmount}
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                  {freeAdjBusy ? '…' : t('admin.commissionImport.adjustments.freeAdd')}
+                </button>
+              </div>
+              {!adjRep && <p className="mt-2 text-xs italic text-body">{t('admin.commissionImport.adjustments.freeNeedRep')}</p>}
+            </>)}
+          </>)}
+
+          {/* ── VIEW 3: history ── */}
+          {adjView === 'history' && (
+            adjList.length === 0 ? (
+              <p className="py-8 text-center text-sm text-body">{t('admin.commissionImport.adjustments.historyEmpty')}</p>
+            ) : (
               <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
                 <table className="w-full min-w-[680px] text-sm">
                   <thead className="bg-gray-2 dark:bg-meta-4">
@@ -1670,7 +1708,7 @@ const CommissionImport: React.FC = () => {
                   </tbody>
                 </table>
               </div>
-            </div>
+            )
           )}
         </div>
       </div>
