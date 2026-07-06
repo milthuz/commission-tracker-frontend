@@ -1561,6 +1561,12 @@
           "free": "Montant positif ou négatif (ex. -118.00 pour un trop-payé) ajouté au bulletin du mois cible."
         },
         "sugInvoiceClient": "Facture · Client",
+        "sugDetail": {
+          "clientSince": "Client depuis le {{date}} (première facture SaaS).",
+          "invoiceStatus": "Statut actuel de la facture dans Zoho : {{status}}.",
+          "paidIn": "Payée dans :",
+          "totalPaid": "Total versé : {{total}} — on déduit tout sauf le paiement le plus élevé."
+        },
         "sugEmptyTitle": "Aucune anomalie détectée",
         "sugEmptyHint": "La réconciliation n'a rien trouvé à corriger. Les nouvelles anomalies apparaîtront ici.",
         "historyEmpty": "Aucun ajustement créé pour l'instant."

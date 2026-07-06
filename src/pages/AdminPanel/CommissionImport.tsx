@@ -315,7 +315,34 @@ const CommissionImport: React.FC = () => {
   };
   // Reconciliation-driven suggestions (overpaid activations, void-but-paid, double-paid,
   // never-paid) — one click applies the matching adjustment to the CURRENT month.
-  interface AdjSuggestion { key: string; type: string; repName: string; invoiceNumber: string; customer: string | null; amount: number; sourcePeriod: string | null; times?: number; }
+  interface AdjSuggestion {
+    key: string; type: string; repName: string; invoiceNumber: string; customer: string | null;
+    amount: number; sourcePeriod: string | null; times?: number;
+    detail?: {
+      firstSaasDate?: string;                                        // over_activation
+      invoiceStatus?: string;                                        // over_void
+      payments?: { period: string; file: string; amount: number }[]; // double_paid
+      totalPaid?: number;
+    };
+  }
+  // Exact facts for the hover tooltip — generic hint + the specifics of THIS suggestion.
+  const sugTooltip = (s: AdjSuggestion): string => {
+    const lines = [t(`admin.commissionImport.adjustments.sugTypeHint.${s.type}`) as string];
+    const d = s.detail || {};
+    if (s.type === 'over_activation' && d.firstSaasDate) {
+      lines.push(t('admin.commissionImport.adjustments.sugDetail.clientSince',
+        { date: new Date(d.firstSaasDate).toLocaleDateString() }) as string);
+    }
+    if (s.type === 'over_void' && d.invoiceStatus) {
+      lines.push(t('admin.commissionImport.adjustments.sugDetail.invoiceStatus', { status: d.invoiceStatus }) as string);
+    }
+    if (s.type === 'double_paid' && d.payments?.length) {
+      lines.push(t('admin.commissionImport.adjustments.sugDetail.paidIn') as string);
+      for (const p of d.payments) lines.push(`  • ${p.period} — ${p.file}: ${fmt(p.amount)}`);
+      if (d.totalPaid != null) lines.push(t('admin.commissionImport.adjustments.sugDetail.totalPaid', { total: fmt(d.totalPaid) }) as string);
+    }
+    return lines.join('\n');
+  };
   const [suggestions, setSuggestions] = useState<AdjSuggestion[]>([]);
   const [sugBusy, setSugBusy] = useState<string | null>(null);
   const fetchSuggestions = async () => {
@@ -1514,7 +1541,7 @@ const CommissionImport: React.FC = () => {
                         <td className="min-w-[160px] px-3 py-2">
                           {/* Compact reason: colored icon + short label (wraps to 2 lines when
                               narrow — rows are 2 lines tall anyway); full sentence on hover */}
-                          <span className="inline-flex items-center gap-2" title={t(`admin.commissionImport.adjustments.sugTypeHint.${s.type}`) as string}>
+                          <span className="inline-flex items-center gap-2" title={sugTooltip(s)}>
                             <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${s.amount < 0 ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>
                               {s.amount < 0 ? (
                                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>

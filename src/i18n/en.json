@@ -1561,6 +1561,12 @@
           "free": "Positive or negative amount (e.g. -118.00 for an overpayment) added to the target month's stub."
         },
         "sugInvoiceClient": "Invoice · Client",
+        "sugDetail": {
+          "clientSince": "Customer since {{date}} (first SaaS invoice).",
+          "invoiceStatus": "Current invoice status in Zoho: {{status}}.",
+          "paidIn": "Paid in:",
+          "totalPaid": "Total paid: {{total}} — everything but the largest payment gets deducted."
+        },
         "sugEmptyTitle": "No anomalies detected",
         "sugEmptyHint": "Reconciliation found nothing to correct. New anomalies will show up here.",
         "historyEmpty": "No adjustments created yet."
