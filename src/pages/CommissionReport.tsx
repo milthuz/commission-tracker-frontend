@@ -845,85 +845,92 @@ const CommissionReport = () => {
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Rep Selector (Admin only) */}
-          {canViewOthers && salespeople.length > 0 && (
-            <select
-              value={selectedRep}
-              onChange={(e) => setSelectedRep(e.target.value)}
-              className="rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
-            >
-              {isSalesperson && <option value="">{t('commissionReport.myReport')}</option>}
-              {salespeople.map(rep => (
-                <option key={rep} value={rep}>{rep}</option>
-              ))}
-            </select>
-          )}
+        {/* Toolbar: two deliberate right-aligned rows — filters (rep/month/year), then
+            actions (search + pay stub). Stacks full-width on mobile. */}
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            {/* Rep Selector (Admin only) */}
+            {canViewOthers && salespeople.length > 0 && (
+              <select
+                value={selectedRep}
+                onChange={(e) => setSelectedRep(e.target.value)}
+                className="w-full rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white sm:w-auto"
+              >
+                {isSalesperson && <option value="">{t('commissionReport.myReport')}</option>}
+                {salespeople.map(rep => (
+                  <option key={rep} value={rep}>{rep}</option>
+                ))}
+              </select>
+            )}
 
-          {/* Month Selector */}
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
-          >
-            <option value="all">All Months</option>
-            {MONTH_NAMES.map((name, i) => (
-              <option key={i} value={i + 1}>{name}</option>
-            ))}
-          </select>
+            <div className="flex gap-2">
+              {/* Month Selector */}
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white sm:flex-none"
+              >
+                <option value="all">All Months</option>
+                {MONTH_NAMES.map((name, i) => (
+                  <option key={i} value={i + 1}>{name}</option>
+                ))}
+              </select>
 
-          {/* Year Selector */}
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
-          >
-            {/* Data starts Jan 2025 — list current year down to 2025, minus admin-disabled years */}
-            {Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i)
-              .filter(y => !disabledYears.includes(y))
-              .map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-          </select>
-
-          {/* Client / invoice search — finds matching invoices across the whole selected year */}
-          <div className="relative w-full sm:w-auto">
-            <button
-              onClick={runSearch}
-              title={t('commissionReport.search') as string}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-body transition hover:text-primary"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" /></svg>
-            </button>
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') runSearch(); }}
-              placeholder={t('commissionReport.searchPlaceholder') as string}
-              className="w-full rounded border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white sm:w-56"
-            />
+              {/* Year Selector */}
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white sm:flex-none"
+              >
+                {/* Data starts Jan 2025 — list current year down to 2025, minus admin-disabled years */}
+                {Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i)
+                  .filter(y => !disabledYears.includes(y))
+                  .map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+              </select>
+            </div>
           </div>
 
-          {/* Pay Stub — per month; disabled on "All Months" */}
-          {canViewPaystub && (
-            <button
-              onClick={openPayStub}
-              disabled={selectedMonth === 'all' || loadingStub}
-              title={selectedMonth === 'all' ? (t('commissionReport.payStub.open') as string) : undefined}
-              className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded border border-primary bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loadingStub ? (
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              ) : (
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
-                </svg>
-              )}
-              {t('commissionReport.payStub.open')}
-            </button>
-          )}
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            {/* Client / invoice search — finds matching invoices across the whole selected year */}
+            <div className="relative w-full sm:w-64">
+              <button
+                onClick={runSearch}
+                title={t('commissionReport.search') as string}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-body transition hover:text-primary"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" /></svg>
+              </button>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') runSearch(); }}
+                placeholder={t('commissionReport.searchPlaceholder') as string}
+                className="w-full rounded-md border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+              />
+            </div>
 
+            {/* Pay Stub — per month; disabled on "All Months" */}
+            {canViewPaystub && (
+              <button
+                onClick={openPayStub}
+                disabled={selectedMonth === 'all' || loadingStub}
+                title={selectedMonth === 'all' ? (t('commissionReport.payStub.open') as string) : undefined}
+                className="inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-primary bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loadingStub ? (
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
+                  </svg>
+                )}
+                {t('commissionReport.payStub.open')}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
