@@ -65,6 +65,8 @@ const PayStubModal: React.FC<{
   const [adjMonth, setAdjMonth] = useState(now.getMonth() + 1);
   const [adjYear, setAdjYear] = useState(now.getFullYear());
   const [adjBusy, setAdjBusy] = useState(false);
+  // Invoice PDF preview (click an invoice number) — same endpoint the Commission Report uses.
+  const [invPreview, setInvPreview] = useState<{ num: string; loading: boolean } | null>(null);
   if (!data) return null;
   const showApp = !!showAppCalc && data.source === 'imported';
 
@@ -401,7 +403,13 @@ const PayStubModal: React.FC<{
                       const diff = !l.not_in_db && l.app_commission != null && Math.abs(l.app_commission - l.paid_amount) > 0.01;
                       return (
                         <tr key={l.invoice_number} className="border-t border-stroke dark:border-strokedark">
-                          <td className="px-3 py-2 font-medium text-primary">{l.invoice_number}</td>
+                          <td className="px-3 py-2">
+                            <button onClick={() => setInvPreview({ num: l.invoice_number, loading: true })}
+                              title={tp('viewInvoice') as string}
+                              className="font-medium text-primary hover:underline">
+                              {l.invoice_number}
+                            </button>
+                          </td>
                           <td className="px-3 py-2 text-black dark:text-white">
                             {l.customer || '—'}
                             {l.not_in_db && (
@@ -493,7 +501,13 @@ const PayStubModal: React.FC<{
                       <tbody>
                         {data.missed.map((m) => (
                           <tr key={m.invoice_number} className="border-t border-stroke dark:border-strokedark">
-                            <td className="px-3 py-2 font-medium text-primary">{m.invoice_number}</td>
+                            <td className="px-3 py-2">
+                              <button onClick={() => setInvPreview({ num: m.invoice_number, loading: true })}
+                                title={tp('viewInvoice') as string}
+                                className="font-medium text-primary hover:underline">
+                                {m.invoice_number}
+                              </button>
+                            </td>
                             <td className="px-3 py-2 text-black dark:text-white">{m.customer || '—'}</td>
                             <td className="px-3 py-2 text-right font-semibold text-warning">{fmt(m.app_commission)}</td>
                           </tr>
@@ -560,6 +574,37 @@ const PayStubModal: React.FC<{
         </div>
         </div>
       </div>
+
+      {/* Invoice PDF preview — opened by clicking an invoice number in the tables above.
+          stopPropagation everywhere so closing it never closes the stub underneath. */}
+      {invPreview && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-60 p-4"
+          onClick={(e) => { e.stopPropagation(); setInvPreview(null); }}>
+          <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
+              <p className="font-semibold text-black dark:text-white">{invPreview.num}</p>
+              <button onClick={() => setInvPreview(null)} title={tp('close') as string}
+                className="text-body transition hover:text-danger">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="relative flex-1 bg-white">
+              {invPreview.loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
+                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                </div>
+              )}
+              <iframe
+                src={`${API_URL}/api/invoices/${invPreview.num}/preview?token=${localStorage.getItem('token')}`}
+                className="h-full w-full border-0"
+                title="Invoice preview"
+                onLoad={() => setInvPreview(p => (p ? { ...p, loading: false } : p))}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

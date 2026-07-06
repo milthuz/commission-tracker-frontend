@@ -856,6 +856,7 @@
     "payStub": {
       "open": "Pay stub",
       "title": "Pay Stub",
+      "viewInvoice": "View the invoice",
       "period": "Period",
       "commissions": "Commissions",
       "bonuses": "Bonuses",

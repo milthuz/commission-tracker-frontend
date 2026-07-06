@@ -856,6 +856,7 @@
     "payStub": {
       "open": "Bulletin de paie",
       "title": "Bulletin de paie",
+      "viewInvoice": "Voir la facture",
       "period": "Période",
       "commissions": "Commissions",
       "bonuses": "Bonus",
