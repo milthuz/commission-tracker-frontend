@@ -313,6 +313,30 @@ const CommissionImport: React.FC = () => {
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to create adjustment'); }
     finally { setAdjBusy(false); }
   };
+  // Free-form (±) adjustment — e.g. deduct an overpayment from a past period on a future stub.
+  const [freeAdjAmount, setFreeAdjAmount] = useState('');
+  const [freeAdjDesc, setFreeAdjDesc] = useState('');
+  const [freeAdjSourceYm, setFreeAdjSourceYm] = useState('');   // 'yyyy-mm' or '' = none
+  const [freeAdjBusy, setFreeAdjBusy] = useState(false);
+  const createFreeAdjustment = async () => {
+    const amt = parseFloat(freeAdjAmount);
+    if (!adjRep || !Number.isFinite(amt) || amt === 0) {
+      dialog.alert(t('admin.commissionImport.adjustments.freeNeedAmount') as string); return;
+    }
+    setFreeAdjBusy(true);
+    try {
+      const token = localStorage.getItem('token');
+      const [sy, sm] = freeAdjSourceYm ? freeAdjSourceYm.split('-').map(Number) : [null, null];
+      await axios.post(`${API_URL}/api/commissions/adjustments`,
+        { repName: adjRep, year: adjYear, month: adjMonth, amount: amt, description: freeAdjDesc,
+          sourceYear: sy, sourceMonth: sm },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setFreeAdjAmount(''); setFreeAdjDesc(''); setFreeAdjSourceYm('');
+      await fetchAdjustments();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to create adjustment'); }
+    finally { setFreeAdjBusy(false); }
+  };
+
   const deleteAdjustment = async (id: number) => {
     if (!(await dialog.confirm(t('admin.commissionImport.adjustments.deleteConfirm') as string))) return;
     try {
@@ -1468,6 +1492,37 @@ const CommissionImport: React.FC = () => {
             )
           )}
 
+          {/* Free-form (±) adjustment — no invoice: e.g. deduct an overpayment from a past
+              period on the target month's stub. Uses the same rep + target month selectors. */}
+          <div className="mt-6 rounded border border-stroke p-4 dark:border-strokedark">
+            <h4 className="text-sm font-semibold text-black dark:text-white">{t('admin.commissionImport.adjustments.freeTitle')}</h4>
+            <p className="mb-3 mt-0.5 text-xs text-body">{t('admin.commissionImport.adjustments.freeHint')}</p>
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.amount')}</label>
+                <input type="number" step="0.01" value={freeAdjAmount} onChange={(e) => setFreeAdjAmount(e.target.value)}
+                  placeholder="-118.00"
+                  className="w-32 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.freeSource')}</label>
+                <input type="month" value={freeAdjSourceYm} onChange={(e) => setFreeAdjSourceYm(e.target.value)}
+                  className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+              </div>
+              <div className="flex-1 min-w-[180px]">
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
+                <input type="text" value={freeAdjDesc} onChange={(e) => setFreeAdjDesc(e.target.value)}
+                  placeholder={t('admin.commissionImport.adjustments.freeDescPlaceholder') as string}
+                  className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+              </div>
+              <button onClick={createFreeAdjustment} disabled={freeAdjBusy || !adjRep || !freeAdjAmount}
+                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                {freeAdjBusy ? '…' : t('admin.commissionImport.adjustments.freeAdd')}
+              </button>
+            </div>
+            {!adjRep && <p className="mt-2 text-xs italic text-body">{t('admin.commissionImport.adjustments.freeNeedRep')}</p>}
+          </div>
+
           {/* History of adjustments */}
           {adjList.length > 0 && (
             <div className="mt-6">
@@ -1491,7 +1546,7 @@ const CommissionImport: React.FC = () => {
                         <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{a.rep_name}</td>
                         <td className="px-3 py-2 font-medium text-primary">{a.invoice_number || '—'}<span className="ml-2 text-body">{a.description || ''}</span></td>
                         <td className="px-3 py-2 text-body whitespace-nowrap">{a.source_period ? `${monthName(new Date(a.source_period).getUTCMonth() + 1)} ${new Date(a.source_period).getUTCFullYear()}` : '—'}</td>
-                        <td className="px-3 py-2 text-right font-semibold text-success whitespace-nowrap">{fmt(a.amount)}</td>
+                        <td className={`px-3 py-2 text-right font-semibold whitespace-nowrap ${a.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(a.amount)}</td>
                         <td className="px-3 py-2 text-right">
                           <button onClick={() => deleteAdjustment(a.id)} className="whitespace-nowrap text-xs text-danger hover:underline">{t('common.delete')}</button>
                         </td>

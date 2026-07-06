@@ -1516,7 +1516,14 @@
         "needSelection": "Pick a rep and check at least one invoice.",
         "historyTitle": "Adjustments history",
         "from": "From",
-        "deleteConfirm": "Undo this adjustment? The source invoice becomes unpaid again (reappears in the radar)."
+        "deleteConfirm": "Undo this adjustment? The source invoice becomes unpaid again (reappears in the radar).",
+        "freeTitle": "Free adjustment (±)",
+        "freeHint": "Add a positive or NEGATIVE amount to the selected rep's target month — e.g. deduct an overpayment from a past period. Shows as an \"Adjustment\" line on the pay stub and in payroll.",
+        "freeSource": "Corrected period (optional)",
+        "freeDescPlaceholder": "e.g. April 2026 overpayment — INV-083716",
+        "freeAdd": "Add adjustment",
+        "freeNeedRep": "Pick a rep above first.",
+        "freeNeedAmount": "Pick a rep and enter a non-zero amount."
       },
       "payroll": {
         "title": "Send to Payroll",

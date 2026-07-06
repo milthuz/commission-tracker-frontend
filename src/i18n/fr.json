@@ -1516,7 +1516,14 @@
         "needSelection": "Choisis un vendeur et coche au moins une facture.",
         "historyTitle": "Historique des ajustements",
         "from": "Depuis",
-        "deleteConfirm": "Annuler cet ajustement ? La facture source redeviendra impayée (réapparaîtra dans le radar)."
+        "deleteConfirm": "Annuler cet ajustement ? La facture source redeviendra impayée (réapparaîtra dans le radar).",
+        "freeTitle": "Ajustement libre (±)",
+        "freeHint": "Ajoute un montant positif ou NÉGATIF au mois cible du vendeur sélectionné — ex. déduire un trop-payé d'une période passée. Apparaît comme ligne « Ajustement » sur le bulletin de paie et dans la paie.",
+        "freeSource": "Période corrigée (optionnel)",
+        "freeDescPlaceholder": "ex. Trop-payé avril 2026 — INV-083716",
+        "freeAdd": "Ajouter l'ajustement",
+        "freeNeedRep": "Choisis d'abord un vendeur ci-dessus.",
+        "freeNeedAmount": "Choisis un vendeur et entre un montant non nul."
       },
       "payroll": {
         "title": "Envoyer à la paie",
