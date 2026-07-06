@@ -1531,10 +1531,16 @@
         "sugIgnore": "Ignore",
         "sugApplyConfirm": "Apply this adjustment? {{rep}} — {{amount}} ({{reason}}), on the current month's pay stub.",
         "sugType": {
-          "over_activation": "Activation paid on existing customer",
-          "over_void": "Paid but invoice voided",
-          "double_paid": "Paid more than once",
-          "never_paid": "Unlocked, never paid"
+          "over_activation": "Activation — existing customer",
+          "over_void": "Voided invoice",
+          "double_paid": "Paid twice",
+          "never_paid": "Never paid"
+        },
+        "sugTypeHint": {
+          "over_activation": "A first-month SaaS activation commission was paid even though the customer already existed — overpayment to deduct.",
+          "over_void": "The commission was paid but the invoice has since been voided/deleted in Zoho — overpayment to deduct.",
+          "double_paid": "The same invoice appears in more than one pay file or commit — the excess should be deducted.",
+          "never_paid": "Commission unlocked in a closed month but never paid out — carry it to the current month."
         }
       },
       "payroll": {

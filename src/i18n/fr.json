@@ -1531,10 +1531,16 @@
         "sugIgnore": "Ignorer",
         "sugApplyConfirm": "Appliquer cet ajustement ? {{rep}} — {{amount}} ({{reason}}), sur le bulletin du mois courant.",
         "sugType": {
-          "over_activation": "Activation payée sur client existant",
-          "over_void": "Payée mais facture annulée",
-          "double_paid": "Payée plus d'une fois",
-          "never_paid": "Débloquée, jamais payée"
+          "over_activation": "Activation — client existant",
+          "over_void": "Facture annulée",
+          "double_paid": "Payée en double",
+          "never_paid": "Jamais payée"
+        },
+        "sugTypeHint": {
+          "over_activation": "Une commission d'activation (premier mois SaaS) a été payée alors que le client existait déjà — trop-payé à déduire.",
+          "over_void": "La commission a été payée, mais la facture a depuis été annulée/supprimée dans Zoho — trop-payé à déduire.",
+          "double_paid": "La même facture apparaît dans plus d'un fichier de paie ou commit — le surplus est à déduire.",
+          "never_paid": "Commission débloquée dans un mois clos mais jamais versée — à reporter sur le mois courant."
         }
       },
       "payroll": {
