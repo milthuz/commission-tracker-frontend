@@ -1650,6 +1650,11 @@
       "user": "User",
       "grantAdmin": "Grant Admin",
       "revokeAdmin": "Revoke Admin",
+      "demoBadge": "Demo",
+      "demoOn": "Enable demo",
+      "demoOff": "Disable demo",
+      "demoHint": "Demo mode: this account sees the whole app with scrambled data (fake client names, scaled amounts) and cannot modify anything.",
+      "confirmDemo": "Put {{email}} in demo mode? They will see fake client names and scaled amounts, read-only.",
       "deleteUser": "Delete",
       "confirmDelete": "Delete user {{email}}? This removes their access, roles and preferences. (A Zoho user can log back in.)",
       "cannotDeleteSelf": "You can't delete your own account.",
@@ -1727,6 +1732,9 @@
   "impersonation": {
     "banner": "You are impersonating: {{name}}",
     "stop": "Stop"
+  },
+  "demo": {
+    "banner": "DEMO MODE — fictitious data (fake client names, adjusted amounts), read-only"
   },
   "sync": {
     "title": "Data Freshness",

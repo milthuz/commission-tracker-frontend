@@ -7,6 +7,7 @@ interface User {
   photo?: string | null;
   isAdmin?: boolean;
   isSalesperson?: boolean;
+  isDemo?: boolean; // demo mode: scrambled data, read-only (from /api/auth/verify)
   permissions?: string[]; // effective permission keys ('*' for admins) from /api/auth/verify
 }
 

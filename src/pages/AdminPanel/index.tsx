@@ -56,6 +56,7 @@ interface AdminUser {
   email: string;
   displayName?: string | null;
   isAdmin: boolean;
+  isDemo?: boolean;
   createdAt: string | null;
   lastLogin: string | null;
   userType?: 'zoho' | 'external' | 'pending';
@@ -610,6 +611,27 @@ const AdminPanel = () => {
       setAdminUsers(prev =>
         prev.map(user =>
           user.email === email ? { ...user, isAdmin: !currentStatus } : user
+        )
+      );
+    } catch (error: any) {
+      const msg = error.response?.data?.error || t('admin.admins.failedUpdate');
+      dialog.alert(msg);
+    }
+  };
+
+  // Toggle demo mode (scrambled data, read-only) on any account
+  const toggleDemoMode = async (email: string, current: boolean) => {
+    if (!current && !(await dialog.confirm(t('admin.admins.confirmDemo', { email })))) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API_URL}/api/admin/users/${encodeURIComponent(email)}/demo-mode`,
+        { enabled: !current },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAdminUsers(prev =>
+        prev.map(user =>
+          user.email === email ? { ...user, isDemo: !current } : user
         )
       );
     } catch (error: any) {
@@ -3210,15 +3232,22 @@ Joker Pub,Jay Daoust,2024-04-01`}
                           <tr key={user.email} className="border-b border-stroke dark:border-strokedark">
                             <td className="px-4 py-5">
                               <p className="text-black dark:text-white font-medium">{user.email}</p>
-                              {user.userType && user.userType !== 'zoho' && (
-                                <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                  user.userType === 'external'
-                                    ? 'bg-primary bg-opacity-10 text-primary'
-                                    : 'bg-warning bg-opacity-10 text-warning'
-                                }`}>
-                                  {t(`admin.admins.type_${user.userType}`)}
-                                </span>
-                              )}
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {user.userType && user.userType !== 'zoho' && (
+                                  <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                    user.userType === 'external'
+                                      ? 'bg-primary bg-opacity-10 text-primary'
+                                      : 'bg-warning bg-opacity-10 text-warning'
+                                  }`}>
+                                    {t(`admin.admins.type_${user.userType}`)}
+                                  </span>
+                                )}
+                                {user.isDemo && (
+                                  <span className="inline-flex rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-[10px] font-bold uppercase text-[#8B5CF6]">
+                                    {t('admin.admins.demoBadge')}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-4 py-5">
                               <p className="text-sm text-body">
@@ -3272,6 +3301,19 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 }`}
                               >
                                 {user.isAdmin ? t('admin.admins.revokeAdmin') : t('admin.admins.grantAdmin')}
+                              </button>
+                              )}
+                              {user.userType !== 'pending' && (
+                              <button
+                                onClick={() => toggleDemoMode(user.email, user.isDemo === true)}
+                                title={t('admin.admins.demoHint') as string}
+                                className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                                  user.isDemo
+                                    ? 'bg-[#8B5CF6] text-white hover:bg-opacity-90'
+                                    : 'border border-[#8B5CF6] border-opacity-40 text-[#8B5CF6] hover:bg-[#8B5CF6] hover:bg-opacity-10'
+                                }`}
+                              >
+                                {user.isDemo ? t('admin.admins.demoOff') : t('admin.admins.demoOn')}
                               </button>
                               )}
                               <button

@@ -1650,6 +1650,11 @@
       "user": "Utilisateur",
       "grantAdmin": "Accorder l'accès",
       "revokeAdmin": "Révoquer l'accès",
+      "demoBadge": "Démo",
+      "demoOn": "Activer démo",
+      "demoOff": "Désactiver démo",
+      "demoHint": "Mode démo : ce compte voit toute l'application avec des données brouillées (noms de clients fictifs, montants recalculés) et ne peut rien modifier.",
+      "confirmDemo": "Mettre {{email}} en mode démo ? Il verra des noms de clients fictifs et des montants recalculés, en lecture seule.",
       "deleteUser": "Supprimer",
       "confirmDelete": "Supprimer l'utilisateur {{email}} ? Cela retire son accès, ses rôles et ses préférences. (Un utilisateur Zoho peut se reconnecter.)",
       "cannotDeleteSelf": "Tu ne peux pas supprimer ton propre compte.",
@@ -1727,6 +1732,9 @@
   "impersonation": {
     "banner": "Vous personnifiez : {{name}}",
     "stop": "Arrêter"
+  },
+  "demo": {
+    "banner": "MODE DÉMO — données fictives (noms de clients factices, montants ajustés), lecture seule"
   },
   "sync": {
     "title": "Fraîcheur des données",
