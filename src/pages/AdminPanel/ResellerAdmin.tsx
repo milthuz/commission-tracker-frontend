@@ -132,21 +132,18 @@ export default function ResellerAdmin() {
 
       {/* Resellers table */}
       <div className="overflow-x-auto">
-        {/* min-w keeps every input usable — without it, table-auto squeezed the Name and
-            Zentact inputs to ~2 characters at sidebar-open widths. The table scrolls instead;
-            the actions column is sticky-right so Save/Delete never leave the screen. */}
-        <table className="w-full min-w-[1080px] table-auto text-sm">
+        {/* Two-line cells (name/aliases stacked, emails/zentact stacked, stats merged) keep
+            the whole table under ~880px so it FITS with the sidebar open — no horizontal
+            scroll, no sticky column. Tiny labels identify each stacked input. */}
+        <table className="w-full min-w-[860px] table-auto text-sm">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.logo')}</th>
-              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.name')}</th>
-              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.aliases')}</th>
-              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.emails')}</th>
-              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.zentactKey')}</th>
-              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('reseller.activations.locations')}</th>
-              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('reseller.activations.licenses')}</th>
+              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.colIdentity')}</th>
+              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.colConfig')}</th>
+              <th className="px-3 py-2 font-medium text-black dark:text-white whitespace-nowrap">{t('admin.resellers.colStats')}</th>
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.active')}</th>
-              <th className="sticky right-0 bg-gray-2 px-3 py-2 dark:bg-meta-4"></th>
+              <th className="px-3 py-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -171,16 +168,43 @@ export default function ResellerAdmin() {
                     </div>
                   </div>
                 </td>
-                <td className="px-3 py-2"><input value={r.name} onChange={(e) => patchLocal(r.id, { name: e.target.value })} className={inputCls + ' min-w-[10rem]'} /></td>
-                <td className="px-3 py-2"><input value={r.aliasesText} onChange={(e) => patchLocal(r.id, { aliasesText: e.target.value })} placeholder={t('admin.resellers.aliasesPlaceholder') as string} title={t('admin.resellers.aliasesHint') as string} className={inputCls + ' min-w-[10rem]'} /></td>
-                <td className="px-3 py-2"><input value={r.emailsText} onChange={(e) => patchLocal(r.id, { emailsText: e.target.value })} placeholder="a@b.com, c@d.com" className={inputCls + ' min-w-[14rem]'} /></td>
-                <td className="px-3 py-2"><input list="zentact-names" value={r.zentact_key || ''} onChange={(e) => patchLocal(r.id, { zentact_key: e.target.value })} className={inputCls + ' min-w-[8rem]'} /></td>
-                <td className="px-3 py-2 text-body whitespace-nowrap">{r.locations}</td>
-                <td className="px-3 py-2 text-body whitespace-nowrap">{r.licenses}</td>
+                {/* Name + aliases stacked, each with a tiny identifying label */}
+                <td className="px-3 py-2">
+                  <div className="flex w-44 flex-col gap-1.5">
+                    <label className="block">
+                      <span className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-body">{t('admin.resellers.name')}</span>
+                      <input value={r.name} onChange={(e) => patchLocal(r.id, { name: e.target.value })} className={inputCls} />
+                    </label>
+                    <label className="block">
+                      <span className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-body">{t('admin.resellers.aliases')}</span>
+                      <input value={r.aliasesText} onChange={(e) => patchLocal(r.id, { aliasesText: e.target.value })} placeholder={t('admin.resellers.aliasesPlaceholder') as string} title={t('admin.resellers.aliasesHint') as string} className={inputCls} />
+                    </label>
+                  </div>
+                </td>
+                {/* Form emails + Zentact key stacked */}
+                <td className="px-3 py-2">
+                  <div className="flex w-72 max-w-full flex-col gap-1.5">
+                    <label className="block">
+                      <span className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-body">{t('admin.resellers.emails')}</span>
+                      <input value={r.emailsText} onChange={(e) => patchLocal(r.id, { emailsText: e.target.value })} placeholder="a@b.com, c@d.com" className={inputCls} />
+                    </label>
+                    <label className="block">
+                      <span className="mb-0.5 block text-[10px] font-medium uppercase tracking-wide text-body">{t('admin.resellers.zentactKey')}</span>
+                      <input list="zentact-names" value={r.zentact_key || ''} onChange={(e) => patchLocal(r.id, { zentact_key: e.target.value })} className={inputCls} />
+                    </label>
+                  </div>
+                </td>
+                {/* Read-only stats: locations · licenses */}
+                <td className="px-3 py-2 text-body whitespace-nowrap"
+                  title={`${t('reseller.activations.locations')}: ${r.locations} · ${t('reseller.activations.licenses')}: ${r.licenses}`}>
+                  <span className="font-semibold text-black dark:text-white">{r.locations}</span>
+                  <span className="mx-1 text-body">·</span>
+                  <span className="font-semibold text-black dark:text-white">{r.licenses}</span>
+                </td>
                 <td className="px-3 py-2">
                   <input type="checkbox" checked={!!r.active} onChange={(e) => patchLocal(r.id, { active: e.target.checked })} className="h-4 w-4" />
                 </td>
-                <td className="sticky right-0 bg-white px-3 py-2 whitespace-nowrap dark:bg-boxdark">
+                <td className="px-3 py-2 whitespace-nowrap">
                   <button onClick={() => save(r)} disabled={savingId === r.id}
                     className="mr-2 rounded bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
                     {savingId === r.id ? '…' : t('admin.resellers.save')}
@@ -190,7 +214,7 @@ export default function ResellerAdmin() {
               </tr>
             ))}
             {resellers.length === 0 && (
-              <tr><td colSpan={9} className="px-3 py-6 text-center text-sm text-body">{t('admin.resellers.none')}</td></tr>
+              <tr><td colSpan={6} className="px-3 py-6 text-center text-sm text-body">{t('admin.resellers.none')}</td></tr>
             )}
           </tbody>
         </table>
