@@ -132,7 +132,10 @@ export default function ResellerAdmin() {
 
       {/* Resellers table */}
       <div className="overflow-x-auto">
-        <table className="w-full table-auto text-sm">
+        {/* min-w keeps every input usable — without it, table-auto squeezed the Name and
+            Zentact inputs to ~2 characters at sidebar-open widths. The table scrolls instead;
+            the actions column is sticky-right so Save/Delete never leave the screen. */}
+        <table className="w-full min-w-[1080px] table-auto text-sm">
           <thead>
             <tr className="bg-gray-2 text-left dark:bg-meta-4">
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.logo')}</th>
@@ -143,7 +146,7 @@ export default function ResellerAdmin() {
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('reseller.activations.locations')}</th>
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('reseller.activations.licenses')}</th>
               <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.active')}</th>
-              <th className="px-3 py-2"></th>
+              <th className="sticky right-0 bg-gray-2 px-3 py-2 dark:bg-meta-4"></th>
             </tr>
           </thead>
           <tbody>
@@ -168,16 +171,16 @@ export default function ResellerAdmin() {
                     </div>
                   </div>
                 </td>
-                <td className="px-3 py-2"><input value={r.name} onChange={(e) => patchLocal(r.id, { name: e.target.value })} className={inputCls} /></td>
+                <td className="px-3 py-2"><input value={r.name} onChange={(e) => patchLocal(r.id, { name: e.target.value })} className={inputCls + ' min-w-[10rem]'} /></td>
                 <td className="px-3 py-2"><input value={r.aliasesText} onChange={(e) => patchLocal(r.id, { aliasesText: e.target.value })} placeholder={t('admin.resellers.aliasesPlaceholder') as string} title={t('admin.resellers.aliasesHint') as string} className={inputCls + ' min-w-[10rem]'} /></td>
                 <td className="px-3 py-2"><input value={r.emailsText} onChange={(e) => patchLocal(r.id, { emailsText: e.target.value })} placeholder="a@b.com, c@d.com" className={inputCls + ' min-w-[14rem]'} /></td>
-                <td className="px-3 py-2"><input list="zentact-names" value={r.zentact_key || ''} onChange={(e) => patchLocal(r.id, { zentact_key: e.target.value })} className={inputCls} /></td>
-                <td className="px-3 py-2 text-body">{r.locations}</td>
-                <td className="px-3 py-2 text-body">{r.licenses}</td>
+                <td className="px-3 py-2"><input list="zentact-names" value={r.zentact_key || ''} onChange={(e) => patchLocal(r.id, { zentact_key: e.target.value })} className={inputCls + ' min-w-[8rem]'} /></td>
+                <td className="px-3 py-2 text-body whitespace-nowrap">{r.locations}</td>
+                <td className="px-3 py-2 text-body whitespace-nowrap">{r.licenses}</td>
                 <td className="px-3 py-2">
                   <input type="checkbox" checked={!!r.active} onChange={(e) => patchLocal(r.id, { active: e.target.checked })} className="h-4 w-4" />
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap">
+                <td className="sticky right-0 bg-white px-3 py-2 whitespace-nowrap dark:bg-boxdark">
                   <button onClick={() => save(r)} disabled={savingId === r.id}
                     className="mr-2 rounded bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
                     {savingId === r.id ? '…' : t('admin.resellers.save')}
