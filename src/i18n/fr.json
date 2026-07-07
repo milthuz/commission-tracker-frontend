@@ -1689,6 +1689,8 @@
         "legendUnpaid": "gagné mais non payé (modèle app)",
         "legendQuota": "quota manqué — commission perdue",
         "legendNothing": "rien de gagné / tout réglé",
+        "showInactive_one": "Afficher {{count}} vendeur inactif",
+        "showInactive_other": "Afficher {{count}} vendeurs inactifs",
         "totalPaid": "Total payé",
         "totalUnpaid": "Total non payé"
       },

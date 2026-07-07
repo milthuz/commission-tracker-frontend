@@ -1689,6 +1689,8 @@
         "legendUnpaid": "earned but unpaid (app model)",
         "legendQuota": "quota missed — commission forfeited",
         "legendNothing": "nothing earned / all settled",
+        "showInactive_one": "Show {{count}} inactive rep",
+        "showInactive_other": "Show {{count}} inactive reps",
         "totalPaid": "Total paid",
         "totalUnpaid": "Total unpaid"
       },

@@ -83,7 +83,7 @@ interface CoverageCell {
   importTotal: number | null; source: 'file' | 'app' | 'both' | null; unpaid: number; unpaidCount: number;
   quotaForfeited: number; quotaForfeitedCount: number; quotaAcknowledged: boolean | null;
 }
-interface CoverageRow { rep: string; cells: Record<string, CoverageCell>; totalPaid: number; totalUnpaid: number; }
+interface CoverageRow { rep: string; isActive: boolean; cells: Record<string, CoverageCell>; totalPaid: number; totalUnpaid: number; }
 interface CoverageData { months: string[]; rows: CoverageRow[]; }
 
 interface QuotaReviewRow {
@@ -131,6 +131,10 @@ const CommissionImport: React.FC = () => {
   const [dragOver, setDragOver] = useState(false);
   const [stub, setStub] = useState<PayStubData | null>(null);
   const [coverage, setCoverage] = useState<CoverageData | null>(null);
+  // Coverage matrix accumulates every rep who was EVER paid via an import, including
+  // departed/inactive reps — hidden by default so the historical ledger doesn't clutter
+  // the day-to-day view; toggle to bring them back for an old reconciliation check.
+  const [showInactiveReps, setShowInactiveReps] = useState(false);
   // Payroll send (compile a month's commissions and email payroll).
   const now = new Date();
   const [payYear, setPayYear] = useState(now.getFullYear());
@@ -1208,18 +1212,29 @@ const CommissionImport: React.FC = () => {
       </div>
 
       {/* Coverage / reconciliation matrix: rep × month */}
-      {coverage && coverage.rows.length > 0 && (
+      {coverage && coverage.rows.length > 0 && (() => {
+        const inactiveCount = coverage.rows.filter(r => !r.isActive).length;
+        const visibleRows = coverage.rows.filter(r => showInactiveReps || r.isActive);
+        return (
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.coverage.title')}</h3>
-            <p className="text-sm text-body">{t('admin.commissionImport.coverage.subtitle')}</p>
-            <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-body">
-              <span><span className="font-bold text-success">✓</span> {t('admin.commissionImport.coverage.legendFile')}</span>
-              <span><span className="font-bold text-primary">✓</span> {t('admin.commissionImport.coverage.legendApp')}</span>
-              <span><span className="font-bold text-warning">●</span> {t('admin.commissionImport.coverage.legendUnpaid')}</span>
-              <span><span className="font-bold text-danger">⛔</span> {t('admin.commissionImport.coverage.legendQuota')}</span>
-              <span><span className="font-bold">—</span> {t('admin.commissionImport.coverage.legendNothing')}</span>
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
+            <div>
+              <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.coverage.title')}</h3>
+              <p className="text-sm text-body">{t('admin.commissionImport.coverage.subtitle')}</p>
+              <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-body">
+                <span><span className="font-bold text-success">✓</span> {t('admin.commissionImport.coverage.legendFile')}</span>
+                <span><span className="font-bold text-primary">✓</span> {t('admin.commissionImport.coverage.legendApp')}</span>
+                <span><span className="font-bold text-warning">●</span> {t('admin.commissionImport.coverage.legendUnpaid')}</span>
+                <span><span className="font-bold text-danger">⛔</span> {t('admin.commissionImport.coverage.legendQuota')}</span>
+                <span><span className="font-bold">—</span> {t('admin.commissionImport.coverage.legendNothing')}</span>
+              </div>
             </div>
+            {inactiveCount > 0 && (
+              <label className="flex shrink-0 items-center gap-2 whitespace-nowrap text-xs font-medium text-body">
+                <input type="checkbox" checked={showInactiveReps} onChange={(e) => setShowInactiveReps(e.target.checked)} />
+                {t('admin.commissionImport.coverage.showInactive', { count: inactiveCount })}
+              </label>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
@@ -1234,7 +1249,7 @@ const CommissionImport: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {coverage.rows.map(row => (
+                {visibleRows.map(row => (
                   <tr key={row.rep} className="border-t border-stroke dark:border-strokedark">
                     <td className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-1.5 font-medium text-black dark:bg-boxdark dark:text-white">
                       {row.rep}
@@ -1287,7 +1302,8 @@ const CommissionImport: React.FC = () => {
             </table>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       </>)}
 
