@@ -3040,7 +3040,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   {releases.length === 0 ? (
                     <p className="text-sm text-body py-4">{t('admin.releases.noReleases')}</p>
                   ) : (
-                    <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                    <div className="space-y-3">
                       {releases.map((release) => (
                         <div
                           key={release.id}
