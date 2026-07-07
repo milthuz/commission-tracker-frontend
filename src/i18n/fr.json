@@ -1462,6 +1462,7 @@
         "payroll": "Paie",
         "bonus": "Bonus",
         "adjustments": "Ajustements",
+        "reconciliation": "Réconciliation",
         "deals": "Transactions",
         "settings": "Réglages"
       },
@@ -1576,6 +1577,20 @@
         "sugEmptyTitle": "Aucune anomalie détectée",
         "sugEmptyHint": "La réconciliation n'a rien trouvé à corriger. Les nouvelles anomalies apparaîtront ici.",
         "historyEmpty": "Aucun ajustement créé pour l'instant."
+      },
+      "reconciliation": {
+        "title": "Réconciliation annuelle",
+        "subtitle": "Versé (grand livre de paie) vs calculé (modèle de commission) vs écart — par vendeur et par mois, pour balancer en fin d'année.",
+        "paid": "Versé",
+        "calculated": "Calculé",
+        "delta": "Écart",
+        "month": "Mois",
+        "yearTotal": "Total année",
+        "grandTotal": "Grand total",
+        "empty": "Aucun paiement ni commission calculée pour cette année.",
+        "preTag": "pré-plateforme",
+        "platformNote": "Les mois avant mai 2026 étaient payés d'après les rapports importés (l'ancien système) — leurs écarts vs le modèle actuel sont attendus et ne demandent aucune correction. La plateforme paie depuis mai 2026.",
+        "legend": "✓ = balancé (écart < 1 $) · rouge = versé en trop vs le modèle · orange = sous-payé vs le modèle. Clique un vendeur pour le détail mensuel."
       },
       "payroll": {
         "title": "Envoyer à la paie",

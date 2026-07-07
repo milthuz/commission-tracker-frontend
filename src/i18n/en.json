@@ -1462,6 +1462,7 @@
         "payroll": "Payroll",
         "bonus": "Bonus",
         "adjustments": "Adjustments",
+        "reconciliation": "Reconciliation",
         "deals": "Deals",
         "settings": "Settings"
       },
@@ -1576,6 +1577,20 @@
         "sugEmptyTitle": "No anomalies detected",
         "sugEmptyHint": "Reconciliation found nothing to correct. New anomalies will show up here.",
         "historyEmpty": "No adjustments created yet."
+      },
+      "reconciliation": {
+        "title": "Annual reconciliation",
+        "subtitle": "Paid (pay ledger) vs calculated (commission model) vs delta — per rep and per month, to balance the books at year end.",
+        "paid": "Paid",
+        "calculated": "Calculated",
+        "delta": "Delta",
+        "month": "Month",
+        "yearTotal": "Year total",
+        "grandTotal": "Grand total",
+        "empty": "No payments or calculated commissions for this year.",
+        "preTag": "pre-platform",
+        "platformNote": "Months before May 2026 were paid from the imported reports (the old system) — their deltas vs the current model are expected and need no correction. The platform pays from May 2026.",
+        "legend": "✓ = balanced (delta < $1) · red = overpaid vs the model · amber = underpaid vs the model. Click a rep for the monthly detail."
       },
       "payroll": {
         "title": "Send to Payroll",

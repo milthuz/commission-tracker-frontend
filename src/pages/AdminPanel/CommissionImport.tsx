@@ -105,7 +105,7 @@ const toPayStub = (d: StubDetail): PayStubData => ({
   linesStored: d.lines.length > 0,
 });
 
-const SUBTABS = ['import', 'coverage', 'payroll', 'bonus', 'adjustments', 'deals', 'settings'] as const;
+const SUBTABS = ['import', 'coverage', 'payroll', 'bonus', 'adjustments', 'reconciliation', 'deals', 'settings'] as const;
 type SubTab = typeof SUBTABS[number];
 
 const CommissionImport: React.FC = () => {
@@ -393,6 +393,51 @@ const CommissionImport: React.FC = () => {
     } catch (_e) { /* silent */ }
     finally { setSugBusy(null); }
   };
+
+  // ── Annual reconciliation (paid vs calculated vs delta, per rep × month) ──
+  interface ReconMonth { month: number; paid: number; calculated: number; delta: number; }
+  interface ReconRep { rep: string; months: ReconMonth[]; totals: { paid: number; calculated: number; delta: number }; }
+  interface ReconData { year: number; platformFrom: string; reps: ReconRep[]; grand: { paid: number; calculated: number; delta: number }; }
+  const [reconYear, setReconYear] = useState(new Date().getFullYear());
+  const [recon, setRecon] = useState<ReconData | null>(null);
+  const [reconLoading, setReconLoading] = useState(false);
+  const [reconExpanded, setReconExpanded] = useState<string | null>(null);
+  const fetchRecon = async (y: number) => {
+    setReconLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/annual-reconciliation`,
+        { headers: { Authorization: `Bearer ${token}` }, params: { year: y } });
+      setRecon(res.data);
+    } catch (_e) { setRecon(null); }
+    finally { setReconLoading(false); }
+  };
+  useEffect(() => { if (subTab === 'reconciliation') fetchRecon(reconYear); }, [subTab, reconYear]);
+  const reconExportExcel = () => {
+    if (!recon) return;
+    const esc = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const tr = (k: string) => t(`admin.commissionImport.reconciliation.${k}`);
+    const rows: string[] = [];
+    rows.push(`<tr><th colspan="5" style="text-align:left">${esc(tr('title'))} — ${recon.year}</th></tr>`);
+    rows.push(`<tr><th>Rep</th><th>${esc(tr('month'))}</th><th>${esc(tr('paid'))}</th><th>${esc(tr('calculated'))}</th><th>${esc(tr('delta'))}</th></tr>`);
+    for (const r of recon.reps) {
+      for (const m of r.months) {
+        rows.push(`<tr><td>${esc(r.rep)}</td><td>${recon.year}-${String(m.month).padStart(2, '0')}</td><td>${m.paid}</td><td>${m.calculated}</td><td>${m.delta}</td></tr>`);
+      }
+      rows.push(`<tr><td><b>${esc(r.rep)}</b></td><td><b>${esc(tr('yearTotal'))}</b></td><td><b>${r.totals.paid}</b></td><td><b>${r.totals.calculated}</b></td><td><b>${r.totals.delta}</b></td></tr>`);
+    }
+    rows.push(`<tr><td colspan="2"><b>${esc(tr('grandTotal'))}</b></td><td><b>${recon.grand.paid}</b></td><td><b>${recon.grand.calculated}</b></td><td><b>${recon.grand.delta}</b></td></tr>`);
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1">${rows.join('')}</table></body></html>`;
+    const blob = new Blob(['﻿', html], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Reconciliation_${recon.year}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  // Delta status: settled (≈0) / overpaid (>0) / underpaid (<0)
+  const deltaClass = (d: number) => Math.abs(d) < 1 ? 'text-success' : d > 0 ? 'text-danger' : 'text-warning';
 
   // Inner views of the Adjustments subtab (it grew too dense as one stacked page):
   // suggestions (reconciliation anomalies) / create (carry-forward OR free ±) / history.
@@ -1766,6 +1811,122 @@ const CommissionImport: React.FC = () => {
         </div>
       </div>
 
+      </>)}
+
+      {subTab === 'reconciliation' && (<>
+      {/* Annual reconciliation — paid (ledger) vs calculated (model) vs delta, per rep */}
+      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <div>
+            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.reconciliation.title')}</h3>
+            <p className="text-sm text-body">{t('admin.commissionImport.reconciliation.subtitle')}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <select value={reconYear} onChange={(e) => setReconYear(parseInt(e.target.value))}
+              className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white">
+              {Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            <button onClick={reconExportExcel} disabled={!recon || reconLoading}
+              className="rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-white disabled:opacity-50">
+              Excel
+            </button>
+          </div>
+        </div>
+        <div className="px-6 py-4">
+          <p className="mb-4 rounded-md bg-gray-1 px-3 py-2 text-xs text-body dark:bg-meta-4/40">
+            {t('admin.commissionImport.reconciliation.platformNote')}
+          </p>
+          {reconLoading && (
+            <div className="flex items-center justify-center py-10">
+              <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          )}
+          {!reconLoading && recon && recon.reps.length === 0 && (
+            <p className="py-8 text-center text-sm text-body">{t('admin.commissionImport.reconciliation.empty')}</p>
+          )}
+          {!reconLoading && recon && recon.reps.length > 0 && (
+            <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <table className="w-full min-w-[560px] text-sm">
+                <thead className="bg-gray-2 dark:bg-meta-4">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-medium">Rep</th>
+                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.reconciliation.paid')}</th>
+                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.reconciliation.calculated')}</th>
+                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.reconciliation.delta')}</th>
+                    <th className="px-4 py-2 w-10"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recon.reps.map(r => (
+                    <React.Fragment key={r.rep}>
+                      <tr onClick={() => setReconExpanded(reconExpanded === r.rep ? null : r.rep)}
+                        className="cursor-pointer border-t border-stroke hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/20">
+                        <td className="px-4 py-2.5 font-medium text-black dark:text-white">{r.rep}</td>
+                        <td className="px-4 py-2.5 text-right font-semibold text-black dark:text-white">{fmt(r.totals.paid)}</td>
+                        <td className="px-4 py-2.5 text-right text-body">{fmt(r.totals.calculated)}</td>
+                        <td className={`px-4 py-2.5 text-right font-semibold ${deltaClass(r.totals.delta)}`}>
+                          {Math.abs(r.totals.delta) < 1 ? '✓' : fmt(r.totals.delta)}
+                        </td>
+                        <td className="px-4 py-2.5 text-center text-body">
+                          <svg className={`inline h-4 w-4 transition-transform ${reconExpanded === r.rep ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        </td>
+                      </tr>
+                      {reconExpanded === r.rep && (
+                        <tr className="border-t border-stroke dark:border-strokedark">
+                          <td colSpan={5} className="bg-gray-1 px-4 py-3 dark:bg-meta-4/20">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="text-body">
+                                  <th className="px-2 py-1 text-left font-medium">{t('admin.commissionImport.reconciliation.month')}</th>
+                                  <th className="px-2 py-1 text-right font-medium">{t('admin.commissionImport.reconciliation.paid')}</th>
+                                  <th className="px-2 py-1 text-right font-medium">{t('admin.commissionImport.reconciliation.calculated')}</th>
+                                  <th className="px-2 py-1 text-right font-medium">{t('admin.commissionImport.reconciliation.delta')}</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {r.months.map(m => {
+                                  const ym = `${recon.year}-${String(m.month).padStart(2, '0')}`;
+                                  const pre = ym < recon.platformFrom;
+                                  if (m.paid === 0 && m.calculated === 0) return null;
+                                  return (
+                                    <tr key={m.month} className={pre ? 'opacity-60' : ''}>
+                                      <td className="px-2 py-1 text-black dark:text-white">
+                                        {monthName(m.month)}
+                                        {pre && <span className="ml-1.5 text-[10px] italic text-body">{t('admin.commissionImport.reconciliation.preTag')}</span>}
+                                      </td>
+                                      <td className="px-2 py-1 text-right font-medium text-black dark:text-white">{fmt(m.paid)}</td>
+                                      <td className="px-2 py-1 text-right text-body">{fmt(m.calculated)}</td>
+                                      <td className={`px-2 py-1 text-right font-medium ${deltaClass(m.delta)}`}>
+                                        {Math.abs(m.delta) < 1 ? '✓' : fmt(m.delta)}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4/40">
+                    <td className="px-4 py-2.5 font-bold text-black dark:text-white">{t('admin.commissionImport.reconciliation.grandTotal')}</td>
+                    <td className="px-4 py-2.5 text-right font-bold text-black dark:text-white">{fmt(recon.grand.paid)}</td>
+                    <td className="px-4 py-2.5 text-right font-bold text-body">{fmt(recon.grand.calculated)}</td>
+                    <td className={`px-4 py-2.5 text-right font-bold ${deltaClass(recon.grand.delta)}`}>{fmt(recon.grand.delta)}</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+          <p className="mt-3 text-xs text-body">{t('admin.commissionImport.reconciliation.legend')}</p>
+        </div>
+      </div>
       </>)}
 
       {subTab === 'settings' && (<>
