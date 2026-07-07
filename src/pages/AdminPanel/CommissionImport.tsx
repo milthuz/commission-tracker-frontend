@@ -79,9 +79,17 @@ interface StubLine { invoice_number: string; customer: string | null; paid_amoun
 interface StubBonus { bonus_type: string; merchant_name: string | null; amount: number; report_date: string | null; }
 interface StubDetail { import: HistoryRow; lines: StubLine[]; bonuses: StubBonus[]; }
 
-interface CoverageCell { importTotal: number | null; source: 'file' | 'app' | 'both' | null; unpaid: number; unpaidCount: number; }
+interface CoverageCell {
+  importTotal: number | null; source: 'file' | 'app' | 'both' | null; unpaid: number; unpaidCount: number;
+  quotaForfeited: number; quotaForfeitedCount: number; quotaAcknowledged: boolean | null;
+}
 interface CoverageRow { rep: string; cells: Record<string, CoverageCell>; totalPaid: number; totalUnpaid: number; }
 interface CoverageData { months: string[]; rows: CoverageRow[]; }
+
+interface QuotaReviewRow {
+  rep: string; year: number; month: number; invoices: number; forfeited: number;
+  acknowledged: boolean; ackId: number | null; ackNote: string | null; ackBy: string | null; ackAt: string | null;
+}
 
 interface ProcAccount { merchant_account_id: string; business_name: string; windowStart: string; windowEnd: string; avg: number; activeMonths: number; bonus: number; }
 interface ProcRep { rep: string; total: number; accounts: ProcAccount[]; }
@@ -591,6 +599,55 @@ const CommissionImport: React.FC = () => {
     } catch (_e) { /* silent */ }
   };
 
+  // ── Quota review: invoices zeroed by the quota gate, needing a human decision ──
+  const [quotaReview, setQuotaReview] = useState<QuotaReviewRow[]>([]);
+  const [quotaShowHistory, setQuotaShowHistory] = useState(false);
+  const [quotaBusy, setQuotaBusy] = useState<string | null>(null);
+  const fetchQuotaReview = async (includeAcked: boolean) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/quota-review`, {
+        headers: { Authorization: `Bearer ${token}` }, params: includeAcked ? { includeAcked: '1' } : {},
+      });
+      setQuotaReview(res.data.rows || []);
+    } catch (_e) { /* silent */ }
+  };
+  const quotaKey = (r: QuotaReviewRow) => `${r.rep}|${r.year}-${r.month}`;
+  const quotaPayAnyway = async (r: QuotaReviewRow) => {
+    if (!(await dialog.confirm(t('admin.commissionImport.quotaReview.payAnywayConfirm', { rep: r.rep, month: `${monthName(r.month)} ${r.year}` }) as string))) return;
+    setQuotaBusy(quotaKey(r));
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/commissions/quota-waiver`,
+        { repName: r.rep, year: r.year, month: r.month, waived: true },
+        { headers: { Authorization: `Bearer ${token}` } });
+      dialog.alert(t('admin.commissionImport.quotaReview.payAnywayStarted') as string);
+      await fetchQuotaReview(quotaShowHistory);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    finally { setQuotaBusy(null); }
+  };
+  const quotaAcknowledge = async (r: QuotaReviewRow) => {
+    setQuotaBusy(quotaKey(r));
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/commissions/quota-review/acknowledge`,
+        { repName: r.rep, year: r.year, month: r.month },
+        { headers: { Authorization: `Bearer ${token}` } });
+      await Promise.all([fetchQuotaReview(quotaShowHistory), fetchCoverage()]);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    finally { setQuotaBusy(null); }
+  };
+  const quotaUnacknowledge = async (r: QuotaReviewRow) => {
+    if (!r.ackId) return;
+    setQuotaBusy(quotaKey(r));
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/commissions/quota-review/acknowledge/${r.ackId}`, { headers: { Authorization: `Bearer ${token}` } });
+      await Promise.all([fetchQuotaReview(quotaShowHistory), fetchCoverage()]);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    finally { setQuotaBusy(null); }
+  };
+
   const fetchHistory = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -641,6 +698,8 @@ const CommissionImport: React.FC = () => {
   }, []);
   // Load the full manual-bonus + adjustment history once (both span all periods).
   useEffect(() => { fetchManualBonuses(); fetchAdjustments(); fetchSuggestions(); fetchPayRecipients(); fetchPaySends(); }, []);
+  // Quota-review queue: refetch when the "show reviewed history" toggle changes (fires once on mount too).
+  useEffect(() => { fetchQuotaReview(quotaShowHistory); }, [quotaShowHistory]);
 
   // Update a single entry by id
   const updateEntry = (id: string, patch: Partial<FileEntry>) => {
@@ -1068,6 +1127,86 @@ const CommissionImport: React.FC = () => {
       </>)}
 
       {subTab === 'coverage' && (<>
+      {/* Quota review: invoices the quota gate zeroed (rep missed that month's quota) —
+          needs an explicit admin decision before it's considered settled. */}
+      <div className="mb-6 rounded-sm border border-warning/40 bg-white shadow-default dark:bg-boxdark">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <div>
+            <h3 className="text-lg font-semibold text-black dark:text-white">
+              {t('admin.commissionImport.quotaReview.title')}
+              {!quotaShowHistory && quotaReview.length > 0 && <span className="ml-2 text-warning">({quotaReview.length})</span>}
+            </h3>
+            <p className="text-sm text-body">{t('admin.commissionImport.quotaReview.subtitle')}</p>
+          </div>
+          <label className="flex items-center gap-2 text-xs font-medium text-body">
+            <input type="checkbox" checked={quotaShowHistory} onChange={(e) => setQuotaShowHistory(e.target.checked)} />
+            {t('admin.commissionImport.quotaReview.showHistory')}
+          </label>
+        </div>
+        <div className="px-6 py-4">
+          {quotaReview.length === 0 ? (
+            <div className="flex flex-col items-center py-8 text-center">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
+                <svg className="h-6 w-6 text-success" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+              </div>
+              <p className="font-medium text-black dark:text-white">{t('admin.commissionImport.quotaReview.emptyTitle')}</p>
+              <p className="mt-1 text-sm text-body">{quotaShowHistory ? t('admin.commissionImport.quotaReview.emptyHistoryHint') : t('admin.commissionImport.quotaReview.emptyHint')}</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <table className="w-full min-w-[560px] text-sm">
+                <thead className="bg-gray-2 dark:bg-meta-4">
+                  <tr>
+                    <th className="px-3 py-2 text-left font-medium">Rep</th>
+                    <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.month')}</th>
+                    <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
+                    <th className="px-3 py-2 text-right font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.forfeited')}</th>
+                    <th className="px-3 py-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {quotaReview.map(r => {
+                    const busy = quotaBusy === quotaKey(r);
+                    return (
+                      <tr key={quotaKey(r)} className="border-t border-stroke dark:border-strokedark">
+                        <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{r.rep}</td>
+                        <td className="px-3 py-2 text-body whitespace-nowrap">{monthName(r.month)} {r.year}</td>
+                        <td className="px-3 py-2 text-body whitespace-nowrap">{t('admin.commissionImport.quotaReview.invoiceCount', { count: r.invoices })}</td>
+                        <td className="px-3 py-2 text-right font-semibold text-danger whitespace-nowrap">{fmt(r.forfeited)}</td>
+                        <td className="px-3 py-2 text-right whitespace-nowrap">
+                          {r.acknowledged ? (
+                            <span className="inline-flex items-center gap-2">
+                              <span className="text-xs italic text-body" title={r.ackAt ? new Date(r.ackAt).toLocaleString() : ''}>
+                                {t('admin.commissionImport.quotaReview.ackedBy', { who: r.ackBy || '—' })}
+                              </span>
+                              <button onClick={() => quotaUnacknowledge(r)} disabled={busy}
+                                className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+                                {busy ? '…' : t('admin.commissionImport.quotaReview.undoAck')}
+                              </button>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-2">
+                              <button onClick={() => quotaPayAnyway(r)} disabled={busy}
+                                className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                                {t('admin.commissionImport.quotaReview.payAnyway')}
+                              </button>
+                              <button onClick={() => quotaAcknowledge(r)} disabled={busy}
+                                className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+                                {busy ? '…' : t('admin.commissionImport.quotaReview.confirmForfeit')}
+                              </button>
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Coverage / reconciliation matrix: rep × month */}
       {coverage && coverage.rows.length > 0 && (
         <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -1078,6 +1217,7 @@ const CommissionImport: React.FC = () => {
               <span><span className="font-bold text-success">✓</span> {t('admin.commissionImport.coverage.legendFile')}</span>
               <span><span className="font-bold text-primary">✓</span> {t('admin.commissionImport.coverage.legendApp')}</span>
               <span><span className="font-bold text-warning">●</span> {t('admin.commissionImport.coverage.legendUnpaid')}</span>
+              <span><span className="font-bold text-danger">⛔</span> {t('admin.commissionImport.coverage.legendQuota')}</span>
               <span><span className="font-bold">—</span> {t('admin.commissionImport.coverage.legendNothing')}</span>
             </div>
           </div>
@@ -1103,15 +1243,22 @@ const CommissionImport: React.FC = () => {
                       const c = row.cells[ym];
                       const hasImport = c && c.importTotal != null;
                       const hasUnpaid = c && c.unpaid > 0.005;
+                      const hasQuota = !!c && c.quotaForfeited > 0.005;
                       return (
                         <td
                           key={ym}
                           onClick={() => (hasImport || hasUnpaid) && openPeriodStub(row.rep, ym)}
-                          title={`${row.rep} · ${ym}`}
-                          className={`whitespace-nowrap px-2 py-1.5 text-center align-middle ${
+                          title={hasQuota
+                            ? `${row.rep} · ${ym} — ${t('admin.commissionImport.coverage.legendQuota')}: ${fmt(c!.quotaForfeited)}${c!.quotaAcknowledged ? ` (${t('admin.commissionImport.quotaReview.reviewed')})` : ''}`
+                            : `${row.rep} · ${ym}`}
+                          className={`relative whitespace-nowrap px-2 py-1.5 text-center align-middle ${
                             hasImport || hasUnpaid ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-meta-4/40' : ''
                           }`}
                         >
+                          {/* Quota-gate badge: small corner icon, red = needs a decision, grey = reviewed */}
+                          {hasQuota && (
+                            <span className={`absolute right-0.5 top-0.5 text-[10px] leading-none ${c!.quotaAcknowledged ? 'text-bodydark2' : 'text-danger'}`}>⛔</span>
+                          )}
                           {hasImport ? (
                             <div className="leading-tight">
                               <span className={`font-bold ${c.source === 'file' ? 'text-success' : 'text-primary'}`}>✓</span>
@@ -1122,6 +1269,8 @@ const CommissionImport: React.FC = () => {
                             </div>
                           ) : hasUnpaid ? (
                             <span className="font-medium text-warning">● {fmt(c.unpaid)}</span>
+                          ) : hasQuota ? (
+                            <span className="text-[10px] text-danger">{fmt(c!.quotaForfeited)}</span>
                           ) : (
                             <span className="text-bodydark2">—</span>
                           )}

@@ -1581,6 +1581,25 @@
         "sugEmptyHint": "Reconciliation found nothing to correct. New anomalies will show up here.",
         "historyEmpty": "No adjustments created yet."
       },
+      "quotaReview": {
+        "title": "Missed-quota review",
+        "subtitle": "Invoices whose commission was zeroed because the rep missed that month's quota. Pick \"Pay anyway\" or \"Confirm forfeit\" for each case.",
+        "showHistory": "Show reviewed history",
+        "month": "Month",
+        "forfeited": "Forfeited",
+        "invoiceCount_one": "{{count}} invoice",
+        "invoiceCount_other": "{{count}} invoices",
+        "payAnyway": "Pay anyway",
+        "confirmForfeit": "Confirm forfeit",
+        "undoAck": "Undo",
+        "ackedBy": "Confirmed by {{who}}",
+        "reviewed": "reviewed",
+        "emptyTitle": "Nothing to review",
+        "emptyHint": "No commission is currently withheld for a missed quota.",
+        "emptyHistoryHint": "No decision has been confirmed yet.",
+        "payAnywayConfirm": "Pay {{rep}} anyway for {{month}} despite the missed quota? A recalc will unlock their commissions for that month.",
+        "payAnywayStarted": "Payment authorized — recalculating now, commissions will reappear shortly."
+      },
       "reconciliation": {
         "title": "Annual reconciliation",
         "subtitle": "Paid (pay ledger) vs calculated (commission model) vs delta — per rep and per month, to balance the books at year end.",
@@ -1666,6 +1685,7 @@
         "legendFile": "paid via imported file",
         "legendApp": "paid via the app",
         "legendUnpaid": "earned but unpaid (app model)",
+        "legendQuota": "quota missed — commission forfeited",
         "legendNothing": "nothing earned / all settled",
         "totalPaid": "Total paid",
         "totalUnpaid": "Total unpaid"
