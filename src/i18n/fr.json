@@ -1012,6 +1012,8 @@
     "csSaasFirst": "SaaS 1er mois",
     "csSaasAnnual": "Abo annuel (10 %)",
     "csQuotaNotMet": "Quota non atteint",
+    "quotaForfeitedBadge": "Quota non atteint",
+    "quotaForfeitedHint": "{{amount}} en commissions ont été retenues ce mois-ci parce que le quota n'a pas été atteint.",
     "csSaasRenewal": "Renouvellement",
     "csPendingSaas": "SaaS à venir",
     "csPendingPayment": "Paiement à venir",

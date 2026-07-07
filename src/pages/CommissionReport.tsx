@@ -58,6 +58,7 @@ interface MonthData {
   commissionApprovedCount: number;
   commissionQualifyingCount: number;
   approvedCommission: number;
+  quotaForfeited: number;
 }
 
 interface MonthPoints {
@@ -1321,7 +1322,14 @@ const CommissionReport = () => {
                       {m.paidRevenue > 0 ? formatCurrency(m.paidRevenue) : '—'}
                     </td>
                     <td className="px-3 py-3.5 text-right text-sm font-medium text-black dark:text-white">
-                      {m.commission > 0 ? formatCurrency(m.commission) : '—'}
+                      {m.commission > 0 ? (
+                        formatCurrency(m.commission)
+                      ) : m.quotaForfeited > 0.005 ? (
+                        <span className="inline-flex items-center gap-1 text-danger" title={t('commissionReport.quotaForfeitedHint', { amount: formatCurrency(m.quotaForfeited) }) as string}>
+                          <span aria-hidden>⛔</span>
+                          <span className="text-xs font-semibold">{t('commissionReport.quotaForfeitedBadge')}</span>
+                        </span>
+                      ) : '—'}
                     </td>
                     <td className="px-3 py-3.5 text-right text-sm text-body">
                       {m.invoices > 0 ? m.invoices : '—'}
