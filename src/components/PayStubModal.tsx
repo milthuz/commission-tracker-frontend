@@ -69,6 +69,9 @@ const PayStubModal: React.FC<{
   const [invPreview, setInvPreview] = useState<{ num: string; loading: boolean } | null>(null);
   if (!data) return null;
   const showApp = !!showAppCalc && data.source === 'imported';
+  // Adjustments (corrections on past periods) are shown in their OWN section, not with bonuses.
+  const bonusRows = data.bonuses.filter(b => b.bonus_type !== 'adjustment');
+  const adjRows = data.bonuses.filter(b => b.bonus_type === 'adjustment');
 
   const fmt = (val: number) =>
     val.toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -119,7 +122,11 @@ const PayStubModal: React.FC<{
     rows.push(`<tr><th colspan="3" style="text-align:left">${esc(tp('title'))} — ${esc(data.repName)} · ${esc(data.period)}</th></tr>`);
     rows.push(`<tr><th>${esc(tp('invoice'))}</th><th>${esc(tp('customer'))}</th><th>${esc(tp('amount'))}</th></tr>`);
     data.lines.forEach(l => rows.push(`<tr><td>${esc(l.invoice_number)}</td><td>${esc(l.customer)}</td><td>${l.paid_amount}</td></tr>`));
-    data.bonuses.forEach(b => rows.push(`<tr><td>${esc(bonusLabel(b.bonus_type))}</td><td>${esc(b.merchant_name)}</td><td>${b.amount}</td></tr>`));
+    bonusRows.forEach(b => rows.push(`<tr><td>${esc(bonusLabel(b.bonus_type))}</td><td>${esc(b.merchant_name)}</td><td>${b.amount}</td></tr>`));
+    if (adjRows.length) {
+      rows.push(`<tr><th colspan="3" style="text-align:left">${esc(tp('adjustments'))}</th></tr>`);
+      adjRows.forEach(b => rows.push(`<tr><td>${esc(bonusLabel(b.bonus_type))}</td><td>${esc(b.merchant_name)}</td><td>${b.amount}</td></tr>`));
+    }
     rows.push(`<tr><td></td><td style="text-align:right"><b>${esc(tp('totalPaid'))}</b></td><td><b>${data.total}</b></td></tr>`);
     const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1">${rows.join('')}</table></body></html>`;
     const blob = new Blob(['﻿', html], { type: 'application/vnd.ms-excel' });
@@ -158,8 +165,9 @@ const PayStubModal: React.FC<{
     const locale = i18n.language === 'fr' ? 'fr-CA' : 'en-CA';
     const issued = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
     const linesSum = data.lines.reduce((a, l) => a + l.paid_amount, 0);
-    const bonusSum = data.bonuses.reduce((a, b) => a + b.amount, 0);
-    const other = data.total - linesSum - bonusSum; // e.g. monthly bonus stored only in the import total
+    const bonusSum = bonusRows.reduce((a, b) => a + b.amount, 0);
+    const adjSum = adjRows.reduce((a, b) => a + b.amount, 0);
+    const other = data.total - linesSum - bonusSum - adjSum; // e.g. monthly bonus stored only in the import total
     const sourceLabel = data.source === 'imported'
       ? (data.subtitle ? esc(data.subtitle) : (tp('sourceImported') as string))
       : (tp('sourceGenerated') as string);
@@ -170,11 +178,16 @@ const PayStubModal: React.FC<{
         <td>${esc(l.customer) || '—'}${l.not_in_db ? ` <span class="pill">${tp('notInDb')}</span>` : ''}</td>
         <td class="num">${fmt(l.paid_amount)}</td>
       </tr>`).join('');
-    const bonusHtml = data.bonuses.map((b, i) => `
+    const bonusHtml = bonusRows.map((b, i) => `
       <tr${i % 2 ? ' class="alt"' : ''}>
         <td>${esc(bonusLabel(b.bonus_type))}</td>
         <td>${esc(b.merchant_name) || '—'}</td>
         <td class="num">${fmt(b.amount)}</td>
+      </tr>`).join('');
+    const adjHtml = adjRows.map((b, i) => `
+      <tr${i % 2 ? ' class="alt"' : ''}>
+        <td>${esc(b.merchant_name) || '—'}</td>
+        <td class="num${b.amount < 0 ? ' neg' : ''}">${fmt(b.amount)}</td>
       </tr>`).join('');
 
     const w = window.open('', '_blank', 'width=860,height=980');
@@ -206,6 +219,7 @@ const PayStubModal: React.FC<{
   tr.alt td { background: #fafbfd; }
   .mono { font-family: 'Consolas', 'Courier New', monospace; font-size: 11.5px; color: #3b4a63; }
   .num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .num.neg { color: #d34053; }
   tfoot td { border-top: 2px solid #1c2434; border-bottom: none; background: #fafbfd; }
   tfoot td.sub { text-align: right; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #64748b; font-weight: 700; }
   tfoot td.num { font-weight: 800; color: #1c2434; }
@@ -240,12 +254,19 @@ const PayStubModal: React.FC<{
       <tbody>${linesHtml || `<tr><td colspan="3" style="text-align:center;color:#94a3b8">—</td></tr>`}</tbody>
       ${data.lines.length ? `<tfoot><tr><td class="sub" colspan="2">${tp('subtotalCommissions')}</td><td class="num">${fmt(linesSum)}</td></tr></tfoot>` : ''}
     </table>
-    ${data.bonuses.length ? `
-    <h2>${tp('bonuses')} (${data.bonuses.length})</h2>
+    ${bonusRows.length ? `
+    <h2>${tp('bonuses')} (${bonusRows.length})</h2>
     <table>
       <thead><tr><th>${tp('type')}</th><th>${tp('merchant')}</th><th class="num">${tp('amount')}</th></tr></thead>
       <tbody>${bonusHtml}</tbody>
       <tfoot><tr><td class="sub" colspan="2">${tp('subtotalBonuses')}</td><td class="num">${fmt(bonusSum)}</td></tr></tfoot>
+    </table>` : ''}
+    ${adjRows.length ? `
+    <h2>${tp('adjustments')} (${adjRows.length})</h2>
+    <table>
+      <thead><tr><th>${tp('adjustmentReason')}</th><th class="num">${tp('amount')}</th></tr></thead>
+      <tbody>${adjHtml}</tbody>
+      <tfoot><tr><td class="sub">${tp('subtotalAdjustments')}</td><td class="num${adjSum < 0 ? ' neg' : ''}">${fmt(adjSum)}</td></tr></tfoot>
     </table>` : ''}
     <div class="totals"><div class="box">
       ${Math.abs(other) > 0.01 ? `<div class="trow"><span>${tp('otherAmounts')}</span><b>${fmt(other)}</b></div>` : ''}
@@ -440,10 +461,10 @@ const PayStubModal: React.FC<{
                 </table>
               </div>
 
-              {/* Bonuses */}
-              {data.bonuses.length > 0 && (
+              {/* Bonuses — adjustments excluded, they get their own section below */}
+              {bonusRows.length > 0 && (
                 <>
-                  <p className="mb-1 mt-5 text-xs font-semibold uppercase tracking-wide text-body">{tp('bonuses')} ({data.bonuses.length})</p>
+                  <p className="mb-1 mt-5 text-xs font-semibold uppercase tracking-wide text-body">{tp('bonuses')} ({bonusRows.length})</p>
                   <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-2 dark:bg-meta-4">
@@ -454,11 +475,10 @@ const PayStubModal: React.FC<{
                         </tr>
                       </thead>
                       <tbody>
-                        {data.bonuses.map((b, i) => (
+                        {bonusRows.map((b, i) => (
                           <tr key={i} className="border-t border-stroke dark:border-strokedark">
                             <td className="px-3 py-2 text-black dark:text-white">{bonusLabel(b.bonus_type)}</td>
                             <td className="px-3 py-2 text-black dark:text-white">{b.merchant_name || '—'}</td>
-                            {/* Negative adjustments (overpayment clawbacks) must read as deductions */}
                             <td className={`px-3 py-2 text-right font-semibold ${b.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(b.amount)}</td>
                           </tr>
                         ))}
@@ -466,7 +486,38 @@ const PayStubModal: React.FC<{
                       <tfoot>
                         <tr className="border-t-2 border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4/40">
                           <td colSpan={2} className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-body">{tp('subtotalBonuses')}</td>
-                          <td className="px-3 py-2 text-right font-bold text-black dark:text-white">{fmt(data.bonuses.reduce((a, b) => a + b.amount, 0))}</td>
+                          <td className="px-3 py-2 text-right font-bold text-black dark:text-white">{fmt(bonusRows.reduce((a, b) => a + b.amount, 0))}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </>
+              )}
+
+              {/* Adjustments — corrections on past periods, separate from earned bonuses */}
+              {adjRows.length > 0 && (
+                <>
+                  <p className="mb-1 mt-5 text-xs font-semibold uppercase tracking-wide text-body">{tp('adjustments')} ({adjRows.length})</p>
+                  <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-2 dark:bg-meta-4">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-medium">{tp('adjustmentReason')}</th>
+                          <th className="px-3 py-2 text-right font-medium">{tp('amount')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {adjRows.map((b, i) => (
+                          <tr key={i} className="border-t border-stroke dark:border-strokedark">
+                            <td className="px-3 py-2 text-black dark:text-white">{b.merchant_name || '—'}</td>
+                            <td className={`px-3 py-2 text-right font-semibold ${b.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(b.amount)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4/40">
+                          <td className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-body">{tp('subtotalAdjustments')}</td>
+                          <td className={`px-3 py-2 text-right font-bold ${adjRows.reduce((a, b) => a + b.amount, 0) < 0 ? 'text-danger' : 'text-black dark:text-white'}`}>{fmt(adjRows.reduce((a, b) => a + b.amount, 0))}</td>
                         </tr>
                       </tfoot>
                     </table>
