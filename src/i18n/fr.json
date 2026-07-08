@@ -1013,6 +1013,7 @@
     "csSaasFirst": "SaaS 1er mois",
     "csSaasAnnual": "Abo annuel (10 %)",
     "csQuotaNotMet": "Quota non atteint",
+    "csQuotaPartial": "Dérogation partielle de quota",
     "csRepInactive": "Vendeur inactif",
     "quotaForfeitedBadge": "Quota non atteint",
     "quotaForfeitedHint": "{{amount}} en commissions ont été retenues ce mois-ci parce que le quota n'a pas été atteint.",
@@ -1602,7 +1603,11 @@
         "emptyHint": "Aucune commission n'est actuellement retenue pour cause de quota manqué.",
         "emptyHistoryHint": "Aucune décision n'a encore été confirmée.",
         "payAnywayConfirm": "Payer {{rep}} quand même pour {{month}} malgré le quota manqué ? Un recalcul redébloquera ses commissions de ce mois.",
-        "payAnywayStarted": "Le paiement a été autorisé — recalcul en cours, les commissions réapparaîtront dans quelques instants."
+        "payAnywayPartialConfirm": "Débloquer {{percent}}% de la commission de {{rep}} pour {{month}} malgré le quota manqué ? Le reste demeure perdu. Un recalcul appliquera ce changement.",
+        "payAnywayStarted": "Le paiement a été autorisé — recalcul en cours, les commissions réapparaîtront dans quelques instants.",
+        "updatePercent": "Mettre à jour %",
+        "partialBadge": "{{percent}}% payé",
+        "partialHint": "Une dérogation partielle « payer quand même » débloque {{percent}}% de la commission de ce mois; le reste demeure perdu."
       },
       "reconciliation": {
         "title": "Réconciliation annuelle",

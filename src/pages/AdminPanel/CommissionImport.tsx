@@ -89,6 +89,7 @@ interface CoverageData { months: string[]; rows: CoverageRow[]; }
 interface QuotaReviewRow {
   rep: string; year: number; month: number; invoices: number; forfeited: number;
   acknowledged: boolean; ackId: number | null; ackNote: string | null; ackBy: string | null; ackAt: string | null;
+  waived: boolean; waivedPercent: number | null;
 }
 
 interface ProcAccount { merchant_account_id: string; business_name: string; windowStart: string; windowEnd: string; avg: number; activeMonths: number; bonus: number; }
@@ -617,13 +618,20 @@ const CommissionImport: React.FC = () => {
     } catch (_e) { /* silent */ }
   };
   const quotaKey = (r: QuotaReviewRow) => `${r.rep}|${r.year}-${r.month}`;
+  const [quotaPercentInput, setQuotaPercentInput] = useState<Record<string, string>>({});
+  const quotaPercentFor = (r: QuotaReviewRow) => quotaPercentInput[quotaKey(r)] ?? String(r.waivedPercent ?? 100);
+  const setQuotaPercentFor = (r: QuotaReviewRow, v: string) => setQuotaPercentInput(prev => ({ ...prev, [quotaKey(r)]: v }));
   const quotaPayAnyway = async (r: QuotaReviewRow) => {
-    if (!(await dialog.confirm(t('admin.commissionImport.quotaReview.payAnywayConfirm', { rep: r.rep, month: `${monthName(r.month)} ${r.year}` }) as string))) return;
+    const percent = Math.max(0, Math.min(100, parseFloat(quotaPercentFor(r)) || 0));
+    const confirmMsg = percent >= 100
+      ? t('admin.commissionImport.quotaReview.payAnywayConfirm', { rep: r.rep, month: `${monthName(r.month)} ${r.year}` })
+      : t('admin.commissionImport.quotaReview.payAnywayPartialConfirm', { rep: r.rep, month: `${monthName(r.month)} ${r.year}`, percent });
+    if (!(await dialog.confirm(confirmMsg as string))) return;
     setQuotaBusy(quotaKey(r));
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/api/commissions/quota-waiver`,
-        { repName: r.rep, year: r.year, month: r.month, waived: true },
+        { repName: r.rep, year: r.year, month: r.month, waived: true, percent },
         { headers: { Authorization: `Bearer ${token}` } });
       dialog.alert(t('admin.commissionImport.quotaReview.payAnywayStarted') as string);
       await fetchQuotaReview(quotaShowHistory);
@@ -1176,7 +1184,14 @@ const CommissionImport: React.FC = () => {
                         <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{r.rep}</td>
                         <td className="px-3 py-2 text-body whitespace-nowrap">{monthName(r.month)} {r.year}</td>
                         <td className="px-3 py-2 text-body whitespace-nowrap">{t('admin.commissionImport.quotaReview.invoiceCount', { count: r.invoices })}</td>
-                        <td className="px-3 py-2 text-right font-semibold text-danger whitespace-nowrap">{fmt(r.forfeited)}</td>
+                        <td className="px-3 py-2 text-right whitespace-nowrap">
+                          <span className="font-semibold text-danger">{fmt(r.forfeited)}</span>
+                          {r.waived && (
+                            <span className="ml-2 inline-block rounded bg-warning/10 px-1.5 py-0.5 text-xs font-medium text-warning" title={t('admin.commissionImport.quotaReview.partialHint', { percent: Math.round(r.waivedPercent!) }) as string}>
+                              {t('admin.commissionImport.quotaReview.partialBadge', { percent: Math.round(r.waivedPercent!) })}
+                            </span>
+                          )}
+                        </td>
                         <td className="px-3 py-2 text-right whitespace-nowrap">
                           {r.acknowledged ? (
                             <span className="inline-flex items-center gap-2">
@@ -1190,9 +1205,15 @@ const CommissionImport: React.FC = () => {
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-2">
+                              <label className="inline-flex items-center gap-1 text-xs text-body">
+                                <input type="number" min={0} max={100} step={5} value={quotaPercentFor(r)}
+                                  onChange={e => setQuotaPercentFor(r, e.target.value)} disabled={busy}
+                                  className="w-14 rounded border border-stroke bg-transparent px-1.5 py-1 text-right text-black disabled:opacity-50 dark:border-strokedark dark:text-white" />
+                                %
+                              </label>
                               <button onClick={() => quotaPayAnyway(r)} disabled={busy}
                                 className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
-                                {t('admin.commissionImport.quotaReview.payAnyway')}
+                                {r.waived ? t('admin.commissionImport.quotaReview.updatePercent') : t('admin.commissionImport.quotaReview.payAnyway')}
                               </button>
                               <button onClick={() => quotaAcknowledge(r)} disabled={busy}
                                 className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">

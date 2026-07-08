@@ -1013,6 +1013,7 @@
     "csSaasFirst": "SaaS 1st month",
     "csSaasAnnual": "Annual sub (10%)",
     "csQuotaNotMet": "Quota not met",
+    "csQuotaPartial": "Partial quota waiver",
     "csRepInactive": "Rep inactive",
     "quotaForfeitedBadge": "Quota not met",
     "quotaForfeitedHint": "{{amount}} in commissions were withheld this month because the quota wasn't met.",
@@ -1602,7 +1603,11 @@
         "emptyHint": "No commission is currently withheld for a missed quota.",
         "emptyHistoryHint": "No decision has been confirmed yet.",
         "payAnywayConfirm": "Pay {{rep}} anyway for {{month}} despite the missed quota? A recalc will unlock their commissions for that month.",
-        "payAnywayStarted": "Payment authorized — recalculating now, commissions will reappear shortly."
+        "payAnywayPartialConfirm": "Release {{percent}}% of {{rep}}'s commission for {{month}} despite the missed quota? The rest stays forfeited. A recalc will apply this.",
+        "payAnywayStarted": "Payment authorized — recalculating now, commissions will reappear shortly.",
+        "updatePercent": "Update %",
+        "partialBadge": "{{percent}}% paid",
+        "partialHint": "A partial pay-anyway override releases {{percent}}% of this month's commission; the rest stays forfeited."
       },
       "reconciliation": {
         "title": "Annual reconciliation",
