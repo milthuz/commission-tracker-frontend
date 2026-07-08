@@ -900,6 +900,7 @@
       "committing": "Marking paid…",
       "committed": "Paid ✓",
       "discrepancyHint": "Paid = amount from the imported file. App calc. = the app's computed commission; ⚠ marks a difference.",
+      "committedHint": "Committed by the app when this period was marked paid — the amounts are frozen and won't change on a recalc.",
       "generatedHint": "Generated from the app's commission model: UNPAID commissions unlocked this period + signup payments.",
       "committedToPayroll": "✓ {{count}} invoice(s) marked paid — added to {{month}} payroll. Go to Commissions → Payroll to send it.",
       "uncommit": "Undo payment",

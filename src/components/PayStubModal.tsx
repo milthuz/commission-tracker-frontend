@@ -168,9 +168,13 @@ const PayStubModal: React.FC<{
     const bonusSum = bonusRows.reduce((a, b) => a + b.amount, 0);
     const adjSum = adjRows.reduce((a, b) => a + b.amount, 0);
     const other = data.total - linesSum - bonusSum - adjSum; // e.g. monthly bonus stored only in the import total
-    const sourceLabel = data.source === 'imported'
-      ? (data.subtitle ? esc(data.subtitle) : (tp('sourceImported') as string))
-      : (tp('sourceGenerated') as string);
+    // An app-generated commit is stored via the same imports table (source='imported', for the
+    // paid/pending status), but it was never an uploaded file — label it as generated, not imported.
+    const sourceLabel = data.appGenerated
+      ? (tp('sourceGenerated') as string)
+      : data.source === 'imported'
+        ? (data.subtitle ? esc(data.subtitle) : (tp('sourceImported') as string))
+        : (tp('sourceGenerated') as string);
 
     const linesHtml = data.lines.map((l, i) => `
       <tr${i % 2 ? ' class="alt"' : ''}>
@@ -312,10 +316,12 @@ const PayStubModal: React.FC<{
               }`}>
                 {data.source === 'imported' ? `✓ ${tp('statusPaid')}` : `⏳ ${tp('statusPending')}`}
               </span>
+              {/* An app-generated commit is technically source='imported' (for the paid/pending
+                  status above), but no file was ever uploaded — label it as generated. */}
               <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                data.source === 'imported' ? 'bg-primary bg-opacity-10 text-primary' : 'bg-gray-2 text-body dark:bg-meta-4'
+                !data.appGenerated && data.source === 'imported' ? 'bg-primary bg-opacity-10 text-primary' : 'bg-gray-2 text-body dark:bg-meta-4'
               }`}>
-                {data.source === 'imported' ? tp('sourceImported') : tp('sourceGenerated')}
+                {!data.appGenerated && data.source === 'imported' ? tp('sourceImported') : tp('sourceGenerated')}
               </span>
             </div>
           </div>
@@ -531,7 +537,7 @@ const PayStubModal: React.FC<{
                 <span className="text-xl font-bold text-primary">{fmt(data.total)}</span>
               </div>
               <p className="mt-2 text-xs text-body">
-                {data.source === 'imported' ? tp('discrepancyHint') : tp('generatedHint')}
+                {data.appGenerated ? tp('committedHint') : data.source === 'imported' ? tp('discrepancyHint') : tp('generatedHint')}
               </p>
 
               {/* Forgot-to-pay radar: earned this period per the app's model but not paid. */}

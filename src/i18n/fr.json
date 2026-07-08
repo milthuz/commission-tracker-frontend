@@ -900,6 +900,7 @@
       "committing": "Marquage en cours…",
       "committed": "Payé ✓",
       "discrepancyHint": "Payé = montant du fichier importé. Calc. app = commission calculée par l'app ; ⚠ signale un écart.",
+      "committedHint": "Confirmé par l'app quand cette période a été marquée payée — les montants sont figés et ne changeront pas au prochain recalcul.",
       "generatedHint": "Généré à partir du modèle de l'app : commissions débloquées NON payées de la période + paiements de signup.",
       "committedToPayroll": "✓ {{count}} facture(s) marquée(s) payée(s) — ajouté à la paie de {{month}}. Va dans Commissions → Paie pour l'envoyer.",
       "uncommit": "Annuler le paiement",
