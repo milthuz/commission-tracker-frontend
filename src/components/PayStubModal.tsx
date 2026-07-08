@@ -22,6 +22,8 @@ export interface PayStubMissed {
   invoice_number: string;
   customer: string | null;
   app_commission: number;
+  quotaPartial?: boolean;    // this amount is the released portion of a quota-gate override —
+  quotaForfeited?: number;   // not a forgotten payment; the rest (this amount) stays withheld
 }
 export interface PayStubData {
   repName: string;
@@ -157,6 +159,7 @@ const PayStubModal: React.FC<{
   };
 
   const tp = (k: string) => t(`commissionReport.payStub.${k}`);
+  const tpp = (k: string, opts: Record<string, unknown>) => t(`commissionReport.payStub.${k}`, opts) as string;
 
   // Branded, print-optimized pay-stub document (opens in a new window, auto-prints).
   const printStub = () => {
@@ -540,8 +543,13 @@ const PayStubModal: React.FC<{
                 {data.appGenerated ? tp('committedHint') : data.source === 'imported' ? tp('discrepancyHint') : tp('generatedHint')}
               </p>
 
-              {/* Forgot-to-pay radar: earned this period per the app's model but not paid. */}
-              {showAppCalc && data.missed && data.missed.length > 0 && (
+              {/* Forgot-to-pay radar: earned this period per the app's model but not paid. Some
+                  rows can be a quota-gate partial release instead of a genuine oversight —
+                  flagged separately so they don't read as "forgotten" (user feedback 2026-07-08). */}
+              {showAppCalc && data.missed && data.missed.length > 0 && (() => {
+                const anyQuotaPartial = data.missed.some(m => m.quotaPartial);
+                const allQuotaPartial = data.missed.every(m => m.quotaPartial);
+                return (
                 <div className="mt-5 rounded-md border border-warning border-opacity-40 bg-warning bg-opacity-5 p-4">
                   <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-warning">
                     ⚠ {tp('missedTitle')} ({data.missed.length})
@@ -566,14 +574,25 @@ const PayStubModal: React.FC<{
                               </button>
                             </td>
                             <td className="px-3 py-2 text-black dark:text-white">{m.customer || '—'}</td>
-                            <td className="px-3 py-2 text-right font-semibold text-warning">{fmt(m.app_commission)}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-warning whitespace-nowrap">
+                              {fmt(m.app_commission)}
+                              {m.quotaPartial && (
+                                <span className="ml-1.5 inline-block rounded bg-primary bg-opacity-10 px-1 py-0.5 text-[10px] font-bold text-primary"
+                                  title={tpp('missedQuotaPartialHint', { forfeited: fmt(m.quotaForfeited || 0) })}>
+                                  {tp('missedQuotaPartialBadge')}
+                                </span>
+                              )}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
+                  {anyQuotaPartial && (
+                    <p className="mt-2 text-xs font-medium text-primary">{tp('missedQuotaPartialNote')}</p>
+                  )}
                   <div className="mt-2 flex items-center justify-between">
-                    <p className="text-xs text-body">{tp('missedHint')}</p>
+                    {!allQuotaPartial && <p className="text-xs text-body">{tp('missedHint')}</p>}
                     <p className="whitespace-nowrap pl-4 text-sm font-bold text-warning">
                       {tp('missedSubtotal')}: {fmt(data.missedTotal || 0)}
                     </p>
@@ -595,7 +614,8 @@ const PayStubModal: React.FC<{
                     </div>
                   )}
                 </div>
-              )}
+                );
+              })()}
 
               {/* Commit action — only for app-generated stubs, only when the parent wires it. */}
               {onCommit && data.source === 'generated' && (data.lines.length > 0 || data.bonuses.length > 0) && (
