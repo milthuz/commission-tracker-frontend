@@ -1613,7 +1613,16 @@
         "invoiceNum": "Facture",
         "customer": "Client",
         "wouldBe": "Aurait été",
-        "invoicesEmpty": "Aucune facture trouvée pour ce vendeur et ce mois."
+        "invoicesEmpty": "Aucune facture trouvée pour ce vendeur et ce mois.",
+        "viewLog": "Voir le journal des décisions",
+        "hideLog": "Cacher le journal des décisions",
+        "logTitle": "Journal des décisions de dérogation",
+        "logEmpty": "Aucune décision de dérogation n'a encore été prise.",
+        "logAction": "Action",
+        "logActionSet": "Définie",
+        "logActionRemoved": "Retirée",
+        "logBy": "Par",
+        "logWhen": "Quand"
       },
       "reconciliation": {
         "title": "Réconciliation annuelle",

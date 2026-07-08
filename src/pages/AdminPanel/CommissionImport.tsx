@@ -630,6 +630,18 @@ const CommissionImport: React.FC = () => {
       setQuotaInvoices({ rep: r.rep, year: r.year, month: r.month, rows: res.data.invoices || [] });
     } catch (_e) { /* silent */ }
   };
+  // Audit log of every "payer quand même" decision ever made (quota_month_waivers only holds
+  // the CURRENT percent per rep+month, so this append-only log is the only place history survives).
+  interface QuotaWaiverLogRow { id: number; rep: string; ym: string; percent: number | null; action: string; created_by: string; created_at: string; }
+  const [quotaLog, setQuotaLog] = useState<QuotaWaiverLogRow[] | null>(null);
+  const fetchQuotaLog = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/quota-waiver-log`, { headers: { Authorization: `Bearer ${token}` } });
+      setQuotaLog(res.data.rows || []);
+    } catch (_e) { /* silent */ }
+  };
+  const toggleQuotaLog = () => { if (quotaLog === null) fetchQuotaLog(); else setQuotaLog(null); };
   const quotaKey = (r: QuotaReviewRow) => `${r.rep}|${r.year}-${r.month}`;
   const [quotaPercentInput, setQuotaPercentInput] = useState<Record<string, string>>({});
   const quotaPercentFor = (r: QuotaReviewRow) => quotaPercentInput[quotaKey(r)] ?? String(r.waivedPercent ?? 100);
@@ -648,6 +660,7 @@ const CommissionImport: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } });
       dialog.alert(t('admin.commissionImport.quotaReview.payAnywayStarted') as string);
       await fetchQuotaReview(quotaShowHistory);
+      if (quotaLog !== null) fetchQuotaLog();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
     finally { setQuotaBusy(null); }
   };
@@ -1163,11 +1176,55 @@ const CommissionImport: React.FC = () => {
             </h3>
             <p className="text-sm text-body">{t('admin.commissionImport.quotaReview.subtitle')}</p>
           </div>
-          <label className="flex items-center gap-2 text-xs font-medium text-body">
-            <input type="checkbox" checked={quotaShowHistory} onChange={(e) => setQuotaShowHistory(e.target.checked)} />
-            {t('admin.commissionImport.quotaReview.showHistory')}
-          </label>
+          <div className="flex items-center gap-4">
+            <button onClick={toggleQuotaLog} className="text-xs font-medium text-primary underline decoration-dotted">
+              {quotaLog === null ? t('admin.commissionImport.quotaReview.viewLog') : t('admin.commissionImport.quotaReview.hideLog')}
+            </button>
+            <label className="flex items-center gap-2 text-xs font-medium text-body">
+              <input type="checkbox" checked={quotaShowHistory} onChange={(e) => setQuotaShowHistory(e.target.checked)} />
+              {t('admin.commissionImport.quotaReview.showHistory')}
+            </label>
+          </div>
         </div>
+        {quotaLog !== null && (
+          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+            <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('admin.commissionImport.quotaReview.logTitle')}</h4>
+            {quotaLog.length === 0 ? (
+              <p className="text-sm text-body">{t('admin.commissionImport.quotaReview.logEmpty')}</p>
+            ) : (
+              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                <table className="w-full min-w-[560px] text-sm">
+                  <thead className="bg-gray-2 dark:bg-meta-4">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-medium">Rep</th>
+                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.month')}</th>
+                      <th className="px-3 py-2 text-right font-medium">%</th>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.quotaReview.logAction')}</th>
+                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.logBy')}</th>
+                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.logWhen')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {quotaLog.map(l => (
+                      <tr key={l.id} className="border-t border-stroke dark:border-strokedark">
+                        <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{l.rep}</td>
+                        <td className="px-3 py-2 text-body whitespace-nowrap">{l.ym}</td>
+                        <td className="px-3 py-2 text-right text-body whitespace-nowrap">{l.percent === null ? '—' : `${Math.round(l.percent)}%`}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className={`inline-flex rounded px-1.5 py-0.5 text-xs font-medium ${l.action === 'removed' ? 'bg-gray-200 text-body dark:bg-meta-4' : 'bg-primary/10 text-primary'}`}>
+                            {l.action === 'removed' ? t('admin.commissionImport.quotaReview.logActionRemoved') : t('admin.commissionImport.quotaReview.logActionSet')}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-body whitespace-nowrap">{l.created_by}</td>
+                        <td className="px-3 py-2 text-body whitespace-nowrap">{new Date(l.created_at).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
         <div className="px-6 py-4">
           {quotaReview.length === 0 ? (
             <div className="flex flex-col items-center py-8 text-center">

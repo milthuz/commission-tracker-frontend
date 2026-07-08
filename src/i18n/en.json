@@ -1613,7 +1613,16 @@
         "invoiceNum": "Invoice",
         "customer": "Customer",
         "wouldBe": "Would-be",
-        "invoicesEmpty": "No invoices found for this rep and month."
+        "invoicesEmpty": "No invoices found for this rep and month.",
+        "viewLog": "View decision log",
+        "hideLog": "Hide decision log",
+        "logTitle": "Waiver decision log",
+        "logEmpty": "No waiver decisions have been made yet.",
+        "logAction": "Action",
+        "logActionSet": "Set",
+        "logActionRemoved": "Removed",
+        "logBy": "By",
+        "logWhen": "When"
       },
       "reconciliation": {
         "title": "Annual reconciliation",
