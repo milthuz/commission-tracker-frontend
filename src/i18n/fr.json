@@ -1607,7 +1607,13 @@
         "payAnywayStarted": "Le paiement a été autorisé — recalcul en cours, les commissions réapparaîtront dans quelques instants.",
         "updatePercent": "Mettre à jour %",
         "partialBadge": "{{percent}}% payé",
-        "partialHint": "Une dérogation partielle « payer quand même » débloque {{percent}}% de la commission de ce mois; le reste demeure perdu."
+        "partialHint": "Une dérogation partielle « payer quand même » débloque {{percent}}% de la commission de ce mois; le reste demeure perdu.",
+        "invoicesTitle": "{{rep}} — {{month}}",
+        "invoicesSubtitle": "Factures derrière le refus de ce mois. « Aurait été » est la commission complète avant le quota; « Perdu » est la portion retenue.",
+        "invoiceNum": "Facture",
+        "customer": "Client",
+        "wouldBe": "Aurait été",
+        "invoicesEmpty": "Aucune facture trouvée pour ce vendeur et ce mois."
       },
       "reconciliation": {
         "title": "Réconciliation annuelle",

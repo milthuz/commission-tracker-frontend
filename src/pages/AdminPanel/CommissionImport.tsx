@@ -526,7 +526,7 @@ const CommissionImport: React.FC = () => {
       setStub({
         repName: d.repName, period: d.period, subtitle,
         lines: d.lines || [], bonuses: d.bonuses || [], total: d.total || 0,
-        source: d.source, linesStored: d.linesStored,
+        source: d.source, appGenerated: d.appGenerated, linesStored: d.linesStored,
         missed: d.missed || [], missedTotal: d.missedTotal || 0,
         quota: d.quota || null,
       });
@@ -615,6 +615,19 @@ const CommissionImport: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }, params: includeAcked ? { includeAcked: '1' } : {},
       });
       setQuotaReview(res.data.rows || []);
+    } catch (_e) { /* silent */ }
+  };
+  // The actual invoices behind a rep×month's forfeiture (distinct from the pay-stub view,
+  // which shows what was PAID — correctly $0/partial for a gated month, not the source invoices).
+  interface QuotaForfeitInvoice { invoice_number: string; customer: string; total: number; commission: number; forfeited: number; commission_status: string; }
+  const [quotaInvoices, setQuotaInvoices] = useState<{ rep: string; year: number; month: number; rows: QuotaForfeitInvoice[] } | null>(null);
+  const openQuotaInvoices = async (r: QuotaReviewRow) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/quota-review/invoices`, {
+        headers: { Authorization: `Bearer ${token}` }, params: { repName: r.rep, year: r.year, month: r.month },
+      });
+      setQuotaInvoices({ rep: r.rep, year: r.year, month: r.month, rows: res.data.invoices || [] });
     } catch (_e) { /* silent */ }
   };
   const quotaKey = (r: QuotaReviewRow) => `${r.rep}|${r.year}-${r.month}`;
@@ -1184,7 +1197,7 @@ const CommissionImport: React.FC = () => {
                         <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{r.rep}</td>
                         <td className="px-3 py-2 text-body whitespace-nowrap">{monthName(r.month)} {r.year}</td>
                         <td className="px-3 py-2 whitespace-nowrap">
-                          <button onClick={() => openPeriodStub(r.rep, `${r.year}-${String(r.month).padStart(2, '0')}`)}
+                          <button onClick={() => openQuotaInvoices(r)}
                             className="text-body underline decoration-dotted hover:text-primary">
                             {t('admin.commissionImport.quotaReview.invoiceCount', { count: r.invoices })}
                           </button>
@@ -2163,6 +2176,51 @@ const CommissionImport: React.FC = () => {
 
       {/* Pay Stub detail modal (shared component) */}
       <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc onQuotaWaive={waiveQuota} onAdjusted={() => { fetchCoverage(); fetchAdjustments(); }} />
+
+      {/* Quota-review: the raw invoices behind a rep×month's forfeiture */}
+      {quotaInvoices && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4 sm:p-8" onClick={() => setQuotaInvoices(null)}>
+          <div className="relative w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setQuotaInvoices(null)}
+              className="absolute -right-3 -top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-stroke bg-white text-body shadow-lg transition hover:text-danger dark:border-strokedark dark:bg-boxdark dark:text-bodydark">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div className="flex max-h-[85vh] flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark">
+              <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+                <h3 className="text-lg font-semibold text-black dark:text-white">
+                  {t('admin.commissionImport.quotaReview.invoicesTitle', { rep: quotaInvoices.rep, month: `${monthName(quotaInvoices.month)} ${quotaInvoices.year}` })}
+                </h3>
+                <p className="text-sm text-body">{t('admin.commissionImport.quotaReview.invoicesSubtitle')}</p>
+              </div>
+              <div className="overflow-auto px-6 py-4">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-2 dark:bg-meta-4">
+                    <tr>
+                      <th className="px-2 py-2 text-left font-medium">{t('admin.commissionImport.quotaReview.invoiceNum')}</th>
+                      <th className="px-2 py-2 text-left font-medium">{t('admin.commissionImport.quotaReview.customer')}</th>
+                      <th className="px-2 py-2 text-right font-medium">{t('admin.commissionImport.quotaReview.wouldBe')}</th>
+                      <th className="px-2 py-2 text-right font-medium">{t('admin.commissionImport.quotaReview.forfeited')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {quotaInvoices.rows.map(row => (
+                      <tr key={row.invoice_number} className="border-t border-stroke dark:border-strokedark">
+                        <td className="px-2 py-2 text-black dark:text-white whitespace-nowrap">{row.invoice_number}</td>
+                        <td className="px-2 py-2 text-body">{row.customer}</td>
+                        <td className="px-2 py-2 text-right text-body whitespace-nowrap">{fmt(row.commission + row.forfeited)}</td>
+                        <td className="px-2 py-2 text-right font-semibold text-danger whitespace-nowrap">{fmt(row.forfeited)}</td>
+                      </tr>
+                    ))}
+                    {quotaInvoices.rows.length === 0 && (
+                      <tr><td colSpan={4} className="px-2 py-6 text-center text-body">{t('admin.commissionImport.quotaReview.invoicesEmpty')}</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1607,7 +1607,13 @@
         "payAnywayStarted": "Payment authorized — recalculating now, commissions will reappear shortly.",
         "updatePercent": "Update %",
         "partialBadge": "{{percent}}% paid",
-        "partialHint": "A partial pay-anyway override releases {{percent}}% of this month's commission; the rest stays forfeited."
+        "partialHint": "A partial pay-anyway override releases {{percent}}% of this month's commission; the rest stays forfeited.",
+        "invoicesTitle": "{{rep}} — {{month}}",
+        "invoicesSubtitle": "Invoices behind this month's forfeiture. \"Would-be\" is the full commission before the quota gate; \"Forfeited\" is the withheld portion.",
+        "invoiceNum": "Invoice",
+        "customer": "Customer",
+        "wouldBe": "Would-be",
+        "invoicesEmpty": "No invoices found for this rep and month."
       },
       "reconciliation": {
         "title": "Annual reconciliation",
