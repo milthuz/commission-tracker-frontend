@@ -1622,7 +1622,9 @@
         "logActionSet": "Set",
         "logActionRemoved": "Removed",
         "logBy": "By",
-        "logWhen": "When"
+        "logWhen": "When",
+        "uncommitConfirm": "Undo the payment for {{rep}} — {{month}}? The period's commissions go back to UNPAID (pending), so a waiver/recalc can reach them again.",
+        "uncommitDone": "Payment undone — {{count}} invoice(s) back to pending."
       },
       "reconciliation": {
         "title": "Annual reconciliation",

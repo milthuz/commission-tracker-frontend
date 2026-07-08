@@ -533,6 +533,26 @@ const CommissionImport: React.FC = () => {
     } catch (_e) { /* ignore */ }
   };
 
+  // Undo an app-generated "Mark Paid" commit (never touches a real imported pay file) — the
+  // period's invoices revert to pending so a waiver/recalc can actually reach them again.
+  const [stubBusy, setStubBusy] = useState(false);
+  const uncommitStub = async () => {
+    if (!stub) return;
+    const [year, month] = stub.period.split('-');
+    if (!(await dialog.confirm(t('admin.commissionImport.quotaReview.uncommitConfirm', { rep: stub.repName, month: `${monthName(parseInt(month))} ${year}` }) as string))) return;
+    setStubBusy(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/commissions/pay-stub/uncommit`,
+        { repName: stub.repName, year, month: parseInt(month) },
+        { headers: { Authorization: `Bearer ${token}` } });
+      dialog.alert(t('admin.commissionImport.quotaReview.uncommitDone', { count: res.data.reverted }) as string);
+      await openPeriodStub(stub.repName, stub.period);
+      await Promise.all([fetchCoverage(), fetchQuotaReview(quotaShowHistory)]);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to undo pay stub'); }
+    finally { setStubBusy(false); }
+  };
+
   // Per-month quota override from the matrix flow — backend kicks a recalc (~2 min).
   const waiveQuota = async (waived: boolean) => {
     if (!stub) return;
@@ -2232,7 +2252,7 @@ const CommissionImport: React.FC = () => {
       {subTab === 'deals' && <DealsAdmin />}
 
       {/* Pay Stub detail modal (shared component) */}
-      <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc onQuotaWaive={waiveQuota} onAdjusted={() => { fetchCoverage(); fetchAdjustments(); }} />
+      <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc onQuotaWaive={waiveQuota} onAdjusted={() => { fetchCoverage(); fetchAdjustments(); }} onUncommit={uncommitStub} committing={stubBusy} />
 
       {/* Quota-review: the raw invoices behind a rep×month's forfeiture */}
       {quotaInvoices && (

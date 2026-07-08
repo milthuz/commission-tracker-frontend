@@ -1622,7 +1622,9 @@
         "logActionSet": "Définie",
         "logActionRemoved": "Retirée",
         "logBy": "Par",
-        "logWhen": "Quand"
+        "logWhen": "Quand",
+        "uncommitConfirm": "Annuler le paiement de {{rep}} — {{month}} ? Les commissions de cette période redeviendront IMPAYÉES (en attente), pour qu'une dérogation/recalcul puisse à nouveau les atteindre.",
+        "uncommitDone": "Paiement annulé — {{count}} facture(s) redevenue(s) en attente."
       },
       "reconciliation": {
         "title": "Réconciliation annuelle",
