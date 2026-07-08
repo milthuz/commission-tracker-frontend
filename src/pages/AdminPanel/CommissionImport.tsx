@@ -1183,7 +1183,12 @@ const CommissionImport: React.FC = () => {
                       <tr key={quotaKey(r)} className="border-t border-stroke dark:border-strokedark">
                         <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{r.rep}</td>
                         <td className="px-3 py-2 text-body whitespace-nowrap">{monthName(r.month)} {r.year}</td>
-                        <td className="px-3 py-2 text-body whitespace-nowrap">{t('admin.commissionImport.quotaReview.invoiceCount', { count: r.invoices })}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <button onClick={() => openPeriodStub(r.rep, `${r.year}-${String(r.month).padStart(2, '0')}`)}
+                            className="text-body underline decoration-dotted hover:text-primary">
+                            {t('admin.commissionImport.quotaReview.invoiceCount', { count: r.invoices })}
+                          </button>
+                        </td>
                         <td className="px-3 py-2 text-right whitespace-nowrap">
                           <span className="font-semibold text-danger">{fmt(r.forfeited)}</span>
                           {r.waived && (
