@@ -12,6 +12,8 @@ export interface PayStubLine {
   paid_amount: number;
   app_commission: number | null;
   not_in_db?: boolean;       // paid per the file but the invoice predates our DB (pre-2025)
+  quota_partial?: boolean;   // this paid_amount is a quota-gate partial release, not the full amount
+  quota_forfeited?: number;  // the portion that stayed withheld
 }
 export interface PayStubBonus {
   bonus_type: string;
@@ -182,7 +184,7 @@ const PayStubModal: React.FC<{
     const linesHtml = data.lines.map((l, i) => `
       <tr${i % 2 ? ' class="alt"' : ''}>
         <td class="mono">${esc(l.invoice_number)}</td>
-        <td>${esc(l.customer) || '—'}${l.not_in_db ? ` <span class="pill">${tp('notInDb')}</span>` : ''}</td>
+        <td>${esc(l.customer) || '—'}${l.not_in_db ? ` <span class="pill">${tp('notInDb')}</span>` : ''}${l.quota_partial ? ` <span class="pill">${tp('missedQuotaPartialBadge')} — ${fmt(l.quota_forfeited || 0)} ${tp('missedQuotaPartialPillSuffix')}</span>` : ''}</td>
         <td class="num">${fmt(l.paid_amount)}</td>
       </tr>`).join('');
     const bonusHtml = bonusRows.map((b, i) => `
@@ -448,7 +450,15 @@ const PayStubModal: React.FC<{
                               </span>
                             )}
                           </td>
-                          <td className="px-3 py-2 text-right font-semibold text-black dark:text-white">{fmt(l.paid_amount)}</td>
+                          <td className="px-3 py-2 text-right font-semibold text-black dark:text-white whitespace-nowrap">
+                            {fmt(l.paid_amount)}
+                            {l.quota_partial && (
+                              <span className="ml-1.5 inline-block rounded bg-primary bg-opacity-10 px-1 py-0.5 text-[10px] font-bold text-primary"
+                                title={tpp('missedQuotaPartialHint', { forfeited: fmt(l.quota_forfeited || 0) })}>
+                                {tp('missedQuotaPartialBadge')}
+                              </span>
+                            )}
+                          </td>
                           {showApp && (
                             <td className={`px-3 py-2 text-right ${diff ? 'font-medium text-danger' : 'text-body'}`}>
                               {l.not_in_db || l.app_commission == null ? '—' : fmt(l.app_commission)}{diff ? ' ⚠' : ''}
