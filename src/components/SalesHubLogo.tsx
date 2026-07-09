@@ -87,8 +87,8 @@ export default function SalesHubLogo({
     <div className={`flex items-center ${gap} ${className}`}>
       <Glyph className={`${iconSize} shrink-0 ${textClassName}`} />
       <div className="min-w-0">
-        <span className={`block whitespace-nowrap ${titleSize} font-bold tracking-tight ${textClassName}`}>Sales Hub</span>
-        <p className={`mt-0.5 flex items-center gap-1 whitespace-nowrap ${subSize} ${mutedClass}`}>
+        <span className={`block whitespace-nowrap leading-none ${titleSize} font-bold tracking-tight ${textClassName}`}>Sales Hub</span>
+        <p className={`mt-1 flex items-center gap-1 whitespace-nowrap leading-none ${subSize} ${mutedClass}`}>
           by <span className={`font-bold ${textClassName}`}>cluster</span>
           <span className={`inline-block shrink-0 rounded-full bg-[#F58345] ${dotSize}`} />
         </p>
