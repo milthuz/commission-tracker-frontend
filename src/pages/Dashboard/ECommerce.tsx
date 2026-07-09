@@ -40,7 +40,6 @@ const ECommerce: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [syncStatus, setSyncStatus] = useState<string | null>(null);
   // Zoho Billing board metrics (MRR/ARPU/active/churn/LTV) — fetched once, point-in-time.
   type OrgMetrics = { orgId: string; name: string; mrr: number; arr: number; activeSubs: number; arpu: number; churned: number; churnRate: number; ltv: number };
   const [billing, setBilling] = useState<{ mrr: number; arr: number; activeSubs: number; arpu: number; churnedThisMonth: number; churnRate: number; ltv: number; orgCount: number; perOrg: OrgMetrics[] } | null>(null);
@@ -81,30 +80,6 @@ const ECommerce: React.FC = () => {
       setError(err.response?.data?.error || 'Failed to load dashboard');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const triggerSync = async () => {
-    try {
-      setSyncStatus('syncing');
-      const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_URL}/api/invoices/incremental-sync`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      if (response.data.needsBulkImport) {
-        setSyncStatus('needs_import');
-      } else {
-        setSyncStatus(`done_${response.data.totalSynced || 0}`);
-        // Refresh dashboard after sync
-        setTimeout(() => {
-          fetchDashboard();
-          setSyncStatus(null);
-        }, 2000);
-      }
-    } catch (err) {
-      setSyncStatus('error');
-      setTimeout(() => setSyncStatus(null), 3000);
     }
   };
 
@@ -172,44 +147,13 @@ const ECommerce: React.FC = () => {
 
   return (
     <>
-      {/* Header with year selector and sync */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-black dark:text-white">
-            {t('dashboard.title')}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('dashboard.subtitle')}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Sync Button */}
-          <button
-            onClick={triggerSync}
-            disabled={syncStatus === 'syncing'}
-            className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2 text-sm font-medium text-black shadow-sm hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:text-white dark:hover:bg-meta-4 disabled:opacity-50"
-          >
-            <svg className={`h-4 w-4 ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            {syncStatus === 'syncing' ? t('dashboard.syncing') : 
-             syncStatus?.startsWith('done_') ? `✓ ${syncStatus.split('_')[1]} ${t('dashboard.synced')}` :
-             syncStatus === 'needs_import' ? t('dashboard.fullImportNeeded') :
-             syncStatus === 'error' ? t('dashboard.syncFailed') :
-             t('dashboard.syncNow')}
-          </button>
-
-          {/* Year Selector */}
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="rounded-lg border border-stroke bg-white px-4 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white"
-          >
-            {/* Data starts Jan 2025 — list current year down to 2025 only */}
-            {[...Array(new Date().getFullYear() - 2024)].map((_, i) => {
-              const y = new Date().getFullYear() - i;
-              return <option key={y} value={y}>{y}</option>;
-            })}
-          </select>
-        </div>
+      {/* Header — everything below is live/current, so no page-level date control here
+          (the year picker only governs the trend chart further down, and lives next to it). */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-black dark:text-white">
+          {t('dashboard.title')}
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('dashboard.subtitle')}</p>
       </div>
 
       {/* ====== Action items (admin) ====== */}
@@ -327,8 +271,19 @@ const ECommerce: React.FC = () => {
         <div className="col-span-12 rounded-sm border border-stroke bg-white px-5 pt-7.5 pb-5 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="mb-3 flex items-center justify-between">
             <h5 className="text-xl font-semibold text-black dark:text-white">
-              {t('dashboard.monthlyRevenueTrend')} — {selectedYear}
+              {t('dashboard.monthlyRevenueTrend')}
             </h5>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              className="rounded-lg border border-stroke bg-white px-3 py-1.5 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white"
+            >
+              {/* Data starts Jan 2025 — list current year down to 2025 only */}
+              {[...Array(new Date().getFullYear() - 2024)].map((_, i) => {
+                const y = new Date().getFullYear() - i;
+                return <option key={y} value={y}>{y}</option>;
+              })}
+            </select>
           </div>
           <div>
             <ReactApexChart
