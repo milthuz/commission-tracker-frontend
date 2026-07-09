@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import MarkDark from '../images/logo/saleshub-mark-dark.svg';
 import MarkLight from '../images/logo/saleshub-mark-light.svg';
 import StackedDark from '../images/logo/saleshub-lockup-stacked-dark.svg';
@@ -47,6 +48,7 @@ export default function SalesHubLogo({
   className?: string;
   textClassName?: string;
 }) {
+  const { t } = useTranslation();
   const mark = tone === 'dark' ? MarkDark : MarkLight;
   const mutedClass = textClassName.includes('white') ? 'text-[#8a99af]' : 'text-[#575a61]';
 
@@ -89,7 +91,7 @@ export default function SalesHubLogo({
       <div className="min-w-0">
         <span className={`block whitespace-nowrap leading-none ${titleSize} font-bold tracking-tight ${textClassName}`}>Sales Hub</span>
         <p className={`mt-1 flex items-center gap-1 whitespace-nowrap leading-none ${subSize} ${mutedClass}`}>
-          by <span className={`font-bold ${textClassName}`}>cluster</span>
+          {t('brand.by')} <span className={`font-bold ${textClassName}`}>cluster</span>
           <span className={`inline-block shrink-0 rounded-full bg-[#F58345] ${dotSize}`} />
         </p>
       </div>

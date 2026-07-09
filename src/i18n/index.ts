@@ -3,8 +3,18 @@ import { initReactI18next } from 'react-i18next';
 import en from './en.json';
 import fr from './fr.json';
 
-// Get saved language from localStorage or default to 'en'
-const savedLanguage = localStorage.getItem('language') || 'en';
+// First-ever visit (nothing saved yet, e.g. the anonymous login page): guess from the browser's
+// own language list rather than hardcoding 'en' — a French-Windows/French-Chrome visitor should
+// land in French by default (user request 2026-07-09). Once logged in, Profile's saved
+// preference (below) takes over and overrides this guess.
+const detectBrowserLanguage = (): string => {
+  const langs = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]) || [];
+  return langs.some((l) => l?.toLowerCase().startsWith('fr')) ? 'fr' : 'en';
+};
+
+// Get saved language from localStorage or fall back to the browser-detected guess.
+const savedLanguage = localStorage.getItem('language') || detectBrowserLanguage();
+if (!localStorage.getItem('language')) localStorage.setItem('language', savedLanguage);
 
 i18n
   .use(initReactI18next)
