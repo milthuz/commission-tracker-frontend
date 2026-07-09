@@ -148,9 +148,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         <div className={`flex items-center ${collapsed ? 'flex-col gap-1.5' : 'gap-3'}`}>
           <NavLink to="/" className="flex items-center" title={collapsed ? `Sales Hub v${appVersion}` : undefined}>
             {collapsed ? (
-              <SalesHubLogo variant="mark" className="h-9 w-9" />
+              <SalesHubLogo variant="glyph" className="h-9 w-9" textClassName="text-white" />
             ) : (
-              <SalesHubLogo variant="horizontal" className="h-8" textClassName="text-white" />
+              <SalesHubLogo variant="horizontal" className="h-9" textClassName="text-white" />
             )}
           </NavLink>
           {collapsed ? (

@@ -104,12 +104,9 @@ const ZohoLogin = () => {
       {/* Left — brand panel */}
       <div className="relative hidden w-1/2 flex-col bg-[#0f1722] lg:flex">
         <div className="px-12 py-10">
-          <SalesHubLogo variant="mark" className="h-9 w-9" />
+          <SalesHubLogo variant="lockup" textClassName="text-white" />
         </div>
         <div className="flex flex-1 flex-col items-center justify-center px-16 pb-24 text-center">
-          <p className="mb-6 text-sm font-semibold uppercase tracking-[0.25em] text-[#8a99af]">
-            Sales Hub
-          </p>
           <h1 className="mb-6 max-w-lg text-5xl font-bold leading-tight text-white">
             {t('auth.tagline')}
           </h1>
@@ -125,8 +122,8 @@ const ZohoLogin = () => {
       {/* Right — form panel */}
       <div className="flex w-full flex-col items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2 lg:w-1/2">
         {/* Mobile-only logo */}
-        <div className="mb-8 rounded-xl bg-[#0f1722] px-6 py-4 lg:hidden">
-          <SalesHubLogo variant="mark" className="h-8 w-8" />
+        <div className="mb-8 rounded-xl bg-[#0f1722] px-6 py-5 lg:hidden">
+          <SalesHubLogo variant="lockup" textClassName="text-white" />
         </div>
 
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl dark:bg-boxdark sm:p-10">
