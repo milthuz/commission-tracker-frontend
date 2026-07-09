@@ -37,11 +37,13 @@ function Glyph({ className }: { className?: string }) {
 export default function SalesHubLogo({
   variant = 'mark',
   tone = 'dark',
+  size = 'lg',
   className = '',
   textClassName = 'text-white',
 }: {
   variant?: Variant;
   tone?: Tone;
+  size?: 'sm' | 'lg';
   className?: string;
   textClassName?: string;
 }) {
@@ -64,7 +66,7 @@ export default function SalesHubLogo({
     return (
       <div className={`flex items-center gap-2.5 ${className} ${textClassName}`}>
         <Glyph className="h-full w-auto shrink-0" />
-        <span className="text-lg font-bold tracking-tight">Sales Hub</span>
+        <span className="whitespace-nowrap text-lg font-bold tracking-tight">Sales Hub</span>
       </div>
     );
   }
@@ -72,14 +74,20 @@ export default function SalesHubLogo({
   // lockup — "by cluster" sits in the SAME text column as "Sales Hub" (indented past the icon),
   // not flush with the icon's left edge — it reads as part of the wordmark, not a stray caption
   // floating under the icon (user feedback 2026-07-09: "j'aime le concept, juste pas l'alignement").
+  // size='sm' is the same composition scaled down for tight nav contexts (sidebar).
+  const iconSize = size === 'sm' ? 'h-7 w-7' : 'h-10 w-10';
+  const titleSize = size === 'sm' ? 'text-lg' : 'text-3xl';
+  const subSize = size === 'sm' ? 'text-[11px]' : 'text-sm';
+  const gap = size === 'sm' ? 'gap-2' : 'gap-3';
+  const dotSize = size === 'sm' ? 'h-[5px] w-[5px]' : 'h-[6px] w-[6px]';
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <Glyph className={`h-10 w-10 shrink-0 ${textClassName}`} />
-      <div>
-        <span className={`block text-3xl font-bold tracking-tight ${textClassName}`}>Sales Hub</span>
-        <p className={`mt-1 flex items-center gap-1.5 text-sm ${mutedClass}`}>
+    <div className={`flex items-center ${gap} ${className}`}>
+      <Glyph className={`${iconSize} shrink-0 ${textClassName}`} />
+      <div className="min-w-0">
+        <span className={`block whitespace-nowrap ${titleSize} font-bold tracking-tight ${textClassName}`}>Sales Hub</span>
+        <p className={`mt-0.5 flex items-center gap-1 whitespace-nowrap ${subSize} ${mutedClass}`}>
           by <span className={`font-bold ${textClassName}`}>cluster</span>
-          <span className="inline-block h-[6px] w-[6px] shrink-0 rounded-full bg-[#F58345]" />
+          <span className={`inline-block shrink-0 rounded-full bg-[#F58345] ${dotSize}`} />
         </p>
       </div>
     </div>

@@ -150,7 +150,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             {collapsed ? (
               <SalesHubLogo variant="glyph" className="h-9 w-9" textClassName="text-white" />
             ) : (
-              <SalesHubLogo variant="horizontal" className="h-9" textClassName="text-white" />
+              <SalesHubLogo variant="lockup" size="sm" textClassName="text-white" />
             )}
           </NavLink>
           {collapsed ? (
