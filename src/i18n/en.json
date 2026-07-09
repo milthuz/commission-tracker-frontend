@@ -910,6 +910,7 @@
       "missedHint": "Unlocked per the app's model but not covered by any payment — verify whether these were forgotten. Not included in the total above.",
       "missedSubtotal": "Unpaid subtotal",
       "missedQuotaPartialBadge": "Quota override",
+      "missedQuotaPartialBadgePct": "Quota override ({{percent}}%)",
       "missedQuotaPartialHint": "Released by a partial quota-gate override — {{forfeited}} of the original commission stays withheld.",
       "missedQuotaPartialNote": "Some of these are quota-gate overrides, not forgotten payments — the app deliberately released only part of the commission; use Carry Forward to actually pay it.",
       "missedQuotaPartialPillSuffix": "withheld",

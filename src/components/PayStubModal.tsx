@@ -162,6 +162,11 @@ const PayStubModal: React.FC<{
 
   const tp = (k: string) => t(`commissionReport.payStub.${k}`);
   const tpp = (k: string, opts: Record<string, unknown>) => t(`commissionReport.payStub.${k}`, opts) as string;
+  // % of the full commission actually released by the quota-gate override (paid / (paid + forfeited)).
+  const quotaPct = (paid: number, forfeited?: number) => {
+    const total = paid + (forfeited || 0);
+    return total > 0 ? Math.round((paid / total) * 100) : 0;
+  };
 
   // Branded, print-optimized pay-stub document (opens in a new window, auto-prints).
   const printStub = () => {
@@ -184,7 +189,7 @@ const PayStubModal: React.FC<{
     const linesHtml = data.lines.map((l, i) => `
       <tr${i % 2 ? ' class="alt"' : ''}>
         <td class="mono">${esc(l.invoice_number)}</td>
-        <td>${esc(l.customer) || '—'}${l.not_in_db ? ` <span class="pill">${tp('notInDb')}</span>` : ''}${l.quota_partial ? ` <span class="pill">${tp('missedQuotaPartialBadge')} — ${fmt(l.quota_forfeited || 0)} ${tp('missedQuotaPartialPillSuffix')}</span>` : ''}</td>
+        <td>${esc(l.customer) || '—'}${l.not_in_db ? ` <span class="pill">${tp('notInDb')}</span>` : ''}${l.quota_partial ? ` <span class="pill">${tpp('missedQuotaPartialBadgePct', { percent: quotaPct(l.paid_amount, l.quota_forfeited) })} — ${fmt(l.quota_forfeited || 0)} ${tp('missedQuotaPartialPillSuffix')}</span>` : ''}</td>
         <td class="num">${fmt(l.paid_amount)}</td>
       </tr>`).join('');
     const bonusHtml = bonusRows.map((b, i) => `
@@ -455,7 +460,7 @@ const PayStubModal: React.FC<{
                             {l.quota_partial && (
                               <span className="ml-1.5 inline-block rounded bg-primary bg-opacity-10 px-1 py-0.5 text-[10px] font-bold text-primary"
                                 title={tpp('missedQuotaPartialHint', { forfeited: fmt(l.quota_forfeited || 0) })}>
-                                {tp('missedQuotaPartialBadge')}
+                                {tpp('missedQuotaPartialBadgePct', { percent: quotaPct(l.paid_amount, l.quota_forfeited) })}
                               </span>
                             )}
                           </td>
@@ -589,7 +594,7 @@ const PayStubModal: React.FC<{
                               {m.quotaPartial && (
                                 <span className="ml-1.5 inline-block rounded bg-primary bg-opacity-10 px-1 py-0.5 text-[10px] font-bold text-primary"
                                   title={tpp('missedQuotaPartialHint', { forfeited: fmt(m.quotaForfeited || 0) })}>
-                                  {tp('missedQuotaPartialBadge')}
+                                  {tpp('missedQuotaPartialBadgePct', { percent: quotaPct(m.app_commission, m.quotaForfeited) })}
                                 </span>
                               )}
                             </td>
