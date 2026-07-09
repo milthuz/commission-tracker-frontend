@@ -4,6 +4,10 @@
     "privacyTitle": "Privacy Policy",
     "backToLogin": "Back to login"
   },
+  "activity": {
+    "error": "Failed to load activity.",
+    "empty": "No activity yet."
+  },
   "auth": {
     "tagline": "Track sales. Pay commissions. Stay in sync.",
     "taglineSub": "The Cluster Systems portal for sales, commissions and payouts — one source of truth for the whole team.",
@@ -892,6 +896,8 @@
       "emailSending": "Sending…",
       "emailSent": "Pay stub emailed.",
       "close": "Close",
+      "invoiceDetails": "Details",
+      "invoiceActivity": "Activity",
       "loading": "Building pay stub…",
       "noData": "No commissions or bonuses for this rep in this period.",
       "sourceImported": "From imported file",

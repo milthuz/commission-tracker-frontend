@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../lib/dialog';
 import ProbationBadge from './ProbationBadge';
+import ActivityTimeline from './ActivityTimeline';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -71,6 +72,8 @@ const PayStubModal: React.FC<{
   const [adjBusy, setAdjBusy] = useState(false);
   // Invoice PDF preview (click an invoice number) — same endpoint the Commission Report uses.
   const [invPreview, setInvPreview] = useState<{ num: string; loading: boolean } | null>(null);
+  const [invPreviewTab, setInvPreviewTab] = useState<'details' | 'activity'>('details');
+  const openInvPreview = (num: string) => { setInvPreviewTab('details'); setInvPreview({ num, loading: true }); };
   if (!data) return null;
   const showApp = !!showAppCalc && data.source === 'imported';
   // Adjustments (corrections on past periods) are shown in their OWN section, not with bonuses.
@@ -441,7 +444,7 @@ const PayStubModal: React.FC<{
                       return (
                         <tr key={l.invoice_number} className="border-t border-stroke dark:border-strokedark">
                           <td className="px-3 py-2">
-                            <button onClick={() => setInvPreview({ num: l.invoice_number, loading: true })}
+                            <button onClick={() => openInvPreview(l.invoice_number)}
                               title={tp('viewInvoice') as string}
                               className="font-medium text-primary hover:underline">
                               {l.invoice_number}
@@ -582,7 +585,7 @@ const PayStubModal: React.FC<{
                         {data.missed.map((m) => (
                           <tr key={m.invoice_number} className="border-t border-stroke dark:border-strokedark">
                             <td className="px-3 py-2">
-                              <button onClick={() => setInvPreview({ num: m.invoice_number, loading: true })}
+                              <button onClick={() => openInvPreview(m.invoice_number)}
                                 title={tp('viewInvoice') as string}
                                 className="font-medium text-primary hover:underline">
                                 {m.invoice_number}
@@ -675,24 +678,42 @@ const PayStubModal: React.FC<{
           <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark"
             onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
-              <p className="font-semibold text-black dark:text-white">{invPreview.num}</p>
+              <div className="flex items-center gap-4">
+                <p className="font-semibold text-black dark:text-white">{invPreview.num}</p>
+                <div className="flex gap-1 rounded-md bg-gray-2 p-0.5 dark:bg-meta-4">
+                  <button onClick={() => setInvPreviewTab('details')}
+                    className={`rounded px-3 py-1 text-xs font-medium transition ${invPreviewTab === 'details' ? 'bg-white text-black shadow-sm dark:bg-boxdark dark:text-white' : 'text-body'}`}>
+                    {tp('invoiceDetails')}
+                  </button>
+                  <button onClick={() => setInvPreviewTab('activity')}
+                    className={`rounded px-3 py-1 text-xs font-medium transition ${invPreviewTab === 'activity' ? 'bg-white text-black shadow-sm dark:bg-boxdark dark:text-white' : 'text-body'}`}>
+                    {tp('invoiceActivity')}
+                  </button>
+                </div>
+              </div>
               <button onClick={() => setInvPreview(null)} title={tp('close') as string}
                 className="text-body transition hover:text-danger">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="relative flex-1 bg-white">
-              {invPreview.loading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
-                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                </div>
+            <div className="relative flex-1 overflow-y-auto bg-white dark:bg-boxdark">
+              {invPreviewTab === 'details' ? (
+                <>
+                  {invPreview.loading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
+                      <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                    </div>
+                  )}
+                  <iframe
+                    src={`${API_URL}/api/invoices/${invPreview.num}/preview?token=${localStorage.getItem('token')}`}
+                    className="h-full w-full border-0"
+                    title="Invoice preview"
+                    onLoad={() => setInvPreview(p => (p ? { ...p, loading: false } : p))}
+                  />
+                </>
+              ) : (
+                <ActivityTimeline entityType="invoice" entityId={invPreview.num} />
               )}
-              <iframe
-                src={`${API_URL}/api/invoices/${invPreview.num}/preview?token=${localStorage.getItem('token')}`}
-                className="h-full w-full border-0"
-                title="Invoice preview"
-                onLoad={() => setInvPreview(p => (p ? { ...p, loading: false } : p))}
-              />
             </div>
           </div>
         </div>

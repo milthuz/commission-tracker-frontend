@@ -4,6 +4,10 @@
     "privacyTitle": "Politique de confidentialité",
     "backToLogin": "Retour à la connexion"
   },
+  "activity": {
+    "error": "Impossible de charger l'activité.",
+    "empty": "Aucune activité pour le moment."
+  },
   "auth": {
     "tagline": "Suivez les ventes. Payez les commissions. Restez synchro.",
     "taglineSub": "Le portail Cluster Systems pour les ventes, commissions et paiements — une seule source de vérité pour toute l'équipe.",
@@ -892,6 +896,8 @@
       "emailSending": "Envoi…",
       "emailSent": "Bulletin envoyé par courriel.",
       "close": "Fermer",
+      "invoiceDetails": "Détails",
+      "invoiceActivity": "Activité",
       "loading": "Génération du bulletin…",
       "noData": "Aucune commission ni bonus pour ce rep sur cette période.",
       "sourceImported": "Depuis le fichier importé",
