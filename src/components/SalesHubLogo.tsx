@@ -78,7 +78,7 @@ export default function SalesHubLogo({
   const iconSize = size === 'sm' ? 'h-7 w-7' : 'h-10 w-10';
   const titleSize = size === 'sm' ? 'text-lg' : 'text-3xl';
   const subSize = size === 'sm' ? 'text-[11px]' : 'text-sm';
-  const gap = size === 'sm' ? 'gap-2' : 'gap-3';
+  const gap = size === 'sm' ? 'gap-1' : 'gap-3';
   const dotSize = size === 'sm' ? 'h-[5px] w-[5px]' : 'h-[6px] w-[6px]';
   return (
     <div className={`flex items-center ${gap} ${className}`}>
