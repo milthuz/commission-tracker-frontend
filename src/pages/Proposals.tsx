@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { dialog } from '../lib/dialog';
 import { formatDateOnly } from '../utils/date';
 import PdfThumbPreview from './PdfThumbPreview';
+import ActivityTimeline from '../components/ActivityTimeline';
 
 const b64ToBytes = (b64: string) => {
   const bin = atob(b64); const arr = new Uint8Array(bin.length);
@@ -36,6 +37,7 @@ const Proposals: React.FC = () => {
   const [sent, setSent] = useState<SentRow[]>([]);
   const [sentLoading, setSentLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [activityFor, setActivityFor] = useState<{ estimateId: string; number: string } | null>(null);
 
   // Builder state (when an estimate is selected)
   const [sel, setSel] = useState<Estimate | null>(null);
@@ -267,7 +269,7 @@ const Proposals: React.FC = () => {
                       <th className="px-4 py-3 text-left font-medium">{t('proposals.to')}</th>
                       <th className="px-4 py-3 text-left font-medium">{t('proposals.colEmail')}</th>
                       <th className="px-4 py-3 text-left font-medium">{t('proposals.colStatus')}</th>
-                      {isAdmin && <th className="px-4 py-3"></th>}
+                      <th className="px-4 py-3"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -315,13 +317,18 @@ const Proposals: React.FC = () => {
                             <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${b.cls}`}>{b.label}</span>
                             {detail && <span className="ml-2 text-xs text-gray-400">{detail}</span>}
                           </td>
-                          {isAdmin && (
-                            <td className="px-4 py-2.5 text-right">
-                              <button onClick={() => deleteSent(r)} title={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger">
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          <td className="px-4 py-2.5 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button onClick={() => setActivityFor({ estimateId: r.estimateId, number: r.number })} title={t('activity.title') as string} className="rounded-lg p-1.5 text-body hover:text-primary">
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                               </button>
-                            </td>
-                          )}
+                              {isAdmin && (
+                                <button onClick={() => deleteSent(r)} title={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger">
+                                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                              )}
+                            </div>
+                          </td>
                         </tr>
                       );
                     })}
@@ -331,6 +338,24 @@ const Proposals: React.FC = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* Activity modal */}
+      {activityFor && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setActivityFor(null)}>
+          <div className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-stroke bg-white shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
+              <div>
+                <p className="text-sm font-semibold text-black dark:text-white">{t('activity.title')}</p>
+                <p className="text-xs text-gray-400">{activityFor.number}</p>
+              </div>
+              <button onClick={() => setActivityFor(null)} className="rounded-lg p-1.5 text-body hover:bg-gray-1 dark:hover:bg-meta-4"><svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+            <div className="overflow-y-auto">
+              <ActivityTimeline entityType="proposal" entityId={activityFor.estimateId} />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Builder modal */}

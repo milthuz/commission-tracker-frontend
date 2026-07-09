@@ -42,6 +42,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   // rail shows a red counter when there's something to fix. Server-cached 60s; we refresh
   // every 2 min. Only fetched for users who can see the page.
   const canHealth = isAdmin || can('admin:data_health');
+  const canAudit = isAdmin || can('admin:audit_dashboard') || can('admin:audit_logs');
   const [healthCount, setHealthCount] = useState<number>(0);
   useEffect(() => {
     if (!canHealth) return;
@@ -461,6 +462,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                               {healthCount}
                             </span>
                           )}
+                        </NavLink>
+                      </li>
+                    )}
+                    {canAudit && (
+                      <li>
+                        <NavLink
+                          to="/admin/audit"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname === '/admin/audit' ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('sidebar.audit')}
                         </NavLink>
                       </li>
                     )}

@@ -14,6 +14,7 @@ import NotificationsAdmin from './NotificationsAdmin';
 import ProbationBadge from '../../components/ProbationBadge';
 import ResourcesAdmin from './ResourcesAdmin';
 import DataHealth from './DataHealth';
+import Audit from './Audit';
 import SavingsPricingAdmin from './SavingsPricingAdmin';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
@@ -1466,6 +1467,7 @@ const AdminPanel = () => {
              activeTab === 'merchant-links' ? t('admin.merchantLinks.title') :
              activeTab === 'data-health' ? t('dataHealth.title') :
              activeTab === 'savings-pricing' ? t('savingsPricing.title') :
+             activeTab === 'audit' ? t('admin.audit.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1482,6 +1484,7 @@ const AdminPanel = () => {
              activeTab === 'merchant-links' ? t('admin.merchantLinks.subtitle') :
              activeTab === 'data-health' ? t('dataHealth.subtitle') :
              activeTab === 'savings-pricing' ? t('savingsPricing.subtitle') :
+             activeTab === 'audit' ? t('admin.audit.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -1500,6 +1503,7 @@ const AdminPanel = () => {
 
       {/* Content */}
           {activeTab === 'data-health' && <DataHealth />}
+          {activeTab === 'audit' && <Audit />}
           {activeTab === 'savings-pricing' && <SavingsPricingAdmin />}
           {activeTab === 'sync' && (
             <>

@@ -73,6 +73,7 @@ const PayStubModal: React.FC<{
   // Invoice PDF preview (click an invoice number) — same endpoint the Commission Report uses.
   const [invPreview, setInvPreview] = useState<{ num: string; loading: boolean } | null>(null);
   const [invPreviewTab, setInvPreviewTab] = useState<'details' | 'activity'>('details');
+  const [repActivityOpen, setRepActivityOpen] = useState(false);
   const openInvPreview = (num: string) => { setInvPreviewTab('details'); setInvPreview({ num, loading: true }); };
   if (!data) return null;
   const showApp = !!showAppCalc && data.source === 'imported';
@@ -356,6 +357,13 @@ const PayStubModal: React.FC<{
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" /></svg>
                 {tp('pdf')}
               </button>
+              {showAppCalc && (
+                <button onClick={() => setRepActivityOpen(true)} title={tp('repActivity') as string}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium text-body transition hover:border-primary hover:text-primary dark:border-strokedark">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  {tp('repActivity')}
+                </button>
+              )}
             </div>
             {emailOpen && (
               <div className="flex items-center gap-2">
@@ -715,6 +723,29 @@ const PayStubModal: React.FC<{
               ) : (
                 <ActivityTimeline entityType="invoice" entityId={invPreview.num} />
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rep-level activity — quota waivers, manual bonuses, adjustments, commits for this rep,
+          not tied to one invoice. Admin/audit-only, same as the App-calc/missed-radar columns. */}
+      {repActivityOpen && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-60 p-4"
+          onClick={(e) => { e.stopPropagation(); setRepActivityOpen(false); }}>
+          <div className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
+              <div>
+                <p className="font-semibold text-black dark:text-white">{tp('repActivity')}</p>
+                <p className="text-xs text-gray-400">{data.repName}</p>
+              </div>
+              <button onClick={() => setRepActivityOpen(false)} title={tp('close') as string} className="text-body transition hover:text-danger">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto">
+              <ActivityTimeline entityType="rep_pay" entityId={data.repName} />
             </div>
           </div>
         </div>
