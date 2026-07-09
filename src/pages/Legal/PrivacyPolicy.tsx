@@ -94,7 +94,7 @@ const PrivacyPolicy = () => {
       <div className="mx-auto w-full max-w-3xl">
         <div className="overflow-hidden rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between gap-4 border-b border-stroke px-6 py-5 dark:border-strokedark">
-            <SalesHubLogo variant="mark" className="h-8 w-8" />
+            <SalesHubLogo variant="horizontal" className="h-7" textClassName="text-black dark:text-white" />
             <div className="flex items-center gap-5">
               <Link to="/terms" className="text-sm font-medium text-primary hover:underline">
                 {t('legal.termsTitle')}

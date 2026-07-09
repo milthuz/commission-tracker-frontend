@@ -69,17 +69,19 @@ export default function SalesHubLogo({
     );
   }
 
-  // lockup
+  // lockup — "by cluster" sits in the SAME text column as "Sales Hub" (indented past the icon),
+  // not flush with the icon's left edge — it reads as part of the wordmark, not a stray caption
+  // floating under the icon (user feedback 2026-07-09: "j'aime le concept, juste pas l'alignement").
   return (
-    <div className={className}>
-      <div className={`flex items-center gap-3 ${textClassName}`}>
-        <Glyph className="h-10 w-10 shrink-0" />
-        <span className="text-3xl font-bold tracking-tight">Sales Hub</span>
+    <div className={`flex items-center gap-3 ${className}`}>
+      <Glyph className={`h-10 w-10 shrink-0 ${textClassName}`} />
+      <div>
+        <span className={`block text-3xl font-bold tracking-tight ${textClassName}`}>Sales Hub</span>
+        <p className={`mt-1 flex items-center gap-1.5 text-sm ${mutedClass}`}>
+          by <span className={`font-bold ${textClassName}`}>cluster</span>
+          <span className="inline-block h-[6px] w-[6px] shrink-0 rounded-full bg-[#F58345]" />
+        </p>
       </div>
-      <p className={`mt-2 flex items-center gap-1.5 text-sm ${mutedClass}`}>
-        by <span className={`font-bold ${textClassName}`}>cluster</span>
-        <span className="inline-block h-[6px] w-[6px] shrink-0 rounded-full bg-[#F58345]" />
-      </p>
     </div>
   );
 }
