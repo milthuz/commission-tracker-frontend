@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
-import ClusterLogo from '../../images/logo/cluster-on-light.svg';
+import SalesHubLogo from '../../components/SalesHubLogo';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -96,7 +96,7 @@ const AcceptInvite = () => {
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2">
       <div className="w-full max-w-md">
         <div className="mb-6 flex justify-center">
-          <img src={ClusterLogo} alt="Cluster" className="h-9 w-auto" />
+          <SalesHubLogo variant="stacked" tone="light" className="h-24 w-auto" />
         </div>
         <div className="rounded-2xl bg-white p-8 shadow-xl dark:bg-boxdark sm:p-10">
           {step === 'loading' && (

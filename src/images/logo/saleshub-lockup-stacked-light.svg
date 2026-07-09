@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 168" fill="none">
+  <rect x="92" y="8" width="56" height="56" rx="14" fill="#141414"></rect>
+  <g transform="translate(92,8) scale(0.875)">
+    <path d="M42 24 C42 18 24 18 24 26 C24 32.5 42 32 42 40 C42 48 24 48 23 41" stroke="#FFFFFF" stroke-width="6" fill="none" stroke-linecap="round"></path>
+    <circle cx="42" cy="24" r="4.5" fill="#F58345"></circle>
+  </g>
+  <text x="120" y="104" text-anchor="middle" font-family="Satoshi, system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700" font-size="27" letter-spacing="-0.5" fill="#141414">Sales Hub</text>
+  <g transform="translate(85,130)">
+    <text x="0" y="0" text-anchor="start" font-family="Satoshi, system-ui, -apple-system, Segoe UI, sans-serif" font-size="14" fill="#575A61"><tspan font-weight="500">by </tspan><tspan font-weight="700" fill="#141414">cluster</tspan></text>
+    <circle cx="69" cy="-4" r="2.6" fill="#F58345"></circle>
+  </g>
+</svg>

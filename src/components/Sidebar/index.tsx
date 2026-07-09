@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import ClusterLogo from '../../images/logo/cluster-on-dark.svg';
-import ClusterMark from '../../images/logo/cluster-mark.svg';
+import SalesHubLogo from '../SalesHubLogo';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import NewBadge from '../NewBadge';
 import { useNewFeatures } from '../../context/NewFeaturesContext';
@@ -147,12 +146,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       {/* <!-- SIDEBAR HEADER --> */}
       <div className={`flex items-center gap-2 py-5.5 lg:py-6.5 ${collapsed ? 'flex-col justify-center px-2 gap-1.5' : 'justify-between px-6'}`}>
         <div className={`flex items-center ${collapsed ? 'flex-col gap-1.5' : 'gap-3'}`}>
-          <NavLink to="/" className="flex items-center" title={collapsed ? `Cluster v${appVersion}` : undefined}>
-            <img
-              src={collapsed ? ClusterMark : ClusterLogo}
-              alt="Cluster"
-              className={collapsed ? 'h-9 w-9' : 'h-8 w-auto'}
-            />
+          <NavLink to="/" className="flex items-center" title={collapsed ? `Sales Hub v${appVersion}` : undefined}>
+            {collapsed ? (
+              <SalesHubLogo variant="mark" className="h-9 w-9" />
+            ) : (
+              <SalesHubLogo variant="horizontal" className="h-8" textClassName="text-white" />
+            )}
           </NavLink>
           {collapsed ? (
             <NavLink to="/versions" className="flex flex-col items-center gap-0.5 hover:opacity-80 transition" title={`v${appVersion}`}>

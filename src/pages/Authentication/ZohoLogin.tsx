@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
-import ClusterDark from '../../images/logo/cluster-on-dark.svg';
+import SalesHubLogo from '../../components/SalesHubLogo';
 import { useAppVersion } from '../../hooks/useAppVersion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
@@ -104,7 +104,7 @@ const ZohoLogin = () => {
       {/* Left — brand panel */}
       <div className="relative hidden w-1/2 flex-col bg-[#0f1722] lg:flex">
         <div className="px-12 py-10">
-          <img src={ClusterDark} alt="Cluster" className="h-9 w-auto" />
+          <SalesHubLogo variant="mark" className="h-9 w-9" />
         </div>
         <div className="flex flex-1 flex-col items-center justify-center px-16 pb-24 text-center">
           <p className="mb-6 text-sm font-semibold uppercase tracking-[0.25em] text-[#8a99af]">
@@ -126,7 +126,7 @@ const ZohoLogin = () => {
       <div className="flex w-full flex-col items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2 lg:w-1/2">
         {/* Mobile-only logo */}
         <div className="mb-8 rounded-xl bg-[#0f1722] px-6 py-4 lg:hidden">
-          <img src={ClusterDark} alt="Cluster" className="h-8 w-auto" />
+          <SalesHubLogo variant="mark" className="h-8 w-8" />
         </div>
 
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl dark:bg-boxdark sm:p-10">

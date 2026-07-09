@@ -218,7 +218,8 @@ const PayStubModal: React.FC<{
   .wrap { max-width: 740px; margin: 0 auto; }
   .accent { height: 6px; background: #f2682c; }
   .band { display: flex; justify-content: space-between; align-items: flex-end; background: #1c2434; color: #fff; padding: 26px 34px; }
-  .brand { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+  .brand { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+  .brand img { height: 36px; width: 36px; }
   .brand small { display: block; font-size: 11px; font-weight: 400; color: #8a99af; letter-spacing: .04em; margin-top: 2px; }
   .doc { text-align: right; }
   .doc .t { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: #f2682c; font-weight: 700; }
@@ -255,7 +256,7 @@ const PayStubModal: React.FC<{
 <div class="wrap">
   <div class="accent"></div>
   <div class="band">
-    <div class="brand">Sales Hub<small>by Cluster Systems</small></div>
+    <div class="brand"><img src="${window.location.origin}/saleshub-mark-dark.svg" alt=""><span>Sales Hub<small>by Cluster Systems</small></span></div>
     <div class="doc"><div class="t">${tp('title')}</div><div class="p">${esc(data.period)}</div></div>
   </div>
   <div class="meta">
