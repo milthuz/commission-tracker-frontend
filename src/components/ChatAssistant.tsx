@@ -156,7 +156,7 @@ const ChatAssistant: React.FC = () => {
         </div>
       )}
 
-      {/* Floating bubble — Cleo's Cluster mark; shows a close chevron when open */}
+      {/* Floating bubble — Cleo's Sales Hub mark; shows a close chevron when open */}
       <button
         data-tour="cleo-bubble"
         onClick={() => setOpen(!open)}

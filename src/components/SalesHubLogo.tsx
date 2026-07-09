@@ -14,9 +14,12 @@ type Tone = 'dark' | 'light';
 
 // The bare glyph — arc + orange node, no tile, transparent background. Arc uses currentColor so
 // it picks up whatever text color className sets (text-white on dark, text-[#141414] on light).
+// viewBox is cropped tight to the actual ink (the original 0-64 box has generous clear-space
+// margins meant for sitting on a tile) — used bare, that dead space made the glyph look tiny
+// and oddly gapped from adjacent text (user feedback 2026-07-09).
 function Glyph({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 64 64" fill="none" className={className}>
+    <svg viewBox="17 14 32 40" fill="none" className={className}>
       <path d="M42 24 C42 18 24 18 24 26 C24 32.5 42 32 42 40 C42 48 24 48 23 41" stroke="currentColor" strokeWidth={6} fill="none" strokeLinecap="round" />
       <circle cx="42" cy="24" r={4.5} fill="#F58345" />
     </svg>
