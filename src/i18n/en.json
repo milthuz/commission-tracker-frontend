@@ -1024,7 +1024,7 @@
     "csSaasFirst": "SaaS 1st month",
     "csSaasAnnual": "Annual sub (10%)",
     "csQuotaNotMet": "Quota not met",
-    "csQuotaPartial": "Partial quota waiver",
+    "csQuotaPartial": "Quota override",
     "csRepInactive": "Rep inactive",
     "quotaForfeitedBadge": "Quota not met",
     "quotaForfeitedHint": "{{amount}} in commissions were withheld this month because the quota wasn't met.",

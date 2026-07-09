@@ -680,7 +680,7 @@ const CommissionReport = () => {
             </td>
             <td className="px-3 py-2.5 text-center">
               {cs ? (
-                <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${cs.cls}`}>
+                <span className={`inline-flex whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ${cs.cls}`}>
                   {t(cs.key)}
                 </span>
               ) : <span className="text-xs text-body">—</span>}
