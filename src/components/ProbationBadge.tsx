@@ -10,7 +10,7 @@ export default function ProbationBadge({ probation, className = '' }: { probatio
   return (
     <span
       title={t('probation.tooltip') as string}
-      className={`inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-[#9D5425] dark:text-warning ${className}`}
+      className={`inline-flex items-center gap-0.5 rounded-full bg-warning/15 px-1.5 py-0.5 text-[10px] font-bold leading-none text-[#9D5425] dark:text-warning ${className}`}
     >
       ⏳ {t('probation.badge')}{end ? ` · ${t('probation.until', { date: end })}` : ''}
     </span>
