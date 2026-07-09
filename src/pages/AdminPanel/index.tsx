@@ -101,6 +101,8 @@ const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const [syncInfo, setSyncInfo] = useState<any>(null);
+  const [kaizenSettings, setKaizenSettings] = useState<{ enabled: boolean; message: string } | null>(null);
+  const [kaizenSaving, setKaizenSaving] = useState(false);
   const location = useLocation();
   const pathParts = location.pathname.split('/');
   const rawTab = pathParts[2] || 'sync'; // /admin/sync, /admin/salespeople, etc.
@@ -116,6 +118,26 @@ const AdminPanel = () => {
       window.history.replaceState({}, '', '/admin/sync');
     }
   }, [location.search]);
+
+  // Kaizen demo maintenance switch (Integrations → Connections). Fetched once isAdmin resolves.
+  useEffect(() => {
+    if (!isAdmin) return;
+    const token = localStorage.getItem('token');
+    axios.get(`${API_URL}/api/demo/kaizen-status`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => setKaizenSettings(r.data))
+      .catch(() => {});
+  }, [isAdmin]);
+
+  const saveKaizenSettings = async (next: { enabled: boolean; message: string }) => {
+    setKaizenSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/admin/kaizen-demo-settings`, next, { headers: { Authorization: `Bearer ${token}` } });
+      setKaizenSettings(next);
+    } catch (error: any) {
+      dialog.alert(error?.response?.data?.error || 'Failed to update the Kaizen demo settings');
+    } finally { setKaizenSaving(false); }
+  };
 
   // Release management state
   const [releases, setReleases] = useState<Release[]>([]);
@@ -1922,7 +1944,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                                 className="rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white"
                                               >
                                                 <option value="" disabled>{t('admin.zentact.selectRep')}</option>
-                                                {salespeople.filter(sp => sp.isActive).map(sp => (
+                                {salespeople.filter(sp => sp.isActive).map(sp => (
                                                   <option key={sp.name} value={sp.name}>{sp.name}</option>
                                                 ))}
                                               </select>
@@ -1942,6 +1964,51 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* ==================== KAIZEN DEMO ==================== */}
+            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="flex items-center justify-between border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <div>
+                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.kaizenDemo.title')}</h3>
+                  <p className="text-sm text-body mt-1">{t('admin.kaizenDemo.subtitle')}</p>
+                </div>
+                {kaizenSettings && (
+                  <button
+                    onClick={() => saveKaizenSettings({ ...kaizenSettings, enabled: !kaizenSettings.enabled })}
+                    disabled={kaizenSaving}
+                    title={t('admin.kaizenDemo.toggleHint') as string}
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition disabled:opacity-50 ${kaizenSettings.enabled ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
+                  >
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${kaizenSettings.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </button>
+                )}
+              </div>
+              {kaizenSettings && (
+                <div className="p-7">
+                  <span className={`mb-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${kaizenSettings.enabled ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning'}`}>
+                    <span className={`h-2 w-2 rounded-full ${kaizenSettings.enabled ? 'bg-success' : 'bg-warning'}`}></span>
+                    {kaizenSettings.enabled ? t('admin.kaizenDemo.statusOn') : t('admin.kaizenDemo.statusOff')}
+                  </span>
+                  <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('admin.kaizenDemo.messageLabel')}</label>
+                  <p className="mb-2 text-xs text-body">{t('admin.kaizenDemo.messageHint')}</p>
+                  <textarea
+                    rows={2}
+                    maxLength={500}
+                    value={kaizenSettings.message}
+                    onChange={(e) => setKaizenSettings({ ...kaizenSettings, message: e.target.value })}
+                    placeholder={t('admin.kaizenDemo.messagePlaceholder') as string}
+                    className="w-full rounded-md border border-stroke bg-transparent px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                  />
+                  <button
+                    onClick={() => saveKaizenSettings(kaizenSettings)}
+                    disabled={kaizenSaving}
+                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                  >
+                    {kaizenSaving ? t('common.saving') : t('admin.kaizenDemo.saveMessage')}
+                  </button>
+                </div>
+              )}
             </div>
 
             </>)}

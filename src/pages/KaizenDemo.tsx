@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 
@@ -123,6 +123,15 @@ const KaizenDemo: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
 
+  // Admin maintenance switch — checked upfront so a rep sees a friendly card instead of hitting
+  // "Launch" and getting an AWS error while the image/fleet is being updated (see kaizen-status).
+  const [maintenance, setMaintenance] = useState<{ enabled: boolean; message: string } | null>(null);
+  useEffect(() => {
+    axios.get(`${API_URL}/api/demo/kaizen-status`, { headers: authHeaders() })
+      .then(r => setMaintenance(r.data))
+      .catch(() => setMaintenance({ enabled: true, message: '' })); // fail open — don't block on a status-check error
+  }, []);
+
   // Fleet capacity + active-sessions panel (diagnose "no streaming resources").
   const [cap, setCap] = useState<Capacity | null>(null);
   const [capOpen, setCapOpen] = useState(false);
@@ -160,6 +169,7 @@ const KaizenDemo: React.FC = () => {
       setError(
         code === 'demo_not_configured' ? t('kaizenDemo.notConfigured')
         : code === 'fleet_stopped' ? t('kaizenDemo.fleetStopped')
+        : code === 'maintenance' ? (e?.response?.data?.message || t('kaizenDemo.maintenanceDefault'))
         : (e?.response?.data?.detail || t('kaizenDemo.error'))
       );
     } finally { setLoading(false); }
@@ -174,6 +184,7 @@ const KaizenDemo: React.FC = () => {
           <h2 className="text-2xl font-bold text-black dark:text-white">{t('kaizenDemo.title')}</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('kaizenDemo.subtitle')}</p>
         </div>
+        {maintenance?.enabled !== false && (
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button onClick={toggleCapacity} className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -194,8 +205,19 @@ const KaizenDemo: React.FC = () => {
             </button>
           </>)}
         </div>
+        )}
       </div>
 
+      {maintenance && !maintenance.enabled ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark" style={{ minHeight: '50vh' }}>
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warning/10">
+            <svg className="h-8 w-8 text-warning" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 11-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 004.486-6.336l-3.276 3.277a3.004 3.004 0 01-2.25-2.25l3.276-3.276a4.5 4.5 0 00-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437l1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008z" /></svg>
+          </div>
+          <p className="mb-1 text-lg font-semibold text-black dark:text-white">{t('kaizenDemo.maintenanceTitle')}</p>
+          <p className="max-w-md text-sm text-gray-500 dark:text-gray-400">{maintenance.message || t('kaizenDemo.maintenanceDefault')}</p>
+        </div>
+      ) : (
+      <>
       {capOpen && <CapacityPanel cap={cap} loading={capLoading} err={capErr} onRefresh={loadCapacity} />}
 
       {!url ? (
@@ -232,6 +254,8 @@ const KaizenDemo: React.FC = () => {
             allow="fullscreen; clipboard-read; clipboard-write; microphone; camera"
           />
         </div>
+      )}
+      </>
       )}
     </div>
   );

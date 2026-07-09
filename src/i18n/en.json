@@ -428,6 +428,8 @@
     "notConfigured": "The demo isn't configured yet. An administrator needs to finish the AWS AppStream setup.",
     "fleetStopped": "The demo is available from 7:00 AM to 9:00 PM (Montreal time). It's currently off to save costs — please try again during those hours (allow a few minutes after 7:00 AM for it to start).",
     "error": "Couldn't start the demo. Please try again in a moment.",
+    "maintenanceTitle": "Demo temporarily offline",
+    "maintenanceDefault": "We're updating the Kaizen POS demo. It'll be back shortly — thanks for your patience.",
     "sessions": {
       "button": "Sessions",
       "title": "Sessions & capacity",
@@ -1256,6 +1258,17 @@
       "summary_auto": "Auto-matched",
       "summary_no_saas": "No SaaS",
       "summary_unmatched": "Unmatched"
+    },
+    "kaizenDemo": {
+      "title": "Kaizen Demo",
+      "subtitle": "Turn the streamed Kaizen POS demo on or off, e.g. while updating the AppStream image.",
+      "toggleHint": "Enable/disable the Kaizen demo for everyone",
+      "statusOn": "Live",
+      "statusOff": "Offline for maintenance",
+      "messageLabel": "Maintenance message",
+      "messageHint": "Shown to reps instead of the demo while it's turned off.",
+      "messagePlaceholder": "We're updating the Kaizen POS demo. It'll be back shortly.",
+      "saveMessage": "Save message"
     },
     "audit": {
       "title": "Audit",

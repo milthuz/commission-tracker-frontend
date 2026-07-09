@@ -428,6 +428,8 @@
     "notConfigured": "La démo n'est pas encore configurée. Un administrateur doit terminer la configuration AWS AppStream.",
     "fleetStopped": "La démo est disponible de 7h00 à 21h00 (heure de Montréal). Elle est actuellement éteinte pour réduire les coûts — réessaie pendant ces heures (laisse quelques minutes après 7h00 pour le démarrage).",
     "error": "Impossible de démarrer la démo. Réessaie dans un instant.",
+    "maintenanceTitle": "Démo temporairement hors ligne",
+    "maintenanceDefault": "Nous mettons à jour la démo du POS Kaizen. Elle sera de retour bientôt — merci de ta patience.",
     "sessions": {
       "button": "Sessions",
       "title": "Sessions et capacité",
@@ -1256,6 +1258,17 @@
       "summary_auto": "Auto-rapprochés",
       "summary_no_saas": "Pas de SaaS",
       "summary_unmatched": "Non liés"
+    },
+    "kaizenDemo": {
+      "title": "Démo Kaizen",
+      "subtitle": "Active ou désactive la démo Kaizen en streaming, par ex. pendant une mise à jour de l'image AppStream.",
+      "toggleHint": "Activer/désactiver la démo Kaizen pour tous",
+      "statusOn": "En ligne",
+      "statusOff": "Hors ligne pour maintenance",
+      "messageLabel": "Message de maintenance",
+      "messageHint": "Affiché aux représentants à la place de la démo pendant qu'elle est désactivée.",
+      "messagePlaceholder": "Nous mettons à jour la démo du POS Kaizen. Elle sera de retour bientôt.",
+      "saveMessage": "Enregistrer le message"
     },
     "audit": {
       "title": "Audit",
