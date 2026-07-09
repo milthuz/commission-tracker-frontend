@@ -75,7 +75,10 @@ export default function SalesHubLogo({
   // not flush with the icon's left edge — it reads as part of the wordmark, not a stray caption
   // floating under the icon (user feedback 2026-07-09: "j'aime le concept, juste pas l'alignement").
   // size='sm' is the same composition scaled down for tight nav contexts (sidebar).
-  const iconSize = size === 'sm' ? 'h-7 w-7' : 'h-10 w-10';
+  // w-auto (not a fixed square) — the glyph's cropped viewBox is portrait (32:40), so a fixed
+  // square box centers it with invisible padding on both sides, which read as a gap before the
+  // text no matter how tight the flex `gap` was (user feedback 2026-07-09, third time around).
+  const iconSize = size === 'sm' ? 'h-7 w-auto' : 'h-10 w-auto';
   const titleSize = size === 'sm' ? 'text-lg' : 'text-3xl';
   const subSize = size === 'sm' ? 'text-[11px]' : 'text-sm';
   const gap = size === 'sm' ? 'gap-1' : 'gap-3';
