@@ -1,8 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import MarkDark from '../images/logo/saleshub-mark-dark.svg';
 import MarkLight from '../images/logo/saleshub-mark-light.svg';
-import StackedDark from '../images/logo/saleshub-lockup-stacked-dark.svg';
-import StackedLight from '../images/logo/saleshub-lockup-stacked-light.svg';
 
 type Variant = 'mark' | 'glyph' | 'horizontal' | 'lockup' | 'stacked';
 // Which TILE the mark itself sits on (#141414 dark tile vs white tile) — independent of the
@@ -23,6 +21,30 @@ function Glyph({ className }: { className?: string }) {
     <svg viewBox="17 14 32 40" fill="none" className={className}>
       <path d="M42 24 C42 18 24 18 24 26 C24 32.5 42 32 42 40 C42 48 24 48 23 41" stroke="currentColor" strokeWidth={6} fill="none" strokeLinecap="round" />
       <circle cx="42" cy="24" r={4.5} fill="#F58345" />
+    </svg>
+  );
+}
+
+// The 'stacked' composition (icon tile over "Sales Hub" over "by cluster ●"), inlined as JSX
+// instead of the original pre-rendered SVG file — that file baked "by cluster" in as English
+// <text>, which a French session can't localize (user report 2026-07-09). Both text rows use
+// text-anchor="middle" on the SAME x so the second row stays centered under "Sales Hub" no
+// matter how much longer/shorter the translated endorsement word is; the accent dot is an
+// inline "•" glyph rather than a separately-positioned <circle>, for the same reason.
+function Stacked({ tone, by, className }: { tone: Tone; by: string; className?: string }) {
+  const textColor = tone === 'dark' ? '#FFFFFF' : '#141414';
+  const mutedColor = tone === 'dark' ? '#999AA7' : '#575A61';
+  return (
+    <svg viewBox="0 0 240 168" fill="none" className={className} role="img" aria-label="Sales Hub">
+      <rect x={92} y={8} width={56} height={56} rx={14} fill="#141414" />
+      <g transform="translate(92,8) scale(0.875)">
+        <path d="M42 24 C42 18 24 18 24 26 C24 32.5 42 32 42 40 C42 48 24 48 23 41" stroke="#FFFFFF" strokeWidth={6} fill="none" strokeLinecap="round" />
+        <circle cx={42} cy={24} r={4.5} fill="#F58345" />
+      </g>
+      <text x={120} y={104} textAnchor="middle" fontFamily="Satoshi, system-ui, -apple-system, Segoe UI, sans-serif" fontWeight={700} fontSize={27} letterSpacing="-0.5" fill={textColor}>Sales Hub</text>
+      <text x={120} y={130} textAnchor="middle" fontFamily="Satoshi, system-ui, -apple-system, Segoe UI, sans-serif" fontSize={14} fill={mutedColor}>
+        <tspan fontWeight={500}>{by} </tspan><tspan fontWeight={700} fill={textColor}>cluster</tspan><tspan dx="4" fill="#F58345">●</tspan>
+      </text>
     </svg>
   );
 }
@@ -53,7 +75,7 @@ export default function SalesHubLogo({
   const mutedClass = textClassName.includes('white') ? 'text-[#8a99af]' : 'text-[#575a61]';
 
   if (variant === 'stacked') {
-    return <img src={tone === 'dark' ? StackedDark : StackedLight} alt="Sales Hub" className={className} />;
+    return <Stacked tone={tone} by={t('brand.by')} className={className} />;
   }
 
   if (variant === 'mark') {
