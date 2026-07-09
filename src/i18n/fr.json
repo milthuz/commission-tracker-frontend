@@ -66,9 +66,9 @@
     }
   },
   "assistant": {
-    "title": "Cleo",
+    "title": "Sofia",
     "subtitle": "Ton guide Sales Hub — pose-moi tes questions",
-    "greeting": "Bonjour, je suis Cleo 👋 ton guide Sales Hub. Demande-moi comment les commissions sont calculées, où trouver quelque chose, ou comment fonctionne une fonctionnalité — ou fais une visite guidée.",
+    "greeting": "Bonjour, je suis Sofia 👋 ton guide Sales Hub. Demande-moi comment les commissions sont calculées, où trouver quelque chose, ou comment fonctionne une fonctionnalité — ou fais une visite guidée.",
     "startTour": "Faire la visite guidée",
     "placeholder": "Posez une question…",
     "suggestions": [
@@ -313,7 +313,7 @@
     "back": "Retour",
     "next": "Suivant",
     "done": "Compris !",
-    "welcomeTitle": "Bonjour, je suis Cleo 👋",
+    "welcomeTitle": "Bonjour, je suis Sofia 👋",
     "welcomeBody": "Laisse-moi te faire une petite visite de 30 secondes de Sales Hub. Tu peux passer à tout moment.",
     "menuTitle": "Ton menu",
     "menuBody": "Le menu de gauche reste replié pour rester épuré. Clique ici pour l'ouvrir ou le replier — survole une icône pour voir son nom.",
@@ -328,9 +328,9 @@
     "resourcesBody": "Tes documents de vente partagés — cherche, parcours et télécharge guides et modèles.",
     "profileBody": "Les réglages de ton compte, la langue et tes préférences.",
     "sectionGeneric": "Ouvre la section {{section}} ici.",
-    "cleoTitle": "Je suis toujours là",
-    "cleoBody": "Clique sur moi à tout moment pour de l'aide, ou pour refaire cette visite. Bon Sales Hub !",
-    "askPlaceholder": "Pose une question à Cleo…",
+    "sofiaTitle": "Je suis toujours là",
+    "sofiaBody": "Clique sur moi à tout moment pour de l'aide, ou pour refaire cette visite. Bon Sales Hub !",
+    "askPlaceholder": "Pose une question à Sofia…",
     "askError": "Désolée, une erreur est survenue — réessaie."
   },
   "proposals": {

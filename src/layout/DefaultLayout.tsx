@@ -7,7 +7,7 @@ import DemoModeBanner from '../components/DemoModeBanner';
 import ConnectionStatusBanner from '../components/ConnectionStatusBanner';
 import NewFeatureBanner from '../components/NewFeatureBanner';
 import ChatAssistant from '../components/ChatAssistant';
-import CleoTour from '../components/CleoTour';
+import SofiaTour from '../components/SofiaTour';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -42,7 +42,7 @@ const DefaultLayout: React.FC = () => {
       </div>
       {/* <!-- ===== Page Wrapper End ===== --> */}
       <ChatAssistant />
-      <CleoTour />
+      <SofiaTour />
     </div>
   );
 };

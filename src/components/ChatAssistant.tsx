@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import CleoAvatar from './CleoAvatar';
+import SofiaAvatar from './SofiaAvatar';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -60,7 +60,7 @@ const ChatAssistant: React.FC = () => {
           {/* Header */}
           <div className="flex items-center justify-between bg-[#1c2434] px-5 py-4">
             <div className="flex items-center gap-3">
-              <CleoAvatar className="h-9 w-9" ring />
+              <SofiaAvatar className="h-9 w-9" ring />
               <div>
                 <p className="text-sm font-semibold text-white">{t('assistant.title')}</p>
                 <p className="text-[11px] text-white/70">{t('assistant.subtitle')}</p>
@@ -92,7 +92,7 @@ const ChatAssistant: React.FC = () => {
                   {t('assistant.greeting')}
                 </div>
                 <button
-                  onClick={() => { setOpen(false); window.dispatchEvent(new Event('cleo:tour')); }}
+                  onClick={() => { setOpen(false); window.dispatchEvent(new Event('sofia:tour')); }}
                   className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-opacity-90">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
                   {t('assistant.startTour')}
@@ -156,9 +156,9 @@ const ChatAssistant: React.FC = () => {
         </div>
       )}
 
-      {/* Floating bubble — Cleo's Sales Hub mark; shows a close chevron when open */}
+      {/* Floating bubble — Sofia's Sales Hub mark; shows a close chevron when open */}
       <button
-        data-tour="cleo-bubble"
+        data-tour="sofia-bubble"
         onClick={() => setOpen(!open)}
         title={t('assistant.title') as string}
         className="group fixed bottom-6 right-4 z-[9990] flex h-12 w-12 items-center justify-center rounded-full shadow-default transition-transform duration-200 hover:scale-110"
@@ -170,7 +170,7 @@ const ChatAssistant: React.FC = () => {
             </svg>
           </span>
         ) : (
-          <CleoAvatar className="h-12 w-12" ring />
+          <SofiaAvatar className="h-12 w-12" ring />
         )}
       </button>
     </>

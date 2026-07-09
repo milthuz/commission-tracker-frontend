@@ -66,9 +66,9 @@
     }
   },
   "assistant": {
-    "title": "Cleo",
+    "title": "Sofia",
     "subtitle": "Your Sales Hub guide — ask me anything",
-    "greeting": "Hi, I'm Cleo 👋 your Sales Hub guide. Ask me how commissions are calculated, where to find something, or how a feature works — or take a quick guided tour.",
+    "greeting": "Hi, I'm Sofia 👋 your Sales Hub guide. Ask me how commissions are calculated, where to find something, or how a feature works — or take a quick guided tour.",
     "startTour": "Take a guided tour",
     "placeholder": "Ask a question…",
     "suggestions": [
@@ -313,7 +313,7 @@
     "back": "Back",
     "next": "Next",
     "done": "Got it!",
-    "welcomeTitle": "Hi, I'm Cleo 👋",
+    "welcomeTitle": "Hi, I'm Sofia 👋",
     "welcomeBody": "Let me give you a quick 30-second tour of Sales Hub. You can skip anytime.",
     "menuTitle": "Your menu",
     "menuBody": "The left menu stays collapsed to keep things tidy. Click here to expand or collapse it — hover any icon to see its name.",
@@ -328,9 +328,9 @@
     "resourcesBody": "Your shared sales documents — search, browse and download guides and templates.",
     "profileBody": "Your account settings, language and preferences.",
     "sectionGeneric": "Open the {{section}} section here.",
-    "cleoTitle": "I'm always here",
-    "cleoBody": "Click me anytime for help, or to take this tour again. Enjoy Sales Hub!",
-    "askPlaceholder": "Ask Cleo a question…",
+    "sofiaTitle": "I'm always here",
+    "sofiaBody": "Click me anytime for help, or to take this tour again. Enjoy Sales Hub!",
+    "askPlaceholder": "Ask Sofia a question…",
     "askError": "Sorry, something went wrong — try again."
   },
   "proposals": {

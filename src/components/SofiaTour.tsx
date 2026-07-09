@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import CleoAvatar from './CleoAvatar';
+import SofiaAvatar from './SofiaAvatar';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const TOUR_KEY = 'cleo-tour-v1';
+const TOUR_KEY = 'sofia-tour-v1';
 
 interface ChatMsg { role: 'user' | 'assistant'; content: string; }
 
@@ -25,13 +25,13 @@ const NAV_DESC: Record<string, string> = {
 const PAD = 8;
 const CARD_W = 320;
 
-const CleoTour: React.FC = () => {
+const SofiaTour: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [run, setRun] = useState(false);
   const [idx, setIdx] = useState(0);
   const [steps, setSteps] = useState<Step[]>([]);
   const [rect, setRect] = useState<DOMRect | null>(null);
-  // In-tour mini chat — ask Cleo a question without leaving the tour.
+  // In-tour mini chat — ask Sofia a question without leaving the tour.
   const [askMsgs, setAskMsgs] = useState<ChatMsg[]>([]);
   const [askInput, setAskInput] = useState('');
   const [askBusy, setAskBusy] = useState(false);
@@ -61,7 +61,7 @@ const CleoTour: React.FC = () => {
   const step = steps[idx];
 
   // Build the tour from the LIVE sidebar: a welcome card, one step per top-level menu item
-  // actually present (so new menus appear automatically), then the Cleo bubble. Titles come
+  // actually present (so new menus appear automatically), then the Sofia bubble. Titles come
   // from each item's label, so renamed menus update too.
   const buildSteps = useCallback((): Step[] => {
     const out: Step[] = [];
@@ -80,8 +80,8 @@ const CleoTour: React.FC = () => {
         body: descKey ? t(descKey) : (t('tour.sectionGeneric', { section: label }) as string),
       });
     });
-    const bubble = document.querySelector('[data-tour="cleo-bubble"]') as HTMLElement | null;
-    out.push({ el: bubble, title: t('tour.cleoTitle'), body: t('tour.cleoBody') });
+    const bubble = document.querySelector('[data-tour="sofia-bubble"]') as HTMLElement | null;
+    out.push({ el: bubble, title: t('tour.sofiaTitle'), body: t('tour.sofiaBody') });
     return out;
   }, [t]);
 
@@ -100,15 +100,15 @@ const CleoTour: React.FC = () => {
     return () => { window.removeEventListener('resize', onMove); window.removeEventListener('scroll', onMove, true); };
   }, [run, idx, measure]);
 
-  // Start: auto on first login (desktop only), or on the 'cleo:tour' event (from Cleo chat).
+  // Start: auto on first login (desktop only), or on the 'sofia:tour' event (from Sofia chat).
   useEffect(() => {
     const start = () => { setSteps(buildSteps()); setIdx(0); setRun(true); };
-    window.addEventListener('cleo:tour', start);
+    window.addEventListener('sofia:tour', start);
     let timer: any;
     if (!localStorage.getItem(TOUR_KEY) && window.innerWidth >= 1024) {
       timer = setTimeout(start, 900);
     }
-    return () => { window.removeEventListener('cleo:tour', start); if (timer) clearTimeout(timer); };
+    return () => { window.removeEventListener('sofia:tour', start); if (timer) clearTimeout(timer); };
   }, [buildSteps]);
 
   const finish = () => { localStorage.setItem(TOUR_KEY, 'done'); setRun(false); setIdx(0); setAskMsgs([]); setAskInput(''); };
@@ -150,11 +150,11 @@ const CleoTour: React.FC = () => {
         <div className="absolute inset-0 bg-[rgba(15,23,42,0.62)]" />
       )}
 
-      {/* Cleo card */}
+      {/* Sofia card */}
       <div className="absolute flex w-[320px] max-w-[calc(100vw-16px)] flex-col overflow-hidden rounded-2xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark" style={cardStyle}>
         <div className="overflow-y-auto p-4">
         <div className="flex items-start gap-3">
-          <CleoAvatar className="h-10 w-10 shrink-0" ring />
+          <SofiaAvatar className="h-10 w-10 shrink-0" ring />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-black dark:text-white">{step.title}</p>
             <p className="mt-1 text-sm leading-snug text-body dark:text-gray-300">{step.body}</p>
@@ -218,4 +218,4 @@ const CleoTour: React.FC = () => {
   );
 };
 
-export default CleoTour;
+export default SofiaTour;
