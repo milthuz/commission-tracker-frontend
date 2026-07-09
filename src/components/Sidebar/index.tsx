@@ -398,6 +398,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               {isAdmin && (
                 <li>
                   <button
+                    data-tour-route="/admin"
                     onClick={() => {
                       if (collapsed) setCollapsed(false);
                       setAdminMenuOpen(!adminMenuOpen);

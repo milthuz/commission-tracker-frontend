@@ -19,6 +19,10 @@ const NAV_DESC: Record<string, string> = {
   '/reseller': 'tour.resellerBody',
   '/revenue': 'tour.revenueBody',
   '/resources': 'tour.resourcesBody',
+  '/kaizen-demo': 'tour.kaizenBody',
+  '/proposals': 'tour.proposalsBody',
+  '/savings': 'tour.savingsBody',
+  '/admin': 'tour.adminBody',
   '/profile': 'tour.profileBody',
 };
 
@@ -72,7 +76,9 @@ const SofiaTour: React.FC = () => {
       if (!top) return;
       const label = (top.querySelector('span')?.textContent || '').trim();
       if (!label) return;
-      const route = top.getAttribute('href') || '';
+      // Admin Panel is a <button> that toggles a submenu, not a <NavLink> — it has no href,
+      // so it needs its own marker attribute to be found here (user request 2026-07-09 audit).
+      const route = top.getAttribute('href') || top.getAttribute('data-tour-route') || '';
       const descKey = NAV_DESC[route];
       out.push({
         el: li as HTMLElement,
