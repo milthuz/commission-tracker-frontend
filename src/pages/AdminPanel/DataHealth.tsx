@@ -38,6 +38,7 @@ const DataHealth: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [resolving, setResolving] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const load = async (fresh = false) => {
     setLoading(true); setError(null);
@@ -60,6 +61,35 @@ const DataHealth: React.FC = () => {
       await load(true);
     } catch { setError(t('dataHealth.error') as string); }
     finally { setResolving(null); }
+  };
+
+  // Export to Excel — a .xls (HTML-table) file Excel opens natively, no dependency. Pulls the
+  // richer /api/admin/unassigned-invoices (suggested rep from same-customer/CRM/Zentact matching)
+  // rather than the lighter data-health list, since the whole point is fixing attribution in Zoho.
+  const exportUnassignedInvoices = async () => {
+    setExporting(true);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/unassigned-invoices`, { headers: authHeaders() });
+      if (!r.ok) throw new Error(String(r.status));
+      const { rows } = await r.json();
+      const esc = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const head = ['Invoice', 'Customer', 'Date', 'Commission', 'Status', 'Suggested rep', 'Source'];
+      const html = [
+        '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1">',
+        `<tr>${head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr>`,
+        ...rows.map((r: any) => `<tr><td>${esc(r.invoice_number)}</td><td>${esc(r.customer_name)}</td><td>${esc(r.invoice_date)}</td><td>${r.commission}</td><td>${esc(r.commission_status)}</td><td>${esc(r.suggested_rep || '')}</td><td>${esc(r.suggestion_source || '')}</td></tr>`),
+        '</table></body></html>',
+      ].join('');
+      const blob = new Blob(['﻿', html], { type: 'application/vnd.ms-excel' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Unassigned_Invoices_${new Date().toISOString().slice(0, 10)}.xls`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError(t('dataHealth.error') as string);
+    } finally { setExporting(false); }
   };
 
   const i = data?.issues;
@@ -148,9 +178,19 @@ const DataHealth: React.FC = () => {
           {/* Expanded detail lists */}
           {expanded === 'invoices' && i && (
             <div className="mt-4 overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="border-b border-stroke px-5 py-3 dark:border-strokedark">
-                <h4 className="text-sm font-semibold text-black dark:text-white">{t('dataHealth.cards.invoices.title')}</h4>
-                <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t('dataHealth.invoiceList.hint')}</p>
+              <div className="flex items-start justify-between gap-3 border-b border-stroke px-5 py-3 dark:border-strokedark">
+                <div>
+                  <h4 className="text-sm font-semibold text-black dark:text-white">{t('dataHealth.cards.invoices.title')}</h4>
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t('dataHealth.invoiceList.hint')}</p>
+                </div>
+                <button
+                  onClick={exportUnassignedInvoices}
+                  disabled={exporting}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                  {exporting ? t('dataHealth.invoiceList.exporting') : t('dataHealth.invoiceList.export')}
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[480px] text-sm">

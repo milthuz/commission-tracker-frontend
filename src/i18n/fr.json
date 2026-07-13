@@ -509,7 +509,9 @@
       "invoice": "Facture",
       "customer": "Client",
       "date": "Date",
-      "commission": "Commission"
+      "commission": "Commission",
+      "export": "Exporter vers Excel",
+      "exporting": "Exportation…"
     }
   },
   "savingsCalc": {
