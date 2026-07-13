@@ -287,12 +287,19 @@ const CommissionImport: React.FC = () => {
   const [adjList, setAdjList] = useState<AdjRow[]>([]);
   const [adjBusy, setAdjBusy] = useState(false);
   const [adjHidePre2026, setAdjHidePre2026] = useState(true);   // hide the 2025 boundary-artifact invoices
-  // Displayed unpaid list (optionally excludes pre-2026 / 2025 invoices).
-  const adjUnpaidShown = adjHidePre2026
+  const [adjSearch, setAdjSearch] = useState('');               // filter by invoice # or customer name
+  // Displayed unpaid list (optionally excludes pre-2026 / 2025 invoices, and/or filtered by search).
+  const adjUnpaidShown = (adjHidePre2026
     ? adjUnpaid.filter(u => !u.payable_date || new Date(u.payable_date).getUTCFullYear() >= 2026)
-    : adjUnpaid;
+    : adjUnpaid
+  ).filter(u => {
+    const q = adjSearch.trim().toLowerCase();
+    if (!q) return true;
+    return u.invoice_number.toLowerCase().includes(q) || (u.customer || '').toLowerCase().includes(q);
+  });
 
   const fetchAdjUnpaid = async (rep: string) => {
+    setAdjSearch('');
     if (!rep) { setAdjUnpaid([]); return; }
     try {
       const token = localStorage.getItem('token');
@@ -1990,9 +1997,17 @@ const CommissionImport: React.FC = () => {
                 </label>
               )}
               {!adjRep && <p className="mt-4 text-sm italic text-body">{t('admin.commissionImport.adjustments.freeNeedRep')}</p>}
+              {adjRep && adjUnpaid.length > 0 && (
+                <div className="relative mt-3 max-w-xs">
+                  <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                  <input type="text" value={adjSearch} onChange={(e) => setAdjSearch(e.target.value)}
+                    placeholder={t('admin.commissionImport.adjustments.searchPlaceholder') as string}
+                    className="w-full rounded border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                </div>
+              )}
               {adjRep && (
                 adjUnpaidShown.length === 0 ? (
-                  <p className="mt-4 text-sm text-body">{t('admin.commissionImport.adjustments.noUnpaid')}</p>
+                  <p className="mt-4 text-sm text-body">{adjSearch ? t('admin.commissionImport.adjustments.noSearchResults') : t('admin.commissionImport.adjustments.noUnpaid')}</p>
                 ) : (
                   <div className="mt-4 overflow-x-auto rounded border border-stroke dark:border-strokedark">
                     <table className="w-full min-w-[640px] text-sm">
