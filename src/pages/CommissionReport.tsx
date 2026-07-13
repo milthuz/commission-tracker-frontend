@@ -672,7 +672,9 @@ const CommissionReport = () => {
           const cs = inv.commissionStatus && COMMISSION_STATUS_STYLES[inv.commissionStatus];
           return (
           <tr key={inv.invoiceNumber} className="border-b border-stroke/50 dark:border-strokedark/50 hover:bg-gray-50 dark:hover:bg-meta-4/30">
-            <td className="px-3 py-2.5 text-xs font-medium text-primary">{inv.invoiceNumber}</td>
+            <td className="px-3 py-2.5 text-xs">
+              <button onClick={() => handlePreview(inv.invoiceNumber)} className="font-medium text-primary hover:underline">{inv.invoiceNumber}</button>
+            </td>
             <td className="px-3 py-2.5 text-xs text-black dark:text-white truncate max-w-[160px]">{inv.customerName}</td>
             <td className="px-3 py-2.5 text-xs text-body">{formatDateOnly(inv.date, i18n.language)}</td>
             <td className="px-3 py-2.5 text-xs text-body">

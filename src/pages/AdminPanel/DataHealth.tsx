@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import InvoiceLink from '../../components/InvoiceLink';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -205,7 +206,7 @@ const DataHealth: React.FC = () => {
                   <tbody>
                     {i.unassignedInvoices.items.map((inv) => (
                       <tr key={inv.invoice_number} className="border-b border-stroke last:border-0 dark:border-strokedark">
-                        <td className="whitespace-nowrap px-5 py-2 font-medium text-black dark:text-white">{inv.invoice_number}</td>
+                        <td className="whitespace-nowrap px-5 py-2"><InvoiceLink number={inv.invoice_number} className="font-medium text-primary hover:underline" /></td>
                         <td className="px-5 py-2 text-body dark:text-bodydark">{inv.customer_name}</td>
                         <td className="whitespace-nowrap px-5 py-2 text-body dark:text-bodydark">{inv.date}</td>
                         <td className="whitespace-nowrap px-5 py-2 text-right text-body dark:text-bodydark">{money(inv.commission)}</td>

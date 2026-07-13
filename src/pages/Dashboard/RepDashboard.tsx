@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { formatDateOnly } from '../../utils/date';
 import ProbationBadge from '../../components/ProbationBadge';
+import InvoiceLink from '../../components/InvoiceLink';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const QUOTA = 15;
@@ -365,7 +366,7 @@ const RepDashboard: React.FC = () => {
                             <div className="space-y-1">
                               {rows.map(inv => (
                                 <div key={inv.invoiceNumber} className="flex items-center justify-between gap-2 text-xs">
-                                  <span className="font-medium text-primary">{inv.invoiceNumber}</span>
+                                  <InvoiceLink number={inv.invoiceNumber} className="font-medium text-primary hover:underline" />
                                   <span className="text-gray-500">{formatDateOnly(inv.date, i18n.language)}</span>
                                   <span className="font-semibold text-black dark:text-white">{fmt2(inv.commission)}</span>
                                 </div>

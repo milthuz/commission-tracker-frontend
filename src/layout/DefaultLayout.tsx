@@ -8,6 +8,7 @@ import ConnectionStatusBanner from '../components/ConnectionStatusBanner';
 import NewFeatureBanner from '../components/NewFeatureBanner';
 import ChatAssistant from '../components/ChatAssistant';
 import SofiaTour from '../components/SofiaTour';
+import InvoicePreviewHost from '../components/InvoicePreviewHost';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,6 +44,7 @@ const DefaultLayout: React.FC = () => {
       {/* <!-- ===== Page Wrapper End ===== --> */}
       <ChatAssistant />
       <SofiaTour />
+      <InvoicePreviewHost />
     </div>
   );
 };

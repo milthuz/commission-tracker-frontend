@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import PayStubModal, { PayStubData } from '../../components/PayStubModal';
 import DealsAdmin from './DealsAdmin';
+import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -1086,7 +1087,7 @@ const CommissionImport: React.FC = () => {
                           <tbody>
                             {e.preview.matched.map((m) => (
                               <tr key={m.invoice_number} className="border-t border-stroke dark:border-strokedark">
-                                <td className="px-2 py-1 font-medium text-primary">{m.invoice_number}</td>
+                                <td className="px-2 py-1"><InvoiceLink number={m.invoice_number} className="font-medium text-primary hover:underline" /></td>
                                 <td className="px-2 py-1 truncate max-w-[180px]">{m.customer}</td>
                                 <td className="px-2 py-1 text-right">{fmt(m.commission)}</td>
                                 <td className="px-2 py-1 text-center">
@@ -1926,7 +1927,7 @@ const CommissionImport: React.FC = () => {
                         <td className="px-3 py-2 text-black dark:text-white">{s.repName}</td>
                         <td className="px-3 py-2">
                           {/* Invoice + client merged: number on top, client as muted subtext */}
-                          <p className="font-medium text-primary whitespace-nowrap">{s.invoiceNumber}</p>
+                          <p className="whitespace-nowrap"><InvoiceLink number={s.invoiceNumber} className="font-medium text-primary hover:underline" /></p>
                           <p className="max-w-[200px] truncate text-xs text-body" title={s.customer || ''}>{s.customer || '—'}</p>
                         </td>
                         <td className="px-3 py-2 text-body whitespace-nowrap">{s.sourcePeriod ? `${monthName(new Date(s.sourcePeriod).getUTCMonth() + 1)} ${new Date(s.sourcePeriod).getUTCFullYear()}` : '—'}</td>
@@ -2048,7 +2049,7 @@ const CommissionImport: React.FC = () => {
                             <td className="px-3 py-2 text-center">
                               <input type="checkbox" checked={adjSelected.has(u.invoice_number)} onChange={() => toggleAdjSel(u.invoice_number)} />
                             </td>
-                            <td className="px-3 py-2 font-medium text-primary">{u.invoice_number}</td>
+                            <td className="px-3 py-2"><InvoiceLink number={u.invoice_number} className="font-medium text-primary hover:underline" /></td>
                             <td className="px-3 py-2 text-body whitespace-nowrap">{u.payable_date ? `${monthName(new Date(u.payable_date).getUTCMonth() + 1)} ${new Date(u.payable_date).getUTCFullYear()}` : '—'}</td>
                             <td className="px-3 py-2 text-black dark:text-white">{u.customer || '—'}</td>
                             <td className="px-3 py-2 text-right font-semibold text-black dark:text-white whitespace-nowrap">{fmt(u.commission)}</td>
@@ -2114,7 +2115,7 @@ const CommissionImport: React.FC = () => {
                         <td className="px-3 py-2 text-body whitespace-nowrap">{monthName(new Date(a.target_period).getUTCMonth() + 1)} {new Date(a.target_period).getUTCFullYear()}</td>
                         <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{a.rep_name}</td>
                         <td className="px-3 py-2 font-medium text-primary">
-                          {a.invoice_number || '—'}
+                          <InvoiceLink number={a.invoice_number} className="font-medium text-primary hover:underline" />
                           {editingAdjId === a.id ? (
                             <span className="ml-2 inline-flex items-center gap-1.5">
                               <input
@@ -2346,7 +2347,7 @@ const CommissionImport: React.FC = () => {
                   <tbody>
                     {quotaInvoices.rows.map(row => (
                       <tr key={row.invoice_number} className="border-t border-stroke dark:border-strokedark">
-                        <td className="px-2 py-2 text-black dark:text-white whitespace-nowrap">{row.invoice_number}</td>
+                        <td className="px-2 py-2 whitespace-nowrap"><InvoiceLink number={row.invoice_number} className="font-medium text-primary hover:underline" /></td>
                         <td className="px-2 py-2 text-body">{row.customer}</td>
                         <td className="px-2 py-2 text-right text-body whitespace-nowrap">{fmt(row.commission + row.forfeited)}</td>
                         <td className="px-2 py-2 text-right font-semibold text-danger whitespace-nowrap">{fmt(row.forfeited)}</td>
