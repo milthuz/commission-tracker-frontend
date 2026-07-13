@@ -38,6 +38,7 @@ const Proposals: React.FC = () => {
   const [sentLoading, setSentLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activityFor, setActivityFor] = useState<{ estimateId: string; number: string } | null>(null);
+  const [estPreview, setEstPreview] = useState<{ estimateId: string; number: string; loading: boolean } | null>(null);
 
   // Builder state (when an estimate is selected)
   const [sel, setSel] = useState<Estimate | null>(null);
@@ -228,7 +229,11 @@ const Proposals: React.FC = () => {
                 {estimates.map((e) => (
                   <tr key={e.estimateId} className="border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
                     <td className="px-4 py-2.5 font-medium text-black dark:text-white">{e.number}</td>
-                    <td className="px-4 py-2.5 text-body">{e.customerName}</td>
+                    <td className="px-4 py-2.5">
+                      <button onClick={() => setEstPreview({ estimateId: e.estimateId, number: e.number, loading: true })} className="text-primary hover:underline">
+                        {e.customerName}
+                      </button>
+                    </td>
                     <td className="px-4 py-2.5 text-right text-body">{money(e.total, e.currency)}</td>
                     <td className="px-4 py-2.5 text-body">{formatDateOnly(e.date, i18n.language)}</td>
                     <td className="px-4 py-2.5 text-right">
@@ -279,7 +284,11 @@ const Proposals: React.FC = () => {
                         : r.viewedTime ? `${t('proposals.viewedOn')} ${formatDateOnly(r.viewedTime, i18n.language)}` : '';
                       return (
                         <tr key={r.id} className="border-t border-stroke dark:border-strokedark">
-                          <td className="px-4 py-2.5 font-medium text-black dark:text-white">{r.customerName}</td>
+                          <td className="px-4 py-2.5 font-medium">
+                            <button onClick={() => setEstPreview({ estimateId: r.estimateId, number: r.number, loading: true })} className="text-black hover:text-primary hover:underline dark:text-white">
+                              {r.customerName}
+                            </button>
+                          </td>
                           <td className="px-4 py-2.5 text-body">{r.number}</td>
                           <td className="px-4 py-2.5 text-body">{formatDateOnly(r.sentAt, i18n.language)}</td>
                           <td className="px-4 py-2.5 text-body">{r.toEmail}</td>
@@ -353,6 +362,33 @@ const Proposals: React.FC = () => {
             </div>
             <div className="overflow-y-auto">
               <ActivityTimeline entityType="proposal" entityId={activityFor.estimateId} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Estimate PDF preview modal */}
+      {estPreview && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setEstPreview(null)}>
+          <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
+              <p className="font-semibold text-black dark:text-white">{estPreview.number}</p>
+              <button onClick={() => setEstPreview(null)} title={t('common.close') as string} className="text-body transition hover:text-danger">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="relative flex-1 overflow-y-auto bg-white dark:bg-boxdark">
+              {estPreview.loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
+                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                </div>
+              )}
+              <iframe
+                src={`${API_URL}/api/proposals/estimate/${estPreview.estimateId}/preview?token=${localStorage.getItem('token')}`}
+                className="h-full w-full border-0"
+                title="Estimate preview"
+                onLoad={() => setEstPreview((p) => (p ? { ...p, loading: false } : p))}
+              />
             </div>
           </div>
         </div>
