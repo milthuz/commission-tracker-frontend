@@ -38,6 +38,7 @@ const ICONS: Record<string, { bg: string; fg: string; glyph: string }> = {
   manual_bonus_removed:          { bg: 'bg-danger/15', fg: 'text-danger', glyph: '−' },
   adjustment_added:              { bg: 'bg-primary/15', fg: 'text-primary', glyph: '→' },
   adjustment_removed:            { bg: 'bg-gray-200 dark:bg-meta-4', fg: 'text-body', glyph: '↺' },
+  adjustment_description_edited: { bg: 'bg-primary/15', fg: 'text-primary', glyph: '✎' },
   stub_committed:                { bg: 'bg-success/15', fg: 'text-success', glyph: '✓' },
   stub_uncommitted:              { bg: 'bg-gray-200 dark:bg-meta-4', fg: 'text-body', glyph: '↺' },
   processing_bonus_committed:    { bg: 'bg-success/15', fg: 'text-success', glyph: '✓' },

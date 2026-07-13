@@ -501,6 +501,28 @@ const CommissionImport: React.FC = () => {
     const n = new Set(prev); n.has(num) ? n.delete(num) : n.add(num); return n;
   });
 
+  // Edit an adjustment's description after the fact (correction/typo) — amount/invoice/period
+  // are unchanged; those still require delete + recreate.
+  const [editingAdjId, setEditingAdjId] = useState<number | null>(null);
+  const [editingAdjDesc, setEditingAdjDesc] = useState('');
+  const [editAdjBusy, setEditAdjBusy] = useState(false);
+  const startEditAdj = (a: AdjRow) => { setEditingAdjId(a.id); setEditingAdjDesc(a.description || ''); };
+  const cancelEditAdj = () => { setEditingAdjId(null); setEditingAdjDesc(''); };
+  const saveAdjDescription = async (id: number) => {
+    if (!editingAdjDesc.trim()) { dialog.alert(t('admin.commissionImport.adjustments.descRequired')); return; }
+    setEditAdjBusy(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/commissions/adjustments/${id}`,
+        { description: editingAdjDesc.trim() },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setEditingAdjId(null);
+      setEditingAdjDesc('');
+      await fetchAdjustments();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save'); }
+    finally { setEditAdjBusy(false); }
+  };
+
   // Processing-bonus preview (bi-annual: June covers Dec→May, December covers Jun→Nov).
   const [procYear, setProcYear] = useState(new Date().getFullYear());
   const [procMonth, setProcMonth] = useState<6 | 12>(new Date().getMonth() + 1 >= 6 && new Date().getMonth() + 1 < 12 ? 6 : 12);
@@ -2091,10 +2113,37 @@ const CommissionImport: React.FC = () => {
                       <tr key={a.id} className="border-t border-stroke dark:border-strokedark">
                         <td className="px-3 py-2 text-body whitespace-nowrap">{monthName(new Date(a.target_period).getUTCMonth() + 1)} {new Date(a.target_period).getUTCFullYear()}</td>
                         <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{a.rep_name}</td>
-                        <td className="px-3 py-2 font-medium text-primary">{a.invoice_number || '—'}<span className="ml-2 text-body">{a.description || ''}</span></td>
+                        <td className="px-3 py-2 font-medium text-primary">
+                          {a.invoice_number || '—'}
+                          {editingAdjId === a.id ? (
+                            <span className="ml-2 inline-flex items-center gap-1.5">
+                              <input
+                                type="text"
+                                value={editingAdjDesc}
+                                onChange={(e) => setEditingAdjDesc(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') saveAdjDescription(a.id); if (e.key === 'Escape') cancelEditAdj(); }}
+                                autoFocus
+                                className="min-w-[180px] rounded border border-stroke bg-transparent px-2 py-1 text-xs font-normal text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+                              />
+                              <button onClick={() => saveAdjDescription(a.id)} disabled={editAdjBusy} title={t('common.save') as string} className="text-success disabled:opacity-50">
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                              </button>
+                              <button onClick={cancelEditAdj} disabled={editAdjBusy} title={t('common.cancel') as string} className="text-body hover:text-danger disabled:opacity-50">
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                              </button>
+                            </span>
+                          ) : (
+                            <span className="ml-2 font-normal text-body">{a.description || ''}</span>
+                          )}
+                        </td>
                         <td className="px-3 py-2 text-body whitespace-nowrap">{a.source_period ? `${monthName(new Date(a.source_period).getUTCMonth() + 1)} ${new Date(a.source_period).getUTCFullYear()}` : '—'}</td>
                         <td className={`px-3 py-2 text-right font-semibold whitespace-nowrap ${a.amount < 0 ? 'text-danger' : 'text-success'}`}>{fmt(a.amount)}</td>
-                        <td className="px-3 py-2 text-right">
+                        <td className="px-3 py-2 text-right whitespace-nowrap">
+                          {editingAdjId !== a.id && (
+                            <button onClick={() => startEditAdj(a)} title={t('common.edit') as string} className="mr-2 text-body hover:text-primary">
+                              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                            </button>
+                          )}
                           <button onClick={() => deleteAdjustment(a.id)} className="whitespace-nowrap text-xs text-danger hover:underline">{t('common.delete')}</button>
                         </td>
                       </tr>

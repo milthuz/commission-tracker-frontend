@@ -1602,6 +1602,7 @@
         "historyTitle": "Adjustments history",
         "from": "From",
         "deleteConfirm": "Undo this adjustment? The source invoice becomes unpaid again (reappears in the radar).",
+        "descRequired": "Description can't be empty.",
         "freeTitle": "Free adjustment (±)",
         "freeHint": "Add a positive or NEGATIVE amount to the selected rep's target month — e.g. deduct an overpayment from a past period. Shows as an \"Adjustment\" line on the pay stub and in payroll.",
         "freeSource": "Corrected period (optional)",

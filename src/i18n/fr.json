@@ -1602,6 +1602,7 @@
         "historyTitle": "Historique des ajustements",
         "from": "Depuis",
         "deleteConfirm": "Annuler cet ajustement ? La facture source redeviendra impayée (réapparaîtra dans le radar).",
+        "descRequired": "La description ne peut pas être vide.",
         "freeTitle": "Ajustement libre (±)",
         "freeHint": "Ajoute un montant positif ou NÉGATIF au mois cible du vendeur sélectionné — ex. déduire un trop-payé d'une période passée. Apparaît comme ligne « Ajustement » sur le bulletin de paie et dans la paie.",
         "freeSource": "Période corrigée (optionnel)",
