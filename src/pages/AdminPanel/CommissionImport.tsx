@@ -554,6 +554,19 @@ const CommissionImport: React.FC = () => {
   const [editingAdjId, setEditingAdjId] = useState<number | null>(null);
   const [editingAdjDesc, setEditingAdjDesc] = useState('');
   const [editAdjBusy, setEditAdjBusy] = useState(false);
+  // Free-form adjustments store their referenced invoice as "[INV-XXXXX] <text>" inside the
+  // description (invoice_number itself stays NULL — see the bulk/free insert below). Render
+  // that leading bracket as a real InvoiceLink instead of inert text.
+  const renderAdjDescription = (desc: string) => {
+    const m = desc.match(/^\[([^\]]+)\]\s*(.*)$/);
+    if (!m) return <span className="font-normal text-body">{desc}</span>;
+    return (
+      <>
+        <InvoiceLink number={m[1]} className="font-medium text-primary hover:underline" />
+        {m[2] && <span className="ml-1 font-normal text-body">{m[2]}</span>}
+      </>
+    );
+  };
   const startEditAdj = (a: AdjRow) => { setEditingAdjId(a.id); setEditingAdjDesc(a.description || ''); };
   const cancelEditAdj = () => { setEditingAdjId(null); setEditingAdjDesc(''); };
   const saveAdjDescription = async (id: number) => {
@@ -2233,7 +2246,7 @@ const CommissionImport: React.FC = () => {
                               </button>
                             </span>
                           ) : (
-                            <span className="ml-2 font-normal text-body">{a.description || ''}</span>
+                            <span className="ml-2">{a.description ? renderAdjDescription(a.description) : ''}</span>
                           )}
                         </td>
                         <td className="px-3 py-2 text-body whitespace-nowrap">{a.source_period ? `${monthName(new Date(a.source_period).getUTCMonth() + 1)} ${new Date(a.source_period).getUTCFullYear()}` : '—'}</td>
