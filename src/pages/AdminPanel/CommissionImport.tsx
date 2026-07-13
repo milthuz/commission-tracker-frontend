@@ -463,7 +463,7 @@ const CommissionImport: React.FC = () => {
   // Inner views of the Adjustments subtab (it grew too dense as one stacked page):
   // suggestions (reconciliation anomalies) / create (carry-forward OR free ±) / history.
   const [adjView, setAdjView] = useState<'suggestions' | 'create' | 'history'>('suggestions');
-  const [adjMode, setAdjMode] = useState<'carry' | 'free'>('carry');
+  const [adjMode, setAdjMode] = useState<'carry' | 'free' | 'bulk'>('carry');
 
   // Free-form (±) adjustment — e.g. deduct an overpayment from a past period on a future stub.
   const [freeAdjAmount, setFreeAdjAmount] = useState('');
@@ -487,6 +487,53 @@ const CommissionImport: React.FC = () => {
       await fetchAdjustments();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to create adjustment'); }
     finally { setFreeAdjBusy(false); }
+  };
+
+  // Bulk free-form adjustments — paste "invoiceNumber, repName, amount[, customer]" rows,
+  // each becomes its own free-form adjustment on the shared target month (adjYear/adjMonth).
+  // Unlike the single free-form mode, each row carries its own rep — useful for a batch that
+  // spans several reps at once (e.g. a retroactive rule-change fix).
+  interface BulkAdjRow { raw: string; invoiceNumber: string; repName: string; amount: number; customer?: string; error?: string }
+  const [bulkText, setBulkText] = useState('');
+  const [bulkDesc, setBulkDesc] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ ok: number; failed: { line: string; error: string }[] } | null>(null);
+  const bulkRows: BulkAdjRow[] = bulkText.split('\n').map(l => l.trim()).filter(Boolean).map(raw => {
+    const [invoiceNumber, repName, amountStr, customer] = raw.split(',').map(p => p.trim());
+    const amount = parseFloat(amountStr);
+    let error: string | undefined;
+    if (!invoiceNumber || !repName || !amountStr) error = t('admin.commissionImport.adjustments.bulkRowIncomplete') as string;
+    else if (!Number.isFinite(amount) || amount === 0) error = t('admin.commissionImport.adjustments.bulkRowBadAmount') as string;
+    else if (!reps.includes(repName)) error = t('admin.commissionImport.adjustments.bulkRowUnknownRep') as string;
+    return { raw, invoiceNumber, repName, amount, customer, error };
+  });
+  const bulkValid = bulkRows.filter(r => !r.error);
+  const bulkTotal = bulkValid.reduce((s, r) => s + r.amount, 0);
+  const submitBulkAdjustments = async () => {
+    if (!bulkDesc.trim()) { dialog.alert(t('admin.commissionImport.adjustments.bulkNeedDesc') as string); return; }
+    if (bulkValid.length === 0) return;
+    if (!(await dialog.confirm(t('admin.commissionImport.adjustments.bulkConfirm',
+      { count: bulkValid.length, total: fmt(bulkTotal), month: `${monthName(adjMonth)} ${adjYear}` }) as string))) return;
+    setBulkBusy(true);
+    setBulkResult(null);
+    const token = localStorage.getItem('token');
+    const failed: { line: string; error: string }[] = [];
+    let ok = 0;
+    for (const row of bulkValid) {
+      try {
+        await axios.post(`${API_URL}/api/commissions/adjustments`,
+          { repName: row.repName, year: adjYear, month: adjMonth, amount: row.amount,
+            description: bulkDesc, refInvoiceNumber: row.invoiceNumber, refCustomer: row.customer || null },
+          { headers: { Authorization: `Bearer ${token}` } });
+        ok++;
+      } catch (e: any) {
+        failed.push({ line: row.raw, error: e?.response?.data?.error || 'failed' });
+      }
+    }
+    setBulkResult({ ok, failed });
+    if (failed.length === 0) setBulkText('');
+    await fetchAdjustments();
+    setBulkBusy(false);
   };
 
   const deleteAdjustment = async (id: number) => {
@@ -1980,7 +2027,7 @@ const CommissionImport: React.FC = () => {
               </div>
               {/* Mode: carry unpaid invoices vs free ± amount */}
               <div className="flex gap-1 rounded-lg bg-gray-2 p-1 dark:bg-meta-4/60">
-                {(['carry', 'free'] as const).map(m => (
+                {(['carry', 'free', 'bulk'] as const).map(m => (
                   <button key={m} onClick={() => setAdjMode(m)}
                     className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${adjMode === m ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
                     {t(`admin.commissionImport.adjustments.mode.${m}`)}
@@ -2089,6 +2136,58 @@ const CommissionImport: React.FC = () => {
                 </button>
               </div>
               {!adjRep && <p className="mt-2 text-xs italic text-body">{t('admin.commissionImport.adjustments.freeNeedRep')}</p>}
+            </>)}
+
+            {adjMode === 'bulk' && (<>
+              <div className="mt-3">
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.bulkFormatHint')}</label>
+                <textarea value={bulkText} onChange={(e) => { setBulkText(e.target.value); setBulkResult(null); }}
+                  placeholder={t('admin.commissionImport.adjustments.bulkPlaceholder') as string}
+                  rows={8}
+                  className="w-full rounded border border-stroke bg-transparent px-3 py-2 font-mono text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+              </div>
+              <div className="mt-3 flex flex-wrap items-end gap-3">
+                <div className="flex-1 min-w-[220px]">
+                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
+                  <input type="text" value={bulkDesc} onChange={(e) => setBulkDesc(e.target.value)}
+                    placeholder={t('admin.commissionImport.adjustments.bulkDescPlaceholder') as string}
+                    className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                </div>
+                <button onClick={submitBulkAdjustments} disabled={bulkBusy || bulkValid.length === 0 || !bulkDesc.trim()}
+                  title={!bulkDesc.trim() ? (t('admin.commissionImport.adjustments.bulkNeedDesc') as string) : undefined}
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                  {bulkBusy ? '…' : t('admin.commissionImport.adjustments.bulkSubmit', { count: bulkValid.length })}
+                </button>
+              </div>
+
+              {bulkRows.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs font-medium text-body">
+                    {t('admin.commissionImport.adjustments.bulkPreviewCount', { count: bulkValid.length, total: fmt(bulkTotal) })}
+                  </p>
+                  {bulkRows.some(r => r.error) && (
+                    <div className="mt-2 max-h-40 overflow-y-auto rounded border border-warning/40 bg-warning/5 p-2 text-xs">
+                      {bulkRows.filter(r => r.error).map((r, i) => (
+                        <p key={i} className="text-warning">{r.raw || '(blank)'} — {r.error}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {bulkResult && (
+                <div className="mt-3 text-sm">
+                  {bulkResult.ok > 0 && (
+                    <p className="text-success">{t('admin.commissionImport.adjustments.bulkResultOk', { count: bulkResult.ok })}</p>
+                  )}
+                  {bulkResult.failed.length > 0 && (
+                    <div className="mt-1">
+                      <p className="text-danger">{t('admin.commissionImport.adjustments.bulkResultFailed', { count: bulkResult.failed.length })}</p>
+                      {bulkResult.failed.map((f, i) => <p key={i} className="text-xs text-danger">{f.line} — {f.error}</p>)}
+                    </div>
+                  )}
+                </div>
+              )}
             </>)}
           </>)}
 

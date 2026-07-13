@@ -1642,12 +1642,26 @@
         },
         "mode": {
           "carry": "Reporter des factures",
-          "free": "Montant libre (±)"
+          "free": "Montant libre (±)",
+          "bulk": "Ajout en lot"
         },
         "modeHint": {
           "carry": "Coche des commissions impayées ci-dessous — elles seront déplacées vers le mois cible et payées avec lui.",
-          "free": "Montant positif ou négatif (ex. -118.00 pour un trop-payé) ajouté au bulletin du mois cible."
+          "free": "Montant positif ou négatif (ex. -118.00 pour un trop-payé) ajouté au bulletin du mois cible.",
+          "bulk": "Colle plusieurs lignes pour ajouter plusieurs ajustements libres d'un coup — chaque ligne indique son propre représentant, le sélecteur « Rep » ci-dessus est ignoré dans ce mode."
         },
+        "bulkPlaceholder": "INV-053729, Gabriella Daly, 254.50\nINV-053728, Gabriella Daly, 1023.07\nINV-049022, Elizabeth Bouganim, 44.50",
+        "bulkFormatHint": "Une ligne par ajustement : numéro de facture, nom du rep, montant (client optionnel en 4e champ).",
+        "bulkDescPlaceholder": "ex. Commission matériel — fenêtre de 6 mois retirée (rétroactif)",
+        "bulkPreviewCount": "{{count}} ligne(s) valide(s) — total {{total}}",
+        "bulkRowIncomplete": "Numéro de facture, rep ou montant manquant",
+        "bulkRowBadAmount": "Le montant doit être un nombre non nul",
+        "bulkRowUnknownRep": "Nom de rep inconnu",
+        "bulkSubmit": "Ajouter {{count}} ajustements",
+        "bulkConfirm": "Ajouter {{count}} ajustements totalisant {{total}} à {{month}} ?",
+        "bulkResultOk": "{{count}} ajustement(s) ajouté(s).",
+        "bulkResultFailed": "{{count}} ligne(s) en échec :",
+        "bulkNeedDesc": "Description requise — c'est la raison que les reps voient sur leur bulletin.",
         "sugInvoiceClient": "Facture · Client",
         "sugDetail": {
           "clientSince": "Client depuis le {{date}} (première facture SaaS).",

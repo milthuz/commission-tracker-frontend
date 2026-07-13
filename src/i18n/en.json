@@ -1642,12 +1642,26 @@
         },
         "mode": {
           "carry": "Carry invoices",
-          "free": "Free amount (±)"
+          "free": "Free amount (±)",
+          "bulk": "Bulk add"
         },
         "modeHint": {
           "carry": "Check unpaid commissions below — they move to the target month and get paid with it.",
-          "free": "Positive or negative amount (e.g. -118.00 for an overpayment) added to the target month's stub."
+          "free": "Positive or negative amount (e.g. -118.00 for an overpayment) added to the target month's stub.",
+          "bulk": "Paste multiple rows to add many free-form adjustments at once — each line carries its own rep, so the Rep selector above is ignored in this mode."
         },
+        "bulkPlaceholder": "INV-053729, Gabriella Daly, 254.50\nINV-053728, Gabriella Daly, 1023.07\nINV-049022, Elizabeth Bouganim, 44.50",
+        "bulkFormatHint": "One per line: invoice number, rep name, amount (customer optional as a 4th field).",
+        "bulkDescPlaceholder": "e.g. Hardware commission — 6-month window removed (retroactive)",
+        "bulkPreviewCount": "{{count}} valid row(s) — total {{total}}",
+        "bulkRowIncomplete": "Missing invoice #, rep, or amount",
+        "bulkRowBadAmount": "Amount must be a non-zero number",
+        "bulkRowUnknownRep": "Unknown rep name",
+        "bulkSubmit": "Add {{count}} adjustments",
+        "bulkConfirm": "Add {{count}} adjustments totaling {{total}} to {{month}}?",
+        "bulkResultOk": "{{count}} adjustment(s) added.",
+        "bulkResultFailed": "{{count}} row(s) failed:",
+        "bulkNeedDesc": "Description required — it's the reason reps see on their pay stub.",
         "sugInvoiceClient": "Invoice · Client",
         "sugDetail": {
           "clientSince": "Customer since {{date}} (first SaaS invoice).",
