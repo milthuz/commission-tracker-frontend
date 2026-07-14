@@ -399,6 +399,10 @@ const CommissionImport: React.FC = () => {
             refInvoiceNumber: s.invoiceNumber, refCustomer: s.customer },
           { headers: { Authorization: `Bearer ${token}` } });
       }
+      // Remove it from the visible list immediately — the suggestions recompute (4 queries
+      // over the whole invoices table) is slow enough that waiting for it left the just-applied
+      // row looking clickable for several seconds, inviting an accidental second Apply.
+      setSuggestions(prev => prev.filter(x => x.key !== s.key));
       await Promise.all([fetchSuggestions(), fetchAdjustments()]);
       if (adjRep) await fetchAdjUnpaid(adjRep);
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to apply suggestion'); }
