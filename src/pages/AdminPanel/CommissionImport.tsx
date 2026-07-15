@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import PayStubModal, { PayStubData } from '../../components/PayStubModal';
+import ProcessingBonusStatementModal, { BonusStatementData } from '../../components/ProcessingBonusStatementModal';
 import DealsAdmin from './DealsAdmin';
 import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
@@ -706,6 +707,21 @@ const CommissionImport: React.FC = () => {
     } catch (e: any) {
       dialog.alert(e?.response?.data?.error || 'Failed to uncommit');
     } finally { setProcCommitting(false); }
+  };
+
+  // Dedicated bi-annual bonus statement — its own document, separate from the monthly Pay Stub.
+  const [bonusStatement, setBonusStatement] = useState<BonusStatementData | null>(null);
+  const viewBonusStatement = async (rep: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/processing-bonus-statement`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { repName: rep, year: procYear, month: procMonth },
+      });
+      setBonusStatement(res.data);
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || 'Failed to load statement');
+    }
   };
 
   const fetchCoverage = async () => {
@@ -1798,6 +1814,7 @@ const CommissionImport: React.FC = () => {
                       <th className="px-4 py-2 text-left font-medium">Rep</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.accounts')}</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.bonus')}</th>
+                      {procData.committed && procData.committed.count > 0 && <th className="px-4 py-2"></th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -1810,12 +1827,21 @@ const CommissionImport: React.FC = () => {
                           <td className="px-4 py-2 font-medium text-black dark:text-white">{procExpanded === r.rep ? '▾' : '▸'} {r.rep}</td>
                           <td className="px-4 py-2 text-right text-body">{r.accounts.length}</td>
                           <td className="px-4 py-2 text-right font-semibold text-success">{fmt(r.total)}</td>
+                          {procData.committed && procData.committed.count > 0 && (
+                            <td className="px-4 py-2 text-right" onClick={(e) => e.stopPropagation()}>
+                              <button onClick={() => viewBonusStatement(r.rep)}
+                                className="text-xs font-medium text-primary hover:underline">
+                                {t('commissionReport.bonusStatement.open')}
+                              </button>
+                            </td>
+                          )}
                         </tr>
                         {procExpanded === r.rep && r.accounts.map((a) => (
                           <tr key={a.merchant_account_id} className="border-t border-stroke bg-gray-50 text-xs dark:border-strokedark dark:bg-meta-4/20">
                             <td className="px-4 py-1.5 pl-8 text-black dark:text-white">{a.business_name}<span className="ml-2 text-body">({a.windowStart} → {a.windowEnd})</span></td>
                             <td className="px-4 py-1.5 text-right text-body">{a.activeMonths} mo · ~{fmt(a.avg)}/mo</td>
                             <td className="px-4 py-1.5 text-right text-body">{fmt(a.bonus)}</td>
+                            {procData.committed && procData.committed.count > 0 && <td></td>}
                           </tr>
                         ))}
                       </React.Fragment>
@@ -2434,6 +2460,9 @@ const CommissionImport: React.FC = () => {
 
       {/* Pay Stub detail modal (shared component) */}
       <PayStubModal data={stub} onClose={() => setStub(null)} showAppCalc onQuotaWaive={waiveQuota} onAdjusted={() => { fetchCoverage(); fetchAdjustments(); }} onUncommit={uncommitStub} committing={stubBusy} />
+
+      {/* Bi-annual processing bonus statement — its own document, separate from Pay Stub */}
+      <ProcessingBonusStatementModal data={bonusStatement} onClose={() => setBonusStatement(null)} />
 
       {/* Quota-review: the raw invoices behind a rep×month's forfeiture */}
       {quotaInvoices && (
