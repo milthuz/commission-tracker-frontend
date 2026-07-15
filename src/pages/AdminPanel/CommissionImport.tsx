@@ -102,6 +102,13 @@ interface PayrollRep { rep: string; source: string; total: number; lineCount: nu
 interface PayrollData { year: number; month: number; dueBy: string | null; recipients: string[]; grandTotal: number; reps: PayrollRep[]; }
 interface PayrollSend { period: string; year: number; month: number; sentAt: string; sentBy: string; recipients: string[]; repCount: number; total: number; reps: string[]; ids: number[]; }
 
+// Bi-annual processing-bonus send — mirrors PayrollRep/PayrollSend but kept as its own types
+// since the two flows are deliberately never merged.
+interface BonusCommittedAccount { merchant_name: string; amount: number; }
+interface BonusCommittedRep { rep: string; accounts: BonusCommittedAccount[]; total: number; sentAt?: string | null; }
+interface BonusCommittedData { year: number; month: number; reps: BonusCommittedRep[]; grandTotal: number; }
+type BonusSend = PayrollSend;
+
 const newId = () => Math.random().toString(36).slice(2, 10);
 
 // Map the import-detail response into the shared PayStubModal shape.
@@ -234,6 +241,74 @@ const CommissionImport: React.FC = () => {
       fetchPaySends();        // refresh the send history
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to send'); }
     finally { setPaySending(false); }
+  };
+
+  // Bi-annual processing-bonus send — deliberately its own section/state/functions, separate
+  // from the regular monthly payroll send above, so the two can never blend together.
+  const [bonusSendYear, setBonusSendYear] = useState(now.getFullYear());
+  const [bonusSendMonth, setBonusSendMonth] = useState<6 | 12>(now.getMonth() + 1 >= 7 ? 12 : 6);
+  const [bonusSendData, setBonusSendData] = useState<BonusCommittedData | null>(null);
+  const [bonusSendLoading, setBonusSendLoading] = useState(false);
+  const [bonusSending, setBonusSending] = useState(false);
+  const [bonusSelectedReps, setBonusSelectedReps] = useState<Set<string>>(new Set());
+  const [bonusSends, setBonusSends] = useState<BonusSend[]>([]);
+  const [expandedBonusSend, setExpandedBonusSend] = useState<string | null>(null);
+
+  const fetchBonusSends = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/processing-bonus/sends`, { headers: { Authorization: `Bearer ${token}` } });
+      setBonusSends(res.data.sends || []);
+    } catch (_e) { /* silent */ }
+  };
+
+  const deleteBonusSend = async (s: BonusSend) => {
+    if (!(await dialog.confirm(t('admin.commissionImport.bonusPayroll.histDeleteConfirm') as string))) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/commissions/processing-bonus/sends`, { headers: { Authorization: `Bearer ${token}` }, data: { ids: s.ids } });
+      fetchBonusSends();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
+  };
+
+  const fetchBonusCommitted = async () => {
+    setBonusSendLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/commissions/processing-bonus/committed`, {
+        headers: { Authorization: `Bearer ${token}` }, params: { year: bonusSendYear, month: bonusSendMonth },
+      });
+      setBonusSendData(res.data);
+      setBonusSelectedReps(new Set((res.data.reps || []).map((r: { rep: string }) => r.rep))); // default: all
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || 'Failed to load bonus preview');
+    } finally { setBonusSendLoading(false); }
+  };
+
+  const toggleBonusRep = (rep: string) => setBonusSelectedReps(prev => {
+    const next = new Set(prev);
+    next.has(rep) ? next.delete(rep) : next.add(rep);
+    return next;
+  });
+  const toggleAllBonusReps = () => setBonusSelectedReps(prev =>
+    bonusSendData && prev.size === bonusSendData.reps.length ? new Set() : new Set((bonusSendData?.reps || []).map(r => r.rep)));
+
+  const sendBonusPayroll = async () => {
+    if (!bonusSendData) return;
+    const reps = [...bonusSelectedReps];
+    if (reps.length === 0) { dialog.alert(t('admin.commissionImport.payroll.noReps') as string); return; }
+    if (!(await dialog.confirm(t('admin.commissionImport.bonusPayroll.confirmSend', { count: reps.length }) as string))) return;
+    setBonusSending(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/commissions/processing-bonus/send`,
+        { year: bonusSendYear, month: bonusSendMonth, reps, lang: i18n.language },
+        { headers: { Authorization: `Bearer ${token}` } });
+      dialog.alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
+      await fetchBonusCommitted();  // refresh so the sent reps show the "Sent" badge
+      fetchBonusSends();            // refresh the send history
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to send'); }
+    finally { setBonusSending(false); }
   };
 
   // Manual bonus (free-text) on a rep's monthly stub.
@@ -865,7 +940,7 @@ const CommissionImport: React.FC = () => {
     })();
   }, []);
   // Load the full manual-bonus + adjustment history once (both span all periods).
-  useEffect(() => { fetchManualBonuses(); fetchAdjustments(); fetchSuggestions(); fetchPayRecipients(); fetchPaySends(); }, []);
+  useEffect(() => { fetchManualBonuses(); fetchAdjustments(); fetchSuggestions(); fetchPayRecipients(); fetchPaySends(); fetchBonusSends(); }, []);
   // Quota-review queue: refetch when the "show reviewed history" toggle changes (fires once on mount too).
   useEffect(() => { fetchQuotaReview(quotaShowHistory); }, [quotaShowHistory]);
 
@@ -1723,6 +1798,184 @@ const CommissionImport: React.FC = () => {
                               </div>
                               <div className="mt-3 border-t border-stroke pt-3 dark:border-strokedark">
                                 <button onClick={() => deletePaySend(s)}
+                                  className="inline-flex items-center gap-1.5 rounded-md border border-danger/40 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger hover:text-white">
+                                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                  {t('admin.commissionImport.payroll.histDelete')}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bi-annual processing bonus send — deliberately separate from the monthly payroll
+          send above: distinct border/badge so admins can never mistake one for the other. */}
+      <div className="mt-6 rounded-sm border border-l-4 border-stroke border-l-warning bg-white shadow-default dark:border-strokedark dark:border-l-warning dark:bg-boxdark">
+        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-warning/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-warning">
+              {t('admin.commissionImport.bonusPayroll.badge')}
+            </span>
+            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.bonusPayroll.title')}</h3>
+          </div>
+          <p className="mt-1 text-sm text-body">{t('admin.commissionImport.bonusPayroll.subtitle')}</p>
+        </div>
+        <div className="px-6 py-4">
+          <div className="mb-4 flex flex-wrap items-end gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.month')}</label>
+              <div className="flex gap-2">
+                <select value={bonusSendMonth} onChange={(e) => setBonusSendMonth(parseInt(e.target.value) as 6 | 12)}
+                  className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
+                  <option value={6}>{t('admin.commissionImport.bonusPayroll.june')}</option>
+                  <option value={12}>{t('admin.commissionImport.bonusPayroll.december')}</option>
+                </select>
+                <input type="number" value={bonusSendYear} onChange={(e) => setBonusSendYear(parseInt(e.target.value) || bonusSendYear)}
+                  className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+              </div>
+            </div>
+            <button onClick={fetchBonusCommitted} disabled={bonusSendLoading}
+              className="rounded-md border border-warning px-4 py-2 text-sm font-medium text-warning hover:bg-warning hover:text-white disabled:opacity-50">
+              {bonusSendLoading ? t('admin.commissionImport.bonusPayroll.loading') : t('admin.commissionImport.bonusPayroll.preview')}
+            </button>
+            {(() => {
+              const lastSent = bonusSendData ? bonusSendData.reps.map(r => r.sentAt).filter(Boolean).sort().slice(-1)[0] : null;
+              return lastSent ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-3 py-1 text-xs font-medium text-warning">
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  {t('admin.commissionImport.payroll.lastSent')}: {fmtDate(lastSent)}
+                </span>
+              ) : null;
+            })()}
+          </div>
+
+          {bonusSendData && (
+            <>
+              {bonusSendData.reps.length === 0 ? (
+                <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.bonusPayroll.none')}</p>
+              ) : (
+                <>
+                  <div className="mb-3 overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-2 dark:bg-meta-4">
+                        <tr>
+                          <th className="px-3 py-2 text-center font-medium">
+                            <input type="checkbox" checked={bonusSelectedReps.size === bonusSendData.reps.length && bonusSendData.reps.length > 0}
+                              onChange={toggleAllBonusReps} title={t('admin.commissionImport.payroll.selectAll') as string} />
+                          </th>
+                          <th className="px-4 py-2 text-left font-medium">Rep</th>
+                          <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.status')}</th>
+                          <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.processing.accounts')}</th>
+                          <th className="px-4 py-2 text-right font-medium">Total</th></tr>
+                      </thead>
+                      <tbody>
+                        {bonusSendData.reps.map(r => (
+                          <tr key={r.rep} className={`border-t border-stroke dark:border-strokedark ${bonusSelectedReps.has(r.rep) ? '' : 'opacity-50'}`}>
+                            <td className="px-3 py-2 text-center">
+                              <input type="checkbox" checked={bonusSelectedReps.has(r.rep)} onChange={() => toggleBonusRep(r.rep)} />
+                            </td>
+                            <td className="px-4 py-2 font-medium text-black dark:text-white">{r.rep}</td>
+                            <td className="px-4 py-2 text-center">
+                              {r.sentAt ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2.5 py-1 text-[11px] font-semibold text-warning"
+                                  title={`${t('admin.commissionImport.bonusPayroll.sentOn')} ${fmtDate(r.sentAt)}`}>
+                                  <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                  {t('admin.commissionImport.bonusPayroll.statusSent')}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success"><span className="h-1.5 w-1.5 rounded-full bg-success" />{t('admin.commissionImport.bonusPayroll.statusReady')}</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-2 text-center text-body">{r.accounts.length}</td>
+                            <td className="px-4 py-2 text-right font-semibold text-black dark:text-white">{fmt(r.total)}</td>
+                          </tr>
+                        ))}
+                        <tr className="border-t-2 border-black dark:border-white">
+                          <td className="px-4 py-2 font-bold text-black dark:text-white" colSpan={4}>{t('admin.commissionImport.payroll.selectedTotal', { count: bonusSelectedReps.size })}</td>
+                          <td className="px-4 py-2 text-right font-bold text-warning">{fmt(bonusSendData.reps.filter(r => bonusSelectedReps.has(r.rep)).reduce((s, r) => s + r.total, 0))}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <button onClick={sendBonusPayroll} disabled={bonusSending || payRecipients.length === 0 || bonusSelectedReps.size === 0}
+                    className="rounded-md bg-warning px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                    title={payRecipients.length === 0 ? t('admin.commissionImport.payroll.noRecipients') as string : undefined}>
+                    {bonusSending ? t('admin.commissionImport.bonusPayroll.sending') : t('admin.commissionImport.bonusPayroll.send')}
+                  </button>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Bi-annual bonus send history — kept separate from the monthly payroll history */}
+      <div className="mt-6 rounded-sm border border-l-4 border-stroke border-l-warning bg-white shadow-default dark:border-strokedark dark:border-l-warning dark:bg-boxdark">
+        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.bonusPayroll.historyTitle')}</h3>
+          <p className="text-sm text-body">{t('admin.commissionImport.bonusPayroll.historySubtitle')}</p>
+        </div>
+        <div className="px-6 py-4">
+          {bonusSends.length === 0 ? (
+            <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.bonusPayroll.historyNone')}</p>
+          ) : (
+            <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-2 dark:bg-meta-4">
+                  <tr>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histDate')}</th>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histPeriod')}</th>
+                    <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.histReps')}</th>
+                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.payroll.histTotal')}</th>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histRecipients')}</th>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histSentBy')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bonusSends.map(s => {
+                    const key = `${s.period}|${s.sentAt}|${s.sentBy}`;
+                    const open = expandedBonusSend === key;
+                    return (
+                      <React.Fragment key={key}>
+                        <tr onClick={() => setExpandedBonusSend(open ? null : key)}
+                          className="cursor-pointer border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
+                          <td className="px-4 py-2 text-black dark:text-white">
+                            <span className="inline-flex items-center gap-1.5">
+                              <svg className={`h-3.5 w-3.5 text-body transition-transform ${open ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                              {fmtDateTime(s.sentAt)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 text-black dark:text-white">{monthName(s.month)} {s.year}</td>
+                          <td className="px-4 py-2 text-center">{s.repCount}</td>
+                          <td className="px-4 py-2 text-right font-semibold text-warning">{fmt(s.total)}</td>
+                          <td className="px-4 py-2 text-body">{s.recipients.length}</td>
+                          <td className="px-4 py-2 text-body">{s.sentBy}</td>
+                        </tr>
+                        {open && (
+                          <tr className="border-t border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4/20">
+                            <td colSpan={6} className="px-6 py-3">
+                              <div className="mb-2">
+                                <span className="text-xs font-semibold uppercase text-body">{t('admin.commissionImport.payroll.histReps')} ({s.repCount})</span>
+                                <div className="mt-1 flex flex-wrap gap-1.5">
+                                  {s.reps.map(r => (
+                                    <span key={r} className="rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning">{r}</span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-xs font-semibold uppercase text-body">{t('admin.commissionImport.payroll.histRecipients')}</span>
+                                <div className="mt-1 text-xs text-body">{s.recipients.join(', ')}</div>
+                              </div>
+                              <div className="mt-3 border-t border-stroke pt-3 dark:border-strokedark">
+                                <button onClick={() => deleteBonusSend(s)}
                                   className="inline-flex items-center gap-1.5 rounded-md border border-danger/40 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger hover:text-white">
                                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                   {t('admin.commissionImport.payroll.histDelete')}

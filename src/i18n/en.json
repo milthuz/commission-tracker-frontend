@@ -1786,6 +1786,26 @@
         "histDelete": "Delete this entry",
         "histDeleteConfirm": "Delete the {{month}} {{year}} send from the history? This only removes the history record — it does not un-send the email."
       },
+      "bonusPayroll": {
+        "title": "Send the Bi-Annual Bonus (separate from monthly payroll)",
+        "subtitle": "Emails the ALREADY-COMMITTED processing bonus for June or December to payroll — its own summary + PDF, kept deliberately separate from the monthly commissions above.",
+        "badge": "BI-ANNUAL BONUS",
+        "june": "June payout",
+        "december": "December payout",
+        "preview": "Preview",
+        "loading": "Loading…",
+        "none": "Nothing committed for this period yet — commit it first in the Bonus tab.",
+        "send": "Send bonus to payroll",
+        "sending": "Sending…",
+        "confirmSend": "Send {{count}} rep(s)' bi-annual bonus to payroll by email? This is separate from the monthly payroll send.",
+        "statusSent": "Sent",
+        "statusReady": "Ready to send",
+        "sentOn": "Sent to payroll on",
+        "historyTitle": "Bi-annual bonus send history",
+        "historySubtitle": "Every bi-annual bonus send, most recent first — kept separate from the monthly payroll history.",
+        "historyNone": "No bi-annual bonus has been sent yet.",
+        "histDeleteConfirm": "Delete this bi-annual bonus send from the history? This only removes the history record — it does not un-send the email."
+      },
       "processing": {
         "title": "Processing Bonus (bi-annual)",
         "subtitle": "Paid ONCE per account, at the June or December payout after its first 6 months are complete. The 6-month window is anchored to the account's activation. Per account: avg monthly (transaction profit + other revenue) over its active months, minus the first $100, capped at $400 (needs revenue in ≥3 of the 6 months). Active reps only.",

@@ -1786,6 +1786,26 @@
         "histDelete": "Supprimer cette entrée",
         "histDeleteConfirm": "Supprimer l'envoi de {{month}} {{year}} de l'historique? Cela retire seulement l'entrée d'historique — le courriel déjà envoyé n'est pas annulé."
       },
+      "bonusPayroll": {
+        "title": "Envoyer le bonus bi-annuel (distinct de la paie mensuelle)",
+        "subtitle": "Envoie par courriel à la paie le bonus de volume DÉJÀ VALIDÉ pour juin ou décembre — son propre résumé + PDF, gardé volontairement séparé des commissions mensuelles ci-dessus.",
+        "badge": "BONUS BI-ANNUEL",
+        "june": "Versement de juin",
+        "december": "Versement de décembre",
+        "preview": "Aperçu",
+        "loading": "Chargement…",
+        "none": "Rien n'a encore été validé pour cette période — validez-le d'abord dans l'onglet Bonus.",
+        "send": "Envoyer le bonus à la paie",
+        "sending": "Envoi…",
+        "confirmSend": "Envoyer le bonus bi-annuel de {{count}} vendeur(s) à la paie par courriel? Ceci est distinct de l'envoi mensuel de la paie.",
+        "statusSent": "Envoyé",
+        "statusReady": "Prêt à envoyer",
+        "sentOn": "Envoyé à la paie le",
+        "historyTitle": "Historique des envois du bonus bi-annuel",
+        "historySubtitle": "Chaque envoi du bonus bi-annuel, du plus récent au plus ancien — gardé séparé de l'historique de la paie mensuelle.",
+        "historyNone": "Aucun bonus bi-annuel n'a encore été envoyé.",
+        "histDeleteConfirm": "Supprimer cet envoi du bonus bi-annuel de l'historique? Cela retire seulement l'entrée d'historique — le courriel déjà envoyé n'est pas annulé."
+      },
       "processing": {
         "title": "Bonus de paiement (bi-annuel)",
         "subtitle": "Versé UNE fois par compte, au versement de juin ou décembre suivant la complétion de ses 6 premiers mois. La fenêtre de 6 mois est ancrée à l'activation du compte. Par compte : moyenne mensuelle (profit transaction + autres revenus) sur ses mois actifs, moins les premiers 100 $, plafonné à 400 $ (besoin de revenus dans ≥ 3 des 6 mois). Vendeurs actifs seulement.",
