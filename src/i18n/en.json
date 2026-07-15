@@ -1806,6 +1806,15 @@
         "historyNone": "No bi-annual bonus has been sent yet.",
         "histDeleteConfirm": "Delete this bi-annual bonus send from the history? This only removes the history record — it does not un-send the email."
       },
+      "sendConfirm": {
+        "rep": "Rep",
+        "total": "Total",
+        "grandTotal": "Grand total",
+        "recipients": "Recipients",
+        "cancel": "Cancel",
+        "sending": "Sending…",
+        "subtitle": "This emails payroll immediately — review the list below before confirming."
+      },
       "processing": {
         "title": "Processing Bonus (bi-annual)",
         "subtitle": "Paid ONCE per account, at the June or December payout after its first 6 months are complete. The 6-month window is anchored to the account's activation. Per account: avg monthly (transaction profit + other revenue) over its active months, minus the first $100, capped at $400 (needs revenue in ≥3 of the 6 months). Active reps only.",

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import PayStubModal, { PayStubData } from '../../components/PayStubModal';
 import ProcessingBonusStatementModal, { BonusStatementData } from '../../components/ProcessingBonusStatementModal';
+import SendConfirmModal from '../../components/SendConfirmModal';
 import DealsAdmin from './DealsAdmin';
 import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
@@ -227,15 +228,21 @@ const CommissionImport: React.FC = () => {
   const toggleAllReps = () => setSelectedReps(prev =>
     payData && prev.size === payData.reps.length ? new Set() : new Set((payData?.reps || []).map(r => r.rep)));
 
-  const sendPayroll = async () => {
+  // Opening the confirm modal is just a guard + gate; the actual send happens in
+  // confirmSendPayroll once the admin reviews the rep-by-rep breakdown and clicks through.
+  const [showPayConfirm, setShowPayConfirm] = useState(false);
+  const openPayConfirm = () => {
+    if (!payData || selectedReps.size === 0) { dialog.alert(t('admin.commissionImport.payroll.noReps') as string); return; }
+    setShowPayConfirm(true);
+  };
+  const confirmSendPayroll = async () => {
     if (!payData) return;
     const reps = [...selectedReps];
-    if (reps.length === 0) { dialog.alert(t('admin.commissionImport.payroll.noReps') as string); return; }
-    if (!(await dialog.confirm(t('admin.commissionImport.payroll.confirmSend', { count: reps.length }) as string))) return;
     setPaySending(true);
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/commissions/payroll/send`, { year: payYear, month: payMonth, reps, lang: i18n.language }, { headers: { Authorization: `Bearer ${token}` } });
+      setShowPayConfirm(false);
       dialog.alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
       await fetchPayroll();   // refresh so the sent reps show the "Sent" badge
       fetchPaySends();        // refresh the send history
@@ -293,17 +300,21 @@ const CommissionImport: React.FC = () => {
   const toggleAllBonusReps = () => setBonusSelectedReps(prev =>
     bonusSendData && prev.size === bonusSendData.reps.length ? new Set() : new Set((bonusSendData?.reps || []).map(r => r.rep)));
 
-  const sendBonusPayroll = async () => {
+  const [showBonusConfirm, setShowBonusConfirm] = useState(false);
+  const openBonusConfirm = () => {
+    if (!bonusSendData || bonusSelectedReps.size === 0) { dialog.alert(t('admin.commissionImport.payroll.noReps') as string); return; }
+    setShowBonusConfirm(true);
+  };
+  const confirmSendBonusPayroll = async () => {
     if (!bonusSendData) return;
     const reps = [...bonusSelectedReps];
-    if (reps.length === 0) { dialog.alert(t('admin.commissionImport.payroll.noReps') as string); return; }
-    if (!(await dialog.confirm(t('admin.commissionImport.bonusPayroll.confirmSend', { count: reps.length }) as string))) return;
     setBonusSending(true);
     try {
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/commissions/processing-bonus/send`,
         { year: bonusSendYear, month: bonusSendMonth, reps, lang: i18n.language },
         { headers: { Authorization: `Bearer ${token}` } });
+      setShowBonusConfirm(false);
       dialog.alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
       await fetchBonusCommitted();  // refresh so the sent reps show the "Sent" badge
       fetchBonusSends();            // refresh the send history
@@ -1727,7 +1738,7 @@ const CommissionImport: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
-                  <button onClick={sendPayroll} disabled={paySending || payRecipients.length === 0 || selectedReps.size === 0}
+                  <button onClick={openPayConfirm} disabled={paySending || payRecipients.length === 0 || selectedReps.size === 0}
                     className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
                     title={payRecipients.length === 0 ? t('admin.commissionImport.payroll.noRecipients') as string : undefined}>
                     {paySending ? t('admin.commissionImport.payroll.sending') : t('admin.commissionImport.payroll.send')}
@@ -1905,7 +1916,7 @@ const CommissionImport: React.FC = () => {
                       </tbody>
                     </table>
                   </div>
-                  <button onClick={sendBonusPayroll} disabled={bonusSending || payRecipients.length === 0 || bonusSelectedReps.size === 0}
+                  <button onClick={openBonusConfirm} disabled={bonusSending || payRecipients.length === 0 || bonusSelectedReps.size === 0}
                     className="rounded-md bg-warning px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
                     title={payRecipients.length === 0 ? t('admin.commissionImport.payroll.noRecipients') as string : undefined}>
                     {bonusSending ? t('admin.commissionImport.bonusPayroll.sending') : t('admin.commissionImport.bonusPayroll.send')}
@@ -2716,6 +2727,41 @@ const CommissionImport: React.FC = () => {
 
       {/* Bi-annual processing bonus statement — its own document, separate from Pay Stub */}
       <ProcessingBonusStatementModal data={bonusStatement} onClose={() => setBonusStatement(null)} />
+
+      {/* Final review before the monthly payroll send actually fires */}
+      <SendConfirmModal
+        open={showPayConfirm}
+        onClose={() => setShowPayConfirm(false)}
+        onConfirm={confirmSendPayroll}
+        confirming={paySending}
+        title={t('admin.commissionImport.payroll.title') as string}
+        subtitle={`${monthName(payMonth)} ${payYear} — ${t('admin.commissionImport.sendConfirm.subtitle')}`}
+        rows={(payData?.reps || []).filter(r => selectedReps.has(r.rep)).map(r => ({ rep: r.rep, total: r.total }))}
+        grandTotal={(payData?.reps || []).filter(r => selectedReps.has(r.rep)).reduce((s, r) => s + r.total, 0)}
+        recipients={payRecipients}
+        confirmLabel={t('admin.commissionImport.payroll.send') as string}
+        fmt={fmt}
+        accent="primary"
+      />
+
+      {/* Final review before the bi-annual bonus send actually fires */}
+      <SendConfirmModal
+        open={showBonusConfirm}
+        onClose={() => setShowBonusConfirm(false)}
+        onConfirm={confirmSendBonusPayroll}
+        confirming={bonusSending}
+        title={t('admin.commissionImport.bonusPayroll.title') as string}
+        subtitle={`${bonusSendMonth === 6 ? t('admin.commissionImport.bonusPayroll.june') : t('admin.commissionImport.bonusPayroll.december')} ${bonusSendYear} — ${t('admin.commissionImport.sendConfirm.subtitle')}`}
+        rows={(bonusSendData?.reps || []).filter(r => bonusSelectedReps.has(r.rep)).map(r => ({
+          rep: r.rep, total: r.total,
+          note: `${r.accounts.length} ${t('admin.commissionImport.processing.accounts')}`,
+        }))}
+        grandTotal={(bonusSendData?.reps || []).filter(r => bonusSelectedReps.has(r.rep)).reduce((s, r) => s + r.total, 0)}
+        recipients={payRecipients}
+        confirmLabel={t('admin.commissionImport.bonusPayroll.send') as string}
+        fmt={fmt}
+        accent="warning"
+      />
 
       {/* Quota-review: the raw invoices behind a rep×month's forfeiture */}
       {quotaInvoices && (

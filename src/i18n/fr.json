@@ -1806,6 +1806,15 @@
         "historyNone": "Aucun bonus bi-annuel n'a encore été envoyé.",
         "histDeleteConfirm": "Supprimer cet envoi du bonus bi-annuel de l'historique? Cela retire seulement l'entrée d'historique — le courriel déjà envoyé n'est pas annulé."
       },
+      "sendConfirm": {
+        "rep": "Vendeur",
+        "total": "Total",
+        "grandTotal": "Total général",
+        "recipients": "Destinataires",
+        "cancel": "Annuler",
+        "sending": "Envoi…",
+        "subtitle": "Ceci envoie un courriel à la paie immédiatement — vérifiez la liste ci-dessous avant de confirmer."
+      },
       "processing": {
         "title": "Bonus de paiement (bi-annuel)",
         "subtitle": "Versé UNE fois par compte, au versement de juin ou décembre suivant la complétion de ses 6 premiers mois. La fenêtre de 6 mois est ancrée à l'activation du compte. Par compte : moyenne mensuelle (profit transaction + autres revenus) sur ses mois actifs, moins les premiers 100 $, plafonné à 400 $ (besoin de revenus dans ≥ 3 des 6 mois). Vendeurs actifs seulement.",
