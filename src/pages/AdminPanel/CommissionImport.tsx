@@ -2755,6 +2755,7 @@ const CommissionImport: React.FC = () => {
         rows={(bonusSendData?.reps || []).filter(r => bonusSelectedReps.has(r.rep)).map(r => ({
           rep: r.rep, total: r.total,
           note: `${r.accounts.length} ${t('admin.commissionImport.processing.accounts')}`,
+          accounts: r.accounts,
         }))}
         grandTotal={(bonusSendData?.reps || []).filter(r => bonusSelectedReps.has(r.rep)).reduce((s, r) => s + r.total, 0)}
         recipients={payRecipients}
