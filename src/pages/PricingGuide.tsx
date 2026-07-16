@@ -27,6 +27,26 @@ interface PricingData { categories: PricingCategory[]; packages: PricingPackage[
 const CATS = ['saas', 'rental', 'menu', 'install', 'support', 'olo', 'shipping', 'xperio'];
 const CATS_WITH_BILLING = new Set(['saas']);
 
+// Category icons — matches the design handoff's icon set exactly.
+const catIconPaths = (id: string): React.ReactNode => {
+  switch (id) {
+    case 'saas': return <><circle cx="8" cy="15" r="4" /><path d="M10.8 12.2 20 3M17 6l3 3M15 8l2 2" /></>;
+    case 'rental': return <><path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></>;
+    case 'menu': return <path d="M4 3v7a2 2 0 0 0 2 2 2 2 0 0 0 2-2V3M6 3v18M16 3c-2 0-3 2-3 5s1 4 3 4v9" />;
+    case 'install': return <path d="M14 7a4 4 0 0 0-5.5 5.2l-6 6 2 2 6-6A4 4 0 0 0 17 9l-2.5 2.5L12 9l2.5-2.5z" />;
+    case 'support': return <><path d="M4 14v-2a8 8 0 0 1 16 0v2" /><rect x="2" y="14" width="4" height="6" rx="1.5" /><rect x="18" y="14" width="4" height="6" rx="1.5" /></>;
+    case 'olo': return <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" /></>;
+    case 'shipping': return <><path d="M3 6h11v9H3z" /><path d="M14 9h4l3 3v3h-7z" /><circle cx="7" cy="18" r="1.8" /><circle cx="17.5" cy="18" r="1.8" /></>;
+    case 'xperio': return <><path d="M12 22s7-6.2 7-12A7 7 0 0 0 5 10c0 5.8 7 12 7 12z" /><circle cx="12" cy="10" r="2.5" /></>;
+    default: return null;
+  }
+};
+const CatIcon: React.FC<{ id: string; className?: string }> = ({ id, className = 'h-4 w-4' }) => (
+  <svg className={`flex-none ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+    {catIconPaths(id)}
+  </svg>
+);
+
 const PricingGuide: React.FC = () => {
   const { t, i18n } = useTranslation();
   const fr = i18n.language?.startsWith('fr');
@@ -169,6 +189,7 @@ const PricingGuide: React.FC = () => {
                     className={`flex items-center gap-2 rounded-lg border-l-[3px] px-3 py-2.5 text-left text-[13.5px] font-medium transition ${
                       on ? 'border-l-primary bg-gray-2 text-black dark:bg-meta-4 dark:text-white' : 'border-l-transparent text-body hover:bg-gray-1 dark:hover:bg-meta-4/40'
                     }`}>
+                    <CatIcon id={c} />
                     <span className="flex-1">{t(`pricingGuide.categories.${c}.title`)}</span>
                     <span className="text-[11px] font-semibold text-gray-400">{count}</span>
                   </button>
