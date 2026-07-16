@@ -330,7 +330,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         <RailTip label={t('sidebar.resources') as string} />
                       </NavLink>
                     ) : (
-                      <div className={`${navLinkCls(pathname.includes('resources') || subActive)} pr-2`}>
+                      <div
+                        className={`${navLinkCls(pathname.includes('resources') || subActive)} pr-2`}
+                        onClick={() => canSub && setResourcesMenuOpen((v) => !v)}
+                      >
                         <NavLink to="/resources" className="flex flex-1 items-center gap-2.5 overflow-hidden">
                           {icon}
                           <span className={labelCls}>{t('sidebar.resources')}</span>
