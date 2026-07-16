@@ -720,12 +720,6 @@
   "resources": {
     "title": "Ressources",
     "subtitle": "Documents de vente, guides et modèles — recherche, parcours et téléchargement.",
-    "featuredInteractive": "Interactif",
-    "featuredOpen": "Ouvrir",
-    "featuredHardwareTitle": "Aperçu du matériel",
-    "featuredHardwareDesc": "Le catalogue complet du matériel Cluster — recherche, filtres, comparatif et UGS.",
-    "featuredPricingTitle": "Guide des services et prix",
-    "featuredPricingDesc": "SaaS, location, installation, soutien et plus — avec générateur de soumission intégré.",
     "search": "Rechercher une ressource…",
     "allCategories": "Toutes",
     "folders": "Dossiers",
