@@ -121,7 +121,6 @@ const Proposals: React.FC = () => {
   };
 
   const prepare = async () => {
-    if (!sel && !blankClientName.trim()) { dialog.alert(t('proposals.blankClientNameRequired')); return; }
     setPreparing(true);
     try {
       // Always render the FULL document so every page shows as a thumbnail; the rep then drags to
@@ -434,7 +433,8 @@ const Proposals: React.FC = () => {
             <div className="grid flex-1 grid-cols-1 gap-0 overflow-hidden md:grid-cols-2">
               {/* Left: form / email */}
               <div className="thin-scrollbar space-y-4 overflow-y-auto p-6">
-                {/* Client name — free text, only needed when there's no Zoho estimate to pull it from */}
+                {/* Client name — free text, optional when there's no Zoho estimate to pull it from;
+                    a generic placeholder fills the cover when left blank. */}
                 {!sel && (
                   <div>
                     <label className="mb-1 block text-xs font-medium text-body">{t('proposals.blankClientName')}</label>
