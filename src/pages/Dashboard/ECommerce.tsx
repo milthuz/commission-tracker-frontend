@@ -225,9 +225,11 @@ const ECommerce: React.FC = () => {
 
       {/* ====== Board averages (monthly run-rate): processing / combined per merchant ====== */}
       <div className="mt-4 grid grid-cols-1 gap-4 md:mt-6 md:grid-cols-2 2xl:gap-7.5">
-        {/* Average monthly processing profit per merchant — revenue-gated */}
+        {/* Average monthly processing profit per merchant — revenue-gated (profit > 0, i.e.
+            already restricted to merchants that actually processed something this period). */}
         {data.avgProcessing && (
-          <div className="rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div title={t('dashboard.avgProcessingTip') as string}
+            className="cursor-help rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="flex h-11.5 w-11.5 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/20">
               <svg className="stroke-emerald-600 dark:stroke-emerald-400" width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" />
@@ -236,7 +238,7 @@ const ECommerce: React.FC = () => {
             <div className="mt-4">
               <h4 className="text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(data.avgProcessing.monthly || 0)}</h4>
               <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.avgProcessingPerClient')}</span>
-              <span className="text-xs font-medium text-gray-400">{data.avgProcessing.clients || 0} {t('dashboard.merchantsCount')}</span>
+              <span className="text-xs font-medium text-gray-400">{t('dashboard.processingMerchantsCount', { count: data.avgProcessing.clients || 0 })}</span>
             </div>
           </div>
         )}
