@@ -118,19 +118,9 @@ const Hardware: React.FC = () => {
           <h2 className="text-2xl font-bold text-black dark:text-white">{t('hardware.title')}</h2>
           <p className="mt-1 max-w-xl text-sm text-gray-500 dark:text-gray-400">{t('hardware.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
-            {(['en', 'fr'] as const).map((l) => (
-              <button key={l} onClick={() => { i18n.changeLanguage(l); localStorage.setItem('language', l); }}
-                className={`rounded-md px-3 py-1 text-xs font-semibold ${i18n.language?.startsWith(l) ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
-          <div className="text-right">
-            <div className="text-xl font-bold text-black dark:text-white">{filtered.length}</div>
-            <div className="text-xs text-gray-400">{t('hardware.ofItems', { count: all.length })}</div>
-          </div>
+        <div className="text-right">
+          <div className="text-xl font-bold text-black dark:text-white">{filtered.length}</div>
+          <div className="text-xs text-gray-400">{t('hardware.ofItems', { count: all.length })}</div>
         </div>
       </div>
 

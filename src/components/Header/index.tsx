@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import DropdownNotification from './DropdownNotification';
 import DropdownUser from './DropdownUser';
 import SyncStatusIndicator from './SyncStatusIndicator';
@@ -8,6 +9,8 @@ const Header = (props: {
   sidebarOpen: string | boolean | undefined;
   setSidebarOpen: (arg0: boolean) => void;
 }) => {
+  const { i18n } = useTranslation();
+  const setLang = (l: 'en' | 'fr') => { i18n.changeLanguage(l); localStorage.setItem('language', l); };
   const [darkMode, setDarkMode] = useState(() => {
     // Check localStorage and system preference
     const saved = localStorage.getItem('darkMode');
@@ -94,6 +97,24 @@ const Header = (props: {
             {/* <!-- Sync Status Indicator --> */}
             <SyncStatusIndicator />
             {/* <!-- Sync Status Indicator --> */}
+
+            {/* <!-- Language Toggle --> */}
+            <li>
+              <div className="inline-flex rounded-full border-[0.5px] border-stroke bg-gray p-0.5 dark:border-strokedark dark:bg-meta-4">
+                {(['en', 'fr'] as const).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => setLang(l)}
+                    className={`rounded-full px-2.5 py-1 text-xs font-bold transition ${
+                      i18n.language?.startsWith(l) ? 'bg-primary text-white' : 'text-body hover:text-primary dark:text-white'
+                    }`}
+                  >
+                    {l.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            </li>
+            {/* <!-- Language Toggle --> */}
 
             {/* <!-- Dark Mode Toggle --> */}
             <li>

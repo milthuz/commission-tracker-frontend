@@ -144,14 +144,6 @@ const PricingGuide: React.FC = () => {
           <p className="mt-1 max-w-xl text-sm text-gray-500 dark:text-gray-400">{t(`pricingGuide.categories.${cat}.desc`)}</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
-            {(['en', 'fr'] as const).map((l) => (
-              <button key={l} onClick={() => { i18n.changeLanguage(l); localStorage.setItem('language', l); }}
-                className={`rounded-md px-3 py-1 text-xs font-semibold ${i18n.language?.startsWith(l) ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
           <button onClick={() => setInternal((v) => !v)}
             className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[12.5px] font-semibold ${internal ? 'border border-primary/40 bg-primary/10 text-primary' : 'border border-stroke text-body dark:border-strokedark'}`}>
             <span className={`h-1.5 w-1.5 rounded-full ${internal ? 'bg-primary' : 'bg-gray-400'}`} />

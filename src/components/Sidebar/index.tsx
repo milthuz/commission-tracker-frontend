@@ -155,17 +155,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             )}
           </NavLink>
           {collapsed ? (
-            <NavLink to="/versions" className="flex flex-col items-center gap-0.5 hover:opacity-80 transition" title={`v${appVersion}`}>
-              <span className="rounded-full bg-warning px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
-                BETA
-              </span>
+            <NavLink to="/versions" className="flex items-center hover:opacity-80 transition" title={`v${appVersion}`}>
               <span className="text-[10px] font-semibold text-white leading-none">v{appVersion}</span>
             </NavLink>
           ) : (
-            <NavLink to="/versions" className="flex items-center gap-1.5 hover:opacity-80 transition" title={`v${appVersion}`}>
-              <span className="rounded-full bg-warning px-2 py-0.5 text-xs font-bold text-white leading-none">
-                BETA
-              </span>
+            <NavLink to="/versions" className="flex items-center hover:opacity-80 transition" title={`v${appVersion}`}>
               <span className="text-xs font-semibold text-white leading-none">v{appVersion}</span>
             </NavLink>
           )}
@@ -216,30 +210,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   to="/"
                   className={navLinkCls(pathname === '/')}
                 >
-                  <svg
-                    className="fill-current"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M6.10322 0.956299H2.53135C1.5751 0.956299 0.787598 1.7438 0.787598 2.70005V6.27192C0.787598 7.22817 1.5751 8.01567 2.53135 8.01567H6.10322C7.05947 8.01567 7.84697 7.22817 7.84697 6.27192V2.72817C7.8751 1.7438 7.0876 0.956299 6.10322 0.956299ZM6.60947 6.30005C6.60947 6.5813 6.38447 6.8063 6.10322 6.8063H2.53135C2.2501 6.8063 2.0251 6.5813 2.0251 6.30005V2.72817C2.0251 2.44692 2.2501 2.22192 2.53135 2.22192H6.10322C6.38447 2.22192 6.60947 2.44692 6.60947 2.72817V6.30005Z"
-                      fill=""
-                    />
-                    <path
-                      d="M15.4689 0.956299H11.8971C10.9408 0.956299 10.1533 1.7438 10.1533 2.70005V6.27192C10.1533 7.22817 10.9408 8.01567 11.8971 8.01567H15.4689C16.4252 8.01567 17.2127 7.22817 17.2127 6.27192V2.72817C17.2127 1.7438 16.4252 0.956299 15.4689 0.956299ZM15.9752 6.30005C15.9752 6.5813 15.7502 6.8063 15.4689 6.8063H11.8971C11.6158 6.8063 11.3908 6.5813 11.3908 6.30005V2.72817C11.3908 2.44692 11.6158 2.22192 11.8971 2.22192H15.4689C15.7502 2.22192 15.9752 2.44692 15.9752 2.72817V6.30005Z"
-                      fill=""
-                    />
-                    <path
-                      d="M6.10322 9.92822H2.53135C1.5751 9.92822 0.787598 10.7157 0.787598 11.672V15.2438C0.787598 16.2001 1.5751 16.9876 2.53135 16.9876H6.10322C7.05947 16.9876 7.84697 16.2001 7.84697 15.2438V11.7001C7.8751 10.7157 7.0876 9.92822 6.10322 9.92822ZM6.60947 15.272C6.60947 15.5532 6.38447 15.7782 6.10322 15.7782H2.53135C2.2501 15.7782 2.0251 15.5532 2.0251 15.272V11.7001C2.0251 11.4188 2.2501 11.1938 2.53135 11.1938H6.10322C6.38447 11.1938 6.60947 11.4188 6.60947 11.7001V15.272Z"
-                      fill=""
-                    />
-                    <path
-                      d="M15.4689 9.92822H11.8971C10.9408 9.92822 10.1533 10.7157 10.1533 11.672V15.2438C10.1533 16.2001 10.9408 16.9876 11.8971 16.9876H15.4689C16.4252 16.9876 17.2127 16.2001 17.2127 15.2438V11.7001C17.2127 10.7157 16.4252 9.92822 15.4689 9.92822ZM15.9752 15.272C15.9752 15.5532 15.7502 15.7782 15.4689 15.7782H11.8971C11.6158 15.7782 11.3908 15.5532 11.3908 15.272V11.7001C11.3908 11.4188 11.6158 11.1938 11.8971 11.1938H15.4689C15.7502 11.1938 15.9752 11.4188 15.9752 11.7001V15.272Z"
-                      fill=""
-                    />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
                   </svg>
                   <span className={labelCls}>{t('sidebar.dashboard')}</span>
                   <NewBadge path="/" collapsed={collapsed} />
@@ -255,18 +230,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   to="/commission-tracker"
                   className={navLinkCls(pathname.includes('commission-tracker'))}
                 >
-                  <svg
-                    className="fill-current"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.94s4.18 1.36 4.18 3.85c0 1.89-1.44 2.98-3.12 3.19z"
-                      fill=""
-                    />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M15 9.5c-.5-1-1.7-1.5-3-1.5-1.7 0-3 .9-3 2.2 0 3 6 1.5 6 4.6 0 1.3-1.3 2.2-3 2.2-1.3 0-2.5-.5-3-1.5M12 6.5v11" />
                   </svg>
                   <span className={labelCls}>{t('sidebar.commissionTracker')}</span>
                   <NewBadge path="/commission-tracker" collapsed={collapsed} />
@@ -283,14 +249,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   to="/commission-report"
                   className={navLinkCls(pathname.includes('commission-report'))}
                 >
-                  <svg
-                    className="fill-current"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z" />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 3v18h18" />
+                    <rect x="7" y="11" width="3" height="6" />
+                    <rect x="12" y="7" width="3" height="10" />
+                    <rect x="17" y="13" width="3" height="4" />
                   </svg>
                   <span className={labelCls}>{t('sidebar.commissionReport')}</span>
                   <NewBadge path="/commission-report" collapsed={collapsed} />
@@ -307,8 +270,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     to="/reseller"
                     className={navLinkCls(pathname.includes('reseller'))}
                   >
-                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z" />
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 12V5a2 2 0 0 1 2-2h7l9 9-9 9z" />
+                      <circle cx="7.5" cy="7.5" r="1.5" />
                     </svg>
                     <span className={labelCls}>{t('sidebar.reseller')}</span>
                     <NewBadge path="/reseller" collapsed={collapsed} />
@@ -323,8 +287,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     to="/revenue"
                     className={navLinkCls(pathname.includes('revenue'))}
                   >
-                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 13h2v7H3v-7zm4-6h2v13H7V7zm4 3h2v10h-2V10zm4-7h2v17h-2V3zm4 9h2v8h-2v-8z" />
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 12h4l3 8 4-16 3 8h4" />
                     </svg>
                     <span className={labelCls}>{t('sidebar.revenue')}</span>
                     <NewBadge path="/revenue" collapsed={collapsed} />
@@ -339,8 +303,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     to="/resources"
                     className={navLinkCls(pathname.includes('resources'))}
                   >
-                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                     </svg>
                     <span className={labelCls}>{t('sidebar.resources')}</span>
                     <NewBadge path="/resources" collapsed={collapsed} />
@@ -355,8 +319,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     to="/kaizen-demo"
                     className={navLinkCls(pathname.includes('kaizen-demo'))}
                   >
-                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7v2H8v2h8v-2h-2v-2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zM10 9.5l5 2.5-5 2.5z" />
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="12" rx="2" />
+                      <path d="M8 20h8M12 16v4" />
                     </svg>
                     <span className={labelCls}>{t('sidebar.kaizenDemo')}</span>
                     <NewBadge path="/kaizen-demo" collapsed={collapsed} />
@@ -371,8 +336,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     to="/proposals"
                     className={navLinkCls(pathname.includes('proposals'))}
                   >
-                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm0 2l4 4h-4V4zM8 13h8v2H8v-2zm0 4h8v2H8v-2z" />
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                      <path d="M14 3v5h5" />
                     </svg>
                     <span className={labelCls}>{t('sidebar.proposals')}</span>
                     <NewBadge path="/proposals" collapsed={collapsed} />
@@ -387,8 +353,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     to="/savings"
                     className={navLinkCls(pathname.includes('savings'))}
                   >
-                    <svg className="fill-current" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                      <path d="M7 15h0M2 9.5h20M5 5h14a3 3 0 013 3v8a3 3 0 01-3 3H5a3 3 0 01-3-3V8a3 3 0 013-3z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="5" y="3" width="14" height="18" rx="2" />
+                      <path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2" />
                     </svg>
                     <span className={labelCls}>{t('sidebar.savings')}</span>
                     <RailTip label={t('sidebar.savings') as string} />
@@ -409,14 +376,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     } ${pathname.includes('admin') ? 'bg-graydark dark:bg-meta-4' : ''}`}
                   >
                     <div className={`flex items-center ${collapsed ? '' : 'gap-2.5'}`}>
-                      <svg
-                        className="fill-current"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.61 3.61 0 0112 15.6z" />
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M19 12a7 7 0 0 0-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.3-1.3L13.6 2h-3.2l-.4 2.5A7 7 0 0 0 7.7 5.8l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5.2 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.3 1.3l.4 2.5h3.2l.4-2.5a7 7 0 0 0 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z" />
                       </svg>
                       <span className={labelCls}>{t('sidebar.adminPanel')}</span>
                       {anyDotUnder('/admin') && !collapsed && (
