@@ -67,6 +67,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   // clears even without visiting each sub-page (and covers feature paths that match no route).
   useEffect(() => { if (adminMenuOpen) markSeenUnder('/admin'); }, [adminMenuOpen, markSeenUnder]);
 
+  // Resources submenu — Hardware Overview + Services & Pricing Guide live under Resources,
+  // same expand/collapse idiom as the Admin Panel submenu below.
+  const [resourcesMenuOpen, setResourcesMenuOpen] = useState(
+    pathname.includes('resources') || pathname === '/hardware' || pathname === '/pricing-guide'
+  );
+
   // Desktop collapse — independent from the mobile drawer (sidebarOpen).
   // When collapsed, only icons are visible; labels and section headers hide.
   // Default to collapsed (icons-only) when no preference is stored yet.
@@ -74,9 +80,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(storedCollapsed === null ? true : storedCollapsed === 'true');
   useEffect(() => {
     localStorage.setItem('sidebar-collapsed', String(collapsed));
-    // Auto-close the admin submenu when collapsing so it doesn't pop into the
+    // Auto-close the admin/resources submenus when collapsing so they don't pop into the
     // narrow rail awkwardly.
-    if (collapsed) setAdminMenuOpen(false);
+    if (collapsed) { setAdminMenuOpen(false); setResourcesMenuOpen(false); }
   }, [collapsed]);
 
   // CSS helpers for collapsed mode — applied to every NavLink and the label spans.
@@ -296,22 +302,74 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
-              {/* <!-- Menu Item Resources (perm: resources:view) --> */}
-              {(isAdmin || can('resources:view')) && (
-                <li>
-                  <NavLink
-                    to="/resources"
-                    className={navLinkCls(pathname.includes('resources'))}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    </svg>
-                    <span className={labelCls}>{t('sidebar.resources')}</span>
-                    <NewBadge path="/resources" collapsed={collapsed} />
-                    <RailTip label={t('sidebar.resources') as string} />
-                  </NavLink>
-                </li>
-              )}
+              {/* <!-- Menu Item Resources (perm: resources:view) — Hardware Overview + Pricing
+                   Guide nest under it as a submenu, same idiom as the Admin Panel below. --> */}
+              {(isAdmin || can('resources:view')) && (() => {
+                const canSub = isAdmin || can('hardware:view') || can('pricing:view');
+                const subActive = pathname === '/hardware' || pathname === '/pricing-guide';
+                return (
+                  <li>
+                    <div className={`${navLinkCls(pathname.includes('resources') || subActive)} ${collapsed ? '' : 'pr-2'}`}>
+                      <NavLink to="/resources" className="flex flex-1 items-center gap-2.5 overflow-hidden">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        </svg>
+                        <span className={labelCls}>{t('sidebar.resources')}</span>
+                        <NewBadge path="/resources" collapsed={collapsed} />
+                      </NavLink>
+                      {!collapsed && canSub && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setResourcesMenuOpen((v) => !v); }}
+                          aria-label={resourcesMenuOpen ? (t('sidebar.collapse') as string) : (t('sidebar.expand') as string)}
+                        >
+                          <svg
+                            className={`fill-current transition-transform duration-200 ${resourcesMenuOpen ? 'rotate-180' : ''}`}
+                            width="12" height="8" viewBox="0 0 12 8"
+                          >
+                            <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" />
+                          </svg>
+                        </button>
+                      )}
+                      <RailTip label={t('sidebar.resources') as string} />
+                    </div>
+                    {!collapsed && canSub && (
+                      <ul
+                        className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 overflow-hidden transition-all duration-200 ${
+                          resourcesMenuOpen ? 'max-h-[6rem] opacity-100' : 'max-h-0 opacity-0'
+                        }`}
+                      >
+                        {(isAdmin || can('hardware:view')) && (
+                          <li>
+                            <NavLink
+                              to="/hardware"
+                              className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                                pathname === '/hardware' ? 'text-white' : ''
+                              }`}
+                            >
+                              {t('sidebar.hardware')}
+                              <NewBadge path="/hardware" />
+                            </NavLink>
+                          </li>
+                        )}
+                        {(isAdmin || can('pricing:view')) && (
+                          <li>
+                            <NavLink
+                              to="/pricing-guide"
+                              className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                                pathname === '/pricing-guide' ? 'text-white' : ''
+                              }`}
+                            >
+                              {t('sidebar.pricingGuide')}
+                              <NewBadge path="/pricing-guide" />
+                            </NavLink>
+                          </li>
+                        )}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })()}
               {/* <!-- Menu Item Kaizen DEMO (perm: demo:kaizen) — streamed POS demo --> */}
               {(isAdmin || can('demo:kaizen')) && (
                 <li>
