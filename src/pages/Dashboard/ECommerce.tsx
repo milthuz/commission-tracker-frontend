@@ -20,7 +20,7 @@ interface DashboardData {
   topCustomers: { name: string; invoices: number; total: number }[];
   avgSaas: { total: number; clients: number; monthly: number };
   avgProcessing: { total: number; clients: number; monthly: number } | null;
-  avgRevenuePerMerchant: { total: number; merchants: number; monthly: number; saasMonthly?: number; processingMonthly?: number } | null;
+  avgRevenuePerMerchant: { total: number; merchants: number; activeMerchants?: number; monthly: number; saasMonthly?: number; processingMonthly?: number } | null;
   year: number;
 }
 
@@ -242,7 +242,8 @@ const ECommerce: React.FC = () => {
         )}
 
         {/* Combined revenue per merchant (SaaS + processing) — revenue-gated.
-            Denominator = merchants we matched to a SaaS; tooltip explains it. */}
+            Denominator = PROCESSING merchants (matched to a SaaS AND have real transaction
+            revenue this period) — the active-merchant count is shown alongside for context. */}
         {data.avgRevenuePerMerchant && (
           <div title={t('dashboard.avgRevenuePerMerchantTip') as string}
             className="cursor-help rounded-sm border border-stroke bg-white px-7.5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -254,7 +255,12 @@ const ECommerce: React.FC = () => {
             <div className="mt-4">
               <h4 className="text-2xl font-bold text-black dark:text-white">{formatCurrencyFull(data.avgRevenuePerMerchant.monthly || 0)}</h4>
               <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">{t('dashboard.avgRevenuePerMerchant')}</span>
-              <span className="text-xs font-medium text-gray-400">{data.avgRevenuePerMerchant.merchants || 0} {t('dashboard.merchantsWithSaas')}</span>
+              <span className="text-xs font-medium text-gray-400">
+                {t('dashboard.processingMerchantsCount', { count: data.avgRevenuePerMerchant.merchants || 0 })}
+                {data.avgRevenuePerMerchant.activeMerchants != null && (
+                  <> · {t('dashboard.activeMerchantsCount', { count: data.avgRevenuePerMerchant.activeMerchants })}</>
+                )}
+              </span>
               {(data.avgRevenuePerMerchant.saasMonthly != null) && (
                 <span className="mt-1 block text-xs font-medium text-gray-400">
                   {t('dashboard.saasShort')} {formatCurrencyFull(data.avgRevenuePerMerchant.saasMonthly || 0)} · {t('dashboard.processingShort')} {formatCurrencyFull(data.avgRevenuePerMerchant.processingMonthly || 0)}
