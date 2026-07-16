@@ -73,6 +73,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     pathname.includes('resources') || pathname === '/hardware' || pathname === '/pricing-guide'
   );
 
+  // Nested "Resources" group inside the Admin Panel submenu — groups the three editors
+  // (storage, hardware, pricing) that used to sit as separate flat entries.
+  const [adminResourcesOpen, setAdminResourcesOpen] = useState(
+    pathname === '/admin/resources' || pathname === '/admin/hardware' || pathname === '/admin/pricing'
+  );
+
   // Desktop collapse — independent from the mobile drawer (sidebarOpen).
   // When collapsed, only icons are visible; labels and section headers hide.
   // Default to collapsed (icons-only) when no preference is stored yet.
@@ -82,7 +88,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     localStorage.setItem('sidebar-collapsed', String(collapsed));
     // Auto-close the admin/resources submenus when collapsing so they don't pop into the
     // narrow rail awkwardly.
-    if (collapsed) { setAdminMenuOpen(false); setResourcesMenuOpen(false); }
+    if (collapsed) { setAdminMenuOpen(false); setResourcesMenuOpen(false); setAdminResourcesOpen(false); }
   }, [collapsed]);
 
   // CSS helpers for collapsed mode — applied to every NavLink and the label spans.
@@ -559,35 +565,59 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         {t('sidebar.releases')}<NewBadge path="/admin/releases" />
                       </NavLink>
                     </li>
+                    {/* <!-- Grouped "Resources" sub-menu: storage editor + Hardware + Pricing --> */}
                     <li>
-                      <NavLink
-                        to="/admin/resources"
-                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                          pathname === '/admin/resources' ? 'text-white' : ''
+                      <button
+                        type="button"
+                        onClick={() => setAdminResourcesOpen((v) => !v)}
+                        className={`flex w-full items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/resources' || pathname === '/admin/hardware' || pathname === '/admin/pricing' ? 'text-white' : ''
                         }`}
                       >
-                        {t('sidebar.resourcesAdmin')}<NewBadge path="/admin/resources" />
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink
-                        to="/admin/hardware"
-                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                          pathname === '/admin/hardware' ? 'text-white' : ''
+                        <span className="flex-1 text-left">{t('sidebar.resourcesGroup')}</span>
+                        <svg
+                          className={`fill-current transition-transform duration-200 ${adminResourcesOpen ? 'rotate-180' : ''}`}
+                          width="10" height="7" viewBox="0 0 12 8"
+                        >
+                          <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" />
+                        </svg>
+                      </button>
+                      <ul
+                        className={`mt-0.5 ml-3 flex flex-col gap-0.5 border-l border-bodydark2/20 pl-3 overflow-hidden transition-all duration-200 ${
+                          adminResourcesOpen ? 'max-h-[8rem] opacity-100' : 'max-h-0 opacity-0'
                         }`}
                       >
-                        {t('sidebar.hardwareAdmin')}<NewBadge path="/admin/hardware" />
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink
-                        to="/admin/pricing"
-                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                          pathname === '/admin/pricing' ? 'text-white' : ''
-                        }`}
-                      >
-                        {t('sidebar.pricingAdmin')}<NewBadge path="/admin/pricing" />
-                      </NavLink>
+                        <li>
+                          <NavLink
+                            to="/admin/resources"
+                            className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                              pathname === '/admin/resources' ? 'text-white' : ''
+                            }`}
+                          >
+                            {t('sidebar.resourcesAdmin')}<NewBadge path="/admin/resources" />
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/admin/hardware"
+                            className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                              pathname === '/admin/hardware' ? 'text-white' : ''
+                            }`}
+                          >
+                            {t('sidebar.hardwareAdmin')}<NewBadge path="/admin/hardware" />
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/admin/pricing"
+                            className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                              pathname === '/admin/pricing' ? 'text-white' : ''
+                            }`}
+                          >
+                            {t('sidebar.pricingAdmin')}<NewBadge path="/admin/pricing" />
+                          </NavLink>
+                        </li>
+                      </ul>
                     </li>
                     <li>
                       <NavLink
