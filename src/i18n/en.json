@@ -307,7 +307,7 @@
     "dataHealth": "Needs attention",
     "audit": "Audit",
     "resourcesGroup": "Resources",
-    "resourcesAdmin": "Resources (storage)",
+    "resourcesAdmin": "Storage",
     "hardwareAdmin": "Hardware",
     "pricingAdmin": "Pricing",
     "resellersAdmin": "Manage Resellers",
