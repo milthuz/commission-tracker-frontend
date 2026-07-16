@@ -20,6 +20,29 @@ type ProductEdit = Partial<Omit<HardwareProduct, 'id' | 'hasImage' | 'visible'>>
 
 const STATUS_KEYS = ['new', 'soon', 'eol', 'wsl', 'legacy', 'rental'];
 
+// Category icons — no icon set exists in the design handoff for Admin Hardware, so these are
+// picked to read clearly at a glance per category (POS terminal, tablet, printer, receipt,
+// card, display, wifi, scanner, cash), matching the stroke style used across the app.
+const catIconPaths = (id: string): React.ReactNode => {
+  switch (id) {
+    case 'pos': return <><rect x="4" y="3" width="16" height="12" rx="2" /><path d="M9 21h6M12 15v6" /></>;
+    case 'tab': return <><rect x="6" y="2" width="12" height="20" rx="2" /><path d="M11 19h2" /></>;
+    case 'kp': return <><rect x="5" y="8" width="14" height="8" rx="1" /><path d="M7 8V4h10v4M7 16v4h10v-4" /></>;
+    case 'rp': return <><path d="M6 2h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5-2 1.5z" /><path d="M9 7h6M9 11h6M9 15h4" /></>;
+    case 'pay': return <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></>;
+    case 'disp': return <><rect x="2" y="5" width="14" height="10" rx="1.5" /><path d="M18 8v6M20.5 9v4" /></>;
+    case 'net': return <><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0" /><circle cx="12" cy="19" r="1" /></>;
+    case 'periph': return <><path d="M4 8V5a1 1 0 0 1 1-1h3M4 16v3a1 1 0 0 0 1 1h3M20 8V5a1 1 0 0 0-1-1h-3M20 16v3a1 1 0 0 1-1 1h-3" /><path d="M4 12h16" /></>;
+    case 'cash': return <><rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="12" cy="12" r="3" /><path d="M6 9v.01M18 15v.01" /></>;
+    default: return null;
+  }
+};
+const CatIcon: React.FC<{ id: string; className?: string }> = ({ id, className = 'h-4 w-4' }) => (
+  <svg className={`flex-none ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+    {catIconPaths(id)}
+  </svg>
+);
+
 const slugify = (s: string) => 'new_' + s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30) + '_' + Date.now().toString(36);
 
 const HardwareAdmin: React.FC = () => {
@@ -203,6 +226,7 @@ const HardwareAdmin: React.FC = () => {
               return (
                 <button key={c.id} onClick={() => setCat(c.id)}
                   className={`flex items-center gap-2 rounded-lg border-l-[3px] px-3 py-2 text-left text-[13px] font-medium ${on ? 'border-l-primary bg-gray-2 text-black dark:bg-meta-4 dark:text-white' : 'border-l-transparent text-body hover:bg-gray-1 dark:hover:bg-meta-4/40'}`}>
+                  <CatIcon id={c.id} />
                   <span className="flex-1">{catLabel(c.id)}</span>
                   <span className="text-[11px] text-gray-400">{count}</span>
                   {editedByCat[c.id] && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
