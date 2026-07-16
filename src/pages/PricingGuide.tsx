@@ -308,7 +308,7 @@ const PricingGuide: React.FC = () => {
             <span className="text-xs text-gray-400">{quoteIds.length} {t('pricingGuide.items')}</span>
             <div className="flex-1" />
             <div className="mr-1.5 text-right">
-              <div className="text-[11px] text-gray-400">{t('pricingGuide.estTotal')}</div>
+              <div className="text-[11px] text-gray-400">{t(billing === 'yearly' ? 'pricingGuide.estTotalYearly' : 'pricingGuide.estTotal')}</div>
               <div className="text-lg font-black tracking-tight text-black dark:text-white">{money(rec) || '$0'}</div>
             </div>
             <button onClick={() => { setQuote({}); setQuoteOpen(false); }} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('pricingGuide.clear')}</button>
@@ -332,8 +332,8 @@ const PricingGuide: React.FC = () => {
                 </div>
               ))}
               <div className="flex justify-end gap-10 pt-3.5">
-                <span className="text-[13px] text-gray-400">{t('pricingGuide.recurring')}</span>
-                <span className="w-[110px] text-right text-[13px] font-bold text-black dark:text-white">{money(rec) || '$0'} {t('pricingGuide.perMonth')}</span>
+                <span className="text-[13px] text-gray-400">{t('pricingGuide.recurring')} {billing === 'yearly' ? t('pricingGuide.perYear') : t('pricingGuide.perMonth')}</span>
+                <span className="w-[110px] text-right text-[13px] font-bold text-black dark:text-white">{money(rec) || '$0'}</span>
               </div>
               <div className="flex justify-end gap-10">
                 <span className="text-[13px] text-gray-400">{t('pricingGuide.oneTime')}</span>
