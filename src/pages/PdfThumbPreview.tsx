@@ -7,13 +7,12 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 interface Props {
   pdfBase64: string;
-  presentationPageCount: number;
-  estimatePageCount: number;
-  selPages: number[];                // 1-based presentation pages to include
-  setSelPages: (p: number[]) => void;
-  inclEstimate: boolean;
-  setInclEstimate: (b: boolean) => void;
-  onDownload?: () => void;           // download the final (filtered) PDF
+  presentationPageCount: number;     // pages 1..this = presentation; beyond = the Zoho estimate
+  order: number[];                   // full drag/display order — a permutation of every 1-based page number
+  setOrder: (o: number[]) => void;
+  excludedPages: number[];           // 1-based page numbers dropped from the final document
+  setExcludedPages: (p: number[]) => void;
+  onDownload?: () => void;           // download the final (reordered + filtered) PDF
   downloading?: boolean;
 }
 
@@ -25,13 +24,16 @@ const b64ToBytes = (b64: string) => {
   return arr;
 };
 
-// Clickable-thumbnail PDF preview: each presentation page can be toggled in/out of the proposal,
-// estimate pages are governed by the "include quote" toggle, and the focused page shows large.
-const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, selPages, setSelPages, inclEstimate, setInclEstimate, onDownload, downloading }) => {
+// Clickable + drag-and-drop-reorderable thumbnail PDF preview: every page (presentation or Zoho
+// estimate) can be dragged to a new position and toggled in/out of the final proposal. The focused
+// page shows large on the right.
+const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, order, setOrder, excludedPages, setExcludedPages, onDownload, downloading }) => {
   const { t } = useTranslation();
   const [pages, setPages] = useState<RenderedPage[]>([]);
   const [focused, setFocused] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [dragNum, setDragNum] = useState<number | null>(null);
+  const [dragOverNum, setDragOverNum] = useState<number | null>(null);
   const bigRef = useRef<HTMLCanvasElement>(null);
   const docRef = useRef<any>(null);
 
@@ -83,17 +85,27 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, se
   }, [focused, pages]);
 
   const isEstimate = (num: number) => num > presentationPageCount;
-  const included = (num: number) => isEstimate(num) ? inclEstimate : selPages.includes(num);
-  // Final page number = position among INCLUDED pages (so numbering follows the selection).
-  const finalNumber = (num: number) => {
-    let n = 0;
-    for (let i = 1; i <= num; i++) if (included(i)) n++;
-    return n;
+  const isIncluded = (num: number) => !excludedPages.includes(num);
+  // Final page order = the drag order, minus excluded pages. Numbering follows this, not the
+  // original PDF order.
+  const finalOrder = order.filter(isIncluded);
+  const finalNumber = (num: number) => { const i = finalOrder.indexOf(num); return i === -1 ? 0 : i + 1; };
+  const totalIncluded = finalOrder.length;
+  // Defensive fallback: `order` should always be a full permutation of every rendered page once
+  // ready, but guard against a transient mismatch right after the PDF changes.
+  const displayOrder = order.length === pages.length ? order : pages.map((p) => p.num);
+
+  const toggleIncluded = (num: number) => {
+    setExcludedPages(isIncluded(num) ? [...excludedPages, num] : excludedPages.filter((x) => x !== num));
   };
-  const totalIncluded = finalNumber(pages.length);
-  const toggle = (num: number) => {
-    if (isEstimate(num)) { setInclEstimate(!inclEstimate); return; }
-    setSelPages(selPages.includes(num) ? selPages.filter((x) => x !== num) : [...selPages, num].sort((a, b) => a - b));
+
+  const onDropThumb = (targetNum: number) => {
+    if (dragNum === null || dragNum === targetNum) { setDragNum(null); setDragOverNum(null); return; }
+    const next = displayOrder.filter((n) => n !== dragNum);
+    const idx = next.indexOf(targetNum);
+    next.splice(idx, 0, dragNum);
+    setOrder(next);
+    setDragNum(null); setDragOverNum(null);
   };
 
   if (loading) return <div className="flex h-full items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
@@ -101,23 +113,41 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, se
 
   return (
     <div className="flex h-full">
-      {/* Thumbnail rail — scrolls on wheel/trackpad, scrollbar hidden for a clean look */}
+      {/* Thumbnail rail — drag to reorder, scrolls on wheel/trackpad, scrollbar hidden */}
       <div className="no-scrollbar w-[160px] shrink-0 overflow-y-auto border-r border-stroke dark:border-strokedark">
+        <p className="px-2 pt-2 text-[10px] leading-tight text-gray-400">{t('proposals.dragHint')}</p>
         <div className="space-y-2 p-2">
-          {pages.map((p) => {
-            const inc = included(p.num);
-            const est = isEstimate(p.num);
+          {displayOrder.map((num) => {
+            const p = pages.find((pg) => pg.num === num);
+            if (!p) return null;
+            const inc = isIncluded(num);
+            const est = isEstimate(num);
+            const isDragOver = dragOverNum === num && dragNum !== num;
             return (
-              <div key={p.num} className={`group relative cursor-pointer rounded-md border-2 transition ${focused === p.num ? 'border-primary' : 'border-transparent'}`} onClick={() => setFocused(p.num)}>
-                <img src={p.thumb} alt={`page ${p.num}`} className={`w-full rounded shadow-sm transition ${inc ? '' : 'opacity-25 grayscale'}`} />
+              <div
+                key={num}
+                draggable
+                onDragStart={() => setDragNum(num)}
+                onDragOver={(e) => { e.preventDefault(); setDragOverNum(num); }}
+                onDragLeave={() => setDragOverNum((d) => (d === num ? null : d))}
+                onDrop={() => onDropThumb(num)}
+                onDragEnd={() => { setDragNum(null); setDragOverNum(null); }}
+                onClick={() => setFocused(num)}
+                className={`group relative cursor-grab rounded-md border-2 transition ${focused === num ? 'border-primary' : isDragOver ? 'border-dashed border-primary/70' : 'border-transparent'}`}
+              >
+                <img src={p.thumb} alt={`page ${num}`} draggable={false} className={`w-full rounded shadow-sm transition ${inc ? '' : 'opacity-25 grayscale'}`} />
+                {/* drag handle */}
+                <span className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/40 text-white">
+                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><circle cx="6" cy="5" r="1.4" /><circle cx="6" cy="10" r="1.4" /><circle cx="6" cy="15" r="1.4" /><circle cx="12" cy="5" r="1.4" /><circle cx="12" cy="10" r="1.4" /><circle cx="12" cy="15" r="1.4" /></svg>
+                </span>
                 {/* include toggle */}
-                <button onClick={(e) => { e.stopPropagation(); toggle(p.num); }}
+                <button onClick={(e) => { e.stopPropagation(); toggleIncluded(num); }}
                   title={(inc ? t('proposals.pageExclude') : t('proposals.pageInclude')) as string}
                   className={`absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold shadow ${inc ? 'border-primary bg-primary text-white' : 'border-stroke bg-white text-gray-400 dark:border-strokedark dark:bg-boxdark'}`}>
                   {inc ? '✓' : ''}
                 </button>
-                {/* final page number (follows the selection) or excluded mark */}
-                <span className={`absolute bottom-1 left-1 rounded px-1 text-[10px] font-semibold ${inc ? 'bg-primary text-white' : 'bg-gray-500/70 text-white line-through'}`}>{inc ? finalNumber(p.num) : '✕'}</span>
+                {/* final page number (follows the drag order) or excluded mark */}
+                <span className={`absolute bottom-1 left-1 rounded px-1 text-[10px] font-semibold ${inc ? 'bg-primary text-white' : 'bg-gray-500/70 text-white line-through'}`}>{inc ? finalNumber(num) : '✕'}</span>
                 {est && <span className="absolute bottom-1 right-1 rounded bg-black/55 px-1 text-[9px] font-medium text-white">{t('proposals.quoteTag')}</span>}
               </div>
             );
@@ -136,7 +166,7 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, se
           </div>
         )}
         <div className="flex flex-1 items-center justify-center overflow-hidden bg-gray-100 p-4 dark:bg-meta-4/30">
-          <canvas ref={bigRef} className={`max-h-full max-w-full rounded shadow-default ${included(focused) ? '' : 'opacity-40'}`} />
+          <canvas ref={bigRef} className={`max-h-full max-w-full rounded shadow-default ${isIncluded(focused) ? '' : 'opacity-40'}`} />
         </div>
       </div>
     </div>

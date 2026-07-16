@@ -40,8 +40,12 @@ const Proposals: React.FC = () => {
   const [activityFor, setActivityFor] = useState<{ estimateId: string; number: string } | null>(null);
   const [estPreview, setEstPreview] = useState<{ estimateId: string; number: string; loading: boolean } | null>(null);
 
-  // Builder state (when an estimate is selected)
+  // Builder state. sel = the picked Zoho estimate, or null for a presentation-only proposal
+  // (cover+deck, no estimate) — builderOpen drives modal visibility independently of sel so a
+  // "blank" proposal can open the same modal with no estimate selected.
+  const [builderOpen, setBuilderOpen] = useState(false);
   const [sel, setSel] = useState<Estimate | null>(null);
+  const [blankClientName, setBlankClientName] = useState(''); // free-typed client name when sel is null
   const [lang, setLang] = useState<'fr' | 'en'>('fr');
   const [title, setTitle] = useState('');
   const [logo, setLogo] = useState<string | null>(null);
@@ -53,11 +57,14 @@ const Proposals: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  // Page selection: which presentation pages to include + whether to attach the quote
-  const [selPages, setSelPages] = useState<number[]>([]); // 1-based; empty = all
-  const [inclEstimate, setInclEstimate] = useState(true);
+  // Page reordering + selection: `order` is a full permutation of every page number (1-based,
+  // presentation then estimate) driving drag position; `excludedPages` marks which are dropped
+  // from the final document, independent of their position in `order`.
+  const [order, setOrder] = useState<number[]>([]);
+  const [excludedPages, setExcludedPages] = useState<number[]>([]);
   // Cover co-branding: show the client NAME (default) or the client LOGO
   const [branding, setBranding] = useState<'name' | 'logo'>('name');
+  const clientName = () => (sel ? sel.customerName : blankClientName.trim());
 
   const fetchEstimates = async () => {
     setLoading(true); setError('');
@@ -92,12 +99,15 @@ const Proposals: React.FC = () => {
     catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
   };
 
-  const openBuilder = (e: Estimate) => {
-    setSel(e); setLang(i18n.language?.startsWith('en') ? 'en' : 'fr'); setTitle(''); setLogo(null);
+  // Pass an estimate to build a proposal from it, or null to start a presentation-only proposal
+  // (no Zoho estimate) — the rep types the client name instead.
+  const openBuilder = (e: Estimate | null) => {
+    setSel(e); setBuilderOpen(true); setBlankClientName('');
+    setLang(i18n.language?.startsWith('en') ? 'en' : 'fr'); setTitle(''); setLogo(null);
     setPrepared(null); setTo(''); setCc(''); setSubject(''); setBody('');
-    setSelPages([]); setInclEstimate(true); setBranding('name');
+    setOrder([]); setExcludedPages([]); setBranding('name');
   };
-  const closeBuilder = () => { setSel(null); setPrepared(null); };
+  const closeBuilder = () => { setBuilderOpen(false); setSel(null); setPrepared(null); };
   // Only close on a genuine backdrop click — one that BOTH starts and ends on the overlay.
   // Without this, selecting text inside the modal and releasing the mouse outside the window
   // fires a click whose target is the overlay, closing the popup mid-selection.
@@ -111,33 +121,34 @@ const Proposals: React.FC = () => {
   };
 
   const prepare = async () => {
-    if (!sel) return;
+    if (!sel && !blankClientName.trim()) { dialog.alert(t('proposals.blankClientNameRequired')); return; }
     setPreparing(true);
     try {
-      // Always render the FULL document so every page shows as a thumbnail; the rep then toggles
-      // which pages to actually send (applied at send time).
+      // Always render the FULL document so every page shows as a thumbnail; the rep then drags to
+      // reorder / toggles which pages to actually send (applied at send/download time).
       const r = await axios.post(`${API_URL}/api/proposals/prepare`,
-        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: branding === 'logo' ? (logo || undefined) : undefined, includeEstimate: true },
+        { estimateId: sel?.estimateId, lang, title: title.trim(), clientName: clientName(), logoBase64: branding === 'logo' ? (logo || undefined) : undefined },
         { headers: authHeaders() });
       const p: Prepared = r.data;
       setPrepared(p);
-      // Default: all presentation pages + the quote included.
-      setSelPages(Array.from({ length: p.presentationPageCount }, (_, i) => i + 1));
-      setInclEstimate(true);
+      // Default: every page included, original order (presentation then estimate).
+      const total = p.presentationPageCount + p.estimatePageCount;
+      setOrder(Array.from({ length: total }, (_, i) => i + 1));
+      setExcludedPages([]);
       setTo(p.email?.to || ''); setSubject(p.email?.subject || ''); setBody(p.email?.body || '');
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('proposals.prepareError')); }
     finally { setPreparing(false); }
   };
 
   const send = async () => {
-    if (!sel || !prepared) return;
+    if (!prepared) return;
     if (!to.trim()) { dialog.alert(t('proposals.toRequired')); return; }
     if (!(await dialog.confirm(t('proposals.sendConfirm', { to: to.trim() }) as string, { confirmText: t('proposals.sendBtn') as string }))) return;
     setSending(true);
     try {
       const resp = await axios.post(`${API_URL}/api/proposals/send`,
-        { estimateId: sel.estimateId, lang, title: title.trim(), clientName: sel.customerName, logoBase64: branding === 'logo' ? (logo || undefined) : undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body,
-          selectedPages: selPages.length ? selPages : undefined, includeEstimate: inclEstimate },
+        { estimateId: sel?.estimateId, lang, title: title.trim(), clientName: clientName(), logoBase64: branding === 'logo' ? (logo || undefined) : undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body,
+          pageOrder: order.filter((n) => !excludedPages.includes(n)) },
         { headers: authHeaders() });
       const note = resp.data && resp.data.acceptLinkIncluded === false ? '\n\n' + t('proposals.noAcceptLink') : '';
       await dialog.alert(t('proposals.sent', { to: to.trim() }) + note);
@@ -149,16 +160,16 @@ const Proposals: React.FC = () => {
     } finally { setSending(false); }
   };
 
-  // Download the EXACT PDF that will be sent — rebuilt server-side with the current page selection
-  // (so footers are renumbered) + the quote toggle.
+  // Download the EXACT PDF that will be sent — rebuilt server-side with the current page order
+  // (so footers are renumbered) + selection.
   const download = async () => {
-    if (!sel || !prepared) return;
+    if (!prepared) return;
     setDownloading(true);
     try {
       const r = await axios.post(`${API_URL}/api/proposals/prepare`,
-        { estimateId: sel.estimateId, lang, clientName: sel.customerName,
+        { estimateId: sel?.estimateId, lang, clientName: clientName(),
           logoBase64: branding === 'logo' ? (logo || undefined) : undefined,
-          selectedPages: selPages.length ? selPages : undefined, includeEstimate: inclEstimate },
+          pageOrder: order.filter((n) => !excludedPages.includes(n)) },
         { headers: authHeaders() });
       const blob = new Blob([b64ToBytes(r.data.pdfBase64) as BlobPart], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
@@ -186,12 +197,18 @@ const Proposals: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="mb-5 inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
-        {(['pending', 'sent'] as const).map((v) => (
-          <button key={v} onClick={() => setView(v)} className={`rounded-md px-4 py-1.5 text-sm font-medium ${view === v ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
-            {v === 'pending' ? t('proposals.tabPending') : t('proposals.tabSent')}
-          </button>
-        ))}
+      <div className="mb-5 flex items-center justify-between">
+        <div className="inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
+          {(['pending', 'sent'] as const).map((v) => (
+            <button key={v} onClick={() => setView(v)} className={`rounded-md px-4 py-1.5 text-sm font-medium ${view === v ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+              {v === 'pending' ? t('proposals.tabPending') : t('proposals.tabSent')}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => openBuilder(null)} className="inline-flex items-center gap-1.5 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+          {t('proposals.blankNew')}
+        </button>
       </div>
 
       {view === 'pending' && (<>
@@ -285,9 +302,13 @@ const Proposals: React.FC = () => {
                       return (
                         <tr key={r.id} className="border-t border-stroke dark:border-strokedark">
                           <td className="px-4 py-2.5 font-medium">
-                            <button onClick={() => setEstPreview({ estimateId: r.estimateId, number: r.number, loading: true })} className="text-black hover:text-primary hover:underline dark:text-white">
-                              {r.customerName}
-                            </button>
+                            {r.estimateId ? (
+                              <button onClick={() => setEstPreview({ estimateId: r.estimateId, number: r.number, loading: true })} className="text-black hover:text-primary hover:underline dark:text-white">
+                                {r.customerName}
+                              </button>
+                            ) : (
+                              <span className="text-black dark:text-white">{r.customerName}</span>
+                            )}
                           </td>
                           <td className="px-4 py-2.5 text-body">{r.number}</td>
                           <td className="px-4 py-2.5 text-body">{formatDateOnly(r.sentAt, i18n.language)}</td>
@@ -328,7 +349,7 @@ const Proposals: React.FC = () => {
                           </td>
                           <td className="px-4 py-2.5 text-right">
                             <div className="flex items-center justify-end gap-1">
-                              <button onClick={() => setActivityFor({ estimateId: r.estimateId, number: r.number })} title={t('activity.title') as string} className="rounded-lg p-1.5 text-body hover:text-primary">
+                              <button onClick={() => setActivityFor({ estimateId: r.estimateId || `blank-${r.id}`, number: r.number })} title={t('activity.title') as string} className="rounded-lg p-1.5 text-body hover:text-primary">
                                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                               </button>
                               {isAdmin && (
@@ -395,7 +416,7 @@ const Proposals: React.FC = () => {
       )}
 
       {/* Builder modal */}
-      {sel && (
+      {builderOpen && (
         <div
           className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4"
           onMouseDown={(e) => { overlayDownRef.current = e.target === e.currentTarget; }}
@@ -405,7 +426,7 @@ const Proposals: React.FC = () => {
             <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
               <div>
                 <h3 className="text-lg font-semibold text-black dark:text-white">{t('proposals.builderTitle')}</h3>
-                <p className="text-xs text-gray-400">{sel.number} · {sel.customerName}</p>
+                <p className="text-xs text-gray-400">{sel ? `${sel.number} · ${sel.customerName}` : t('proposals.blankNew')}</p>
               </div>
               <button onClick={closeBuilder} className="rounded-lg p-1.5 text-body hover:bg-gray-1 dark:hover:bg-meta-4"><svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
@@ -413,6 +434,14 @@ const Proposals: React.FC = () => {
             <div className="grid flex-1 grid-cols-1 gap-0 overflow-hidden md:grid-cols-2">
               {/* Left: form / email */}
               <div className="thin-scrollbar space-y-4 overflow-y-auto p-6">
+                {/* Client name — free text, only needed when there's no Zoho estimate to pull it from */}
+                {!sel && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-body">{t('proposals.blankClientName')}</label>
+                    <input value={blankClientName} onChange={(e) => { setBlankClientName(e.target.value); setPrepared(null); }}
+                      placeholder={t('proposals.blankClientNamePlaceholder') as string} className={inputCls} />
+                  </div>
+                )}
                 {/* Language */}
                 <div>
                   <label className="mb-1 block text-xs font-medium text-body">{t('proposals.language')}</label>
@@ -446,10 +475,10 @@ const Proposals: React.FC = () => {
                   {preparing ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('proposals.preparing')}</> : (prepared ? t('proposals.regenerate') : t('proposals.generatePreview'))}
                 </button>
 
-                {/* Page selection now lives on the thumbnails in the preview (right). */}
-                {prepared && prepared.presentationPageCount > 0 && (
+                {/* Reordering + page selection now lives on the thumbnails in the preview (right). */}
+                {prepared && (prepared.presentationPageCount + prepared.estimatePageCount) > 0 && (
                   <p className="border-t border-stroke pt-4 text-xs text-gray-400 dark:border-strokedark">
-                    {t('proposals.pagesHintThumb', { count: selPages.length + (inclEstimate ? prepared.estimatePageCount : 0) })}
+                    {t('proposals.pagesHintThumb', { count: order.filter((n) => !excludedPages.includes(n)).length })}
                   </p>
                 )}
 
@@ -474,15 +503,14 @@ const Proposals: React.FC = () => {
                 )}
               </div>
 
-              {/* Right: clickable-thumbnail PDF preview (also drives page selection) */}
+              {/* Right: drag-to-reorder thumbnail PDF preview (also drives page selection) */}
               <div className="hidden min-h-[400px] border-l border-stroke md:block">
                 {prepared ? (
                   <PdfThumbPreview
                     pdfBase64={prepared.pdfBase64}
                     presentationPageCount={prepared.presentationPageCount}
-                    estimatePageCount={prepared.estimatePageCount}
-                    selPages={selPages} setSelPages={setSelPages}
-                    inclEstimate={inclEstimate} setInclEstimate={setInclEstimate}
+                    order={order} setOrder={setOrder}
+                    excludedPages={excludedPages} setExcludedPages={setExcludedPages}
                     onDownload={download} downloading={downloading}
                   />
                 ) : (
