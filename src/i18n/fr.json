@@ -885,7 +885,7 @@
     "noCustomerData": "Aucune donnée client disponible",
     "avgSaasPerClient": "SaaS moyen / client / mois",
     "avgProcessingPerClient": "Processing moyen / marchand / mois",
-    "avgProcessingTip": "Processing mensuel moyen sur les marchands avec un revenu de transaction réel ce mois-ci. Les chiffres de processing ne reflètent que les marchands traités par Adyen — les autres processeurs de paiement ne sont pas inclus.",
+    "avgProcessingTip": "Profit de processing par marchand pour le mois calendaire en cours (correspond au tableau de bord Zentact). Pour les années passées, affiche plutôt une moyenne mensuelle sur l'année complète. Les chiffres de processing ne reflètent que les marchands traités par Adyen — les autres processeurs de paiement ne sont pas inclus.",
     "avgRevenuePerMerchant": "Revenu moyen / marchand (mensuel)",
     "avgRevenuePerMerchantTip": "Revenu mensuel combiné moyen (SaaS + processing de paiement) sur les marchands qui traitent — associés à un abonnement SaaS dans Marchand ↔ SaaS ET avec un revenu de transaction réel ce mois-ci. Les marchands actifs (associés à un SaaS mais qui ne traitent pas actuellement) sont affichés pour contexte mais exclus de la moyenne. Les chiffres de processing ne reflètent que les marchands traités par Adyen — les autres processeurs de paiement ne sont pas inclus.",
     "clientsCount": "clients",

@@ -885,7 +885,7 @@
     "noCustomerData": "No customer data available",
     "avgSaasPerClient": "Avg monthly SaaS / client",
     "avgProcessingPerClient": "Avg monthly processing / merchant",
-    "avgProcessingTip": "Average monthly processing profit across merchants with real transaction revenue this period. Processing figures reflect Adyen-processed merchants only — other payment processors aren't included.",
+    "avgProcessingTip": "Processing profit per merchant for the current calendar month (matches Zentact's own dashboard). For past years, shows a full-year monthly average instead. Processing figures reflect Adyen-processed merchants only — other payment processors aren't included.",
     "avgRevenuePerMerchant": "Avg revenue / merchant (monthly)",
     "avgRevenuePerMerchantTip": "Average monthly combined revenue (SaaS + payment processing) across processing merchants — matched to a SaaS subscription in Merchant ↔ SaaS AND with real transaction revenue this period. Active merchants (matched to a SaaS but not currently processing) are shown for context but excluded from the average. Processing figures reflect Adyen-processed merchants only — other payment processors aren't included.",
     "clientsCount": "clients",
