@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../lib/dialog';
 import { formatDateOnly } from '../utils/date';
@@ -66,7 +65,6 @@ const FileIcon: React.FC<{ name: string; mime: string; className?: string }> = (
 
 const Resources: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
   const [resources, setResources] = useState<Resource[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [q, setQ] = useState('');
@@ -502,48 +500,6 @@ const Resources: React.FC = () => {
           </button>
         ))}
       </div>
-
-      {/* Featured tools — root of the shared library only */}
-      {zone === 'shared' && !openFolder && (
-        <div className="mb-6 grid gap-4 sm:grid-cols-2">
-          <button onClick={() => navigate('/hardware')}
-            className="flex flex-col gap-3.5 rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/15 to-primary/5 p-5 text-left transition hover:border-primary">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-primary text-white shadow-lg shadow-primary/30">
-                <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 8 12 3 3 8v8l9 5 9-5z" /><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l9 5 9-5M12 13v8" /></svg>
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="text-lg font-bold text-black dark:text-white">{t('resources.featuredHardwareTitle')}</span>
-                  <span className="rounded-full bg-primary px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-white">{t('resources.featuredInteractive')}</span>
-                </div>
-              </div>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">{t('resources.featuredHardwareDesc')}</p>
-            <span className="inline-flex w-fit items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white">{t('resources.featuredOpen')}
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0-4 4m4-4H3" /></svg>
-            </span>
-          </button>
-          <button onClick={() => navigate('/pricing-guide')}
-            className="flex flex-col gap-3.5 rounded-2xl border border-[#608EFA]/40 bg-gradient-to-br from-[#608EFA]/15 to-[#608EFA]/5 p-5 text-left transition hover:border-[#608EFA]">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 flex-none items-center justify-center rounded-2xl bg-[#608EFA] text-white shadow-lg shadow-[#608EFA]/30">
-                <svg className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 9.5c-.5-1-1.7-1.5-3-1.5-1.7 0-3 .9-3 2.2 0 3 6 1.5 6 4.6 0 1.3-1.3 2.2-3 2.2-1.3 0-2.5-.5-3-1.5M12 6.5v11" /></svg>
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="text-lg font-bold text-black dark:text-white">{t('resources.featuredPricingTitle')}</span>
-                  <span className="rounded-full bg-[#608EFA] px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wide text-white">{t('resources.featuredInteractive')}</span>
-                </div>
-              </div>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-300">{t('resources.featuredPricingDesc')}</p>
-            <span className="inline-flex w-fit items-center gap-2 rounded-lg bg-[#608EFA] px-4 py-2 text-sm font-bold text-white">{t('resources.featuredOpen')}
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0-4 4m4-4H3" /></svg>
-            </span>
-          </button>
-        </div>
-      )}
 
       {/* Journal (admin) */}
       {isAdmin && showJournal && (

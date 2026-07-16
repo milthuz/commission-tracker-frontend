@@ -312,6 +312,40 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Menu Item Hardware Overview (perm: hardware:view) --> */}
+              {(isAdmin || can('hardware:view')) && (
+                <li>
+                  <NavLink
+                    to="/hardware"
+                    className={navLinkCls(pathname === '/hardware')}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
+                      <path d="M3 8l9 5 9-5M12 13v8" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.hardware')}</span>
+                    <NewBadge path="/hardware" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.hardware') as string} />
+                  </NavLink>
+                </li>
+              )}
+              {/* <!-- Menu Item Services & Pricing Guide (perm: pricing:view) --> */}
+              {(isAdmin || can('pricing:view')) && (
+                <li>
+                  <NavLink
+                    to="/pricing-guide"
+                    className={navLinkCls(pathname === '/pricing-guide')}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 2h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5-2 1.5z" />
+                      <path d="M9 7h6M9 11h6M9 15h4" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.pricingGuide')}</span>
+                    <NewBadge path="/pricing-guide" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.pricingGuide') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Kaizen DEMO (perm: demo:kaizen) — streamed POS demo --> */}
               {(isAdmin || can('demo:kaizen')) && (
                 <li>
