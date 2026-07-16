@@ -25,6 +25,8 @@ import Revenue from './pages/Revenue';
 import Resources from './pages/Resources';
 import KaizenDemo from './pages/KaizenDemo';
 import Proposals from './pages/Proposals';
+import Hardware from './pages/Hardware';
+import PricingGuide from './pages/PricingGuide';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -199,6 +201,24 @@ function AppContent() {
               <>
                 <PageTitle title="Resources | Sales Hub" />
                 <Resources />
+              </>
+            }
+          />
+          <Route
+            path="/hardware"
+            element={
+              <>
+                <PageTitle title="Hardware Overview | Sales Hub" />
+                <Hardware />
+              </>
+            }
+          />
+          <Route
+            path="/pricing-guide"
+            element={
+              <>
+                <PageTitle title="Services & Pricing Guide | Sales Hub" />
+                <PricingGuide />
               </>
             }
           />

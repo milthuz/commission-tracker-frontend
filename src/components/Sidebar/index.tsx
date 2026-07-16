@@ -551,6 +551,26 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </li>
                     <li>
                       <NavLink
+                        to="/admin/hardware"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/hardware' ? 'text-white' : ''
+                        }`}
+                      >
+                        {t('sidebar.hardwareAdmin')}<NewBadge path="/admin/hardware" />
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/admin/pricing"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/pricing' ? 'text-white' : ''
+                        }`}
+                      >
+                        {t('sidebar.pricingAdmin')}<NewBadge path="/admin/pricing" />
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
                         to="/admin/users"
                         className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
                           pathname === '/admin/users' || pathname === '/admin/admins' || pathname === '/admin/roles' ? 'text-white' : ''

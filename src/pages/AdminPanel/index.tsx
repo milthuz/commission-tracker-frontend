@@ -16,6 +16,8 @@ import ResourcesAdmin from './ResourcesAdmin';
 import DataHealth from './DataHealth';
 import Audit from './Audit';
 import SavingsPricingAdmin from './SavingsPricingAdmin';
+import HardwareAdmin from './HardwareAdmin';
+import PricingAdmin from './PricingAdmin';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -1490,6 +1492,8 @@ const AdminPanel = () => {
              activeTab === 'data-health' ? t('dataHealth.title') :
              activeTab === 'savings-pricing' ? t('savingsPricing.title') :
              activeTab === 'audit' ? t('admin.audit.title') :
+             activeTab === 'hardware' ? t('admin.hardware.title') :
+             activeTab === 'pricing' ? t('admin.pricing.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1507,6 +1511,8 @@ const AdminPanel = () => {
              activeTab === 'data-health' ? t('dataHealth.subtitle') :
              activeTab === 'savings-pricing' ? t('savingsPricing.subtitle') :
              activeTab === 'audit' ? t('admin.audit.subtitle') :
+             activeTab === 'hardware' ? t('admin.hardware.subtitle') :
+             activeTab === 'pricing' ? t('admin.pricing.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -3419,6 +3425,8 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'import-payments' && <CommissionImport />}
           {activeTab === 'resellers' && <ResellerAdmin />}
           {activeTab === 'resources' && <ResourcesAdmin />}
+          {activeTab === 'hardware' && <HardwareAdmin />}
+          {activeTab === 'pricing' && <PricingAdmin />}
           {activeTab === 'merchant-links' && <MerchantSaasLinks />}
           {activeTab === 'notifications' && <NotificationsAdmin />}
 
