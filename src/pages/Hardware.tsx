@@ -63,7 +63,10 @@ const Hardware: React.FC = () => {
   const catLabel = (id: string) => (id === 'all' ? t('hardware.categoriesAll') : t(`hardware.categories.${id}`));
   const statusLabel = (k: string) => (k === 'all' ? t('common.all') : t(`hardware.status.${k}`));
 
-  const all = data?.products || [];
+  // Hidden products are for the Admin Hardware editor only — never shown here, even to a
+  // hardware:manage admin browsing this page (server already excludes them for everyone else;
+  // this is the client-side backstop).
+  const all = (data?.products || []).filter((p) => p.visible);
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     return all.filter((p) => {

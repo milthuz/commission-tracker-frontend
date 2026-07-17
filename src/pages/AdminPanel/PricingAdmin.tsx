@@ -52,6 +52,7 @@ const PricingAdmin: React.FC = () => {
   const [edits, setEdits] = useState<Record<string, PkgEdit>>({});
   const [added, setAdded] = useState<PricingPackage[]>([]);
   const [hidden, setHidden] = useState<Record<string, boolean>>({});
+  const [removed, setRemoved] = useState<Record<string, boolean>>({});
   const [publishing, setPublishing] = useState(false);
 
   const [form, setForm] = useState<{ nameEn: string; nameFr: string; catId: string; compat: string; sku: string; monthly: string; yearly: string; flat: string; includesEn: string; includesFr: string } | null>(null);
@@ -73,11 +74,12 @@ const PricingAdmin: React.FC = () => {
   Object.keys(edits).forEach((id) => { const p = packages.find((x) => x.id === id); if (p) editedByCat[p.catId] = true; });
   added.forEach((p) => { editedByCat[p.catId] = true; });
   Object.keys(hidden).forEach((id) => { const p = allMerged.find((x) => x.id === id); if (p) editedByCat[p.catId] = true; });
+  Object.keys(removed).forEach((id) => { const p = allMerged.find((x) => x.id === id); if (p) editedByCat[p.catId] = true; });
 
-  let list = allMerged.filter((p) => p.catId === cat);
+  let list = allMerged.filter((p) => p.catId === cat && !removed[p.id]);
   if (q.trim()) { const query = q.trim().toLowerCase(); list = list.filter((p) => `${p.nameEn} ${p.sku || ''}`.toLowerCase().includes(query)); }
 
-  const editedCount = Object.keys(edits).length + added.length + Object.keys(hidden).length;
+  const editedCount = Object.keys(edits).length + added.length + Object.keys(hidden).length + Object.keys(removed).length;
 
   const ev = (id: string, field: keyof PkgEdit, fallback: number | null): string => {
     const e = edits[id];
@@ -96,13 +98,23 @@ const PricingAdmin: React.FC = () => {
   });
   const isHidden = (p: PricingPackage) => (hidden[p.id] !== undefined ? hidden[p.id] : !p.visible);
 
-  const revertAll = () => { setEdits({}); setAdded([]); setHidden({}); };
+  const removePackage = (id: string) => {
+    if (added.some((a) => a.id === id)) {
+      setAdded((a) => a.filter((x) => x.id !== id));
+    } else {
+      setRemoved((r) => ({ ...r, [id]: true }));
+      setEdits((e) => { const n = { ...e }; delete n[id]; return n; });
+      setHidden((h) => { const n = { ...h }; delete n[id]; return n; });
+    }
+  };
+
+  const revertAll = () => { setEdits({}); setAdded([]); setHidden({}); setRemoved({}); };
 
   const publish = async () => {
     setPublishing(true);
     try {
       const updatedPayload = Object.entries(edits).map(([id, e]) => ({ ...packages.find((p) => p.id === id), ...e, id }));
-      await axios.put(`${API_URL}/api/pricing`, { updated: updatedPayload, added, removed: [], hidden }, { headers: authHeaders() });
+      await axios.put(`${API_URL}/api/pricing`, { updated: updatedPayload, added, removed: Object.keys(removed), hidden }, { headers: authHeaders() });
       revertAll();
       await fetchAll();
       dialog.alert(t('admin.pricing.published') as string);
@@ -180,6 +192,7 @@ const PricingAdmin: React.FC = () => {
                     <th className="w-24 px-3 py-2.5 text-right font-medium">{t('admin.pricing.colYearly')}</th>
                     <th className="w-24 px-3 py-2.5 text-right font-medium">{t('admin.pricing.colFlat')}</th>
                     <th className="w-16 px-3 py-2.5 text-center font-medium">{t('admin.pricing.colVisible')}</th>
+                    <th className="sticky right-0 w-10 bg-gray-2 px-2 py-2.5 dark:bg-meta-4" />
                   </tr>
                 </thead>
                 <tbody>
@@ -207,11 +220,17 @@ const PricingAdmin: React.FC = () => {
                             <span className="h-[18px] w-[18px] rounded-full bg-white" />
                           </button>
                         </td>
+                        <td className={`sticky right-0 px-2 py-2 text-center ${i % 2 ? 'bg-gray-1/40 dark:bg-meta-4/10' : 'bg-white dark:bg-boxdark'}`}>
+                          <button onClick={() => removePackage(p.id)} title={t('common.delete') as string}
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-danger/10 hover:text-danger">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" /></svg>
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
                   {list.length === 0 && (
-                    <tr><td colSpan={6} className="py-10 text-center text-sm text-gray-400">{t('admin.hardware.emptyCategory')}</td></tr>
+                    <tr><td colSpan={7} className="py-10 text-center text-sm text-gray-400">{t('admin.hardware.emptyCategory')}</td></tr>
                   )}
                 </tbody>
               </table>

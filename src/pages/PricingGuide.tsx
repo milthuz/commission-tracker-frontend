@@ -103,7 +103,10 @@ const PricingGuide: React.FC = () => {
     return { amt: 0, recurring: false };
   };
 
-  const allPackages = data?.packages || [];
+  // Hidden packages are for the Admin Pricing editor only — the rep-facing guide never shows
+  // them, even for a pricing:manage admin browsing this page (server-side already excludes
+  // hidden rows for everyone without pricing:manage; this is the client-side backstop).
+  const allPackages = (data?.packages || []).filter((p) => p.visible);
   const activeCatData = data?.categories.find((c) => c.id === cat) || null;
   const list = useMemo(() => {
     const query = q.trim().toLowerCase();
