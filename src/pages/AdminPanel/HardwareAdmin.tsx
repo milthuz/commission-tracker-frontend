@@ -46,7 +46,9 @@ const CatIcon: React.FC<{ id: string; className?: string }> = ({ id, className =
 const slugify = (s: string) => 'new_' + s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 30) + '_' + Date.now().toString(36);
 
 const HardwareAdmin: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const fr = i18n.language?.startsWith('fr');
+  const pick = (en: string | null | undefined, frText: string | null | undefined) => (fr && frText ? frText : en) || '';
   const [categories, setCategories] = useState<HardwareCategory[]>([]);
   const [products, setProducts] = useState<HardwareProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -256,7 +258,7 @@ const HardwareAdmin: React.FC = () => {
                 return (
                   <div key={p.id} className={`flex gap-3 rounded-2xl border bg-white p-3.5 dark:bg-boxdark ${rowEdited ? 'border-primary' : 'border-stroke dark:border-strokedark'}`}>
                     <div className="flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-xl bg-gray-2 dark:bg-meta-4">
-                      {p.hasImage ? <img src={`${API_URL}/api/hardware/${p.id}/image`} alt={p.nameEn} className="h-full w-full object-contain p-1.5" /> : <span className="text-[10px] text-gray-400">{t('hardware.noPhoto')}</span>}
+                      {p.hasImage ? <img src={`${API_URL}/api/hardware/${p.id}/image`} alt={pick(p.nameEn, p.nameFr)} className="h-full w-full object-contain p-1.5" /> : <span className="text-[10px] text-gray-400">{t('hardware.noPhoto')}</span>}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="mb-1 flex flex-wrap gap-1">
@@ -265,7 +267,7 @@ const HardwareAdmin: React.FC = () => {
                         {isNewRow && <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-green-700 dark:text-success">{t('admin.hardware.added')}</span>}
                         {rowHidden && <span className="rounded-full bg-gray-2 px-1.5 py-0.5 text-[9px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t('admin.hardware.hidden')}</span>}
                       </div>
-                      <div className="truncate text-[14px] font-bold text-black dark:text-white">{p.nameEn}</div>
+                      <div className="truncate text-[14px] font-bold text-black dark:text-white">{pick(p.nameEn, p.nameFr)}</div>
                       <div className="truncate font-mono text-[11px] text-gray-400">{p.sku || '—'}</div>
                       <div className="mt-0.5 text-[13px] font-semibold text-black dark:text-white">{p.price || '—'}</div>
                     </div>
@@ -305,8 +307,8 @@ const HardwareAdmin: React.FC = () => {
 
       {/* Edit/Add drawer */}
       {form && (
-        <div className="fixed inset-0 z-[99999] bg-black/50" onClick={closeForm}>
-          <div onClick={(e) => e.stopPropagation()} className="absolute right-0 top-0 flex h-full w-full max-w-[480px] flex-col overflow-hidden border-l border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+        <div className="fixed inset-0 z-[99999] bg-black/50" onMouseDown={(e) => { if (e.target === e.currentTarget) closeForm(); }}>
+          <div className="absolute right-0 top-0 flex h-full w-full max-w-[480px] flex-col overflow-hidden border-l border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
             <div className="flex flex-none items-center justify-between border-b border-stroke px-5 py-4 dark:border-strokedark">
               <span className="text-base font-bold text-black dark:text-white">{form.isNew ? t('admin.hardware.newProduct') : t('admin.hardware.editProduct')}</span>
               <button onClick={closeForm} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>

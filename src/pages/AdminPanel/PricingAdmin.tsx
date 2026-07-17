@@ -46,7 +46,9 @@ const CatIcon: React.FC<{ id: string; className?: string }> = ({ id, className =
 const slugify = () => 'new_pkg_' + Date.now().toString(36);
 
 const PricingAdmin: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const fr = i18n.language?.startsWith('fr');
+  const pick = (en: string | null | undefined, frText: string | null | undefined) => (fr && frText ? frText : en) || '';
   const [packages, setPackages] = useState<PricingPackage[]>([]);
   const [categories, setCategories] = useState<PricingCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +78,7 @@ const PricingAdmin: React.FC = () => {
   useEffect(() => { fetchAll(); }, []);
 
   const CATS = categories.map((c) => c.id);
-  const catLabel = (id: string) => categories.find((c) => c.id === id)?.nameEn || id;
+  const catLabel = (id: string) => { const c = categories.find((x) => x.id === id); return c ? pick(c.nameEn, c.nameFr) : id; };
 
   const openAddCatForm = () => setCatForm({ editingId: null, nameEn: '', nameFr: '', hourly: '', noteEn: '', noteFr: '' });
   const openEditCatForm = (c: PricingCategory) => setCatForm({
@@ -279,7 +281,7 @@ const PricingAdmin: React.FC = () => {
                       <tr key={p.id} className={`border-t border-l-[3px] border-stroke dark:border-strokedark ${rowBg} ${rowEdited ? 'border-l-primary' : 'border-l-transparent'}`}>
                         <td className="px-3 py-2">
                           <div className="flex flex-col gap-1">
-                            <span className="font-medium text-black dark:text-white">{p.nameEn}</span>
+                            <span className="font-medium text-black dark:text-white">{pick(p.nameEn, p.nameFr)}</span>
                             {(p.compat.length > 0 || p.status.length > 0 || isNewRow || rowHidden) && (
                               <div className="flex flex-wrap items-center gap-1">
                                 {p.compat.map((c) => (
@@ -343,8 +345,8 @@ const PricingAdmin: React.FC = () => {
       )}
 
       {form && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setForm(null)}>
-          <div onClick={(e) => e.stopPropagation()} className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setForm(null); }}>
+          <div className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
             <div className="flex flex-none items-center justify-between border-b border-stroke px-5 py-4 dark:border-strokedark">
               <span className="text-base font-bold text-black dark:text-white">{form.editingId ? t('admin.pricing.editPackage') : t('admin.pricing.newPackage')}</span>
               <button onClick={() => setForm(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
@@ -408,8 +410,8 @@ const PricingAdmin: React.FC = () => {
       )}
 
       {catForm && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setCatForm(null)}>
-          <div onClick={(e) => e.stopPropagation()} className="flex max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setCatForm(null); }}>
+          <div className="flex max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
             <div className="flex flex-none items-center justify-between border-b border-stroke px-5 py-4 dark:border-strokedark">
               <span className="text-base font-bold text-black dark:text-white">{catForm.editingId ? t('admin.pricing.editCategory') : t('admin.pricing.addCategory')}</span>
               <button onClick={() => setCatForm(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
