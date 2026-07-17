@@ -16,7 +16,13 @@ interface Subscription {
   planName: string;
   status: string;
   currentMonthly: number;
+  activatedAt: string | null;
+  lastPriceChangeAt: string | null;
+  lastPriceBefore: number | null;
+  lastPriceAfter: number | null;
+  insightsCheckedAt: string | null;
 }
+type SortBy = 'name' | 'oldest' | 'newest' | 'mrr';
 interface ScenarioSummary {
   id: number; name: string; targetMrr: number; status: string; itemCount: number; mrrDelta: number;
 }
@@ -52,6 +58,9 @@ const SaasIncrease: React.FC = () => {
   const [search, setSearch] = useState('');
   const [orgFilter, setOrgFilter] = useState('');
   const [planFilter, setPlanFilter] = useState('');
+  const [sortBy, setSortBy] = useState<SortBy>('name');
+  const [groupByPlan, setGroupByPlan] = useState(false);
+  const [refreshingInsights, setRefreshingInsights] = useState(false);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
   const [bulkType, setBulkType] = useState<'percent' | 'flat'>('percent');
@@ -132,12 +141,37 @@ const SaasIncrease: React.FC = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return subs.filter(s =>
+    const list = subs.filter(s =>
       (!q || s.customerName.toLowerCase().includes(q) || s.subscriptionNumber.toLowerCase().includes(q) || (s.merchantAccountId || '').toLowerCase().includes(q)) &&
       (!orgFilter || s.orgId === orgFilter) &&
       (!planFilter || s.planName === planFilter)
     );
-  }, [subs, search, orgFilter, planFilter]);
+    const time = (d: string | null) => d ? new Date(d).getTime() : null;
+    return [...list].sort((a, b) => {
+      if (sortBy === 'oldest' || sortBy === 'newest') {
+        const ta = time(a.activatedAt), tb = time(b.activatedAt);
+        if (ta == null && tb == null) return 0;
+        if (ta == null) return 1; // unknown tenure sorts last regardless of direction
+        if (tb == null) return -1;
+        return sortBy === 'oldest' ? ta - tb : tb - ta;
+      }
+      if (sortBy === 'mrr') return b.currentMonthly - a.currentMonthly;
+      return a.customerName.localeCompare(b.customerName);
+    });
+  }, [subs, search, orgFilter, planFilter, sortBy]);
+
+  // Group-by-plan view: same filtered+sorted rows, just bucketed under a plan header instead
+  // of one flat list. null when the toggle is off (flat rendering).
+  const groupedFiltered = useMemo(() => {
+    if (!groupByPlan) return null;
+    const groups = new Map<string, Subscription[]>();
+    for (const s of filtered) {
+      const key = s.planName || (t('saasIncrease.noPlan') as string);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(s);
+    }
+    return Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [filtered, groupByPlan, t]);
 
   const setEdit = (num: string, patch: Partial<RowEdit>) => {
     setEdits(prev => {
@@ -213,6 +247,16 @@ const SaasIncrease: React.FC = () => {
       URL.revokeObjectURL(url);
     } catch { dialog.alert(t('saasIncrease.error') as string); }
     finally { setExporting(false); }
+  };
+
+  const refreshInsights = async () => {
+    setRefreshingInsights(true);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/insights/refresh`, { method: 'POST', headers: authHeaders() });
+      if (!r.ok) throw new Error(String(r.status));
+      dialog.alert(t('saasIncrease.insights.refreshStarted') as string);
+    } catch { dialog.alert(t('saasIncrease.error') as string); }
+    finally { setRefreshingInsights(false); }
   };
 
   const toggleNotifySelected = (id: number) => {
@@ -375,12 +419,32 @@ const SaasIncrease: React.FC = () => {
         </button>
       </div>
 
+      {/* Grouping / sort / insights controls — separate row since they act on the whole list, not a filter */}
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <label className="flex items-center gap-2 text-sm text-body dark:text-bodydark">
+          <input type="checkbox" checked={groupByPlan} onChange={(e) => setGroupByPlan(e.target.checked)} />
+          {t('saasIncrease.groupByPlan')}
+        </label>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">{t('saasIncrease.sortBy')}</label>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark">
+            <option value="name">{t('saasIncrease.sortName')}</option>
+            <option value="oldest">{t('saasIncrease.sortOldest')}</option>
+            <option value="newest">{t('saasIncrease.sortNewest')}</option>
+            <option value="mrr">{t('saasIncrease.sortMrr')}</option>
+          </select>
+        </div>
+        <button onClick={refreshInsights} disabled={refreshingInsights} className="ml-auto rounded-lg border border-stroke px-3 py-2 text-sm font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+          {refreshingInsights ? t('saasIncrease.insights.refreshing') : t('saasIncrease.insights.refresh')}
+        </button>
+      </div>
+
       {error && <p className="mb-4 rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
 
       {/* Subscriptions table */}
       <div className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-sm">
+          <table className="w-full min-w-[1100px] text-sm">
             <thead>
               <tr className="border-b border-stroke text-left text-xs text-gray-500 dark:border-strokedark">
                 <th className="px-4 py-2 font-medium"></th>
@@ -389,55 +453,77 @@ const SaasIncrease: React.FC = () => {
                 <th className="px-4 py-2 text-right font-medium">{t('saasIncrease.colCurrent')}</th>
                 <th className="px-4 py-2 font-medium">{t('saasIncrease.colIncrease')}</th>
                 <th className="px-4 py-2 text-right font-medium">{t('saasIncrease.colNew')}</th>
+                <th className="px-4 py-2 font-medium">{t('saasIncrease.colActivated')}</th>
+                <th className="px-4 py-2 font-medium">{t('saasIncrease.colLastPriceChange')}</th>
                 <th className="px-4 py-2 font-medium">{t('saasIncrease.colStatus')}</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map(s => {
-                const e = edits[s.subscriptionNumber];
-                const saved = savedItems[s.subscriptionNumber];
-                const nm = newMonthlyFor(s, e);
-                return (
-                  <tr key={s.subscriptionNumber} className="border-b border-stroke last:border-0 dark:border-strokedark">
-                    <td className="px-4 py-2">
-                      <input type="checkbox" checked={!!e?.included} onChange={(ev) => setEdit(s.subscriptionNumber, { included: ev.target.checked })} />
-                    </td>
-                    <td className="px-4 py-2">
-                      <div className="font-medium text-black dark:text-white">{s.customerName}</div>
-                      <div className="text-xs text-gray-400">{s.subscriptionNumber}{s.merchantAccountId ? ` · ${s.merchantAccountId}` : ''}</div>
-                    </td>
-                    <td className="px-4 py-2 text-body dark:text-bodydark">{s.planName}</td>
-                    <td className="whitespace-nowrap px-4 py-2 text-right text-body dark:text-bodydark">{money(s.currentMonthly)}</td>
-                    <td className="px-4 py-2">
-                      <div className="flex items-center gap-1">
-                        <select
-                          value={e?.increaseType || 'percent'}
-                          onChange={(ev) => setEdit(s.subscriptionNumber, { increaseType: ev.target.value as 'percent' | 'flat' })}
-                          className="rounded border border-stroke bg-transparent px-1 py-1 text-xs dark:border-strokedark"
-                        >
-                          <option value="percent">%</option>
-                          <option value="flat">$</option>
-                        </select>
-                        <input
-                          type="number" value={e?.increaseValue ?? ''}
-                          onChange={(ev) => setEdit(s.subscriptionNumber, { increaseValue: Number(ev.target.value) || 0 })}
-                          className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-xs dark:border-strokedark"
-                        />
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-2 text-right font-medium text-black dark:text-white">{e?.included ? money(nm) : '—'}</td>
-                    <td className="px-4 py-2">
-                      {saved && (
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${saved.status === 'pushed' ? 'bg-success/10 text-success' : saved.status === 'push_failed' ? 'bg-danger/10 text-danger' : 'bg-gray-100 text-gray-600 dark:bg-meta-4 dark:text-gray-300'}`} title={saved.pushError || ''}>
-                          {t(`saasIncrease.status.${saved.status}`)}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {(() => {
+                const renderRow = (s: Subscription) => {
+                  const e = edits[s.subscriptionNumber];
+                  const saved = savedItems[s.subscriptionNumber];
+                  const nm = newMonthlyFor(s, e);
+                  const priceChangeLabel = s.lastPriceChangeAt
+                    ? new Date(s.lastPriceChangeAt).toLocaleDateString()
+                    : (s.insightsCheckedAt ? t('saasIncrease.noRecentChange') : t('saasIncrease.notYetChecked'));
+                  const priceChangeTitle = (s.lastPriceBefore != null && s.lastPriceAfter != null)
+                    ? `${money(s.lastPriceBefore)} → ${money(s.lastPriceAfter)}` : '';
+                  return (
+                    <tr key={s.subscriptionNumber} className="border-b border-stroke last:border-0 dark:border-strokedark">
+                      <td className="px-4 py-2">
+                        <input type="checkbox" checked={!!e?.included} onChange={(ev) => setEdit(s.subscriptionNumber, { included: ev.target.checked })} />
+                      </td>
+                      <td className="px-4 py-2">
+                        <div className="font-medium text-black dark:text-white">{s.customerName}</div>
+                        <div className="text-xs text-gray-400">{s.subscriptionNumber}{s.merchantAccountId ? ` · ${s.merchantAccountId}` : ''}</div>
+                      </td>
+                      <td className="px-4 py-2 text-body dark:text-bodydark">{s.planName}</td>
+                      <td className="whitespace-nowrap px-4 py-2 text-right text-body dark:text-bodydark">{money(s.currentMonthly)}</td>
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-1">
+                          <select
+                            value={e?.increaseType || 'percent'}
+                            onChange={(ev) => setEdit(s.subscriptionNumber, { increaseType: ev.target.value as 'percent' | 'flat' })}
+                            className="rounded border border-stroke bg-transparent px-1 py-1 text-xs dark:border-strokedark"
+                          >
+                            <option value="percent">%</option>
+                            <option value="flat">$</option>
+                          </select>
+                          <input
+                            type="number" value={e?.increaseValue ?? ''}
+                            onChange={(ev) => setEdit(s.subscriptionNumber, { increaseValue: Number(ev.target.value) || 0 })}
+                            className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-xs dark:border-strokedark"
+                          />
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2 text-right font-medium text-black dark:text-white">{e?.included ? money(nm) : '—'}</td>
+                      <td className="whitespace-nowrap px-4 py-2 text-body dark:text-bodydark">{s.activatedAt ? new Date(s.activatedAt).toLocaleDateString() : '—'}</td>
+                      <td className="whitespace-nowrap px-4 py-2 text-body dark:text-bodydark" title={priceChangeTitle}>{priceChangeLabel}</td>
+                      <td className="px-4 py-2">
+                        {saved && (
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${saved.status === 'pushed' ? 'bg-success/10 text-success' : saved.status === 'push_failed' ? 'bg-danger/10 text-danger' : 'bg-gray-100 text-gray-600 dark:bg-meta-4 dark:text-gray-300'}`} title={saved.pushError || ''}>
+                            {t(`saasIncrease.status.${saved.status}`)}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                };
+                if (groupedFiltered) {
+                  return groupedFiltered.flatMap(([planName, rows]) => [
+                    <tr key={`group-${planName}`} className="bg-gray-50 dark:bg-meta-4/40">
+                      <td colSpan={9} className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        {planName} · {t('saasIncrease.groupCount', { count: rows.length })} · {money(rows.reduce((sum, r) => sum + r.currentMonthly, 0))}
+                      </td>
+                    </tr>,
+                    ...rows.map(renderRow),
+                  ]);
+                }
+                return filtered.map(renderRow);
+              })()}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-gray-400">{t('saasIncrease.none')}</td></tr>
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-sm text-gray-400">{t('saasIncrease.none')}</td></tr>
               )}
             </tbody>
           </table>
