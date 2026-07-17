@@ -56,6 +56,7 @@ const Proposals: React.FC = () => {
   const [subject, setSubject] = useState(''); const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [emailPreview, setEmailPreview] = useState<{ html: string; loading: boolean } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   // Page reordering + selection: `order` is a full permutation of every page number (1-based,
   // presentation then estimate) driving drag position; `excludedPages` marks which are dropped
@@ -176,6 +177,21 @@ const Proposals: React.FC = () => {
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Download failed'); }
     finally { setDownloading(false); }
+  };
+
+  // Preview of the exact email HTML that /send would produce (signature, accept button, chrome),
+  // rendered read-only — no side effects (nothing is marked sent, no email goes out).
+  const previewEmailContent = async () => {
+    setEmailPreview({ html: '', loading: true });
+    try {
+      const r = await axios.post(`${API_URL}/api/proposals/preview-email`,
+        { estimateId: sel?.estimateId, lang, clientName: clientName(), body },
+        { headers: authHeaders() });
+      setEmailPreview({ html: r.data.html, loading: false });
+    } catch (e: any) {
+      setEmailPreview(null);
+      dialog.alert(e?.response?.data?.error || 'Preview failed');
+    }
   };
 
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
@@ -414,6 +430,29 @@ const Proposals: React.FC = () => {
         </div>
       )}
 
+      {/* Email preview modal — srcDoc renders the exact HTML /send would email, read-only */}
+      {emailPreview && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setEmailPreview(null)}>
+          <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
+              <p className="font-semibold text-black dark:text-white">{t('proposals.previewEmail')}</p>
+              <button onClick={() => setEmailPreview(null)} title={t('common.close') as string} className="text-body transition hover:text-danger">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="relative flex-1 overflow-y-auto bg-[#eef1f6]">
+              {emailPreview.loading ? (
+                <div className="flex h-full items-center justify-center">
+                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                </div>
+              ) : (
+                <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title="Email preview" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Builder modal */}
       {builderOpen && (
         <div
@@ -491,6 +530,10 @@ const Proposals: React.FC = () => {
                     <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.subject')}</label><input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputCls} /></div>
                     <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.message')}</label><textarea value={body} onChange={(e) => setBody(e.target.value)} rows={7} className={inputCls} /></div>
                     <div className="flex gap-2">
+                      <button onClick={previewEmailContent} disabled={emailPreview?.loading} className="inline-flex items-center justify-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2.5 text-sm font-medium text-body hover:border-primary hover:text-primary disabled:opacity-60 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+                        {emailPreview?.loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" /> : <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
+                        {t('proposals.previewEmail')}
+                      </button>
                       <button onClick={download} disabled={downloading} className="inline-flex items-center justify-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2.5 text-sm font-medium text-body hover:border-primary hover:text-primary disabled:opacity-60 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
                         {downloading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" /> : <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m6 5v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1" /></svg>}
                         {t('proposals.downloadPdf')}

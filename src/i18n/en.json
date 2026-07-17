@@ -383,6 +383,7 @@
     "quoteTag": "Quote",
     "finalDoc": "Final document — {{count}} page(s)",
     "downloadPdf": "Download",
+    "previewEmail": "Preview email",
     "pagesTitle": "Pages to send",
     "pagesHint": "Pick which presentation pages to include. Click \"Update preview\" to refresh.",
     "selectAll": "All",
