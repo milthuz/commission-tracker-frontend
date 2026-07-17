@@ -312,7 +312,7 @@
     "pricingAdmin": "Prix",
     "resellersAdmin": "Gestion revendeurs",
     "merchantLinks": "Marchand ↔ SaaS",
-    "saasIncrease": "Augmentation SaaS",
+    "saasIncrease": "SAAS increase",
     "notifications": "Notifications",
     "deals": "Transactions",
     "profile": "Profil",
@@ -636,7 +636,7 @@
     }
   },
   "saasIncrease": {
-    "title": "Augmentation SaaS",
+    "title": "SAAS increase",
     "subtitle": "Simule des augmentations de prix SaaS sur chaque abonnement Zoho Billing actif et construis un scénario vers une cible de MRR ajouté.",
     "error": "Impossible de charger les données d'Augmentation SaaS. Réessaie.",
     "scenario": "Scénario",

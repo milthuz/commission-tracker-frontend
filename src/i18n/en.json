@@ -312,6 +312,7 @@
     "pricingAdmin": "Pricing",
     "resellersAdmin": "Manage Resellers",
     "merchantLinks": "Merchant ↔ SaaS",
+    "saasIncrease": "SAAS increase",
     "notifications": "Notifications",
     "deals": "Deals",
     "profile": "Profile",
@@ -635,7 +636,7 @@
     }
   },
   "saasIncrease": {
-    "title": "SaaS Increase",
+    "title": "SAAS increase",
     "subtitle": "Simulate SaaS price increases across every live Zoho Billing subscription and build a scenario toward a target MRR add.",
     "error": "Couldn't load SaaS Increase data. Please try again.",
     "scenario": "Scenario",
