@@ -20,6 +20,7 @@ interface Subscription {
   lastPriceChangeAt: string | null;
   lastPriceBefore: number | null;
   lastPriceAfter: number | null;
+  pricePointsChecked: number | null;
   insightsCheckedAt: string | null;
 }
 type SortBy = 'name' | 'oldest' | 'newest' | 'mrr';
@@ -466,7 +467,9 @@ const SaasIncrease: React.FC = () => {
                   const nm = newMonthlyFor(s, e);
                   const priceChangeLabel = s.lastPriceChangeAt
                     ? new Date(s.lastPriceChangeAt).toLocaleDateString()
-                    : (s.insightsCheckedAt ? t('saasIncrease.noRecentChange') : t('saasIncrease.notYetChecked'));
+                    : !s.insightsCheckedAt ? t('saasIncrease.notYetChecked')
+                    : (s.pricePointsChecked != null && s.pricePointsChecked < 2) ? t('saasIncrease.notEnoughHistory')
+                    : t('saasIncrease.noRecentChange');
                   const priceChangeTitle = (s.lastPriceBefore != null && s.lastPriceAfter != null)
                     ? `${money(s.lastPriceBefore)} → ${money(s.lastPriceAfter)}` : '';
                   return (

@@ -676,6 +676,7 @@
     "sortMrr": "MRR actuel",
     "notYetChecked": "Pas encore vérifié",
     "noRecentChange": "Aucun changement récent",
+    "notEnoughHistory": "Historique de factures insuffisant",
     "insights": {
       "refresh": "Actualiser l'historique de prix",
       "refreshing": "Actualisation…",

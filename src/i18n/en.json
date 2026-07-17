@@ -676,6 +676,7 @@
     "sortMrr": "Current MRR",
     "notYetChecked": "Not yet checked",
     "noRecentChange": "No recent change",
+    "notEnoughHistory": "Not enough invoice history",
     "insights": {
       "refresh": "Refresh price history",
       "refreshing": "Refreshing…",
