@@ -209,11 +209,7 @@ const PricingAdmin: React.FC = () => {
   return (
     <div className="relative">
       <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.pricing.title')}</h3>
-          <p className="text-sm text-body">{t('admin.pricing.subtitle')}</p>
-          <p className="mt-1 text-xs text-gray-400">{t('admin.pricing.hint')}</p>
-        </div>
+        <p className="text-xs text-gray-400">{t('admin.pricing.hint')}</p>
         <button onClick={openAddForm} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">
           + {t('admin.pricing.addPackage')}
         </button>
@@ -231,11 +227,13 @@ const PricingAdmin: React.FC = () => {
             {categories.map((catRow) => {
               const c = catRow.id;
               const on = cat === c;
+              const count = allMerged.filter((p) => p.catId === c && !removed[p.id]).length;
               return (
                 <div key={c} className={`group flex items-center gap-1 rounded-lg border-l-[3px] pr-1 ${on ? 'border-l-primary bg-gray-2 dark:bg-meta-4' : 'border-l-transparent hover:bg-gray-1 dark:hover:bg-meta-4/40'}`}>
                   <button onClick={() => setCat(c)} className={`flex flex-1 items-center gap-2 px-3 py-2 text-left text-[13px] font-medium ${on ? 'text-black dark:text-white' : 'text-body'}`}>
                     <CatIcon id={c} />
                     <span className="flex-1">{catLabel(c)}</span>
+                    <span className="text-[11px] text-gray-400">{count}</span>
                     {editedByCat[c] && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
                   </button>
                   <button onClick={() => openEditCatForm(catRow)} title={t('common.edit') as string}

@@ -208,11 +208,7 @@ const HardwareAdmin: React.FC = () => {
 
   return (
     <div className="relative">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.hardware.title')}</h3>
-          <p className="text-sm text-body">{t('admin.hardware.subtitle')}</p>
-        </div>
+      <div className="mb-4 flex items-center justify-end">
         <button onClick={() => openForm(null)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">
           + {t('admin.hardware.addProduct')}
         </button>
