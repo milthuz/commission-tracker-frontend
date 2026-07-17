@@ -16,7 +16,7 @@ interface PricingPackage {
   status: string | null; groupName: string | null; tier: string | null; mode: string | null;
   rates: Record<string, number> | null; visible: boolean;
 }
-type PkgEdit = Partial<Pick<PricingPackage, 'priceMonthly' | 'priceYearly' | 'priceFlat'>>;
+type PkgEdit = Partial<Omit<PricingPackage, 'id'>>;
 
 const CATS = ['saas', 'rental', 'menu', 'install', 'support', 'olo', 'shipping', 'xperio'];
 
@@ -55,7 +55,7 @@ const PricingAdmin: React.FC = () => {
   const [removed, setRemoved] = useState<Record<string, boolean>>({});
   const [publishing, setPublishing] = useState(false);
 
-  const [form, setForm] = useState<{ nameEn: string; nameFr: string; catId: string; compat: string; sku: string; monthly: string; yearly: string; flat: string; includesEn: string; includesFr: string } | null>(null);
+  const [form, setForm] = useState<{ editingId: string | null; nameEn: string; nameFr: string; catId: string; compat: string; sku: string; monthly: string; yearly: string; flat: string; includesEn: string; includesFr: string } | null>(null);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -122,20 +122,41 @@ const PricingAdmin: React.FC = () => {
     finally { setPublishing(false); }
   };
 
-  const openAddForm = () => setForm({ nameEn: '', nameFr: '', catId: cat, compat: 'V1', sku: '', monthly: '', yearly: '', flat: '', includesEn: '', includesFr: '' });
-  const saveNewPackage = () => {
+  const openAddForm = () => setForm({ editingId: null, nameEn: '', nameFr: '', catId: cat, compat: 'V1', sku: '', monthly: '', yearly: '', flat: '', includesEn: '', includesFr: '' });
+  const openEditForm = (p: PricingPackage) => setForm({
+    editingId: p.id, nameEn: p.nameEn, nameFr: p.nameFr || '', catId: p.catId, compat: p.compat || 'V1', sku: p.sku || '',
+    monthly: p.priceMonthly == null ? '' : String(p.priceMonthly),
+    yearly: p.priceYearly == null ? '' : String(p.priceYearly),
+    flat: p.priceFlat == null ? '' : String(p.priceFlat),
+    includesEn: p.includesEn.join('\n'), includesFr: p.includesFr.join('\n'),
+  });
+  const saveForm = () => {
     if (!form) return;
     const num = (v: string): number | null => (v.trim() === '' ? null : (isNaN(+v) ? null : +v));
-    const rec: PricingPackage = {
-      id: slugify(), catId: form.catId, nameEn: form.nameEn.trim() || 'Untitled', nameFr: form.nameFr.trim() || null,
-      sku: form.sku.trim() || null, skuYear: null, compat: form.compat || null, pos: null,
-      priceMonthly: num(form.monthly), priceYearly: num(form.yearly), priceFlat: num(form.flat),
-      unit: null, activation: null,
-      includesEn: form.includesEn.split('\n').map((x) => x.trim()).filter(Boolean),
-      includesFr: form.includesFr.split('\n').map((x) => x.trim()).filter(Boolean),
-      internalEn: null, internalFr: null, status: null, groupName: null, tier: null, mode: null, rates: null, visible: true,
-    };
-    setAdded((a) => [...a, rec]);
+    const includesEn = form.includesEn.split('\n').map((x) => x.trim()).filter(Boolean);
+    const includesFr = form.includesFr.split('\n').map((x) => x.trim()).filter(Boolean);
+    if (form.editingId) {
+      setEdits((e) => ({
+        ...e,
+        [form.editingId as string]: {
+          ...(e[form.editingId as string] || {}),
+          catId: form.catId, nameEn: form.nameEn.trim() || 'Untitled', nameFr: form.nameFr.trim() || null,
+          sku: form.sku.trim() || null, compat: form.compat || null,
+          priceMonthly: num(form.monthly), priceYearly: num(form.yearly), priceFlat: num(form.flat),
+          includesEn, includesFr,
+        },
+      }));
+    } else {
+      const rec: PricingPackage = {
+        id: slugify(), catId: form.catId, nameEn: form.nameEn.trim() || 'Untitled', nameFr: form.nameFr.trim() || null,
+        sku: form.sku.trim() || null, skuYear: null, compat: form.compat || null, pos: null,
+        priceMonthly: num(form.monthly), priceYearly: num(form.yearly), priceFlat: num(form.flat),
+        unit: null, activation: null,
+        includesEn, includesFr,
+        internalEn: null, internalFr: null, status: null, groupName: null, tier: null, mode: null, rates: null, visible: true,
+      };
+      setAdded((a) => [...a, rec]);
+    }
     setForm(null);
   };
 
@@ -192,7 +213,7 @@ const PricingAdmin: React.FC = () => {
                     <th className="w-24 px-3 py-2.5 text-right font-medium">{t('admin.pricing.colYearly')}</th>
                     <th className="w-24 px-3 py-2.5 text-right font-medium">{t('admin.pricing.colFlat')}</th>
                     <th className="w-16 px-3 py-2.5 text-center font-medium">{t('admin.pricing.colVisible')}</th>
-                    <th className="sticky right-0 w-10 bg-gray-2 px-2 py-2.5 dark:bg-meta-4" />
+                    <th className="sticky right-0 w-20 bg-gray-2 px-2 py-2.5 dark:bg-meta-4" />
                   </tr>
                 </thead>
                 <tbody>
@@ -200,8 +221,13 @@ const PricingAdmin: React.FC = () => {
                     const isNewRow = added.some((a) => a.id === p.id);
                     const rowHidden = isHidden(p);
                     const rowEdited = isNewRow || !!edits[p.id] || rowHidden !== !p.visible;
+                    // Single source of truth for the zebra tint — the sticky actions cell reuses
+                    // this exact string so it can never drift from the row it belongs to.
+                    // (bg-gray-1 isn't a real Tailwind token here — using it left odd rows with
+                    // no background at all, which is what caused the inconsistent striping.)
+                    const rowBg = i % 2 ? 'bg-gray-2 dark:bg-meta-4/10' : 'bg-white dark:bg-boxdark';
                     return (
-                      <tr key={p.id} className={`border-t border-l-[3px] border-stroke dark:border-strokedark ${i % 2 ? 'bg-gray-1/40 dark:bg-meta-4/10' : ''} ${rowEdited ? 'border-l-primary' : 'border-l-transparent'}`}>
+                      <tr key={p.id} className={`border-t border-l-[3px] border-stroke dark:border-strokedark ${rowBg} ${rowEdited ? 'border-l-primary' : 'border-l-transparent'}`}>
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-1.5">
                             <span className="font-medium text-black dark:text-white">{p.nameEn}</span>
@@ -220,7 +246,11 @@ const PricingAdmin: React.FC = () => {
                             <span className="h-[18px] w-[18px] rounded-full bg-white" />
                           </button>
                         </td>
-                        <td className={`sticky right-0 px-2 py-2 text-center ${i % 2 ? 'bg-gray-1/40 dark:bg-meta-4/10' : 'bg-white dark:bg-boxdark'}`}>
+                        <td className={`sticky right-0 flex items-center justify-center gap-1 px-2 py-2 ${rowBg}`}>
+                          <button onClick={() => openEditForm(p)} title={t('common.edit') as string}
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-primary/10 hover:text-primary">
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>
+                          </button>
                           <button onClick={() => removePackage(p.id)} title={t('common.delete') as string}
                             className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-danger/10 hover:text-danger">
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" /></svg>
@@ -254,7 +284,7 @@ const PricingAdmin: React.FC = () => {
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setForm(null)}>
           <div onClick={(e) => e.stopPropagation()} className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
             <div className="flex flex-none items-center justify-between border-b border-stroke px-5 py-4 dark:border-strokedark">
-              <span className="text-base font-bold text-black dark:text-white">{t('admin.pricing.newPackage')}</span>
+              <span className="text-base font-bold text-black dark:text-white">{form.editingId ? t('admin.pricing.editPackage') : t('admin.pricing.newPackage')}</span>
               <button onClick={() => setForm(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <div className="flex-1 overflow-y-auto p-5">
@@ -291,7 +321,7 @@ const PricingAdmin: React.FC = () => {
             </div>
             <div className="flex flex-none items-center justify-end gap-2.5 border-t border-stroke p-4 dark:border-strokedark">
               <button onClick={() => setForm(null)} className="rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
-              <button onClick={saveNewPackage} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{t('admin.pricing.addPackage')}</button>
+              <button onClick={saveForm} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{form.editingId ? t('common.save') : t('admin.pricing.addPackage')}</button>
             </div>
           </div>
         </div>

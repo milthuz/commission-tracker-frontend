@@ -1237,6 +1237,7 @@
       "priceLists": "Price lists",
       "addPackage": "Add package",
       "newPackage": "New package",
+      "editPackage": "Edit package",
       "colName": "Package",
       "colSku": "SKU",
       "colMonthly": "Monthly $",

@@ -100,12 +100,12 @@ const Header = (props: {
 
             {/* <!-- Language Toggle --> */}
             <li>
-              <div className="inline-flex rounded-full border-[0.5px] border-stroke bg-gray p-0.5 dark:border-strokedark dark:bg-meta-4">
+              <div className="inline-flex h-8.5 items-center rounded-full border-[0.5px] border-stroke bg-gray p-0.5 dark:border-strokedark dark:bg-meta-4">
                 {(['en', 'fr'] as const).map((l) => (
                   <button
                     key={l}
                     onClick={() => setLang(l)}
-                    className={`rounded-full px-2.5 py-1 text-xs font-bold transition ${
+                    className={`flex h-full items-center rounded-full px-2.5 text-xs font-bold transition ${
                       i18n.language?.startsWith(l) ? 'bg-primary text-white' : 'text-body hover:text-primary dark:text-white'
                     }`}
                   >
