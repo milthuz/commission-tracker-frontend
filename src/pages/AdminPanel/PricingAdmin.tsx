@@ -8,12 +8,12 @@ const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('toke
 
 interface PricingPackage {
   id: string; catId: string; nameEn: string; nameFr: string | null;
-  sku: string | null; skuYear: string | null; compat: string | null; pos: string | null;
+  sku: string | null; skuYear: string | null; compat: string[]; pos: string | null;
   priceMonthly: number | null; priceYearly: number | null; priceFlat: number | null;
   unit: string | null; activation: number | null;
   includesEn: string[]; includesFr: string[];
   internalEn: Record<string, string> | null; internalFr: Record<string, string> | null;
-  status: string | null; groupName: string | null; tier: string | null; mode: string | null;
+  status: string[]; groupName: string | null; tier: string | null; mode: string | null;
   rates: Record<string, number> | null; visible: boolean;
 }
 type PkgEdit = Partial<Omit<PricingPackage, 'id'>>;
@@ -55,7 +55,8 @@ const PricingAdmin: React.FC = () => {
   const [removed, setRemoved] = useState<Record<string, boolean>>({});
   const [publishing, setPublishing] = useState(false);
 
-  const [form, setForm] = useState<{ editingId: string | null; nameEn: string; nameFr: string; catId: string; compat: string; sku: string; monthly: string; yearly: string; flat: string; includesEn: string; includesFr: string } | null>(null);
+  const [form, setForm] = useState<{ editingId: string | null; nameEn: string; nameFr: string; catId: string; compat: string[]; status: string[]; sku: string; monthly: string; yearly: string; flat: string; includesEn: string; includesFr: string } | null>(null);
+  const [newTag, setNewTag] = useState('');
 
   const fetchAll = async () => {
     setLoading(true);
@@ -122,14 +123,25 @@ const PricingAdmin: React.FC = () => {
     finally { setPublishing(false); }
   };
 
-  const openAddForm = () => setForm({ editingId: null, nameEn: '', nameFr: '', catId: cat, compat: 'V1', sku: '', monthly: '', yearly: '', flat: '', includesEn: '', includesFr: '' });
-  const openEditForm = (p: PricingPackage) => setForm({
-    editingId: p.id, nameEn: p.nameEn, nameFr: p.nameFr || '', catId: p.catId, compat: p.compat || 'V1', sku: p.sku || '',
+  const openAddForm = () => { setNewTag(''); setForm({ editingId: null, nameEn: '', nameFr: '', catId: cat, compat: ['V1'], status: [], sku: '', monthly: '', yearly: '', flat: '', includesEn: '', includesFr: '' }); };
+  const openEditForm = (p: PricingPackage) => { setNewTag(''); setForm({
+    editingId: p.id, nameEn: p.nameEn, nameFr: p.nameFr || '', catId: p.catId, compat: [...(p.compat || [])], status: [...(p.status || [])], sku: p.sku || '',
     monthly: p.priceMonthly == null ? '' : String(p.priceMonthly),
     yearly: p.priceYearly == null ? '' : String(p.priceYearly),
     flat: p.priceFlat == null ? '' : String(p.priceFlat),
     includesEn: p.includesEn.join('\n'), includesFr: p.includesFr.join('\n'),
+  }); };
+  const toggleFormArr = (k: 'compat' | 'status', val: string) => setForm((f) => {
+    if (!f) return f;
+    const arr = f[k].includes(val) ? f[k].filter((x) => x !== val) : [...f[k], val];
+    return { ...f, [k]: arr };
   });
+  const addCustomTag = () => {
+    const tag = newTag.trim();
+    if (!tag) return;
+    setForm((f) => (f && !f.status.includes(tag) ? { ...f, status: [...f.status, tag] } : f));
+    setNewTag('');
+  };
   const saveForm = () => {
     if (!form) return;
     const num = (v: string): number | null => (v.trim() === '' ? null : (isNaN(+v) ? null : +v));
@@ -141,7 +153,7 @@ const PricingAdmin: React.FC = () => {
         [form.editingId as string]: {
           ...(e[form.editingId as string] || {}),
           catId: form.catId, nameEn: form.nameEn.trim() || 'Untitled', nameFr: form.nameFr.trim() || null,
-          sku: form.sku.trim() || null, compat: form.compat || null,
+          sku: form.sku.trim() || null, compat: form.compat, status: form.status,
           priceMonthly: num(form.monthly), priceYearly: num(form.yearly), priceFlat: num(form.flat),
           includesEn, includesFr,
         },
@@ -149,15 +161,16 @@ const PricingAdmin: React.FC = () => {
     } else {
       const rec: PricingPackage = {
         id: slugify(), catId: form.catId, nameEn: form.nameEn.trim() || 'Untitled', nameFr: form.nameFr.trim() || null,
-        sku: form.sku.trim() || null, skuYear: null, compat: form.compat || null, pos: null,
+        sku: form.sku.trim() || null, skuYear: null, compat: form.compat, pos: null,
         priceMonthly: num(form.monthly), priceYearly: num(form.yearly), priceFlat: num(form.flat),
         unit: null, activation: null,
         includesEn, includesFr,
-        internalEn: null, internalFr: null, status: null, groupName: null, tier: null, mode: null, rates: null, visible: true,
+        internalEn: null, internalFr: null, status: form.status, groupName: null, tier: null, mode: null, rates: null, visible: true,
       };
       setAdded((a) => [...a, rec]);
     }
     setForm(null);
+    setNewTag('');
   };
 
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
@@ -229,8 +242,8 @@ const PricingAdmin: React.FC = () => {
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-1.5">
                             <span className="font-medium text-black dark:text-white">{p.nameEn}</span>
-                            {p.compat === 'V2' && <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">{t('hardware.kaizen')}</span>}
-                            {isNewRow && <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-success">{t('admin.hardware.added')}</span>}
+                            {p.compat.includes('V2') && <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">{t('hardware.kaizen')}</span>}
+                            {isNewRow && <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-green-700 dark:text-success">{t('admin.hardware.added')}</span>}
                             {rowHidden && <span className="rounded-full bg-gray-2 px-1.5 py-0.5 text-[9px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t('admin.hardware.hidden')}</span>}
                           </div>
                         </td>
@@ -304,8 +317,26 @@ const PricingAdmin: React.FC = () => {
                   <div className="mb-1.5 text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fCompat')}</div>
                   <div className="flex gap-2">
                     {['V1', 'V2'].map((c) => (
-                      <button key={c} onClick={() => setForm({ ...form, compat: c })} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${form.compat === c ? 'border-primary bg-primary/10 text-primary' : 'border-stroke text-body dark:border-strokedark'}`}>{c === 'V2' ? t('hardware.kaizen') : c}</button>
+                      <button key={c} onClick={() => toggleFormArr('compat', c)} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${form.compat.includes(c) ? 'border-primary bg-primary/10 text-primary' : 'border-stroke text-body dark:border-strokedark'}`}>{c === 'V2' ? t('hardware.kaizen') : c}</button>
                     ))}
+                  </div>
+                </div>
+                <div>
+                  <div className="mb-1.5 text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fStatus')}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {['new', 'legacy'].map((s) => (
+                      <button key={s} onClick={() => toggleFormArr('status', s)} className={`rounded-full border px-3 py-1.5 text-xs font-medium ${form.status.includes(s) ? 'border-primary bg-primary/10 text-primary' : 'border-stroke text-body dark:border-strokedark'}`}>{t(`pricingGuide.${s === 'new' ? 'newTag' : 'existingTag'}`)}</button>
+                    ))}
+                    {form.status.filter((s) => s !== 'new' && s !== 'legacy').map((s) => (
+                      <button key={s} onClick={() => toggleFormArr('status', s)} className="rounded-full border border-primary bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">{s}</button>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <input value={newTag} onChange={(e) => setNewTag(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomTag(); } }}
+                      placeholder={t('admin.pricing.fNewTagPh') as string}
+                      className={`${inputCls} flex-1`} />
+                    <button type="button" onClick={addCustomTag} className="whitespace-nowrap rounded-lg border border-stroke px-3 py-2 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">{t('admin.pricing.fAddTag')}</button>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">

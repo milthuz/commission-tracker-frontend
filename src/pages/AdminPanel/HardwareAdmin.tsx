@@ -69,6 +69,7 @@ const HardwareAdmin: React.FC = () => {
   } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadingImg, setUploadingImg] = useState(false);
+  const [newTag, setNewTag] = useState('');
 
   const fetchAll = async () => {
     setLoading(true);
@@ -105,6 +106,7 @@ const HardwareAdmin: React.FC = () => {
     const base = p || { id: slugify('product'), catId: cat, nameEn: '', nameFr: '', sku: '', price: '', compat: [], status: [], specsEn: [], specsFr: [], useEn: '', useFr: '', warrantyEn: '1-yr manufacturer', warrantyFr: '', noteEn: '', noteFr: '', hasImage: false, visible: true } as HardwareProduct;
     setFormId(base.id);
     setFormLang('en');
+    setNewTag('');
     setForm({
       catId: base.catId, nameEn: base.nameEn || '', nameFr: base.nameFr || '', sku: base.sku || '', price: base.price || '',
       compat: [...(base.compat || [])], status: [...(base.status || [])],
@@ -120,6 +122,12 @@ const HardwareAdmin: React.FC = () => {
     const arr = f[k].includes(val) ? f[k].filter((x) => x !== val) : [...f[k], val];
     return { ...f, [k]: arr };
   });
+  const addCustomTag = () => {
+    const tag = newTag.trim();
+    if (!tag) return;
+    setForm((f) => (f && !f.status.includes(tag) ? { ...f, status: [...f.status, tag] } : f));
+    setNewTag('');
+  };
 
   const saveForm = () => {
     if (!form || !formId) return;
@@ -259,7 +267,7 @@ const HardwareAdmin: React.FC = () => {
                       <div className="mb-1 flex flex-wrap gap-1">
                         {p.compat.includes('V2') && <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">{t('hardware.kaizen')}</span>}
                         {p.status.map((k) => <span key={k} className="rounded-full bg-gray-2 px-1.5 py-0.5 text-[9px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t(`hardware.status.${k}`)}</span>)}
-                        {isNewRow && <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-success">{t('admin.hardware.added')}</span>}
+                        {isNewRow && <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-green-700 dark:text-success">{t('admin.hardware.added')}</span>}
                         {rowHidden && <span className="rounded-full bg-gray-2 px-1.5 py-0.5 text-[9px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t('admin.hardware.hidden')}</span>}
                       </div>
                       <div className="truncate text-[14px] font-bold text-black dark:text-white">{p.nameEn}</div>
@@ -367,6 +375,16 @@ const HardwareAdmin: React.FC = () => {
                   <div className="mb-1.5 text-xs font-semibold uppercase text-gray-400">{t('admin.hardware.fStatus')}</div>
                   <div className="flex flex-wrap gap-2">
                     {STATUS_KEYS.map((k) => <button key={k} onClick={() => toggleFArr('status', k)} className={chipBtn(form.status.includes(k))}>{t(`hardware.status.${k}`)}</button>)}
+                    {form.status.filter((s) => !STATUS_KEYS.includes(s)).map((s) => (
+                      <button key={s} onClick={() => toggleFArr('status', s)} className={chipBtn(true)}>{s}</button>
+                    ))}
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <input value={newTag} onChange={(e) => setNewTag(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomTag(); } }}
+                      placeholder={t('admin.pricing.fNewTagPh') as string}
+                      className={`${inputCls} flex-1`} />
+                    <button type="button" onClick={addCustomTag} className="whitespace-nowrap rounded-lg border border-stroke px-3 py-2 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">{t('admin.pricing.fAddTag')}</button>
                   </div>
                 </div>
               </div>

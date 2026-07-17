@@ -12,13 +12,13 @@ interface PricingCategory {
 }
 interface PricingPackage {
   id: string; catId: string; nameEn: string; nameFr: string | null;
-  sku: string | null; skuYear: string | null; compat: string | null; pos: string | null;
+  sku: string | null; skuYear: string | null; compat: string[]; pos: string | null;
   priceMonthly: number | null; priceYearly: number | null; priceFlat: number | null;
   unit: string | null; activation: number | null;
   includesEn: string[]; includesFr: string[];
   internalEn: { effort?: string; requirements?: string; margin?: string; notes?: string } | null;
   internalFr: { effort?: string; requirements?: string; margin?: string; notes?: string } | null;
-  status: string | null; groupName: string | null; tier: string | null; mode: string | null;
+  status: string[]; groupName: string | null; tier: string | null; mode: string | null;
   rates: Record<string, number> | null; visible: boolean;
 }
 interface PricingGuideRef { id: string; titleEn: string; titleFr: string | null; bodyEn: string; bodyFr: string | null; }
@@ -113,7 +113,7 @@ const PricingGuide: React.FC = () => {
     return allPackages.filter((p) => {
       if (p.catId !== cat) return false;
       if (compat !== 'all') {
-        if (!p.compat || p.compat !== compat) return false;
+        if (!p.compat.includes(compat)) return false;
       }
       if (query) {
         const hay = `${pick(p.nameEn, p.nameFr)} ${p.sku || ''} ${(fr && p.includesFr.length ? p.includesFr : p.includesEn).join(' ')}`.toLowerCase();
@@ -258,10 +258,10 @@ const PricingGuide: React.FC = () => {
                       <div className="flex items-start justify-between gap-2.5">
                         <div className="min-w-0">
                           <div className="mb-1.5 flex flex-wrap gap-1.5">
-                            {p.compat === 'V2' && <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">{t('pricingGuide.kaizenTag')}</span>}
-                            {p.compat === 'V1' && <span className="rounded-full border border-stroke bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:border-strokedark dark:bg-meta-4">V1</span>}
-                            {p.status === 'new' && <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700 dark:text-success">{t('pricingGuide.newTag')}</span>}
-                            {p.status === 'legacy' && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t('pricingGuide.existingTag')}</span>}
+                            {p.compat.includes('V2') && <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">{t('pricingGuide.kaizenTag')}</span>}
+                            {p.compat.includes('V1') && <span className="rounded-full border border-stroke bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:border-strokedark dark:bg-meta-4">V1</span>}
+                            {p.status.includes('new') && <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700 dark:text-success">{t('pricingGuide.newTag')}</span>}
+                            {p.status.includes('legacy') && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t('pricingGuide.existingTag')}</span>}
                             {p.pos && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{p.pos}</span>}
                             {p.mode && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{p.mode}</span>}
                           </div>

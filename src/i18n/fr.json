@@ -1253,7 +1253,10 @@
       "fCat": "Catégorie",
       "fCompat": "Compatibilité",
       "fSku": "UGS",
-      "fIncludes": "Inclusions (une par ligne)"
+      "fIncludes": "Inclusions (une par ligne)",
+      "fStatus": "Étiquettes de statut",
+      "fNewTagPh": "Ajouter une étiquette personnalisée…",
+      "fAddTag": "+ Ajouter"
     },
     "resources": {
       "title": "Stockage des ressources",

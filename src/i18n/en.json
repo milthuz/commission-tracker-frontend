@@ -1253,7 +1253,10 @@
       "fCat": "Category",
       "fCompat": "Compatibility",
       "fSku": "SKU",
-      "fIncludes": "Includes (one per line)"
+      "fIncludes": "Includes (one per line)",
+      "fStatus": "Status tags",
+      "fNewTagPh": "Add a custom tag…",
+      "fAddTag": "+ Add tag"
     },
     "resources": {
       "title": "Resources storage",
