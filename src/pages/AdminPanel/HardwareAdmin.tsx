@@ -151,15 +151,14 @@ const HardwareAdmin: React.FC = () => {
     closeForm();
   };
 
-  const removeProduct = () => {
-    if (!formId) return;
-    if (added.some((a) => a.id === formId)) {
-      setAdded((a) => a.filter((x) => x.id !== formId));
+  const removeProduct = (id: string) => {
+    if (added.some((a) => a.id === id)) {
+      setAdded((a) => a.filter((x) => x.id !== id));
     } else {
-      setRemoved((r) => ({ ...r, [formId]: true }));
-      setEdits((e) => { const n = { ...e }; delete n[formId]; return n; });
+      setRemoved((r) => ({ ...r, [id]: true }));
+      setEdits((e) => { const n = { ...e }; delete n[id]; return n; });
     }
-    closeForm();
+    if (id === formId) closeForm();
   };
 
   const toggleVisible = (id: string) => setHidden((h) => {
@@ -275,9 +274,14 @@ const HardwareAdmin: React.FC = () => {
                       <div className="mt-0.5 text-[13px] font-semibold text-black dark:text-white">{p.price || '—'}</div>
                     </div>
                     <div className="flex flex-none flex-col items-end justify-between">
-                      <button onClick={() => openForm(p)} title={t('common.edit') as string} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stroke text-gray-500 hover:text-primary dark:border-strokedark">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>
-                      </button>
+                      <div className="flex gap-1">
+                        <button onClick={() => openForm(p)} title={t('common.edit') as string} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stroke text-gray-500 hover:text-primary dark:border-strokedark">
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>
+                        </button>
+                        <button onClick={() => removeProduct(p.id)} title={t('common.delete') as string} className="flex h-8 w-8 items-center justify-center rounded-lg border border-stroke text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" /></svg>
+                        </button>
+                      </div>
                       <button onClick={() => toggleVisible(p.id)} title={t('admin.hardware.visible') as string}
                         className={`flex h-[22px] w-[38px] items-center rounded-full p-0.5 ${rowHidden ? 'justify-start bg-stroke dark:bg-strokedark' : 'justify-end bg-primary'}`}>
                         <span className="h-[18px] w-[18px] rounded-full bg-white" />
@@ -390,7 +394,7 @@ const HardwareAdmin: React.FC = () => {
               </div>
             </div>
             <div className="flex flex-none items-center gap-2.5 border-t border-stroke p-4 dark:border-strokedark">
-              {!form.isNew && <button onClick={removeProduct} className="rounded-lg border border-danger/40 px-3.5 py-2.5 text-sm font-semibold text-danger hover:bg-danger hover:text-white">{t('common.delete')}</button>}
+              {!form.isNew && formId && <button onClick={() => removeProduct(formId)} className="rounded-lg border border-danger/40 px-3.5 py-2.5 text-sm font-semibold text-danger hover:bg-danger hover:text-white">{t('common.delete')}</button>}
               <div className="flex-1" />
               <button onClick={closeForm} className="rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
               <button onClick={saveForm} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{form.isNew ? t('admin.hardware.add') : t('common.save')}</button>

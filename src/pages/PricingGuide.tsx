@@ -6,7 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface PricingCategory {
-  id: string; sortOrder: number; hourly: number | null;
+  id: string; nameEn: string; nameFr: string; sortOrder: number; hourly: number | null;
   noteEn: string | null; noteFr: string | null;
   considerationsEn: string[]; considerationsFr: string[];
 }
@@ -24,7 +24,6 @@ interface PricingPackage {
 interface PricingGuideRef { id: string; titleEn: string; titleFr: string | null; bodyEn: string; bodyFr: string | null; }
 interface PricingData { categories: PricingCategory[]; packages: PricingPackage[]; guides: PricingGuideRef[]; }
 
-const CATS = ['saas', 'rental', 'menu', 'install', 'support', 'olo', 'shipping', 'xperio'];
 const CATS_WITH_BILLING = new Set(['saas']);
 
 // Category icons — matches the design handoff's icon set exactly.
@@ -107,6 +106,7 @@ const PricingGuide: React.FC = () => {
   // them, even for a pricing:manage admin browsing this page (server-side already excludes
   // hidden rows for everyone without pricing:manage; this is the client-side backstop).
   const allPackages = (data?.packages || []).filter((p) => p.visible);
+  const CATS = (data?.categories || []).slice().sort((a, b) => a.sortOrder - b.sortOrder).map((c) => c.id);
   const activeCatData = data?.categories.find((c) => c.id === cat) || null;
   const list = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -160,11 +160,15 @@ const PricingGuide: React.FC = () => {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="mb-2 flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wide text-primary">{activeCatData ? t(`pricingGuide.categories.${cat}.eyebrow`) : ''}</span>
+            {i18n.exists(`pricingGuide.categories.${cat}.eyebrow`) && (
+              <span className="text-xs font-bold uppercase tracking-wide text-primary">{t(`pricingGuide.categories.${cat}.eyebrow`)}</span>
+            )}
             <span className="rounded-full border border-warning/30 bg-warning/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-warning">{t('pricingGuide.internalOnly')}</span>
           </div>
-          <h2 className="text-2xl font-bold text-black dark:text-white">{t(`pricingGuide.categories.${cat}.title`)}</h2>
-          <p className="mt-1 max-w-xl text-sm text-gray-500 dark:text-gray-400">{t(`pricingGuide.categories.${cat}.desc`)}</p>
+          <h2 className="text-2xl font-bold text-black dark:text-white">{activeCatData ? pick(activeCatData.nameEn, activeCatData.nameFr) : ''}</h2>
+          {i18n.exists(`pricingGuide.categories.${cat}.desc`) && (
+            <p className="mt-1 max-w-xl text-sm text-gray-500 dark:text-gray-400">{t(`pricingGuide.categories.${cat}.desc`)}</p>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => setInternal((v) => !v)}
@@ -187,13 +191,14 @@ const PricingGuide: React.FC = () => {
               {CATS.map((c) => {
                 const count = allPackages.filter((p) => p.catId === c).length;
                 const on = cat === c;
+                const catData = data?.categories.find((x) => x.id === c);
                 return (
                   <button key={c} onClick={() => { setCat(c); setQ(''); }}
                     className={`flex items-center gap-2 rounded-lg border-l-[3px] px-3 py-2.5 text-left text-[13.5px] font-medium transition ${
                       on ? 'border-l-primary bg-gray-2 text-black dark:bg-meta-4 dark:text-white' : 'border-l-transparent text-body hover:bg-gray-1 dark:hover:bg-meta-4/40'
                     }`}>
                     <CatIcon id={c} />
-                    <span className="flex-1">{t(`pricingGuide.categories.${c}.title`)}</span>
+                    <span className="flex-1">{catData ? pick(catData.nameEn, catData.nameFr) : c}</span>
                     <span className="text-[11px] font-semibold text-gray-400">{count}</span>
                   </button>
                 );

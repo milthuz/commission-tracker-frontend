@@ -1257,7 +1257,12 @@
       "fIncludes": "Includes (one per line)",
       "fStatus": "Status tags",
       "fNewTagPh": "Add a custom tag…",
-      "fAddTag": "+ Add tag"
+      "fAddTag": "+ Add tag",
+      "addCategory": "Add category",
+      "editCategory": "Edit category",
+      "fHourly": "Hourly rate ($, optional)",
+      "fCatNote": "Note",
+      "catNameRequired": "A name (EN) is required"
     },
     "resources": {
       "title": "Resources storage",
