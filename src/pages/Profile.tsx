@@ -22,6 +22,9 @@ interface UserProfile {
     name: string;
     isActive: boolean;
     commissionRate: number;
+    signatureRole: string | null;
+    signatureRole2: string | null;
+    signaturePhone: string | null;
   } | null;
   stats: {
     paidInvoices: number;
@@ -75,6 +78,12 @@ const Profile = () => {
   const [currency, setCurrency] = useState('CAD');
   const [dateFormat, setDateFormat] = useState('YYYY-MM-DD');
   const [timezone, setTimezone] = useState('America/Toronto');
+  // Email signature (self-service — appended to proposal emails once a role is set).
+  const [sigRole, setSigRole] = useState('');
+  const [sigRole2, setSigRole2] = useState('');
+  const [sigPhone, setSigPhone] = useState('');
+  const [sigSaving, setSigSaving] = useState(false);
+  const [sigSaved, setSigSaved] = useState(false);
   // "Request a feature" modal — emails admins.
   const [featureModal, setFeatureModal] = useState<{ open: boolean; message: string; sending: boolean }>({
     open: false, message: '', sending: false,
@@ -109,6 +118,11 @@ const Profile = () => {
         setCurrency(res.data.preferences.currency);
         setDateFormat(res.data.preferences.dateFormat);
         setTimezone(res.data.preferences.timezone);
+        if (res.data.salesperson) {
+          setSigRole(res.data.salesperson.signatureRole || '');
+          setSigRole2(res.data.salesperson.signatureRole2 || '');
+          setSigPhone(res.data.salesperson.signaturePhone || '');
+        }
         // Sync i18n language with saved preference
         if (res.data.preferences.language !== i18n.language) {
           i18n.changeLanguage(res.data.preferences.language);
@@ -146,6 +160,24 @@ const Profile = () => {
       dialog.alert('Failed to save preferences');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveSignature = async () => {
+    setSigSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/user/signature`, {
+        signatureRole: sigRole, signatureRole2: sigRole2, signaturePhone: sigPhone,
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSigSaved(true);
+      setTimeout(() => setSigSaved(false), 3000);
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || 'Failed to save signature');
+    } finally {
+      setSigSaving(false);
     }
   };
 
@@ -448,6 +480,86 @@ const Profile = () => {
               </div>
             </div>
           </div>
+
+          {/* Email Signature — only relevant once linked to a salesperson record */}
+          {profile.salesperson && (
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('profile.signature')}</h3>
+                <p className="text-sm text-body mt-1">{t('profile.signatureSubtitle')}</p>
+              </div>
+              <div className="p-7">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                      {t('profile.signatureRole')}
+                    </label>
+                    <input
+                      type="text"
+                      value={sigRole}
+                      onChange={(e) => setSigRole(e.target.value)}
+                      placeholder={t('profile.signatureRolePh') as string}
+                      className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                      {t('profile.signatureRole2')}
+                    </label>
+                    <input
+                      type="text"
+                      value={sigRole2}
+                      onChange={(e) => setSigRole2(e.target.value)}
+                      placeholder={t('profile.signatureRole2Ph') as string}
+                      className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                      {t('profile.signaturePhone')}
+                    </label>
+                    <input
+                      type="tel"
+                      value={sigPhone}
+                      onChange={(e) => setSigPhone(e.target.value)}
+                      placeholder="+1 514 000 0000"
+                      className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                    />
+                  </div>
+                </div>
+                <p className="mt-4 text-xs text-body">{t('profile.signatureHint')}</p>
+
+                {/* Save Button */}
+                <div className="mt-6 flex items-center gap-3">
+                  <button
+                    onClick={saveSignature}
+                    disabled={sigSaving}
+                    className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                  >
+                    {sigSaving ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        {t('common.saving')}
+                      </>
+                    ) : (
+                      <>
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {t('common.save')}
+                      </>
+                    )}
+                  </button>
+
+                  {sigSaved && (
+                    <span className="text-sm font-medium text-success animate-fade-in">
+                      {t('profile.preferencesSaved')}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Session & Security */}
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">

@@ -43,9 +43,6 @@ interface Salesperson {
   resolvedLoginEmail?: string | null;
   teamId: number | null;
   teamName: string | null;
-  signatureRole?: string | null;
-  signatureRole2?: string | null;
-  signaturePhone?: string | null;
 }
 
 interface Team {
@@ -291,7 +288,6 @@ const AdminPanel = () => {
     newValue: number;
     onConfirm: () => void;
   } | null>(null);
-  const [sigModal, setSigModal] = useState<{ name: string; role: string; role2: string; phone: string } | null>(null);
 
   // Admin gate from the EFFECTIVE identity (/api/auth/verify), not the raw JWT —
   // the JWT stays admin while impersonating, which would let an impersonated
@@ -438,25 +434,6 @@ const AdminPanel = () => {
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, hireDate: hireDate || null } : p));
     } catch (error: any) {
       dialog.alert(error?.response?.data?.error || 'Failed to update hire date');
-    }
-  };
-
-  const saveSignature = async () => {
-    if (!sigModal) return;
-    const { name, role, role2, phone } = sigModal;
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        `${API_URL}/api/salespeople/${encodeURIComponent(name)}/signature`,
-        { signatureRole: role, signatureRole2: role2, signaturePhone: phone },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSalespeople(prev => prev.map(p => p.name === name
-        ? { ...p, signatureRole: role || null, signatureRole2: role2 || null, signaturePhone: phone || null }
-        : p));
-      setSigModal(null);
-    } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to update signature');
     }
   };
 
@@ -2251,45 +2228,6 @@ Joker Pub,Jay Daoust,2024-04-01`}
               </div>
             )}
 
-            {/* Email Signature Modal */}
-            {sigModal && (
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => setSigModal(null)}>
-                <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark">
-                  <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('admin.salespeople.signature')}</h3>
-                  <p className="mb-4 text-sm text-body">{sigModal.name}</p>
-                  <div className="flex flex-col gap-3.5">
-                    <label className="flex flex-col gap-1">
-                      <span className="text-xs font-semibold uppercase text-gray-400">{t('admin.salespeople.signatureRole')}</span>
-                      <input value={sigModal.role} onChange={(e) => setSigModal({ ...sigModal, role: e.target.value })}
-                        placeholder={t('admin.salespeople.signatureRolePh') as string}
-                        className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-                    </label>
-                    <label className="flex flex-col gap-1">
-                      <span className="text-xs font-semibold uppercase text-gray-400">{t('admin.salespeople.signatureRole2')}</span>
-                      <input value={sigModal.role2} onChange={(e) => setSigModal({ ...sigModal, role2: e.target.value })}
-                        placeholder={t('admin.salespeople.signatureRole2Ph') as string}
-                        className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-                    </label>
-                    <label className="flex flex-col gap-1">
-                      <span className="text-xs font-semibold uppercase text-gray-400">{t('admin.salespeople.signaturePhone')}</span>
-                      <input value={sigModal.phone} onChange={(e) => setSigModal({ ...sigModal, phone: e.target.value })}
-                        placeholder="+1 514 000 0000"
-                        className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-                    </label>
-                    <p className="text-xs text-gray-400">{t('admin.salespeople.signatureHint2')}</p>
-                  </div>
-                  <div className="mt-5 flex justify-end gap-3">
-                    <button onClick={() => setSigModal(null)} className="rounded-md border border-stroke px-5 py-2.5 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4">
-                      {t('common.cancel')}
-                    </button>
-                    <button onClick={saveSignature} className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90">
-                      {t('common.save')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
               {([['reps', t('admin.salespeople.tabs.reps')], ['teams', t('admin.salespeople.tabs.teams')], ['points', t('admin.salespeople.tabs.points')]] as const).map(([key, label]) => (
                 <button key={key} onClick={() => setSpSub(key as 'reps' | 'teams' | 'points')}
@@ -2623,23 +2561,14 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               <ProbationBadge probation={person.probation} className="mt-1" />
                               <p className="mt-1 text-xs text-body">{person.invoiceCount} {t('common.invoices').toLowerCase()}</p>
                             </div>
-                            <div className="flex shrink-0 items-center gap-1.5">
-                              <button
-                                onClick={() => setSigModal({ name: person.name, role: person.signatureRole || '', role2: person.signatureRole2 || '', phone: person.signaturePhone || '' })}
-                                title={t('admin.salespeople.signatureHint') as string}
-                                className={`inline-flex h-7 w-7 items-center justify-center rounded-md border ${person.signatureRole ? 'border-primary/40 text-primary' : 'border-stroke text-gray-400 dark:border-strokedark'}`}
-                              >
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 20h4L20 8l-4-4L4 16v4zM14 6l4 4" /></svg>
-                              </button>
-                              <button
-                                onClick={() => toggleSalesperson(person.name, person.isActive)}
-                                className={`inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                                  person.isActive ? 'bg-danger text-white hover:bg-opacity-90' : 'bg-success text-white hover:bg-opacity-90'
-                                }`}
-                              >
-                                {person.isActive ? t('admin.salespeople.deactivate') : t('admin.salespeople.activate')}
-                              </button>
-                            </div>
+                            <button
+                              onClick={() => toggleSalesperson(person.name, person.isActive)}
+                              className={`shrink-0 inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                                person.isActive ? 'bg-danger text-white hover:bg-opacity-90' : 'bg-success text-white hover:bg-opacity-90'
+                              }`}
+                            >
+                              {person.isActive ? t('admin.salespeople.deactivate') : t('admin.salespeople.activate')}
+                            </button>
                           </div>
                           {/* Fields */}
                           <div className="grid grid-cols-2 gap-4">
