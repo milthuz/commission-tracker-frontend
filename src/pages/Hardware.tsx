@@ -21,7 +21,7 @@ interface HardwareData { categories: HardwareCategory[]; products: HardwareProdu
 const STATUS_ORDER = ['all', 'new', 'soon', 'eol', 'wsl', 'legacy'] as const;
 const STATUS_DOT: Record<string, string> = { new: '#17B26A', soon: '#FDB022', eol: '#F46060', wsl: '#E0A94A', legacy: '#94969C', rental: '#608EFA' };
 const STATUS_BADGE_CLS: Record<string, string> = {
-  new:    'bg-success/15 text-success dark:bg-success/20',
+  new:    'bg-success/15 text-green-700 dark:bg-success/20 dark:text-success',
   soon:   'bg-warning/15 text-warning dark:bg-warning/20',
   eol:    'bg-danger/15 text-danger dark:bg-danger/20',
   wsl:    'bg-[#E0A94A]/15 text-[#8A5A00] dark:text-[#E0A94A]',
@@ -225,7 +225,7 @@ const Hardware: React.FC = () => {
                         <button onClick={(e) => { e.stopPropagation(); copySku(p.sku); }} title={t('hardware.copySku') as string}
                           className="flex min-w-0 items-center gap-1.5 text-gray-500 hover:text-primary">
                           <span className="max-w-[130px] truncate font-mono text-[11.5px]">{p.sku || '—'}</span>
-                          {p.sku && <span className={`flex-none ${done ? 'text-success' : ''}`}>{done ? '✓' : '⧉'}</span>}
+                          {p.sku && <span className={`flex-none ${done ? 'text-green-700 dark:text-success' : ''}`}>{done ? '✓' : '⧉'}</span>}
                         </button>
                         <span className="whitespace-nowrap text-sm font-bold text-black dark:text-white">{p.price}</span>
                       </div>
@@ -309,7 +309,7 @@ const Hardware: React.FC = () => {
                 <div className="mb-2 text-[11px] uppercase tracking-wide text-gray-400">{t('hardware.skuLabel')}</div>
                 <button onClick={() => copySku(detail.sku)} className="flex w-full items-center justify-between gap-2.5 rounded-xl border border-stroke bg-gray-2 px-3.5 py-3 text-black dark:border-strokedark dark:bg-meta-4 dark:text-white">
                   <span className="font-mono text-[13px]">{detail.sku || '—'}</span>
-                  <span className={`flex items-center gap-1.5 text-xs ${copied === detail.sku ? 'text-success' : 'text-gray-400'}`}>{copied === detail.sku ? `✓ ${t('hardware.copied')}` : t('hardware.copySku')}</span>
+                  <span className={`flex items-center gap-1.5 text-xs ${copied === detail.sku ? 'text-green-700 dark:text-success' : 'text-gray-400'}`}>{copied === detail.sku ? `✓ ${t('hardware.copied')}` : t('hardware.copySku')}</span>
                 </button>
               </div>
             </div>

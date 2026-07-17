@@ -223,7 +223,7 @@ const PricingGuide: React.FC = () => {
                       <button key={b} onClick={() => setBilling(b)} className={segBtn(billing === b)}>{b === 'monthly' ? t('pricingGuide.monthly') : t('pricingGuide.yearly')}</button>
                     ))}
                   </div>
-                  {billing === 'yearly' && <span className="rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-bold text-success">{t('pricingGuide.save5')}</span>}
+                  {billing === 'yearly' && <span className="rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-bold text-green-700 dark:text-success">{t('pricingGuide.save5')}</span>}
                 </div>
               )}
             </div>
@@ -260,7 +260,7 @@ const PricingGuide: React.FC = () => {
                           <div className="mb-1.5 flex flex-wrap gap-1.5">
                             {p.compat === 'V2' && <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">{t('pricingGuide.kaizenTag')}</span>}
                             {p.compat === 'V1' && <span className="rounded-full border border-stroke bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:border-strokedark dark:bg-meta-4">V1</span>}
-                            {p.status === 'new' && <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase text-success">{t('pricingGuide.newTag')}</span>}
+                            {p.status === 'new' && <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700 dark:text-success">{t('pricingGuide.newTag')}</span>}
                             {p.status === 'legacy' && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t('pricingGuide.existingTag')}</span>}
                             {p.pos && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{p.pos}</span>}
                             {p.mode && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{p.mode}</span>}
@@ -296,7 +296,7 @@ const PricingGuide: React.FC = () => {
                         {p.sku ? (
                           <button onClick={() => copySku(p.sku)} className="flex min-w-0 items-center gap-1.5 text-gray-500 hover:text-primary">
                             <span className="max-w-[160px] truncate font-mono text-[11.5px]">{p.sku}</span>
-                            <span className={`flex-none ${done ? 'text-success' : ''}`}>{done ? '✓' : '⧉'}</span>
+                            <span className={`flex-none ${done ? 'text-green-700 dark:text-success' : ''}`}>{done ? '✓' : '⧉'}</span>
                           </button>
                         ) : <span className="text-[11.5px] italic text-gray-400">{t('pricingGuide.noSku')}</span>}
                       </div>
