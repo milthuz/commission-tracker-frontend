@@ -240,11 +240,24 @@ const PricingAdmin: React.FC = () => {
                     return (
                       <tr key={p.id} className={`border-t border-l-[3px] border-stroke dark:border-strokedark ${rowBg} ${rowEdited ? 'border-l-primary' : 'border-l-transparent'}`}>
                         <td className="px-3 py-2">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex flex-col gap-1">
                             <span className="font-medium text-black dark:text-white">{p.nameEn}</span>
-                            {p.compat.includes('V2') && <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">{t('hardware.kaizen')}</span>}
-                            {isNewRow && <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-green-700 dark:text-success">{t('admin.hardware.added')}</span>}
-                            {rowHidden && <span className="rounded-full bg-gray-2 px-1.5 py-0.5 text-[9px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t('admin.hardware.hidden')}</span>}
+                            {(p.compat.length > 0 || p.status.length > 0 || isNewRow || rowHidden) && (
+                              <div className="flex flex-wrap items-center gap-1">
+                                {p.compat.map((c) => (
+                                  <span key={`c-${c}`} className="whitespace-nowrap rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">
+                                    {c === 'V2' ? t('hardware.kaizen') : c}
+                                  </span>
+                                ))}
+                                {p.status.map((s) => (
+                                  <span key={`s-${s}`} className="whitespace-nowrap rounded-full bg-gray-2 px-1.5 py-0.5 text-[9px] font-bold uppercase text-gray-500 dark:bg-meta-4">
+                                    {s === 'new' ? t('pricingGuide.newTag') : s === 'legacy' ? t('pricingGuide.existingTag') : s}
+                                  </span>
+                                ))}
+                                {isNewRow && <span className="whitespace-nowrap rounded-full bg-success/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-green-700 dark:text-success">{t('admin.hardware.added')}</span>}
+                                {rowHidden && <span className="whitespace-nowrap rounded-full bg-gray-2 px-1.5 py-0.5 text-[9px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t('admin.hardware.hidden')}</span>}
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-3 py-2 font-mono text-xs text-gray-400">{p.sku || '—'}</td>
