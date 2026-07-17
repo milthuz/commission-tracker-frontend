@@ -217,15 +217,13 @@ const PricingAdmin: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {list.map((p, i) => {
+                  {list.map((p) => {
                     const isNewRow = added.some((a) => a.id === p.id);
                     const rowHidden = isHidden(p);
                     const rowEdited = isNewRow || !!edits[p.id] || rowHidden !== !p.visible;
-                    // Single source of truth for the zebra tint — the sticky actions cell reuses
-                    // this exact string so it can never drift from the row it belongs to.
-                    // (bg-gray-1 isn't a real Tailwind token here — using it left odd rows with
-                    // no background at all, which is what caused the inconsistent striping.)
-                    const rowBg = i % 2 ? 'bg-gray-2 dark:bg-meta-4/10' : 'bg-white dark:bg-boxdark';
+                    // No zebra striping — every row shares one background (shared with the sticky
+                    // actions cell so they can never mismatch) instead of alternating tints.
+                    const rowBg = 'bg-white dark:bg-boxdark';
                     return (
                       <tr key={p.id} className={`border-t border-l-[3px] border-stroke dark:border-strokedark ${rowBg} ${rowEdited ? 'border-l-primary' : 'border-l-transparent'}`}>
                         <td className="px-3 py-2">
