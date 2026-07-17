@@ -675,6 +675,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         {t('sidebar.merchantLinks')}<NewBadge path="/admin/merchant-links" />
                       </NavLink>
                     </li>
+                    <li>
+                      <NavLink
+                        to="/admin/saas-increase"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/saas-increase' ? 'text-white' : ''
+                        }`}
+                      >
+                        {t('sidebar.saasIncrease')}<NewBadge path="/admin/saas-increase" />
+                      </NavLink>
+                    </li>
                   </ul>
                 </li>
               )}

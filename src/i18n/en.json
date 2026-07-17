@@ -634,6 +634,63 @@
       "exporting": "Exporting…"
     }
   },
+  "saasIncrease": {
+    "title": "SaaS Increase",
+    "subtitle": "Simulate SaaS price increases across every live Zoho Billing subscription and build a scenario toward a target MRR add.",
+    "error": "Couldn't load SaaS Increase data. Please try again.",
+    "scenario": "Scenario",
+    "selectScenario": "Select a scenario…",
+    "newScenarioName": "New scenario name",
+    "newScenarioPlaceholder": "e.g. Q3 SaaS increase",
+    "targetMrr": "Target MRR",
+    "createScenario": "Create scenario",
+    "mrrTarget": "target",
+    "rowsIncluded": "{{count}} subscriptions included",
+    "searchPlaceholder": "Search customer, merchant or subscription #…",
+    "allOrgs": "All organizations",
+    "allPlans": "All plans",
+    "applyToSelected": "Apply to selected",
+    "refresh": "Refresh",
+    "colCustomer": "Customer",
+    "colPlan": "Plan",
+    "colCurrent": "Current / mo",
+    "colIncrease": "Increase",
+    "colNew": "New / mo",
+    "colStatus": "Status",
+    "none": "No subscriptions match these filters.",
+    "noRowsSelected": "Select at least one subscription to save.",
+    "saveDraft": "Save draft",
+    "saving": "Saving…",
+    "exportCsv": "Export CSV",
+    "exporting": "Exporting…",
+    "status": {
+      "pending": "Pending",
+      "pushed": "Pushed",
+      "push_failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "notify": {
+      "title": "Merchant notifications",
+      "subtitle": "Draft, review and send an email to each merchant about their price increase before (or independent of) pushing it to Zoho.",
+      "draftSelected": "Draft for selected ({{count}})",
+      "sendSelected": "Send selected ({{count}})",
+      "to": "To",
+      "subject": "Subject",
+      "body": "Message",
+      "draft": "Draft",
+      "preview": "Preview",
+      "send": "Send",
+      "sending": "Sending…",
+      "confirmSend": "Send this notification to {{count}} merchant(s)? This can't be unsent.",
+      "previewTitle": "Email preview",
+      "status": {
+        "not_sent": "Not sent",
+        "drafted": "Drafted",
+        "sent": "Sent",
+        "send_failed": "Failed"
+      }
+    }
+  },
   "savingsCalc": {
     "title": "Savings calculator",
     "subtitle": "Analyze a competitor's merchant statement and show the savings with Cluster.",
