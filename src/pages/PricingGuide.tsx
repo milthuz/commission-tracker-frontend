@@ -1,9 +1,16 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { dialog } from '../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+
+const b64ToBytes = (b64: string) => {
+  const bin = atob(b64); const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+};
 
 interface PricingCategory {
   id: string; nameEn: string; nameFr: string; sortOrder: number; hourly: number | null;
@@ -63,6 +70,9 @@ const PricingGuide: React.FC = () => {
   const [quote, setQuote] = useState<Record<string, number>>({});
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [clientName, setClientName] = useState('');
+  const [building, setBuilding] = useState(false);
+  const [quotePdf, setQuotePdf] = useState<{ url: string; fileName: string } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -139,6 +149,23 @@ const PricingGuide: React.FC = () => {
   };
   const setQty = (id: string, qty: number) => setQuote((q0) => ({ ...q0, [id]: Math.max(1, qty) }));
 
+  const buildQuote = async () => {
+    if (!clientName.trim()) { dialog.alert(t('pricingGuide.clientNameRequired') as string); return; }
+    setBuilding(true);
+    try {
+      const r = await axios.post(`${API_URL}/api/pricing/quote/pdf`, {
+        items: quoteIds.map((id) => ({ id, qty: quote[id] })),
+        clientName: clientName.trim(), billing, lang: fr ? 'fr' : 'en',
+      }, { headers: authHeaders() });
+      const blob = new Blob([b64ToBytes(r.data.pdfBase64) as BlobPart], { type: 'application/pdf' });
+      setQuotePdf({ url: URL.createObjectURL(blob), fileName: r.data.fileName });
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || t('pricingGuide.quoteError') as string);
+    } finally { setBuilding(false); }
+  };
+  // Revoke the previous blob URL whenever it's replaced or the page unmounts.
+  useEffect(() => { const url = quotePdf?.url; return () => { if (url) URL.revokeObjectURL(url); }; }, [quotePdf]);
+
   const quoteIds = Object.keys(quote);
   let rec = 0, oneTime = 0;
   const quoteRows = quoteIds.map((id) => {
@@ -157,7 +184,12 @@ const PricingGuide: React.FC = () => {
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-1">
+        <h1 className="text-title-md2 font-semibold text-black dark:text-white">{t('pricingGuide.title')}</h1>
+        <p className="text-sm text-body">{t('pricingGuide.subtitle')}</p>
+      </div>
+
+      <div className="mb-5 mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-stroke pt-4 dark:border-strokedark">
         <div>
           <div className="mb-2 flex items-center gap-2">
             {i18n.exists(`pricingGuide.categories.${cat}.eyebrow`) && (
@@ -368,8 +400,37 @@ const PricingGuide: React.FC = () => {
                 <span className="text-[13px] text-gray-400">{t('pricingGuide.oneTime')}</span>
                 <span className="w-[110px] text-right text-[13px] font-bold text-black dark:text-white">{money(oneTime) || '$0'}</span>
               </div>
+              <div className="mt-4 flex flex-wrap items-center gap-2.5 border-t border-stroke pt-3.5 dark:border-strokedark">
+                <input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder={t('pricingGuide.clientNamePh') as string}
+                  className="min-w-0 flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                <button onClick={buildQuote} disabled={building}
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                  {building ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <span>📄</span>}
+                  {t('pricingGuide.buildQuote')}
+                </button>
+              </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Quote PDF preview */}
+      {quotePdf && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setQuotePdf(null); }}>
+          <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+            <div className="flex flex-none items-center justify-between border-b border-stroke px-5 py-3.5 dark:border-strokedark">
+              <span className="text-base font-bold text-black dark:text-white">{t('pricingGuide.quotePreview')}</span>
+              <div className="flex items-center gap-2">
+                <a href={quotePdf.url} download={quotePdf.fileName}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-white hover:bg-opacity-90">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m6 5v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1" /></svg>
+                  {t('pricingGuide.downloadPdf')}
+                </a>
+                <button onClick={() => setQuotePdf(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </div>
+            </div>
+            <iframe src={quotePdf.url} title={t('pricingGuide.quotePreview') as string} className="h-full w-full flex-1 border-0" />
+          </div>
         </div>
       )}
     </>
