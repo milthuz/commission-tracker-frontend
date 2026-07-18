@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
+import { RefreshCw, Download, Search, ChevronDown, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -35,10 +36,29 @@ interface ScenarioItem {
   notifyTo: string | null; notifySubject: string | null; notifyBody: string | null;
   notifyStatus: string; notifyError: string | null;
 }
-interface RowEdit { included: boolean; increaseType: 'percent' | 'flat'; increaseValue: number }
+// `selected` (checkbox — drives bulk-apply targeting + the footer's "N selected" count) is
+// deliberately independent from "included" (derived as increaseValue > 0) — matches the design
+// handoff's model, where you can select a batch of rows first, then bulk-apply a rule to them,
+// without needing to type a value into each one first.
+interface RowEdit { selected: boolean; increaseType: 'percent' | 'flat'; increaseValue: number }
 interface NotifyDraft { to: string; subject: string; body: string }
 
 const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n || 0);
+
+// Cosmetic-only "POS" categorization for the design's colored dot — derived from keywords in the
+// plan name (matching the design handoff's seed data), falling back to the Zoho Billing org name
+// when nothing matches. Not a stored field — purely a client-side display heuristic.
+const POS_KEYWORDS: { match: RegExp; label: string; color: string }[] = [
+  { match: /cluster os/i, label: 'Cluster OS', color: '#608EFA' },
+  { match: /zpos/i, label: 'ZPOS', color: '#9F79FF' },
+  { match: /xpos/i, label: 'XPOS', color: '#57D193' },
+  { match: /wesbo/i, label: 'Wesbo', color: '#CCC37A' },
+  { match: /xperio/i, label: 'Xperio POS', color: '#F58345' },
+];
+const posLabelFor = (planName: string, orgName: string) => {
+  for (const k of POS_KEYWORDS) if (k.match.test(planName)) return { label: k.label, color: k.color };
+  return { label: orgName || '—', color: '#999AA7' };
+};
 
 // Admin tool: simulate SaaS price increases across every live Zoho Billing subscription, build
 // a scenario aimed at a target MRR add, then save it (Phase A — read-only simulation; pushing
@@ -111,7 +131,7 @@ const SaasIncrease: React.FC = () => {
       const nextNotify: Record<number, NotifyDraft> = {};
       for (const it of data.items as ScenarioItem[]) {
         byNum[it.subscriptionNumber] = it;
-        nextEdits[it.subscriptionNumber] = { included: true, increaseType: it.increaseType, increaseValue: it.increaseValue };
+        nextEdits[it.subscriptionNumber] = { selected: true, increaseType: it.increaseType, increaseValue: it.increaseValue };
         nextNotify[it.id] = { to: it.notifyTo || '', subject: it.notifySubject || '', body: it.notifyBody || '' };
       }
       setSavedItems(byNum);
@@ -176,8 +196,23 @@ const SaasIncrease: React.FC = () => {
 
   const setEdit = (num: string, patch: Partial<RowEdit>) => {
     setEdits(prev => {
-      const base: RowEdit = prev[num] || { included: true, increaseType: 'percent', increaseValue: 10 };
+      const base: RowEdit = prev[num] || { selected: false, increaseType: 'percent', increaseValue: 0 };
       return { ...prev, [num]: { ...base, ...patch } };
+    });
+  };
+
+  const isIncluded = (num: string) => (edits[num]?.increaseValue ?? 0) > 0;
+
+  const allVisibleSelected = filtered.length > 0 && filtered.every(s => edits[s.subscriptionNumber]?.selected);
+  const toggleAllVisible = () => {
+    const target = !allVisibleSelected;
+    setEdits(prev => {
+      const next = { ...prev };
+      for (const s of filtered) {
+        const base = next[s.subscriptionNumber] || { selected: false, increaseType: 'percent' as const, increaseValue: 0 };
+        next[s.subscriptionNumber] = { ...base, selected: target };
+      }
+      return next;
     });
   };
 
@@ -185,8 +220,8 @@ const SaasIncrease: React.FC = () => {
     setEdits(prev => {
       const next = { ...prev };
       for (const s of filtered) {
-        if (next[s.subscriptionNumber]?.included) {
-          next[s.subscriptionNumber] = { included: true, increaseType: bulkType, increaseValue: bulkValue };
+        if (next[s.subscriptionNumber]?.selected) {
+          next[s.subscriptionNumber] = { selected: true, increaseType: bulkType, increaseValue: bulkValue };
         }
       }
       return next;
@@ -198,19 +233,17 @@ const SaasIncrease: React.FC = () => {
     return e.increaseType === 'flat' ? s.currentMonthly + (Number(e.increaseValue) || 0) : s.currentMonthly * (1 + (Number(e.increaseValue) || 0) / 100);
   };
 
-  const includedCount = Object.values(edits).filter(e => e.included).length;
+  const includedCount = subs.filter(s => isIncluded(s.subscriptionNumber)).length;
   const mrrDelta = subs.reduce((sum, s) => {
-    const e = edits[s.subscriptionNumber];
-    if (!e?.included) return sum;
-    return sum + (newMonthlyFor(s, e) - s.currentMonthly);
+    if (!isIncluded(s.subscriptionNumber)) return sum;
+    return sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly);
   }, 0);
   const pct = targetMrr > 0 ? Math.min(100, (mrrDelta / targetMrr) * 100) : 0;
-  const barColor = `hsl(${Math.round(Math.max(0, Math.min(100, pct)) * 1.2)}, 72%, 45%)`;
 
   const saveScenario = async () => {
     if (!activeScenarioId) return;
     const items = subs
-      .filter(s => edits[s.subscriptionNumber]?.included)
+      .filter(s => isIncluded(s.subscriptionNumber))
       .map(s => {
         const e = edits[s.subscriptionNumber];
         return {
@@ -336,135 +369,232 @@ const SaasIncrease: React.FC = () => {
     finally { markNotifyBusy(itemIds, false); }
   };
 
+  // Hero stat-tile math — derived from the same subs/edits state the table already uses, no new
+  // endpoints. mrrDelta/includedCount above already cover "projected add" and "subs included."
+  const includedSubs = subs.filter(s => isIncluded(s.subscriptionNumber));
+  const avgIncreasePct = includedSubs.length
+    ? includedSubs.reduce((sum, s) => {
+        const nm = newMonthlyFor(s, edits[s.subscriptionNumber]);
+        return sum + ((nm - s.currentMonthly) / (s.currentMonthly || 1)) * 100;
+      }, 0) / includedSubs.length
+    : 0;
+  const currentTotal = subs.reduce((sum, s) => sum + s.currentMonthly, 0);
+  const newTotal = subs.reduce((sum, s) => sum + newMonthlyFor(s, edits[s.subscriptionNumber]), 0);
+  const remaining = Math.max(0, targetMrr - mrrDelta);
+  const selectedRows = subs.filter(s => edits[s.subscriptionNumber]?.selected);
+  const selectedDelta = selectedRows.reduce((sum, s) => sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly), 0);
+
+  // Style fragments for the Kaizen redesign — near-black grays that don't exist in this app's
+  // shared dark-mode palette (boxdark/meta-4 are blue-slate), so they're arbitrary-value Tailwind
+  // classes scoped to just this file rather than new shared tokens. Light-mode values are derived
+  // from the design handoff's own [data-theme="light"] block in colors_and_type.css.
+  const card = 'rounded-2xl border border-gray-200 bg-white dark:border-[#1B1B1B] dark:bg-[#0E0F11]';
+  const chipInput = 'rounded-lg border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white dark:placeholder:text-[#61646C]';
+  const raised = 'rounded-lg border border-gray-200 bg-gray-50 dark:border-[#242424] dark:bg-[#141414]';
+  const textPri = 'text-gray-900 dark:text-white';
+  const textSec = 'text-gray-600 dark:text-[#D1D1D1]';
+  const textTer = 'text-gray-500 dark:text-[#999AA7]';
+  const textQuat = 'text-gray-400 dark:text-[#61646C]';
+  const divider = 'divide-gray-100 dark:divide-[#161616]';
+  const btnSecondary = 'inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-[#242424] dark:bg-[#141414] dark:text-[#D1D1D1] dark:hover:bg-[#1B1B1B] dark:hover:text-white';
+  const btnPrimary = 'inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50';
+  const segBtn = (on: boolean) => `rounded-md px-2 py-1 text-xs font-semibold transition-colors ${on ? 'bg-primary text-white' : `${textTer} hover:text-gray-700 dark:hover:text-white`}`;
+  const gridCols = 'grid-cols-[38px_2.2fr_1.8fr_1fr_1.3fr_1.1fr_0.9fr_1fr_0.9fr]';
+
   return (
-    <div>
-      {/* Scenario picker */}
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="min-w-[220px]">
-          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">{t('saasIncrease.scenario')}</label>
-          <select
-            value={activeScenarioId ?? ''}
-            onChange={(e) => setActiveScenarioId(e.target.value ? Number(e.target.value) : null)}
-            className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark"
-          >
-            <option value="">{t('saasIncrease.selectScenario')}</option>
-            {scenarios.map(s => <option key={s.id} value={s.id}>{s.name} ({s.itemCount})</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">{t('saasIncrease.newScenarioName')}</label>
-          <input
-            value={scenarioName} onChange={(e) => setScenarioName(e.target.value)}
-            placeholder={t('saasIncrease.newScenarioPlaceholder') as string}
-            className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark"
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">{t('saasIncrease.targetMrr')}</label>
-          <input
-            type="number" value={targetMrr} onChange={(e) => setTargetMrr(Number(e.target.value) || 0)}
-            className="w-32 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark"
-          />
-        </div>
-        <button onClick={createScenario} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
-          {t('saasIncrease.createScenario')}
+    <div className="font-satoshi">
+      {/* Header actions — Refresh price history / Export CSV */}
+      <div className="mb-4 flex items-center justify-end gap-2">
+        <button onClick={refreshInsights} disabled={refreshingInsights} className={btnSecondary}>
+          <RefreshCw className={`h-4 w-4 ${refreshingInsights ? 'animate-spin' : ''}`} />
+          {refreshingInsights ? t('saasIncrease.insights.refreshing') : t('saasIncrease.insights.refresh')}
         </button>
+        {activeScenarioId && (
+          <button onClick={exportScenario} disabled={exporting} className={btnSecondary}>
+            <Download className="h-4 w-4" />
+            {exporting ? t('saasIncrease.exporting') : t('saasIncrease.exportCsv')}
+          </button>
+        )}
       </div>
 
-      {/* Progress toward target */}
+      {/* HERO: scenario progress + stat tiles */}
       {activeScenarioId && (
-        <div className="mb-4 rounded-xl border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-            <div>
-              <span className="text-2xl font-bold" style={{ color: barColor }}>{money(mrrDelta)}</span>
-              <span className="ml-2 text-sm text-gray-500">/ {money(targetMrr)} {t('saasIncrease.mrrTarget')}</span>
+        <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.35fr_1fr]">
+          <div className="flex flex-col justify-between rounded-2xl border border-orange-100 bg-[linear-gradient(180deg,#FEF3E9,#FFFFFF)] p-6 dark:border-[#2a2320] dark:bg-[linear-gradient(180deg,#151210,#0E0F11)]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-primary dark:text-[#F79C6A]">{t('saasIncrease.activeScenario')}</span>
+                <div className="relative">
+                  <select
+                    value={activeScenarioId ?? ''}
+                    onChange={(e) => setActiveScenarioId(e.target.value ? Number(e.target.value) : null)}
+                    className="appearance-none rounded-full border border-orange-200 bg-white py-1.5 pl-3.5 pr-8 text-sm font-medium text-gray-900 outline-none dark:border-[#2a2320] dark:bg-[#0A0A0A] dark:text-white"
+                  >
+                    {scenarios.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-[#999AA7]" />
+                </div>
+              </div>
+              <span className={`text-xs ${textTer}`}>{t('saasIncrease.subsOfTotal', { included: includedCount, total: subs.length })}</span>
             </div>
-            <span className="text-sm text-gray-500">{t('saasIncrease.rowsIncluded', { count: includedCount })}</span>
+            <div className="my-4">
+              <div className="flex items-baseline gap-2.5">
+                <span className="text-[44px] font-semibold leading-none tracking-tight text-primary dark:text-[#F79C6A]">{money(mrrDelta)}</span>
+                <span className={`text-[15px] ${textTer}`}>/ {money(targetMrr)} {t('saasIncrease.mrrTarget')}</span>
+              </div>
+              <div className={`mt-1.5 text-sm ${textSec}`}>{t('saasIncrease.projectedAdd')} · <span className={textPri + ' font-medium'}>{pct.toFixed(1)}%</span> {t('saasIncrease.ofTarget')}</div>
+            </div>
+            <div>
+              <div className="h-3 overflow-hidden rounded-full border border-gray-200 bg-gray-100 dark:border-[#242424] dark:bg-[#0A0A0A]">
+                <div className="h-full rounded-full transition-all duration-300" style={{ width: `${pct}%`, background: 'linear-gradient(90deg,#D16630,#F79C6A)' }} />
+              </div>
+              <div className={`mt-2 flex justify-between text-xs ${textTer}`}>
+                <span>{remaining > 0 ? t('saasIncrease.toGo', { amount: money(remaining) }) : t('saasIncrease.targetReached')}</span>
+                <span>{t('saasIncrease.annualized')} · {money(mrrDelta * 12)}</span>
+              </div>
+            </div>
           </div>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
-            <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: barColor }} />
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className={`${raised} p-4`}>
+              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Layers className="h-3.5 w-3.5" /> {t('saasIncrease.statSubsIncluded')}</div>
+              <div className={`mt-2 text-[26px] font-semibold tracking-tight ${textPri}`}>{includedCount}</div>
+              <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statOfLive', { total: subs.length })}</div>
+            </div>
+            <div className={`${raised} p-4`}>
+              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Percent className="h-3.5 w-3.5" /> {t('saasIncrease.statAvgIncrease')}</div>
+              <div className={`mt-2 text-[26px] font-semibold tracking-tight ${textPri}`}>{includedCount ? `${avgIncreasePct.toFixed(1)}%` : '—'}</div>
+              <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statOnIncluded')}</div>
+            </div>
+            <div className={`${raised} p-4`}>
+              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Wallet className="h-3.5 w-3.5" /> {t('saasIncrease.statCurrentMrr')}</div>
+              <div className={`mt-2 text-[26px] font-semibold tracking-tight ${textPri}`}>{money(currentTotal)}</div>
+              <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statAllLive')}</div>
+            </div>
+            <div className={`${raised} p-4`}>
+              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><TrendingUp className="h-3.5 w-3.5" /> {t('saasIncrease.statNewMrr')}</div>
+              <div className="mt-2 text-[26px] font-semibold tracking-tight text-emerald-600 dark:text-[#57D193]">{money(newTotal)}</div>
+              <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statAfterIncreases')}</div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Filter bar */}
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <input
-          value={search} onChange={(e) => setSearch(e.target.value)}
-          placeholder={t('saasIncrease.searchPlaceholder') as string}
-          className="min-w-[220px] flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark"
-        />
-        <select value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)} className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark">
-          <option value="">{t('saasIncrease.allOrgs')}</option>
-          {orgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-        </select>
-        <select value={planFilter} onChange={(e) => setPlanFilter(e.target.value)} className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark">
-          <option value="">{t('saasIncrease.allPlans')}</option>
-          {plans.map(p => <option key={p} value={p}>{p}</option>)}
-        </select>
-        <div className="flex items-end gap-2">
-          <select value={bulkType} onChange={(e) => setBulkType(e.target.value as 'percent' | 'flat')} className="rounded-lg border border-stroke bg-transparent px-2 py-2 text-sm dark:border-strokedark dark:bg-boxdark">
-            <option value="percent">%</option>
-            <option value="flat">$</option>
-          </select>
+      {/* CREATE SCENARIO */}
+      <div className={`${card} mb-4 flex flex-wrap items-end gap-3.5 p-4`}>
+        <div className="flex min-w-[220px] flex-1 flex-col gap-1.5">
+          <label className={`text-[11px] ${textTer}`}>{t('saasIncrease.newScenarioName')}</label>
           <input
-            type="number" value={bulkValue} onChange={(e) => setBulkValue(Number(e.target.value) || 0)}
-            className="w-20 rounded-lg border border-stroke bg-transparent px-2 py-2 text-sm dark:border-strokedark dark:bg-boxdark"
+            value={scenarioName} onChange={(e) => setScenarioName(e.target.value)}
+            placeholder={t('saasIncrease.newScenarioPlaceholder') as string}
+            className={`${chipInput} px-3 py-2.5 text-sm focus:border-primary focus:outline-none`}
           />
-          <button onClick={applyBulkToSelected} className="rounded-lg border border-stroke px-3 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">
-            {t('saasIncrease.applyToSelected')}
+        </div>
+        <div className="flex w-[180px] flex-col gap-1.5">
+          <label className={`text-[11px] ${textTer}`}>{t('saasIncrease.targetMrr')}</label>
+          <div className={`flex items-center px-3 ${chipInput} focus-within:border-primary`}>
+            <span className={`mr-1.5 text-sm ${textTer}`}>CA$</span>
+            <input
+              type="number" value={targetMrr} onChange={(e) => setTargetMrr(Number(e.target.value) || 0)}
+              className="w-full border-0 bg-transparent py-2.5 text-sm text-gray-900 outline-none dark:text-white"
+            />
+          </div>
+        </div>
+        <button onClick={createScenario} className={btnPrimary}>
+          <Plus className="h-4 w-4" /> {t('saasIncrease.createScenario')}
+        </button>
+      </div>
+
+      {error && <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">{error}</p>}
+
+      {/* TABLE CARD */}
+      <div className={`${card} overflow-hidden`}>
+        {/* toolbar */}
+        <div className="flex flex-wrap items-center gap-2.5 border-b border-gray-100 p-3.5 dark:border-[#1B1B1B]">
+          <div className={`flex min-w-[240px] max-w-[360px] flex-1 items-center gap-2 px-3 ${chipInput} focus-within:border-primary`}>
+            <Search className={`h-4 w-4 ${textTer}`} />
+            <input
+              value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('saasIncrease.searchPlaceholder') as string}
+              className="w-full border-0 bg-transparent py-2.5 text-sm text-gray-900 outline-none dark:text-white"
+            />
+          </div>
+          <div className="relative">
+            <select value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)} className={`appearance-none ${chipInput} py-2.5 pl-3 pr-8 text-sm`}>
+              <option value="">{t('saasIncrease.allOrgs')}</option>
+              {orgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+            </select>
+            <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textTer}`} />
+          </div>
+          <div className="relative">
+            <select value={planFilter} onChange={(e) => setPlanFilter(e.target.value)} className={`appearance-none ${chipInput} py-2.5 pl-3 pr-8 text-sm`}>
+              <option value="">{t('saasIncrease.allPlans')}</option>
+              {plans.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textTer}`} />
+          </div>
+          <div className="relative">
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} className={`appearance-none ${chipInput} py-2.5 pl-3 pr-8 text-sm`}>
+              <option value="name">{t('saasIncrease.sortName')}</option>
+              <option value="oldest">{t('saasIncrease.sortOldest')}</option>
+              <option value="newest">{t('saasIncrease.sortNewest')}</option>
+              <option value="mrr">{t('saasIncrease.sortMrr')}</option>
+            </select>
+            <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textTer}`} />
+          </div>
+          <label className={`flex items-center gap-1.5 text-sm ${textSec}`}>
+            <input type="checkbox" checked={groupByPlan} onChange={(e) => setGroupByPlan(e.target.checked)} className="accent-primary" />
+            {t('saasIncrease.groupByPlan')}
+          </label>
+          <button onClick={() => loadSubs(true)} disabled={loading} title={t('saasIncrease.refresh') as string} className={`${raised} flex h-9 w-9 items-center justify-center ${textSec} hover:text-gray-900 dark:hover:text-white`}>
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
+          <div className="flex-1" />
+          <div className={`flex items-center gap-2 py-1 pl-3 pr-1.5 ${chipInput}`}>
+            <span className={`whitespace-nowrap text-xs ${textTer}`}>{t('saasIncrease.bulk')}</span>
+            <div className={`inline-flex rounded-lg p-0.5 ${raised}`}>
+              <button type="button" onClick={() => setBulkType('percent')} className={segBtn(bulkType === 'percent')}>%</button>
+              <button type="button" onClick={() => setBulkType('flat')} className={segBtn(bulkType === 'flat')}>$</button>
+            </div>
+            <input
+              type="number" value={bulkValue} onChange={(e) => setBulkValue(Number(e.target.value) || 0)}
+              className={`w-14 rounded-md border px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:border-primary dark:text-white ${raised}`}
+            />
+            <button
+              onClick={applyBulkToSelected}
+              disabled={selectedRows.length === 0}
+              className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ${selectedRows.length > 0 ? 'bg-primary text-white' : `${raised} ${textQuat} cursor-not-allowed`}`}
+            >
+              <CheckCheck className="h-3.5 w-3.5" /> {t('saasIncrease.applyToSelected', { count: selectedRows.length })}
+            </button>
+          </div>
         </div>
-        <button onClick={() => loadSubs(true)} disabled={loading} className="rounded-lg border border-stroke px-3 py-2 text-sm font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
-          {t('saasIncrease.refresh')}
-        </button>
-      </div>
 
-      {/* Grouping / sort / insights controls — separate row since they act on the whole list, not a filter */}
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <label className="flex items-center gap-2 text-sm text-body dark:text-bodydark">
-          <input type="checkbox" checked={groupByPlan} onChange={(e) => setGroupByPlan(e.target.checked)} />
-          {t('saasIncrease.groupByPlan')}
-        </label>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">{t('saasIncrease.sortBy')}</label>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark">
-            <option value="name">{t('saasIncrease.sortName')}</option>
-            <option value="oldest">{t('saasIncrease.sortOldest')}</option>
-            <option value="newest">{t('saasIncrease.sortNewest')}</option>
-            <option value="mrr">{t('saasIncrease.sortMrr')}</option>
-          </select>
-        </div>
-        <button onClick={refreshInsights} disabled={refreshingInsights} className="ml-auto rounded-lg border border-stroke px-3 py-2 text-sm font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
-          {refreshingInsights ? t('saasIncrease.insights.refreshing') : t('saasIncrease.insights.refresh')}
-        </button>
-      </div>
-
-      {error && <p className="mb-4 rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger">{error}</p>}
-
-      {/* Subscriptions table */}
-      <div className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px] text-sm">
-            <thead>
-              <tr className="border-b border-stroke text-left text-xs text-gray-500 dark:border-strokedark">
-                <th className="px-4 py-2 font-medium"></th>
-                <th className="px-4 py-2 font-medium">{t('saasIncrease.colCustomer')}</th>
-                <th className="px-4 py-2 font-medium">{t('saasIncrease.colPlan')}</th>
-                <th className="px-4 py-2 text-right font-medium">{t('saasIncrease.colCurrent')}</th>
-                <th className="px-4 py-2 font-medium">{t('saasIncrease.colIncrease')}</th>
-                <th className="px-4 py-2 text-right font-medium">{t('saasIncrease.colNew')}</th>
-                <th className="px-4 py-2 font-medium">{t('saasIncrease.colActivated')}</th>
-                <th className="px-4 py-2 font-medium">{t('saasIncrease.colLastPriceChange')}</th>
-                <th className="px-4 py-2 font-medium">{t('saasIncrease.colStatus')}</th>
-              </tr>
-            </thead>
-            <tbody>
+          <div className="min-w-[1150px]">
+            {/* header */}
+            <div className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 bg-gray-50 px-4.5 py-2.5 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]`}>
+              <label className="flex items-center"><input type="checkbox" checked={allVisibleSelected} onChange={toggleAllVisible} className="h-4 w-4 accent-primary" /></label>
+              <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCustomer')}</span>
+              <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colPlan')}</span>
+              <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCurrent')}</span>
+              <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colIncrease')}</span>
+              <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colNew')}</span>
+              <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colActivated')}</span>
+              <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colLastPriceChange')}</span>
+              <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colStatus')}</span>
+            </div>
+
+            {/* rows */}
+            <div>
               {(() => {
                 const renderRow = (s: Subscription) => {
                   const e = edits[s.subscriptionNumber];
-                  const saved = savedItems[s.subscriptionNumber];
+                  const included = isIncluded(s.subscriptionNumber);
+                  const selected = !!e?.selected;
                   const nm = newMonthlyFor(s, e);
+                  const delta = included ? nm - s.currentMonthly : 0;
+                  const pos = posLabelFor(s.planName, s.orgName);
                   const priceChangeLabel = s.lastPriceChangeAt
                     ? new Date(s.lastPriceChangeAt).toLocaleDateString()
                     : !s.insightsCheckedAt ? t('saasIncrease.notYetChecked')
@@ -472,73 +602,75 @@ const SaasIncrease: React.FC = () => {
                     : t('saasIncrease.noRecentChange');
                   const priceChangeTitle = (s.lastPriceBefore != null && s.lastPriceAfter != null)
                     ? `${money(s.lastPriceBefore)} → ${money(s.lastPriceAfter)}` : '';
+                  const rowBg = selected ? 'bg-orange-50/60 dark:bg-[rgba(245,131,69,0.06)]' : included ? 'bg-emerald-50/40 dark:bg-[rgba(87,209,147,0.03)]' : '';
                   return (
-                    <tr key={s.subscriptionNumber} className="border-b border-stroke last:border-0 dark:border-strokedark">
-                      <td className="px-4 py-2">
-                        <input type="checkbox" checked={!!e?.included} onChange={(ev) => setEdit(s.subscriptionNumber, { included: ev.target.checked })} />
-                      </td>
-                      <td className="px-4 py-2">
-                        <div className="font-medium text-black dark:text-white">{s.customerName}</div>
-                        <div className="text-xs text-gray-400">{s.subscriptionNumber}{s.merchantAccountId ? ` · ${s.merchantAccountId}` : ''}</div>
-                      </td>
-                      <td className="px-4 py-2 text-body dark:text-bodydark">{s.planName}</td>
-                      <td className="whitespace-nowrap px-4 py-2 text-right text-body dark:text-bodydark">{money(s.currentMonthly)}</td>
-                      <td className="px-4 py-2">
-                        <div className="flex items-center gap-1">
-                          <select
-                            value={e?.increaseType || 'percent'}
-                            onChange={(ev) => setEdit(s.subscriptionNumber, { increaseType: ev.target.value as 'percent' | 'flat' })}
-                            className="rounded border border-stroke bg-transparent px-1 py-1 text-xs dark:border-strokedark"
-                          >
-                            <option value="percent">%</option>
-                            <option value="flat">$</option>
-                          </select>
-                          <input
-                            type="number" value={e?.increaseValue ?? ''}
-                            onChange={(ev) => setEdit(s.subscriptionNumber, { increaseValue: Number(ev.target.value) || 0 })}
-                            className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-xs dark:border-strokedark"
-                          />
+                    <div key={s.subscriptionNumber} className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 px-4.5 py-3 hover:bg-gray-50 dark:border-[#161616] dark:hover:bg-[#141416] ${rowBg}`}>
+                      <label className="flex items-center"><input type="checkbox" checked={selected} onChange={(ev) => setEdit(s.subscriptionNumber, { selected: ev.target.checked })} className="h-4 w-4 accent-primary" /></label>
+                      <div className="min-w-0">
+                        <div className={`truncate text-sm font-medium ${textPri}`}>{s.customerName}</div>
+                        <div className={`mt-0.5 font-mono text-[11px] ${textQuat}`}>{s.subscriptionNumber}{s.merchantAccountId ? ` · ${s.merchantAccountId}` : ''}</div>
+                      </div>
+                      <div className="min-w-0">
+                        <div className={`truncate text-[13px] ${textSec}`}>{s.planName}</div>
+                        <div className={`mt-0.5 inline-flex items-center gap-1.5 text-[11px] ${textQuat}`}>
+                          <span className="h-[5px] w-[5px] shrink-0 rounded-full" style={{ background: pos.color }} />
+                          {pos.label}
                         </div>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-2 text-right font-medium text-black dark:text-white">{e?.included ? money(nm) : '—'}</td>
-                      <td className="whitespace-nowrap px-4 py-2 text-body dark:text-bodydark">{s.activatedAt ? new Date(s.activatedAt).toLocaleDateString() : '—'}</td>
-                      <td className="whitespace-nowrap px-4 py-2 text-body dark:text-bodydark" title={priceChangeTitle}>{priceChangeLabel}</td>
-                      <td className="px-4 py-2">
-                        {saved && (
-                          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${saved.status === 'pushed' ? 'bg-success/10 text-success' : saved.status === 'push_failed' ? 'bg-danger/10 text-danger' : 'bg-gray-100 text-gray-600 dark:bg-meta-4 dark:text-gray-300'}`} title={saved.pushError || ''}>
-                            {t(`saasIncrease.status.${saved.status}`)}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
+                      </div>
+                      <div className={`justify-self-end text-right text-sm tabular-nums ${textPri}`}>{money(s.currentMonthly)}</div>
+                      <div className="flex items-center gap-1.5">
+                        <div className={`inline-flex rounded-lg p-0.5 ${chipInput}`}>
+                          <button type="button" onClick={() => setEdit(s.subscriptionNumber, { increaseType: 'percent' })} className={segBtn((e?.increaseType || 'percent') === 'percent')}>%</button>
+                          <button type="button" onClick={() => setEdit(s.subscriptionNumber, { increaseType: 'flat' })} className={segBtn(e?.increaseType === 'flat')}>$</button>
+                        </div>
+                        <input
+                          type="number" value={e?.increaseValue || ''} placeholder="0"
+                          onChange={(ev) => setEdit(s.subscriptionNumber, { increaseValue: Number(ev.target.value) || 0 })}
+                          className={`w-[58px] rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary dark:bg-[#0A0A0A] dark:text-white ${included ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
+                        />
+                      </div>
+                      <div className="justify-self-end text-right">
+                        <div className={`text-sm font-medium tabular-nums ${included ? textPri : textSec}`}>{money(nm)}</div>
+                        {included && <div className="mt-0.5 text-[11px] text-emerald-600 dark:text-[#57D193]">+{money(delta)}</div>}
+                      </div>
+                      <div className={`whitespace-nowrap text-xs ${textTer}`}>{s.activatedAt ? new Date(s.activatedAt).toLocaleDateString() : '—'}</div>
+                      <div className={`whitespace-nowrap text-xs ${textTer}`} title={priceChangeTitle}>{priceChangeLabel}</div>
+                      <div className="justify-self-end">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${included ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' : `${raised} ${textTer}`}`}>
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: included ? '#57D193' : '#575A61' }} />
+                          {included ? t('saasIncrease.increaseSet') : t('saasIncrease.notChecked')}
+                        </span>
+                      </div>
+                    </div>
                   );
                 };
                 if (groupedFiltered) {
                   return groupedFiltered.flatMap(([planName, rows]) => [
-                    <tr key={`group-${planName}`} className="bg-gray-50 dark:bg-meta-4/40">
-                      <td colSpan={9} className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                        {planName} · {t('saasIncrease.groupCount', { count: rows.length })} · {money(rows.reduce((sum, r) => sum + r.currentMonthly, 0))}
-                      </td>
-                    </tr>,
+                    <div key={`group-${planName}`} className={`${raised} border-b border-gray-100 px-4.5 py-1.5 text-xs font-semibold uppercase tracking-wide dark:border-[#1B1B1B] ${textTer}`}>
+                      {planName} · {t('saasIncrease.groupCount', { count: rows.length })} · {money(rows.reduce((sum, r) => sum + r.currentMonthly, 0))}
+                    </div>,
                     ...rows.map(renderRow),
                   ]);
                 }
                 return filtered.map(renderRow);
               })()}
               {!loading && filtered.length === 0 && (
-                <tr><td colSpan={9} className="px-4 py-8 text-center text-sm text-gray-400">{t('saasIncrease.none')}</td></tr>
+                <div className={`px-4 py-12 text-center text-sm ${textTer}`}>{t('saasIncrease.none')}</div>
               )}
-            </tbody>
-          </table>
+            </div>
+
+            {/* footer */}
+            <div className="flex items-center justify-between border-t border-gray-100 px-4.5 py-3 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]">
+              <span className={`text-sm ${textTer}`}>{t('saasIncrease.showingOf', { visible: filtered.length, total: subs.length })}</span>
+              <span className={`text-sm ${textSec}`}>{t('saasIncrease.selectedCountLabel', { count: selectedRows.length })} · <span className="font-medium text-primary dark:text-[#F79C6A]">{money(selectedDelta)}/mo</span> {t('saasIncrease.added')}</span>
+            </div>
+          </div>
         </div>
       </div>
 
       {activeScenarioId && (
-        <div className="mt-4 flex justify-end gap-3">
-          <button onClick={exportScenario} disabled={exporting} className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
-            {exporting ? t('saasIncrease.exporting') : t('saasIncrease.exportCsv')}
-          </button>
-          <button onClick={saveScenario} disabled={saving} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+        <div className="mt-4 flex justify-end">
+          <button onClick={saveScenario} disabled={saving} className={btnPrimary}>
             {saving ? t('saasIncrease.saving') : t('saasIncrease.saveDraft')}
           </button>
         </div>
@@ -548,30 +680,30 @@ const SaasIncrease: React.FC = () => {
           separate from the simulator table above (which mixes in not-yet-saved rows); this
           only lists rows already saved to the active scenario. */}
       {activeScenarioId && Object.keys(savedItems).length > 0 && (
-        <div className="mt-6 overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke px-5 py-3 dark:border-strokedark">
+        <div className={`${card} mt-6 overflow-hidden`}>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
             <div>
-              <h4 className="text-sm font-semibold text-black dark:text-white">{t('saasIncrease.notify.title')}</h4>
-              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t('saasIncrease.notify.subtitle')}</p>
+              <h4 className={`text-sm font-semibold ${textPri}`}>{t('saasIncrease.notify.title')}</h4>
+              <p className={`mt-0.5 text-xs ${textTer}`}>{t('saasIncrease.notify.subtitle')}</p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => draftNotifications(Array.from(notifySelected))}
                 disabled={notifySelected.size === 0}
-                className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+                className={`${btnSecondary} px-3 py-1.5 text-xs`}
               >
                 {t('saasIncrease.notify.draftSelected', { count: notifySelected.size })}
               </button>
               <button
                 onClick={() => sendNotifications(Array.from(notifySelected))}
                 disabled={notifySelected.size === 0}
-                className="rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-50"
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A] dark:hover:bg-opacity-90"
               >
                 {t('saasIncrease.notify.sendSelected', { count: notifySelected.size })}
               </button>
             </div>
           </div>
-          <div className="divide-y divide-stroke dark:divide-strokedark">
+          <div className={`divide-y ${divider}`}>
             {Object.values(savedItems).map(item => {
               const draft = notifyEdits[item.id] || { to: '', subject: '', body: '' };
               const expanded = expandedNotifyId === item.id;
@@ -579,59 +711,59 @@ const SaasIncrease: React.FC = () => {
               return (
                 <div key={item.id} className="px-5 py-3">
                   <div className="flex items-center gap-3">
-                    <input type="checkbox" checked={notifySelected.has(item.id)} onChange={() => toggleNotifySelected(item.id)} />
+                    <input type="checkbox" checked={notifySelected.has(item.id)} onChange={() => toggleNotifySelected(item.id)} className="accent-primary" />
                     <button type="button" onClick={() => setExpandedNotifyId(expanded ? null : item.id)} className="flex flex-1 items-center justify-between gap-3 text-left">
                       <div>
-                        <div className="font-medium text-black dark:text-white">{item.customerName}</div>
-                        <div className="text-xs text-gray-400">{item.subscriptionNumber} · {money(item.currentMonthly)} → {money(item.newMonthly)}</div>
+                        <div className={`font-medium ${textPri}`}>{item.customerName}</div>
+                        <div className={`text-xs ${textQuat}`}>{item.subscriptionNumber} · {money(item.currentMonthly)} → {money(item.newMonthly)}</div>
                       </div>
                       <div className="flex items-center gap-2">
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                            item.notifyStatus === 'sent' ? 'bg-success/10 text-success' :
-                            item.notifyStatus === 'send_failed' ? 'bg-danger/10 text-danger' :
+                            item.notifyStatus === 'sent' ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' :
+                            item.notifyStatus === 'send_failed' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
                             item.notifyStatus === 'drafted' ? 'bg-primary/10 text-primary' :
-                            'bg-gray-100 text-gray-600 dark:bg-meta-4 dark:text-gray-300'
+                            `${raised} ${textTer}`
                           }`}
                           title={item.notifyError || ''}
                         >
                           {t(`saasIncrease.notify.status.${item.notifyStatus}`)}
                         </span>
-                        <svg className={`h-4 w-4 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        <ChevronDown className={`h-4 w-4 ${textQuat} transition-transform ${expanded ? 'rotate-180' : ''}`} />
                       </div>
                     </button>
                   </div>
                   {expanded && (
-                    <div className="mt-3 space-y-2 rounded-lg border border-stroke p-3 dark:border-strokedark">
+                    <div className={`mt-3 space-y-2 rounded-lg border border-gray-200 p-3 dark:border-[#1B1B1B]`}>
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">{t('saasIncrease.notify.to')}</label>
+                        <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.notify.to')}</label>
                         <input
                           value={draft.to} onChange={(e) => setNotifyEdits(prev => ({ ...prev, [item.id]: { ...draft, to: e.target.value } }))}
-                          placeholder="client@example.com" className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark"
+                          placeholder="client@example.com" className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
                         />
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">{t('saasIncrease.notify.subject')}</label>
+                        <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.notify.subject')}</label>
                         <input
                           value={draft.subject} onChange={(e) => setNotifyEdits(prev => ({ ...prev, [item.id]: { ...draft, subject: e.target.value } }))}
-                          className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark"
+                          className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
                         />
                       </div>
                       <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">{t('saasIncrease.notify.body')}</label>
+                        <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.notify.body')}</label>
                         <textarea
                           value={draft.body} onChange={(e) => setNotifyEdits(prev => ({ ...prev, [item.id]: { ...draft, body: e.target.value } }))}
-                          rows={7} className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm dark:border-strokedark dark:bg-boxdark"
+                          rows={7} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
                         />
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => draftNotifications([item.id])} disabled={busy} className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+                        <button onClick={() => draftNotifications([item.id])} disabled={busy} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
                           {t('saasIncrease.notify.draft')}
                         </button>
-                        <button onClick={() => previewNotification(item.id)} disabled={busy || !draft.body} className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+                        <button onClick={() => previewNotification(item.id)} disabled={busy || !draft.body} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
                           {t('saasIncrease.notify.preview')}
                         </button>
-                        <button onClick={() => sendNotifications([item.id])} disabled={busy || !draft.to || !draft.subject} className="rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+                        <button onClick={() => sendNotifications([item.id])} disabled={busy || !draft.to || !draft.subject} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A]">
                           {busy ? t('saasIncrease.notify.sending') : t('saasIncrease.notify.send')}
                         </button>
                       </div>
@@ -647,11 +779,11 @@ const SaasIncrease: React.FC = () => {
       {/* Email preview modal — srcDoc renders the exact HTML /send would email, read-only */}
       {emailPreview && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setEmailPreview(null)}>
-          <div className="flex h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
-              <p className="font-semibold text-black dark:text-white">{t('saasIncrease.notify.previewTitle')}</p>
-              <button onClick={() => setEmailPreview(null)} className="text-body transition hover:text-danger">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          <div className={`flex h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
+              <p className={`font-semibold ${textPri}`}>{t('saasIncrease.notify.previewTitle')}</p>
+              <button onClick={() => setEmailPreview(null)} className={`${textSec} transition hover:text-red-500`}>
+                <X className="h-5 w-5" />
               </button>
             </div>
             <div className="relative flex-1 overflow-y-auto bg-[#eef1f6]">
