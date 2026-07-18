@@ -438,8 +438,8 @@ const SaasIncrease: React.FC = () => {
               <span className={`text-xs ${textTer}`}>{t('saasIncrease.subsOfTotal', { included: includedCount, total: subs.length })}</span>
             </div>
             <div className="my-4">
-              <div className="flex items-baseline gap-2.5">
-                <span className="text-[44px] font-semibold leading-none tracking-tight text-primary dark:text-[#F79C6A]">{money(mrrDelta)}</span>
+              <div className="flex flex-wrap items-baseline gap-2.5">
+                <span className="break-words text-[44px] font-semibold leading-none tracking-tight text-primary dark:text-[#F79C6A]">{money(mrrDelta)}</span>
                 <span className={`text-[15px] ${textTer}`}>/ {money(targetMrr)} {t('saasIncrease.mrrTarget')}</span>
               </div>
               <div className={`mt-1.5 text-sm ${textSec}`}>{t('saasIncrease.projectedAdd')} · <span className={textPri + ' font-medium'}>{pct.toFixed(1)}%</span> {t('saasIncrease.ofTarget')}</div>
@@ -456,24 +456,24 @@ const SaasIncrease: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className={`${raised} p-4`}>
-              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Layers className="h-3.5 w-3.5" /> {t('saasIncrease.statSubsIncluded')}</div>
-              <div className={`mt-2 text-[26px] font-semibold tracking-tight ${textPri}`}>{includedCount}</div>
+            <div className={`${raised} min-w-0 p-4`}>
+              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Layers className="h-3.5 w-3.5 shrink-0" /> {t('saasIncrease.statSubsIncluded')}</div>
+              <div className={`mt-2 break-words text-[22px] font-semibold leading-tight tracking-tight ${textPri}`}>{includedCount}</div>
               <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statOfLive', { total: subs.length })}</div>
             </div>
-            <div className={`${raised} p-4`}>
-              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Percent className="h-3.5 w-3.5" /> {t('saasIncrease.statAvgIncrease')}</div>
-              <div className={`mt-2 text-[26px] font-semibold tracking-tight ${textPri}`}>{includedCount ? `${avgIncreasePct.toFixed(1)}%` : '—'}</div>
+            <div className={`${raised} min-w-0 p-4`}>
+              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Percent className="h-3.5 w-3.5 shrink-0" /> {t('saasIncrease.statAvgIncrease')}</div>
+              <div className={`mt-2 break-words text-[22px] font-semibold leading-tight tracking-tight ${textPri}`}>{includedCount ? `${avgIncreasePct.toFixed(1)}%` : '—'}</div>
               <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statOnIncluded')}</div>
             </div>
-            <div className={`${raised} p-4`}>
-              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Wallet className="h-3.5 w-3.5" /> {t('saasIncrease.statCurrentMrr')}</div>
-              <div className={`mt-2 text-[26px] font-semibold tracking-tight ${textPri}`}>{money(currentTotal)}</div>
+            <div className={`${raised} min-w-0 p-4`}>
+              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Wallet className="h-3.5 w-3.5 shrink-0" /> {t('saasIncrease.statCurrentMrr')}</div>
+              <div className={`mt-2 break-words text-[22px] font-semibold leading-tight tracking-tight ${textPri}`}>{money(currentTotal)}</div>
               <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statAllLive')}</div>
             </div>
-            <div className={`${raised} p-4`}>
-              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><TrendingUp className="h-3.5 w-3.5" /> {t('saasIncrease.statNewMrr')}</div>
-              <div className="mt-2 text-[26px] font-semibold tracking-tight text-emerald-600 dark:text-[#57D193]">{money(newTotal)}</div>
+            <div className={`${raised} min-w-0 p-4`}>
+              <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><TrendingUp className="h-3.5 w-3.5 shrink-0" /> {t('saasIncrease.statNewMrr')}</div>
+              <div className="mt-2 break-words text-[22px] font-semibold leading-tight tracking-tight text-emerald-600 dark:text-[#57D193]">{money(newTotal)}</div>
               <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statAfterIncreases')}</div>
             </div>
           </div>
