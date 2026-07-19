@@ -468,12 +468,12 @@ const SaasIncrease: React.FC = () => {
             </div>
             <div className={`${raised} min-w-0 p-4`}>
               <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Wallet className="h-3.5 w-3.5 shrink-0" /> {t('saasIncrease.statCurrentMrr')}</div>
-              <div className={`mt-2 break-words text-[22px] font-semibold leading-tight tracking-tight ${textPri}`}>{money(currentTotal)}</div>
+              <div className={`mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-[18px] font-semibold leading-tight tracking-tight ${textPri}`} title={money(currentTotal)}>{money(currentTotal)}</div>
               <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statAllLive')}</div>
             </div>
             <div className={`${raised} min-w-0 p-4`}>
               <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><TrendingUp className="h-3.5 w-3.5 shrink-0" /> {t('saasIncrease.statNewMrr')}</div>
-              <div className="mt-2 break-words text-[22px] font-semibold leading-tight tracking-tight text-emerald-600 dark:text-[#57D193]">{money(newTotal)}</div>
+              <div className="mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-[18px] font-semibold leading-tight tracking-tight text-emerald-600 dark:text-[#57D193]" title={money(newTotal)}>{money(newTotal)}</div>
               <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statAfterIncreases')}</div>
             </div>
           </div>
