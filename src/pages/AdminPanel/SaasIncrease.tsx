@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
-import { RefreshCw, Download, Search, ChevronDown, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X } from 'lucide-react';
+import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -197,7 +197,13 @@ const SaasIncrease: React.FC = () => {
   const setEdit = (num: string, patch: Partial<RowEdit>) => {
     setEdits(prev => {
       const base: RowEdit = prev[num] || { selected: false, increaseType: 'percent', increaseValue: 0 };
-      return { ...prev, [num]: { ...base, ...patch } };
+      const merged = { ...base, ...patch };
+      // Typing a real increase value implicitly means "this row is part of my plan" — auto-check
+      // it too, so a single-row edit doesn't also require a separate checkbox click to be
+      // reflected in the "N selected" footer/bulk count. (Explicit checkbox clicks for
+      // bulk-selecting still work independently of this.)
+      if (patch.increaseValue !== undefined && patch.increaseValue > 0) merged.selected = true;
+      return { ...prev, [num]: merged };
     });
   };
 
@@ -384,6 +390,16 @@ const SaasIncrease: React.FC = () => {
   const selectedRows = subs.filter(s => edits[s.subscriptionNumber]?.selected);
   const selectedDelta = selectedRows.reduce((sum, s) => sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly), 0);
 
+  // Rows with an increase set that aren't (yet) reflected in the saved scenario — drives the
+  // "N pending" hint on the Save button, since nothing before that click is actually persisted.
+  const unsavedCount = subs.filter(s => {
+    if (!isIncluded(s.subscriptionNumber)) return false;
+    const e = edits[s.subscriptionNumber];
+    const saved = savedItems[s.subscriptionNumber];
+    if (!saved) return true;
+    return saved.increaseType !== e.increaseType || saved.increaseValue !== e.increaseValue;
+  }).length;
+
   // Style fragments for the Kaizen redesign — near-black grays that don't exist in this app's
   // shared dark-mode palette (boxdark/meta-4 are blue-slate), so they're arbitrary-value Tailwind
   // classes scoped to just this file rather than new shared tokens. Light-mode values are derived
@@ -504,6 +520,28 @@ const SaasIncrease: React.FC = () => {
           <Plus className="h-4 w-4" /> {t('saasIncrease.createScenario')}
         </button>
       </div>
+
+      {/* Workflow legend — the sequence isn't obvious from the controls alone: set increases on
+          rows (or select some + use Bulk), Save persists them as the real scenario, then Notify
+          drafts/sends the merchant emails. Purely explanatory, no state tracking. */}
+      {activeScenarioId && (
+        <div className={`${card} mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3`}>
+          <span className={`flex items-center gap-1.5 text-xs font-medium ${textPri}`}>
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white">1</span>
+            {t('saasIncrease.stepSetIncreases')}
+          </span>
+          <ChevronRight className={`h-3.5 w-3.5 ${textQuat}`} />
+          <span className={`flex items-center gap-1.5 text-xs ${textSec}`}>
+            <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${raised} ${textPri}`}>2</span>
+            {t('saasIncrease.stepSave')}
+          </span>
+          <ChevronRight className={`h-3.5 w-3.5 ${textQuat}`} />
+          <span className={`flex items-center gap-1.5 text-xs ${textSec}`}>
+            <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${raised} ${textPri}`}>3</span>
+            {t('saasIncrease.stepNotify')}
+          </span>
+        </div>
+      )}
 
       {error && <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-500/10 dark:text-red-400">{error}</p>}
 
@@ -669,9 +707,9 @@ const SaasIncrease: React.FC = () => {
       </div>
 
       {activeScenarioId && (
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex items-center justify-end">
           <button onClick={saveScenario} disabled={saving} className={btnPrimary}>
-            {saving ? t('saasIncrease.saving') : t('saasIncrease.saveDraft')}
+            {saving ? t('saasIncrease.saving') : unsavedCount > 0 ? t('saasIncrease.saveDraftWithCount', { count: unsavedCount }) : t('saasIncrease.saveDraft')}
           </button>
         </div>
       )}
