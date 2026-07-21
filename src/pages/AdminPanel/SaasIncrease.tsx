@@ -80,7 +80,7 @@ const SaasIncrease: React.FC = () => {
   const [orgFilter, setOrgFilter] = useState('');
   const [planFilter, setPlanFilter] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('name');
-  const [groupByPlan, setGroupByPlan] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [refreshingInsights, setRefreshingInsights] = useState(false);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
@@ -181,18 +181,26 @@ const SaasIncrease: React.FC = () => {
     });
   }, [subs, search, orgFilter, planFilter, sortBy]);
 
-  // Group-by-plan view: same filtered+sorted rows, just bucketed under a plan header instead
-  // of one flat list. null when the toggle is off (flat rendering).
-  const groupedFiltered = useMemo(() => {
-    if (!groupByPlan) return null;
+// Org → plan groups (collapsed by default) — with 3500+ subscriptions, a flat list wasn't
+  // scannable. Each group key is "org||plan" so same-named plans on different orgs (e.g. two
+  // "Premium Monthly" plans under different orgs) don't get merged into one bucket.
+  const groupedRows = useMemo(() => {
     const groups = new Map<string, Subscription[]>();
     for (const s of filtered) {
-      const key = s.planName || (t('saasIncrease.noPlan') as string);
+      const key = `${s.orgName}||${s.planName || (t('saasIncrease.noPlan') as string)}`;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(s);
     }
     return Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-  }, [filtered, groupByPlan, t]);
+  }, [filtered, t]);
+
+  const toggleGroup = (key: string) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
 
   const setEdit = (num: string, patch: Partial<RowEdit>) => {
     setEdits(prev => {
@@ -580,10 +588,18 @@ const SaasIncrease: React.FC = () => {
             </select>
             <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textTer}`} />
           </div>
-          <label className={`flex items-center gap-1.5 text-sm ${textSec}`}>
-            <input type="checkbox" checked={groupByPlan} onChange={(e) => setGroupByPlan(e.target.checked)} className="accent-primary" />
-            {t('saasIncrease.groupByPlan')}
-          </label>
+          <button
+            onClick={() => setExpandedGroups(new Set(groupedRows.map(([key]) => key)))}
+            className={`${raised} px-2.5 py-2 text-xs font-medium ${textSec} hover:text-gray-900 dark:hover:text-white`}
+          >
+            {t('saasIncrease.expandAll')}
+          </button>
+          <button
+            onClick={() => setExpandedGroups(new Set())}
+            className={`${raised} px-2.5 py-2 text-xs font-medium ${textSec} hover:text-gray-900 dark:hover:text-white`}
+          >
+            {t('saasIncrease.collapseAll')}
+          </button>
           <button onClick={() => loadSubs(true)} disabled={loading} title={t('saasIncrease.refresh') as string} className={`${raised} flex h-9 w-9 items-center justify-center ${textSec} hover:text-gray-900 dark:hover:text-white`}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -682,15 +698,31 @@ const SaasIncrease: React.FC = () => {
                     </div>
                   );
                 };
-                if (groupedFiltered) {
-                  return groupedFiltered.flatMap(([planName, rows]) => [
-                    <div key={`group-${planName}`} className={`${raised} border-b border-gray-100 px-4.5 py-1.5 text-xs font-semibold uppercase tracking-wide dark:border-[#1B1B1B] ${textTer}`}>
-                      {planName} · {t('saasIncrease.groupCount', { count: rows.length })} · {money(rows.reduce((sum, r) => sum + r.currentMonthly, 0))}
-                    </div>,
-                    ...rows.map(renderRow),
-                  ]);
-                }
-                return filtered.map(renderRow);
+                return groupedRows.flatMap(([key, rows]) => {
+                  const expanded = expandedGroups.has(key);
+                  const [orgLabel, planLabel] = key.split('||');
+                  const groupCurrentTotal = rows.reduce((sum, r) => sum + r.currentMonthly, 0);
+                  const groupIncludedCount = rows.filter(r => isIncluded(r.subscriptionNumber)).length;
+                  const header = (
+                    <button
+                      key={`group-${key}`} type="button" onClick={() => toggleGroup(key)}
+                      className={`flex w-full items-center gap-2.5 border-b border-gray-100 px-4.5 py-2.5 text-left dark:border-[#1B1B1B] ${raised} hover:brightness-95 dark:hover:brightness-110`}
+                    >
+                      <ChevronRight className={`h-4 w-4 shrink-0 ${textQuat} transition-transform ${expanded ? 'rotate-90' : ''}`} />
+                      <span className={`text-sm font-medium ${textPri}`}>{planLabel}</span>
+                      <span className={`inline-flex items-center gap-1.5 text-[11px] ${textQuat}`}>
+                        <span className="h-[5px] w-[5px] shrink-0 rounded-full" style={{ background: posLabelFor(planLabel, orgLabel).color }} />
+                        {orgLabel}
+                      </span>
+                      <span className={`ml-auto text-xs ${textTer}`}>
+                        {t('saasIncrease.groupCount', { count: rows.length })}
+                        {groupIncludedCount > 0 && ` · ${t('saasIncrease.groupIncluded', { count: groupIncludedCount })}`}
+                        {' · '}{money(groupCurrentTotal)}
+                      </span>
+                    </button>
+                  );
+                  return expanded ? [header, ...rows.map(renderRow)] : [header];
+                });
               })()}
               {!loading && filtered.length === 0 && (
                 <div className={`px-4 py-12 text-center text-sm ${textTer}`}>{t('saasIncrease.none')}</div>
