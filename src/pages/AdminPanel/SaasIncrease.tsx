@@ -208,10 +208,22 @@ const SaasIncrease: React.FC = () => {
       const merged = { ...base, ...patch };
       // Typing a real increase value implicitly means "this row is part of my plan" — auto-check
       // it too, so a single-row edit doesn't also require a separate checkbox click to be
-      // reflected in the "N selected" footer/bulk count. (Explicit checkbox clicks for
-      // bulk-selecting still work independently of this.)
+      // reflected in the "N selected" footer/bulk count.
       if (patch.increaseValue !== undefined && patch.increaseValue > 0) merged.selected = true;
+      // ...and the reverse: unchecking a row is how you undo an applied increase — it wouldn't
+      // otherwise clear the typed value, so the row would silently stay "included."
+      if (patch.selected === false) merged.increaseValue = 0;
       return { ...prev, [num]: merged };
+    });
+  };
+
+  // Full undo for a batch of rows (paired with applyBulkToSelected/applyBulkToGroup) — clears
+  // both the value and the selection, same as unchecking each row individually.
+  const clearRows = (rows: Subscription[]) => {
+    setEdits(prev => {
+      const next = { ...prev };
+      for (const s of rows) next[s.subscriptionNumber] = { selected: false, increaseType: 'percent', increaseValue: 0 };
+      return next;
     });
   };
 
@@ -630,9 +642,17 @@ const SaasIncrease: React.FC = () => {
             <button
               onClick={applyBulkToSelected}
               disabled={selectedRows.length === 0}
-              className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ${selectedRows.length > 0 ? 'bg-primary text-white' : `${raised} ${textQuat} cursor-not-allowed`}`}
+              className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed ${selectedRows.length > 0 ? 'bg-primary text-white' : `${raised} ${textQuat}`}`}
             >
               <CheckCheck className="h-3.5 w-3.5" /> {t('saasIncrease.applyToSelected', { count: selectedRows.length })}
+            </button>
+            <button
+              onClick={() => clearRows(selectedRows)}
+              disabled={selectedRows.length === 0}
+              title={t('saasIncrease.clearSelectedHint') as string}
+              className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${raised} ${textSec} hover:text-gray-900 dark:hover:text-white`}
+            >
+              <X className="h-3.5 w-3.5" /> {t('saasIncrease.clearSelected')}
             </button>
           </div>
         </div>
@@ -742,6 +762,15 @@ const SaasIncrease: React.FC = () => {
                         <CheckCheck className="h-3.5 w-3.5" />
                         {t('saasIncrease.applyToGroup', { value: bulkType === 'percent' ? `${bulkValue}%` : money(bulkValue) })}
                       </button>
+                      {groupIncludedCount > 0 && (
+                        <button
+                          type="button" onClick={() => clearRows(rows)}
+                          title={t('saasIncrease.clearGroupHint') as string}
+                          className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium ${chipInput} ${textSec} hover:text-gray-900 dark:hover:text-white`}
+                        >
+                          <X className="h-3.5 w-3.5" /> {t('saasIncrease.clearGroup')}
+                        </button>
+                      )}
                     </div>
                   );
                   return expanded ? [header, ...rows.map(renderRow)] : [header];
