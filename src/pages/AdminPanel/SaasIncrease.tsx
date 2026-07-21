@@ -229,12 +229,14 @@ const SaasIncrease: React.FC = () => {
 
   const isIncluded = (num: string) => (edits[num]?.increaseValue ?? 0) > 0;
 
-  const allVisibleSelected = filtered.length > 0 && filtered.every(s => edits[s.subscriptionNumber]?.selected);
-  const toggleAllVisible = () => {
-    const target = !allVisibleSelected;
+  // Select-all now lives per-group (the column header only renders inside an expanded group) —
+  // "select everything in this group" rather than one global toggle for the whole filtered list.
+  const isGroupAllSelected = (rows: Subscription[]) => rows.length > 0 && rows.every(r => edits[r.subscriptionNumber]?.selected);
+  const toggleGroupSelectAll = (rows: Subscription[]) => {
+    const target = !isGroupAllSelected(rows);
     setEdits(prev => {
       const next = { ...prev };
-      for (const s of filtered) {
+      for (const s of rows) {
         const base = next[s.subscriptionNumber] || { selected: false, increaseType: 'percent' as const, increaseValue: 0 };
         next[s.subscriptionNumber] = { ...base, selected: target };
       }
@@ -657,24 +659,24 @@ const SaasIncrease: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <div className="min-w-[1150px]">
-            {/* header */}
-            <div className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 bg-gray-50 px-4.5 py-2.5 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]`}>
-              <label className="flex items-center"><input type="checkbox" checked={allVisibleSelected} onChange={toggleAllVisible} className="h-4 w-4 accent-primary" /></label>
-              <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCustomer')}</span>
-              <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colPlan')}</span>
-              <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCurrent')}</span>
-              <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colIncrease')}</span>
-              <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colNew')}</span>
-              <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colActivated')}</span>
-              <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colLastPriceChange')}</span>
-              <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colStatus')}</span>
-            </div>
-
-            {/* rows */}
-            <div>
-              {(() => {
+        {/* rows — each group's own column header + rows appear only once expanded, in a
+            scroll region scoped to that group, instead of one page-wide header/scrollbar
+            sitting above the whole (mostly collapsed) list. */}
+        <div>
+          {(() => {
+                const columnHeader = (rows: Subscription[]) => (
+                  <div className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 bg-gray-50 px-4.5 py-2 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]`}>
+                    <label className="flex items-center"><input type="checkbox" checked={isGroupAllSelected(rows)} onChange={() => toggleGroupSelectAll(rows)} className="h-4 w-4 accent-primary" /></label>
+                    <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCustomer')}</span>
+                    <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colPlan')}</span>
+                    <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCurrent')}</span>
+                    <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colIncrease')}</span>
+                    <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colNew')}</span>
+                    <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colActivated')}</span>
+                    <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colLastPriceChange')}</span>
+                    <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colStatus')}</span>
+                  </div>
+                );
                 const renderRow = (s: Subscription) => {
                   const e = edits[s.subscriptionNumber];
                   const included = isIncluded(s.subscriptionNumber);
@@ -773,20 +775,27 @@ const SaasIncrease: React.FC = () => {
                       )}
                     </div>
                   );
-                  return expanded ? [header, ...rows.map(renderRow)] : [header];
+                  if (!expanded) return [header];
+                  return [
+                    header,
+                    <div key={`group-body-${key}`} className="overflow-x-auto">
+                      <div className="min-w-[1000px]">
+                        {columnHeader(rows)}
+                        {rows.map(renderRow)}
+                      </div>
+                    </div>,
+                  ];
                 });
               })()}
-              {!loading && filtered.length === 0 && (
-                <div className={`px-4 py-12 text-center text-sm ${textTer}`}>{t('saasIncrease.none')}</div>
-              )}
-            </div>
+          {!loading && filtered.length === 0 && (
+            <div className={`px-4 py-12 text-center text-sm ${textTer}`}>{t('saasIncrease.none')}</div>
+          )}
+        </div>
 
-            {/* footer */}
-            <div className="flex items-center justify-between border-t border-gray-100 px-4.5 py-3 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]">
-              <span className={`text-sm ${textTer}`}>{t('saasIncrease.showingOf', { visible: filtered.length, total: subs.length })}</span>
-              <span className={`text-sm ${textSec}`}>{t('saasIncrease.selectedCountLabel', { count: selectedRows.length })} · <span className="font-medium text-primary dark:text-[#F79C6A]">{money(selectedDelta)}/mo</span> {t('saasIncrease.added')}</span>
-            </div>
-          </div>
+        {/* footer */}
+        <div className="flex items-center justify-between border-t border-gray-100 px-4.5 py-3 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]">
+          <span className={`text-sm ${textTer}`}>{t('saasIncrease.showingOf', { visible: filtered.length, total: subs.length })}</span>
+          <span className={`text-sm ${textSec}`}>{t('saasIncrease.selectedCountLabel', { count: selectedRows.length })} · <span className="font-medium text-primary dark:text-[#F79C6A]">{money(selectedDelta)}/mo</span> {t('saasIncrease.added')}</span>
         </div>
       </div>
 
