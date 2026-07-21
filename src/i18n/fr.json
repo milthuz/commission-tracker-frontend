@@ -657,6 +657,8 @@
     "allOrgs": "Toutes les organisations",
     "allPlans": "Tous les forfaits",
     "applyToSelected": "Appliquer à {{count}}",
+    "applyToGroup": "Appliquer {{value}} au groupe",
+    "applyToGroupHint": "Applique la valeur % / $ définie dans « Lot » ci-dessus à tous les abonnements de ce groupe.",
     "refresh": "Actualiser",
     "activeScenario": "Scénario actif",
     "subsOfTotal": "{{included}} sur {{total}} abonnements",

@@ -657,6 +657,8 @@
     "allOrgs": "All organizations",
     "allPlans": "All plans",
     "applyToSelected": "Apply to {{count}}",
+    "applyToGroup": "Apply {{value}} to group",
+    "applyToGroupHint": "Applies the Bulk %/$ value set in the toolbar above to every subscription in this group.",
     "refresh": "Refresh",
     "activeScenario": "Active scenario",
     "subsOfTotal": "{{included}} of {{total}} subs",

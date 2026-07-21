@@ -242,6 +242,19 @@ const SaasIncrease: React.FC = () => {
     });
   };
 
+  // Applies the toolbar's current bulk %/$ value to every subscription in one group at once —
+  // reuses the same bulkType/bulkValue as "Apply to selected" rather than adding a separate
+  // input per group header (would get noisy with dozens of groups).
+  const applyBulkToGroup = (rows: Subscription[]) => {
+    setEdits(prev => {
+      const next = { ...prev };
+      for (const s of rows) {
+        next[s.subscriptionNumber] = { selected: true, increaseType: bulkType, increaseValue: bulkValue };
+      }
+      return next;
+    });
+  };
+
   const newMonthlyFor = (s: Subscription, e?: RowEdit) => {
     if (!e) return s.currentMonthly;
     return e.increaseType === 'flat' ? s.currentMonthly + (Number(e.increaseValue) || 0) : s.currentMonthly * (1 + (Number(e.increaseValue) || 0) / 100);
@@ -704,22 +717,32 @@ const SaasIncrease: React.FC = () => {
                   const groupCurrentTotal = rows.reduce((sum, r) => sum + r.currentMonthly, 0);
                   const groupIncludedCount = rows.filter(r => isIncluded(r.subscriptionNumber)).length;
                   const header = (
-                    <button
-                      key={`group-${key}`} type="button" onClick={() => toggleGroup(key)}
-                      className={`flex w-full items-center gap-2.5 border-b border-gray-100 px-4.5 py-2.5 text-left dark:border-[#1B1B1B] ${raised} hover:brightness-95 dark:hover:brightness-110`}
+                    <div
+                      key={`group-${key}`}
+                      className={`flex w-full items-center gap-2.5 border-b border-gray-100 px-4.5 py-2.5 dark:border-[#1B1B1B] ${raised}`}
                     >
-                      <ChevronRight className={`h-4 w-4 shrink-0 ${textQuat} transition-transform ${expanded ? 'rotate-90' : ''}`} />
-                      <span className={`text-sm font-medium ${textPri}`}>{planLabel}</span>
-                      <span className={`inline-flex items-center gap-1.5 text-[11px] ${textQuat}`}>
-                        <span className="h-[5px] w-[5px] shrink-0 rounded-full" style={{ background: posLabelFor(planLabel, orgLabel).color }} />
-                        {orgLabel}
-                      </span>
-                      <span className={`ml-auto text-xs ${textTer}`}>
-                        {t('saasIncrease.groupCount', { count: rows.length })}
-                        {groupIncludedCount > 0 && ` · ${t('saasIncrease.groupIncluded', { count: groupIncludedCount })}`}
-                        {' · '}{money(groupCurrentTotal)}
-                      </span>
-                    </button>
+                      <button type="button" onClick={() => toggleGroup(key)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left hover:brightness-95 dark:hover:brightness-110">
+                        <ChevronRight className={`h-4 w-4 shrink-0 ${textQuat} transition-transform ${expanded ? 'rotate-90' : ''}`} />
+                        <span className={`truncate text-sm font-medium ${textPri}`}>{planLabel}</span>
+                        <span className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] ${textQuat}`}>
+                          <span className="h-[5px] w-[5px] shrink-0 rounded-full" style={{ background: posLabelFor(planLabel, orgLabel).color }} />
+                          {orgLabel}
+                        </span>
+                        <span className={`ml-auto shrink-0 text-xs ${textTer}`}>
+                          {t('saasIncrease.groupCount', { count: rows.length })}
+                          {groupIncludedCount > 0 && ` · ${t('saasIncrease.groupIncluded', { count: groupIncludedCount })}`}
+                          {' · '}{money(groupCurrentTotal)}
+                        </span>
+                      </button>
+                      <button
+                        type="button" onClick={() => applyBulkToGroup(rows)} disabled={bulkValue <= 0}
+                        title={t('saasIncrease.applyToGroupHint') as string}
+                        className={`ml-2 inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50 ${bulkValue > 0 ? 'bg-primary text-white hover:bg-opacity-90' : `${chipInput} ${textQuat}`}`}
+                      >
+                        <CheckCheck className="h-3.5 w-3.5" />
+                        {t('saasIncrease.applyToGroup', { value: bulkType === 'percent' ? `${bulkValue}%` : money(bulkValue) })}
+                      </button>
+                    </div>
                   );
                   return expanded ? [header, ...rows.map(renderRow)] : [header];
                 });
