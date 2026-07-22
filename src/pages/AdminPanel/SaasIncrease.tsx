@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings } from 'lucide-react';
+import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -38,6 +38,8 @@ interface ScenarioItem {
   notifyStatus: string; notifyError: string | null;
 }
 interface EmailTemplate { id: number; name: string; subjectEn: string; bodyEn: string; subjectFr: string; bodyFr: string; isDefault: boolean }
+interface CalibrationBucket { sizeBucket: string; tenureBucket: string; n: number; churned: number; stillLive: number; observedRate: number | null; insufficientData: boolean }
+interface Calibration { buckets: CalibrationBucket[]; baseline: CalibrationBucket; minSample: number; computedAt: string }
 // `selected` (checkbox — drives bulk-apply targeting + the footer's "N selected" count) is
 // deliberately independent from "included" (derived as increaseValue > 0) — matches the design
 // handoff's model, where you can select a batch of rows first, then bulk-apply a rule to them,
@@ -67,6 +69,60 @@ const posLabelFor = (planName: string, orgName: string) => {
   for (const k of POS_KEYWORDS) if (k.match.test(planName)) return { label: k.label, color: k.color };
   return { label: orgName || '—', color: '#999AA7' };
 };
+
+// Churn-risk heuristic — deliberately transparent (a small integer score with named reasons)
+// rather than a predicted probability. The base scoring below is a hand-picked starting point;
+// when enough real history exists (see the churn-history backfill + calibration endpoint), the
+// final tier for the size×tenure combination is overridden by the actual observed churn rate
+// from Cluster's own book of business instead of the guessed weights — falls back to the
+// heuristic below whenever a bucket doesn't have enough samples yet (insufficientData).
+type RiskTier = 'low' | 'medium' | 'high';
+const RISK_CALIBRATION_HIGH_RATE = 0.30; // observed churn rate above this → high, calibrated override
+const RISK_CALIBRATION_MEDIUM_RATE = 0.15;
+function saasSizeBucket(pct: number): string { return pct <= 5 ? '0-5' : pct <= 15 ? '5-15' : '15+'; }
+function saasTenureBucket(months: number): string { return months < 6 ? '<6' : months < 12 ? '6-12' : '12+'; }
+function riskFor(s: Subscription, proposedPct: number, calibration?: Calibration | null): { tier: RiskTier; reasons: string[] } {
+  let score = 0;
+  const reasons: string[] = [];
+  if (s.status === 'dunning') { score += 2; reasons.push('paymentIssues'); }
+  else if (s.status === 'unpaid') { score += 2; reasons.push('unpaid'); }
+  else if (s.status === 'non_renewing') { score += 2; reasons.push('alreadyLeaving'); }
+
+  const tenureMonths = s.activatedAt ? (Date.now() - new Date(s.activatedAt).getTime()) / (30 * 24 * 3600 * 1000) : null;
+  if (tenureMonths == null) { score += 1; reasons.push('tenureUnknown'); }
+  else if (tenureMonths < 6) { score += 2; reasons.push('newCustomer'); }
+  else if (tenureMonths < 12) { score += 1; reasons.push('recentCustomer'); }
+
+  if (proposedPct > 15) { score += 2; reasons.push('largeIncrease'); }
+  else if (proposedPct > 5) { score += 1; reasons.push('moderateIncrease'); }
+
+  if (s.lastPriceChangeAt) {
+    const monthsSince = (Date.now() - new Date(s.lastPriceChangeAt).getTime()) / (30 * 24 * 3600 * 1000);
+    if (monthsSince < 6) { score += 2; reasons.push('recentlyChanged'); }
+  }
+
+  let tier: RiskTier = score >= 4 ? 'high' : score >= 2 ? 'medium' : 'low';
+
+  // Calibrated override — only when we have a real, sufficiently-sampled observed rate for this
+  // exact size×tenure combination; otherwise the heuristic tier above stands as computed.
+  if (calibration && tenureMonths != null && proposedPct > 0) {
+    const sizeB = saasSizeBucket(proposedPct);
+    const tenureB = saasTenureBucket(tenureMonths);
+    const cal = calibration.buckets.find(b => b.sizeBucket === sizeB && b.tenureBucket === tenureB && !b.insufficientData);
+    if (cal && cal.observedRate != null) {
+      tier = cal.observedRate > RISK_CALIBRATION_HIGH_RATE ? 'high' : cal.observedRate > RISK_CALIBRATION_MEDIUM_RATE ? 'medium' : 'low';
+      reasons.push('calibrated');
+    }
+  }
+
+  return { tier, reasons };
+}
+const RISK_BADGE_CLS: Record<RiskTier, string> = {
+  low: 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]',
+  medium: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',
+  high: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400',
+};
+const RISK_DOT_COLOR: Record<RiskTier, string> = { low: '#57D193', medium: '#F59E0B', high: '#ef4444' };
 
 // Admin tool: simulate SaaS price increases across every live Zoho Billing subscription, build
 // a scenario aimed at a target MRR add, then save it (Phase A — read-only simulation; pushing
@@ -127,6 +183,27 @@ const SaasIncrease: React.FC = () => {
   const [hasPushPin, setHasPushPin] = useState<boolean | null>(null);
   const [pushModal, setPushModal] = useState<{ itemIds: number[]; pin: string; busy: boolean; results: Record<number, { ok: boolean; error?: string }> | null } | null>(null);
 
+  // Churn-risk calibration — observed rates from real history (see the churn-history backfill),
+  // used by riskFor() to override its hand-picked weights where there's enough real data.
+  const [calibration, setCalibration] = useState<Calibration | null>(null);
+  const [calibrationOpen, setCalibrationOpen] = useState(false);
+  const [refreshingCalibration, setRefreshingCalibration] = useState(false);
+  const loadCalibration = async () => {
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/churn-history/calibration`, { headers: authHeaders() });
+      if (!r.ok) throw new Error(String(r.status));
+      setCalibration(await r.json());
+    } catch { /* non-fatal — riskFor just falls back to its default heuristic */ }
+  };
+  const refreshCalibrationData = async () => {
+    setRefreshingCalibration(true);
+    try {
+      await fetch(`${API_URL}/api/admin/saas-increase/churn-history/refresh`, { method: 'POST', headers: authHeaders() });
+      dialog.alert(t('saasIncrease.calibration.refreshStarted') as string);
+    } catch { dialog.alert(t('saasIncrease.error') as string); }
+    finally { setRefreshingCalibration(false); }
+  };
+
   const loadSubs = async (fresh = false) => {
     setLoading(true); setError(null);
     try {
@@ -159,7 +236,7 @@ const SaasIncrease: React.FC = () => {
     } catch { /* non-fatal — template pickers just fall back to the built-in default copy */ }
   };
 
-  useEffect(() => { loadSubs(false); loadScenarios(); loadTemplates(); }, []);
+  useEffect(() => { loadSubs(false); loadScenarios(); loadTemplates(); loadCalibration(); }, []);
 
   useEffect(() => {
     if (!canExecute) return;
@@ -347,6 +424,50 @@ const SaasIncrease: React.FC = () => {
     if (!isIncluded(s.subscriptionNumber)) return sum;
     return sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly);
   }, 0);
+
+  // "Suggest scenario" — ranks not-yet-included live subscriptions by churn risk (using the
+  // toolbar's current bulk %/$ as the hypothetical increase), then greedily fills in the safest
+  // ones until the target MRR is reached. Never touches a row that's already selected — this is
+  // what makes it "adjustable": it fills the gap left by whatever's already set up manually.
+  const suggestScenario = async () => {
+    const remainingToTarget = targetMrr - mrrDelta;
+    if (remainingToTarget <= 0) { dialog.alert(t('saasIncrease.targetReached') as string); return; }
+    const hypothetical: RowEdit = { selected: true, increaseType: bulkType, increaseValue: bulkValue };
+    const candidates = subs
+      .filter(s => s.status === 'live' && !edits[s.subscriptionNumber]?.selected)
+      .map(s => {
+        const delta = newMonthlyFor(s, hypothetical) - s.currentMonthly;
+        const proposedPct = (delta / (s.currentMonthly || 1)) * 100;
+        return { s, delta, risk: riskFor(s, proposedPct, calibration) };
+      })
+      .filter(c => c.delta > 0)
+      .sort((a, b) => {
+        const rank = (tier: RiskTier) => (tier === 'low' ? 0 : tier === 'medium' ? 1 : 2);
+        const diff = rank(a.risk.tier) - rank(b.risk.tier);
+        return diff !== 0 ? diff : b.s.currentMonthly - a.s.currentMonthly;
+      });
+    if (!candidates.length) { dialog.alert(t('saasIncrease.noSuggestable') as string); return; }
+
+    const chosen: typeof candidates = [];
+    let cumulative = 0;
+    for (const c of candidates) {
+      if (cumulative >= remainingToTarget) break;
+      chosen.push(c);
+      cumulative += c.delta;
+    }
+    const confirmMsg = t('saasIncrease.suggestConfirm', {
+      count: chosen.length, delta: money(cumulative),
+      medium: chosen.filter(c => c.risk.tier === 'medium').length,
+      high: chosen.filter(c => c.risk.tier === 'high').length,
+    }) as string;
+    if (!(await dialog.confirm(confirmMsg))) return;
+
+    setEdits(prev => {
+      const next = { ...prev };
+      for (const c of chosen) next[c.s.subscriptionNumber] = { selected: true, increaseType: bulkType, increaseValue: bulkValue };
+      return next;
+    });
+  };
   const pct = targetMrr > 0 ? Math.min(100, (mrrDelta / targetMrr) * 100) : 0;
 
   const saveScenario = async () => {
@@ -571,6 +692,17 @@ const SaasIncrease: React.FC = () => {
   const selectedRows = subs.filter(s => edits[s.subscriptionNumber]?.selected);
   const selectedDelta = selectedRows.reduce((sum, s) => sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly), 0);
 
+  // "Churn we would lose" — how much of the scenario's projected MRR add rides on accounts
+  // riskFor() flags as high-risk. Shown as a caption under the progress bar so the tradeoff is
+  // visible right next to the number it's weighing against.
+  const highRiskIncludedMrr = subs.reduce((sum, s) => {
+    if (!isIncluded(s.subscriptionNumber)) return sum;
+    const nm = newMonthlyFor(s, edits[s.subscriptionNumber]);
+    const delta = nm - s.currentMonthly;
+    const proposedPct = (delta / (s.currentMonthly || 1)) * 100;
+    return riskFor(s, proposedPct, calibration).tier === 'high' ? sum + delta : sum;
+  }, 0);
+
   // Rows with an increase set that aren't (yet) reflected in the saved scenario — drives the
   // "N pending" hint on the Save button, since nothing before that click is actually persisted.
   const unsavedCount = subs.filter(s => {
@@ -596,7 +728,7 @@ const SaasIncrease: React.FC = () => {
   const btnSecondary = 'inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-[#242424] dark:bg-[#141414] dark:text-[#D1D1D1] dark:hover:bg-[#1B1B1B] dark:hover:text-white';
   const btnPrimary = 'inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50';
   const segBtn = (on: boolean) => `rounded-md px-2 py-1 text-xs font-semibold transition-colors ${on ? 'bg-primary text-white' : `${textTer} hover:text-gray-700 dark:hover:text-white`}`;
-  const gridCols = 'grid-cols-[38px_2.2fr_1.8fr_1fr_1.3fr_1.1fr_0.9fr_1fr_0.9fr]';
+  const gridCols = 'grid-cols-[38px_2.2fr_1.8fr_1fr_1.3fr_1.1fr_0.8fr_0.9fr_1fr_0.9fr]';
 
   return (
     <div className="font-satoshi">
@@ -663,6 +795,11 @@ const SaasIncrease: React.FC = () => {
                 <span>{remaining > 0 ? t('saasIncrease.toGo', { amount: money(remaining) }) : t('saasIncrease.targetReached')}</span>
                 <span>{t('saasIncrease.annualized')} · {money(mrrDelta * 12)}</span>
               </div>
+              {highRiskIncludedMrr > 0 && (
+                <div className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400">
+                  {t('saasIncrease.riskExposure', { amount: money(highRiskIncludedMrr) })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -790,6 +927,22 @@ const SaasIncrease: React.FC = () => {
           <button onClick={() => loadSubs(true)} disabled={loading} title={t('saasIncrease.refresh') as string} className={`${raised} flex h-9 w-9 items-center justify-center ${textSec} hover:text-gray-900 dark:hover:text-white`}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
+          {activeScenarioId && targetMrr > 0 && (
+            <button
+              onClick={suggestScenario}
+              title={t('saasIncrease.suggestScenarioHint') as string}
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-opacity-90"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> {t('saasIncrease.suggestScenario')}
+            </button>
+          )}
+          <button
+            onClick={() => { loadCalibration(); setCalibrationOpen(true); }}
+            title={t('saasIncrease.calibration.hint') as string}
+            className={`${raised} px-2.5 py-2 text-xs font-medium ${textSec} hover:text-gray-900 dark:hover:text-white`}
+          >
+            <Gauge className="mr-1.5 inline h-3.5 w-3.5" /> {t('saasIncrease.calibration.title')}
+          </button>
           <div className="flex-1" />
           <div className={`flex items-center gap-2 py-1 pl-3 pr-1.5 ${chipInput}`}>
             <span className={`whitespace-nowrap text-xs ${textTer}`}>{t('saasIncrease.bulk')}</span>
@@ -832,6 +985,7 @@ const SaasIncrease: React.FC = () => {
                     <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCurrent')}</span>
                     <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colIncrease')}</span>
                     <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colNew')}</span>
+                    <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colRisk')}</span>
                     <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colActivated')}</span>
                     <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colLastPriceChange')}</span>
                     <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colStatus')}</span>
@@ -852,6 +1006,9 @@ const SaasIncrease: React.FC = () => {
                   const priceChangeTitle = (s.lastPriceBefore != null && s.lastPriceAfter != null)
                     ? `${money(s.lastPriceBefore)} → ${money(s.lastPriceAfter)}` : '';
                   const rowBg = selected ? 'bg-orange-50/60 dark:bg-[rgba(245,131,69,0.06)]' : included ? 'bg-emerald-50/40 dark:bg-[rgba(87,209,147,0.03)]' : '';
+                  const proposedPct = ((nm - s.currentMonthly) / (s.currentMonthly || 1)) * 100;
+                  const risk = riskFor(s, proposedPct, calibration);
+                  const riskTitle = risk.reasons.map(r => t(`saasIncrease.risk.reasons.${r}`)).join(' · ');
                   // Once a row is saved to the scenario, the Status column shows the real push
                   // status (pending/pushed/push_failed) instead of the purely local "increase
                   // set / not set" badge — the real signal only exists after Save.
@@ -885,6 +1042,12 @@ const SaasIncrease: React.FC = () => {
                       <div className="justify-self-end text-right">
                         <div className={`text-sm font-medium tabular-nums ${included ? textPri : textSec}`}>{money(nm)}</div>
                         {included && <div className="mt-0.5 text-[11px] text-emerald-600 dark:text-[#57D193]">+{money(delta)}</div>}
+                      </div>
+                      <div className="justify-self-end">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${RISK_BADGE_CLS[risk.tier]}`} title={riskTitle}>
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: RISK_DOT_COLOR[risk.tier] }} />
+                          {t(`saasIncrease.risk.${risk.tier}`)}
+                        </span>
                       </div>
                       <div className={`whitespace-nowrap text-xs ${textTer}`}>{s.activatedAt ? new Date(s.activatedAt).toLocaleDateString() : '—'}</div>
                       <div className={`whitespace-nowrap text-xs ${textTer}`} title={priceChangeTitle}>{priceChangeLabel}</div>
@@ -1369,6 +1532,80 @@ const SaasIncrease: React.FC = () => {
               })}
               {templates.length === 0 && expandedTemplateId !== 'new' && (
                 <div className={`px-5 py-8 text-center text-sm ${textTer}`}>{t('saasIncrease.templates.none')}</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Model calibration modal — shows the churn-risk heuristic's observed rates from real
+          history (see runSaasChurnHistoryBackfill), so the risk badges above are legible rather
+          than a black box: David can see exactly how much real data backs each bucket. */}
+      {calibrationOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setCalibrationOpen(false)}>
+          <div className={`flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
+              <div>
+                <p className={`font-semibold ${textPri}`}>{t('saasIncrease.calibration.title')}</p>
+                <p className={`mt-0.5 text-xs ${textTer}`}>{t('saasIncrease.calibration.subtitle')}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={refreshCalibrationData} disabled={refreshingCalibration} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
+                  <RefreshCw className={`h-3.5 w-3.5 ${refreshingCalibration ? 'animate-spin' : ''}`} />
+                  {refreshingCalibration ? t('saasIncrease.calibration.refreshing') : t('saasIncrease.calibration.refresh')}
+                </button>
+                <button onClick={() => setCalibrationOpen(false)} className={`${textSec} transition hover:text-red-500`}>
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              {!calibration ? (
+                <p className={`text-sm ${textTer}`}>{t('saasIncrease.calibration.loading')}</p>
+              ) : (
+                <>
+                  <p className={`mb-3 text-xs ${textQuat}`}>
+                    {t('saasIncrease.calibration.computedAt', { date: new Date(calibration.computedAt).toLocaleString() })}
+                    {' · '}{t('saasIncrease.calibration.minSample', { n: calibration.minSample })}
+                  </p>
+                  <div className={`mb-4 rounded-lg border p-3 ${chipInput}`}>
+                    <div className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>{t('saasIncrease.calibration.baseline')}</div>
+                    <div className={`mt-1 text-sm ${textPri}`}>
+                      {calibration.baseline.observedRate != null ? `${(calibration.baseline.observedRate * 100).toFixed(1)}%` : '—'}
+                      <span className={`ml-2 text-xs ${textTer}`}>
+                        {t('saasIncrease.calibration.sampleSize', { n: calibration.baseline.n })}
+                        {calibration.baseline.insufficientData && ` · ${t('saasIncrease.calibration.insufficientData')}`}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead>
+                        <tr className={textTer}>
+                          <th className="pb-2 pr-3 text-xs font-semibold uppercase tracking-wide">{t('saasIncrease.calibration.colSize')}</th>
+                          <th className="pb-2 pr-3 text-xs font-semibold uppercase tracking-wide">{t('saasIncrease.calibration.colTenure')}</th>
+                          <th className="pb-2 pr-3 text-right text-xs font-semibold uppercase tracking-wide">{t('saasIncrease.calibration.colRate')}</th>
+                          <th className="pb-2 text-right text-xs font-semibold uppercase tracking-wide">{t('saasIncrease.calibration.colSample')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {calibration.buckets.map(b => (
+                          <tr key={`${b.sizeBucket}|${b.tenureBucket}`} className={`border-t ${divider}`}>
+                            <td className={`py-2 pr-3 ${textSec}`}>{b.sizeBucket}%</td>
+                            <td className={`py-2 pr-3 ${textSec}`}>{b.tenureBucket} {t('saasIncrease.calibration.months')}</td>
+                            <td className={`py-2 pr-3 text-right font-medium ${textPri}`}>{b.observedRate != null ? `${(b.observedRate * 100).toFixed(1)}%` : '—'}</td>
+                            <td className={`py-2 text-right text-xs ${b.insufficientData ? 'text-amber-600 dark:text-amber-400' : textTer}`}>
+                              {b.n} {b.insufficientData && `· ${t('saasIncrease.calibration.insufficientData')}`}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {calibration.buckets.length === 0 && (
+                      <p className={`py-6 text-center text-sm ${textTer}`}>{t('saasIncrease.calibration.none')}</p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>
