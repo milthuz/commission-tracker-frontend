@@ -25,7 +25,6 @@ import Revenue from './pages/Revenue';
 import Resources from './pages/Resources';
 import KaizenDemo from './pages/KaizenDemo';
 import Proposals from './pages/Proposals';
-import Hardware from './pages/Hardware';
 import PricingGuide from './pages/PricingGuide';
 import SaasIncrease from './pages/AdminPanel/SaasIncrease';
 import DefaultLayout from './layout/DefaultLayout';
@@ -205,20 +204,12 @@ function AppContent() {
               </>
             }
           />
-          <Route
-            path="/hardware"
-            element={
-              <>
-                <PageTitle title="Hardware Overview | Sales Hub" />
-                <Hardware />
-              </>
-            }
-          />
+          <Route path="/hardware" element={<Navigate to="/pricing-guide" replace />} />
           <Route
             path="/pricing-guide"
             element={
               <>
-                <PageTitle title="Services & Pricing Guide | Sales Hub" />
+                <PageTitle title="Hardware & Service Guide | Sales Hub" />
                 <PricingGuide />
               </>
             }

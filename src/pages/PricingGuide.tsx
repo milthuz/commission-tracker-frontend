@@ -12,6 +12,18 @@ const b64ToBytes = (b64: string) => {
   return arr;
 };
 
+interface HardwareCategory { id: string; sortOrder: number; }
+interface HardwareProduct {
+  id: string; catId: string; nameEn: string; nameFr: string | null;
+  specsEn: string[]; specsFr: string[]; sku: string | null; price: string | null;
+  compat: string[]; status: string[];
+  useEn: string | null; useFr: string | null;
+  warrantyEn: string | null; warrantyFr: string | null;
+  noteEn: string | null; noteFr: string | null;
+  hasImage: boolean; visible: boolean;
+}
+interface HardwareData { categories: HardwareCategory[]; products: HardwareProduct[]; }
+
 interface PricingCategory {
   id: string; nameEn: string; nameFr: string; sortOrder: number; hourly: number | null;
   noteEn: string | null; noteFr: string | null;
@@ -32,10 +44,40 @@ interface PricingGuideRef { id: string; titleEn: string; titleFr: string | null;
 interface PricingData { categories: PricingCategory[]; packages: PricingPackage[]; guides: PricingGuideRef[]; }
 
 const CATS_WITH_BILLING = new Set(['saas']);
+const STATUS_ORDER = ['all', 'new', 'soon', 'eol', 'wsl', 'legacy'] as const;
+const STATUS_DOT: Record<string, string> = { new: '#17B26A', soon: '#FDB022', eol: '#F46060', wsl: '#E0A94A', legacy: '#94969C', rental: '#608EFA' };
+const STATUS_BADGE_CLS: Record<string, string> = {
+  new:    'bg-success/15 text-green-700 dark:bg-success/20 dark:text-success',
+  soon:   'bg-warning/15 text-warning dark:bg-warning/20',
+  eol:    'bg-danger/15 text-danger dark:bg-danger/20',
+  wsl:    'bg-[#E0A94A]/15 text-[#8A5A00] dark:text-[#E0A94A]',
+  legacy: 'bg-gray-2 text-gray-500 dark:bg-meta-4 dark:text-gray-300',
+  rental: 'bg-primary/15 text-primary',
+};
 
-// Category icons — matches the design handoff's icon set exactly.
+// Extracts a numeric unit price from hardware's free-text price string (e.g. "$1,150" -> 1150).
+// Returns null for non-numeric values ("TBD", "Monthly rental", "—") — those can't be added to a
+// quote with a firm price (mirrors the same parser server-side in POST /api/pricing/quote/pdf).
+const parseHwPrice = (price: string | null): number | null => {
+  if (!price) return null;
+  const m = price.replace(/[, ]/g, '').match(/\$([0-9]+(?:\.[0-9]+)?)/);
+  return m ? parseFloat(m[1]) : null;
+};
+
+// Category icons for BOTH catalogs merged into one switch — hardware and pricing category ids
+// never collide (hardware: pos/tab/kp/rp/pay/disp/net/periph/cash; pricing: saas/rental/menu/
+// install/support/olo/shipping/xperio), so one shared icon set is safe.
 const catIconPaths = (id: string): React.ReactNode => {
   switch (id) {
+    case 'pos': return <><rect x="4" y="3" width="16" height="12" rx="2" /><path d="M9 21h6M12 15v6" /></>;
+    case 'tab': return <><rect x="6" y="2" width="12" height="20" rx="2" /><path d="M11 19h2" /></>;
+    case 'kp': return <><rect x="5" y="8" width="14" height="8" rx="1" /><path d="M7 8V4h10v4M7 16v4h10v-4" /></>;
+    case 'rp': return <><path d="M6 2h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5-2 1.5z" /><path d="M9 7h6M9 11h6M9 15h4" /></>;
+    case 'pay': return <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></>;
+    case 'disp': return <><rect x="2" y="5" width="14" height="10" rx="1.5" /><path d="M18 8v6M20.5 9v4" /></>;
+    case 'net': return <><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0" /><circle cx="12" cy="19" r="1" /></>;
+    case 'periph': return <><path d="M4 8V5a1 1 0 0 1 1-1h3M4 16v3a1 1 0 0 0 1 1h3M20 8V5a1 1 0 0 0-1-1h-3M20 16v3a1 1 0 0 1-1 1h-3" /><path d="M4 12h16" /></>;
+    case 'cash': return <><rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="12" cy="12" r="3" /><path d="M6 9v.01M18 15v.01" /></>;
     case 'saas': return <><circle cx="8" cy="15" r="4" /><path d="M10.8 12.2 20 3M17 6l3 3M15 8l2 2" /></>;
     case 'rental': return <><path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></>;
     case 'menu': return <path d="M4 3v7a2 2 0 0 0 2 2 2 2 0 0 0 2-2V3M6 3v18M16 3c-2 0-3 2-3 5s1 4 3 4v9" />;
@@ -58,12 +100,14 @@ const PricingGuide: React.FC = () => {
   const fr = i18n.language?.startsWith('fr');
   const pick = (en: string | null | undefined, frText: string | null | undefined) => (fr && frText ? frText : en) || '';
 
-  const [data, setData] = useState<PricingData | null>(null);
+  const [hwData, setHwData] = useState<HardwareData | null>(null);
+  const [pricingData, setPricingData] = useState<PricingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [cat, setCat] = useState('saas');
+  const [cat, setCat] = useState('');
   const [compat, setCompat] = useState<'all' | 'V1' | 'V2'>('all');
+  const [status, setStatus] = useState('all'); // hardware-only filter
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const [q, setQ] = useState('');
   const [internal, setInternal] = useState(false);
@@ -77,14 +121,20 @@ const PricingGuide: React.FC = () => {
   useEffect(() => {
     (async () => {
       setLoading(true); setError('');
-      try {
-        const r = await axios.get(`${API_URL}/api/pricing`, { headers: authHeaders() });
-        setData(r.data);
-      } catch (e: any) {
-        setError(e?.response?.data?.error || t('pricingGuide.loadError') as string);
-      } finally { setLoading(false); }
+      const [hwRes, pkgRes] = await Promise.allSettled([
+        axios.get(`${API_URL}/api/hardware`, { headers: authHeaders() }),
+        axios.get(`${API_URL}/api/pricing`, { headers: authHeaders() }),
+      ]);
+      if (hwRes.status === 'fulfilled') setHwData(hwRes.value.data);
+      if (pkgRes.status === 'fulfilled') setPricingData(pkgRes.value.data);
+      // Only surface a hard error if BOTH catalogs failed — a 403 on just one (missing that
+      // one permission) simply means that section doesn't render, not a broken page.
+      if (hwRes.status === 'rejected' && pkgRes.status === 'rejected') {
+        setError(t('pricingGuide.loadError') as string);
+      }
+      setLoading(false);
     })();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const money = (n: number | null | undefined): string | null => {
     if (n == null) return null;
@@ -112,19 +162,53 @@ const PricingGuide: React.FC = () => {
     return { amt: 0, recurring: false };
   };
 
-  // Hidden packages are for the Admin Pricing editor only — the rep-facing guide never shows
-  // them, even for a pricing:manage admin browsing this page (server-side already excludes
-  // hidden rows for everyone without pricing:manage; this is the client-side backstop).
-  const allPackages = (data?.packages || []).filter((p) => p.visible);
-  const CATS = (data?.categories || []).slice().sort((a, b) => a.sortOrder - b.sortOrder).map((c) => c.id);
-  const activeCatData = data?.categories.find((c) => c.id === cat) || null;
-  const list = useMemo(() => {
+  // Hidden rows are for the Admin editors only — the rep-facing guide never shows them, even to
+  // a manage-permission admin browsing this page (server-side already excludes hidden rows for
+  // everyone without the manage permission; this is the client-side backstop).
+  const hwAll = (hwData?.products || []).filter((p) => p.visible);
+  const allPackages = (pricingData?.packages || []).filter((p) => p.visible);
+
+  const hwCats = (hwData?.categories || []).slice().sort((a, b) => a.sortOrder - b.sortOrder).map((c) => c.id);
+  const pkgCats = (pricingData?.categories || []).slice().sort((a, b) => a.sortOrder - b.sortOrder).map((c) => c.id);
+  const activeGroup: 'hardware' | 'pricing' | null = hwCats.includes(cat) ? 'hardware' : pkgCats.includes(cat) ? 'pricing' : null;
+  const activeCatData = pricingData?.categories.find((c) => c.id === cat) || null;
+
+  // Default to the first available category once a catalog loads — Hardware leads (per the
+  // "Hardware & Service Guide" name), falling back to Pricing if the rep can't see Hardware.
+  useEffect(() => {
+    if (cat) return;
+    if (hwCats.length) setCat(hwCats[0]);
+    else if (pkgCats.length) setCat(pkgCats[0]);
+  }, [cat, hwCats.length, pkgCats.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const catLabel = (id: string) => {
+    if (hwCats.includes(id)) return t(`hardware.categories.${id}`);
+    const c = pricingData?.categories.find((x) => x.id === id);
+    return c ? pick(c.nameEn, c.nameFr) : id;
+  };
+
+  const imgSrc = (p: HardwareProduct) => (p.hasImage ? `${API_URL}/api/hardware/${p.id}/image` : null);
+
+  const hwList = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    return hwAll.filter((p) => {
+      if (p.catId !== cat) return false;
+      if (compat !== 'all' && !p.compat.includes(compat)) return false;
+      if (status !== 'all' && !p.status.includes(status)) return false;
+      if (query) {
+        const hay = `${pick(p.nameEn, p.nameFr)} ${p.sku || ''} ${(fr && p.specsFr.length ? p.specsFr : p.specsEn).join(' ')}`.toLowerCase();
+        if (!hay.includes(query)) return false;
+      }
+      return true;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hwAll, cat, compat, status, q, fr]);
+
+  const pkgList = useMemo(() => {
     const query = q.trim().toLowerCase();
     return allPackages.filter((p) => {
       if (p.catId !== cat) return false;
-      if (compat !== 'all') {
-        if (!p.compat.includes(compat)) return false;
-      }
+      if (compat !== 'all' && !p.compat.includes(compat)) return false;
       if (query) {
         const hay = `${pick(p.nameEn, p.nameFr)} ${p.sku || ''} ${(fr && p.includesFr.length ? p.includesFr : p.includesEn).join(' ')}`.toLowerCase();
         if (!hay.includes(query)) return false;
@@ -140,21 +224,30 @@ const PricingGuide: React.FC = () => {
     setCopied(sku);
     setTimeout(() => setCopied((c) => (c === sku ? null : c)), 1500);
   };
-  const toggleQuote = (id: string) => {
+
+  // Quote items are keyed "hw:<id>" / "pkg:<id>" — the two catalogs' raw ids aren't guaranteed
+  // never to collide, and the prefix also tells buildQuote() + quoteRows which table to resolve
+  // against without a second lookup.
+  const hwKey = (id: string) => `hw:${id}`;
+  const pkgKey = (id: string) => `pkg:${id}`;
+  const toggleQuote = (key: string) => {
     setQuote((q0) => {
       const next = { ...q0 };
-      if (next[id]) delete next[id]; else next[id] = 1;
+      if (next[key]) delete next[key]; else next[key] = 1;
       return next;
     });
   };
-  const setQty = (id: string, qty: number) => setQuote((q0) => ({ ...q0, [id]: Math.max(1, qty) }));
+  const setQty = (key: string, qty: number) => setQuote((q0) => ({ ...q0, [key]: Math.max(1, qty) }));
 
   const buildQuote = async () => {
     if (!clientName.trim()) { dialog.alert(t('pricingGuide.clientNameRequired') as string); return; }
     setBuilding(true);
     try {
       const r = await axios.post(`${API_URL}/api/pricing/quote/pdf`, {
-        items: quoteIds.map((id) => ({ id, qty: quote[id] })),
+        items: quoteIds.map((key) => ({
+          id: key.slice(key.indexOf(':') + 1), qty: quote[key],
+          type: key.startsWith('hw:') ? 'hardware' : 'package',
+        })),
         clientName: clientName.trim(), billing, lang: fr ? 'fr' : 'en',
       }, { headers: authHeaders() });
       const blob = new Blob([b64ToBytes(r.data.pdfBase64) as BlobPart], { type: 'application/pdf' });
@@ -168,19 +261,34 @@ const PricingGuide: React.FC = () => {
 
   const quoteIds = Object.keys(quote);
   let rec = 0, oneTime = 0;
-  const quoteRows = quoteIds.map((id) => {
-    const p = allPackages.find((x) => x.id === id);
+  const quoteRows = quoteIds.map((key) => {
+    const rawId = key.slice(key.indexOf(':') + 1);
+    const qty = quote[key];
+    if (key.startsWith('hw:')) {
+      const p = hwAll.find((x) => x.id === rawId);
+      const unitAmt = p ? parseHwPrice(p.price) : null;
+      if (!p || unitAmt == null) return null;
+      const line = unitAmt * qty;
+      oneTime += line;
+      return { id: key, name: pick(p.nameEn, p.nameFr), sku: p.sku || (t('pricingGuide.noSku') as string), qty, lineTotal: money(line) || '—' };
+    }
+    const p = allPackages.find((x) => x.id === rawId);
     if (!p) return null;
-    const qty = quote[id];
     const qp = quotePrice(p);
     const line = qp.amt * qty;
     if (qp.recurring) rec += line; else oneTime += line;
-    return { id, name: pick(p.nameEn, p.nameFr), sku: p.sku || (t('pricingGuide.noSku') as string), qty, lineTotal: money(line) || '—' };
+    return { id: key, name: pick(p.nameEn, p.nameFr), sku: p.sku || (t('pricingGuide.noSku') as string), qty, lineTotal: money(line) || '—' };
   }).filter(Boolean) as { id: string; name: string; sku: string; qty: number; lineTotal: string }[];
 
   const segBtn = (active: boolean) =>
     `rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${active ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`;
+  const chipBtn = (active: boolean) =>
+    `inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${
+      active ? 'border-primary bg-primary/10 text-primary dark:text-white' : 'border-stroke text-body hover:border-primary/40 dark:border-strokedark'
+    }`;
   const inputCls = 'flex-1 min-w-0 bg-transparent border-0 outline-none text-sm text-black dark:text-white placeholder:text-body';
+
+  const selectCat = (c: string) => { setCat(c); setQ(''); setStatus('all'); };
 
   return (
     <>
@@ -192,23 +300,25 @@ const PricingGuide: React.FC = () => {
       <div className="mb-5 mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-stroke pt-4 dark:border-strokedark">
         <div>
           <div className="mb-2 flex items-center gap-2">
-            {i18n.exists(`pricingGuide.categories.${cat}.eyebrow`) && (
+            {activeGroup === 'pricing' && i18n.exists(`pricingGuide.categories.${cat}.eyebrow`) && (
               <span className="text-xs font-bold uppercase tracking-wide text-primary">{t(`pricingGuide.categories.${cat}.eyebrow`)}</span>
             )}
             <span className="rounded-full border border-warning/30 bg-warning/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-warning">{t('pricingGuide.internalOnly')}</span>
           </div>
-          <h2 className="text-2xl font-bold text-black dark:text-white">{activeCatData ? pick(activeCatData.nameEn, activeCatData.nameFr) : ''}</h2>
-          {i18n.exists(`pricingGuide.categories.${cat}.desc`) && (
+          <h2 className="text-2xl font-bold text-black dark:text-white">{catLabel(cat)}</h2>
+          {activeGroup === 'pricing' && i18n.exists(`pricingGuide.categories.${cat}.desc`) && (
             <p className="mt-1 max-w-xl text-sm text-gray-500 dark:text-gray-400">{t(`pricingGuide.categories.${cat}.desc`)}</p>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setInternal((v) => !v)}
-            className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[12.5px] font-semibold ${internal ? 'border border-primary/40 bg-primary/10 text-primary' : 'border border-stroke text-body dark:border-strokedark'}`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${internal ? 'bg-primary' : 'bg-gray-400'}`} />
-            {internal ? t('pricingGuide.hideInternal') : t('pricingGuide.showInternal')}
-          </button>
-        </div>
+        {activeGroup === 'pricing' && (
+          <div className="flex items-center gap-3">
+            <button onClick={() => setInternal((v) => !v)}
+              className={`inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[12.5px] font-semibold ${internal ? 'border border-primary/40 bg-primary/10 text-primary' : 'border border-stroke text-body dark:border-strokedark'}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${internal ? 'bg-primary' : 'bg-gray-400'}`} />
+              {internal ? t('pricingGuide.hideInternal') : t('pricingGuide.showInternal')}
+            </button>
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -218,31 +328,55 @@ const PricingGuide: React.FC = () => {
       ) : (
         <div className="flex gap-6">
           <div className="w-[190px] flex-none">
-            <div className="mb-2 px-2 text-[11px] font-bold uppercase tracking-wide text-gray-400">{t('pricingGuide.sections')}</div>
-            <div className="flex flex-col gap-0.5">
-              {CATS.map((c) => {
-                const count = allPackages.filter((p) => p.catId === c).length;
-                const on = cat === c;
-                const catData = data?.categories.find((x) => x.id === c);
-                return (
-                  <button key={c} onClick={() => { setCat(c); setQ(''); }}
-                    className={`flex items-center gap-2 rounded-lg border-l-[3px] px-3 py-2.5 text-left text-[13.5px] font-medium transition ${
-                      on ? 'border-l-primary bg-gray-2 text-black dark:bg-meta-4 dark:text-white' : 'border-l-transparent text-body hover:bg-gray-1 dark:hover:bg-meta-4/40'
-                    }`}>
-                    <CatIcon id={c} />
-                    <span className="flex-1">{catData ? pick(catData.nameEn, catData.nameFr) : c}</span>
-                    <span className="text-[11px] font-semibold text-gray-400">{count}</span>
-                  </button>
-                );
-              })}
-            </div>
+            {hwCats.length > 0 && (
+              <>
+                <div className="mb-2 px-2 text-[11px] font-bold uppercase tracking-wide text-gray-400">{t('hardware.title')}</div>
+                <div className="mb-4 flex flex-col gap-0.5">
+                  {hwCats.map((c) => {
+                    const count = hwAll.filter((p) => p.catId === c).length;
+                    const on = cat === c;
+                    return (
+                      <button key={c} onClick={() => selectCat(c)}
+                        className={`flex items-center gap-2 rounded-lg border-l-[3px] px-3 py-2.5 text-left text-[13.5px] font-medium transition ${
+                          on ? 'border-l-primary bg-gray-2 text-black dark:bg-meta-4 dark:text-white' : 'border-l-transparent text-body hover:bg-gray-1 dark:hover:bg-meta-4/40'
+                        }`}>
+                        <CatIcon id={c} />
+                        <span className="flex-1">{catLabel(c)}</span>
+                        <span className="text-[11px] font-semibold text-gray-400">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+            {pkgCats.length > 0 && (
+              <>
+                <div className="mb-2 px-2 text-[11px] font-bold uppercase tracking-wide text-gray-400">{t('pricingGuide.sections')}</div>
+                <div className="flex flex-col gap-0.5">
+                  {pkgCats.map((c) => {
+                    const count = allPackages.filter((p) => p.catId === c).length;
+                    const on = cat === c;
+                    return (
+                      <button key={c} onClick={() => selectCat(c)}
+                        className={`flex items-center gap-2 rounded-lg border-l-[3px] px-3 py-2.5 text-left text-[13.5px] font-medium transition ${
+                          on ? 'border-l-primary bg-gray-2 text-black dark:bg-meta-4 dark:text-white' : 'border-l-transparent text-body hover:bg-gray-1 dark:hover:bg-meta-4/40'
+                        }`}>
+                        <CatIcon id={c} />
+                        <span className="flex-1">{catLabel(c)}</span>
+                        <span className="text-[11px] font-semibold text-gray-400">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="min-w-0 flex-1 pb-24">
             <div className="mb-4 flex flex-wrap items-center gap-3.5 border-t border-stroke pt-3.5 dark:border-strokedark">
               <div className="flex flex-1 max-w-xs items-center gap-2 rounded-full border border-stroke bg-white px-3.5 py-2 dark:border-strokedark dark:bg-boxdark">
                 <svg className="h-4 w-4 flex-none text-gray-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('pricingGuide.searchPh') as string} className={inputCls} />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t(activeGroup === 'hardware' ? 'hardware.searchPh' : 'pricingGuide.searchPh') as string} className={inputCls} />
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-medium text-gray-400">{t('pricingGuide.compatLabel')}</span>
@@ -252,7 +386,18 @@ const PricingGuide: React.FC = () => {
                   ))}
                 </div>
               </div>
-              {CATS_WITH_BILLING.has(cat) && (
+              {activeGroup === 'hardware' && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium text-gray-400">{t('hardware.statusLabel')}</span>
+                  {STATUS_ORDER.map((k) => (
+                    <button key={k} onClick={() => setStatus(k)} className={chipBtn(status === k)}>
+                      {k !== 'all' && <span className="h-1.5 w-1.5 rounded-full" style={{ background: STATUS_DOT[k] }} />}
+                      {k === 'all' ? t('common.all') : t(`hardware.status.${k}`)}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {activeGroup === 'pricing' && CATS_WITH_BILLING.has(cat) && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-400">{t('pricingGuide.billing')}</span>
                   <div className="inline-flex rounded-full border border-stroke p-1 dark:border-strokedark">
@@ -265,89 +410,151 @@ const PricingGuide: React.FC = () => {
               )}
             </div>
 
-            {activeCatData && pick(activeCatData.noteEn, activeCatData.noteFr) && (
+            {activeGroup === 'pricing' && activeCatData && pick(activeCatData.noteEn, activeCatData.noteFr) && (
               <div className="mb-4 flex gap-2.5 rounded-xl border border-stroke bg-gray-2 p-3.5 dark:border-strokedark dark:bg-meta-4">
                 <span className="mt-0.5 flex-none text-primary">ⓘ</span>
                 <span className="text-[13px] leading-relaxed text-gray-600 dark:text-gray-300">{pick(activeCatData.noteEn, activeCatData.noteFr)}</span>
               </div>
             )}
 
-            {list.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 py-16 text-center">
-                <svg className="h-9 w-9 text-gray-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
-                <div className="text-base font-semibold text-black dark:text-white">{t('pricingGuide.noResultsTitle')}</div>
-                <button onClick={() => { setCompat('all'); setQ(''); }} className="mt-1 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90">{t('pricingGuide.reset')}</button>
-              </div>
-            ) : (
-              <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-                {list.map((p) => {
-                  const pr = priceOf(p);
-                  const inQuote = !!quote[p.id];
-                  const done = copied === p.sku;
-                  const irs: { k: string; v: string }[] = [];
-                  const inn = (fr && p.internalFr) ? p.internalFr : p.internalEn;
-                  if (inn?.effort) irs.push({ k: fr ? 'Effort :' : 'Effort:', v: inn.effort });
-                  if (inn?.requirements) irs.push({ k: fr ? 'Exigences :' : 'Requirements:', v: inn.requirements });
-                  if (inn?.margin) irs.push({ k: fr ? 'Marge :' : 'Margin:', v: inn.margin });
-                  if (inn?.notes) irs.push({ k: fr ? 'Note :' : 'Note:', v: inn.notes });
-                  return (
-                    <div key={p.id} className={`flex flex-col gap-2.5 rounded-2xl border bg-white p-4 dark:bg-boxdark ${inQuote ? 'border-primary' : 'border-stroke dark:border-strokedark'}`}>
-                      <div className="flex items-start justify-between gap-2.5">
-                        <div className="min-w-0">
-                          <div className="mb-1.5 flex flex-wrap gap-1.5">
-                            {p.compat.includes('V2') && <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">{t('pricingGuide.kaizenTag')}</span>}
-                            {p.compat.includes('V1') && <span className="rounded-full border border-stroke bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:border-strokedark dark:bg-meta-4">V1</span>}
-                            {p.status.includes('new') && <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700 dark:text-success">{t('pricingGuide.newTag')}</span>}
-                            {p.status.includes('legacy') && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t('pricingGuide.existingTag')}</span>}
-                            {p.pos && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{p.pos}</span>}
-                            {p.mode && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{p.mode}</span>}
+            {activeGroup === 'hardware' ? (
+              hwList.length === 0 ? (
+                <div className="flex flex-col items-center gap-3 py-16 text-center">
+                  <svg className="h-9 w-9 text-gray-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                  <div className="text-base font-semibold text-black dark:text-white">{t('pricingGuide.noResultsTitle')}</div>
+                  <button onClick={() => { setCompat('all'); setStatus('all'); setQ(''); }} className="mt-1 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90">{t('pricingGuide.reset')}</button>
+                </div>
+              ) : (
+                <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                  {hwList.map((p) => {
+                    const key = hwKey(p.id);
+                    const inQuote = !!quote[key];
+                    const done = copied === p.sku;
+                    const unitPrice = parseHwPrice(p.price);
+                    const src = imgSrc(p);
+                    return (
+                      <div key={p.id} className={`flex flex-col gap-2.5 rounded-2xl border bg-white p-4 dark:bg-boxdark ${inQuote ? 'border-primary' : 'border-stroke dark:border-strokedark'}`}>
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-14 w-14 flex-none items-center justify-center overflow-hidden rounded-lg bg-gray-2 dark:bg-meta-4">
+                            {src ? <img src={src} alt={pick(p.nameEn, p.nameFr)} className="h-full w-full object-contain p-1" /> : <span className="text-[8px] text-gray-400">{t('hardware.noPhoto')}</span>}
                           </div>
-                          <div className="text-[15.5px] font-bold leading-tight text-black dark:text-white">{pick(p.nameEn, p.nameFr)}</div>
+                          <div className="min-w-0 flex-1">
+                            <div className="mb-1 flex flex-wrap gap-1.5">
+                              {p.compat.includes('V2') && <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">{t('hardware.kaizen')}</span>}
+                              {p.compat.includes('V1') && <span className="rounded-full border border-stroke bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:border-strokedark dark:bg-meta-4">V1</span>}
+                              {p.status.map((k) => <span key={k} className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${STATUS_BADGE_CLS[k] || 'bg-gray-2 text-gray-500 dark:bg-meta-4'}`}>{t(`hardware.status.${k}`)}</span>)}
+                            </div>
+                            <div className="text-[15.5px] font-bold leading-tight text-black dark:text-white">{pick(p.nameEn, p.nameFr)}</div>
+                          </div>
+                          <button onClick={() => unitPrice != null && toggleQuote(key)} disabled={unitPrice == null}
+                            title={(unitPrice == null ? t('hardware.noFirmPrice') : t('pricingGuide.addQuote')) as string}
+                            className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg border ${
+                              unitPrice == null ? 'cursor-not-allowed border-stroke text-gray-300 dark:border-strokedark dark:text-gray-600' :
+                              inQuote ? 'border-primary bg-primary text-white' : 'border-stroke text-body dark:border-strokedark'
+                            }`}>
+                            {inQuote ? '✓' : '+'}
+                          </button>
                         </div>
-                        <button onClick={() => toggleQuote(p.id)} title={t('pricingGuide.addQuote') as string}
-                          className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg border ${inQuote ? 'border-primary bg-primary text-white' : 'border-stroke text-body dark:border-strokedark'}`}>
-                          {inQuote ? '✓' : '+'}
-                        </button>
-                      </div>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl font-black tracking-tight text-black dark:text-white">{pr.main}</span>
-                        <span className="text-[13px] text-gray-400">{pr.unit}</span>
-                      </div>
-                      {pr.sub && <div className="-mt-1.5 text-xs text-gray-400">{pr.sub}</div>}
-                      <div className="flex flex-col gap-1.5">
-                        {(fr && p.includesFr.length ? p.includesFr : p.includesEn).map((inc, i) => (
-                          <div key={i} className="flex gap-2 text-[13px] text-gray-600 dark:text-gray-300">
-                            <span className="mt-0.5 flex-none text-primary">✓</span><span>{inc}</span>
-                          </div>
-                        ))}
-                      </div>
-                      {internal && irs.length > 0 && (
-                        <div className="flex flex-col gap-1.5 rounded-lg border border-primary/20 bg-primary/5 p-3">
-                          <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wide text-primary">🔒 {t('pricingGuide.internal')}</div>
-                          {irs.map((ir, i) => (
-                            <div key={i} className="text-xs leading-relaxed text-gray-600 dark:text-gray-300"><span className="font-semibold text-primary">{ir.k}</span> {ir.v}</div>
+                        <div className="text-2xl font-black tracking-tight text-black dark:text-white">{p.price || '—'}</div>
+                        <div className="flex flex-col gap-1.5">
+                          {(fr && p.specsFr.length ? p.specsFr : p.specsEn).map((s, i) => (
+                            <div key={i} className="flex gap-2 text-[13px] text-gray-600 dark:text-gray-300">
+                              <span className="mt-0.5 flex-none text-primary">✓</span><span>{s}</span>
+                            </div>
                           ))}
                         </div>
-                      )}
-                      <div className="mt-auto flex items-center justify-between border-t border-stroke pt-2.5 dark:border-strokedark">
-                        {p.sku ? (
-                          <button onClick={() => copySku(p.sku)} className="flex min-w-0 items-center gap-1.5 text-gray-500 hover:text-primary">
-                            <span className="max-w-[160px] truncate font-mono text-[11.5px]">{p.sku}</span>
-                            <span className={`flex-none ${done ? 'text-green-700 dark:text-success' : ''}`}>{done ? '✓' : '⧉'}</span>
-                          </button>
-                        ) : <span className="text-[11.5px] italic text-gray-400">{t('pricingGuide.noSku')}</span>}
+                        <div className="mt-auto flex items-center justify-between border-t border-stroke pt-2.5 dark:border-strokedark">
+                          {p.sku ? (
+                            <button onClick={() => copySku(p.sku)} className="flex min-w-0 items-center gap-1.5 text-gray-500 hover:text-primary">
+                              <span className="max-w-[160px] truncate font-mono text-[11.5px]">{p.sku}</span>
+                              <span className={`flex-none ${done ? 'text-green-700 dark:text-success' : ''}`}>{done ? '✓' : '⧉'}</span>
+                            </button>
+                          ) : <span className="text-[11.5px] italic text-gray-400">{t('pricingGuide.noSku')}</span>}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )
+            ) : activeGroup === 'pricing' ? (
+              pkgList.length === 0 ? (
+                <div className="flex flex-col items-center gap-3 py-16 text-center">
+                  <svg className="h-9 w-9 text-gray-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
+                  <div className="text-base font-semibold text-black dark:text-white">{t('pricingGuide.noResultsTitle')}</div>
+                  <button onClick={() => { setCompat('all'); setQ(''); }} className="mt-1 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90">{t('pricingGuide.reset')}</button>
+                </div>
+              ) : (
+                <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                  {pkgList.map((p) => {
+                    const key = pkgKey(p.id);
+                    const pr = priceOf(p);
+                    const inQuote = !!quote[key];
+                    const done = copied === p.sku;
+                    const irs: { k: string; v: string }[] = [];
+                    const inn = (fr && p.internalFr) ? p.internalFr : p.internalEn;
+                    if (inn?.effort) irs.push({ k: fr ? 'Effort :' : 'Effort:', v: inn.effort });
+                    if (inn?.requirements) irs.push({ k: fr ? 'Exigences :' : 'Requirements:', v: inn.requirements });
+                    if (inn?.margin) irs.push({ k: fr ? 'Marge :' : 'Margin:', v: inn.margin });
+                    if (inn?.notes) irs.push({ k: fr ? 'Note :' : 'Note:', v: inn.notes });
+                    return (
+                      <div key={p.id} className={`flex flex-col gap-2.5 rounded-2xl border bg-white p-4 dark:bg-boxdark ${inQuote ? 'border-primary' : 'border-stroke dark:border-strokedark'}`}>
+                        <div className="flex items-start justify-between gap-2.5">
+                          <div className="min-w-0">
+                            <div className="mb-1.5 flex flex-wrap gap-1.5">
+                              {p.compat.includes('V2') && <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">{t('pricingGuide.kaizenTag')}</span>}
+                              {p.compat.includes('V1') && <span className="rounded-full border border-stroke bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:border-strokedark dark:bg-meta-4">V1</span>}
+                              {p.status.includes('new') && <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-bold uppercase text-green-700 dark:text-success">{t('pricingGuide.newTag')}</span>}
+                              {p.status.includes('legacy') && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{t('pricingGuide.existingTag')}</span>}
+                              {p.pos && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{p.pos}</span>}
+                              {p.mode && <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:bg-meta-4">{p.mode}</span>}
+                            </div>
+                            <div className="text-[15.5px] font-bold leading-tight text-black dark:text-white">{pick(p.nameEn, p.nameFr)}</div>
+                          </div>
+                          <button onClick={() => toggleQuote(key)} title={t('pricingGuide.addQuote') as string}
+                            className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg border ${inQuote ? 'border-primary bg-primary text-white' : 'border-stroke text-body dark:border-strokedark'}`}>
+                            {inQuote ? '✓' : '+'}
+                          </button>
+                        </div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl font-black tracking-tight text-black dark:text-white">{pr.main}</span>
+                          <span className="text-[13px] text-gray-400">{pr.unit}</span>
+                        </div>
+                        {pr.sub && <div className="-mt-1.5 text-xs text-gray-400">{pr.sub}</div>}
+                        <div className="flex flex-col gap-1.5">
+                          {(fr && p.includesFr.length ? p.includesFr : p.includesEn).map((inc, i) => (
+                            <div key={i} className="flex gap-2 text-[13px] text-gray-600 dark:text-gray-300">
+                              <span className="mt-0.5 flex-none text-primary">✓</span><span>{inc}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {internal && irs.length > 0 && (
+                          <div className="flex flex-col gap-1.5 rounded-lg border border-primary/20 bg-primary/5 p-3">
+                            <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wide text-primary">🔒 {t('pricingGuide.internal')}</div>
+                            {irs.map((ir, i) => (
+                              <div key={i} className="text-xs leading-relaxed text-gray-600 dark:text-gray-300"><span className="font-semibold text-primary">{ir.k}</span> {ir.v}</div>
+                            ))}
+                          </div>
+                        )}
+                        <div className="mt-auto flex items-center justify-between border-t border-stroke pt-2.5 dark:border-strokedark">
+                          {p.sku ? (
+                            <button onClick={() => copySku(p.sku)} className="flex min-w-0 items-center gap-1.5 text-gray-500 hover:text-primary">
+                              <span className="max-w-[160px] truncate font-mono text-[11.5px]">{p.sku}</span>
+                              <span className={`flex-none ${done ? 'text-green-700 dark:text-success' : ''}`}>{done ? '✓' : '⧉'}</span>
+                            </button>
+                          ) : <span className="text-[11.5px] italic text-gray-400">{t('pricingGuide.noSku')}</span>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )
+            ) : null}
 
-            {cat === 'saas' && data && data.guides.length > 0 && (
+            {activeGroup === 'pricing' && cat === 'saas' && pricingData && pricingData.guides.length > 0 && (
               <div className="mt-8">
                 <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-gray-400">{t('pricingGuide.reference')}</div>
                 <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-                  {data.guides.map((g) => (
+                  {pricingData.guides.map((g) => (
                     <div key={g.id} className="rounded-2xl border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
                       <div className="mb-1.5 text-sm font-bold text-black dark:text-white">{pick(g.titleEn, g.titleFr)}</div>
                       <div className="text-[12.5px] leading-relaxed text-gray-500 dark:text-gray-400">{pick(g.bodyEn, g.bodyFr)}</div>

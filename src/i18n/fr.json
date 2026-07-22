@@ -299,7 +299,7 @@
     "revenue": "Revenus de paiements",
     "resources": "Ressources",
     "hardware": "Aperçu du matériel",
-    "pricingGuide": "Guide de services et tarifs",
+    "pricingGuide": "Guide de matériel et services",
     "kaizenDemo": "Kaizen DEMO",
     "proposals": "Propositions",
     "savings": "Calculateur d'économies",
@@ -432,6 +432,7 @@
     "subtitle": "Le catalogue complet du matériel Cluster — terminaux PDV, imprimantes, terminaux de paiement, afficheurs, réseau et périphériques.",
     "searchPh": "Rechercher par nom ou UGS",
     "loadError": "Impossible de charger le catalogue de matériel.",
+    "noFirmPrice": "Aucun prix ferme au dossier — contactez votre gestionnaire avant de soumissionner cet article",
     "categoriesAll": "Tout",
     "categories": {
       "pos": "Terminaux PDV",
@@ -486,8 +487,8 @@
     "rowWarranty": "Garantie"
   },
   "pricingGuide": {
-    "title": "Guide des services et prix",
-    "subtitle": "La référence de prix Cluster — SaaS, location, menu, installation, soutien, commande en ligne, expédition et frais sur place.",
+    "title": "Guide de matériel et services",
+    "subtitle": "Le catalogue de matériel et la référence de prix Cluster — terminaux POS, tablettes, imprimantes, SaaS, location, menu, installation, soutien, commande en ligne, expédition et frais sur place.",
     "searchPh": "Rechercher nom ou UGS",
     "loadError": "Impossible de charger le guide des prix.",
     "internalOnly": "Usage interne seulement",

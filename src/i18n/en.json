@@ -299,7 +299,7 @@
     "revenue": "Processing Revenue",
     "resources": "Resources",
     "hardware": "Hardware Overview",
-    "pricingGuide": "Services & Pricing Guide",
+    "pricingGuide": "Hardware & Service Guide",
     "kaizenDemo": "Kaizen DEMO",
     "proposals": "Proposals",
     "savings": "Savings calculator",
@@ -432,6 +432,7 @@
     "subtitle": "The complete Cluster hardware catalog — POS terminals, printers, payment devices, displays, networking and peripherals.",
     "searchPh": "Search by name or SKU",
     "loadError": "Couldn't load the hardware catalog.",
+    "noFirmPrice": "No firm price on file — contact your manager before quoting this item",
     "categoriesAll": "All",
     "categories": {
       "pos": "POS Terminals",
@@ -486,8 +487,8 @@
     "rowWarranty": "Warranty"
   },
   "pricingGuide": {
-    "title": "Services & Pricing Guide",
-    "subtitle": "Cluster's pricing reference — SaaS, rental, menu, installation, support, online ordering, shipping and on-site fees.",
+    "title": "Hardware & Service Guide",
+    "subtitle": "Cluster's hardware catalog and pricing reference — POS terminals, tablets, printers, SaaS, rental, menu, installation, support, online ordering, shipping and on-site fees.",
     "searchPh": "Search name or SKU",
     "loadError": "Couldn't load the pricing guide.",
     "internalOnly": "For internal use only",

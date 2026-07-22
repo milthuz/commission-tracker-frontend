@@ -67,10 +67,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   // clears even without visiting each sub-page (and covers feature paths that match no route).
   useEffect(() => { if (adminMenuOpen) markSeenUnder('/admin'); }, [adminMenuOpen, markSeenUnder]);
 
-  // Resources submenu — Hardware Overview + Services & Pricing Guide live under Resources,
-  // same expand/collapse idiom as the Admin Panel submenu below.
+  // Resources submenu — the Hardware & Service Guide lives under Resources, same expand/collapse
+  // idiom as the Admin Panel submenu below.
   const [resourcesMenuOpen, setResourcesMenuOpen] = useState(
-    pathname.includes('resources') || pathname === '/hardware' || pathname === '/pricing-guide'
+    pathname.includes('resources') || pathname === '/pricing-guide'
   );
 
   // Nested "Resources" group inside the Admin Panel submenu — groups the three editors
@@ -308,11 +308,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
-              {/* <!-- Menu Item Resources (perm: resources:view) — Hardware Overview + Pricing
-                   Guide nest under it as a submenu, same idiom as the Admin Panel below. --> */}
+              {/* <!-- Menu Item Resources (perm: resources:view) — the Hardware & Service Guide
+                   nests under it as a submenu, same idiom as the Admin Panel below. --> */}
               {(isAdmin || can('resources:view')) && (() => {
                 const canSub = isAdmin || can('hardware:view') || can('pricing:view');
-                const subActive = pathname === '/hardware' || pathname === '/pricing-guide';
+                const subActive = pathname === '/pricing-guide';
                 const icon = (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -361,20 +361,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           resourcesMenuOpen ? 'max-h-[6rem] opacity-100' : 'max-h-0 opacity-0'
                         }`}
                       >
-                        {(isAdmin || can('hardware:view')) && (
-                          <li>
-                            <NavLink
-                              to="/hardware"
-                              className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                                pathname === '/hardware' ? 'text-white' : ''
-                              }`}
-                            >
-                              {t('sidebar.hardware')}
-                              <NewBadge path="/hardware" />
-                            </NavLink>
-                          </li>
-                        )}
-                        {(isAdmin || can('pricing:view')) && (
+                        {(isAdmin || can('hardware:view') || can('pricing:view')) && (
                           <li>
                             <NavLink
                               to="/pricing-guide"
