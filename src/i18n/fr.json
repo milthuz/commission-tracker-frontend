@@ -694,6 +694,7 @@
     "colIncrease": "Augmentation",
     "colNew": "Nouveau / mois",
     "colRisk": "Risque",
+    "colHistory": "Activé / dernier changement",
     "colActivated": "Activé",
     "colLastPriceChange": "Dernier changement de prix",
     "colStatus": "Statut",
@@ -721,8 +722,8 @@
     "noRecentChange": "Aucun changement récent",
     "notEnoughHistory": "Historique de factures insuffisant",
     "suggestScenario": "Suggérer un scénario",
-    "suggestScenarioHint": "Sélectionne automatiquement les abonnements les plus sûrs (selon l'heuristique de risque de churn) pour atteindre ta cible MRR, en utilisant la valeur %/$ du lot ci-dessous. Ne remplace jamais les lignes déjà sélectionnées.",
-    "suggestConfirm": "Sélectionner {{count}} abonnements ajoutant {{delta}}/mois? {{medium}} sont à risque moyen et {{high}} à risque élevé — vérifie avant d'enregistrer.",
+    "suggestScenarioHint": "Sélectionne automatiquement les abonnements les plus sûrs pour atteindre ta cible MRR. Le % de lot ci-dessous est un plafond, pas un taux fixe — chaque abonnement reçoit la plus grande augmentation (jusqu'à ce plafond) qui le garde hors du risque élevé, donc les comptes sûrs reçoivent plus et les comptes limites reçoivent moins. Les scénarios en $ fixe utilisent un montant fixe pour tous. Ne remplace jamais les lignes déjà sélectionnées.",
+    "suggestConfirm": "Sélectionner {{count}} abonnements ajoutant {{delta}}/mois, chacun avec son propre taux ajusté au risque jusqu'à ton plafond? {{medium}} sont à risque moyen et {{high}} à risque élevé — vérifie avant d'enregistrer.",
     "riskExposure": "⚠ {{amount}}/mois provenant de comptes à risque élevé inclus",
     "noSuggestable": "Aucun abonnement admissible à suggérer — tout ce qui est actif est déjà inclus, ou rien n'aiderait à atteindre la cible.",
     "risk": {

@@ -123,6 +123,10 @@ const RISK_BADGE_CLS: Record<RiskTier, string> = {
   high: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400',
 };
 const RISK_DOT_COLOR: Record<RiskTier, string> = { low: '#57D193', medium: '#F59E0B', high: '#ef4444' };
+// Candidate percent increases Suggest Scenario tries per subscription, highest first — it picks
+// the largest one that keeps that subscription out of "high" risk, so safer accounts get a
+// bigger increase and borderline ones get a smaller one automatically.
+const RATE_CANDIDATES_PCT = [20, 15, 12, 10, 8, 6, 5, 3];
 
 // Admin tool: simulate SaaS price increases across every live Zoho Billing subscription, build
 // a scenario aimed at a target MRR add, then save it (Phase A — read-only simulation; pushing
@@ -432,13 +436,32 @@ const SaasIncrease: React.FC = () => {
   const suggestScenario = async () => {
     const remainingToTarget = targetMrr - mrrDelta;
     if (remainingToTarget <= 0) { dialog.alert(t('saasIncrease.targetReached') as string); return; }
-    const hypothetical: RowEdit = { selected: true, increaseType: bulkType, increaseValue: bulkValue };
+
+    // The toolbar's bulk value is a CEILING, not a fixed rate — for a percent scenario, each
+    // candidate rate below is tried from highest to lowest and the first that keeps the
+    // subscription out of "high" risk wins, so a long-tenure healthy account can get closer to
+    // the ceiling while a borderline one gets a smaller, safer increase. Flat ($) scenarios keep
+    // one fixed amount for everyone, since a dollar amount doesn't "scale" the same way.
+    const steps = bulkType === 'flat' ? [bulkValue] : (() => {
+      const s = RATE_CANDIDATES_PCT.filter(v => v <= bulkValue);
+      return s.length ? s : [bulkValue];
+    })();
+    const evalRate = (s: Subscription, rate: number) => {
+      const hypothetical: RowEdit = { selected: true, increaseType: bulkType, increaseValue: rate };
+      const delta = newMonthlyFor(s, hypothetical) - s.currentMonthly;
+      const proposedPct = (delta / (s.currentMonthly || 1)) * 100;
+      return { rate, delta, risk: riskFor(s, proposedPct, calibration) };
+    };
+
     const candidates = subs
       .filter(s => s.status === 'live' && !edits[s.subscriptionNumber]?.selected)
       .map(s => {
-        const delta = newMonthlyFor(s, hypothetical) - s.currentMonthly;
-        const proposedPct = (delta / (s.currentMonthly || 1)) * 100;
-        return { s, delta, risk: riskFor(s, proposedPct, calibration) };
+        let best: ReturnType<typeof evalRate> | null = null;
+        for (const rate of steps) {
+          const r = evalRate(s, rate);
+          if (r.risk.tier !== 'high') { best = r; break; }
+        }
+        return { s, ...(best || evalRate(s, steps[steps.length - 1])) };
       })
       .filter(c => c.delta > 0)
       .sort((a, b) => {
@@ -464,7 +487,7 @@ const SaasIncrease: React.FC = () => {
 
     setEdits(prev => {
       const next = { ...prev };
-      for (const c of chosen) next[c.s.subscriptionNumber] = { selected: true, increaseType: bulkType, increaseValue: bulkValue };
+      for (const c of chosen) next[c.s.subscriptionNumber] = { selected: true, increaseType: bulkType, increaseValue: c.rate };
       return next;
     });
   };
@@ -720,6 +743,11 @@ const SaasIncrease: React.FC = () => {
   const card = 'rounded-2xl border border-gray-200 bg-white dark:border-[#1B1B1B] dark:bg-[#0E0F11]';
   const chipInput = 'rounded-lg border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white dark:placeholder:text-[#61646C]';
   const raised = 'rounded-lg border border-gray-200 bg-gray-50 dark:border-[#242424] dark:bg-[#141414]';
+  // Neutral "nothing to report yet" pill — a plain soft fill with no border, matching the
+  // weight of the colored status pills (emerald/red/amber) instead of `raised`'s boxy
+  // border+rounded-lg, which visually clashed with the rounded-full pill shape it was combined
+  // with (David's screenshot: a bordered box with wrapped text instead of a clean pill).
+  const neutralPill = 'bg-gray-100 text-gray-500 dark:bg-[#1B1B1B] dark:text-[#61646C]';
   const textPri = 'text-gray-900 dark:text-white';
   const textSec = 'text-gray-600 dark:text-[#D1D1D1]';
   const textTer = 'text-gray-500 dark:text-[#999AA7]';
@@ -728,7 +756,10 @@ const SaasIncrease: React.FC = () => {
   const btnSecondary = 'inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-[#242424] dark:bg-[#141414] dark:text-[#D1D1D1] dark:hover:bg-[#1B1B1B] dark:hover:text-white';
   const btnPrimary = 'inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50';
   const segBtn = (on: boolean) => `rounded-md px-2 py-1 text-xs font-semibold transition-colors ${on ? 'bg-primary text-white' : `${textTer} hover:text-gray-700 dark:hover:text-white`}`;
-  const gridCols = 'grid-cols-[38px_2.2fr_1.8fr_1fr_1.3fr_1.1fr_0.8fr_0.9fr_1fr_0.9fr]';
+  // Activated + last-price-change used to be two separate columns — merged into one "History"
+  // column (stacked two-line cell) so the table fits on a laptop screen without needing to
+  // scroll horizontally to see the Risk/Status columns (David's feedback: 10 columns didn't fit).
+  const gridCols = 'grid-cols-[38px_2.2fr_1.8fr_1fr_1.3fr_1.1fr_0.8fr_1.2fr_0.9fr]';
 
   return (
     <div className="font-satoshi">
@@ -986,8 +1017,7 @@ const SaasIncrease: React.FC = () => {
                     <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colIncrease')}</span>
                     <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colNew')}</span>
                     <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colRisk')}</span>
-                    <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colActivated')}</span>
-                    <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colLastPriceChange')}</span>
+                    <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colHistory')}</span>
                     <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colStatus')}</span>
                   </div>
                 );
@@ -1044,20 +1074,22 @@ const SaasIncrease: React.FC = () => {
                         {included && <div className="mt-0.5 text-[11px] text-emerald-600 dark:text-[#57D193]">+{money(delta)}</div>}
                       </div>
                       <div className="justify-self-end">
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${RISK_BADGE_CLS[risk.tier]}`} title={riskTitle}>
+                        <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium ${RISK_BADGE_CLS[risk.tier]}`} title={riskTitle}>
                           <span className="h-1.5 w-1.5 rounded-full" style={{ background: RISK_DOT_COLOR[risk.tier] }} />
                           {t(`saasIncrease.risk.${risk.tier}`)}
                         </span>
                       </div>
-                      <div className={`whitespace-nowrap text-xs ${textTer}`}>{s.activatedAt ? new Date(s.activatedAt).toLocaleDateString() : '—'}</div>
-                      <div className={`whitespace-nowrap text-xs ${textTer}`} title={priceChangeTitle}>{priceChangeLabel}</div>
+                      <div className="min-w-0">
+                        <div className={`whitespace-nowrap text-xs ${textTer}`}>{s.activatedAt ? new Date(s.activatedAt).toLocaleDateString() : '—'}</div>
+                        <div className={`mt-0.5 whitespace-nowrap text-[11px] ${textQuat}`} title={priceChangeTitle}>{priceChangeLabel}</div>
+                      </div>
                       <div className="justify-self-end">
                         {savedForRow ? (
                           <span
-                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                            className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium ${
                               savedForRow.status === 'pushed' ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' :
                               savedForRow.status === 'push_failed' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
-                              `${raised} ${textTer}`
+                              neutralPill
                             }`}
                             title={savedForRow.pushError || ''}
                           >
@@ -1065,7 +1097,7 @@ const SaasIncrease: React.FC = () => {
                             {t(`saasIncrease.push.status.${savedForRow.status}`)}
                           </span>
                         ) : (
-                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${included ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' : `${raised} ${textTer}`}`}>
+                          <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium ${included ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' : neutralPill}`}>
                             <span className="h-1.5 w-1.5 rounded-full" style={{ background: included ? '#57D193' : '#575A61' }} />
                             {included ? t('saasIncrease.increaseSet') : t('saasIncrease.notChecked')}
                           </span>
@@ -1120,7 +1152,7 @@ const SaasIncrease: React.FC = () => {
                   return [
                     header,
                     <div key={`group-body-${key}`} className="overflow-x-auto">
-                      <div className="min-w-[1000px]">
+                      <div className="min-w-[920px]">
                         {columnHeader(rows)}
                         {rows.map(renderRow)}
                       </div>
@@ -1260,11 +1292,11 @@ const SaasIncrease: React.FC = () => {
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <span
-                                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                      className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${
                                         item.notifyStatus === 'sent' ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' :
                                         item.notifyStatus === 'send_failed' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
                                         item.notifyStatus === 'drafted' ? 'bg-primary/10 text-primary' :
-                                        `${raised} ${textTer}`
+                                        neutralPill
                                       }`}
                                       title={item.notifyError || ''}
                                     >
@@ -1272,10 +1304,10 @@ const SaasIncrease: React.FC = () => {
                                     </span>
                                     {canExecute && (
                                       <span
-                                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                        className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${
                                           item.status === 'pushed' ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' :
                                           item.status === 'push_failed' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
-                                          `${raised} ${textTer}`
+                                          neutralPill
                                         }`}
                                         title={item.pushError || ''}
                                       >

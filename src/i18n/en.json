@@ -694,6 +694,7 @@
     "colIncrease": "Increase",
     "colNew": "New / mo",
     "colRisk": "Risk",
+    "colHistory": "Activated / last change",
     "colActivated": "Activated",
     "colLastPriceChange": "Last price change",
     "colStatus": "Status",
@@ -721,8 +722,8 @@
     "noRecentChange": "No recent change",
     "notEnoughHistory": "Not enough invoice history",
     "suggestScenario": "Suggest scenario",
-    "suggestScenarioHint": "Auto-selects the safest subscriptions (by churn-risk heuristic) to reach your target MRR, using the bulk %/$ value set below. Never overwrites rows you've already selected.",
-    "suggestConfirm": "Select {{count}} subscriptions adding {{delta}}/mo? {{medium}} are medium-risk and {{high}} are high-risk — review before saving.",
+    "suggestScenarioHint": "Auto-selects the safest subscriptions to reach your target MRR. The bulk % below is a ceiling, not a fixed rate — each subscription gets the largest increase (up to that ceiling) that keeps it out of high risk, so safer accounts get more and borderline ones get less. Flat $ scenarios use one fixed amount for everyone. Never overwrites rows you've already selected.",
+    "suggestConfirm": "Select {{count}} subscriptions adding {{delta}}/mo, each with its own risk-adjusted rate up to your ceiling? {{medium}} are medium-risk and {{high}} are high-risk — review before saving.",
     "riskExposure": "⚠ {{amount}}/mo from high-risk accounts included",
     "noSuggestable": "No eligible subscriptions left to suggest — everything live is already included, or none would help reach the target.",
     "risk": {
