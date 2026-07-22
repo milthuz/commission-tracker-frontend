@@ -442,6 +442,26 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Menu Item SaaS Increase (perm: saas_increase:manage) — moved out of the Admin
+                   Panel submenu so the granular saas_increase:* permissions can be assigned to
+                   non-admin users; AdminPanel/index.tsx gates its whole render on isAdmin, which
+                   blocked this tool for anyone without the literal admin flag regardless of perms. --> */}
+              {(isAdmin || can('saas_increase:manage')) && (
+                <li>
+                  <NavLink
+                    to="/saas-increase"
+                    className={navLinkCls(pathname.includes('saas-increase'))}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 3v18h18" />
+                      <path d="M7 14l4-5 3 3 5-7" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.saasIncrease')}</span>
+                    <NewBadge path="/saas-increase" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.saasIncrease') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Admin Panel (Admin Only) --> */}
               {isAdmin && (
                 <li>
@@ -673,16 +693,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         }`}
                       >
                         {t('sidebar.merchantLinks')}<NewBadge path="/admin/merchant-links" />
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink
-                        to="/admin/saas-increase"
-                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                          pathname === '/admin/saas-increase' ? 'text-white' : ''
-                        }`}
-                      >
-                        {t('sidebar.saasIncrease')}<NewBadge path="/admin/saas-increase" />
                       </NavLink>
                     </li>
                   </ul>

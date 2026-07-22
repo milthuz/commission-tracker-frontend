@@ -27,6 +27,7 @@ import KaizenDemo from './pages/KaizenDemo';
 import Proposals from './pages/Proposals';
 import Hardware from './pages/Hardware';
 import PricingGuide from './pages/PricingGuide';
+import SaasIncrease from './pages/AdminPanel/SaasIncrease';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -246,6 +247,15 @@ function AppContent() {
               <>
                 <PageTitle title="Calculateur d'économies | Sales Hub" />
                 <SavingsCalculator />
+              </>
+            }
+          />
+          <Route
+            path="/saas-increase"
+            element={
+              <>
+                <PageTitle title="SaaS Increase | Sales Hub" />
+                <SaasIncrease />
               </>
             }
           />

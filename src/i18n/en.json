@@ -765,6 +765,27 @@
       "none": "No templates yet — create one to get started.",
       "incomplete": "Name and both languages' subject/body are required.",
       "confirmDelete": "Delete this template? This can't be undone."
+    },
+    "push": {
+      "subtitle": "Notify merchants and push approved increases into live Zoho subscriptions.",
+      "pushSelected": "Push {{count}} to Zoho",
+      "pushGroup": "Push group to Zoho",
+      "pushOne": "Push to Zoho",
+      "status": {
+        "pending": "Not pushed",
+        "pushed": "Pushed",
+        "push_failed": "Failed"
+      },
+      "confirmTitle": "Push to Zoho",
+      "confirmBody": "This will schedule a price change for {{count}} subscription(s), adding {{delta}}/mo, effective at each one's next renewal. This changes live customer billing and can't be undone from here.",
+      "warning": "Double-check the amounts before confirming — this writes directly to Zoho Billing.",
+      "alreadyPushed": "{{count}} of these were already pushed — this will reschedule them.",
+      "pinLabel": "Confirmation PIN",
+      "noPinSetInline": "You haven't set a confirmation PIN yet. Go to your Profile to set one before pushing.",
+      "noPinSet": "You haven't set a confirmation PIN yet. Set one in your Profile first.",
+      "invalidPin": "Incorrect PIN.",
+      "pushing": "Pushing…",
+      "confirmSubmit": "Confirm & push"
     }
   },
   "savingsCalc": {
@@ -2298,6 +2319,19 @@
     "signatureRole2Ph": "e.g. Sales Team",
     "signaturePhone": "Phone",
     "signatureHint": "Your name, email and the Cluster logo/address are added automatically — just fill in your role and phone.",
+    "pin": {
+      "title": "Push confirmation PIN",
+      "subtitle": "Required before pushing SaaS price increases into live Zoho subscriptions.",
+      "current": "Current PIN",
+      "new": "New PIN",
+      "set": "Set PIN",
+      "confirm": "Confirm PIN",
+      "change": "Change PIN",
+      "hint": "At least 4 digits. You'll be asked for this PIN every time you push a scenario's price increases into Zoho.",
+      "tooShort": "PIN must be at least 4 digits.",
+      "mismatch": "PINs don't match.",
+      "saveFailed": "Failed to save PIN."
+    },
     "session": "Session & Security",
     "sessionSubtitle": "Manage your active session",
     "authProvider": "Zoho OAuth",

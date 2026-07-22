@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
+import { useAuth } from '../../context/AuthContext';
 import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -115,6 +116,17 @@ const SaasIncrease: React.FC = () => {
   const [templateDraft, setTemplateDraft] = useState<{ name: string; subjectEn: string; bodyEn: string; subjectFr: string; bodyFr: string }>({ name: '', subjectEn: '', bodyEn: '', subjectFr: '', bodyFr: '' });
   const [savingTemplate, setSavingTemplate] = useState(false);
 
+  // Push to Zoho — the one action that changes live customer billing, gated on
+  // saas_increase:execute + a Sales-Hub-native confirmation PIN (see Profile.tsx).
+  const { user } = useAuth();
+  const can = (p: string) => {
+    const perms = user?.permissions || [];
+    return perms.includes('*') || perms.includes(p) || perms.includes(`${p.split(':')[0]}:*`);
+  };
+  const canExecute = can('saas_increase:execute');
+  const [hasPushPin, setHasPushPin] = useState<boolean | null>(null);
+  const [pushModal, setPushModal] = useState<{ itemIds: number[]; pin: string; busy: boolean; results: Record<number, { ok: boolean; error?: string }> | null } | null>(null);
+
   const loadSubs = async (fresh = false) => {
     setLoading(true); setError(null);
     try {
@@ -148,6 +160,12 @@ const SaasIncrease: React.FC = () => {
   };
 
   useEffect(() => { loadSubs(false); loadScenarios(); loadTemplates(); }, []);
+
+  useEffect(() => {
+    if (!canExecute) return;
+    fetch(`${API_URL}/api/user/push-pin/status`, { headers: authHeaders() })
+      .then(r => r.json()).then(d => setHasPushPin(!!d.hasPin)).catch(() => {});
+  }, [canExecute]);
 
   const loadScenarioDetail = async (id: number) => {
     try {
@@ -460,6 +478,39 @@ const SaasIncrease: React.FC = () => {
     finally { markNotifyBusy(itemIds, false); }
   };
 
+  // Opens the confirmation modal for the given saved items — the actual Zoho call only
+  // happens once the PIN is submitted via confirmPush.
+  const openPushModal = (itemIds: number[]) => {
+    if (!itemIds.length) return;
+    setPushModal({ itemIds, pin: '', busy: false, results: null });
+  };
+
+  const confirmPush = async () => {
+    if (!activeScenarioId || !pushModal) return;
+    setPushModal(m => m ? { ...m, busy: true } : m);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/push`, {
+        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds: pushModal.itemIds, pin: pushModal.pin }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setPushModal(m => m ? { ...m, busy: false } : m);
+        if (data.error === 'invalid_pin') dialog.alert(t('saasIncrease.push.invalidPin') as string);
+        else if (data.error === 'no_pin_set') dialog.alert(t('saasIncrease.push.noPinSet') as string);
+        else dialog.alert(t('saasIncrease.error') as string);
+        return;
+      }
+      const results: Record<number, { ok: boolean; error?: string }> = {};
+      for (const res of data.results || []) results[res.itemId] = { ok: res.ok, error: res.error };
+      setPushModal(m => m ? { ...m, busy: false, results } : m);
+      await loadScenarioDetail(activeScenarioId);
+    } catch {
+      setPushModal(m => m ? { ...m, busy: false } : m);
+      dialog.alert(t('saasIncrease.error') as string);
+    }
+  };
+
   const startNewTemplate = () => {
     setTemplateDraft({ name: '', subjectEn: '', bodyEn: '', subjectFr: '', bodyFr: '' });
     setExpandedTemplateId('new');
@@ -549,6 +600,13 @@ const SaasIncrease: React.FC = () => {
 
   return (
     <div className="font-satoshi">
+      {/* Page title — self-contained now that this page has its own route (moved out of
+          AdminPanel, whose shared header used to supply this for free). */}
+      <div className="mb-6">
+        <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('saasIncrease.title')}</h2>
+        <p className="mt-1 text-sm text-body">{t('saasIncrease.subtitle')}</p>
+      </div>
+
       {/* Header actions — Refresh price history / Export CSV */}
       <div className="mb-4 flex items-center justify-end gap-2">
         <button onClick={refreshInsights} disabled={refreshingInsights} className={btnSecondary}>
@@ -583,7 +641,7 @@ const SaasIncrease: React.FC = () => {
                 <button
                   type="button" onClick={() => deleteScenario(activeScenarioId)}
                   title={t('saasIncrease.deleteScenario') as string}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 dark:text-[#999AA7] dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-orange-200 bg-white text-gray-500 hover:border-red-300 hover:bg-red-50 hover:text-red-500 dark:border-[#2a2320] dark:bg-[#0A0A0A] dark:text-[#999AA7] dark:hover:border-red-500/40 dark:hover:bg-red-500/10 dark:hover:text-red-400"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -794,6 +852,10 @@ const SaasIncrease: React.FC = () => {
                   const priceChangeTitle = (s.lastPriceBefore != null && s.lastPriceAfter != null)
                     ? `${money(s.lastPriceBefore)} → ${money(s.lastPriceAfter)}` : '';
                   const rowBg = selected ? 'bg-orange-50/60 dark:bg-[rgba(245,131,69,0.06)]' : included ? 'bg-emerald-50/40 dark:bg-[rgba(87,209,147,0.03)]' : '';
+                  // Once a row is saved to the scenario, the Status column shows the real push
+                  // status (pending/pushed/push_failed) instead of the purely local "increase
+                  // set / not set" badge — the real signal only exists after Save.
+                  const savedForRow = savedItems[s.subscriptionNumber];
                   return (
                     <div key={s.subscriptionNumber} className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 px-4.5 py-3 hover:bg-gray-50 dark:border-[#161616] dark:hover:bg-[#141416] ${rowBg}`}>
                       <label className="flex items-center"><input type="checkbox" checked={selected} onChange={(ev) => setEdit(s.subscriptionNumber, { selected: ev.target.checked })} className="h-4 w-4 accent-primary" /></label>
@@ -827,10 +889,24 @@ const SaasIncrease: React.FC = () => {
                       <div className={`whitespace-nowrap text-xs ${textTer}`}>{s.activatedAt ? new Date(s.activatedAt).toLocaleDateString() : '—'}</div>
                       <div className={`whitespace-nowrap text-xs ${textTer}`} title={priceChangeTitle}>{priceChangeLabel}</div>
                       <div className="justify-self-end">
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${included ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' : `${raised} ${textTer}`}`}>
-                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: included ? '#57D193' : '#575A61' }} />
-                          {included ? t('saasIncrease.increaseSet') : t('saasIncrease.notChecked')}
-                        </span>
+                        {savedForRow ? (
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                              savedForRow.status === 'pushed' ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' :
+                              savedForRow.status === 'push_failed' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
+                              `${raised} ${textTer}`
+                            }`}
+                            title={savedForRow.pushError || ''}
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full" style={{ background: savedForRow.status === 'pushed' ? '#57D193' : savedForRow.status === 'push_failed' ? '#ef4444' : '#575A61' }} />
+                            {t(`saasIncrease.push.status.${savedForRow.status}`)}
+                          </span>
+                        ) : (
+                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${included ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' : `${raised} ${textTer}`}`}>
+                            <span className="h-1.5 w-1.5 rounded-full" style={{ background: included ? '#57D193' : '#575A61' }} />
+                            {included ? t('saasIncrease.increaseSet') : t('saasIncrease.notChecked')}
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
@@ -926,7 +1002,7 @@ const SaasIncrease: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
               <div>
                 <h4 className={`text-sm font-semibold ${textPri}`}>{t('saasIncrease.notify.title')}</h4>
-                <p className={`mt-0.5 text-xs ${textTer}`}>{t('saasIncrease.notify.subtitle')}</p>
+                <p className={`mt-0.5 text-xs ${textTer}`}>{canExecute ? t('saasIncrease.push.subtitle') : t('saasIncrease.notify.subtitle')}</p>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => { loadTemplates(); setTemplateManagerOpen(true); }} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
@@ -946,6 +1022,15 @@ const SaasIncrease: React.FC = () => {
                 >
                   {t('saasIncrease.notify.sendSelected', { count: notifySelected.size })}
                 </button>
+                {canExecute && (
+                  <button
+                    onClick={() => openPushModal(Array.from(notifySelected))}
+                    disabled={notifySelected.size === 0}
+                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-50"
+                  >
+                    {t('saasIncrease.push.pushSelected', { count: notifySelected.size })}
+                  </button>
+                )}
               </div>
             </div>
             <div>
@@ -985,6 +1070,15 @@ const SaasIncrease: React.FC = () => {
                           </button>
                         </>
                       )}
+                      {canExecute && (
+                        <button
+                          type="button"
+                          onClick={() => openPushModal(items.map(it => it.id))}
+                          className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-white hover:bg-opacity-90"
+                        >
+                          {t('saasIncrease.push.pushGroup')}
+                        </button>
+                      )}
                     </div>
                     {groupExpanded && (
                       <div className={`divide-y ${divider}`}>
@@ -1013,6 +1107,18 @@ const SaasIncrease: React.FC = () => {
                                     >
                                       {t(`saasIncrease.notify.status.${item.notifyStatus}`)}
                                     </span>
+                                    {canExecute && (
+                                      <span
+                                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                          item.status === 'pushed' ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' :
+                                          item.status === 'push_failed' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
+                                          `${raised} ${textTer}`
+                                        }`}
+                                        title={item.pushError || ''}
+                                      >
+                                        {t(`saasIncrease.push.status.${item.status}`)}
+                                      </span>
+                                    )}
                                     <ChevronDown className={`h-4 w-4 ${textQuat} transition-transform ${expanded ? 'rotate-180' : ''}`} />
                                   </div>
                                 </button>
@@ -1050,6 +1156,11 @@ const SaasIncrease: React.FC = () => {
                                     <button onClick={() => sendNotifications([item.id])} disabled={busy || !draft.to || !draft.subject} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A]">
                                       {busy ? t('saasIncrease.notify.sending') : t('saasIncrease.notify.send')}
                                     </button>
+                                    {canExecute && (
+                                      <button onClick={() => openPushModal([item.id])} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90">
+                                        {t('saasIncrease.push.pushOne')}
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -1061,6 +1172,84 @@ const SaasIncrease: React.FC = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Push-to-Zoho confirmation modal — the one action in this tool that changes live
+          customer billing, so it's gated behind a confirmation PIN (see Profile.tsx). Results
+          render inline after submit rather than closing immediately, since a batch can partially
+          fail (continue-past-failures, same convention as notification sending). */}
+      {pushModal && (() => {
+        const targetItems = pushModal.itemIds.map(id => Object.values(savedItems).find(it => it.id === id)).filter(Boolean) as ScenarioItem[];
+        const totalDelta = targetItems.reduce((sum, it) => sum + (it.newMonthly - it.currentMonthly), 0);
+        const alreadyPushedCount = targetItems.filter(it => it.status === 'pushed').length;
+        return (
+          <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => !pushModal.busy && setPushModal(null)}>
+            <div className={`w-full max-w-md overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
+                <p className={`font-semibold ${textPri}`}>{t('saasIncrease.push.confirmTitle')}</p>
+                <button onClick={() => setPushModal(null)} className={`${textSec} transition hover:text-red-500`}>
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="space-y-3 p-5">
+                {!pushModal.results ? (
+                  <>
+                    <p className={`text-sm ${textSec}`}>
+                      {t('saasIncrease.push.confirmBody', { count: targetItems.length, delta: money(totalDelta) })}
+                    </p>
+                    <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-400">
+                      {t('saasIncrease.push.warning')}
+                    </p>
+                    {alreadyPushedCount > 0 && (
+                      <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-400">
+                        {t('saasIncrease.push.alreadyPushed', { count: alreadyPushedCount })}
+                      </p>
+                    )}
+                    {hasPushPin === false ? (
+                      <p className={`text-sm ${textSec}`}>{t('saasIncrease.push.noPinSetInline')}</p>
+                    ) : (
+                      <div>
+                        <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.push.pinLabel')}</label>
+                        <input
+                          type="password" inputMode="numeric" autoFocus value={pushModal.pin}
+                          onChange={(e) => setPushModal(m => m ? { ...m, pin: e.target.value.replace(/\D/g, '') } : m)}
+                          className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
+                        />
+                      </div>
+                    )}
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={confirmPush}
+                        disabled={pushModal.busy || hasPushPin === false || !pushModal.pin}
+                        className={btnPrimary}
+                      >
+                        {pushModal.busy ? t('saasIncrease.push.pushing') : t('saasIncrease.push.confirmSubmit')}
+                      </button>
+                      <button onClick={() => setPushModal(null)} className={btnSecondary}>{t('saasIncrease.templates.cancel')}</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-1.5">
+                      {targetItems.map(it => {
+                        const r = pushModal.results![it.id];
+                        return (
+                          <div key={it.id} className="flex items-center justify-between gap-2 text-sm">
+                            <span className={textSec}>{it.customerName}</span>
+                            <span className={r?.ok ? 'text-emerald-600 dark:text-[#57D193]' : 'text-red-500'} title={r?.error || ''}>
+                              {r?.ok ? t('saasIncrease.push.status.pushed') : t('saasIncrease.push.status.push_failed')}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <button onClick={() => setPushModal(null)} className={btnSecondary}>{t('common.close')}</button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         );

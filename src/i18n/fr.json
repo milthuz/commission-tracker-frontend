@@ -765,6 +765,27 @@
       "none": "Aucun modèle pour l'instant — crées-en un pour commencer.",
       "incomplete": "Le nom et le sujet/message dans les deux langues sont requis.",
       "confirmDelete": "Supprimer ce modèle? Cette action est irréversible."
+    },
+    "push": {
+      "subtitle": "Avise les marchands et applique les augmentations approuvées dans les abonnements Zoho en direct.",
+      "pushSelected": "Appliquer {{count}} vers Zoho",
+      "pushGroup": "Appliquer le groupe vers Zoho",
+      "pushOne": "Appliquer vers Zoho",
+      "status": {
+        "pending": "Non appliqué",
+        "pushed": "Appliqué",
+        "push_failed": "Échoué"
+      },
+      "confirmTitle": "Appliquer vers Zoho",
+      "confirmBody": "Ceci planifiera un changement de prix pour {{count}} abonnement(s), ajoutant {{delta}}/mois, effectif au prochain renouvellement de chacun. Ceci modifie la facturation réelle des clients et ne peut pas être annulé d'ici.",
+      "warning": "Vérifie bien les montants avant de confirmer — ceci écrit directement dans Zoho Billing.",
+      "alreadyPushed": "{{count}} de ces éléments ont déjà été appliqués — ceci les reprogrammera.",
+      "pinLabel": "NIP de confirmation",
+      "noPinSetInline": "Tu n'as pas encore défini de NIP de confirmation. Va dans ton profil pour en définir un avant d'appliquer.",
+      "noPinSet": "Tu n'as pas encore défini de NIP de confirmation. Définis-en un dans ton profil d'abord.",
+      "invalidPin": "NIP incorrect.",
+      "pushing": "Application en cours…",
+      "confirmSubmit": "Confirmer et appliquer"
     }
   },
   "savingsCalc": {
@@ -2298,6 +2319,19 @@
     "signatureRole2Ph": "ex. Équipe des ventes",
     "signaturePhone": "Téléphone",
     "signatureHint": "Votre nom, courriel et le logo/adresse Cluster sont ajoutés automatiquement — remplissez seulement votre rôle et téléphone.",
+    "pin": {
+      "title": "NIP de confirmation",
+      "subtitle": "Requis avant d'appliquer des augmentations de prix SaaS dans les abonnements Zoho en direct.",
+      "current": "NIP actuel",
+      "new": "Nouveau NIP",
+      "set": "Définir le NIP",
+      "confirm": "Confirmer le NIP",
+      "change": "Changer le NIP",
+      "hint": "Au moins 4 chiffres. Ce NIP te sera demandé chaque fois que tu appliques les augmentations de prix d'un scénario dans Zoho.",
+      "tooShort": "Le NIP doit contenir au moins 4 chiffres.",
+      "mismatch": "Les NIP ne correspondent pas.",
+      "saveFailed": "Échec de l'enregistrement du NIP."
+    },
     "session": "Session et sécurité",
     "sessionSubtitle": "Gérer votre session active",
     "authProvider": "Zoho OAuth",

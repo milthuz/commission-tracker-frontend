@@ -66,7 +66,11 @@ const TIMEZONES = [
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
-  useAuth();
+  const { user } = useAuth();
+  const can = (p: string) => {
+    const perms = user?.permissions || [];
+    return perms.includes('*') || perms.includes(p) || perms.includes(`${p.split(':')[0]}:*`);
+  };
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -88,6 +92,16 @@ const Profile = () => {
   const [featureModal, setFeatureModal] = useState<{ open: boolean; message: string; sending: boolean }>({
     open: false, message: '', sending: false,
   });
+  // SaaS Increase push confirmation PIN — required before pushing price increases into live
+  // Zoho subscriptions (saas_increase:execute). Only relevant to users with that permission.
+  const [hasPin, setHasPin] = useState(false);
+  const [currentPin, setCurrentPin] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [pinSaving, setPinSaving] = useState(false);
+  const [pinSaved, setPinSaved] = useState(false);
+  const [pinError, setPinError] = useState('');
+  const canPushPin = can('saas_increase:execute');
 
   const submitFeature = async () => {
     if (!featureModal.message.trim()) return;
@@ -137,6 +151,14 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    if (!canPushPin) return;
+    const token = localStorage.getItem('token');
+    axios.get(`${API_URL}/api/user/push-pin/status`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => setHasPin(!!r.data.hasPin))
+      .catch(() => {});
+  }, [canPushPin]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -178,6 +200,27 @@ const Profile = () => {
       dialog.alert(e?.response?.data?.error || 'Failed to save signature');
     } finally {
       setSigSaving(false);
+    }
+  };
+
+  const savePin = async () => {
+    setPinError('');
+    if (!/^\d{4,}$/.test(newPin)) { setPinError(t('profile.pin.tooShort') as string); return; }
+    if (newPin !== confirmPin) { setPinError(t('profile.pin.mismatch') as string); return; }
+    setPinSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/user/push-pin`, { currentPin: currentPin || undefined, newPin }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setHasPin(true);
+      setCurrentPin(''); setNewPin(''); setConfirmPin('');
+      setPinSaved(true);
+      setTimeout(() => setPinSaved(false), 3000);
+    } catch (e: any) {
+      setPinError(e?.response?.data?.error || (t('profile.pin.saveFailed') as string));
+    } finally {
+      setPinSaving(false);
     }
   };
 
@@ -552,6 +595,85 @@ const Profile = () => {
                   </button>
 
                   {sigSaved && (
+                    <span className="text-sm font-medium text-success animate-fade-in">
+                      {t('profile.preferencesSaved')}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SaaS Increase push confirmation PIN — only shown to users who can push price
+              increases into live Zoho subscriptions (saas_increase:execute). */}
+          {canPushPin && (
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('profile.pin.title')}</h3>
+                <p className="text-sm text-body mt-1">{t('profile.pin.subtitle')}</p>
+              </div>
+              <div className="p-7">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                  {hasPin && (
+                    <div>
+                      <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                        {t('profile.pin.current')}
+                      </label>
+                      <input
+                        type="password" inputMode="numeric" value={currentPin}
+                        onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, ''))}
+                        className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                      {hasPin ? t('profile.pin.new') : t('profile.pin.set')}
+                    </label>
+                    <input
+                      type="password" inputMode="numeric" value={newPin}
+                      onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
+                      placeholder="••••"
+                      className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                      {t('profile.pin.confirm')}
+                    </label>
+                    <input
+                      type="password" inputMode="numeric" value={confirmPin}
+                      onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+                      placeholder="••••"
+                      className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                    />
+                  </div>
+                </div>
+                <p className="mt-4 text-xs text-body">{t('profile.pin.hint')}</p>
+                {pinError && <p className="mt-3 text-sm text-danger">{pinError}</p>}
+
+                <div className="mt-6 flex items-center gap-3">
+                  <button
+                    onClick={savePin}
+                    disabled={pinSaving || !newPin || !confirmPin}
+                    className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                  >
+                    {pinSaving ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                        {t('common.saving')}
+                      </>
+                    ) : (
+                      <>
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {hasPin ? t('profile.pin.change') : t('profile.pin.set')}
+                      </>
+                    )}
+                  </button>
+
+                  {pinSaved && (
                     <span className="text-sm font-medium text-success animate-fade-in">
                       {t('profile.preferencesSaved')}
                     </span>

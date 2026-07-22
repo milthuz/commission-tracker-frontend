@@ -18,7 +18,6 @@ import Audit from './Audit';
 import SavingsPricingAdmin from './SavingsPricingAdmin';
 import HardwareAdmin from './HardwareAdmin';
 import PricingAdmin from './PricingAdmin';
-import SaasIncrease from './SaasIncrease';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -1495,7 +1494,6 @@ const AdminPanel = () => {
              activeTab === 'audit' ? t('admin.audit.title') :
              activeTab === 'hardware' ? t('admin.hardware.title') :
              activeTab === 'pricing' ? t('admin.pricing.title') :
-             activeTab === 'saas-increase' ? t('saasIncrease.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1515,7 +1513,6 @@ const AdminPanel = () => {
              activeTab === 'audit' ? t('admin.audit.subtitle') :
              activeTab === 'hardware' ? t('admin.hardware.subtitle') :
              activeTab === 'pricing' ? t('admin.pricing.subtitle') :
-             activeTab === 'saas-increase' ? t('saasIncrease.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -3431,7 +3428,6 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'hardware' && <HardwareAdmin />}
           {activeTab === 'pricing' && <PricingAdmin />}
           {activeTab === 'merchant-links' && <MerchantSaasLinks />}
-          {activeTab === 'saas-increase' && <SaasIncrease />}
           {activeTab === 'notifications' && <NotificationsAdmin />}
 
           {/* ==================== ROLES TAB (under Users) ==================== */}
