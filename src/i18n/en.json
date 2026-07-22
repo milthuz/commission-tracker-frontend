@@ -651,6 +651,8 @@
     "newScenarioPlaceholder": "e.g. Q3 SaaS increase",
     "targetMrr": "Target MRR",
     "createScenario": "Create scenario",
+    "deleteScenario": "Delete scenario",
+    "confirmDeleteScenario": "Delete the scenario \"{{name}}\"? This also deletes all its saved items and drafted/sent notification records. This can't be undone.",
     "mrrTarget": "target",
     "rowsIncluded": "{{count}} subscriptions included",
     "searchPlaceholder": "Search customer, merchant or subscription #…",
@@ -747,6 +749,22 @@
         "sent": "Sent",
         "send_failed": "Failed"
       }
+    },
+    "templates": {
+      "manage": "Manage templates",
+      "draftGroupWith": "Draft group with template",
+      "title": "Email templates",
+      "subtitle": "Create and edit the wording used when drafting merchant notifications — apply a different one per group.",
+      "new": "New template",
+      "namePlaceholder": "e.g. Loyalty tone",
+      "placeholderHint": "Placeholders: {{customerName}}, {{planName}}, {{currentMonthly}}, {{newMonthly}}",
+      "save": "Save template",
+      "cancel": "Cancel",
+      "default": "Default",
+      "delete": "Delete template",
+      "none": "No templates yet — create one to get started.",
+      "incomplete": "Name and both languages' subject/body are required.",
+      "confirmDelete": "Delete this template? This can't be undone."
     }
   },
   "savingsCalc": {
@@ -1649,7 +1667,8 @@
         "missing_commission": "Missing commission report",
         "missing_points": "Missing points report",
         "probation": "Probation ending",
-        "new_user": "New user without a role"
+        "new_user": "New user without a role",
+        "saas_increase": "SaaS price increase notice"
       }
     },
     "recalculate": {

@@ -651,6 +651,8 @@
     "newScenarioPlaceholder": "ex. Augmentation SaaS T3",
     "targetMrr": "MRR cible",
     "createScenario": "Créer le scénario",
+    "deleteScenario": "Supprimer le scénario",
+    "confirmDeleteScenario": "Supprimer le scénario « {{name}} » ? Cela supprime aussi tous ses éléments enregistrés et les notifications rédigées/envoyées. Cette action est irréversible.",
     "mrrTarget": "cible",
     "rowsIncluded": "{{count}} abonnements inclus",
     "searchPlaceholder": "Rechercher client, marchand ou n° d'abonnement…",
@@ -747,6 +749,22 @@
         "sent": "Envoyé",
         "send_failed": "Échec"
       }
+    },
+    "templates": {
+      "manage": "Gérer les modèles",
+      "draftGroupWith": "Rédiger le groupe avec ce modèle",
+      "title": "Modèles de courriel",
+      "subtitle": "Crée et modifie le texte utilisé pour rédiger les notifications aux marchands — applique un modèle différent par groupe.",
+      "new": "Nouveau modèle",
+      "namePlaceholder": "ex. Ton fidélité",
+      "placeholderHint": "Espaces réservés : {{customerName}}, {{planName}}, {{currentMonthly}}, {{newMonthly}}",
+      "save": "Enregistrer le modèle",
+      "cancel": "Annuler",
+      "default": "Par défaut",
+      "delete": "Supprimer le modèle",
+      "none": "Aucun modèle pour l'instant — crées-en un pour commencer.",
+      "incomplete": "Le nom et le sujet/message dans les deux langues sont requis.",
+      "confirmDelete": "Supprimer ce modèle? Cette action est irréversible."
     }
   },
   "savingsCalc": {
@@ -1649,7 +1667,8 @@
         "missing_commission": "Signalement de commission manquante",
         "missing_points": "Signalement de points manquants",
         "probation": "Fin de probation",
-        "new_user": "Nouvel utilisateur sans rôle"
+        "new_user": "Nouvel utilisateur sans rôle",
+        "saas_increase": "Avis d'augmentation de prix SaaS"
       }
     },
     "recalculate": {

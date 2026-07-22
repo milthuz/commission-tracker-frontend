@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
-import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X } from 'lucide-react';
+import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -29,13 +29,14 @@ interface ScenarioSummary {
   id: number; name: string; targetMrr: number; status: string; itemCount: number; mrrDelta: number;
 }
 interface ScenarioItem {
-  id: number;
+  id: number; orgId: string;
   subscriptionNumber: string; customerName: string; planName: string; currentMonthly: number;
   increaseType: 'percent' | 'flat'; increaseValue: number;
   newMonthly: number; status: string; pushError: string | null;
   notifyTo: string | null; notifySubject: string | null; notifyBody: string | null;
   notifyStatus: string; notifyError: string | null;
 }
+interface EmailTemplate { id: number; name: string; subjectEn: string; bodyEn: string; subjectFr: string; bodyFr: string; isDefault: boolean }
 // `selected` (checkbox — drives bulk-apply targeting + the footer's "N selected" count) is
 // deliberately independent from "included" (derived as increaseValue > 0) — matches the design
 // handoff's model, where you can select a batch of rows first, then bulk-apply a rule to them,
@@ -44,6 +45,12 @@ interface RowEdit { selected: boolean; increaseType: 'percent' | 'flat'; increas
 interface NotifyDraft { to: string; subject: string; body: string }
 
 const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n || 0);
+
+// i18next's own interpolation syntax is also {{token}} — the placeholderHint string below
+// contains literal {{customerName}} etc. as text to show the admin, so those tokens must be
+// passed back in as values (each equal to its own literal text) or i18next silently blanks them
+// out trying to interpolate a value we never provided.
+const PLACEHOLDER_HINT_VARS = { customerName: '{{customerName}}', planName: '{{planName}}', currentMonthly: '{{currentMonthly}}', newMonthly: '{{newMonthly}}' };
 
 // Cosmetic-only "POS" categorization for the design's colored dot — derived from keywords in the
 // plan name (matching the design handoff's seed data), falling back to the Zoho Billing org name
@@ -95,6 +102,19 @@ const SaasIncrease: React.FC = () => {
   const [notifyBusyIds, setNotifyBusyIds] = useState<Set<number>>(new Set());
   const [emailPreview, setEmailPreview] = useState<{ loading: boolean; html: string } | null>(null);
 
+  // Notification panel is grouped the same way as the main table (org+plan), collapsed by
+  // default, with its own expand state — separate Set from the main table's expandedGroups.
+  const [expandedNotifyGroups, setExpandedNotifyGroups] = useState<Set<string>>(new Set());
+  const [groupTemplateChoice, setGroupTemplateChoice] = useState<Record<string, number>>({});
+
+  // Admin-editable email template library (server-backed) — used per group instead of one
+  // hardcoded copy for everyone.
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [templateManagerOpen, setTemplateManagerOpen] = useState(false);
+  const [expandedTemplateId, setExpandedTemplateId] = useState<number | 'new' | null>(null);
+  const [templateDraft, setTemplateDraft] = useState<{ name: string; subjectEn: string; bodyEn: string; subjectFr: string; bodyFr: string }>({ name: '', subjectEn: '', bodyEn: '', subjectFr: '', bodyFr: '' });
+  const [savingTemplate, setSavingTemplate] = useState(false);
+
   const loadSubs = async (fresh = false) => {
     setLoading(true); setError(null);
     try {
@@ -118,7 +138,16 @@ const SaasIncrease: React.FC = () => {
     } catch { /* non-fatal — scenario picker just stays empty */ }
   };
 
-  useEffect(() => { loadSubs(false); loadScenarios(); }, []);
+  const loadTemplates = async () => {
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/email-templates`, { headers: authHeaders() });
+      if (!r.ok) throw new Error(String(r.status));
+      const data = await r.json();
+      setTemplates(data.templates || []);
+    } catch { /* non-fatal — template pickers just fall back to the built-in default copy */ }
+  };
+
+  useEffect(() => { loadSubs(false); loadScenarios(); loadTemplates(); }, []);
 
   const loadScenarioDetail = async (id: number) => {
     try {
@@ -155,6 +184,27 @@ const SaasIncrease: React.FC = () => {
       setScenarioName('');
       await loadScenarios();
       setActiveScenarioId(data.scenario.id);
+    } catch { dialog.alert(t('saasIncrease.error') as string); }
+  };
+
+  const deleteScenario = async (id: number) => {
+    const scenario = scenarios.find(s => s.id === id);
+    if (!(await dialog.confirm(t('saasIncrease.confirmDeleteScenario', { name: scenario?.name || '' }) as string))) return;
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${id}`, { method: 'DELETE', headers: authHeaders() });
+      if (!r.ok) throw new Error(String(r.status));
+      const r2 = await fetch(`${API_URL}/api/admin/saas-increase/scenarios`, { headers: authHeaders() });
+      const remaining = r2.ok ? (await r2.json()).scenarios || [] : [];
+      setScenarios(remaining);
+      if (activeScenarioId === id) {
+        if (remaining.length) {
+          setActiveScenarioId(remaining[0].id);
+        } else {
+          setActiveScenarioId(null);
+          setSavedItems({});
+          setNotifyEdits({});
+        }
+      }
     } catch { dialog.alert(t('saasIncrease.error') as string); }
   };
 
@@ -350,13 +400,13 @@ const SaasIncrease: React.FC = () => {
     });
   };
 
-  const draftNotifications = async (itemIds: number[]) => {
+  const draftNotifications = async (itemIds: number[], templateId?: number) => {
     if (!activeScenarioId || !itemIds.length) return;
     markNotifyBusy(itemIds, true);
     try {
       const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/notifications/draft`, {
         method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemIds }),
+        body: JSON.stringify({ itemIds, templateId }),
       });
       if (!r.ok) throw new Error(String(r.status));
       const data = await r.json();
@@ -408,6 +458,51 @@ const SaasIncrease: React.FC = () => {
       await loadScenarioDetail(activeScenarioId);
     } catch { dialog.alert(t('saasIncrease.error') as string); }
     finally { markNotifyBusy(itemIds, false); }
+  };
+
+  const startNewTemplate = () => {
+    setTemplateDraft({ name: '', subjectEn: '', bodyEn: '', subjectFr: '', bodyFr: '' });
+    setExpandedTemplateId('new');
+  };
+
+  const startEditTemplate = (tpl: EmailTemplate) => {
+    setTemplateDraft({ name: tpl.name, subjectEn: tpl.subjectEn, bodyEn: tpl.bodyEn, subjectFr: tpl.subjectFr, bodyFr: tpl.bodyFr });
+    setExpandedTemplateId(tpl.id);
+  };
+
+  const saveTemplate = async () => {
+    if (!templateDraft.name.trim() || !templateDraft.subjectEn.trim() || !templateDraft.bodyEn.trim() || !templateDraft.subjectFr.trim() || !templateDraft.bodyFr.trim()) {
+      dialog.alert(t('saasIncrease.templates.incomplete') as string);
+      return;
+    }
+    setSavingTemplate(true);
+    try {
+      const isNew = expandedTemplateId === 'new';
+      const url = isNew
+        ? `${API_URL}/api/admin/saas-increase/email-templates`
+        : `${API_URL}/api/admin/saas-increase/email-templates/${expandedTemplateId}`;
+      const r = await fetch(url, {
+        method: isNew ? 'POST' : 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(templateDraft),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      await loadTemplates();
+      setExpandedTemplateId(null);
+    } catch { dialog.alert(t('saasIncrease.error') as string); }
+    finally { setSavingTemplate(false); }
+  };
+
+  const deleteTemplate = async (id: number) => {
+    if (!(await dialog.confirm(t('saasIncrease.templates.confirmDelete') as string))) return;
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/email-templates/${id}`, { method: 'DELETE', headers: authHeaders() });
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        dialog.alert(data.error || t('saasIncrease.error') as string);
+        return;
+      }
+      await loadTemplates();
+    } catch { dialog.alert(t('saasIncrease.error') as string); }
   };
 
   // Hero stat-tile math — derived from the same subs/edits state the table already uses, no new
@@ -485,6 +580,13 @@ const SaasIncrease: React.FC = () => {
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-[#999AA7]" />
                 </div>
+                <button
+                  type="button" onClick={() => deleteScenario(activeScenarioId)}
+                  title={t('saasIncrease.deleteScenario') as string}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 dark:text-[#999AA7] dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
               <span className={`text-xs ${textTer}`}>{t('saasIncrease.subsOfTotal', { included: includedCount, total: subs.length })}</span>
             </div>
@@ -810,102 +912,159 @@ const SaasIncrease: React.FC = () => {
       {/* Scenario items & merchant notifications — the communication engine. Deliberately
           separate from the simulator table above (which mixes in not-yet-saved rows); this
           only lists rows already saved to the active scenario. */}
-      {activeScenarioId && Object.keys(savedItems).length > 0 && (
-        <div className={`${card} mt-6 overflow-hidden`}>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
+      {activeScenarioId && Object.keys(savedItems).length > 0 && (() => {
+        const notifyGroups = new Map<string, ScenarioItem[]>();
+        for (const item of Object.values(savedItems)) {
+          const key = `${item.orgId}||${item.planName}`;
+          if (!notifyGroups.has(key)) notifyGroups.set(key, []);
+          notifyGroups.get(key)!.push(item);
+        }
+        const sortedGroups = Array.from(notifyGroups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+        const defaultTemplate = templates.find(tp => tp.isDefault) || templates[0];
+        return (
+          <div className={`${card} mt-6 overflow-hidden`}>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
+              <div>
+                <h4 className={`text-sm font-semibold ${textPri}`}>{t('saasIncrease.notify.title')}</h4>
+                <p className={`mt-0.5 text-xs ${textTer}`}>{t('saasIncrease.notify.subtitle')}</p>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => { loadTemplates(); setTemplateManagerOpen(true); }} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
+                  <Settings className="h-3.5 w-3.5" /> {t('saasIncrease.templates.manage')}
+                </button>
+                <button
+                  onClick={() => draftNotifications(Array.from(notifySelected))}
+                  disabled={notifySelected.size === 0}
+                  className={`${btnSecondary} px-3 py-1.5 text-xs`}
+                >
+                  {t('saasIncrease.notify.draftSelected', { count: notifySelected.size })}
+                </button>
+                <button
+                  onClick={() => sendNotifications(Array.from(notifySelected))}
+                  disabled={notifySelected.size === 0}
+                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A] dark:hover:bg-opacity-90"
+                >
+                  {t('saasIncrease.notify.sendSelected', { count: notifySelected.size })}
+                </button>
+              </div>
+            </div>
             <div>
-              <h4 className={`text-sm font-semibold ${textPri}`}>{t('saasIncrease.notify.title')}</h4>
-              <p className={`mt-0.5 text-xs ${textTer}`}>{t('saasIncrease.notify.subtitle')}</p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => draftNotifications(Array.from(notifySelected))}
-                disabled={notifySelected.size === 0}
-                className={`${btnSecondary} px-3 py-1.5 text-xs`}
-              >
-                {t('saasIncrease.notify.draftSelected', { count: notifySelected.size })}
-              </button>
-              <button
-                onClick={() => sendNotifications(Array.from(notifySelected))}
-                disabled={notifySelected.size === 0}
-                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A] dark:hover:bg-opacity-90"
-              >
-                {t('saasIncrease.notify.sendSelected', { count: notifySelected.size })}
-              </button>
-            </div>
-          </div>
-          <div className={`divide-y ${divider}`}>
-            {Object.values(savedItems).map(item => {
-              const draft = notifyEdits[item.id] || { to: '', subject: '', body: '' };
-              const expanded = expandedNotifyId === item.id;
-              const busy = notifyBusyIds.has(item.id);
-              return (
-                <div key={item.id} className="px-5 py-3">
-                  <div className="flex items-center gap-3">
-                    <input type="checkbox" checked={notifySelected.has(item.id)} onChange={() => toggleNotifySelected(item.id)} className="accent-primary" />
-                    <button type="button" onClick={() => setExpandedNotifyId(expanded ? null : item.id)} className="flex flex-1 items-center justify-between gap-3 text-left">
-                      <div>
-                        <div className={`font-medium ${textPri}`}>{item.customerName}</div>
-                        <div className={`text-xs ${textQuat}`}>{item.subscriptionNumber} · {money(item.currentMonthly)} → {money(item.newMonthly)}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                            item.notifyStatus === 'sent' ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' :
-                            item.notifyStatus === 'send_failed' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
-                            item.notifyStatus === 'drafted' ? 'bg-primary/10 text-primary' :
-                            `${raised} ${textTer}`
-                          }`}
-                          title={item.notifyError || ''}
-                        >
-                          {t(`saasIncrease.notify.status.${item.notifyStatus}`)}
-                        </span>
-                        <ChevronDown className={`h-4 w-4 ${textQuat} transition-transform ${expanded ? 'rotate-180' : ''}`} />
-                      </div>
-                    </button>
-                  </div>
-                  {expanded && (
-                    <div className={`mt-3 space-y-2 rounded-lg border border-gray-200 p-3 dark:border-[#1B1B1B]`}>
-                      <div>
-                        <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.notify.to')}</label>
-                        <input
-                          value={draft.to} onChange={(e) => setNotifyEdits(prev => ({ ...prev, [item.id]: { ...draft, to: e.target.value } }))}
-                          placeholder="client@example.com" className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
-                        />
-                      </div>
-                      <div>
-                        <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.notify.subject')}</label>
-                        <input
-                          value={draft.subject} onChange={(e) => setNotifyEdits(prev => ({ ...prev, [item.id]: { ...draft, subject: e.target.value } }))}
-                          className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
-                        />
-                      </div>
-                      <div>
-                        <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.notify.body')}</label>
-                        <textarea
-                          value={draft.body} onChange={(e) => setNotifyEdits(prev => ({ ...prev, [item.id]: { ...draft, body: e.target.value } }))}
-                          rows={7} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => draftNotifications([item.id])} disabled={busy} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
-                          {t('saasIncrease.notify.draft')}
-                        </button>
-                        <button onClick={() => previewNotification(item.id)} disabled={busy || !draft.body} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
-                          {t('saasIncrease.notify.preview')}
-                        </button>
-                        <button onClick={() => sendNotifications([item.id])} disabled={busy || !draft.to || !draft.subject} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A]">
-                          {busy ? t('saasIncrease.notify.sending') : t('saasIncrease.notify.send')}
-                        </button>
-                      </div>
+              {sortedGroups.map(([key, items]) => {
+                const groupExpanded = expandedNotifyGroups.has(key);
+                const [, planLabel] = key.split('||');
+                const orgLabel = orgs.find(o => o.id === items[0].orgId)?.name || items[0].orgId;
+                const chosenTemplateId = groupTemplateChoice[key] ?? defaultTemplate?.id;
+                return (
+                  <div key={key} className={`border-b ${divider}`}>
+                    <div className={`flex flex-wrap items-center gap-2.5 px-5 py-2.5 ${raised}`}>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedNotifyGroups(prev => { const next = new Set(prev); if (next.has(key)) next.delete(key); else next.add(key); return next; })}
+                        className="flex min-w-0 flex-1 items-center gap-2.5 text-left hover:brightness-95 dark:hover:brightness-110"
+                      >
+                        <ChevronRight className={`h-4 w-4 shrink-0 ${textQuat} transition-transform ${groupExpanded ? 'rotate-90' : ''}`} />
+                        <span className={`truncate text-sm font-medium ${textPri}`}>{planLabel}</span>
+                        <span className={`shrink-0 text-[11px] ${textQuat}`}>{orgLabel}</span>
+                        <span className={`ml-auto shrink-0 text-xs ${textTer}`}>{t('saasIncrease.groupCount', { count: items.length })}</span>
+                      </button>
+                      {templates.length > 0 && (
+                        <>
+                          <select
+                            value={chosenTemplateId ?? ''}
+                            onChange={(e) => setGroupTemplateChoice(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                            className={`rounded-md px-2 py-1.5 text-xs ${chipInput}`}
+                          >
+                            {templates.map(tp => <option key={tp.id} value={tp.id}>{tp.name}</option>)}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => draftNotifications(items.map(it => it.id), chosenTemplateId)}
+                            className={`${btnSecondary} px-2.5 py-1.5 text-xs`}
+                          >
+                            {t('saasIncrease.templates.draftGroupWith')}
+                          </button>
+                        </>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                    {groupExpanded && (
+                      <div className={`divide-y ${divider}`}>
+                        {items.map(item => {
+                          const draft = notifyEdits[item.id] || { to: '', subject: '', body: '' };
+                          const expanded = expandedNotifyId === item.id;
+                          const busy = notifyBusyIds.has(item.id);
+                          return (
+                            <div key={item.id} className="px-5 py-3">
+                              <div className="flex items-center gap-3">
+                                <input type="checkbox" checked={notifySelected.has(item.id)} onChange={() => toggleNotifySelected(item.id)} className="accent-primary" />
+                                <button type="button" onClick={() => setExpandedNotifyId(expanded ? null : item.id)} className="flex flex-1 items-center justify-between gap-3 text-left">
+                                  <div>
+                                    <div className={`font-medium ${textPri}`}>{item.customerName}</div>
+                                    <div className={`text-xs ${textQuat}`}>{item.subscriptionNumber} · {money(item.currentMonthly)} → {money(item.newMonthly)}</div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                        item.notifyStatus === 'sent' ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' :
+                                        item.notifyStatus === 'send_failed' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
+                                        item.notifyStatus === 'drafted' ? 'bg-primary/10 text-primary' :
+                                        `${raised} ${textTer}`
+                                      }`}
+                                      title={item.notifyError || ''}
+                                    >
+                                      {t(`saasIncrease.notify.status.${item.notifyStatus}`)}
+                                    </span>
+                                    <ChevronDown className={`h-4 w-4 ${textQuat} transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                                  </div>
+                                </button>
+                              </div>
+                              {expanded && (
+                                <div className={`mt-3 space-y-2 rounded-lg border border-gray-200 p-3 dark:border-[#1B1B1B]`}>
+                                  <div>
+                                    <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.notify.to')}</label>
+                                    <input
+                                      value={draft.to} onChange={(e) => setNotifyEdits(prev => ({ ...prev, [item.id]: { ...draft, to: e.target.value } }))}
+                                      placeholder="client@example.com" className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.notify.subject')}</label>
+                                    <input
+                                      value={draft.subject} onChange={(e) => setNotifyEdits(prev => ({ ...prev, [item.id]: { ...draft, subject: e.target.value } }))}
+                                      className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.notify.body')}</label>
+                                    <textarea
+                                      value={draft.body} onChange={(e) => setNotifyEdits(prev => ({ ...prev, [item.id]: { ...draft, body: e.target.value } }))}
+                                      rows={7} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
+                                    />
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button onClick={() => draftNotifications([item.id])} disabled={busy} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
+                                      {t('saasIncrease.notify.draft')}
+                                    </button>
+                                    <button onClick={() => previewNotification(item.id)} disabled={busy || !draft.body} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
+                                      {t('saasIncrease.notify.preview')}
+                                    </button>
+                                    <button onClick={() => sendNotifications([item.id])} disabled={busy || !draft.to || !draft.subject} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A]">
+                                      {busy ? t('saasIncrease.notify.sending') : t('saasIncrease.notify.send')}
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Email preview modal — srcDoc renders the exact HTML /send would email, read-only */}
       {emailPreview && (
@@ -924,6 +1083,103 @@ const SaasIncrease: React.FC = () => {
                 </div>
               ) : (
                 <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title="Email preview" />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Template manager modal — an editable library of merchant-notification email templates,
+          so different wording can be applied per plan/org group instead of one hardcoded copy. */}
+      {templateManagerOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => { setTemplateManagerOpen(false); setExpandedTemplateId(null); }}>
+          <div className={`flex h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
+              <div>
+                <p className={`font-semibold ${textPri}`}>{t('saasIncrease.templates.title')}</p>
+                <p className={`mt-0.5 text-xs ${textTer}`}>{t('saasIncrease.templates.subtitle')}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={startNewTemplate} className={btnSecondary}><Plus className="h-4 w-4" /> {t('saasIncrease.templates.new')}</button>
+                <button onClick={() => { setTemplateManagerOpen(false); setExpandedTemplateId(null); }} className={`${textSec} transition hover:text-red-500`}>
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+            <div className={`flex-1 divide-y overflow-y-auto ${divider}`}>
+              {expandedTemplateId === 'new' && (
+                <div className="space-y-2 px-5 py-4">
+                  <p className={`text-sm font-medium ${textPri}`}>{t('saasIncrease.templates.new')}</p>
+                  <input
+                    value={templateDraft.name} onChange={(e) => setTemplateDraft(d => ({ ...d, name: e.target.value }))}
+                    placeholder={t('saasIncrease.templates.namePlaceholder') as string}
+                    className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
+                  />
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <p className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>English</p>
+                      <input value={templateDraft.subjectEn} onChange={(e) => setTemplateDraft(d => ({ ...d, subjectEn: e.target.value }))} placeholder={t('saasIncrease.notify.subject') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
+                      <textarea value={templateDraft.bodyEn} onChange={(e) => setTemplateDraft(d => ({ ...d, bodyEn: e.target.value }))} rows={6} placeholder={t('saasIncrease.notify.body') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
+                    </div>
+                    <div className="space-y-2">
+                      <p className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>Français</p>
+                      <input value={templateDraft.subjectFr} onChange={(e) => setTemplateDraft(d => ({ ...d, subjectFr: e.target.value }))} placeholder={t('saasIncrease.notify.subject') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
+                      <textarea value={templateDraft.bodyFr} onChange={(e) => setTemplateDraft(d => ({ ...d, bodyFr: e.target.value }))} rows={6} placeholder={t('saasIncrease.notify.body') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
+                    </div>
+                  </div>
+                  <p className={`text-[11px] ${textQuat}`}>{t('saasIncrease.templates.placeholderHint', PLACEHOLDER_HINT_VARS)}</p>
+                  <div className="flex gap-2">
+                    <button onClick={saveTemplate} disabled={savingTemplate} className={btnPrimary}>{savingTemplate ? t('saasIncrease.saving') : t('saasIncrease.templates.save')}</button>
+                    <button onClick={() => setExpandedTemplateId(null)} className={btnSecondary}>{t('saasIncrease.templates.cancel')}</button>
+                  </div>
+                </div>
+              )}
+              {templates.map(tpl => {
+                const expanded = expandedTemplateId === tpl.id;
+                return (
+                  <div key={tpl.id} className="px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <button type="button" onClick={() => (expanded ? setExpandedTemplateId(null) : startEditTemplate(tpl))} className="flex flex-1 items-center justify-between gap-3 text-left">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-medium ${textPri}`}>{tpl.name}</span>
+                          {tpl.isDefault && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">{t('saasIncrease.templates.default')}</span>}
+                        </div>
+                        <ChevronDown className={`h-4 w-4 ${textQuat} transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                      </button>
+                      <button type="button" onClick={() => deleteTemplate(tpl.id)} title={t('saasIncrease.templates.delete') as string} className="shrink-0 text-gray-400 hover:text-red-500 dark:hover:text-red-400">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    {expanded && (
+                      <div className="mt-3 space-y-2">
+                        <input
+                          value={templateDraft.name} onChange={(e) => setTemplateDraft(d => ({ ...d, name: e.target.value }))}
+                          className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
+                        />
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          <div className="space-y-2">
+                            <p className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>English</p>
+                            <input value={templateDraft.subjectEn} onChange={(e) => setTemplateDraft(d => ({ ...d, subjectEn: e.target.value }))} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
+                            <textarea value={templateDraft.bodyEn} onChange={(e) => setTemplateDraft(d => ({ ...d, bodyEn: e.target.value }))} rows={6} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
+                          </div>
+                          <div className="space-y-2">
+                            <p className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>Français</p>
+                            <input value={templateDraft.subjectFr} onChange={(e) => setTemplateDraft(d => ({ ...d, subjectFr: e.target.value }))} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
+                            <textarea value={templateDraft.bodyFr} onChange={(e) => setTemplateDraft(d => ({ ...d, bodyFr: e.target.value }))} rows={6} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
+                          </div>
+                        </div>
+                        <p className={`text-[11px] ${textQuat}`}>{t('saasIncrease.templates.placeholderHint', PLACEHOLDER_HINT_VARS)}</p>
+                        <div className="flex gap-2">
+                          <button onClick={saveTemplate} disabled={savingTemplate} className={btnPrimary}>{savingTemplate ? t('saasIncrease.saving') : t('saasIncrease.templates.save')}</button>
+                          <button onClick={() => setExpandedTemplateId(null)} className={btnSecondary}>{t('saasIncrease.templates.cancel')}</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {templates.length === 0 && expandedTemplateId !== 'new' && (
+                <div className={`px-5 py-8 text-center text-sm ${textTer}`}>{t('saasIncrease.templates.none')}</div>
               )}
             </div>
           </div>
