@@ -610,6 +610,7 @@
     "sidebar": {
       "menu": "Menu",
       "opportunities": "Occasions d’affaires",
+      "adminPanel": "Panneau d’administration",
       "team": "Équipe",
       "organization": "Organisation",
       "settings": "Mes paramètres",
@@ -654,6 +655,7 @@
       "welcomeTitle": "Bonjour, je suis Sofia 👋",
       "welcomeBody": "Laissez-moi vous faire faire une visite rapide du Portail partenaire. Vous pouvez passer en tout temps.",
       "opportunitiesBody": "Soumettez une nouvelle occasion d’affaires et suivez le statut de tout ce que vous avez déjà soumis.",
+      "adminPanelBody": "Invitez d’autres personnes de votre organisation dans le portail, et téléversez le logo de votre organisation (affiché aux côtés de la marque Sales Hub).",
       "teamBody": "Invitez d’autres personnes de votre organisation dans le portail, en tant qu’utilisateur Standard ou Admin.",
       "organizationBody": "Téléversez le logo de votre organisation — affiché aux côtés de la marque Sales Hub.",
       "settingsBody": "Mettez à jour votre nom affiché, changez votre mot de passe et réinitialisez votre appareil 2FA.",

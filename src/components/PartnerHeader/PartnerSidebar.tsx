@@ -18,12 +18,15 @@ interface PartnerSidebarProps {
 // permission model (partnerUser.role, not PERMISSION_CATALOG), and admin submenu are all
 // different enough that sharing the component would mean threading partner-specific branches
 // through code that's already dense with internal-app assumptions.
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) => {
   const { t } = useTranslation();
   const appVersion = useAppVersion();
   const { user } = usePartnerAuth();
   const isAdmin = user?.role === 'admin';
   const { pathname } = useLocation();
+  const [logoOk, setLogoOk] = useState(true);
 
   const trigger = useRef<any>(null);
   const sidebar = useRef<any>(null);
@@ -31,6 +34,12 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
   const storedCollapsed = localStorage.getItem('partner-sidebar-collapsed');
   const [collapsed, setCollapsed] = useState(storedCollapsed === null ? false : storedCollapsed === 'true');
   useEffect(() => { localStorage.setItem('partner-sidebar-collapsed', String(collapsed)); }, [collapsed]);
+
+  // Admin Panel submenu (Team + Organization) — same expand/collapse idiom as the internal
+  // Sidebar's Admin Panel (user request 2026-07-2x: group these under one menu, not two flat
+  // items), auto-open when already on one of its pages.
+  const [adminMenuOpen, setAdminMenuOpen] = useState(pathname === '/partner-portal/team' || pathname === '/partner-portal/organization');
+  useEffect(() => { if (collapsed) setAdminMenuOpen(false); }, [collapsed]);
 
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
@@ -85,6 +94,16 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
               )}
             </NavLink>
             <span className={`${collapsed ? 'text-[10px]' : 'text-xs'} font-semibold leading-none text-white`}>v{appVersion}</span>
+            {/* Co-branded partner logo (SH-32) — set by a Partner Admin in Admin Panel >
+                Organization; hidden entirely if none uploaded yet (onError below). */}
+            {user && logoOk && (
+              <img
+                src={`${API_URL}/api/partner-portal/organization/logo/${user.partnerId}`}
+                alt={user.partnerName || ''}
+                className={collapsed ? 'h-8 w-8 rounded bg-white object-contain p-1' : 'h-9 max-w-[110px] rounded bg-white object-contain p-1'}
+                onError={() => setLogoOk(false)}
+              />
+            )}
           </div>
 
           <button
@@ -123,30 +142,51 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
 
                 {isAdmin && (
                   <li>
-                    <NavLink to="/partner-portal/team" className={navLinkCls(pathname === '/partner-portal/team')}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="9" cy="8" r="3" />
-                        <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
-                        <circle cx="17" cy="8" r="2.5" />
-                        <path d="M15.5 14.2c2.5.4 4.5 2.6 4.5 5.8" />
-                      </svg>
-                      <span className={labelCls}>{t('partnerPortal.sidebar.team')}</span>
-                      <RailTip label={t('partnerPortal.sidebar.team') as string} />
-                    </NavLink>
-                  </li>
-                )}
-
-                {isAdmin && (
-                  <li>
-                    <NavLink to="/partner-portal/organization" className={navLinkCls(pathname === '/partner-portal/organization')}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="4" y="3" width="10" height="18" rx="1" />
-                        <path d="M14 8h6v13h-6" />
-                        <path d="M7.5 7.5h3M7.5 11h3M7.5 14.5h3" />
-                      </svg>
-                      <span className={labelCls}>{t('partnerPortal.sidebar.organization')}</span>
-                      <RailTip label={t('partnerPortal.sidebar.organization') as string} />
-                    </NavLink>
+                    <button
+                      data-tour-route="/partner-portal/team"
+                      onClick={() => { if (collapsed) setCollapsed(false); setAdminMenuOpen(!adminMenuOpen); }}
+                      className={`group relative flex w-full items-center rounded-sm py-2.5 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                        collapsed ? 'justify-center px-2' : 'justify-between gap-2.5 px-4'
+                      } ${pathname.startsWith('/partner-portal/team') || pathname.startsWith('/partner-portal/organization') ? 'bg-graydark dark:bg-meta-4' : ''}`}
+                    >
+                      <div className={`flex items-center ${collapsed ? '' : 'gap-2.5'}`}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="3" />
+                          <path d="M19 12a7 7 0 0 0-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.3-1.3L13.6 2h-3.2l-.4 2.5A7 7 0 0 0 7.7 5.8l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5.2 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.3 1.3l.4 2.5h3.2l.4-2.5a7 7 0 0 0 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z" />
+                        </svg>
+                        <span className={labelCls}>{t('partnerPortal.sidebar.adminPanel')}</span>
+                      </div>
+                      {!collapsed && (
+                        <svg className={`fill-current transition-transform duration-200 ${adminMenuOpen ? 'rotate-180' : ''}`} width="12" height="8" viewBox="0 0 12 8">
+                          <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" />
+                        </svg>
+                      )}
+                      <RailTip label={t('partnerPortal.sidebar.adminPanel') as string} />
+                    </button>
+                    <ul
+                      className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 overflow-hidden transition-all duration-200 ${
+                        adminMenuOpen && !collapsed ? 'max-h-[12rem] opacity-100' : 'max-h-0 opacity-0'
+                      }`}
+                    >
+                      <li>
+                        <NavLink to="/partner-portal/team"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname === '/partner-portal/team' ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('partnerPortal.sidebar.team')}
+                        </NavLink>
+                      </li>
+                      <li>
+                        <NavLink to="/partner-portal/organization"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname === '/partner-portal/organization' ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('partnerPortal.sidebar.organization')}
+                        </NavLink>
+                      </li>
+                    </ul>
                   </li>
                 )}
 

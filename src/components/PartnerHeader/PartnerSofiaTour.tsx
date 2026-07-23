@@ -5,8 +5,7 @@ import SofiaTour from '../SofiaTour';
 // without an entry here falls back to a generic blurb, same as the internal tour's NAV_DESC.
 const PARTNER_NAV_DESC: Record<string, string> = {
   '/partner-portal': 'partnerPortal.tour.opportunitiesBody',
-  '/partner-portal/team': 'partnerPortal.tour.teamBody',
-  '/partner-portal/organization': 'partnerPortal.tour.organizationBody',
+  '/partner-portal/team': 'partnerPortal.tour.adminPanelBody',
   '/partner-portal/profile': 'partnerPortal.tour.settingsBody',
 };
 

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import SalesHubLogo from '../../components/SalesHubLogo';
+import { useAppVersion } from '../../hooks/useAppVersion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -16,6 +17,7 @@ const PartnerLogin = () => {
   const { isAuthenticated, login } = usePartnerAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const appVersion = useAppVersion();
 
   const [step, setStep] = useState<Step>('creds');
   const [email, setEmail] = useState('');
@@ -101,7 +103,9 @@ const PartnerLogin = () => {
             {t('partnerPortal.loginTaglineSub')}
           </p>
         </div>
-        <p className="absolute bottom-8 left-12 text-xs text-[#5c6b80]">© Cluster Systems</p>
+        <p className="absolute bottom-8 left-12 text-xs text-[#5c6b80]">
+          © Cluster Systems · v{appVersion}
+        </p>
       </div>
 
       <div className="flex w-full flex-col items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2 lg:w-1/2">
@@ -212,6 +216,17 @@ const PartnerLogin = () => {
             </div>
           )}
         </div>
+
+        <p className="mt-6 max-w-md text-center text-sm text-body">
+          {t('auth.agreePrefix')}{' '}
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-black underline hover:text-primary dark:text-bodydark">
+            {t('legal.termsTitle')}
+          </a>{' '}
+          {t('auth.and')}{' '}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-black underline hover:text-primary dark:text-bodydark">
+            {t('legal.privacyTitle')}
+          </a>
+        </p>
       </div>
     </div>
   );

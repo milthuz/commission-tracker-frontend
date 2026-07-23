@@ -610,6 +610,7 @@
     "sidebar": {
       "menu": "Menu",
       "opportunities": "Opportunities",
+      "adminPanel": "Admin Panel",
       "team": "Team",
       "organization": "Organization",
       "settings": "My Settings",
@@ -654,6 +655,7 @@
       "welcomeTitle": "Hi, I'm Sofia 👋",
       "welcomeBody": "Let me give you a quick tour of the Partner Portal. You can skip anytime.",
       "opportunitiesBody": "Submit a new business opportunity and track the status of everything you've already submitted.",
+      "adminPanelBody": "Invite more people from your organization into the portal, and upload your organization's logo (shown alongside the Sales Hub brand).",
       "teamBody": "Invite more people from your organization into the portal, as a Standard user or another Admin.",
       "organizationBody": "Upload your organization's logo — shown alongside the Sales Hub brand.",
       "settingsBody": "Update your display name, change your password, and reset your 2FA device.",
