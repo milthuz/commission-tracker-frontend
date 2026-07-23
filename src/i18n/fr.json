@@ -25,6 +25,7 @@
     "networkError": "Erreur réseau — réessayez",
     "mfaTitle": "Vérification en deux étapes",
     "mfaSubtitle": "Entrez le code à 6 chiffres de votre application d'authentification.",
+    "rememberDevice": "Se souvenir de cet appareil pendant 30 jours",
     "verify": "Vérifier",
     "back": "Retour",
     "forgotTitle": "Réinitialiser votre mot de passe",
@@ -341,6 +342,7 @@
     "kaizenBody": "Essaie la démo Kaizen POS — une caisse en direct à montrer à tes prospects.",
     "proposalsBody": "Crée et envoie une proposition de vente à partir d'une soumission Zoho Books.",
     "savingsBody": "Transforme le relevé de paiement d'un concurrent en offre d'économies pour un prospect.",
+    "partnersBody": "Gérez les entreprises partenaires et examinez les occasions d’affaires qu’elles soumettent.",
     "adminBody": "Outils d'administration — vendeurs, imports, intégrations, utilisateurs et plus.",
     "profileBody": "Les réglages de ton compte, la langue et tes préférences.",
     "sectionGeneric": "Ouvre la section {{section}} ici.",
@@ -615,7 +617,8 @@
       "organization": "Organisation",
       "settings": "Mes paramètres",
       "collapse": "Réduire le menu",
-      "expand": "Agrandir le menu"
+      "expand": "Agrandir le menu",
+      "partneredWith": "En partenariat avec"
     },
     "organization": {
       "logoTitle": "Logo de l’organisation",
@@ -2566,6 +2569,20 @@
       "tooShort": "Le NIP doit contenir au moins 4 chiffres.",
       "mismatch": "Les NIP ne correspondent pas.",
       "saveFailed": "Échec de l'enregistrement du NIP."
+    },
+    "twoFactor": {
+      "title": "Authentification à deux facteurs",
+      "enabled": "Activée",
+      "subtitle": "L’authentification à deux facteurs est requise pour vous connecter. Réinitialisez-la si vous changez d’appareil ou perdez l’accès à votre application d’authentification.",
+      "resetButton": "Réinitialiser l’appareil 2FA",
+      "resetTitle": "Configurez votre nouvel appareil",
+      "resetSubtitle": "Scannez ce code QR avec votre application d’authentification, puis entrez le code à 6 chiffres affiché.",
+      "manualKey": "Ou entrez cette clé manuellement :",
+      "confirmButton": "Confirmer",
+      "invalidCode": "Code invalide — veuillez réessayer.",
+      "resetFailed": "Impossible de démarrer la réinitialisation. Veuillez réessayer.",
+      "doneTitle": "Appareil mis à jour!",
+      "doneSubtitle": "Votre nouvel appareil d’authentification est maintenant actif."
     },
     "session": "Session et sécurité",
     "sessionSubtitle": "Gérer votre session active",

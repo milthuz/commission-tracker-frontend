@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import SalesHubLogo from '../../components/SalesHubLogo';
 import { useAppVersion } from '../../hooks/useAppVersion';
+import { getDeviceToken, storeDeviceToken } from '../../lib/deviceTrust';
+
+const DEVICE_TOKEN_PREFIX = 'deviceToken';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -25,6 +28,7 @@ const ZohoLogin = () => {
   const [mfaToken, setMfaToken] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [rememberDevice, setRememberDevice] = useState(true);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -55,13 +59,15 @@ const ZohoLogin = () => {
     e.preventDefault();
     setError(''); setBusy(true);
     try {
+      const deviceToken = getDeviceToken(DEVICE_TOKEN_PREFIX, email);
       const r = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, deviceToken }),
       });
       const d = await r.json();
       if (!r.ok) { setError(d.error || 'Login failed'); return; }
       if (d.mfaRequired) { setMfaToken(d.mfaToken); setCode(''); setStep('mfa'); }
+      else if (d.token) { await finishLogin(d.token); } // trusted device — MFA skipped
     } catch {
       setError(t('auth.networkError') as string);
     } finally { setBusy(false); }
@@ -73,10 +79,11 @@ const ZohoLogin = () => {
     try {
       const r = await fetch(`${API_URL}/api/auth/login/verify-2fa`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mfaToken, code }),
+        body: JSON.stringify({ mfaToken, code, rememberDevice }),
       });
       const d = await r.json();
       if (!r.ok) { setError(d.error || 'Invalid code'); return; }
+      if (d.deviceToken) storeDeviceToken(DEVICE_TOKEN_PREFIX, email, d.deviceToken);
       await finishLogin(d.token);
     } catch {
       setError(t('auth.networkError') as string);
@@ -218,6 +225,11 @@ const ZohoLogin = () => {
                   placeholder="000000" autoFocus
                   className={`${inputCls} text-center text-2xl font-bold tracking-[0.5em]`}
                 />
+                <label className="flex items-center gap-2.5 text-sm text-black dark:text-bodydark">
+                  <input type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)}
+                    className="h-4 w-4 rounded border-stroke text-primary focus:ring-primary dark:border-strokedark" />
+                  {t('auth.rememberDevice')}
+                </label>
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy || code.length !== 6}
                   className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">

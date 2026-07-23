@@ -308,6 +308,25 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Menu Item Partners (perm: partners:manage) — a flat top-level item, not
+                   nested under Admin Panel (user request 2026-07-2x): Admin Panel itself is
+                   gated on isAdmin, so a non-admin "Partner Manager" role holding only
+                   partners:manage had no way to reach it at all. --> */}
+              {(isAdmin || can('partners:manage')) && (
+                <li>
+                  <NavLink to="/admin/partners" className={navLinkCls(pathname === '/admin/partners')}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="9" cy="8" r="3" />
+                      <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+                      <circle cx="17" cy="8" r="2.5" />
+                      <path d="M15.5 14.2c2.5.4 4.5 2.6 4.5 5.8" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.partnersAdmin')}</span>
+                    <NewBadge path="/admin/partners" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.partnersAdmin') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Resources (perm: resources:view) — the Hardware & Service Guide
                    nests under it as a submenu, same idiom as the Admin Panel below. --> */}
               {(isAdmin || can('resources:view')) && (() => {
@@ -641,16 +660,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           </NavLink>
                         </li>
                       </ul>
-                    </li>
-                    <li>
-                      <NavLink
-                        to="/admin/partners"
-                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                          pathname === '/admin/partners' ? 'text-white' : ''
-                        }`}
-                      >
-                        {t('sidebar.partnersAdmin')}<NewBadge path="/admin/partners" />
-                      </NavLink>
                     </li>
                     <li>
                       <NavLink

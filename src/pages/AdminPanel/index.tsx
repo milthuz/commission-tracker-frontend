@@ -101,6 +101,8 @@ const AdminPanel = () => {
   const [dealGroups, setDealGroups] = useState<{ sourceGroup: string; points: number; isCustom: boolean }[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [permsLoaded, setPermsLoaded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const [syncInfo, setSyncInfo] = useState<any>(null);
@@ -111,6 +113,14 @@ const AdminPanel = () => {
   const rawTab = pathParts[2] || 'sync'; // /admin/sync, /admin/salespeople, etc.
   // Roles & Permissions now lives as a tab inside the Users section (so /admin/roles → Users).
   const activeTab = (rawTab === 'admins' || rawTab === 'roles') ? 'users' : rawTab;
+
+  // Non-admin permission-scoped access (user request 2026-07-2x: a "Partner Manager" role
+  // should reach the Partners tab without being a full admin). Every OTHER tab still requires
+  // isAdmin — this only widens the gate for the one section that has its own standalone
+  // permission (partners:manage), so a partners-only user hitting /admin/users (or any other
+  // section) directly still gets bounced, same as before.
+  const can = (p: string) => permissions.includes('*') || permissions.includes(p) || permissions.includes(`${p.split(':')[0]}:*`);
+  const canAccessTab = (tab: string) => isAdmin || (tab === 'partners' && can('partners:manage'));
 
   // Handle redirect back from CRM OAuth
   useEffect(() => {
@@ -299,12 +309,20 @@ const AdminPanel = () => {
     axios
       .get(`${API_URL}/api/auth/verify`, { headers: { Authorization: `Bearer ${token}` } })
       .then((res) => {
-        const adminStatus = !!res.data?.user?.isAdmin;
-        setIsAdmin(adminStatus);
-        if (!adminStatus) navigate('/');
+        setIsAdmin(!!res.data?.user?.isAdmin);
+        setPermissions(res.data?.user?.permissions || []);
+        setPermsLoaded(true);
       })
       .catch(() => navigate('/'));
   }, [navigate]);
+
+  // Redirect once permissions are known, for the CURRENT tab specifically — a partners-only
+  // user landing on /admin/partners is let through by canAccessTab above; if they then edit the
+  // URL to another section, this re-fires (activeTab changed) and bounces them, same as a full
+  // non-admin always has been.
+  useEffect(() => {
+    if (permsLoaded && !canAccessTab(activeTab)) navigate('/');
+  }, [permsLoaded, activeTab, isAdmin, permissions, navigate]);
 
   // Fetch all salespeople
   const fetchSalespeople = async () => {
@@ -1469,8 +1487,8 @@ const AdminPanel = () => {
   const activePeople = filteredSalespeople.filter(p => p.isActive);
   const inactivePeople = filteredSalespeople.filter(p => !p.isActive);
 
-  if (!isAdmin) {
-    return null; // Will redirect via useEffect
+  if (!permsLoaded || !canAccessTab(activeTab)) {
+    return null; // Will redirect via useEffect once permissions resolve
   }
 
   return (

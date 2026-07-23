@@ -94,16 +94,6 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
               )}
             </NavLink>
             <span className={`${collapsed ? 'text-[10px]' : 'text-xs'} font-semibold leading-none text-white`}>v{appVersion}</span>
-            {/* Co-branded partner logo (SH-32) — set by a Partner Admin in Admin Panel >
-                Organization; hidden entirely if none uploaded yet (onError below). */}
-            {user && logoOk && (
-              <img
-                src={`${API_URL}/api/partner-portal/organization/logo/${user.partnerId}`}
-                alt={user.partnerName || ''}
-                className={collapsed ? 'h-8 w-8 rounded bg-white object-contain p-1' : 'h-9 max-w-[110px] rounded bg-white object-contain p-1'}
-                onError={() => setLogoOk(false)}
-              />
-            )}
           </div>
 
           <button
@@ -118,6 +108,29 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
             </svg>
           </button>
         </div>
+
+        {/* Co-branded partner logo (SH-32) — set by a Partner Admin in Admin Panel >
+            Organization; hidden entirely if none uploaded yet (onError below). Its own row
+            with real padding/a light card, not squeezed inline next to the wordmark — most
+            uploaded logos are dark-on-transparent or need a light backdrop to read at all,
+            so the card can't just inherit the sidebar's near-black background (user feedback
+            2026-07-2x: cramped white square looked slapped on). Skipped entirely when
+            collapsed — the 80px rail has no room to show it meaningfully. */}
+        {!collapsed && user && logoOk && (
+          <div className="-mt-1 px-6 pb-5">
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-bodydark2">
+              {t('partnerPortal.sidebar.partneredWith')}
+            </p>
+            <div className="flex items-center rounded-lg bg-white px-3 py-2 shadow-sm">
+              <img
+                src={`${API_URL}/api/partner-portal/organization/logo/${user.partnerId}`}
+                alt={user.partnerName || ''}
+                className="h-7 max-w-full object-contain"
+                onError={() => setLogoOk(false)}
+              />
+            </div>
+          </div>
+        )}
 
         <div className={`no-scrollbar flex flex-col duration-300 ease-linear ${collapsed ? 'overflow-visible' : 'overflow-y-auto'}`}>
           <nav className={`mt-5 py-4 lg:mt-9 ${collapsed ? 'px-2' : 'px-4 lg:px-6'}`}>

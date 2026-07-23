@@ -8,6 +8,7 @@ interface User {
   isAdmin?: boolean;
   isSalesperson?: boolean;
   isDemo?: boolean; // demo mode: scrambled data, read-only (from /api/auth/verify)
+  isLocal?: boolean; // external email+password+TOTP account, not Zoho SSO (from /api/auth/verify)
   permissions?: string[]; // effective permission keys ('*' for admins) from /api/auth/verify
 }
 

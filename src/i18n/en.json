@@ -25,6 +25,7 @@
     "networkError": "Network error — please try again",
     "mfaTitle": "Two-step verification",
     "mfaSubtitle": "Enter the 6-digit code from your authenticator app.",
+    "rememberDevice": "Remember this device for 30 days",
     "verify": "Verify",
     "back": "Back",
     "forgotTitle": "Reset your password",
@@ -341,6 +342,7 @@
     "kaizenBody": "Try the Kaizen POS demo — a live, streamed point-of-sale you can show prospects.",
     "proposalsBody": "Build and send a branded sales proposal from a Zoho Books estimate.",
     "savingsBody": "Turn a competitor's payment statement into a savings offer for a prospect.",
+    "partnersBody": "Manage partner companies and review the opportunities they submit.",
     "adminBody": "Admin tools — salespeople, imports, integrations, users, and more.",
     "profileBody": "Your account settings, language and preferences.",
     "sectionGeneric": "Open the {{section}} section here.",
@@ -615,7 +617,8 @@
       "organization": "Organization",
       "settings": "My Settings",
       "collapse": "Collapse sidebar",
-      "expand": "Expand sidebar"
+      "expand": "Expand sidebar",
+      "partneredWith": "Partnered with"
     },
     "organization": {
       "logoTitle": "Organization logo",
@@ -2566,6 +2569,20 @@
       "tooShort": "PIN must be at least 4 digits.",
       "mismatch": "PINs don't match.",
       "saveFailed": "Failed to save PIN."
+    },
+    "twoFactor": {
+      "title": "Two-Factor Authentication",
+      "enabled": "Enabled",
+      "subtitle": "Two-factor authentication is required to sign in. Reset it if you're switching devices or lost access to your authenticator app.",
+      "resetButton": "Reset 2FA device",
+      "resetTitle": "Set up your new device",
+      "resetSubtitle": "Scan this QR code with your authenticator app, then enter the 6-digit code it shows.",
+      "manualKey": "Or enter this key manually:",
+      "confirmButton": "Confirm",
+      "invalidCode": "Invalid code — please try again.",
+      "resetFailed": "Couldn't start the reset. Please try again.",
+      "doneTitle": "Device updated!",
+      "doneSubtitle": "Your new authenticator device is now active."
     },
     "session": "Session & Security",
     "sessionSubtitle": "Manage your active session",
