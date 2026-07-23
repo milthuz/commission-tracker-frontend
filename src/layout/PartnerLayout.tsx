@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PartnerSidebar from '../components/PartnerHeader/PartnerSidebar';
 import PartnerDropdownUser from '../components/PartnerHeader/PartnerDropdownUser';
+import PartnerDropdownNotification from '../components/PartnerHeader/PartnerDropdownNotification';
 import PartnerChatAssistant from '../components/PartnerHeader/PartnerChatAssistant';
 import PartnerSofiaTour from '../components/PartnerHeader/PartnerSofiaTour';
 
@@ -107,6 +108,8 @@ const PartnerLayout: React.FC = () => {
                       )}
                     </button>
                   </li>
+
+                  <PartnerDropdownNotification />
                 </ul>
 
                 <PartnerDropdownUser />

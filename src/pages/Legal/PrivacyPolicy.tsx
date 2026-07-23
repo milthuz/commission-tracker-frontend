@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import SalesHubLogo from '../../components/SalesHubLogo';
 
@@ -88,6 +88,12 @@ const PrivacyPolicy = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
   const c = CONTENT[lang];
+  // See TermsOfService.tsx's matching comment: ?from=partner is what survives the new-tab
+  // navigation from either login page, so it's threaded through both cross-links here too.
+  const [params] = useSearchParams();
+  const fromPartner = params.get('from') === 'partner';
+  const termsHref = fromPartner ? '/terms?from=partner' : '/terms';
+  const backToLoginHref = fromPartner ? '/partner-portal/login' : '/auth/zoho-login';
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4 dark:bg-boxdark-2">
@@ -96,10 +102,10 @@ const PrivacyPolicy = () => {
           <div className="flex items-center justify-between gap-4 border-b border-stroke px-6 py-5 dark:border-strokedark">
             <SalesHubLogo variant="horizontal" className="h-7" textClassName="text-black dark:text-white" />
             <div className="flex items-center gap-5">
-              <Link to="/terms" className="text-sm font-medium text-primary hover:underline">
+              <Link to={termsHref} className="text-sm font-medium text-primary hover:underline">
                 {t('legal.termsTitle')}
               </Link>
-              <Link to="/auth/zoho-login" className="text-sm font-medium text-primary hover:underline">
+              <Link to={backToLoginHref} className="text-sm font-medium text-primary hover:underline">
                 {t('legal.backToLogin')}
               </Link>
             </div>

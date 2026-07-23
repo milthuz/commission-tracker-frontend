@@ -219,11 +219,11 @@ const PartnerLogin = () => {
 
         <p className="mt-6 max-w-md text-center text-sm text-body">
           {t('auth.agreePrefix')}{' '}
-          <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-black underline hover:text-primary dark:text-bodydark">
+          <a href="/terms?from=partner" target="_blank" rel="noopener noreferrer" className="font-medium text-black underline hover:text-primary dark:text-bodydark">
             {t('legal.termsTitle')}
           </a>{' '}
           {t('auth.and')}{' '}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-medium text-black underline hover:text-primary dark:text-bodydark">
+          <a href="/privacy?from=partner" target="_blank" rel="noopener noreferrer" className="font-medium text-black underline hover:text-primary dark:text-bodydark">
             {t('legal.privacyTitle')}
           </a>
         </p>

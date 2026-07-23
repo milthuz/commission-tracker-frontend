@@ -628,6 +628,10 @@
       "removeConfirm": "Remove your organization's logo?",
       "removeFailed": "Couldn't remove the logo. Please try again."
     },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "No notifications yet."
+    },
     "assistant": {
       "title": "Sofia",
       "subtitle": "Your Partner Portal guide — ask me anything",

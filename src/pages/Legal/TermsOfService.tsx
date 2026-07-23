@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import SalesHubLogo from '../../components/SalesHubLogo';
 
@@ -87,6 +87,14 @@ const TermsOfService = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
   const c = CONTENT[lang];
+  // Login pages open these legal pages in a new tab (target="_blank"), so react-router
+  // location.state can't carry "where the user came from" — a ?from=partner query param is
+  // what actually survives the new-tab navigation, and both the login page's link and this
+  // page's cross-links preserve it so the whole legal-pages detour stays partner-scoped.
+  const [params] = useSearchParams();
+  const fromPartner = params.get('from') === 'partner';
+  const privacyHref = fromPartner ? '/privacy?from=partner' : '/privacy';
+  const backToLoginHref = fromPartner ? '/partner-portal/login' : '/auth/zoho-login';
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4 dark:bg-boxdark-2">
@@ -95,10 +103,10 @@ const TermsOfService = () => {
           <div className="flex items-center justify-between gap-4 border-b border-stroke px-6 py-5 dark:border-strokedark">
             <SalesHubLogo variant="horizontal" className="h-7" textClassName="text-black dark:text-white" />
             <div className="flex items-center gap-5">
-              <Link to="/privacy" className="text-sm font-medium text-primary hover:underline">
+              <Link to={privacyHref} className="text-sm font-medium text-primary hover:underline">
                 {t('legal.privacyTitle')}
               </Link>
-              <Link to="/auth/zoho-login" className="text-sm font-medium text-primary hover:underline">
+              <Link to={backToLoginHref} className="text-sm font-medium text-primary hover:underline">
                 {t('legal.backToLogin')}
               </Link>
             </div>
@@ -119,7 +127,7 @@ const TermsOfService = () => {
                   ))}
                   {s.title.startsWith('6.') && (
                     <p className="mt-2 text-sm leading-relaxed text-body">
-                      <Link to="/privacy" className="font-medium text-primary hover:underline">
+                      <Link to={privacyHref} className="font-medium text-primary hover:underline">
                         {t('legal.privacyTitle')} →
                       </Link>
                     </p>

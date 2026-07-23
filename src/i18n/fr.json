@@ -628,6 +628,10 @@
       "removeConfirm": "Retirer le logo de votre organisation?",
       "removeFailed": "Impossible de retirer le logo. Veuillez réessayer."
     },
+    "notifications": {
+      "title": "Notifications",
+      "empty": "Aucune notification pour le moment."
+    },
     "assistant": {
       "title": "Sofia",
       "subtitle": "Votre guide du Portail partenaire — posez-moi n’importe quelle question",
