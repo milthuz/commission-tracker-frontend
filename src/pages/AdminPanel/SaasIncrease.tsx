@@ -124,9 +124,20 @@ const RISK_BADGE_CLS: Record<RiskTier, string> = {
 };
 const RISK_DOT_COLOR: Record<RiskTier, string> = { low: '#57D193', medium: '#F59E0B', high: '#ef4444' };
 // Candidate percent increases Suggest Scenario tries per subscription, highest first — it picks
-// the largest one that keeps that subscription out of "high" risk, so safer accounts get a
+// the largest one within the active profile's accepted risk tiers, so safer accounts get a
 // bigger increase and borderline ones get a smaller one automatically.
 const RATE_CANDIDATES_PCT = [20, 15, 12, 10, 8, 6, 5, 3];
+// Named risk-tolerance profiles for Suggest Scenario — each is just which risk tiers a
+// subscription is allowed to land in to be auto-included. Conservative never touches a
+// medium/high-risk account (may fall short of the target); Balanced (the original default
+// behavior) allows medium; Aggressive allows everything, prioritizing filling the target.
+type SuggestProfile = 'conservative' | 'balanced' | 'aggressive';
+const SUGGEST_PROFILE_TIERS: Record<SuggestProfile, RiskTier[]> = {
+  conservative: ['low'],
+  balanced: ['low', 'medium'],
+  aggressive: ['low', 'medium', 'high'],
+};
+const SUGGEST_PROFILES: SuggestProfile[] = ['conservative', 'balanced', 'aggressive'];
 
 // Admin tool: simulate SaaS price increases across every live Zoho Billing subscription, build
 // a scenario aimed at a target MRR add, then save it (Phase A — read-only simulation; pushing
@@ -207,6 +218,11 @@ const SaasIncrease: React.FC = () => {
     } catch { dialog.alert(t('saasIncrease.error') as string); }
     finally { setRefreshingCalibration(false); }
   };
+
+  // Suggest Scenario — profile picked in a modal (not a native confirm) so its definition and a
+  // live preview (count/$/risk breakdown) are visible before anything gets applied.
+  const [suggestModalOpen, setSuggestModalOpen] = useState(false);
+  const [suggestProfile, setSuggestProfile] = useState<SuggestProfile>('balanced');
 
   const loadSubs = async (fresh = false) => {
     setLoading(true); setError(null);
@@ -433,15 +449,18 @@ const SaasIncrease: React.FC = () => {
   // toolbar's current bulk %/$ as the hypothetical increase), then greedily fills in the safest
   // ones until the target MRR is reached. Never touches a row that's already selected — this is
   // what makes it "adjustable": it fills the gap left by whatever's already set up manually.
-  const suggestScenario = async () => {
-    const remainingToTarget = targetMrr - mrrDelta;
-    if (remainingToTarget <= 0) { dialog.alert(t('saasIncrease.targetReached') as string); return; }
-
-    // The toolbar's bulk value is a CEILING, not a fixed rate — for a percent scenario, each
-    // candidate rate below is tried from highest to lowest and the first that keeps the
-    // subscription out of "high" risk wins, so a long-tenure healthy account can get closer to
-    // the ceiling while a borderline one gets a smaller, safer increase. Flat ($) scenarios keep
-    // one fixed amount for everyone, since a dollar amount doesn't "scale" the same way.
+  // Pure computation reused by the modal's live preview AND the final Apply — given a profile
+  // (which risk tiers a subscription is allowed to land in), returns which subscriptions get
+  // picked, at what rate each, and whether the target was fully covered. The toolbar's bulk
+  // value is a CEILING, not a fixed rate: for a percent scenario, candidate rates are tried from
+  // highest to lowest and the first that falls within the profile's accepted tiers wins — so a
+  // long-tenure healthy account can get close to the ceiling while a borderline one gets less.
+  // A subscription with NO acceptable rate under this profile is excluded entirely (never
+  // force-included at a disallowed risk tier) — that's what makes "Conservative" a real
+  // guarantee rather than a leaky one, at the cost of possibly falling short of the target.
+  const computeSuggestion = (profile: SuggestProfile) => {
+    const remainingToTarget = Math.max(0, targetMrr - mrrDelta);
+    const acceptTiers = SUGGEST_PROFILE_TIERS[profile];
     const steps = bulkType === 'flat' ? [bulkValue] : (() => {
       const s = RATE_CANDIDATES_PCT.filter(v => v <= bulkValue);
       return s.length ? s : [bulkValue];
@@ -456,40 +475,49 @@ const SaasIncrease: React.FC = () => {
     const candidates = subs
       .filter(s => s.status === 'live' && !edits[s.subscriptionNumber]?.selected)
       .map(s => {
-        let best: ReturnType<typeof evalRate> | null = null;
         for (const rate of steps) {
           const r = evalRate(s, rate);
-          if (r.risk.tier !== 'high') { best = r; break; }
+          if (acceptTiers.includes(r.risk.tier) && r.delta > 0) return { s, ...r };
         }
-        return { s, ...(best || evalRate(s, steps[steps.length - 1])) };
+        return null;
       })
-      .filter(c => c.delta > 0)
+      .filter((c): c is { s: Subscription; rate: number; delta: number; risk: { tier: RiskTier; reasons: string[] } } => c !== null)
       .sort((a, b) => {
         const rank = (tier: RiskTier) => (tier === 'low' ? 0 : tier === 'medium' ? 1 : 2);
         const diff = rank(a.risk.tier) - rank(b.risk.tier);
         return diff !== 0 ? diff : b.s.currentMonthly - a.s.currentMonthly;
       });
-    if (!candidates.length) { dialog.alert(t('saasIncrease.noSuggestable') as string); return; }
 
     const chosen: typeof candidates = [];
     let cumulative = 0;
     for (const c of candidates) {
-      if (cumulative >= remainingToTarget) break;
+      if (remainingToTarget > 0 && cumulative >= remainingToTarget) break;
       chosen.push(c);
       cumulative += c.delta;
     }
-    const confirmMsg = t('saasIncrease.suggestConfirm', {
-      count: chosen.length, delta: money(cumulative),
+    return {
+      chosen, cumulative, remainingToTarget,
       medium: chosen.filter(c => c.risk.tier === 'medium').length,
       high: chosen.filter(c => c.risk.tier === 'high').length,
-    }) as string;
-    if (!(await dialog.confirm(confirmMsg))) return;
+      coversTarget: cumulative >= remainingToTarget,
+    };
+  };
 
+  const openSuggestModal = () => {
+    const remainingToTarget = targetMrr - mrrDelta;
+    if (remainingToTarget <= 0) { dialog.alert(t('saasIncrease.targetReached') as string); return; }
+    setSuggestModalOpen(true);
+  };
+
+  const applySuggestion = () => {
+    const { chosen } = computeSuggestion(suggestProfile);
+    if (!chosen.length) { dialog.alert(t('saasIncrease.noSuggestable') as string); return; }
     setEdits(prev => {
       const next = { ...prev };
       for (const c of chosen) next[c.s.subscriptionNumber] = { selected: true, increaseType: bulkType, increaseValue: c.rate };
       return next;
     });
+    setSuggestModalOpen(false);
   };
   const pct = targetMrr > 0 ? Math.min(100, (mrrDelta / targetMrr) * 100) : 0;
 
@@ -960,7 +988,7 @@ const SaasIncrease: React.FC = () => {
           </button>
           {activeScenarioId && targetMrr > 0 && (
             <button
-              onClick={suggestScenario}
+              onClick={openSuggestModal}
               title={t('saasIncrease.suggestScenarioHint') as string}
               className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-opacity-90"
             >
@@ -1367,6 +1395,74 @@ const SaasIncrease: React.FC = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Suggest Scenario modal — pick a risk-tolerance profile and see a live preview (count,
+          $/mo, risk breakdown) before anything is applied. Recomputes on every render while
+          open, which is cheap at this data size and keeps the preview always in sync with the
+          selected profile / current bulk ceiling. */}
+      {suggestModalOpen && (() => {
+        const preview = computeSuggestion(suggestProfile);
+        return (
+          <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setSuggestModalOpen(false)}>
+            <div className={`w-full max-w-lg overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
+                <p className={`font-semibold ${textPri}`}>{t('saasIncrease.suggest.title')}</p>
+                <button onClick={() => setSuggestModalOpen(false)} className={`${textSec} transition hover:text-red-500`}>
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="space-y-3 p-5">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  {SUGGEST_PROFILES.map(p => (
+                    <button
+                      key={p} type="button" onClick={() => setSuggestProfile(p)}
+                      className={`rounded-lg border p-3 text-left transition ${
+                        suggestProfile === p
+                          ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                          : 'border-gray-200 hover:border-gray-300 dark:border-[#242424] dark:hover:border-[#333]'
+                      }`}
+                    >
+                      <div className={`text-sm font-semibold ${suggestProfile === p ? 'text-primary' : textPri}`}>
+                        {t(`saasIncrease.suggest.profile.${p}.label`)}
+                      </div>
+                      <div className={`mt-1 text-xs leading-relaxed ${textTer}`}>
+                        {t(`saasIncrease.suggest.profile.${p}.desc`)}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <div className={`rounded-lg p-3 text-sm ${raised}`}>
+                  {preview.chosen.length > 0 ? (
+                    <>
+                      <p className={textPri}>
+                        {t('saasIncrease.suggest.preview', {
+                          count: preview.chosen.length, delta: money(preview.cumulative),
+                          medium: preview.medium, high: preview.high,
+                        })}
+                      </p>
+                      {!preview.coversTarget && (
+                        <p className="mt-1.5 text-amber-600 dark:text-amber-400">
+                          {t('saasIncrease.suggest.shortfall', { covered: money(preview.cumulative), target: money(preview.remainingToTarget) })}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className={textTer}>{t('saasIncrease.noSuggestable')}</p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={applySuggestion} disabled={!preview.chosen.length} className={btnPrimary}>
+                    {t('saasIncrease.suggest.apply')}
+                  </button>
+                  <button onClick={() => setSuggestModalOpen(false)} className={btnSecondary}>
+                    {t('saasIncrease.templates.cancel')}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         );

@@ -722,8 +722,28 @@
     "noRecentChange": "Aucun changement récent",
     "notEnoughHistory": "Historique de factures insuffisant",
     "suggestScenario": "Suggérer un scénario",
-    "suggestScenarioHint": "Sélectionne automatiquement les abonnements les plus sûrs pour atteindre ta cible MRR. Le % de lot ci-dessous est un plafond, pas un taux fixe — chaque abonnement reçoit la plus grande augmentation (jusqu'à ce plafond) qui le garde hors du risque élevé, donc les comptes sûrs reçoivent plus et les comptes limites reçoivent moins. Les scénarios en $ fixe utilisent un montant fixe pour tous. Ne remplace jamais les lignes déjà sélectionnées.",
+    "suggestScenarioHint": "Choisis un profil de risque (Conservateur/Équilibré/Agressif), vois un aperçu en direct, puis applique. Le % de lot ci-dessous est un plafond, pas un taux fixe — chaque abonnement reçoit la plus grande augmentation (jusqu'à ce plafond) qui reste dans la tolérance au risque du profil choisi. Les scénarios en $ fixe utilisent un montant fixe pour tous. Ne remplace jamais les lignes déjà sélectionnées.",
     "suggestConfirm": "Sélectionner {{count}} abonnements ajoutant {{delta}}/mois, chacun avec son propre taux ajusté au risque jusqu'à ton plafond? {{medium}} sont à risque moyen et {{high}} à risque élevé — vérifie avant d'enregistrer.",
+    "suggest": {
+      "title": "Suggérer un scénario",
+      "profile": {
+        "conservative": {
+          "label": "Conservateur",
+          "desc": "N'inclut que les abonnements à risque faible. Option la plus sûre — pourrait ne pas atteindre ta cible complètement s'il n'y a pas assez de comptes sûrs."
+        },
+        "balanced": {
+          "label": "Équilibré",
+          "desc": "Inclut aussi les abonnements à risque moyen pour aider à atteindre ta cible. N'inclut jamais les comptes à risque élevé. Option par défaut recommandée."
+        },
+        "aggressive": {
+          "label": "Agressif",
+          "desc": "Inclut les abonnements à risque moyen et élevé si nécessaire, en priorisant d'abord les comptes plus sûrs, pour maximiser la portion de ta cible couverte."
+        }
+      },
+      "preview": "{{count}} abonnements · +{{delta}}/mois · {{medium}} à risque moyen · {{high}} à risque élevé",
+      "shortfall": "Ceci ne couvre que {{covered}} des {{target}} encore nécessaires — aucun autre compte admissible sous ce profil. Essaie un profil moins conservateur, augmente le plafond, ou ajoute des lignes manuellement.",
+      "apply": "Appliquer la suggestion"
+    },
     "riskExposure": "⚠ {{amount}}/mois provenant de comptes à risque élevé inclus",
     "noSuggestable": "Aucun abonnement admissible à suggérer — tout ce qui est actif est déjà inclus, ou rien n'aiderait à atteindre la cible.",
     "risk": {

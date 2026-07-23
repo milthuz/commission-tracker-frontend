@@ -722,8 +722,28 @@
     "noRecentChange": "No recent change",
     "notEnoughHistory": "Not enough invoice history",
     "suggestScenario": "Suggest scenario",
-    "suggestScenarioHint": "Auto-selects the safest subscriptions to reach your target MRR. The bulk % below is a ceiling, not a fixed rate — each subscription gets the largest increase (up to that ceiling) that keeps it out of high risk, so safer accounts get more and borderline ones get less. Flat $ scenarios use one fixed amount for everyone. Never overwrites rows you've already selected.",
+    "suggestScenarioHint": "Pick a risk profile (Conservative/Balanced/Aggressive), see a live preview, then apply. The bulk % below is a ceiling, not a fixed rate — each subscription gets the largest increase (up to that ceiling) that stays within the chosen profile's risk tolerance. Flat $ scenarios use one fixed amount for everyone. Never overwrites rows you've already selected.",
     "suggestConfirm": "Select {{count}} subscriptions adding {{delta}}/mo, each with its own risk-adjusted rate up to your ceiling? {{medium}} are medium-risk and {{high}} are high-risk — review before saving.",
+    "suggest": {
+      "title": "Suggest a scenario",
+      "profile": {
+        "conservative": {
+          "label": "Conservative",
+          "desc": "Only includes subscriptions that come out low-risk. Safest option — may not fully reach your target if there aren't enough safe accounts."
+        },
+        "balanced": {
+          "label": "Balanced",
+          "desc": "Also includes medium-risk subscriptions to help reach your target. Never includes high-risk accounts. Recommended default."
+        },
+        "aggressive": {
+          "label": "Aggressive",
+          "desc": "Includes medium and high-risk subscriptions if needed, prioritizing safer accounts first, to maximize how much of your target gets covered."
+        }
+      },
+      "preview": "{{count}} subscriptions · +{{delta}}/mo · {{medium}} medium-risk · {{high}} high-risk",
+      "shortfall": "This only covers {{covered}} of the {{target}} still needed — no more eligible accounts under this profile. Try a less conservative profile, raise the ceiling, or add rows manually.",
+      "apply": "Apply suggestion"
+    },
     "riskExposure": "⚠ {{amount}}/mo from high-risk accounts included",
     "noSuggestable": "No eligible subscriptions left to suggest — everything live is already included, or none would help reach the target.",
     "risk": {
