@@ -10,6 +10,7 @@ interface PartnerUser {
   email: string;
   name: string;
   role: 'admin' | 'standard';
+  totpEnabled: boolean;
 }
 
 interface PartnerAuthContextType {

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import SofiaAvatar from './SofiaAvatar';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const TOUR_KEY = 'sofia-tour-v1';
+const DEFAULT_TOUR_KEY = 'sofia-tour-v1';
 
 interface ChatMsg { role: 'user' | 'assistant'; content: string; }
 
@@ -29,7 +29,28 @@ const NAV_DESC: Record<string, string> = {
 const PAD = 8;
 const CARD_W = 320;
 
-const SofiaTour: React.FC = () => {
+interface SofiaTourProps {
+  // i18n namespace prefix for all strings below (default: internal Sales Hub copy).
+  i18nPrefix?: string;
+  // route -> i18n key (WITHOUT prefix) map, built from the LIVE sidebar (see buildSteps).
+  navDesc?: Record<string, string>;
+  // localStorage key marking the tour as seen — own key per app so the internal and Partner
+  // Portal tours don't mark each other done.
+  tourKey?: string;
+  // localStorage key holding the bearer token for the in-tour mini chat.
+  chatTokenKey?: string;
+  // Backend endpoint for the in-tour mini chat.
+  chatEndpoint?: string;
+  // Event name that starts this tour (dispatched by the matching ChatAssistant's tourEventName).
+  startEventName?: string;
+}
+
+// Props let the Partner Portal reuse this exact component with its own copy/nav-map/token/tour-
+// seen-key (see PartnerHeader/PartnerSofiaTour.tsx) instead of duplicating the whole tour engine.
+const SofiaTour: React.FC<SofiaTourProps> = ({
+  i18nPrefix = 'tour', navDesc = NAV_DESC, tourKey = DEFAULT_TOUR_KEY,
+  chatTokenKey = 'token', chatEndpoint = '/api/assistant/chat', startEventName = 'sofia:tour',
+}) => {
   const { t, i18n } = useTranslation();
   const [run, setRun] = useState(false);
   const [idx, setIdx] = useState(0);
@@ -50,13 +71,13 @@ const SofiaTour: React.FC = () => {
     setAskMsgs(nextMsgs);
     setAskBusy(true);
     try {
-      const token = localStorage.getItem('token');
-      const r = await axios.post(`${API_URL}/api/assistant/chat`,
+      const token = localStorage.getItem(chatTokenKey);
+      const r = await axios.post(`${API_URL}${chatEndpoint}`,
         { messages: nextMsgs.slice(-12), lang: i18n.language },
         { headers: { Authorization: `Bearer ${token}` } });
       setAskMsgs([...nextMsgs, { role: 'assistant', content: r.data.reply || '…' }]);
     } catch {
-      setAskMsgs([...nextMsgs, { role: 'assistant', content: t('tour.askError') as string }]);
+      setAskMsgs([...nextMsgs, { role: 'assistant', content: t(`${i18nPrefix}.askError`) as string }]);
     } finally { setAskBusy(false); }
   };
 
@@ -69,7 +90,7 @@ const SofiaTour: React.FC = () => {
   // from each item's label, so renamed menus update too.
   const buildSteps = useCallback((): Step[] => {
     const out: Step[] = [];
-    out.push({ el: null, title: t('tour.welcomeTitle'), body: t('tour.welcomeBody') });
+    out.push({ el: null, title: t(`${i18nPrefix}.welcomeTitle`), body: t(`${i18nPrefix}.welcomeBody`) });
     const menu = document.querySelector('[data-tour-menu]');
     menu?.querySelectorAll(':scope > li').forEach((li) => {
       const top = li.querySelector(':scope > a, :scope > button') as HTMLElement | null;
@@ -79,17 +100,17 @@ const SofiaTour: React.FC = () => {
       // Admin Panel is a <button> that toggles a submenu, not a <NavLink> — it has no href,
       // so it needs its own marker attribute to be found here (user request 2026-07-09 audit).
       const route = top.getAttribute('href') || top.getAttribute('data-tour-route') || '';
-      const descKey = NAV_DESC[route];
+      const descKey = navDesc[route];
       out.push({
         el: li as HTMLElement,
         title: label,
-        body: descKey ? t(descKey) : (t('tour.sectionGeneric', { section: label }) as string),
+        body: descKey ? t(descKey) : (t(`${i18nPrefix}.sectionGeneric`, { section: label }) as string),
       });
     });
     const bubble = document.querySelector('[data-tour="sofia-bubble"]') as HTMLElement | null;
-    out.push({ el: bubble, title: t('tour.sofiaTitle'), body: t('tour.sofiaBody') });
+    out.push({ el: bubble, title: t(`${i18nPrefix}.sofiaTitle`), body: t(`${i18nPrefix}.sofiaBody`) });
     return out;
-  }, [t]);
+  }, [t, navDesc, i18nPrefix]);
 
   const measure = useCallback(() => {
     if (!step) return;
@@ -106,18 +127,18 @@ const SofiaTour: React.FC = () => {
     return () => { window.removeEventListener('resize', onMove); window.removeEventListener('scroll', onMove, true); };
   }, [run, idx, measure]);
 
-  // Start: auto on first login (desktop only), or on the 'sofia:tour' event (from Sofia chat).
+  // Start: auto on first login (desktop only), or on the startEventName event (from Sofia chat).
   useEffect(() => {
     const start = () => { setSteps(buildSteps()); setIdx(0); setRun(true); };
-    window.addEventListener('sofia:tour', start);
+    window.addEventListener(startEventName, start);
     let timer: any;
-    if (!localStorage.getItem(TOUR_KEY) && window.innerWidth >= 1024) {
+    if (!localStorage.getItem(tourKey) && window.innerWidth >= 1024) {
       timer = setTimeout(start, 900);
     }
-    return () => { window.removeEventListener('sofia:tour', start); if (timer) clearTimeout(timer); };
-  }, [buildSteps]);
+    return () => { window.removeEventListener(startEventName, start); if (timer) clearTimeout(timer); };
+  }, [buildSteps, startEventName, tourKey]);
 
-  const finish = () => { localStorage.setItem(TOUR_KEY, 'done'); setRun(false); setIdx(0); setAskMsgs([]); setAskInput(''); };
+  const finish = () => { localStorage.setItem(tourKey, 'done'); setRun(false); setIdx(0); setAskMsgs([]); setAskInput(''); };
   const next = () => { if (idx < steps.length - 1) setIdx(idx + 1); else finish(); };
   const back = () => setIdx(Math.max(0, idx - 1));
 
@@ -191,7 +212,7 @@ const SofiaTour: React.FC = () => {
           <input
             value={askInput}
             onChange={(e) => setAskInput(e.target.value)}
-            placeholder={t('tour.askPlaceholder') as string}
+            placeholder={t(`${i18nPrefix}.askPlaceholder`) as string}
             maxLength={2000}
             className="flex-1 rounded-full border border-stroke bg-white px-3 py-1.5 text-xs text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
           />
@@ -210,12 +231,12 @@ const SofiaTour: React.FC = () => {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={finish} className="text-xs font-medium text-body hover:text-black dark:hover:text-white">{t('tour.skip')}</button>
+            <button onClick={finish} className="text-xs font-medium text-body hover:text-black dark:hover:text-white">{t(`${i18nPrefix}.skip`)}</button>
             {idx > 0 && (
-              <button onClick={back} className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">{t('tour.back')}</button>
+              <button onClick={back} className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">{t(`${i18nPrefix}.back`)}</button>
             )}
             <button onClick={next} className="rounded-lg bg-primary px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90">
-              {idx === steps.length - 1 ? t('tour.done') : t('tour.next')}
+              {idx === steps.length - 1 ? t(`${i18nPrefix}.done`) : t(`${i18nPrefix}.next`)}
             </button>
           </div>
         </div>

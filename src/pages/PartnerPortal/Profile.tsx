@@ -22,6 +22,18 @@ const PartnerProfile: React.FC = () => {
   const [pwSaved, setPwSaved] = useState(false);
   const [pwError, setPwError] = useState('');
 
+  // 2FA device reset — request a fresh secret/QR, then confirm with a live code before it
+  // replaces the current device (mirrors the invite-time QR setup step).
+  const [totpEnabled, setTotpEnabled] = useState(!!user?.totpEnabled);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetStep, setResetStep] = useState<'starting' | 'qr' | 'done'>('starting');
+  const [qr, setQr] = useState('');
+  const [secret, setSecret] = useState('');
+  const [setupToken, setSetupToken] = useState('');
+  const [code, setCode] = useState('');
+  const [resetBusy, setResetBusy] = useState(false);
+  const [resetError, setResetError] = useState('');
+
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
 
   const saveProfile = async () => {
@@ -55,6 +67,39 @@ const PartnerProfile: React.FC = () => {
       setPwSaving(false);
     }
   };
+
+  const startReset = async () => {
+    setResetOpen(true);
+    setResetStep('starting');
+    setResetError('');
+    setCode('');
+    setResetBusy(true);
+    try {
+      const r = await axios.post(`${API_URL}/api/partner-portal/2fa/reset`, {}, { headers: authHeaders() });
+      setQr(r.data.qrDataUrl); setSecret(r.data.secret); setSetupToken(r.data.setupToken);
+      setResetStep('qr');
+    } catch (e: any) {
+      setResetError(e?.response?.data?.error || t('partnerPortal.profile.twoFactor.resetFailed') as string);
+    } finally {
+      setResetBusy(false);
+    }
+  };
+
+  const confirmReset = async () => {
+    setResetError('');
+    setResetBusy(true);
+    try {
+      await axios.post(`${API_URL}/api/partner-portal/2fa/confirm`, { setupToken, code }, { headers: authHeaders() });
+      setTotpEnabled(true);
+      setResetStep('done');
+    } catch (e: any) {
+      setResetError(e?.response?.data?.error || t('partnerPortal.profile.twoFactor.invalidCode') as string);
+    } finally {
+      setResetBusy(false);
+    }
+  };
+
+  const closeReset = () => { setResetOpen(false); setQr(''); setSecret(''); setSetupToken(''); setCode(''); };
 
   return (
     <div>
@@ -127,7 +172,81 @@ const PartnerProfile: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Two-Factor Authentication */}
+        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+            <h3 className="text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.title')}</h3>
+          </div>
+          <div className="p-7">
+            <div className="flex items-center gap-3">
+              <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${totpEnabled ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'}`}>
+                {totpEnabled ? t('partnerPortal.profile.twoFactor.enabled') : t('partnerPortal.profile.twoFactor.disabled')}
+              </span>
+            </div>
+            <p className="mt-3 text-sm text-body">{t('partnerPortal.profile.twoFactor.subtitle')}</p>
+            <div className="mt-6">
+              <button onClick={startReset}
+                className="inline-flex items-center gap-2 rounded-md border border-stroke px-6 py-2.5 text-sm font-medium text-black hover:bg-gray-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                {t('partnerPortal.profile.twoFactor.resetButton')}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* 2FA reset modal */}
+      {resetOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => !resetBusy && closeReset()}>
+          <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            {resetStep === 'starting' && (
+              <div className="flex items-center justify-center py-8">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              </div>
+            )}
+            {resetStep === 'qr' && (
+              <>
+                <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.resetTitle')}</h3>
+                <p className="mb-4 text-sm text-body">{t('partnerPortal.profile.twoFactor.resetSubtitle')}</p>
+                <div className="mb-4 flex justify-center">
+                  {qr && <img src={qr} alt="QR code" className="rounded-lg border border-stroke dark:border-strokedark" />}
+                </div>
+                <p className="mb-4 text-center text-xs text-body">
+                  {t('partnerPortal.profile.twoFactor.manualKey')}<br />
+                  <code className="mt-1 inline-block rounded bg-gray-100 px-2 py-1 font-mono text-[11px] text-black dark:bg-meta-4 dark:text-white">{secret}</code>
+                </p>
+                <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
+                  value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000000"
+                  className={`${inputCls} text-center text-2xl font-bold tracking-[0.5em]`} />
+                {resetError && <p className="mt-3 text-sm text-danger">{resetError}</p>}
+                <div className="mt-4 flex justify-end gap-2">
+                  <button onClick={closeReset} disabled={resetBusy}
+                    className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark">
+                    {t('common.cancel')}
+                  </button>
+                  <button onClick={confirmReset} disabled={resetBusy || code.length !== 6}
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                    {resetBusy ? t('common.saving') : t('partnerPortal.profile.twoFactor.confirmButton')}
+                  </button>
+                </div>
+              </>
+            )}
+            {resetStep === 'done' && (
+              <>
+                <h3 className="mb-2 text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.doneTitle')}</h3>
+                <p className="mb-4 text-sm text-body">{t('partnerPortal.profile.twoFactor.doneSubtitle')}</p>
+                <div className="flex justify-end">
+                  <button onClick={closeReset}
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+                    {t('common.close')}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

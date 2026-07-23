@@ -590,7 +590,78 @@
       "passwordTooShort": "New password must be at least 8 characters.",
       "passwordMismatch": "Passwords don't match.",
       "passwordSaved": "Password updated!",
-      "passwordSaveFailed": "Couldn't change your password. Please check your current password and try again."
+      "passwordSaveFailed": "Couldn't change your password. Please check your current password and try again.",
+      "twoFactor": {
+        "title": "Two-Factor Authentication",
+        "subtitle": "Two-factor authentication is required to sign in. Reset it if you're switching devices or lost access to your authenticator app.",
+        "enabled": "Enabled",
+        "disabled": "Not set up",
+        "resetButton": "Reset 2FA device",
+        "resetTitle": "Set up your new device",
+        "resetSubtitle": "Scan this QR code with your authenticator app, then enter the 6-digit code it shows.",
+        "manualKey": "Or enter this key manually:",
+        "confirmButton": "Confirm",
+        "invalidCode": "Invalid code — please try again.",
+        "resetFailed": "Couldn't start the reset. Please try again.",
+        "doneTitle": "Device updated!",
+        "doneSubtitle": "Your new authenticator device is now active."
+      }
+    },
+    "sidebar": {
+      "menu": "Menu",
+      "opportunities": "Opportunities",
+      "team": "Team",
+      "organization": "Organization",
+      "settings": "My Settings",
+      "collapse": "Collapse sidebar",
+      "expand": "Expand sidebar"
+    },
+    "organization": {
+      "logoTitle": "Organization logo",
+      "logoSubtitle": "Shown alongside the Sales Hub brand in your Partner Portal.",
+      "logoHint": "PNG or JPG, up to 2 MB.",
+      "uploadButton": "Upload logo",
+      "removeButton": "Remove logo",
+      "mustBeImage": "The file must be an image.",
+      "uploadFailed": "Couldn't upload the logo. Please try again.",
+      "removeConfirm": "Remove your organization's logo?",
+      "removeFailed": "Couldn't remove the logo. Please try again."
+    },
+    "assistant": {
+      "title": "Sofia",
+      "subtitle": "Your Partner Portal guide — ask me anything",
+      "greeting": "Hi, I'm Sofia 👋 your Partner Portal guide. Ask me how to submit an opportunity, invite a teammate, or update your settings — or take a quick guided tour.",
+      "startTour": "Take a guided tour",
+      "placeholder": "Ask a question…",
+      "suggestions": [
+        "How do I submit a new opportunity?",
+        "How do I invite a teammate?",
+        "How do I change our organization's logo?",
+        "How do I reset my 2FA device?"
+      ],
+      "clear": "New conversation",
+      "close": "Close",
+      "notConfigured": "The assistant isn't configured yet — contact Sales Hub.",
+      "rateLimited": "Too many messages — please wait a few minutes.",
+      "error": "Something went wrong — please try again.",
+      "disclaimer": "AI assistant — may make mistakes. It can't see your data."
+    },
+    "tour": {
+      "skip": "Skip",
+      "back": "Back",
+      "next": "Next",
+      "done": "Got it!",
+      "welcomeTitle": "Hi, I'm Sofia 👋",
+      "welcomeBody": "Let me give you a quick tour of the Partner Portal. You can skip anytime.",
+      "opportunitiesBody": "Submit a new business opportunity and track the status of everything you've already submitted.",
+      "teamBody": "Invite more people from your organization into the portal, as a Standard user or another Admin.",
+      "organizationBody": "Upload your organization's logo — shown alongside the Sales Hub brand.",
+      "settingsBody": "Update your display name, change your password, and reset your 2FA device.",
+      "sectionGeneric": "Open the {{section}} section here.",
+      "sofiaTitle": "I'm always here",
+      "sofiaBody": "Click me anytime for help, or to take this tour again. Enjoy the Partner Portal!",
+      "askPlaceholder": "Ask Sofia a question…",
+      "askError": "Sorry, something went wrong — try again."
     }
   },
   "kaizenDemo": {

@@ -16,10 +16,6 @@ interface Opportunity {
   notes: string | null; status: 'pending' | 'approved' | 'rejected';
   reviewedAt: string | null; rejectionReason: string | null; createdAt: string;
 }
-interface TeamUser {
-  id: number; email: string; displayName: string | null; role: 'admin' | 'standard';
-  status: string; totpEnabled: boolean; lastLoginAt: string | null; createdAt: string;
-}
 const BLANK_FORM = {
   businessName: '', contactFirstName: '', contactLastName: '', contactPhone: '', contactEmail: '',
   repFirstName: '', repLastName: '', repPhone: '', repEmail: '', notes: '',
@@ -34,20 +30,12 @@ const STATUS_BADGE: Record<string, string> = {
 const PartnerPortal: React.FC = () => {
   const { t } = useTranslation();
   const { user } = usePartnerAuth();
-  const isAdmin = user?.role === 'admin';
 
-  const [tab, setTab] = useState<'list' | 'submit' | 'team'>('list');
+  const [tab, setTab] = useState<'list' | 'submit'>('list');
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ ...BLANK_FORM });
   const [submitting, setSubmitting] = useState(false);
-
-  const [team, setTeam] = useState<TeamUser[]>([]);
-  const [teamLoading, setTeamLoading] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteName, setInviteName] = useState('');
-  const [inviteRole, setInviteRole] = useState<'standard' | 'admin'>('standard');
-  const [inviting, setInviting] = useState(false);
 
   const fetchOpportunities = async () => {
     setLoading(true);
@@ -58,16 +46,6 @@ const PartnerPortal: React.FC = () => {
     finally { setLoading(false); }
   };
   useEffect(() => { fetchOpportunities(); }, []);
-
-  const fetchTeam = async () => {
-    setTeamLoading(true);
-    try {
-      const r = await axios.get(`${API_URL}/api/partner-portal/team`, { headers: authHeaders() });
-      setTeam(r.data.users || []);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('partnerPortal.loadError') as string); }
-    finally { setTeamLoading(false); }
-  };
-  useEffect(() => { if (isAdmin && tab === 'team') fetchTeam(); }, [isAdmin, tab]);
 
   const submitOpportunity = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,20 +60,6 @@ const PartnerPortal: React.FC = () => {
     finally { setSubmitting(false); }
   };
 
-  const inviteUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inviteEmail.trim()) return;
-    setInviting(true);
-    try {
-      await axios.post(`${API_URL}/api/partner-portal/team/invite`,
-        { email: inviteEmail.trim(), name: inviteName.trim(), role: inviteRole },
-        { headers: authHeaders() });
-      setInviteEmail(''); setInviteName(''); setInviteRole('standard');
-      await fetchTeam();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('partnerPortal.inviteError') as string); }
-    finally { setInviting(false); }
-  };
-
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
   const setF = (k: keyof typeof BLANK_FORM, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -107,7 +71,7 @@ const PartnerPortal: React.FC = () => {
       </div>
 
       <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-        {(['list', 'submit', ...(isAdmin ? ['team'] as const : [])] as const).map((key) => (
+        {(['list', 'submit'] as const).map((key) => (
           <button key={key} onClick={() => setTab(key)}
             className={`rounded-md px-4 py-2 text-sm font-medium transition ${tab === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
             {t(`partnerPortal.tabs.${key}`)}
@@ -186,51 +150,6 @@ const PartnerPortal: React.FC = () => {
               {submitting ? t('partnerPortal.submitting') : t('partnerPortal.submit')}
             </button>
           </form>
-        </div>
-      )}
-
-      {tab === 'team' && isAdmin && (
-        <div className="flex flex-col gap-6">
-          <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="mb-4 text-sm font-bold text-black dark:text-white">{t('partnerPortal.inviteTeammate')}</div>
-            <form onSubmit={inviteUser} className="flex flex-wrap items-end gap-3">
-              <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} type="email" required
-                placeholder={t('partnerPortal.fEmail') as string} className={`${inputCls} max-w-xs`} />
-              <input value={inviteName} onChange={(e) => setInviteName(e.target.value)} placeholder={t('partnerPortal.fName') as string} className={`${inputCls} max-w-xs`} />
-              <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as 'standard' | 'admin')} className={`${inputCls} max-w-[160px]`}>
-                <option value="standard">{t('partnerPortal.roleStandard')}</option>
-                <option value="admin">{t('partnerPortal.roleAdmin')}</option>
-              </select>
-              <button type="submit" disabled={inviting}
-                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
-                {inviting ? t('partnerPortal.inviting') : t('partnerPortal.invite')}
-              </button>
-            </form>
-          </div>
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-            {teamLoading ? (
-              <div className="flex h-24 items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
-            ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-stroke dark:border-strokedark">
-                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.fEmail')}</th>
-                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colRole')}</th>
-                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colStatus')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {team.map((tu) => (
-                    <tr key={tu.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
-                      <td className="px-4 py-3 text-black dark:text-white">{tu.displayName || tu.email}<div className="text-xs text-gray-400">{tu.email}</div></td>
-                      <td className="px-4 py-3 text-body">{tu.role === 'admin' ? t('partnerPortal.roleAdmin') : t('partnerPortal.roleStandard')}</td>
-                      <td className="px-4 py-3 text-body">{tu.status}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
         </div>
       )}
     </div>

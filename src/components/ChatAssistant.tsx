@@ -7,9 +7,24 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 interface ChatMsg { role: 'user' | 'assistant'; content: string; }
 
+interface ChatAssistantProps {
+  // i18n namespace prefix for all strings below (default: internal Sales Hub copy).
+  i18nPrefix?: string;
+  // localStorage key holding the bearer token to send.
+  tokenKey?: string;
+  // Backend endpoint to POST { messages, lang } to.
+  endpoint?: string;
+  // Event name dispatched when "Start tour" is clicked — the matching tour component listens.
+  tourEventName?: string;
+}
+
 // Floating AI help assistant (bottom-right). Glassy translucent bubble that opens a
-// chat panel; answers come from the backend /api/assistant/chat (Claude API).
-const ChatAssistant: React.FC = () => {
+// chat panel; answers come from the backend /api/assistant/chat (Claude API) by default.
+// Props let the Partner Portal reuse this exact component with its own copy/token/endpoint/tour
+// (see PartnerHeader/PartnerChatAssistant.tsx) instead of duplicating the whole widget.
+const ChatAssistant: React.FC<ChatAssistantProps> = ({
+  i18nPrefix = 'assistant', tokenKey = 'token', endpoint = '/api/assistant/chat', tourEventName = 'sofia:tour',
+}) => {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
@@ -35,22 +50,22 @@ const ChatAssistant: React.FC = () => {
     setMsgs(next);
     setBusy(true);
     try {
-      const token = localStorage.getItem('token');
-      const r = await axios.post(`${API_URL}/api/assistant/chat`,
+      const token = localStorage.getItem(tokenKey);
+      const r = await axios.post(`${API_URL}${endpoint}`,
         { messages: next.slice(-12), lang: i18n.language },
         { headers: { Authorization: `Bearer ${token}` } });
       setMsgs([...next, { role: 'assistant', content: r.data.reply || '…' }]);
     } catch (e: any) {
       const status = e?.response?.status;
       setError(
-        status === 503 ? (t('assistant.notConfigured') as string)
-        : status === 429 ? (t('assistant.rateLimited') as string)
-        : (t('assistant.error') as string)
+        status === 503 ? (t(`${i18nPrefix}.notConfigured`) as string)
+        : status === 429 ? (t(`${i18nPrefix}.rateLimited`) as string)
+        : (t(`${i18nPrefix}.error`) as string)
       );
     } finally { setBusy(false); }
   };
 
-  const suggestions: string[] = t('assistant.suggestions', { returnObjects: true }) as unknown as string[];
+  const suggestions: string[] = t(`${i18nPrefix}.suggestions`, { returnObjects: true }) as unknown as string[];
 
   return (
     <>
@@ -62,20 +77,20 @@ const ChatAssistant: React.FC = () => {
             <div className="flex items-center gap-3">
               <SofiaAvatar className="h-9 w-9" ring />
               <div>
-                <p className="text-sm font-semibold text-white">{t('assistant.title')}</p>
-                <p className="text-[11px] text-white/70">{t('assistant.subtitle')}</p>
+                <p className="text-sm font-semibold text-white">{t(`${i18nPrefix}.title`)}</p>
+                <p className="text-[11px] text-white/70">{t(`${i18nPrefix}.subtitle`)}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
               {msgs.length > 0 && (
-                <button onClick={() => { setMsgs([]); setError(''); }} title={t('assistant.clear') as string}
+                <button onClick={() => { setMsgs([]); setError(''); }} title={t(`${i18nPrefix}.clear`) as string}
                   className="rounded p-1.5 text-white/70 hover:bg-white/10 hover:text-white">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                   </svg>
                 </button>
               )}
-              <button onClick={() => setOpen(false)} title={t('assistant.close') as string}
+              <button onClick={() => setOpen(false)} title={t(`${i18nPrefix}.close`) as string}
                 className="rounded p-1.5 text-white/70 hover:bg-white/10 hover:text-white">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -89,13 +104,13 @@ const ChatAssistant: React.FC = () => {
             {msgs.length === 0 && (
               <div>
                 <div className="mb-3 rounded-2xl rounded-tl-sm bg-gray-2 px-4 py-3 text-sm text-black dark:bg-meta-4 dark:text-white">
-                  {t('assistant.greeting')}
+                  {t(`${i18nPrefix}.greeting`)}
                 </div>
                 <button
-                  onClick={() => { setOpen(false); window.dispatchEvent(new Event('sofia:tour')); }}
+                  onClick={() => { setOpen(false); window.dispatchEvent(new Event(tourEventName)); }}
                   className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-opacity-90">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
-                  {t('assistant.startTour')}
+                  {t(`${i18nPrefix}.startTour`)}
                 </button>
                 <div className="flex flex-wrap gap-2">
                   {Array.isArray(suggestions) && suggestions.map((s) => (
@@ -139,7 +154,7 @@ const ChatAssistant: React.FC = () => {
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={t('assistant.placeholder') as string}
+              placeholder={t(`${i18nPrefix}.placeholder`) as string}
               maxLength={2000}
               className="flex-1 rounded-full border border-stroke bg-white px-4 py-2.5 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
             />
@@ -151,7 +166,7 @@ const ChatAssistant: React.FC = () => {
             </button>
           </form>
           <p className="bg-white px-4 pb-2 text-center text-[10px] text-body dark:bg-boxdark">
-            {t('assistant.disclaimer')}
+            {t(`${i18nPrefix}.disclaimer`)}
           </p>
         </div>
       )}
@@ -160,7 +175,7 @@ const ChatAssistant: React.FC = () => {
       <button
         data-tour="sofia-bubble"
         onClick={() => setOpen(!open)}
-        title={t('assistant.title') as string}
+        title={t(`${i18nPrefix}.title`) as string}
         className="group fixed bottom-6 right-4 z-[9990] flex h-12 w-12 items-center justify-center rounded-full shadow-default transition-transform duration-200 hover:scale-110"
       >
         {open ? (

@@ -590,7 +590,78 @@
       "passwordTooShort": "Le nouveau mot de passe doit contenir au moins 8 caractères.",
       "passwordMismatch": "Les mots de passe ne correspondent pas.",
       "passwordSaved": "Mot de passe mis à jour!",
-      "passwordSaveFailed": "Impossible de changer votre mot de passe. Vérifiez votre mot de passe actuel et réessayez."
+      "passwordSaveFailed": "Impossible de changer votre mot de passe. Vérifiez votre mot de passe actuel et réessayez.",
+      "twoFactor": {
+        "title": "Authentification à deux facteurs",
+        "subtitle": "L’authentification à deux facteurs est requise pour vous connecter. Réinitialisez-la si vous changez d’appareil ou perdez l’accès à votre application d’authentification.",
+        "enabled": "Activée",
+        "disabled": "Non configurée",
+        "resetButton": "Réinitialiser l’appareil 2FA",
+        "resetTitle": "Configurez votre nouvel appareil",
+        "resetSubtitle": "Scannez ce code QR avec votre application d’authentification, puis entrez le code à 6 chiffres affiché.",
+        "manualKey": "Ou entrez cette clé manuellement :",
+        "confirmButton": "Confirmer",
+        "invalidCode": "Code invalide — veuillez réessayer.",
+        "resetFailed": "Impossible de démarrer la réinitialisation. Veuillez réessayer.",
+        "doneTitle": "Appareil mis à jour!",
+        "doneSubtitle": "Votre nouvel appareil d’authentification est maintenant actif."
+      }
+    },
+    "sidebar": {
+      "menu": "Menu",
+      "opportunities": "Occasions d’affaires",
+      "team": "Équipe",
+      "organization": "Organisation",
+      "settings": "Mes paramètres",
+      "collapse": "Réduire le menu",
+      "expand": "Agrandir le menu"
+    },
+    "organization": {
+      "logoTitle": "Logo de l’organisation",
+      "logoSubtitle": "Affiché aux côtés de la marque Sales Hub dans votre Portail partenaire.",
+      "logoHint": "PNG ou JPG, jusqu’à 2 Mo.",
+      "uploadButton": "Téléverser le logo",
+      "removeButton": "Retirer le logo",
+      "mustBeImage": "Le fichier doit être une image.",
+      "uploadFailed": "Impossible de téléverser le logo. Veuillez réessayer.",
+      "removeConfirm": "Retirer le logo de votre organisation?",
+      "removeFailed": "Impossible de retirer le logo. Veuillez réessayer."
+    },
+    "assistant": {
+      "title": "Sofia",
+      "subtitle": "Votre guide du Portail partenaire — posez-moi n’importe quelle question",
+      "greeting": "Bonjour, je suis Sofia 👋 votre guide du Portail partenaire. Demandez-moi comment soumettre une occasion d’affaires, inviter un collègue, ou mettre à jour vos paramètres — ou faites une visite guidée rapide.",
+      "startTour": "Faire la visite guidée",
+      "placeholder": "Posez une question…",
+      "suggestions": [
+        "Comment soumettre une nouvelle occasion d’affaires?",
+        "Comment inviter un collègue?",
+        "Comment changer le logo de notre organisation?",
+        "Comment réinitialiser mon appareil 2FA?"
+      ],
+      "clear": "Nouvelle conversation",
+      "close": "Fermer",
+      "notConfigured": "L’assistant n’est pas encore configuré — contactez Sales Hub.",
+      "rateLimited": "Trop de messages — veuillez patienter quelques minutes.",
+      "error": "Une erreur est survenue — veuillez réessayer.",
+      "disclaimer": "Assistant IA — peut faire des erreurs. Il ne voit pas vos données."
+    },
+    "tour": {
+      "skip": "Passer",
+      "back": "Retour",
+      "next": "Suivant",
+      "done": "Compris!",
+      "welcomeTitle": "Bonjour, je suis Sofia 👋",
+      "welcomeBody": "Laissez-moi vous faire faire une visite rapide du Portail partenaire. Vous pouvez passer en tout temps.",
+      "opportunitiesBody": "Soumettez une nouvelle occasion d’affaires et suivez le statut de tout ce que vous avez déjà soumis.",
+      "teamBody": "Invitez d’autres personnes de votre organisation dans le portail, en tant qu’utilisateur Standard ou Admin.",
+      "organizationBody": "Téléversez le logo de votre organisation — affiché aux côtés de la marque Sales Hub.",
+      "settingsBody": "Mettez à jour votre nom affiché, changez votre mot de passe et réinitialisez votre appareil 2FA.",
+      "sectionGeneric": "Ouvrez la section {{section}} ici.",
+      "sofiaTitle": "Je suis toujours ici",
+      "sofiaBody": "Cliquez sur moi en tout temps pour de l’aide, ou pour refaire cette visite. Profitez bien du Portail partenaire!",
+      "askPlaceholder": "Posez une question à Sofia…",
+      "askError": "Désolée, une erreur est survenue — réessayez."
     }
   },
   "kaizenDemo": {
