@@ -39,6 +39,7 @@ import PartnerLogin from './pages/PartnerPortal/Login';
 import PartnerAcceptInvite from './pages/PartnerPortal/AcceptInvite';
 import PartnerResetPassword from './pages/PartnerPortal/ResetPassword';
 import PartnerPortal from './pages/PartnerPortal';
+import PartnerProfile from './pages/PartnerPortal/Profile';
 
 // "/" adapts to the user's role:
 //   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
@@ -176,6 +177,15 @@ function AppContent() {
               <>
                 <PageTitle title="Partner Portal | Sales Hub" />
                 <PartnerPortal />
+              </>
+            }
+          />
+          <Route
+            path="/partner-portal/profile"
+            element={
+              <>
+                <PageTitle title="Profile | Sales Hub" />
+                <PartnerProfile />
               </>
             }
           />

@@ -576,7 +576,22 @@
     "roleAdmin": "Admin",
     "invite": "Send invite",
     "inviting": "Sending…",
-    "inviteError": "Couldn't send the invite. Please try again."
+    "inviteError": "Couldn't send the invite. Please try again.",
+    "profile": {
+      "title": "My Settings",
+      "accountInfo": "Account Information",
+      "displayName": "Display name",
+      "saved": "Saved!",
+      "saveFailed": "Couldn't save your changes. Please try again.",
+      "changePassword": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "passwordTooShort": "New password must be at least 8 characters.",
+      "passwordMismatch": "Passwords don't match.",
+      "passwordSaved": "Password updated!",
+      "passwordSaveFailed": "Couldn't change your password. Please check your current password and try again."
+    }
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",

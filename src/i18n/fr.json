@@ -576,7 +576,22 @@
     "roleAdmin": "Admin",
     "invite": "Envoyer l’invitation",
     "inviting": "Envoi…",
-    "inviteError": "Impossible d’envoyer l’invitation. Veuillez réessayer."
+    "inviteError": "Impossible d’envoyer l’invitation. Veuillez réessayer.",
+    "profile": {
+      "title": "Mes paramètres",
+      "accountInfo": "Renseignements du compte",
+      "displayName": "Nom affiché",
+      "saved": "Enregistré!",
+      "saveFailed": "Impossible d’enregistrer vos modifications. Veuillez réessayer.",
+      "changePassword": "Changer le mot de passe",
+      "currentPassword": "Mot de passe actuel",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le nouveau mot de passe",
+      "passwordTooShort": "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+      "passwordMismatch": "Les mots de passe ne correspondent pas.",
+      "passwordSaved": "Mot de passe mis à jour!",
+      "passwordSaveFailed": "Impossible de changer votre mot de passe. Vérifiez votre mot de passe actuel et réessayez."
+    }
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",
