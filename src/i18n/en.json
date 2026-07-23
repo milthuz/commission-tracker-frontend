@@ -932,6 +932,9 @@
       "body": "Message",
       "draft": "Draft",
       "preview": "Preview",
+      "testSend": "Send test to myself",
+      "testSendHint": "Sends this exact subject/body to your own inbox, prefixed [TEST] — safe with real or fully made-up placeholder text, no real subscription needed.",
+      "testSent": "Test email sent to {{to}}.",
       "send": "Send",
       "sending": "Sending…",
       "confirmSend": "Send this notification to {{count}} merchant(s)? This can't be unsent.",
@@ -950,7 +953,7 @@
       "subtitle": "Create and edit the wording used when drafting merchant notifications — apply a different one per group.",
       "new": "New template",
       "namePlaceholder": "e.g. Loyalty tone",
-      "placeholderHint": "Placeholders: {{customerName}}, {{planName}}, {{currentMonthly}}, {{newMonthly}}",
+      "placeholderHint": "Placeholders: {{customerName}}, {{planName}}, {{currentMonthly}}, {{newMonthly}}, {{effectiveDate}}",
       "save": "Save template",
       "cancel": "Cancel",
       "default": "Default",
@@ -2159,6 +2162,19 @@
         "historyTitle": "Manual bonus history",
         "date": "Date",
         "period": "Period"
+      },
+      "manualActivation": {
+        "title": "Manual payment activation",
+        "subtitle": "Add a Zentact merchant activation by hand — for when Zentact is temporarily unavailable. Gives the rep the standard signup bonus and quota point, exactly like a normal Zentact activation.",
+        "businessName": "Business name",
+        "businessNamePlaceholder": "e.g. Bigz Smoke Meat Mascouche",
+        "activationDate": "Activation date",
+        "bonusAmount": "Bonus ($)",
+        "points": "Points",
+        "add": "Add activation",
+        "needFields": "Pick a rep, enter a business name and an activation date.",
+        "historyTitle": "Manual activations",
+        "warning": "This creates a placeholder merchant record — it won't receive future processing-revenue data from Zentact. If Zentact later reports this same merchant for real, delete this manual entry first to avoid double-counting the bonus."
       },
       "adjustments": {
         "title": "Commission adjustments",

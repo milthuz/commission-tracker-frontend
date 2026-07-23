@@ -932,6 +932,9 @@
       "body": "Message",
       "draft": "Rédiger",
       "preview": "Aperçu",
+      "testSend": "M'envoyer un test",
+      "testSendHint": "Envoie exactement ce sujet/message à ta propre boîte courriel, préfixé [TEST] — sécuritaire avec du texte réel ou totalement inventé, aucun vrai abonnement requis.",
+      "testSent": "Courriel test envoyé à {{to}}.",
       "send": "Envoyer",
       "sending": "Envoi…",
       "confirmSend": "Envoyer cette notification à {{count}} marchand(s)? Cette action est irréversible.",
@@ -950,7 +953,7 @@
       "subtitle": "Crée et modifie le texte utilisé pour rédiger les notifications aux marchands — applique un modèle différent par groupe.",
       "new": "Nouveau modèle",
       "namePlaceholder": "ex. Ton fidélité",
-      "placeholderHint": "Espaces réservés : {{customerName}}, {{planName}}, {{currentMonthly}}, {{newMonthly}}",
+      "placeholderHint": "Espaces réservés : {{customerName}}, {{planName}}, {{currentMonthly}}, {{newMonthly}}, {{effectiveDate}}",
       "save": "Enregistrer le modèle",
       "cancel": "Annuler",
       "default": "Par défaut",
@@ -2159,6 +2162,19 @@
         "historyTitle": "Historique des bonus manuels",
         "date": "Date",
         "period": "Période"
+      },
+      "manualActivation": {
+        "title": "Activation de paiement manuelle",
+        "subtitle": "Ajouter manuellement une activation de marchand Zentact — pour quand Zentact est temporairement indisponible. Donne au vendeur le bonus d'inscription standard et le point de quota, exactement comme une activation Zentact normale.",
+        "businessName": "Nom du commerce",
+        "businessNamePlaceholder": "ex. Bigz Smoke Meat Mascouche",
+        "activationDate": "Date d'activation",
+        "bonusAmount": "Bonus ($)",
+        "points": "Points",
+        "add": "Ajouter l'activation",
+        "needFields": "Choisis un vendeur, entre un nom de commerce et une date d'activation.",
+        "historyTitle": "Activations manuelles",
+        "warning": "Ceci crée une fiche marchand de remplacement — elle ne recevra pas les futures données de revenu de traitement de Zentact. Si Zentact rapporte plus tard ce même marchand pour vrai, supprime d'abord cette entrée manuelle pour éviter de compter le bonus en double."
       },
       "adjustments": {
         "title": "Ajustements de commission",

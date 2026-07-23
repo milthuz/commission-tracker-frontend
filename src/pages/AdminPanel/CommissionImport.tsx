@@ -363,6 +363,48 @@ const CommissionImport: React.FC = () => {
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
   };
 
+  // Manual payment activation — stop-gap for when Zentact itself is limited/down. Creates a
+  // real zentact_merchants row so it flows through the normal points/signup-bonus logic.
+  const [maRep, setMaRep] = useState('');
+  const [maBusiness, setMaBusiness] = useState('');
+  const [maDate, setMaDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [maBonus, setMaBonus] = useState('100');
+  const [maPoints, setMaPoints] = useState('1');
+  const [maAdding, setMaAdding] = useState(false);
+  type ManualActivation = { merchant_account_id: string; business_name: string; sales_rep_name: string; activated_at: string; points: number; bonus_amount: number; created_at: string };
+  const [manualActivations, setManualActivations] = useState<ManualActivation[]>([]);
+
+  const fetchManualActivations = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/zentact/merchants/manual`, { headers: { Authorization: `Bearer ${token}` } });
+      setManualActivations(res.data.activations || []);
+    } catch (_e) { /* silent */ }
+  };
+
+  const addManualActivation = async () => {
+    if (!maRep || !maBusiness.trim() || !maDate) { dialog.alert(t('admin.commissionImport.manualActivation.needFields')); return; }
+    setMaAdding(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/zentact/merchants/manual`, {
+        repName: maRep, businessName: maBusiness.trim(), activatedAt: maDate,
+        points: parseInt(maPoints) || 1, bonusAmount: maBonus === '' ? undefined : parseFloat(maBonus),
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      setMaBusiness(''); setMaBonus('100'); setMaPoints('1');
+      fetchManualActivations();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to add'); }
+    finally { setMaAdding(false); }
+  };
+
+  const deleteManualActivation = async (merchantAccountId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/zentact/merchants/manual/${merchantAccountId}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchManualActivations();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
+  };
+
   // ── Commission adjustments (carry an unpaid commission forward to a target month) ──
   interface AdjUnpaid { invoice_number: string; customer: string | null; commission: number; commission_status: string; payable_date: string | null; }
   interface AdjRow { id: number; rep_name: string; target_period: string; invoice_number: string | null; customer: string | null; amount: number; source_period: string | null; description: string; }
@@ -951,7 +993,7 @@ const CommissionImport: React.FC = () => {
     })();
   }, []);
   // Load the full manual-bonus + adjustment history once (both span all periods).
-  useEffect(() => { fetchManualBonuses(); fetchAdjustments(); fetchSuggestions(); fetchPayRecipients(); fetchPaySends(); fetchBonusSends(); }, []);
+  useEffect(() => { fetchManualBonuses(); fetchManualActivations(); fetchAdjustments(); fetchSuggestions(); fetchPayRecipients(); fetchPaySends(); fetchBonusSends(); }, []);
   // Quota-review queue: refetch when the "show reviewed history" toggle changes (fires once on mount too).
   useEffect(() => { fetchQuotaReview(quotaShowHistory); }, [quotaShowHistory]);
 
@@ -2187,6 +2229,88 @@ const CommissionImport: React.FC = () => {
                         <td className="px-4 py-2 text-right font-semibold text-success whitespace-nowrap">{fmt(m.amount)}</td>
                         <td className="px-4 py-2 text-right">
                           <button onClick={() => deleteManualBonus(m.id)} className="whitespace-nowrap text-xs text-danger hover:underline">{t('common.delete')}</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Manual payment activation — stop-gap for when Zentact itself is limited/down.
+          Creates a real activation (points + signup bonus), not just a raw dollar amount. */}
+      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.manualActivation.title')}</h3>
+          <p className="text-sm text-body">{t('admin.commissionImport.manualActivation.subtitle')}</p>
+        </div>
+        <div className="px-6 py-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">Rep</label>
+              <select value={maRep} onChange={(e) => setMaRep(e.target.value)}
+                className="w-48 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
+                <option value="">{t('admin.commissionImport.manualBonus.selectRep')}</option>
+                {reps.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div className="flex-1 min-w-[220px]">
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualActivation.businessName')}</label>
+              <input type="text" value={maBusiness} onChange={(e) => setMaBusiness(e.target.value)}
+                placeholder={t('admin.commissionImport.manualActivation.businessNamePlaceholder') as string}
+                className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualActivation.activationDate')}</label>
+              <input type="date" value={maDate} onChange={(e) => setMaDate(e.target.value)}
+                className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualActivation.bonusAmount')}</label>
+              <input type="number" step="0.01" value={maBonus} onChange={(e) => setMaBonus(e.target.value)}
+                className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualActivation.points')}</label>
+              <input type="number" value={maPoints} onChange={(e) => setMaPoints(e.target.value)}
+                className="w-20 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+            </div>
+            <button onClick={addManualActivation} disabled={maAdding}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+              {maAdding ? t('common.saving') : t('admin.commissionImport.manualActivation.add')}
+            </button>
+          </div>
+
+          <p className="mt-3 text-xs italic text-warning">{t('admin.commissionImport.manualActivation.warning')}</p>
+
+          {manualActivations.length > 0 && (
+            <div className="mt-6">
+              <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('admin.commissionImport.manualActivation.historyTitle')}</h4>
+              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                <table className="w-full min-w-[640px] text-sm">
+                  <thead className="bg-gray-2 dark:bg-meta-4">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.manualActivation.activationDate')}</th>
+                      <th className="px-4 py-2 text-left font-medium">Rep</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.manualActivation.businessName')}</th>
+                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualActivation.points')}</th>
+                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualActivation.bonusAmount')}</th>
+                      <th className="px-4 py-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {manualActivations.map(m => (
+                      <tr key={m.merchant_account_id} className="border-t border-stroke dark:border-strokedark">
+                        <td className="px-4 py-2 text-body whitespace-nowrap">{fmtDate(m.activated_at)}</td>
+                        <td className="px-4 py-2 text-black dark:text-white whitespace-nowrap">{m.sales_rep_name}</td>
+                        <td className="px-4 py-2 text-body">{m.business_name}</td>
+                        <td className="px-4 py-2 text-right text-body">{m.points}</td>
+                        <td className="px-4 py-2 text-right font-semibold text-success whitespace-nowrap">{fmt(m.bonus_amount)}</td>
+                        <td className="px-4 py-2 text-right">
+                          <button onClick={() => deleteManualActivation(m.merchant_account_id)} className="whitespace-nowrap text-xs text-danger hover:underline">{t('common.delete')}</button>
                         </td>
                       </tr>
                     ))}
