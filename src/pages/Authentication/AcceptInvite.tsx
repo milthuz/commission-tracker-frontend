@@ -95,8 +95,8 @@ const AcceptInvite = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2">
       <div className="w-full max-w-md">
-        <div className="mb-6 flex justify-center">
-          <SalesHubLogo variant="stacked" tone="light" className="h-24 w-auto" />
+        <div className="mb-8 flex justify-center">
+          <SalesHubLogo variant="stacked" tone="light" className="h-32 w-auto" />
         </div>
         <div className="rounded-2xl bg-white p-8 shadow-xl dark:bg-boxdark sm:p-10">
           {step === 'loading' && (

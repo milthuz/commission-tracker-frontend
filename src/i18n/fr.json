@@ -623,7 +623,9 @@
     "organization": {
       "logoTitle": "Logo de l’organisation",
       "logoSubtitle": "Affiché aux côtés de la marque Sales Hub dans votre Portail partenaire.",
-      "logoHint": "PNG ou JPG, jusqu’à 2 Mo.",
+      "logoHint": "PNG ou JPG, jusqu’à 2 Mo. Pour un meilleur résultat, utilisez un logo conçu pour un fond blanc ou pâle.",
+      "previewLabel": "Voici comment il apparaîtra dans le menu",
+      "previewHint": "Si votre logo est difficile à voir ici, essayez une version à fond transparent ou conçue pour un fond pâle.",
       "uploadButton": "Téléverser le logo",
       "removeButton": "Retirer le logo",
       "mustBeImage": "Le fichier doit être une image.",

@@ -121,11 +121,18 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
             <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-bodydark2">
               {t('partnerPortal.sidebar.partneredWith')}
             </p>
-            <div className="flex items-center rounded-lg bg-white px-3 py-2 shadow-sm">
+            {/* inline-flex (not flex) so the card hugs the logo's actual rendered size instead
+                of stretching to the sidebar's full width — a `flex` block-level div fills its
+                container regardless of content, which is what left a huge dead-space rectangle
+                around a small/narrow logo (user feedback 2026-07-2x). max-h/max-w cap BOTH the
+                card and the image so an unusually large source file can't blow out the row
+                either way, and the border keeps the card's edge visible even for a
+                white-on-transparent logo that would otherwise vanish into the white background. */}
+            <div className="inline-flex max-h-14 max-w-full items-center justify-center rounded-lg border border-black/5 bg-white px-3 py-2 shadow-sm">
               <img
                 src={`${API_URL}/api/partner-portal/organization/logo/${user.partnerId}`}
                 alt={user.partnerName || ''}
-                className="h-7 max-w-full object-contain"
+                className="max-h-8 max-w-[144px] object-contain"
                 onError={() => setLogoOk(false)}
               />
             </div>

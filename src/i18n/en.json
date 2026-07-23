@@ -623,7 +623,9 @@
     "organization": {
       "logoTitle": "Organization logo",
       "logoSubtitle": "Shown alongside the Sales Hub brand in your Partner Portal.",
-      "logoHint": "PNG or JPG, up to 2 MB.",
+      "logoHint": "PNG or JPG, up to 2 MB. For best results, use a logo designed for a white or light background.",
+      "previewLabel": "How it will look in the sidebar",
+      "previewHint": "If your logo is hard to see here, try a version with a transparent background or one meant for light backgrounds.",
       "uploadButton": "Upload logo",
       "removeButton": "Remove logo",
       "mustBeImage": "The file must be an image.",

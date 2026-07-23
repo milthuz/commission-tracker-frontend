@@ -17,6 +17,9 @@ const PartnerOrganization: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   // Cache-bust the <img> after a change so the new logo shows immediately.
   const [logoVersion, setLogoVersion] = useState(0);
+  // Whether a logo currently exists at all — drives the sidebar-preview section below;
+  // reset to true on every upload/remove so a fresh <img> gets a fresh chance to load.
+  const [logoOk, setLogoOk] = useState(true);
   const logoUrl = user ? `${API_URL}/api/partner-portal/organization/logo/${user.partnerId}?v=${logoVersion}` : '';
 
   const pickFile = () => fileInput.current?.click();
@@ -29,6 +32,7 @@ const PartnerOrganization: React.FC = () => {
       fd.append('file', file);
       await axios.post(`${API_URL}/api/partner-portal/organization/logo`, fd, { headers: authHeaders() });
       setLogoVersion((v) => v + 1);
+      setLogoOk(true);
     } catch (e: any) {
       dialog.alert(e?.response?.data?.error || t('partnerPortal.organization.uploadFailed') as string);
     } finally {
@@ -41,6 +45,7 @@ const PartnerOrganization: React.FC = () => {
     try {
       await axios.delete(`${API_URL}/api/partner-portal/organization/logo`, { headers: authHeaders() });
       setLogoVersion((v) => v + 1);
+      setLogoOk(false);
     } catch (e: any) {
       dialog.alert(e?.response?.data?.error || t('partnerPortal.organization.removeFailed') as string);
     }
@@ -94,6 +99,32 @@ const PartnerOrganization: React.FC = () => {
               <p className="text-xs text-body">{t('partnerPortal.organization.logoHint')}</p>
             </div>
           </div>
+
+          {/* Exact WYSIWYG of PartnerSidebar.tsx's co-brand card (same classes, same dark
+              backdrop) — since any uploaded file could be light, dark, wide, square, or already
+              on a white background, the only reliable way to catch a bad-looking result (e.g. a
+              white logo vanishing into the white card) is to show the real thing right here,
+              not a generic square preview. */}
+          {logoOk && (
+            <div className="mt-6 border-t border-stroke pt-6 dark:border-strokedark">
+              <p className="mb-3 text-xs font-medium text-body">{t('partnerPortal.organization.previewLabel')}</p>
+              <div className="inline-block rounded-lg bg-[#0f1722] p-4">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#8a99af]">
+                  {t('partnerPortal.sidebar.partneredWith')}
+                </p>
+                <div className="inline-flex max-h-14 max-w-full items-center justify-center rounded-lg border border-black/5 bg-white px-3 py-2 shadow-sm">
+                  <img
+                    key={`preview-${logoVersion}`}
+                    src={logoUrl}
+                    alt={user?.partnerName || ''}
+                    className="max-h-8 max-w-[144px] object-contain"
+                    onError={() => setLogoOk(false)}
+                  />
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-body">{t('partnerPortal.organization.previewHint')}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
