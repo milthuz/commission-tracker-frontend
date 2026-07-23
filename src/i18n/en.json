@@ -745,6 +745,10 @@
       "apply": "Apply suggestion"
     },
     "riskExposure": "⚠ {{amount}}/mo from high-risk accounts included",
+    "riskDetail": {
+      "title": "High-risk accounts included",
+      "subtitle": "{{count}} account(s) · {{amount}}/mo of this scenario's projected add"
+    },
     "noSuggestable": "No eligible subscriptions left to suggest — everything live is already included, or none would help reach the target.",
     "risk": {
       "low": "Low risk",

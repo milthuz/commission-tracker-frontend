@@ -223,6 +223,12 @@ const SaasIncrease: React.FC = () => {
   // live preview (count/$/risk breakdown) are visible before anything gets applied.
   const [suggestModalOpen, setSuggestModalOpen] = useState(false);
   const [suggestProfile, setSuggestProfile] = useState<SuggestProfile>('balanced');
+  // Rows currently selected BECAUSE the last Suggest Scenario run put them there — as opposed to
+  // rows the user picked/edited by hand. Only these are eligible to be reconsidered/replaced by
+  // a later suggestion run (e.g. switching profile and re-applying); any row the user has
+  // touched directly is removed from this set and becomes permanently protected from it.
+  const [suggestedNumbers, setSuggestedNumbers] = useState<Set<string>>(new Set());
+  const [riskDetailOpen, setRiskDetailOpen] = useState(false);
 
   const loadSubs = async (fresh = false) => {
     setLoading(true); setError(null);
@@ -281,6 +287,9 @@ const SaasIncrease: React.FC = () => {
       setSavedItems(byNum);
       setEdits(nextEdits);
       setNotifyEdits(nextNotify);
+      // Loaded rows came from the DB, not a live suggestion run — never treat them as
+      // replaceable by a future Suggest Scenario call in this (now-different) scenario.
+      setSuggestedNumbers(new Set());
     } catch { dialog.alert(t('saasIncrease.error') as string); }
   };
 
@@ -368,6 +377,9 @@ const SaasIncrease: React.FC = () => {
   };
 
   const setEdit = (num: string, patch: Partial<RowEdit>) => {
+    // Any direct row edit is a manual override — stop treating it as replaceable by a future
+    // Suggest Scenario run, even if the value happens to match what a suggestion had set.
+    setSuggestedNumbers(prev => { if (!prev.has(num)) return prev; const next = new Set(prev); next.delete(num); return next; });
     setEdits(prev => {
       const base: RowEdit = prev[num] || { selected: false, increaseType: 'percent', increaseValue: 0 };
       const merged = { ...base, ...patch };
@@ -385,6 +397,11 @@ const SaasIncrease: React.FC = () => {
   // Full undo for a batch of rows (paired with applyBulkToSelected/applyBulkToGroup) — clears
   // both the value and the selection, same as unchecking each row individually.
   const clearRows = (rows: Subscription[]) => {
+    setSuggestedNumbers(prev => {
+      const next = new Set(prev);
+      for (const s of rows) next.delete(s.subscriptionNumber);
+      return next;
+    });
     setEdits(prev => {
       const next = { ...prev };
       for (const s of rows) next[s.subscriptionNumber] = { selected: false, increaseType: 'percent', increaseValue: 0 };
@@ -410,6 +427,11 @@ const SaasIncrease: React.FC = () => {
   };
 
   const applyBulkToSelected = () => {
+    setSuggestedNumbers(prev => {
+      const next = new Set(prev);
+      for (const s of filtered) if (edits[s.subscriptionNumber]?.selected) next.delete(s.subscriptionNumber);
+      return next;
+    });
     setEdits(prev => {
       const next = { ...prev };
       for (const s of filtered) {
@@ -425,6 +447,11 @@ const SaasIncrease: React.FC = () => {
   // reuses the same bulkType/bulkValue as "Apply to selected" rather than adding a separate
   // input per group header (would get noisy with dozens of groups).
   const applyBulkToGroup = (rows: Subscription[]) => {
+    setSuggestedNumbers(prev => {
+      const next = new Set(prev);
+      for (const s of rows) next.delete(s.subscriptionNumber);
+      return next;
+    });
     setEdits(prev => {
       const next = { ...prev };
       for (const s of rows) {
@@ -459,7 +486,14 @@ const SaasIncrease: React.FC = () => {
   // force-included at a disallowed risk tier) — that's what makes "Conservative" a real
   // guarantee rather than a leaky one, at the cost of possibly falling short of the target.
   const computeSuggestion = (profile: SuggestProfile) => {
-    const remainingToTarget = Math.max(0, targetMrr - mrrDelta);
+    // Rows from a PRIOR suggestion run don't count toward "already covered" here — they're
+    // about to be cleared and recomputed fresh below, so counting their old contribution would
+    // make the target look more covered than it actually will be after this run replaces them.
+    const mrrDeltaExcludingSuggested = subs.reduce((sum, s) => {
+      if (!isIncluded(s.subscriptionNumber) || suggestedNumbers.has(s.subscriptionNumber)) return sum;
+      return sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly);
+    }, 0);
+    const remainingToTarget = Math.max(0, targetMrr - mrrDeltaExcludingSuggested);
     const acceptTiers = SUGGEST_PROFILE_TIERS[profile];
     const steps = bulkType === 'flat' ? [bulkValue] : (() => {
       const s = RATE_CANDIDATES_PCT.filter(v => v <= bulkValue);
@@ -472,8 +506,11 @@ const SaasIncrease: React.FC = () => {
       return { rate, delta, risk: riskFor(s, proposedPct, calibration) };
     };
 
+    // A row is eligible if it's not selected at all, OR it's selected only because the LAST
+    // suggestion run put it there (still replaceable) — never a row the user picked/edited
+    // themselves (see setEdit/clearRows/applyBulkTo* stripping it from suggestedNumbers).
     const candidates = subs
-      .filter(s => s.status === 'live' && !edits[s.subscriptionNumber]?.selected)
+      .filter(s => s.status === 'live' && (!edits[s.subscriptionNumber]?.selected || suggestedNumbers.has(s.subscriptionNumber)))
       .map(s => {
         for (const rate of steps) {
           const r = evalRate(s, rate);
@@ -504,8 +541,11 @@ const SaasIncrease: React.FC = () => {
   };
 
   const openSuggestModal = () => {
-    const remainingToTarget = targetMrr - mrrDelta;
-    if (remainingToTarget <= 0) { dialog.alert(t('saasIncrease.targetReached') as string); return; }
+    const mrrDeltaExcludingSuggested = subs.reduce((sum, s) => {
+      if (!isIncluded(s.subscriptionNumber) || suggestedNumbers.has(s.subscriptionNumber)) return sum;
+      return sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly);
+    }, 0);
+    if (targetMrr - mrrDeltaExcludingSuggested <= 0) { dialog.alert(t('saasIncrease.targetReached') as string); return; }
     setSuggestModalOpen(true);
   };
 
@@ -514,9 +554,14 @@ const SaasIncrease: React.FC = () => {
     if (!chosen.length) { dialog.alert(t('saasIncrease.noSuggestable') as string); return; }
     setEdits(prev => {
       const next = { ...prev };
+      // Clear every row the LAST suggestion run picked before writing the new one, so switching
+      // profile and re-applying replaces the old suggestion instead of being blocked by it (a
+      // row the user edited by hand was already removed from suggestedNumbers, so it's untouched).
+      for (const num of suggestedNumbers) next[num] = { selected: false, increaseType: 'percent', increaseValue: 0 };
       for (const c of chosen) next[c.s.subscriptionNumber] = { selected: true, increaseType: bulkType, increaseValue: c.rate };
       return next;
     });
+    setSuggestedNumbers(new Set(chosen.map(c => c.s.subscriptionNumber)));
     setSuggestModalOpen(false);
   };
   const pct = targetMrr > 0 ? Math.min(100, (mrrDelta / targetMrr) * 100) : 0;
@@ -744,15 +789,20 @@ const SaasIncrease: React.FC = () => {
   const selectedDelta = selectedRows.reduce((sum, s) => sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly), 0);
 
   // "Churn we would lose" — how much of the scenario's projected MRR add rides on accounts
-  // riskFor() flags as high-risk. Shown as a caption under the progress bar so the tradeoff is
-  // visible right next to the number it's weighing against.
-  const highRiskIncludedMrr = subs.reduce((sum, s) => {
-    if (!isIncluded(s.subscriptionNumber)) return sum;
-    const nm = newMonthlyFor(s, edits[s.subscriptionNumber]);
-    const delta = nm - s.currentMonthly;
-    const proposedPct = (delta / (s.currentMonthly || 1)) * 100;
-    return riskFor(s, proposedPct, calibration).tier === 'high' ? sum + delta : sum;
-  }, 0);
+  // riskFor() flags as high-risk, and exactly which ones — shown as a clickable caption under
+  // the progress bar so the tradeoff (and the accounts behind it) is visible right next to the
+  // number it's weighing against.
+  const highRiskIncludedRows = subs
+    .filter(s => isIncluded(s.subscriptionNumber))
+    .map(s => {
+      const nm = newMonthlyFor(s, edits[s.subscriptionNumber]);
+      const delta = nm - s.currentMonthly;
+      const proposedPct = (delta / (s.currentMonthly || 1)) * 100;
+      return { s, nm, delta, risk: riskFor(s, proposedPct, calibration) };
+    })
+    .filter(r => r.risk.tier === 'high')
+    .sort((a, b) => b.delta - a.delta);
+  const highRiskIncludedMrr = highRiskIncludedRows.reduce((sum, r) => sum + r.delta, 0);
 
   // Rows with an increase set that aren't (yet) reflected in the saved scenario — drives the
   // "N pending" hint on the Save button, since nothing before that click is actually persisted.
@@ -855,9 +905,12 @@ const SaasIncrease: React.FC = () => {
                 <span>{t('saasIncrease.annualized')} · {money(mrrDelta * 12)}</span>
               </div>
               {highRiskIncludedMrr > 0 && (
-                <div className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400">
+                <button
+                  type="button" onClick={() => setRiskDetailOpen(true)}
+                  className="mt-2 text-left text-xs font-medium text-amber-600 underline decoration-dotted underline-offset-2 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                >
                   {t('saasIncrease.riskExposure', { amount: money(highRiskIncludedMrr) })}
-                </div>
+                </button>
               )}
             </div>
           </div>
@@ -1399,6 +1452,46 @@ const SaasIncrease: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* Risk detail modal — exactly which included accounts make up the "high-risk MRR"
+          caption, and why each one was flagged, so the number is never just a scary total with
+          nothing behind it. */}
+      {riskDetailOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setRiskDetailOpen(false)}>
+          <div className={`flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
+              <div>
+                <p className={`font-semibold ${textPri}`}>{t('saasIncrease.riskDetail.title')}</p>
+                <p className={`mt-0.5 text-xs ${textTer}`}>
+                  {t('saasIncrease.riskDetail.subtitle', { count: highRiskIncludedRows.length, amount: money(highRiskIncludedMrr) })}
+                </p>
+              </div>
+              <button onClick={() => setRiskDetailOpen(false)} className={`${textSec} shrink-0 transition hover:text-red-500`}>
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className={`flex-1 divide-y overflow-y-auto ${divider}`}>
+              {highRiskIncludedRows.map(r => (
+                <div key={r.s.subscriptionNumber} className="px-5 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className={`truncate text-sm font-medium ${textPri}`}>{r.s.customerName}</div>
+                      <div className={`mt-0.5 font-mono text-[11px] ${textQuat}`}>{r.s.subscriptionNumber}</div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className={`text-sm font-medium tabular-nums ${textPri}`}>{money(r.s.currentMonthly)} → {money(r.nm)}</div>
+                      <div className="mt-0.5 text-[11px] text-emerald-600 dark:text-[#57D193]">+{money(r.delta)}/mo</div>
+                    </div>
+                  </div>
+                  <p className={`mt-1.5 text-xs ${textTer}`}>
+                    {r.risk.reasons.map(reason => t(`saasIncrease.risk.reasons.${reason}`)).join(' · ')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Suggest Scenario modal — pick a risk-tolerance profile and see a live preview (count,
           $/mo, risk breakdown) before anything is applied. Recomputes on every render while

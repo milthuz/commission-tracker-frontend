@@ -745,6 +745,10 @@
       "apply": "Appliquer la suggestion"
     },
     "riskExposure": "⚠ {{amount}}/mois provenant de comptes à risque élevé inclus",
+    "riskDetail": {
+      "title": "Comptes à risque élevé inclus",
+      "subtitle": "{{count}} compte(s) · {{amount}}/mois de l'ajout projeté de ce scénario"
+    },
     "noSuggestable": "Aucun abonnement admissible à suggérer — tout ce qui est actif est déjà inclus, ou rien n'aiderait à atteindre la cible.",
     "risk": {
       "low": "Risque faible",
