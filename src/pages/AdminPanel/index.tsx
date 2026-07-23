@@ -18,6 +18,7 @@ import Audit from './Audit';
 import SavingsPricingAdmin from './SavingsPricingAdmin';
 import HardwareAdmin from './HardwareAdmin';
 import PricingAdmin from './PricingAdmin';
+import PartnersAdmin from './PartnersAdmin';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -1494,6 +1495,7 @@ const AdminPanel = () => {
              activeTab === 'audit' ? t('admin.audit.title') :
              activeTab === 'hardware' ? t('admin.hardware.title') :
              activeTab === 'pricing' ? t('admin.pricing.title') :
+             activeTab === 'partners' ? t('admin.partners.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1513,6 +1515,7 @@ const AdminPanel = () => {
              activeTab === 'audit' ? t('admin.audit.subtitle') :
              activeTab === 'hardware' ? t('admin.hardware.subtitle') :
              activeTab === 'pricing' ? t('admin.pricing.subtitle') :
+             activeTab === 'partners' ? t('admin.partners.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -3427,6 +3430,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'resources' && <ResourcesAdmin />}
           {activeTab === 'hardware' && <HardwareAdmin />}
           {activeTab === 'pricing' && <PricingAdmin />}
+          {activeTab === 'partners' && <PartnersAdmin />}
           {activeTab === 'merchant-links' && <MerchantSaasLinks />}
           {activeTab === 'notifications' && <NotificationsAdmin />}
 

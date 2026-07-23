@@ -644,6 +644,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     </li>
                     <li>
                       <NavLink
+                        to="/admin/partners"
+                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                          pathname === '/admin/partners' ? 'text-white' : ''
+                        }`}
+                      >
+                        {t('sidebar.partnersAdmin')}<NewBadge path="/admin/partners" />
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
                         to="/admin/users"
                         className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
                           pathname === '/admin/users' || pathname === '/admin/admins' || pathname === '/admin/roles' ? 'text-white' : ''

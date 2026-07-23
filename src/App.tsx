@@ -32,6 +32,13 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NewFeaturesProvider } from './context/NewFeaturesContext';
 import DialogHost from './components/DialogHost';
+import { PartnerAuthProvider } from './context/PartnerAuthContext';
+import PartnerProtectedRoute from './components/PartnerProtectedRoute';
+import PartnerLayout from './layout/PartnerLayout';
+import PartnerLogin from './pages/PartnerPortal/Login';
+import PartnerAcceptInvite from './pages/PartnerPortal/AcceptInvite';
+import PartnerResetPassword from './pages/PartnerPortal/ResetPassword';
+import PartnerPortal from './pages/PartnerPortal';
 
 // "/" adapts to the user's role:
 //   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
@@ -129,6 +136,51 @@ function AppContent() {
           </>
         }
       />
+
+      {/* Partner Portal — public auth routes. Deliberately its own PartnerAuthProvider/route
+          tree (see PartnerLayout's comment) rather than nested under the internal auth routes. */}
+      <Route
+        path="/partner-portal/login"
+        element={
+          <>
+            <PageTitle title="Partner Portal | Sales Hub" />
+            <PartnerLogin />
+          </>
+        }
+      />
+      <Route
+        path="/partner-portal/accept-invite"
+        element={
+          <>
+            <PageTitle title="Invitation | Sales Hub" />
+            <PartnerAcceptInvite />
+          </>
+        }
+      />
+      <Route
+        path="/partner-portal/reset-password"
+        element={
+          <>
+            <PageTitle title="Reset Password | Sales Hub" />
+            <PartnerResetPassword />
+          </>
+        }
+      />
+
+      {/* Partner Portal — protected routes, own layout (no Sidebar), own auth guard. */}
+      <Route element={<PartnerProtectedRoute />}>
+        <Route element={<PartnerLayout />}>
+          <Route
+            path="/partner-portal"
+            element={
+              <>
+                <PageTitle title="Partner Portal | Sales Hub" />
+                <PartnerPortal />
+              </>
+            }
+          />
+        </Route>
+      </Route>
 
       {/* Protected Routes - Wrapped in DefaultLayout */}
       <Route element={<ProtectedRoute />}>
@@ -288,10 +340,12 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <NewFeaturesProvider>
-        <AppContent />
-        <DialogHost />
-      </NewFeaturesProvider>
+      <PartnerAuthProvider>
+        <NewFeaturesProvider>
+          <AppContent />
+          <DialogHost />
+        </NewFeaturesProvider>
+      </PartnerAuthProvider>
     </AuthProvider>
   );
 }
