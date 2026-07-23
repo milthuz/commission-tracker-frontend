@@ -519,7 +519,7 @@
     "oneTime": "Ponctuel",
     "clientNamePh": "Nom du marchand / client",
     "clientNameRequired": "Entrez le nom du marchand avant de générer la soumission.",
-    "buildQuote": "Générer la soumission",
+    "buildQuote": "Aperçu de la soumission",
     "quotePreview": "Aperçu de la soumission",
     "downloadPdf": "Télécharger le PDF",
     "quoteError": "Impossible de générer la soumission. Veuillez réessayer.",

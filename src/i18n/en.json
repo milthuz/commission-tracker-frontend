@@ -519,7 +519,7 @@
     "oneTime": "One-time",
     "clientNamePh": "Merchant / client name",
     "clientNameRequired": "Enter the merchant's name before building the quote.",
-    "buildQuote": "Build quote",
+    "buildQuote": "Preview quote",
     "quotePreview": "Quote preview",
     "downloadPdf": "Download PDF",
     "quoteError": "Couldn't build the quote. Please try again.",

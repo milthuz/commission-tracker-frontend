@@ -570,7 +570,7 @@ const PricingGuide: React.FC = () => {
       {/* Quote tray */}
       {quoteIds.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-stroke bg-white/95 backdrop-blur dark:border-strokedark dark:bg-boxdark/95 md:left-[290px]">
-          <div className="flex items-center gap-3.5 px-6 py-3.5">
+          <div className="flex flex-wrap items-center gap-3.5 px-6 py-3.5">
             <span className="text-primary">📄</span>
             <span className="text-[13px] font-bold text-black dark:text-white">{t('pricingGuide.quoteBuilder')}</span>
             <span className="text-xs text-gray-400">{quoteIds.length} {t('pricingGuide.items')}</span>
@@ -581,6 +581,16 @@ const PricingGuide: React.FC = () => {
             </div>
             <button onClick={() => { setQuote({}); setQuoteOpen(false); }} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('pricingGuide.clear')}</button>
             <button onClick={() => setQuoteOpen((v) => !v)} className="rounded-full bg-primary px-4 py-2 text-[13px] font-semibold text-white hover:bg-opacity-90">{quoteOpen ? t('pricingGuide.close') : t('pricingGuide.open')}</button>
+          </div>
+          {/* Always visible — no scrolling needed to reach these, regardless of how long the item list gets. */}
+          <div className="flex flex-wrap items-center gap-2.5 border-t border-stroke px-6 py-3 dark:border-strokedark">
+            <input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder={t('pricingGuide.clientNamePh') as string}
+              className="min-w-0 flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+            <button onClick={buildQuote} disabled={building}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+              {building ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <span>👁</span>}
+              {t('pricingGuide.buildQuote')}
+            </button>
           </div>
           {quoteOpen && (
             <div className="max-h-[230px] overflow-y-auto border-t border-stroke px-6 pb-4 dark:border-strokedark">
@@ -606,15 +616,6 @@ const PricingGuide: React.FC = () => {
               <div className="flex justify-end gap-10">
                 <span className="text-[13px] text-gray-400">{t('pricingGuide.oneTime')}</span>
                 <span className="w-[110px] text-right text-[13px] font-bold text-black dark:text-white">{money(oneTime) || '$0'}</span>
-              </div>
-              <div className="mt-4 flex flex-wrap items-center gap-2.5 border-t border-stroke pt-3.5 dark:border-strokedark">
-                <input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder={t('pricingGuide.clientNamePh') as string}
-                  className="min-w-0 flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-                <button onClick={buildQuote} disabled={building}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
-                  {building ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <span>📄</span>}
-                  {t('pricingGuide.buildQuote')}
-                </button>
               </div>
             </div>
           )}
