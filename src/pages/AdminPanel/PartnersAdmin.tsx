@@ -176,6 +176,21 @@ const PartnersAdmin: React.FC = () => {
     setStatus(o, 'approved');
   };
 
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const deleteOpportunity = async (o: Opportunity) => {
+    const confirmKey = o.crmLeadId ? 'admin.partners.deleteOpportunityConfirmWithLead' : 'admin.partners.deleteOpportunityConfirm';
+    if (!(await dialog.confirm(t(confirmKey, { name: o.businessName, id: o.crmLeadId }) as string))) return;
+    setDeletingId(o.id);
+    try {
+      const r = await axios.delete(`${API_URL}/api/admin/partner-opportunities/${o.id}`, { headers: authHeaders() });
+      setOpportunities((prev) => prev.filter((x) => x.id !== o.id));
+      if (r.data?.crmDeleteError) {
+        dialog.alert(t('admin.partners.crm.deleteFailedAlert', { error: r.data.crmDeleteError }) as string);
+      }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete the opportunity'); }
+    finally { setDeletingId(null); }
+  };
+
   const recheckCrm = async (o: Opportunity) => {
     setCheckingCrmId(o.id);
     try {
@@ -341,18 +356,24 @@ const PartnersAdmin: React.FC = () => {
                           )}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          {o.status === 'pending' ? (
-                            <div className="flex justify-end gap-2">
-                              <button onClick={() => approve(o)} disabled={reviewing}
-                                className="rounded-lg border border-success/40 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-success/10 disabled:opacity-60 dark:text-success">
-                                {t('admin.partners.approve')}
-                              </button>
-                              <button onClick={() => { setRejecting(o); setRejectReason(''); }} disabled={reviewing}
-                                className="rounded-lg border border-danger/40 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 disabled:opacity-60">
-                                {t('admin.partners.reject')}
-                              </button>
-                            </div>
-                          ) : <span className="text-xs text-gray-400">{o.reviewedBy}</span>}
+                          <div className="flex items-center justify-end gap-2">
+                            {o.status === 'pending' ? (
+                              <>
+                                <button onClick={() => approve(o)} disabled={reviewing}
+                                  className="rounded-lg border border-success/40 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-success/10 disabled:opacity-60 dark:text-success">
+                                  {t('admin.partners.approve')}
+                                </button>
+                                <button onClick={() => { setRejecting(o); setRejectReason(''); }} disabled={reviewing}
+                                  className="rounded-lg border border-danger/40 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 disabled:opacity-60">
+                                  {t('admin.partners.reject')}
+                                </button>
+                              </>
+                            ) : <span className="text-xs text-gray-400">{o.reviewedBy}</span>}
+                            <button onClick={() => deleteOpportunity(o)} disabled={deletingId === o.id}
+                              className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-danger hover:text-danger disabled:opacity-60 dark:border-strokedark">
+                              {t('common.delete')}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

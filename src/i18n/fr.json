@@ -1654,6 +1654,8 @@
       "rejectFor": "Refuser « {{name}} »",
       "rejectReasonPh": "Raison (optionnel, visible par le partenaire)",
       "noOpportunities": "Aucune occasion d’affaires soumise pour le moment.",
+      "deleteOpportunityConfirm": "Supprimer « {{name}} » ? Cette action est irréversible.",
+      "deleteOpportunityConfirmWithLead": "Supprimer « {{name}} » ? Ceci supprimera aussi la piste Zoho CRM (ID : {{id}}) créée pour cette occasion. Cette action est irréversible.",
       "crm": {
         "title": "Zoho CRM",
         "notChecked": "Pas encore vérifié",
@@ -1669,7 +1671,8 @@
         "leadCreated": "Piste créée (ID : {{id}})",
         "leadFailed": "Impossible de créer la piste — survolez pour les détails",
         "leadFailedAlert": "L’occasion d’affaires a été approuvée, mais la création de la piste Zoho CRM a échoué : {{error}}. Vous devrez la créer manuellement.",
-        "viewInCrm": "Voir dans Zoho CRM"
+        "viewInCrm": "Voir dans Zoho CRM",
+        "deleteFailedAlert": "L’occasion d’affaires a été supprimée, mais la suppression de sa piste Zoho CRM a échoué : {{error}}. Vous devrez la supprimer manuellement."
       }
     },
     "resources": {

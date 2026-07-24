@@ -1654,6 +1654,8 @@
       "rejectFor": "Reject \"{{name}}\"",
       "rejectReasonPh": "Reason (optional, shown to the partner)",
       "noOpportunities": "No submitted opportunities yet.",
+      "deleteOpportunityConfirm": "Delete \"{{name}}\"? This can't be undone.",
+      "deleteOpportunityConfirmWithLead": "Delete \"{{name}}\"? This will also delete the Zoho CRM Lead (ID: {{id}}) that was created for it. This can't be undone.",
       "crm": {
         "title": "Zoho CRM",
         "notChecked": "Not checked yet",
@@ -1669,7 +1671,8 @@
         "leadCreated": "Lead created (ID: {{id}})",
         "leadFailed": "Couldn't create the Lead — hover for details",
         "leadFailedAlert": "The opportunity was approved, but creating the Zoho CRM Lead failed: {{error}}. You'll need to create it manually.",
-        "viewInCrm": "View in Zoho CRM"
+        "viewInCrm": "View in Zoho CRM",
+        "deleteFailedAlert": "The opportunity was deleted, but deleting its Zoho CRM Lead failed: {{error}}. You'll need to delete it manually."
       }
     },
     "resources": {
