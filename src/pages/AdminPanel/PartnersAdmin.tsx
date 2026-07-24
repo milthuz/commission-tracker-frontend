@@ -206,19 +206,6 @@ const PartnersAdmin: React.FC = () => {
     finally { setDeletingId(null); }
   };
 
-  // TEMP — see the matching backend endpoint's comment; remove both once Lead Contact Method
-  // is wired up in createCrmLead().
-  const debugLeadFields = async () => {
-    try {
-      const r = await axios.get(`${API_URL}/api/admin/partner-opportunities/crm-lead-sample`, { headers: authHeaders() });
-      console.log('[debug] Zoho CRM sample Lead data:', r.data);
-      const candidates = r.data.candidates || [];
-      dialog.alert(candidates.length
-        ? `Found: ${JSON.stringify(candidates, null, 2)}`
-        : `No obvious match among ${r.data.sampleCount} recent leads — check the browser console for the full raw lead (window > F12 > Console) and look for "Lead Contact Method"'s value there.`);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to fetch sample'); }
-  };
-
   const recheckCrm = async (o: Opportunity) => {
     setCheckingCrmId(o.id);
     try {
@@ -310,24 +297,16 @@ const PartnersAdmin: React.FC = () => {
 
       {sub === 'queue' && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-400">{t('admin.partners.filterStatus')}</span>
-              <div className="inline-flex rounded-full border border-stroke p-1 dark:border-strokedark">
-                {(['pending', 'approved', 'rejected', 'all'] as const).map((s) => (
-                  <button key={s} onClick={() => setStatusFilter(s)}
-                    className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${statusFilter === s ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
-                    {s === 'all' ? t('common.all') : t(`partnerPortal.status.${s}`)}
-                  </button>
-                ))}
-              </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400">{t('admin.partners.filterStatus')}</span>
+            <div className="inline-flex rounded-full border border-stroke p-1 dark:border-strokedark">
+              {(['pending', 'approved', 'rejected', 'all'] as const).map((s) => (
+                <button key={s} onClick={() => setStatusFilter(s)}
+                  className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${statusFilter === s ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+                  {s === 'all' ? t('common.all') : t(`partnerPortal.status.${s}`)}
+                </button>
+              ))}
             </div>
-            {/* TEMP — finds the Zoho CRM API field name for "Lead Contact Method" without needing
-                Zoho Setup access; remove once that field is wired up in createCrmLead(). */}
-            <button onClick={debugLeadFields}
-              className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
-              Debug: find Lead Contact Method field
-            </button>
           </div>
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             {loadingQueue ? (
