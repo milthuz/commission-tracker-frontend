@@ -15,7 +15,13 @@ interface Opportunity {
   repPhone: string | null; repEmail: string | null;
   notes: string | null; status: 'pending' | 'approved' | 'rejected';
   reviewedAt: string | null; rejectionReason: string | null; createdAt: string;
+  // Partner-safe subset of the SH-30 CRM follow-up — who owns the Lead at Cluster + its live
+  // stage in Zoho CRM, so the partner can track their deal without seeing internal review data.
+  assignedRepName: string | null;
+  leadStage: string | null;
+  leadConverted: boolean;
 }
+interface TeamMember { id: number; email: string; displayName: string | null; }
 const BLANK_FORM = {
   businessName: '', contactFirstName: '', contactLastName: '', contactPhone: '', contactEmail: '',
   repFirstName: '', repLastName: '', repPhone: '', repEmail: '', notes: '',
@@ -37,6 +43,13 @@ const PartnerPortal: React.FC = () => {
   const [form, setForm] = useState({ ...BLANK_FORM });
   const [submitting, setSubmitting] = useState(false);
 
+  // Admins submit on behalf of any of their own reps, picked from the team roster (SH-27
+  // follow-up) — they'll have registered on the platform to be selectable, rather than the old
+  // free-text name/phone/email fields. Standard users don't need this at all: they ARE the rep.
+  const isAdmin = user?.role === 'admin';
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [selectedRepUserId, setSelectedRepUserId] = useState('');
+
   const fetchOpportunities = async () => {
     setLoading(true);
     try {
@@ -46,6 +59,21 @@ const PartnerPortal: React.FC = () => {
     finally { setLoading(false); }
   };
   useEffect(() => { fetchOpportunities(); }, []);
+
+  useEffect(() => {
+    if (!isAdmin || tab !== 'submit' || teamMembers.length) return;
+    axios.get(`${API_URL}/api/partner-portal/team`, { headers: authHeaders() })
+      .then((r) => setTeamMembers((r.data.users || []).filter((u: any) => u.status === 'active')))
+      .catch(() => { /* non-fatal — admin can still type the rep manually if this fails */ });
+  }, [isAdmin, tab, teamMembers.length]);
+
+  const selectRep = (userId: string) => {
+    setSelectedRepUserId(userId);
+    const member = teamMembers.find((m) => String(m.id) === userId);
+    if (!member) { setF('repFirstName', ''); setF('repLastName', ''); setF('repEmail', ''); return; }
+    const nameParts = (member.displayName || member.email).trim().split(/\s+/);
+    setForm((f) => ({ ...f, repFirstName: nameParts[0] || '', repLastName: nameParts.slice(1).join(' '), repEmail: member.email, repPhone: '' }));
+  };
 
   const submitOpportunity = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,6 +121,8 @@ const PartnerPortal: React.FC = () => {
                     <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colBusiness')}</th>
                     <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colContact')}</th>
                     <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colStatus')}</th>
+                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colAssignedRep')}</th>
+                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colLeadStage')}</th>
                     <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colSubmitted')}</th>
                   </tr>
                 </thead>
@@ -107,6 +137,12 @@ const PartnerPortal: React.FC = () => {
                       <td className="px-4 py-3">
                         <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[o.status]}`}>{t(`partnerPortal.status.${o.status}`)}</span>
                         {o.status === 'rejected' && o.rejectionReason && <div className="mt-1 text-xs text-gray-400">{o.rejectionReason}</div>}
+                      </td>
+                      <td className="px-4 py-3 text-body">{o.assignedRepName || '—'}</td>
+                      <td className="px-4 py-3 text-body">
+                        {o.leadConverted ? (
+                          <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-success">{t('partnerPortal.leadConverted')}</span>
+                        ) : o.leadStage || '—'}
                       </td>
                       <td className="px-4 py-3 text-body">{new Date(o.createdAt).toLocaleDateString()}</td>
                     </tr>
@@ -125,7 +161,7 @@ const PartnerPortal: React.FC = () => {
               <span className="text-xs font-semibold uppercase text-gray-400">{t('partnerPortal.fBusinessName')} *</span>
               <input value={form.businessName} onChange={(e) => setF('businessName', e.target.value)} className={inputCls} required />
             </label>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className={`grid grid-cols-1 gap-4 ${isAdmin ? 'sm:grid-cols-2' : ''}`}>
               <fieldset className="flex flex-col gap-3 rounded-lg border border-stroke p-4 dark:border-strokedark">
                 <span className="text-xs font-bold uppercase text-gray-400">{t('partnerPortal.fContactSection')}</span>
                 <input value={form.contactFirstName} onChange={(e) => setF('contactFirstName', e.target.value)} placeholder={t('partnerPortal.fFirstName') as string} className={inputCls} />
@@ -133,14 +169,22 @@ const PartnerPortal: React.FC = () => {
                 <input value={form.contactPhone} onChange={(e) => setF('contactPhone', e.target.value)} placeholder={t('partnerPortal.fPhone') as string} className={inputCls} />
                 <input value={form.contactEmail} onChange={(e) => setF('contactEmail', e.target.value)} type="email" placeholder={t('partnerPortal.fEmail') as string} className={inputCls} />
               </fieldset>
-              <fieldset className="flex flex-col gap-3 rounded-lg border border-stroke p-4 dark:border-strokedark">
-                <span className="text-xs font-bold uppercase text-gray-400">{t('partnerPortal.fRepSection')}</span>
-                <input value={form.repFirstName} onChange={(e) => setF('repFirstName', e.target.value)} placeholder={t('partnerPortal.fFirstName') as string} className={inputCls} />
-                <input value={form.repLastName} onChange={(e) => setF('repLastName', e.target.value)} placeholder={t('partnerPortal.fLastName') as string} className={inputCls} />
-                <input value={form.repPhone} onChange={(e) => setF('repPhone', e.target.value)} placeholder={t('partnerPortal.fPhone') as string} className={inputCls} />
-                <input value={form.repEmail} onChange={(e) => setF('repEmail', e.target.value)} type="email" placeholder={t('partnerPortal.fEmail') as string} className={inputCls} />
-              </fieldset>
+              {isAdmin && (
+                <fieldset className="flex flex-col gap-3 rounded-lg border border-stroke p-4 dark:border-strokedark">
+                  <span className="text-xs font-bold uppercase text-gray-400">{t('partnerPortal.fRepSection')}</span>
+                  <select value={selectedRepUserId} onChange={(e) => selectRep(e.target.value)} className={inputCls}>
+                    <option value="">{t('partnerPortal.fRepSelectPlaceholder')}</option>
+                    {teamMembers.map((m) => (
+                      <option key={m.id} value={m.id}>{m.displayName || m.email}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400">{t('partnerPortal.fRepSelectHint')}</p>
+                </fieldset>
+              )}
             </div>
+            {!isAdmin && (
+              <p className="text-xs text-gray-400">{t('partnerPortal.fRepAutoNote')}</p>
+            )}
             <label className="flex flex-col gap-1">
               <span className="text-xs font-semibold uppercase text-gray-400">{t('partnerPortal.fNotes')}</span>
               <textarea value={form.notes} onChange={(e) => setF('notes', e.target.value)} rows={3} className={inputCls} />

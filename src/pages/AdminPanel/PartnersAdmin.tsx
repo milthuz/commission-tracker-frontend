@@ -153,10 +153,10 @@ const PartnersAdmin: React.FC = () => {
   const [reviewing, setReviewing] = useState(false);
   const [checkingCrmId, setCheckingCrmId] = useState<number | null>(null);
 
-  const setStatus = async (o: Opportunity, status: 'approved' | 'rejected', rejectionReason?: string, crmOwnerId?: string) => {
+  const setStatus = async (o: Opportunity, status: 'approved' | 'rejected', rejectionReason?: string, crmOwnerId?: string, crmOwnerName?: string) => {
     setReviewing(true);
     try {
-      const r = await axios.put(`${API_URL}/api/admin/partner-opportunities/${o.id}`, { status, rejectionReason, crmOwnerId }, { headers: authHeaders() });
+      const r = await axios.put(`${API_URL}/api/admin/partner-opportunities/${o.id}`, { status, rejectionReason, crmOwnerId, crmOwnerName }, { headers: authHeaders() });
       setRejecting(null); setRejectReason('');
       setApproving(null); setSelectedRepId('');
       await fetchQueue();
@@ -189,7 +189,10 @@ const PartnersAdmin: React.FC = () => {
       finally { setLoadingReps(false); }
     }
   };
-  const confirmApprove = () => setStatus(approving as Opportunity, 'approved', undefined, selectedRepId || undefined);
+  const confirmApprove = () => {
+    const rep = crmReps.find((r) => r.id === selectedRepId);
+    setStatus(approving as Opportunity, 'approved', undefined, selectedRepId || undefined, rep?.name);
+  };
 
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const deleteOpportunity = async (o: Opportunity) => {
