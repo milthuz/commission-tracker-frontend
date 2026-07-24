@@ -1637,6 +1637,16 @@
       "colSubmittedBy": "Submitted by",
       "inviteAdmin": "Invite Admin",
       "inviteAdminFor": "Invite a Partner Admin for {{name}}",
+      "editPartner": "Edit",
+      "editPartnerFor": "Edit {{name}}",
+      "fLeadSource": "Lead Source (sent to Zoho CRM)",
+      "leadSourcePh": "e.g. this partner's name",
+      "leadSourceHint": "Sent as the Lead Source field when a Lead is created in Zoho CRM on approval. Leave empty to omit it.",
+      "billingContact": "Billing contact",
+      "businessContact": "Business contact",
+      "fContactName": "Name",
+      "fContactEmail": "Email",
+      "fContactPhone": "Phone",
       "filterStatus": "Status",
       "approve": "Approve",
       "reject": "Reject",
@@ -1658,7 +1668,8 @@
         "duplicateConfirm": "A possible duplicate was found in Zoho CRM for \"{{name}}\": {{summary}}. Approving will still create a new Lead — continue?",
         "leadCreated": "Lead created (ID: {{id}})",
         "leadFailed": "Couldn't create the Lead — hover for details",
-        "leadFailedAlert": "The opportunity was approved, but creating the Zoho CRM Lead failed: {{error}}. You'll need to create it manually."
+        "leadFailedAlert": "The opportunity was approved, but creating the Zoho CRM Lead failed: {{error}}. You'll need to create it manually.",
+        "viewInCrm": "View in Zoho CRM"
       }
     },
     "resources": {

@@ -1637,6 +1637,16 @@
       "colSubmittedBy": "Soumis par",
       "inviteAdmin": "Inviter un admin",
       "inviteAdminFor": "Inviter un Admin partenaire pour {{name}}",
+      "editPartner": "Modifier",
+      "editPartnerFor": "Modifier {{name}}",
+      "fLeadSource": "Source de piste (envoyée à Zoho CRM)",
+      "leadSourcePh": "ex. le nom de ce partenaire",
+      "leadSourceHint": "Envoyée comme champ Lead Source lors de la création d’une piste dans Zoho CRM à l’approbation. Laisser vide pour l’omettre.",
+      "billingContact": "Contact de facturation",
+      "businessContact": "Contact d’affaires",
+      "fContactName": "Nom",
+      "fContactEmail": "Courriel",
+      "fContactPhone": "Téléphone",
       "filterStatus": "Statut",
       "approve": "Approuver",
       "reject": "Refuser",
@@ -1658,7 +1668,8 @@
         "duplicateConfirm": "Un doublon possible a été trouvé dans Zoho CRM pour « {{name}} » : {{summary}}. Approuver créera tout de même une nouvelle piste — continuer?",
         "leadCreated": "Piste créée (ID : {{id}})",
         "leadFailed": "Impossible de créer la piste — survolez pour les détails",
-        "leadFailedAlert": "L’occasion d’affaires a été approuvée, mais la création de la piste Zoho CRM a échoué : {{error}}. Vous devrez la créer manuellement."
+        "leadFailedAlert": "L’occasion d’affaires a été approuvée, mais la création de la piste Zoho CRM a échoué : {{error}}. Vous devrez la créer manuellement.",
+        "viewInCrm": "Voir dans Zoho CRM"
       }
     },
     "resources": {

@@ -6,10 +6,15 @@ import { dialog } from '../../lib/dialog';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
-interface Partner { id: number; name: string; active: boolean; createdAt: string; hasLogo: boolean; userCount: number; }
+interface Partner {
+  id: number; name: string; active: boolean; createdAt: string; hasLogo: boolean; userCount: number;
+  leadSource: string | null;
+  billingContactName: string | null; billingContactEmail: string | null; billingContactPhone: string | null;
+  businessContactName: string | null; businessContactEmail: string | null; businessContactPhone: string | null;
+}
 interface CrmMatch {
-  module: 'Leads' | 'Contacts' | 'Accounts'; id: string; name: string;
-  phone: string | null; email: string | null; city: string | null;
+  module: 'Leads' | 'Contacts' | 'Accounts'; id: string; name: string; company: string | null;
+  phone: string | null; email: string | null; city: string | null; crmUrl: string | null;
 }
 interface Opportunity {
   id: number; businessName: string;
@@ -75,6 +80,42 @@ const PartnersAdmin: React.FC = () => {
       await axios.put(`${API_URL}/api/admin/partners/${p.id}`, { name: p.name, active: !p.active }, { headers: authHeaders() });
       await fetchPartners();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to update partner'); }
+  };
+
+  // Partner-manager-configurable Lead Source + Billing/Business contact info (user request
+  // 2026-07-2x, after the Zoho screenshot showed Lead Source as a required, unmapped field).
+  const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: '', leadSource: '',
+    billingContactName: '', billingContactEmail: '', billingContactPhone: '',
+    businessContactName: '', businessContactEmail: '', businessContactPhone: '',
+  });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const openEdit = (p: Partner) => {
+    setEditingPartner(p);
+    setEditForm({
+      name: p.name, leadSource: p.leadSource || '',
+      billingContactName: p.billingContactName || '', billingContactEmail: p.billingContactEmail || '', billingContactPhone: p.billingContactPhone || '',
+      businessContactName: p.businessContactName || '', businessContactEmail: p.businessContactEmail || '', businessContactPhone: p.businessContactPhone || '',
+    });
+  };
+
+  const saveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPartner || !editForm.name.trim()) return;
+    setSavingEdit(true);
+    try {
+      await axios.put(`${API_URL}/api/admin/partners/${editingPartner.id}`, {
+        name: editForm.name.trim(), active: editingPartner.active,
+        leadSource: editForm.leadSource.trim(),
+        billingContactName: editForm.billingContactName.trim(), billingContactEmail: editForm.billingContactEmail.trim(), billingContactPhone: editForm.billingContactPhone.trim(),
+        businessContactName: editForm.businessContactName.trim(), businessContactEmail: editForm.businessContactEmail.trim(), businessContactPhone: editForm.businessContactPhone.trim(),
+      }, { headers: authHeaders() });
+      setEditingPartner(null);
+      await fetchPartners();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to update partner'); }
+    finally { setSavingEdit(false); }
   };
 
   const sendInvite = async (e: React.FormEvent) => {
@@ -204,10 +245,16 @@ const PartnersAdmin: React.FC = () => {
                         </button>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => setInviteFor(p)}
-                          className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
-                          {t('admin.partners.inviteAdmin')}
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button onClick={() => openEdit(p)}
+                            className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
+                            {t('admin.partners.editPartner')}
+                          </button>
+                          <button onClick={() => setInviteFor(p)}
+                            className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
+                            {t('admin.partners.inviteAdmin')}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -328,20 +375,82 @@ const PartnersAdmin: React.FC = () => {
             </div>
             <p className="mb-4 text-xs text-body">{t('admin.partners.crm.matchesHint')}</p>
             <div className="flex flex-col gap-2">
-              {viewingMatches.crmMatchRecords.map((m) => (
-                <div key={`${m.module}:${m.id}`} className="rounded-lg border border-stroke p-3 dark:border-strokedark">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium text-black dark:text-white">{m.name}</span>
-                    <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[11px] font-semibold text-gray-500 dark:bg-meta-4">{m.module}</span>
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-x-4 text-xs text-body">
-                    {m.phone && <span>📞 {m.phone}</span>}
-                    {m.email && <span>✉ {m.email}</span>}
-                    {m.city && <span>📍 {m.city}</span>}
-                  </div>
-                </div>
-              ))}
+              {viewingMatches.crmMatchRecords.map((m) => {
+                const CardTag = m.crmUrl ? 'a' : 'div';
+                return (
+                  <CardTag key={`${m.module}:${m.id}`}
+                    {...(m.crmUrl ? { href: m.crmUrl, target: '_blank', rel: 'noopener noreferrer' } : {})}
+                    className={`rounded-lg border border-stroke p-3 dark:border-strokedark ${m.crmUrl ? 'block transition hover:border-primary hover:bg-gray-1 dark:hover:bg-meta-4' : ''}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-black dark:text-white">{m.name}</span>
+                      <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[11px] font-semibold text-gray-500 dark:bg-meta-4">{m.module}</span>
+                    </div>
+                    {m.company && m.company !== m.name && (
+                      <div className="mt-0.5 text-xs font-medium text-body">{m.company}</div>
+                    )}
+                    <div className="mt-1 flex flex-wrap gap-x-4 text-xs text-body">
+                      {m.phone && <span>📞 {m.phone}</span>}
+                      {m.email && <span>✉ {m.email}</span>}
+                      {m.city && <span>📍 {m.city}</span>}
+                    </div>
+                    {m.crmUrl && (
+                      <div className="mt-1.5 text-xs font-medium text-primary">{t('admin.partners.crm.viewInCrm')} →</div>
+                    )}
+                  </CardTag>
+                );
+              })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {editingPartner && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditingPartner(null); }}>
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.editPartnerFor', { name: editingPartner.name })}</span>
+              <button onClick={() => setEditingPartner(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={saveEdit} className="flex flex-col gap-4">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.fName')}</label>
+                <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} required className={inputCls} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.fLeadSource')}</label>
+                <input value={editForm.leadSource} onChange={(e) => setEditForm({ ...editForm, leadSource: e.target.value })}
+                  placeholder={t('admin.partners.leadSourcePh') as string} className={inputCls} />
+                <p className="mt-1 text-xs text-gray-400">{t('admin.partners.leadSourceHint')}</p>
+              </div>
+              <div className="rounded-lg border border-stroke p-3 dark:border-strokedark">
+                <div className="mb-2 text-xs font-semibold text-black dark:text-white">{t('admin.partners.billingContact')}</div>
+                <div className="flex flex-col gap-2">
+                  <input value={editForm.billingContactName} onChange={(e) => setEditForm({ ...editForm, billingContactName: e.target.value })}
+                    placeholder={t('admin.partners.fContactName') as string} className={inputCls} />
+                  <input value={editForm.billingContactEmail} onChange={(e) => setEditForm({ ...editForm, billingContactEmail: e.target.value })}
+                    type="email" placeholder={t('admin.partners.fContactEmail') as string} className={inputCls} />
+                  <input value={editForm.billingContactPhone} onChange={(e) => setEditForm({ ...editForm, billingContactPhone: e.target.value })}
+                    placeholder={t('admin.partners.fContactPhone') as string} className={inputCls} />
+                </div>
+              </div>
+              <div className="rounded-lg border border-stroke p-3 dark:border-strokedark">
+                <div className="mb-2 text-xs font-semibold text-black dark:text-white">{t('admin.partners.businessContact')}</div>
+                <div className="flex flex-col gap-2">
+                  <input value={editForm.businessContactName} onChange={(e) => setEditForm({ ...editForm, businessContactName: e.target.value })}
+                    placeholder={t('admin.partners.fContactName') as string} className={inputCls} />
+                  <input value={editForm.businessContactEmail} onChange={(e) => setEditForm({ ...editForm, businessContactEmail: e.target.value })}
+                    type="email" placeholder={t('admin.partners.fContactEmail') as string} className={inputCls} />
+                  <input value={editForm.businessContactPhone} onChange={(e) => setEditForm({ ...editForm, businessContactPhone: e.target.value })}
+                    placeholder={t('admin.partners.fContactPhone') as string} className={inputCls} />
+                </div>
+              </div>
+              <button type="submit" disabled={savingEdit}
+                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                {savingEdit ? t('common.saving') : t('common.save')}
+              </button>
+            </form>
           </div>
         </div>
       )}
