@@ -198,6 +198,11 @@ const PartnersAdmin: React.FC = () => {
       setOpportunities((prev) => prev.map((x) => x.id === o.id
         ? { ...x, crmMatchStatus: r.data.crmMatchStatus, crmMatchSummary: r.data.crmMatchSummary, crmMatchRecords: r.data.crmMatchRecords || [] }
         : x));
+      // Diagnostic-only: why the matches above have no crmUrl (e.g. missing org.READ scope) —
+      // see server.js's getCrmOrgId()/checkCrmDuplicate() comments.
+      if (r.data.orgLookupError) {
+        dialog.alert(t('admin.partners.crm.orgLookupErrorAlert', { error: r.data.orgLookupError }) as string);
+      }
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to check Zoho CRM'); }
     finally { setCheckingCrmId(null); }
   };
