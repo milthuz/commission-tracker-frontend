@@ -1640,10 +1640,24 @@
       "filterStatus": "Statut",
       "approve": "Approuver",
       "reject": "Refuser",
-      "approveConfirm": "Approuver « {{name}} » ? Ceci ne créera pas encore de piste dans Zoho CRM (prévu pour une phase ultérieure).",
+      "approveConfirm": "Approuver « {{name}} » ? Ceci créera une nouvelle piste dans Zoho CRM.",
       "rejectFor": "Refuser « {{name}} »",
       "rejectReasonPh": "Raison (optionnel, visible par le partenaire)",
-      "noOpportunities": "Aucune occasion d’affaires soumise pour le moment."
+      "noOpportunities": "Aucune occasion d’affaires soumise pour le moment.",
+      "crm": {
+        "title": "Zoho CRM",
+        "notChecked": "Pas encore vérifié",
+        "check": "Vérifier",
+        "checking": "Vérification…",
+        "recheck": "Revérifier",
+        "noMatch": "Aucune correspondance",
+        "matchFound": "⚠ Doublon possible",
+        "checkFailed": "Vérification échouée",
+        "duplicateConfirm": "Un doublon possible a été trouvé dans Zoho CRM pour « {{name}} » : {{summary}}. Approuver créera tout de même une nouvelle piste — continuer?",
+        "leadCreated": "Piste créée (ID : {{id}})",
+        "leadFailed": "Impossible de créer la piste — survolez pour les détails",
+        "leadFailedAlert": "L’occasion d’affaires a été approuvée, mais la création de la piste Zoho CRM a échoué : {{error}}. Vous devrez la créer manuellement."
+      }
     },
     "resources": {
       "title": "Stockage des ressources",

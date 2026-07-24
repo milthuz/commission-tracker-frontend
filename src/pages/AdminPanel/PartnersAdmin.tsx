@@ -16,6 +16,11 @@ interface Opportunity {
   notes: string | null; status: 'pending' | 'approved' | 'rejected';
   reviewedBy: string | null; reviewedAt: string | null; rejectionReason: string | null; createdAt: string;
   partnerName: string; submittedByEmail: string | null;
+  // SH-28/SH-30 — set by the backend, never sent to partners (see mapOpportunityRow's comment).
+  crmMatchStatus: 'no_match' | 'match_found' | 'check_failed' | null;
+  crmMatchSummary: string | null;
+  crmLeadId: string | null;
+  crmLeadError: string | null;
 }
 
 const STATUS_BADGE: Record<string, string> = {
@@ -100,19 +105,40 @@ const PartnersAdmin: React.FC = () => {
   const [rejecting, setRejecting] = useState<Opportunity | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [reviewing, setReviewing] = useState(false);
+  const [checkingCrmId, setCheckingCrmId] = useState<number | null>(null);
 
   const setStatus = async (o: Opportunity, status: 'approved' | 'rejected', rejectionReason?: string) => {
     setReviewing(true);
     try {
-      await axios.put(`${API_URL}/api/admin/partner-opportunities/${o.id}`, { status, rejectionReason }, { headers: authHeaders() });
+      const r = await axios.put(`${API_URL}/api/admin/partner-opportunities/${o.id}`, { status, rejectionReason }, { headers: authHeaders() });
       setRejecting(null); setRejectReason('');
       await fetchQueue();
+      // SH-30 — surface the Lead-creation result right away rather than making the admin dig
+      // for it; a failure here doesn't mean the approval failed, just that the Lead needs to be
+      // created manually (crm_lead_error stays visible in the table either way).
+      if (status === 'approved' && r.data?.crmLead?.error) {
+        dialog.alert(t('admin.partners.crm.leadFailedAlert', { error: r.data.crmLead.error }) as string);
+      }
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to update the opportunity'); }
     finally { setReviewing(false); }
   };
   const approve = async (o: Opportunity) => {
-    if (!(await dialog.confirm(t('admin.partners.approveConfirm', { name: o.businessName }) as string))) return;
+    // SH-28 — flag a possible duplicate to the approver before they create a fresh Lead anyway.
+    if (o.crmMatchStatus === 'match_found') {
+      if (!(await dialog.confirm(t('admin.partners.crm.duplicateConfirm', { name: o.businessName, summary: o.crmMatchSummary || '' }) as string))) return;
+    } else if (!(await dialog.confirm(t('admin.partners.approveConfirm', { name: o.businessName }) as string))) return;
     setStatus(o, 'approved');
+  };
+
+  const recheckCrm = async (o: Opportunity) => {
+    setCheckingCrmId(o.id);
+    try {
+      const r = await axios.post(`${API_URL}/api/admin/partner-opportunities/${o.id}/crm-check`, {}, { headers: authHeaders() });
+      setOpportunities((prev) => prev.map((x) => x.id === o.id
+        ? { ...x, crmMatchStatus: r.data.crmMatchStatus, crmMatchSummary: r.data.crmMatchSummary }
+        : x));
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to check Zoho CRM'); }
+    finally { setCheckingCrmId(null); }
   };
 
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
@@ -210,6 +236,7 @@ const PartnersAdmin: React.FC = () => {
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colContact')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.colSubmittedBy')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colStatus')}</th>
+                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.crm.title')}</th>
                       <th className="px-4 py-3 text-right font-semibold text-black dark:text-white">{t('common.actions')}</th>
                     </tr>
                   </thead>
@@ -226,6 +253,34 @@ const PartnersAdmin: React.FC = () => {
                         <td className="px-4 py-3">
                           <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[o.status]}`}>{t(`partnerPortal.status.${o.status}`)}</span>
                           {o.status === 'rejected' && o.rejectionReason && <div className="mt-1 text-xs text-gray-400">{o.rejectionReason}</div>}
+                        </td>
+                        <td className="px-4 py-3">
+                          {o.crmMatchStatus === 'match_found' && (
+                            <span className="rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning" title={o.crmMatchSummary || ''}>
+                              {t('admin.partners.crm.matchFound')}
+                            </span>
+                          )}
+                          {o.crmMatchStatus === 'no_match' && (
+                            <span className="rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.noMatch')}</span>
+                          )}
+                          {o.crmMatchStatus === 'check_failed' && (
+                            <span className="rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.checkFailed')}</span>
+                          )}
+                          {!o.crmMatchStatus && (
+                            <span className="text-xs text-gray-400">{t('admin.partners.crm.notChecked')}</span>
+                          )}
+                          {o.status === 'pending' && (
+                            <button onClick={() => recheckCrm(o)} disabled={checkingCrmId === o.id}
+                              className="ml-2 text-xs font-medium text-primary hover:underline disabled:opacity-50">
+                              {checkingCrmId === o.id ? t('admin.partners.crm.checking') : (o.crmMatchStatus ? t('admin.partners.crm.recheck') : t('admin.partners.crm.check'))}
+                            </button>
+                          )}
+                          {o.crmLeadId && (
+                            <div className="mt-1 text-xs text-success">{t('admin.partners.crm.leadCreated', { id: o.crmLeadId })}</div>
+                          )}
+                          {o.crmLeadError && (
+                            <div className="mt-1 text-xs text-danger" title={o.crmLeadError}>{t('admin.partners.crm.leadFailed')}</div>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-right">
                           {o.status === 'pending' ? (
