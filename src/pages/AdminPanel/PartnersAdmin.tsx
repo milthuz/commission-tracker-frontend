@@ -153,11 +153,12 @@ const PartnersAdmin: React.FC = () => {
   const [reviewing, setReviewing] = useState(false);
   const [checkingCrmId, setCheckingCrmId] = useState<number | null>(null);
 
-  const setStatus = async (o: Opportunity, status: 'approved' | 'rejected', rejectionReason?: string) => {
+  const setStatus = async (o: Opportunity, status: 'approved' | 'rejected', rejectionReason?: string, crmOwnerId?: string) => {
     setReviewing(true);
     try {
-      const r = await axios.put(`${API_URL}/api/admin/partner-opportunities/${o.id}`, { status, rejectionReason }, { headers: authHeaders() });
+      const r = await axios.put(`${API_URL}/api/admin/partner-opportunities/${o.id}`, { status, rejectionReason, crmOwnerId }, { headers: authHeaders() });
       setRejecting(null); setRejectReason('');
+      setApproving(null); setSelectedRepId('');
       await fetchQueue();
       // SH-30 — surface the Lead-creation result right away rather than making the admin dig
       // for it; a failure here doesn't mean the approval failed, just that the Lead needs to be
@@ -168,13 +169,27 @@ const PartnersAdmin: React.FC = () => {
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to update the opportunity'); }
     finally { setReviewing(false); }
   };
+
+  // SH-30 follow-up — the partner manager picks which Zoho CRM rep the Lead gets assigned to
+  // (Owner field) right when approving, instead of a plain yes/no confirm.
+  const [approving, setApproving] = useState<Opportunity | null>(null);
+  const [crmReps, setCrmReps] = useState<{ id: string; name: string; email: string }[]>([]);
+  const [loadingReps, setLoadingReps] = useState(false);
+  const [selectedRepId, setSelectedRepId] = useState('');
+
   const approve = async (o: Opportunity) => {
-    // SH-28 — flag a possible duplicate to the approver before they create a fresh Lead anyway.
-    if (o.crmMatchStatus === 'match_found') {
-      if (!(await dialog.confirm(t('admin.partners.crm.duplicateConfirm', { name: o.businessName, summary: o.crmMatchSummary || '' }) as string))) return;
-    } else if (!(await dialog.confirm(t('admin.partners.approveConfirm', { name: o.businessName }) as string))) return;
-    setStatus(o, 'approved');
+    setApproving(o);
+    setSelectedRepId('');
+    if (!crmReps.length) {
+      setLoadingReps(true);
+      try {
+        const r = await axios.get(`${API_URL}/api/admin/partner-opportunities/crm-reps`, { headers: authHeaders() });
+        setCrmReps(r.data.reps || []);
+      } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to load Zoho CRM reps'); }
+      finally { setLoadingReps(false); }
+    }
   };
+  const confirmApprove = () => setStatus(approving as Opportunity, 'approved', undefined, selectedRepId || undefined);
 
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const deleteOpportunity = async (o: Opportunity) => {
@@ -189,6 +204,19 @@ const PartnersAdmin: React.FC = () => {
       }
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete the opportunity'); }
     finally { setDeletingId(null); }
+  };
+
+  // TEMP — see the matching backend endpoint's comment; remove both once Lead Contact Method
+  // is wired up in createCrmLead().
+  const debugLeadFields = async () => {
+    try {
+      const r = await axios.get(`${API_URL}/api/admin/partner-opportunities/crm-lead-sample`, { headers: authHeaders() });
+      console.log('[debug] Zoho CRM sample Lead data:', r.data);
+      const candidates = r.data.candidates || [];
+      dialog.alert(candidates.length
+        ? `Found: ${JSON.stringify(candidates, null, 2)}`
+        : `No obvious match among ${r.data.sampleCount} recent leads — check the browser console for the full raw lead (window > F12 > Console) and look for "Lead Contact Method"'s value there.`);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to fetch sample'); }
   };
 
   const recheckCrm = async (o: Opportunity) => {
@@ -282,16 +310,24 @@ const PartnersAdmin: React.FC = () => {
 
       {sub === 'queue' && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-400">{t('admin.partners.filterStatus')}</span>
-            <div className="inline-flex rounded-full border border-stroke p-1 dark:border-strokedark">
-              {(['pending', 'approved', 'rejected', 'all'] as const).map((s) => (
-                <button key={s} onClick={() => setStatusFilter(s)}
-                  className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${statusFilter === s ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
-                  {s === 'all' ? t('common.all') : t(`partnerPortal.status.${s}`)}
-                </button>
-              ))}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-400">{t('admin.partners.filterStatus')}</span>
+              <div className="inline-flex rounded-full border border-stroke p-1 dark:border-strokedark">
+                {(['pending', 'approved', 'rejected', 'all'] as const).map((s) => (
+                  <button key={s} onClick={() => setStatusFilter(s)}
+                    className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${statusFilter === s ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+                    {s === 'all' ? t('common.all') : t(`partnerPortal.status.${s}`)}
+                  </button>
+                ))}
+              </div>
             </div>
+            {/* TEMP — finds the Zoho CRM API field name for "Lead Contact Method" without needing
+                Zoho Setup access; remove once that field is wired up in createCrmLead(). */}
+            <button onClick={debugLeadFields}
+              className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
+              Debug: find Lead Contact Method field
+            </button>
           </div>
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             {loadingQueue ? (
@@ -472,6 +508,37 @@ const PartnersAdmin: React.FC = () => {
                 {savingEdit ? t('common.saving') : t('common.save')}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {approving && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setApproving(null); }}>
+          <div className="w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.approveFor', { name: approving.businessName })}</span>
+              <button onClick={() => setApproving(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            {approving.crmMatchStatus === 'match_found' && (
+              <p className="mb-4 rounded-lg bg-warning/10 p-3 text-xs text-warning">
+                {t('admin.partners.crm.duplicateConfirm', { name: approving.businessName, summary: approving.crmMatchSummary || '' })}
+              </p>
+            )}
+            <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.assignRep')}</label>
+            <select value={selectedRepId} onChange={(e) => setSelectedRepId(e.target.value)} disabled={loadingReps}
+              className={`${inputCls} mb-1`}>
+              <option value="">{t('admin.partners.assignRepNone')}</option>
+              {crmReps.map((rep) => (
+                <option key={rep.id} value={rep.id}>{rep.name}{rep.email ? ` — ${rep.email}` : ''}</option>
+              ))}
+            </select>
+            <p className="mb-4 text-xs text-gray-400">{loadingReps ? t('admin.partners.loadingReps') : t('admin.partners.assignRepHint')}</p>
+            <button onClick={confirmApprove} disabled={reviewing}
+              className="w-full rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+              {t('admin.partners.approve')}
+            </button>
           </div>
         </div>
       )}
