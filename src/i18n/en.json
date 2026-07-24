@@ -1830,6 +1830,8 @@
       "reportsHint": "These people are emailed when a rep reports a missing commission or missing points. If empty, no email is sent — reports appear in the \"Needs attention\" dashboard only.",
       "newUserTitle": "New user without a role",
       "newUserHint": "These people are emailed when someone signs in to Sales Hub for the first time without any role — their menu stays empty until a role is assigned. If empty, nobody is notified.",
+      "partnerOpportunityTitle": "New partner opportunity submitted",
+      "partnerOpportunityHint": "These people are emailed when a partner submits a new opportunity through the Partner Portal. If empty, nobody is notified — check the Opportunity Queue manually.",
       "moreSoon": "More notification types will appear here as they are added."
     },
     "deals": {
@@ -1957,7 +1959,8 @@
         "missing_points": "Missing points report",
         "probation": "Probation ending",
         "new_user": "New user without a role",
-        "saas_increase": "SaaS price increase notice"
+        "saas_increase": "SaaS price increase notice",
+        "new_partner_opportunity": "New partner opportunity submitted"
       }
     },
     "recalculate": {

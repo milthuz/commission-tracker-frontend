@@ -209,6 +209,13 @@ export default function NotificationsAdmin() {
         endpoint={`${API_URL}/api/admin/new-user-recipients`}
         users={users} />
 
+      {/* A partner submitted a new opportunity through the Partner Portal */}
+      <RecipientListCard icon="🤝"
+        title={t('admin.notifications.partnerOpportunityTitle')}
+        hint={t('admin.notifications.partnerOpportunityHint')}
+        endpoint={`${API_URL}/api/admin/partner-opportunity-recipients`}
+        users={users} />
+
       {/* Email templates: preview every transactional email and send yourself a test copy */}
       <EmailPreview />
 

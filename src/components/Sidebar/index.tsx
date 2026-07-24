@@ -62,6 +62,28 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     return () => { cancelled = true; clearInterval(id); };
   }, [canHealth]);
 
+  // Same "needs attention" idiom as the data-health badge above, for pending Partner Portal
+  // opportunities — so a partner manager notices a new submission without opening the page.
+  const canPartners = isAdmin || can('partners:manage');
+  const [pendingOppsCount, setPendingOppsCount] = useState<number>(0);
+  useEffect(() => {
+    if (!canPartners) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const r = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/admin/partner-opportunities/pending-count`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!cancelled) setPendingOppsCount(d.count || 0);
+      } catch { /* ignore */ }
+    };
+    load();
+    const id = setInterval(load, 120000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [canPartners]);
+
   const [adminMenuOpen, setAdminMenuOpen] = useState(pathname.includes('admin'));
   // Opening the Admin section acknowledges its "new" features, so the aggregate orange dot
   // clears even without visiting each sub-page (and covers feature paths that match no route).
@@ -322,6 +344,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       <path d="M15.5 14.2c2.5.4 4.5 2.6 4.5 5.8" />
                     </svg>
                     <span className={labelCls}>{t('sidebar.partnersAdmin')}</span>
+                    {pendingOppsCount > 0 && !collapsed && (
+                      <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-xs font-semibold text-white">
+                        {pendingOppsCount}
+                      </span>
+                    )}
+                    {pendingOppsCount > 0 && collapsed && (
+                      <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" aria-hidden />
+                    )}
                     <NewBadge path="/admin/partners" collapsed={collapsed} />
                     <RailTip label={t('sidebar.partnersAdmin') as string} />
                   </NavLink>
