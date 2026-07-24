@@ -1672,8 +1672,7 @@
         "leadFailed": "Couldn't create the Lead — hover for details",
         "leadFailedAlert": "The opportunity was approved, but creating the Zoho CRM Lead failed: {{error}}. You'll need to create it manually.",
         "viewInCrm": "View in Zoho CRM",
-        "deleteFailedAlert": "The opportunity was deleted, but deleting its Zoho CRM Lead failed: {{error}}. You'll need to delete it manually.",
-        "orgLookupErrorAlert": "Matches found, but the \"View in Zoho CRM\" link couldn't be built: {{error}}"
+        "deleteFailedAlert": "The opportunity was deleted, but deleting its Zoho CRM Lead failed: {{error}}. You'll need to delete it manually."
       }
     },
     "resources": {

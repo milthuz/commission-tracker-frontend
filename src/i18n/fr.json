@@ -1672,8 +1672,7 @@
         "leadFailed": "Impossible de créer la piste — survolez pour les détails",
         "leadFailedAlert": "L’occasion d’affaires a été approuvée, mais la création de la piste Zoho CRM a échoué : {{error}}. Vous devrez la créer manuellement.",
         "viewInCrm": "Voir dans Zoho CRM",
-        "deleteFailedAlert": "L’occasion d’affaires a été supprimée, mais la suppression de sa piste Zoho CRM a échoué : {{error}}. Vous devrez la supprimer manuellement.",
-        "orgLookupErrorAlert": "Correspondances trouvées, mais le lien « Voir dans Zoho CRM » n’a pas pu être créé : {{error}}"
+        "deleteFailedAlert": "L’occasion d’affaires a été supprimée, mais la suppression de sa piste Zoho CRM a échoué : {{error}}. Vous devrez la supprimer manuellement."
       }
     },
     "resources": {
