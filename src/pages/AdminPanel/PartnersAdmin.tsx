@@ -326,21 +326,21 @@ const PartnersAdmin: React.FC = () => {
                           <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[o.status]}`}>{t(`partnerPortal.status.${o.status}`)}</span>
                           {o.status === 'rejected' && o.rejectionReason && <div className="mt-1 text-xs text-gray-400">{o.rejectionReason}</div>}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 whitespace-nowrap">
                           {o.crmMatchStatus === 'match_found' && (
                             <button onClick={() => setViewingMatches(o)}
-                              className="rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning hover:bg-warning/25">
-                              {t('admin.partners.crm.matchFound', { count: o.crmMatchRecords.length })}
+                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning hover:bg-warning/25">
+                              ⚠ {t('admin.partners.crm.matchFoundShort', { count: o.crmMatchRecords.length })}
                             </button>
                           )}
                           {o.crmMatchStatus === 'no_match' && (
-                            <span className="rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.noMatch')}</span>
+                            <span className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.noMatch')}</span>
                           )}
                           {o.crmMatchStatus === 'check_failed' && (
-                            <span className="rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.checkFailed')}</span>
+                            <span className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.checkFailed')}</span>
                           )}
                           {!o.crmMatchStatus && (
-                            <span className="text-xs text-gray-400">{t('admin.partners.crm.notChecked')}</span>
+                            <span className="whitespace-nowrap text-xs text-gray-400">{t('admin.partners.crm.notChecked')}</span>
                           )}
                           {o.status === 'pending' && (
                             <button onClick={() => recheckCrm(o)} disabled={checkingCrmId === o.id}

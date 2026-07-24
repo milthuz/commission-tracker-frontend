@@ -1663,7 +1663,7 @@
         "checking": "Vérification…",
         "recheck": "Revérifier",
         "noMatch": "Aucune correspondance",
-        "matchFound": "⚠ {{count}} doublon(s) possible(s)",
+        "matchFoundShort": "{{count}} doublon(s) possible(s)",
         "matchesFor": "Correspondances Zoho CRM pour « {{name}} »",
         "matchesHint": "Comparez les détails ci-dessous — il pourrait s’agir de la même piste, ou simplement d’un autre emplacement d’une entreprise au nom similaire.",
         "checkFailed": "Vérification échouée",

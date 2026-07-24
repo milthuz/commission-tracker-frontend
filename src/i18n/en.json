@@ -1663,7 +1663,7 @@
         "checking": "Checking…",
         "recheck": "Recheck",
         "noMatch": "No match",
-        "matchFound": "⚠ {{count}} possible duplicate(s)",
+        "matchFoundShort": "{{count}} possible duplicate(s)",
         "matchesFor": "Zoho CRM matches for \"{{name}}\"",
         "matchesHint": "Compare the details below — this may be the same lead, or just another location of a similarly-named business.",
         "checkFailed": "Check failed",
