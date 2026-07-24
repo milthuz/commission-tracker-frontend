@@ -7,6 +7,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface Partner { id: number; name: string; active: boolean; createdAt: string; hasLogo: boolean; userCount: number; }
+interface CrmMatch {
+  module: 'Leads' | 'Contacts' | 'Accounts'; id: string; name: string;
+  phone: string | null; email: string | null; city: string | null;
+}
 interface Opportunity {
   id: number; businessName: string;
   contactFirstName: string | null; contactLastName: string | null;
@@ -19,6 +23,7 @@ interface Opportunity {
   // SH-28/SH-30 — set by the backend, never sent to partners (see mapOpportunityRow's comment).
   crmMatchStatus: 'no_match' | 'match_found' | 'check_failed' | null;
   crmMatchSummary: string | null;
+  crmMatchRecords: CrmMatch[];
   crmLeadId: string | null;
   crmLeadError: string | null;
 }
@@ -135,11 +140,16 @@ const PartnersAdmin: React.FC = () => {
     try {
       const r = await axios.post(`${API_URL}/api/admin/partner-opportunities/${o.id}/crm-check`, {}, { headers: authHeaders() });
       setOpportunities((prev) => prev.map((x) => x.id === o.id
-        ? { ...x, crmMatchStatus: r.data.crmMatchStatus, crmMatchSummary: r.data.crmMatchSummary }
+        ? { ...x, crmMatchStatus: r.data.crmMatchStatus, crmMatchSummary: r.data.crmMatchSummary, crmMatchRecords: r.data.crmMatchRecords || [] }
         : x));
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to check Zoho CRM'); }
     finally { setCheckingCrmId(null); }
   };
+
+  // SH-28 — lets the partner manager actually look at what matched (name/phone/email/city) and
+  // judge for themselves whether it's the same lead or just another location of a similar-named
+  // business, instead of only seeing a flag and having to guess.
+  const [viewingMatches, setViewingMatches] = useState<Opportunity | null>(null);
 
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
 
@@ -256,9 +266,10 @@ const PartnersAdmin: React.FC = () => {
                         </td>
                         <td className="px-4 py-3">
                           {o.crmMatchStatus === 'match_found' && (
-                            <span className="rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning" title={o.crmMatchSummary || ''}>
-                              {t('admin.partners.crm.matchFound')}
-                            </span>
+                            <button onClick={() => setViewingMatches(o)}
+                              className="rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning hover:bg-warning/25">
+                              {t('admin.partners.crm.matchFound', { count: o.crmMatchRecords.length })}
+                            </button>
                           )}
                           {o.crmMatchStatus === 'no_match' && (
                             <span className="rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.noMatch')}</span>
@@ -302,6 +313,35 @@ const PartnersAdmin: React.FC = () => {
                 </table>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {viewingMatches && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setViewingMatches(null); }}>
+          <div className="w-full max-w-lg rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.crm.matchesFor', { name: viewingMatches.businessName })}</span>
+              <button onClick={() => setViewingMatches(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <p className="mb-4 text-xs text-body">{t('admin.partners.crm.matchesHint')}</p>
+            <div className="flex flex-col gap-2">
+              {viewingMatches.crmMatchRecords.map((m) => (
+                <div key={`${m.module}:${m.id}`} className="rounded-lg border border-stroke p-3 dark:border-strokedark">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-black dark:text-white">{m.name}</span>
+                    <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[11px] font-semibold text-gray-500 dark:bg-meta-4">{m.module}</span>
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-x-4 text-xs text-body">
+                    {m.phone && <span>📞 {m.phone}</span>}
+                    {m.email && <span>✉ {m.email}</span>}
+                    {m.city && <span>📍 {m.city}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
