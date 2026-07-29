@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import './i18n';
 
@@ -10,23 +10,10 @@ import AcceptInvite from './pages/Authentication/AcceptInvite';
 import ResetPassword from './pages/Authentication/ResetPassword';
 import TermsOfService from './pages/Legal/TermsOfService';
 import PrivacyPolicy from './pages/Legal/PrivacyPolicy';
-import ECommerce from './pages/Dashboard/ECommerce';
 import RepDashboard from './pages/Dashboard/RepDashboard';
-import ManagerDashboard from './pages/Dashboard/ManagerDashboard';
-import CommissionTracker from './pages/CommissionTracker';
-import CommissionReport from './pages/CommissionReport';
 import Profile from './pages/Profile';
 import { Navigate } from 'react-router-dom';
 import Versions from './pages/Versions';
-import AdminPanel from './pages/AdminPanel';
-import SavingsCalculator from './pages/SavingsCalculator';
-import Reseller from './pages/Reseller';
-import Revenue from './pages/Revenue';
-import Resources from './pages/Resources';
-import KaizenDemo from './pages/KaizenDemo';
-import Proposals from './pages/Proposals';
-import PricingGuide from './pages/PricingGuide';
-import SaasIncrease from './pages/AdminPanel/SaasIncrease';
 import DefaultLayout from './layout/DefaultLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -38,10 +25,32 @@ import PartnerLayout from './layout/PartnerLayout';
 import PartnerLogin from './pages/PartnerPortal/Login';
 import PartnerAcceptInvite from './pages/PartnerPortal/AcceptInvite';
 import PartnerResetPassword from './pages/PartnerPortal/ResetPassword';
-import PartnerPortal from './pages/PartnerPortal';
-import PartnerProfile from './pages/PartnerPortal/Profile';
-import PartnerTeam from './pages/PartnerPortal/Team';
-import PartnerOrganization from './pages/PartnerPortal/Organization';
+
+// PERFORMANCE: everything below is lazy-loaded. Previously all 30 routes were statically imported
+// here, producing ONE 2.70 MB chunk (687 KB gzip) that every user downloaded before first paint —
+// so a sales rep landing on their dashboard was pulling the entire admin panel (37% of the app's
+// source), the Zoho-billing pages, apexcharts (~512 KB, and neither RepDashboard nor
+// ManagerDashboard renders a chart), and pdfjs (~448 KB, Proposals only).
+//
+// Kept EAGER on purpose: ZohoLogin / the auth + legal pages (first paint for a signed-out user),
+// RepDashboard (the landing page for most users), Profile, Versions, and the layout/route guards.
+const ECommerce = lazy(() => import('./pages/Dashboard/ECommerce'));
+const ManagerDashboard = lazy(() => import('./pages/Dashboard/ManagerDashboard'));
+const CommissionTracker = lazy(() => import('./pages/CommissionTracker'));
+const CommissionReport = lazy(() => import('./pages/CommissionReport'));
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const SavingsCalculator = lazy(() => import('./pages/SavingsCalculator'));
+const Reseller = lazy(() => import('./pages/Reseller'));
+const Revenue = lazy(() => import('./pages/Revenue'));
+const Resources = lazy(() => import('./pages/Resources'));
+const KaizenDemo = lazy(() => import('./pages/KaizenDemo'));
+const Proposals = lazy(() => import('./pages/Proposals'));
+const PricingGuide = lazy(() => import('./pages/PricingGuide'));
+const SaasIncrease = lazy(() => import('./pages/AdminPanel/SaasIncrease'));
+const PartnerPortal = lazy(() => import('./pages/PartnerPortal'));
+const PartnerProfile = lazy(() => import('./pages/PartnerPortal/Profile'));
+const PartnerTeam = lazy(() => import('./pages/PartnerPortal/Team'));
+const PartnerOrganization = lazy(() => import('./pages/PartnerPortal/Organization'));
 
 // "/" adapts to the user's role:
 //   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
@@ -69,20 +78,19 @@ function HomeRoute() {
 }
 
 function AppContent() {
-  const [loading, setLoading] = useState<boolean>(true);
   const { pathname } = useLocation();
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
 
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
-
-  return loading ? (
-    <Loader />
-  ) : (
+  // PERFORMANCE: there used to be a hardcoded `setTimeout(() => setLoading(false), 1000)` here
+  // that rendered nothing but <Loader /> for a fixed second on EVERY page load and hard refresh —
+  // not tied to auth, data, or any async work (AuthContext tracks its own isLoading, and
+  // ProtectedRoute already gates on it). That was a full second of artificial time-to-interactive
+  // for every user, every visit. The timeout was also never cleared.
+  return (
+    <Suspense fallback={<Loader />}>
     <Routes>
       {/* Public Routes */}
       <Route
@@ -364,6 +372,7 @@ function AppContent() {
         }
       />
     </Routes>
+    </Suspense>
   );
 }
 
