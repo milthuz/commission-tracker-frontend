@@ -136,22 +136,34 @@ const PartnersAdmin: React.FC = () => {
     finally { setInviting(false); }
   };
 
-  // Opportunity Queue
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  // Opportunity Queue — always fetch the full set once and filter/search client-side (cheap at
+  // this volume), so the status tiles below can show live counts across ALL statuses regardless
+  // of which one is currently selected, and switching tiles/search needs no round-trip.
+  const [allOpportunities, setAllOpportunities] = useState<Opportunity[]>([]);
   const [loadingQueue, setLoadingQueue] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
+  const [queueSearch, setQueueSearch] = useState('');
 
   const fetchQueue = async () => {
     setLoadingQueue(true);
     try {
-      const r = await axios.get(`${API_URL}/api/admin/partner-opportunities`, {
-        headers: authHeaders(), params: statusFilter === 'all' ? {} : { status: statusFilter },
-      });
-      setOpportunities(r.data.opportunities || []);
+      const r = await axios.get(`${API_URL}/api/admin/partner-opportunities`, { headers: authHeaders() });
+      setAllOpportunities(r.data.opportunities || []);
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to load the opportunity queue'); }
     finally { setLoadingQueue(false); }
   };
-  useEffect(() => { if (sub === 'queue') fetchQueue(); }, [sub, statusFilter]);
+  const queueStats = {
+    pending: allOpportunities.filter((o) => o.status === 'pending').length,
+    approved: allOpportunities.filter((o) => o.status === 'approved').length,
+    rejected: allOpportunities.filter((o) => o.status === 'rejected').length,
+    all: allOpportunities.length,
+  };
+  const searchLower = queueSearch.trim().toLowerCase();
+  const opportunities = allOpportunities.filter((o) =>
+    (statusFilter === 'all' || o.status === statusFilter)
+    && (!searchLower || o.businessName.toLowerCase().includes(searchLower) || o.partnerName.toLowerCase().includes(searchLower))
+  );
+  useEffect(() => { if (sub === 'queue') fetchQueue(); }, [sub]);
 
   const [rejecting, setRejecting] = useState<Opportunity | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -206,7 +218,7 @@ const PartnersAdmin: React.FC = () => {
     setDeletingId(o.id);
     try {
       const r = await axios.delete(`${API_URL}/api/admin/partner-opportunities/${o.id}`, { headers: authHeaders() });
-      setOpportunities((prev) => prev.filter((x) => x.id !== o.id));
+      setAllOpportunities((prev) => prev.filter((x) => x.id !== o.id));
       if (r.data?.crmDeleteError) {
         dialog.alert(t('admin.partners.crm.deleteFailedAlert', { error: r.data.crmDeleteError }) as string);
       }
@@ -218,7 +230,7 @@ const PartnersAdmin: React.FC = () => {
     setCheckingCrmId(o.id);
     try {
       const r = await axios.post(`${API_URL}/api/admin/partner-opportunities/${o.id}/crm-check`, {}, { headers: authHeaders() });
-      setOpportunities((prev) => prev.map((x) => x.id === o.id
+      setAllOpportunities((prev) => prev.map((x) => x.id === o.id
         ? { ...x, crmMatchStatus: r.data.crmMatchStatus, crmMatchSummary: r.data.crmMatchSummary, crmMatchRecords: r.data.crmMatchRecords || [] }
         : x));
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to check Zoho CRM'); }
@@ -309,17 +321,24 @@ const PartnersAdmin: React.FC = () => {
 
       {sub === 'queue' && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-400">{t('admin.partners.filterStatus')}</span>
-            <div className="inline-flex rounded-full border border-stroke p-1 dark:border-strokedark">
-              {(['pending', 'approved', 'rejected', 'all'] as const).map((s) => (
-                <button key={s} onClick={() => setStatusFilter(s)}
-                  className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${statusFilter === s ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
-                  {s === 'all' ? t('common.all') : t(`partnerPortal.status.${s}`)}
-                </button>
-              ))}
-            </div>
+          {/* Status tiles double as the filter — clicking one both shows its count and narrows
+              the table, so the "dashboard" framing and the filter are the same control. */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {(['pending', 'approved', 'rejected', 'all'] as const).map((s) => (
+              <button key={s} onClick={() => setStatusFilter(s)}
+                className={`flex flex-col items-start gap-1 rounded-lg border p-3.5 text-left transition ${
+                  statusFilter === s
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                    : 'border-stroke bg-white hover:border-primary/40 dark:border-strokedark dark:bg-boxdark'
+                }`}>
+                <span className="text-2xl font-bold text-black dark:text-white">{queueStats[s]}</span>
+                <span className="text-xs font-medium text-body">{s === 'all' ? t('common.all') : t(`partnerPortal.status.${s}`)}</span>
+              </button>
+            ))}
           </div>
+          <input value={queueSearch} onChange={(e) => setQueueSearch(e.target.value)}
+            placeholder={t('admin.partners.searchPh') as string}
+            className="w-full max-w-xs rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             {loadingQueue ? (
               <div className="flex h-24 items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
@@ -330,20 +349,21 @@ const PartnersAdmin: React.FC = () => {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-stroke dark:border-strokedark">
-                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.colPartner')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colBusiness')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colContact')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.colSubmittedBy')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colStatus')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.crm.title')}</th>
-                      <th className="px-4 py-3 text-right font-semibold text-black dark:text-white">{t('common.actions')}</th>
+                      <th className="sticky right-0 bg-white px-4 py-3 text-right font-semibold text-black dark:bg-boxdark dark:text-white">{t('common.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {opportunities.map((o) => (
                       <tr key={o.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
-                        <td className="px-4 py-3 text-black dark:text-white">{o.partnerName}</td>
-                        <td className="px-4 py-3 font-medium text-black dark:text-white">{o.businessName}</td>
+                        <td className="px-4 py-3">
+                          <div className="text-xs text-gray-400">{o.partnerName}</div>
+                          <div className="font-medium text-black dark:text-white">{o.businessName}</div>
+                        </td>
                         <td className="px-4 py-3 text-body">
                           {[o.contactFirstName, o.contactLastName].filter(Boolean).join(' ') || '—'}
                           {o.contactEmail && <div className="text-xs text-gray-400">{o.contactEmail}</div>}
@@ -382,7 +402,7 @@ const PartnersAdmin: React.FC = () => {
                             <div className="mt-1 text-xs text-danger" title={o.crmLeadError}>{t('admin.partners.crm.leadFailed')}</div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="sticky right-0 bg-white px-4 py-3 text-right dark:bg-boxdark">
                           <div className="flex items-center justify-end gap-2">
                             {o.status === 'pending' ? (
                               <>

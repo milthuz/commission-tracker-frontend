@@ -1654,6 +1654,7 @@
       "fContactEmail": "Courriel",
       "fContactPhone": "Téléphone",
       "filterStatus": "Statut",
+      "searchPh": "Rechercher par nom d'entreprise ou de partenaire…",
       "approve": "Approuver",
       "reject": "Refuser",
       "approveConfirm": "Approuver « {{name}} » ? Ceci créera une nouvelle piste dans Zoho CRM.",

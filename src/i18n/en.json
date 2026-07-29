@@ -1654,6 +1654,7 @@
       "fContactEmail": "Email",
       "fContactPhone": "Phone",
       "filterStatus": "Status",
+      "searchPh": "Search by business or partner name…",
       "approve": "Approve",
       "reject": "Reject",
       "approveConfirm": "Approve \"{{name}}\"? This will create a new Lead in Zoho CRM.",
