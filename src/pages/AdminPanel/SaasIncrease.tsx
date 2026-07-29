@@ -53,7 +53,7 @@ const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency
 // contains literal {{customerName}} etc. as text to show the admin, so those tokens must be
 // passed back in as values (each equal to its own literal text) or i18next silently blanks them
 // out trying to interpolate a value we never provided.
-const PLACEHOLDER_HINT_VARS = { customerName: '{{customerName}}', planName: '{{planName}}', currentMonthly: '{{currentMonthly}}', newMonthly: '{{newMonthly}}' };
+const PLACEHOLDER_HINT_VARS = { customerName: '{{customerName}}', planName: '{{planName}}', currentMonthly: '{{currentMonthly}}', newMonthly: '{{newMonthly}}', effectiveDate: '{{effectiveDate}}' };
 
 // Cosmetic-only "POS" categorization for the design's colored dot — derived from keywords in the
 // plan name (matching the design handoff's seed data), falling back to the Zoho Billing org name
@@ -679,6 +679,27 @@ const SaasIncrease: React.FC = () => {
     }
   };
 
+  // Sends whatever's CURRENTLY in the editor to the acting admin's own inbox — [TEST]-prefixed,
+  // never touches notify_status. Works with fully fake/typed text too, so this is the safe way
+  // to try a new template or the {{effectiveDate}} placeholder before it ever reaches a real
+  // merchant — no real subscription required.
+  const testSendNotification = async (itemId: number) => {
+    if (!activeScenarioId) return;
+    const draft = notifyEdits[itemId];
+    if (!draft?.subject || !draft?.body) return;
+    markNotifyBusy([itemId], true);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/notifications/test-send`, {
+        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: draft.subject, body: draft.body }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok || !data.sent) { dialog.alert(t('saasIncrease.error') as string); return; }
+      dialog.alert(t('saasIncrease.notify.testSent', { to: data.to }) as string);
+    } catch { dialog.alert(t('saasIncrease.error') as string); }
+    finally { markNotifyBusy([itemId], false); }
+  };
+
   const sendNotifications = async (itemIds: number[]) => {
     if (!activeScenarioId || !itemIds.length) return;
     if (!(await dialog.confirm(t('saasIncrease.notify.confirmSend', { count: itemIds.length }) as string))) return;
@@ -837,7 +858,7 @@ const SaasIncrease: React.FC = () => {
   // Activated + last-price-change used to be two separate columns — merged into one "History"
   // column (stacked two-line cell) so the table fits on a laptop screen without needing to
   // scroll horizontally to see the Risk/Status columns (David's feedback: 10 columns didn't fit).
-  const gridCols = 'grid-cols-[38px_2.2fr_1.8fr_1fr_1.3fr_1.1fr_0.8fr_1.2fr_0.9fr]';
+  const gridCols = 'grid-cols-[38px_2.2fr_1.8fr_1fr_1.3fr_1.1fr_0.8fr_1fr_0.9fr]';
 
   return (
     <div className="font-satoshi">
@@ -1114,8 +1135,15 @@ const SaasIncrease: React.FC = () => {
                     : !s.insightsCheckedAt ? t('saasIncrease.notYetChecked')
                     : (s.pricePointsChecked != null && s.pricePointsChecked < 2) ? t('saasIncrease.notEnoughHistory')
                     : t('saasIncrease.noRecentChange');
-                  const priceChangeTitle = (s.lastPriceBefore != null && s.lastPriceAfter != null)
-                    ? `${money(s.lastPriceBefore)} → ${money(s.lastPriceAfter)}` : '';
+                  const activatedLabel = s.activatedAt ? new Date(s.activatedAt).toLocaleDateString() : '—';
+                  // Combined into one tooltip rather than a second always-visible line — a
+                  // stacked two-line cell here read as cramped next to the rest of the row's
+                  // single-line cells (David's feedback), and the activation date is more useful
+                  // as supporting detail than as its own always-on line.
+                  const historyTitle = [
+                    `${t('saasIncrease.colActivated')}: ${activatedLabel}`,
+                    (s.lastPriceBefore != null && s.lastPriceAfter != null) ? `${money(s.lastPriceBefore)} → ${money(s.lastPriceAfter)}` : null,
+                  ].filter(Boolean).join(' · ');
                   const rowBg = selected ? 'bg-orange-50/60 dark:bg-[rgba(245,131,69,0.06)]' : included ? 'bg-emerald-50/40 dark:bg-[rgba(87,209,147,0.03)]' : '';
                   const proposedPct = ((nm - s.currentMonthly) / (s.currentMonthly || 1)) * 100;
                   const risk = riskFor(s, proposedPct, calibration);
@@ -1160,9 +1188,8 @@ const SaasIncrease: React.FC = () => {
                           {t(`saasIncrease.risk.${risk.tier}`)}
                         </span>
                       </div>
-                      <div className="min-w-0">
-                        <div className={`whitespace-nowrap text-xs ${textTer}`}>{s.activatedAt ? new Date(s.activatedAt).toLocaleDateString() : '—'}</div>
-                        <div className={`mt-0.5 whitespace-nowrap text-[11px] ${textQuat}`} title={priceChangeTitle}>{priceChangeLabel}</div>
+                      <div className="min-w-0 truncate text-xs" title={historyTitle}>
+                        <span className={textTer}>{priceChangeLabel}</span>
                       </div>
                       <div className="justify-self-end">
                         {savedForRow ? (
@@ -1233,7 +1260,7 @@ const SaasIncrease: React.FC = () => {
                   return [
                     header,
                     <div key={`group-body-${key}`} className="overflow-x-auto">
-                      <div className="min-w-[920px]">
+                      <div className="min-w-[880px]">
                         {columnHeader(rows)}
                         {rows.map(renderRow)}
                       </div>
@@ -1428,6 +1455,13 @@ const SaasIncrease: React.FC = () => {
                                     </button>
                                     <button onClick={() => previewNotification(item.id)} disabled={busy || !draft.body} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
                                       {t('saasIncrease.notify.preview')}
+                                    </button>
+                                    <button
+                                      onClick={() => testSendNotification(item.id)} disabled={busy || !draft.subject || !draft.body}
+                                      title={t('saasIncrease.notify.testSendHint') as string}
+                                      className={`${btnSecondary} px-3 py-1.5 text-xs`}
+                                    >
+                                      {t('saasIncrease.notify.testSend')}
                                     </button>
                                     <button onClick={() => sendNotifications([item.id])} disabled={busy || !draft.to || !draft.subject} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A]">
                                       {busy ? t('saasIncrease.notify.sending') : t('saasIncrease.notify.send')}
