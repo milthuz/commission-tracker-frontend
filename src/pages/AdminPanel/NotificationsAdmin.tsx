@@ -216,6 +216,13 @@ export default function NotificationsAdmin() {
         endpoint={`${API_URL}/api/admin/partner-opportunity-recipients`}
         users={users} />
 
+      {/* A Partner Admin uploaded their payout invoice (SH-42) — accounting's inbox */}
+      <RecipientListCard icon="🧾"
+        title={t('admin.notifications.partnerInvoiceTitle')}
+        hint={t('admin.notifications.partnerInvoiceHint')}
+        endpoint={`${API_URL}/api/admin/partner-invoice-recipients`}
+        users={users} />
+
       {/* Email templates: preview every transactional email and send yourself a test copy */}
       <EmailPreview />
 

@@ -553,7 +553,7 @@
     "inviteFor": "pour {{partner}}",
     "loadError": "Impossible de charger vos occasions d’affaires.",
     "noOpportunities": "Aucune occasion d’affaires soumise pour le moment.",
-    "tabs": { "list": "Mes occasions", "submit": "Soumettre", "team": "Équipe" },
+    "tabs": { "list": "Mes occasions", "submit": "Soumettre", "team": "Équipe", "payouts": "Paiements" },
     "colBusiness": "Entreprise",
     "colContact": "Contact",
     "colStatus": "Statut",
@@ -563,8 +563,22 @@
     "colSubmitted": "Soumis le",
     "colSubmittedBy": "Soumis par",
     "colPayout": "Paiement",
-    "payoutComingSoon": "À venir",
-    "payoutComingSoonHint": "Le suivi des paiements apparaîtra ici une fois le module de paiement aux partenaires lancé.",
+    "payoutStatus": {
+      "not_eligible": "Pas encore éligible",
+      "eligible": "Éligible au paiement",
+      "in_run": "Dans un run de paiement",
+      "paid": "Payé"
+    },
+    "payouts": {
+      "noRuns": "Aucun run de paiement finalisé pour le moment.",
+      "opportunityCount_one": "{{count}} occasion",
+      "opportunityCount_other": "{{count}} occasions",
+      "invoiceSubmitted": "Facture soumise",
+      "uploadInvoice": "Téléverser la facture",
+      "uploadHistory": "Historique des téléversements",
+      "loadError": "Impossible de charger vos paiements.",
+      "uploadFailed": "Impossible de téléverser la facture. Veuillez réessayer."
+    },
     "teamBreakdownTitle": "Par membre de l’équipe",
     "unknownSubmitter": "Inconnu",
     "colRole": "Rôle",
@@ -1638,7 +1652,7 @@
     "partners": {
       "title": "Partenaires",
       "subtitle": "Gérez les entreprises partenaires et révisez les occasions d’affaires soumises.",
-      "tabs": { "partners": "Gérer les partenaires", "queue": "File des occasions d’affaires" },
+      "tabs": { "partners": "Gérer les partenaires", "queue": "File des occasions d’affaires", "payouts": "Paiements" },
       "fName": "Nom du partenaire",
       "creating": "Création…",
       "addPartner": "Ajouter un partenaire",
@@ -1654,6 +1668,9 @@
       "fLeadSource": "Source de piste (envoyée à Zoho CRM)",
       "leadSourcePh": "ex. le nom de ce partenaire",
       "leadSourceHint": "Envoyée comme champ Lead Source lors de la création d’une piste dans Zoho CRM à l’approbation. Laisser vide pour l’omettre.",
+      "fPayoutRate": "Taux de paiement ($ par dossier)",
+      "payoutRatePh": "ex. 200.00",
+      "payoutRateHint": "Montant fixe versé une seule fois par dossier éligible (non récurrent). Laisser vide jusqu'à ce qu'un taux soit négocié avec ce partenaire.",
       "billingContact": "Contact de facturation",
       "businessContact": "Contact d’affaires",
       "fContactName": "Nom",
@@ -1691,6 +1708,45 @@
         "leadFailedAlert": "L’occasion d’affaires a été approuvée, mais la création de la piste Zoho CRM a échoué : {{error}}. Vous devrez la créer manuellement.",
         "viewInCrm": "Voir dans Zoho CRM",
         "deleteFailedAlert": "L’occasion d’affaires a été supprimée, mais la suppression de sa piste Zoho CRM a échoué : {{error}}. Vous devrez la supprimer manuellement."
+      },
+      "payout": {
+        "linkButton": "Lier à un client",
+        "relink": "Changer le client lié",
+        "unlink": "Délier",
+        "linkFor": "Lier « {{name}} » à un client",
+        "linkHint": "Recherchez le vrai client facturé de Sales Hub que cette occasion est devenue. L'éligibilité au paiement est vérifiée par rapport aux factures payées de ce client.",
+        "linkSearchPh": "Rechercher un nom de client…",
+        "linkSearchHint": "Tapez au moins 2 caractères pour rechercher.",
+        "linkNoResults": "Aucun client correspondant trouvé.",
+        "status": {
+          "not_eligible": "Pas encore éligible",
+          "eligible": "Éligible au paiement",
+          "in_run": "Dans un run de paiement",
+          "paid": "Payé"
+        },
+        "pendingTitle": "Paiements en attente",
+        "noPending": "Aucun partenaire n'a d'occasion éligible pour le moment.",
+        "opportunityCount_one": "{{count}} occasion éligible",
+        "opportunityCount_other": "{{count}} occasions éligibles",
+        "noRateWarning": "Aucun taux de paiement défini",
+        "createRun": "Créer un run",
+        "historyTitle": "Runs de paiement",
+        "noRuns": "Aucun run de paiement pour le moment.",
+        "colPartner": "Partenaire",
+        "colPeriod": "Période",
+        "colOpportunities": "Occasions",
+        "colAmount": "Montant",
+        "colRunStatus": "Statut",
+        "runStatus": { "draft": "Brouillon", "finalized": "Finalisé" },
+        "finalize": "Finaliser",
+        "cancel": "Annuler",
+        "finalizeConfirm": "Finaliser le run {{period}} pour {{amount}} $ ? Ceci verrouille ses occasions comme payées et est irréversible.",
+        "cancelConfirm": "Annuler le brouillon {{period}} ? Ses occasions redeviennent éligibles.",
+        "createRunFor": "Créer un run de paiement pour {{name}}",
+        "fPeriod": "Étiquette de période",
+        "fPeriodPh": "ex. 2026-T3",
+        "fAmount": "Montant total ($)",
+        "fOpportunities": "Occasions incluses ({{count}} sélectionnée(s))"
       }
     },
     "resources": {
@@ -1839,6 +1895,8 @@
       "newUserHint": "Ces personnes reçoivent un courriel quand quelqu'un se connecte à Sales Hub pour la première fois sans aucun rôle — son menu reste vide tant qu'un rôle ne lui est pas assigné. Si vide, personne n'est notifié.",
       "partnerOpportunityTitle": "Nouvelle occasion d'affaires soumise par un partenaire",
       "partnerOpportunityHint": "Ces personnes reçoivent un courriel quand un partenaire soumet une nouvelle occasion d'affaires via le Portail partenaire. Si vide, personne n'est notifié — il faut vérifier la file d'attente manuellement.",
+      "partnerInvoiceTitle": "Facture partenaire téléversée",
+      "partnerInvoiceHint": "Ces personnes reçoivent un courriel (facture en pièce jointe) quand un Partner Admin téléverse sa facture pour un run de paiement finalisé. Si vide, personne n'est notifié — il faut vérifier Admin → Partenaires manuellement.",
       "moreSoon": "D'autres types de notifications apparaîtront ici au fur et à mesure."
     },
     "deals": {
@@ -1967,6 +2025,7 @@
         "probation": "Fin de probation",
         "new_user": "Nouvel utilisateur sans rôle",
         "new_partner_opportunity": "Nouvelle occasion d'affaires soumise par un partenaire",
+        "partner_invoice_uploaded": "Facture partenaire téléversée",
         "saas_increase": "Avis d'augmentation de prix SaaS"
       }
     },

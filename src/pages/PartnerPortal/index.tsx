@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
@@ -24,8 +24,17 @@ interface Opportunity {
   // row would just be redundant, so the column is hidden for them rather than the data withheld.
   submittedByName: string | null;
   submittedByEmail: string | null;
+  // SH-39/42 — real payout status (never fabricated), and which run (if any) claimed this
+  // opportunity. Admin-only concern, per SH-39's own description.
+  payoutStatus: 'not_eligible' | 'eligible' | 'in_run' | 'paid';
+  payoutRunId: number | null;
 }
 interface TeamMember { id: number; email: string; displayName: string | null; }
+interface PayoutRunReport {
+  id: number; periodLabel: string; totalAmount: number; opportunityCount: number;
+  finalizedAt: string; hasInvoice: boolean;
+}
+interface MyInvoice { id: number; payoutRunId: number | null; fileName: string; uploadedAt: string; }
 const BLANK_FORM = {
   businessName: '', contactFirstName: '', contactLastName: '', contactPhone: '', contactEmail: '',
   repFirstName: '', repLastName: '', repPhone: '', repEmail: '', notes: '',
@@ -36,12 +45,18 @@ const STATUS_BADGE: Record<string, string> = {
   approved: 'bg-success/15 text-green-700 dark:text-success',
   rejected: 'bg-danger/15 text-danger',
 };
+const PAYOUT_BADGE: Record<string, string> = {
+  not_eligible: 'bg-gray-2 text-gray-500 dark:bg-meta-4',
+  eligible: 'bg-success/15 text-green-700 dark:text-success',
+  in_run: 'bg-primary/15 text-primary',
+  paid: 'bg-primary text-white',
+};
 
 const PartnerPortal: React.FC = () => {
   const { t } = useTranslation();
   const { user } = usePartnerAuth();
 
-  const [tab, setTab] = useState<'list' | 'submit'>('list');
+  const [tab, setTab] = useState<'list' | 'submit' | 'payouts'>('list');
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ ...BLANK_FORM });
@@ -93,6 +108,40 @@ const PartnerPortal: React.FC = () => {
     finally { setSubmitting(false); }
   };
 
+  // SH-39/42 — Admin-only "which invoice do we need to issue" report + upload. Fetched lazily,
+  // same pattern as the team-roster fetch above.
+  const [payoutRuns, setPayoutRuns] = useState<PayoutRunReport[]>([]);
+  const [myInvoices, setMyInvoices] = useState<MyInvoice[]>([]);
+  const [loadingPayoutsTab, setLoadingPayoutsTab] = useState(true);
+  const fetchPayoutsTab = async () => {
+    setLoadingPayoutsTab(true);
+    try {
+      const [runsRes, invoicesRes] = await Promise.all([
+        axios.get(`${API_URL}/api/partner-portal/payout-runs`, { headers: authHeaders() }),
+        axios.get(`${API_URL}/api/partner-portal/invoices`, { headers: authHeaders() }),
+      ]);
+      setPayoutRuns(runsRes.data.runs || []);
+      setMyInvoices(invoicesRes.data.invoices || []);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('partnerPortal.payouts.loadError') as string); }
+    finally { setLoadingPayoutsTab(false); }
+  };
+  useEffect(() => { if (isAdmin && tab === 'payouts') fetchPayoutsTab(); }, [isAdmin, tab]);
+
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [uploadingForRun, setUploadingForRun] = useState<number | null>(null);
+  const pickInvoiceFile = (runId: number) => { setUploadingForRun(runId); fileInput.current?.click(); };
+  const uploadInvoice = async (file: File) => {
+    if (!uploadingForRun) return;
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('payoutRunId', String(uploadingForRun));
+      await axios.post(`${API_URL}/api/partner-portal/invoices`, fd, { headers: authHeaders() });
+      await fetchPayoutsTab();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('partnerPortal.payouts.uploadFailed') as string); }
+    finally { setUploadingForRun(null); }
+  };
+
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
   const setF = (k: keyof typeof BLANK_FORM, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -123,8 +172,11 @@ const PartnerPortal: React.FC = () => {
         <p className="text-sm text-body">{user?.partnerName}</p>
       </div>
 
+      <input ref={fileInput} type="file" accept="application/pdf,image/*" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadInvoice(f); e.target.value = ''; }} />
+
       <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-        {(['list', 'submit'] as const).map((key) => (
+        {(isAdmin ? (['list', 'submit', 'payouts'] as const) : (['list', 'submit'] as const)).map((key) => (
           <button key={key} onClick={() => setTab(key)}
             className={`rounded-md px-4 py-2 text-sm font-medium transition ${tab === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
             {t(`partnerPortal.tabs.${key}`)}
@@ -202,9 +254,8 @@ const PartnerPortal: React.FC = () => {
                         </td>
                         {isAdmin && (
                           <td className="px-4 py-3">
-                            <span title={t('partnerPortal.payoutComingSoonHint') as string}
-                              className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">
-                              {t('partnerPortal.payoutComingSoon')}
+                            <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${PAYOUT_BADGE[o.payoutStatus]}`}>
+                              {t(`partnerPortal.payoutStatus.${o.payoutStatus}`)}
                             </span>
                           </td>
                         )}
@@ -259,6 +310,53 @@ const PartnerPortal: React.FC = () => {
               {submitting ? t('partnerPortal.submitting') : t('partnerPortal.submit')}
             </button>
           </form>
+        </div>
+      )}
+
+      {tab === 'payouts' && (
+        <div className="flex flex-col gap-6">
+          {loadingPayoutsTab ? (
+            <div className="flex h-24 items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+          ) : payoutRuns.length === 0 ? (
+            <div className="rounded-sm border border-stroke bg-white p-8 text-center text-sm text-body dark:border-strokedark dark:bg-boxdark">
+              {t('partnerPortal.payouts.noRuns')}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {payoutRuns.map((r) => (
+                <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
+                  <div>
+                    <div className="font-semibold text-black dark:text-white">{r.periodLabel} — ${r.totalAmount.toFixed(2)}</div>
+                    <div className="text-xs text-gray-400">{t('partnerPortal.payouts.opportunityCount', { count: r.opportunityCount })}</div>
+                  </div>
+                  {r.hasInvoice ? (
+                    <span className="rounded-full bg-success/15 px-3 py-1 text-xs font-semibold text-green-700 dark:text-success">
+                      ✓ {t('partnerPortal.payouts.invoiceSubmitted')}
+                    </span>
+                  ) : (
+                    <button onClick={() => pickInvoiceFile(r.id)} disabled={uploadingForRun === r.id}
+                      className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                      {uploadingForRun === r.id ? t('common.saving') : t('partnerPortal.payouts.uploadInvoice')}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {myInvoices.length > 0 && (
+            <div>
+              <h3 className="mb-2 text-sm font-bold text-black dark:text-white">{t('partnerPortal.payouts.uploadHistory')}</h3>
+              <div className="flex flex-col gap-1 rounded-lg border border-stroke bg-white p-3 dark:border-strokedark dark:bg-boxdark">
+                {myInvoices.map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between text-xs text-body">
+                    <span>{inv.fileName}</span>
+                    <span className="text-gray-400">{new Date(inv.uploadedAt).toLocaleDateString()}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

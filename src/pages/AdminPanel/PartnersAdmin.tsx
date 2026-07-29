@@ -12,6 +12,7 @@ interface Partner {
   leadSource: string | null;
   billingContactName: string | null; billingContactEmail: string | null; billingContactPhone: string | null;
   businessContactName: string | null; businessContactEmail: string | null; businessContactPhone: string | null;
+  payoutRate: number | null;
 }
 interface CrmMatch {
   module: 'Leads' | 'Contacts' | 'Accounts'; id: string; name: string; company: string | null;
@@ -32,12 +33,31 @@ interface Opportunity {
   crmMatchRecords: CrmMatch[];
   crmLeadId: string | null;
   crmLeadError: string | null;
+  // SH-40/41 — set once the partner manager manually links this opportunity to the real,
+  // invoiced Sales Hub customer it became (see recomputePartnerPayoutStatus's comment).
+  linkedCustomerName: string | null;
+  payoutStatus: 'not_eligible' | 'eligible' | 'in_run' | 'paid';
+}
+interface PendingPartnerPayout {
+  partnerId: number; partnerName: string; payoutRate: number | null; suggestedAmount: number | null;
+  opportunities: { id: number; businessName: string; linkedCustomerName: string | null; createdAt: string }[];
+}
+interface PayoutRun {
+  id: number; partnerName: string; periodLabel: string; status: 'draft' | 'finalized';
+  totalAmount: number; opportunityCount: number;
+  createdBy: string | null; createdAt: string; finalizedBy: string | null; finalizedAt: string | null;
 }
 
 const STATUS_BADGE: Record<string, string> = {
   pending: 'bg-warning/15 text-warning',
   approved: 'bg-success/15 text-green-700 dark:text-success',
   rejected: 'bg-danger/15 text-danger',
+};
+const PAYOUT_BADGE: Record<string, string> = {
+  not_eligible: 'bg-gray-2 text-gray-500 dark:bg-meta-4',
+  eligible: 'bg-success/15 text-green-700 dark:text-success',
+  in_run: 'bg-primary/15 text-primary',
+  paid: 'bg-primary text-white',
 };
 
 const PartnersAdmin: React.FC = () => {
@@ -47,12 +67,18 @@ const PartnersAdmin: React.FC = () => {
   // item, which links here with ?view=manage.
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [sub, setSub] = useState<'partners' | 'queue'>(searchParams.get('view') === 'manage' ? 'partners' : 'queue');
-  // The route stays /admin/partners for both sub-views (only ?view= changes), so AdminPanel never
+  const subFromParams = (): 'partners' | 'payouts' | 'queue' => {
+    const v = searchParams.get('view');
+    if (v === 'manage') return 'partners';
+    if (v === 'payouts') return 'payouts';
+    return 'queue';
+  };
+  const [sub, setSub] = useState<'partners' | 'payouts' | 'queue'>(subFromParams());
+  // The route stays /admin/partners for every sub-view (only ?view= changes), so AdminPanel never
   // remounts this component — the useState initializer above only runs once. Re-sync on every
-  // search-param change so the Sidebar's "Manage Partners" link works from an already-open page.
+  // search-param change so the Sidebar's submenu links work from an already-open page.
   useEffect(() => {
-    setSub(searchParams.get('view') === 'manage' ? 'partners' : 'queue');
+    setSub(subFromParams());
   }, [searchParams]);
 
   // Manage Partners
@@ -98,7 +124,7 @@ const PartnersAdmin: React.FC = () => {
   // 2026-07-2x, after the Zoho screenshot showed Lead Source as a required, unmapped field).
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [editForm, setEditForm] = useState({
-    name: '', leadSource: '',
+    name: '', leadSource: '', payoutRate: '',
     billingContactName: '', billingContactEmail: '', billingContactPhone: '',
     businessContactName: '', businessContactEmail: '', businessContactPhone: '',
   });
@@ -107,7 +133,7 @@ const PartnersAdmin: React.FC = () => {
   const openEdit = (p: Partner) => {
     setEditingPartner(p);
     setEditForm({
-      name: p.name, leadSource: p.leadSource || '',
+      name: p.name, leadSource: p.leadSource || '', payoutRate: p.payoutRate !== null ? String(p.payoutRate) : '',
       billingContactName: p.billingContactName || '', billingContactEmail: p.billingContactEmail || '', billingContactPhone: p.billingContactPhone || '',
       businessContactName: p.businessContactName || '', businessContactEmail: p.businessContactEmail || '', businessContactPhone: p.businessContactPhone || '',
     });
@@ -120,7 +146,7 @@ const PartnersAdmin: React.FC = () => {
     try {
       await axios.put(`${API_URL}/api/admin/partners/${editingPartner.id}`, {
         name: editForm.name.trim(), active: editingPartner.active,
-        leadSource: editForm.leadSource.trim(),
+        leadSource: editForm.leadSource.trim(), payoutRate: editForm.payoutRate.trim() === '' ? null : editForm.payoutRate.trim(),
         billingContactName: editForm.billingContactName.trim(), billingContactEmail: editForm.billingContactEmail.trim(), billingContactPhone: editForm.billingContactPhone.trim(),
         businessContactName: editForm.businessContactName.trim(), businessContactEmail: editForm.businessContactEmail.trim(), businessContactPhone: editForm.businessContactPhone.trim(),
       }, { headers: authHeaders() });
@@ -249,6 +275,106 @@ const PartnersAdmin: React.FC = () => {
   // business, instead of only seeing a flag and having to guess.
   const [viewingMatches, setViewingMatches] = useState<Opportunity | null>(null);
 
+  // SH-40/41 — manually link a converted opportunity to the real, invoiced Sales Hub customer it
+  // became (there's no automatic Zoho Lead → Sales Hub customer link), so payout eligibility can
+  // be computed against that customer's actual paid invoices.
+  const [linkingFor, setLinkingFor] = useState<Opportunity | null>(null);
+  const [linkQuery, setLinkQuery] = useState('');
+  const [linkResults, setLinkResults] = useState<string[]>([]);
+  const [linkSearching, setLinkSearching] = useState(false);
+  const [savingLink, setSavingLink] = useState(false);
+  const openLinking = (o: Opportunity) => { setLinkingFor(o); setLinkQuery(o.linkedCustomerName || ''); setLinkResults([]); };
+  useEffect(() => {
+    if (!linkingFor || linkQuery.trim().length < 2) { setLinkResults([]); return; }
+    setLinkSearching(true);
+    const timer = setTimeout(() => {
+      axios.get(`${API_URL}/api/admin/partner-opportunities/customer-search`, { params: { q: linkQuery.trim() }, headers: authHeaders() })
+        .then((r) => setLinkResults(r.data.customers || []))
+        .catch(() => setLinkResults([]))
+        .finally(() => setLinkSearching(false));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [linkQuery, linkingFor]);
+  const saveLink = async (customerName: string | null) => {
+    if (!linkingFor) return;
+    setSavingLink(true);
+    try {
+      const r = await axios.put(`${API_URL}/api/admin/partner-opportunities/${linkingFor.id}/link-customer`, { customerName }, { headers: authHeaders() });
+      setAllOpportunities((prev) => prev.map((x) => x.id === linkingFor.id
+        ? { ...x, linkedCustomerName: r.data.linkedCustomerName, payoutStatus: r.data.payoutStatus }
+        : x));
+      setLinkingFor(null);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to link customer'); }
+    finally { setSavingLink(false); }
+  };
+
+  // SH-41 — the quarterly payout run workflow: pending eligible opportunities grouped by
+  // partner (with a rate-based suggested total the manager can override), draft runs, and history.
+  const [pendingPartners, setPendingPartners] = useState<PendingPartnerPayout[]>([]);
+  const [runs, setRuns] = useState<PayoutRun[]>([]);
+  const [loadingPayouts, setLoadingPayouts] = useState(true);
+  const fetchPayouts = async () => {
+    setLoadingPayouts(true);
+    try {
+      const [pendingRes, runsRes] = await Promise.all([
+        axios.get(`${API_URL}/api/admin/partner-payouts/pending`, { headers: authHeaders() }),
+        axios.get(`${API_URL}/api/admin/partner-payouts/runs`, { headers: authHeaders() }),
+      ]);
+      setPendingPartners(pendingRes.data.partners || []);
+      setRuns(runsRes.data.runs || []);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to load payouts'); }
+    finally { setLoadingPayouts(false); }
+  };
+  useEffect(() => { if (sub === 'payouts') fetchPayouts(); }, [sub]);
+
+  const [creatingRunFor, setCreatingRunFor] = useState<PendingPartnerPayout | null>(null);
+  const [runPeriod, setRunPeriod] = useState('');
+  const [runAmount, setRunAmount] = useState('');
+  const [runSelectedIds, setRunSelectedIds] = useState<Set<number>>(new Set());
+  const [savingRun, setSavingRun] = useState(false);
+  const openCreateRun = (p: PendingPartnerPayout) => {
+    setCreatingRunFor(p);
+    setRunPeriod('');
+    setRunAmount(p.suggestedAmount !== null ? p.suggestedAmount.toFixed(2) : '');
+    setRunSelectedIds(new Set(p.opportunities.map((o) => o.id)));
+  };
+  const toggleRunSelected = (id: number) => {
+    setRunSelectedIds((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  };
+  const submitCreateRun = async () => {
+    if (!creatingRunFor || !runPeriod.trim() || !runSelectedIds.size) return;
+    setSavingRun(true);
+    try {
+      await axios.post(`${API_URL}/api/admin/partner-payouts/runs`, {
+        partnerId: creatingRunFor.partnerId, periodLabel: runPeriod.trim(),
+        totalAmount: runAmount.trim() || 0, opportunityIds: [...runSelectedIds],
+      }, { headers: authHeaders() });
+      setCreatingRunFor(null);
+      await fetchPayouts();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to create payout run'); }
+    finally { setSavingRun(false); }
+  };
+
+  const [runningActionId, setRunningActionId] = useState<number | null>(null);
+  const finalizeRun = async (run: PayoutRun) => {
+    if (!(await dialog.confirm(t('admin.partners.payout.finalizeConfirm', { period: run.periodLabel, amount: run.totalAmount.toFixed(2) }) as string))) return;
+    setRunningActionId(run.id);
+    try {
+      await axios.post(`${API_URL}/api/admin/partner-payouts/runs/${run.id}/finalize`, {}, { headers: authHeaders() });
+      await fetchPayouts();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to finalize run'); }
+    finally { setRunningActionId(null); }
+  };
+  const cancelRun = async (run: PayoutRun) => {
+    if (!(await dialog.confirm(t('admin.partners.payout.cancelConfirm', { period: run.periodLabel }) as string))) return;
+    setRunningActionId(run.id);
+    try {
+      await axios.delete(`${API_URL}/api/admin/partner-payouts/runs/${run.id}`, { headers: authHeaders() });
+      await fetchPayouts();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to cancel run'); }
+    finally { setRunningActionId(null); }
+  };
+
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
 
   return (
@@ -256,13 +382,13 @@ const PartnersAdmin: React.FC = () => {
       {/* No in-page tab strip here on purpose — Opportunity Queue is this page's default view,
           and Manage Partners is reached via the Sidebar's own submenu (user request
           2026-07-2x), so a second switcher on the page itself would be redundant. */}
-      {sub === 'partners' && (
+      {sub !== 'queue' && (
         <div className="mb-4 flex items-center gap-2 text-sm text-body">
           <button onClick={() => navigate('/admin/partners')} className="flex items-center gap-1 font-medium text-primary hover:underline">
             ← {t('admin.partners.tabs.queue')}
           </button>
           <span>/</span>
-          <span className="font-semibold text-black dark:text-white">{t('admin.partners.tabs.partners')}</span>
+          <span className="font-semibold text-black dark:text-white">{t(sub === 'partners' ? 'admin.partners.tabs.partners' : 'admin.partners.tabs.payouts')}</span>
         </div>
       )}
 
@@ -422,6 +548,31 @@ const PartnersAdmin: React.FC = () => {
                           {o.crmLeadError && (
                             <div className="mt-1 text-xs text-danger" title={o.crmLeadError}>⚠ {t('admin.partners.crm.leadFailed')}</div>
                           )}
+                          {o.status === 'approved' && (
+                            <div className="mt-1 flex items-center gap-1">
+                              {o.linkedCustomerName ? (
+                                <>
+                                  <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${PAYOUT_BADGE[o.payoutStatus]}`}
+                                    title={o.linkedCustomerName}>
+                                    {t(`admin.partners.payout.status.${o.payoutStatus}`)}
+                                  </span>
+                                  {o.payoutStatus === 'not_eligible' && (
+                                    <button onClick={() => openLinking(o)} title={t('admin.partners.payout.relink') as string}
+                                      className="flex h-4 w-4 items-center justify-center text-gray-400 hover:text-primary">
+                                      <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9.5L21 5m0 0v5m0-5h-5" />
+                                      </svg>
+                                    </button>
+                                  )}
+                                </>
+                              ) : (
+                                <button onClick={() => openLinking(o)}
+                                  className="whitespace-nowrap text-[11px] font-medium text-primary hover:underline">
+                                  🔗 {t('admin.partners.payout.linkButton')}
+                                </button>
+                              )}
+                            </div>
+                          )}
                         </td>
                         <td className="sticky right-0 bg-white px-4 py-3 text-right dark:bg-boxdark">
                           <div className="flex items-center justify-end gap-1.5">
@@ -452,6 +603,140 @@ const PartnersAdmin: React.FC = () => {
                 </table>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {sub === 'payouts' && (
+        <div className="flex flex-col gap-6">
+          {loadingPayouts ? (
+            <div className="flex h-24 items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+          ) : (
+            <>
+              <div>
+                <h3 className="mb-3 text-sm font-bold text-black dark:text-white">{t('admin.partners.payout.pendingTitle')}</h3>
+                {pendingPartners.length === 0 ? (
+                  <div className="rounded-sm border border-stroke bg-white p-6 text-center text-sm text-body dark:border-strokedark dark:bg-boxdark">
+                    {t('admin.partners.payout.noPending')}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {pendingPartners.map((p) => (
+                      <div key={p.partnerId} className="flex items-center justify-between gap-3 rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
+                        <div>
+                          <div className="font-semibold text-black dark:text-white">{p.partnerName}</div>
+                          <div className="text-xs text-gray-400">{t('admin.partners.payout.opportunityCount', { count: p.opportunities.length })}</div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {p.payoutRate === null ? (
+                            <span className="text-xs font-medium text-warning">{t('admin.partners.payout.noRateWarning')}</span>
+                          ) : (
+                            <span className="font-bold text-black dark:text-white">${p.suggestedAmount?.toFixed(2)}</span>
+                          )}
+                          <button onClick={() => openCreateRun(p)} disabled={p.payoutRate === null}
+                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
+                            {t('admin.partners.payout.createRun')}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="mb-3 text-sm font-bold text-black dark:text-white">{t('admin.partners.payout.historyTitle')}</h3>
+                {runs.length === 0 ? (
+                  <div className="rounded-sm border border-stroke bg-white p-6 text-center text-sm text-body dark:border-strokedark dark:bg-boxdark">
+                    {t('admin.partners.payout.noRuns')}
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-stroke dark:border-strokedark">
+                          <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.payout.colPartner')}</th>
+                          <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.payout.colPeriod')}</th>
+                          <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.payout.colOpportunities')}</th>
+                          <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.payout.colAmount')}</th>
+                          <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.payout.colRunStatus')}</th>
+                          <th className="px-4 py-3 text-right font-semibold text-black dark:text-white">{t('common.actions')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {runs.map((r) => (
+                          <tr key={r.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
+                            <td className="px-4 py-3 font-medium text-black dark:text-white">{r.partnerName}</td>
+                            <td className="px-4 py-3 text-body">{r.periodLabel}</td>
+                            <td className="px-4 py-3 text-body">{r.opportunityCount}</td>
+                            <td className="px-4 py-3 text-body">${r.totalAmount.toFixed(2)}</td>
+                            <td className="px-4 py-3">
+                              <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${r.status === 'finalized' ? 'bg-success/15 text-green-700 dark:text-success' : 'bg-warning/15 text-warning'}`}>
+                                {t(`admin.partners.payout.runStatus.${r.status}`)}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {r.status === 'draft' && (
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <button onClick={() => finalizeRun(r)} disabled={runningActionId === r.id}
+                                    className="rounded-md border border-success/40 px-2 py-1 text-[11px] font-medium text-green-700 hover:bg-success/10 disabled:opacity-60 dark:text-success">
+                                    {t('admin.partners.payout.finalize')}
+                                  </button>
+                                  <button onClick={() => cancelRun(r)} disabled={runningActionId === r.id}
+                                    className="rounded-md border border-stroke px-2 py-1 text-[11px] font-medium text-body hover:border-danger hover:text-danger disabled:opacity-60 dark:border-strokedark">
+                                    {t('admin.partners.payout.cancel')}
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {creatingRunFor && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setCreatingRunFor(null); }}>
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.payout.createRunFor', { name: creatingRunFor.partnerName })}</span>
+              <button onClick={() => setCreatingRunFor(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.payout.fPeriod')}</label>
+                <input value={runPeriod} onChange={(e) => setRunPeriod(e.target.value)}
+                  placeholder={t('admin.partners.payout.fPeriodPh') as string} className={inputCls} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.payout.fAmount')}</label>
+                <input value={runAmount} onChange={(e) => setRunAmount(e.target.value)} type="number" min="0" step="0.01" className={inputCls} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.payout.fOpportunities', { count: runSelectedIds.size })}</label>
+                <div className="flex flex-col gap-1 rounded-lg border border-stroke p-2 dark:border-strokedark">
+                  {creatingRunFor.opportunities.map((o) => (
+                    <label key={o.id} className="flex items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-gray-1 dark:hover:bg-meta-4">
+                      <input type="checkbox" checked={runSelectedIds.has(o.id)} onChange={() => toggleRunSelected(o.id)} />
+                      <span className="text-black dark:text-white">{o.businessName}</span>
+                      <span className="text-xs text-gray-400">— {o.linkedCustomerName}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <button onClick={submitCreateRun} disabled={savingRun || !runPeriod.trim() || !runSelectedIds.size}
+                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                {savingRun ? t('common.saving') : t('admin.partners.payout.createRun')}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -496,6 +781,44 @@ const PartnersAdmin: React.FC = () => {
         </div>
       )}
 
+      {linkingFor && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setLinkingFor(null); }}>
+          <div className="w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.payout.linkFor', { name: linkingFor.businessName })}</span>
+              <button onClick={() => setLinkingFor(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <p className="mb-3 text-xs text-body">{t('admin.partners.payout.linkHint')}</p>
+            <input value={linkQuery} onChange={(e) => setLinkQuery(e.target.value)} autoFocus
+              placeholder={t('admin.partners.payout.linkSearchPh') as string} className={inputCls} />
+            <div className="mt-2 max-h-56 overflow-y-auto rounded-lg border border-stroke dark:border-strokedark">
+              {linkSearching ? (
+                <div className="p-3 text-center text-xs text-body">{t('common.loading')}</div>
+              ) : linkResults.length === 0 ? (
+                <div className="p-3 text-center text-xs text-gray-400">
+                  {linkQuery.trim().length < 2 ? t('admin.partners.payout.linkSearchHint') : t('admin.partners.payout.linkNoResults')}
+                </div>
+              ) : (
+                linkResults.map((name) => (
+                  <button key={name} onClick={() => saveLink(name)} disabled={savingLink}
+                    className="block w-full px-3 py-2 text-left text-sm text-black hover:bg-gray-1 disabled:opacity-60 dark:text-white dark:hover:bg-meta-4">
+                    {name}
+                  </button>
+                ))
+              )}
+            </div>
+            {linkingFor.linkedCustomerName && (
+              <button onClick={() => saveLink(null)} disabled={savingLink}
+                className="mt-3 text-xs font-medium text-danger hover:underline disabled:opacity-60">
+                {t('admin.partners.payout.unlink')}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {editingPartner && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditingPartner(null); }}>
           <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
@@ -515,6 +838,12 @@ const PartnersAdmin: React.FC = () => {
                 <input value={editForm.leadSource} onChange={(e) => setEditForm({ ...editForm, leadSource: e.target.value })}
                   placeholder={t('admin.partners.leadSourcePh') as string} className={inputCls} />
                 <p className="mt-1 text-xs text-gray-400">{t('admin.partners.leadSourceHint')}</p>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.fPayoutRate')}</label>
+                <input value={editForm.payoutRate} onChange={(e) => setEditForm({ ...editForm, payoutRate: e.target.value })}
+                  type="number" min="0" step="0.01" placeholder={t('admin.partners.payoutRatePh') as string} className={inputCls} />
+                <p className="mt-1 text-xs text-gray-400">{t('admin.partners.payoutRateHint')}</p>
               </div>
               <div className="rounded-lg border border-stroke p-3 dark:border-strokedark">
                 <div className="mb-2 text-xs font-semibold text-black dark:text-white">{t('admin.partners.billingContact')}</div>

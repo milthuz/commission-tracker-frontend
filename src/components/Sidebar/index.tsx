@@ -99,7 +99,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   // "Manage Partners" (companies/logos/leads config) is the one sub-item, same idiom as Resources
   // above (user request 2026-07-2x: the queue should be the default view, not an equal tab).
   const isManagePartnersActive = pathname === '/admin/partners' && location.search.includes('view=manage');
-  const [partnersMenuOpen, setPartnersMenuOpen] = useState(isManagePartnersActive);
+  const isPayoutsActive = pathname === '/admin/partners' && location.search.includes('view=payouts');
+  const [partnersMenuOpen, setPartnersMenuOpen] = useState(isManagePartnersActive || isPayoutsActive);
 
   // Nested "Resources" group inside the Admin Panel submenu — groups the three editors
   // (storage, hardware, pricing) that used to sit as separate flat entries.
@@ -393,7 +394,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     {!collapsed && (
                       <ul
                         className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 overflow-hidden transition-all duration-200 ${
-                          partnersMenuOpen ? 'max-h-[6rem] opacity-100' : 'max-h-0 opacity-0'
+                          partnersMenuOpen ? 'max-h-[8rem] opacity-100' : 'max-h-0 opacity-0'
                         }`}
                       >
                         <li>
@@ -404,6 +405,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                             }`}
                           >
                             {t('admin.partners.tabs.partners')}
+                          </NavLink>
+                        </li>
+                        <li>
+                          <NavLink
+                            to="/admin/partners?view=payouts"
+                            className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                              isPayoutsActive ? 'text-white' : ''
+                            }`}
+                          >
+                            {t('admin.partners.tabs.payouts')}
                           </NavLink>
                         </li>
                       </ul>

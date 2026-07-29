@@ -553,7 +553,7 @@
     "inviteFor": "for {{partner}}",
     "loadError": "Couldn't load your opportunities.",
     "noOpportunities": "No opportunities submitted yet.",
-    "tabs": { "list": "My Opportunities", "submit": "Submit New", "team": "Team" },
+    "tabs": { "list": "My Opportunities", "submit": "Submit New", "team": "Team", "payouts": "Payouts" },
     "colBusiness": "Business",
     "colContact": "Contact",
     "colStatus": "Status",
@@ -563,8 +563,22 @@
     "colSubmitted": "Submitted",
     "colSubmittedBy": "Submitted by",
     "colPayout": "Payout",
-    "payoutComingSoon": "Coming soon",
-    "payoutComingSoonHint": "Payout tracking will appear here once Sales Hub's partner payout module ships.",
+    "payoutStatus": {
+      "not_eligible": "Not eligible yet",
+      "eligible": "Eligible for payout",
+      "in_run": "In payout run",
+      "paid": "Paid"
+    },
+    "payouts": {
+      "noRuns": "No finalized payout runs yet.",
+      "opportunityCount_one": "{{count}} opportunity",
+      "opportunityCount_other": "{{count}} opportunities",
+      "invoiceSubmitted": "Invoice submitted",
+      "uploadInvoice": "Upload invoice",
+      "uploadHistory": "Upload history",
+      "loadError": "Couldn't load your payouts.",
+      "uploadFailed": "Couldn't upload the invoice. Please try again."
+    },
     "teamBreakdownTitle": "By team member",
     "unknownSubmitter": "Unknown",
     "colRole": "Role",
@@ -1638,7 +1652,7 @@
     "partners": {
       "title": "Partners",
       "subtitle": "Manage partner companies and review submitted opportunities.",
-      "tabs": { "partners": "Manage Partners", "queue": "Opportunity Queue" },
+      "tabs": { "partners": "Manage Partners", "queue": "Opportunity Queue", "payouts": "Payouts" },
       "fName": "Partner name",
       "creating": "Creating…",
       "addPartner": "Add partner",
@@ -1654,6 +1668,9 @@
       "fLeadSource": "Lead Source (sent to Zoho CRM)",
       "leadSourcePh": "e.g. this partner's name",
       "leadSourceHint": "Sent as the Lead Source field when a Lead is created in Zoho CRM on approval. Leave empty to omit it.",
+      "fPayoutRate": "Payout rate ($ per opportunity)",
+      "payoutRatePh": "e.g. 200.00",
+      "payoutRateHint": "Flat amount paid once per eligible opportunity (not recurring). Leave empty until a rate is negotiated with this partner.",
       "billingContact": "Billing contact",
       "businessContact": "Business contact",
       "fContactName": "Name",
@@ -1691,6 +1708,45 @@
         "leadFailedAlert": "The opportunity was approved, but creating the Zoho CRM Lead failed: {{error}}. You'll need to create it manually.",
         "viewInCrm": "View in Zoho CRM",
         "deleteFailedAlert": "The opportunity was deleted, but deleting its Zoho CRM Lead failed: {{error}}. You'll need to delete it manually."
+      },
+      "payout": {
+        "linkButton": "Link to customer",
+        "relink": "Change linked customer",
+        "unlink": "Unlink",
+        "linkFor": "Link \"{{name}}\" to a customer",
+        "linkHint": "Search for the real, invoiced Sales Hub customer this opportunity became. Payout eligibility is checked against that customer's paid invoices.",
+        "linkSearchPh": "Search customer name…",
+        "linkSearchHint": "Type at least 2 characters to search.",
+        "linkNoResults": "No matching customers found.",
+        "status": {
+          "not_eligible": "Not eligible yet",
+          "eligible": "Eligible for payout",
+          "in_run": "In payout run",
+          "paid": "Paid"
+        },
+        "pendingTitle": "Pending payouts",
+        "noPending": "No partner has eligible opportunities right now.",
+        "opportunityCount_one": "{{count}} eligible opportunity",
+        "opportunityCount_other": "{{count}} eligible opportunities",
+        "noRateWarning": "No payout rate set",
+        "createRun": "Create run",
+        "historyTitle": "Payout runs",
+        "noRuns": "No payout runs yet.",
+        "colPartner": "Partner",
+        "colPeriod": "Period",
+        "colOpportunities": "Opportunities",
+        "colAmount": "Amount",
+        "colRunStatus": "Status",
+        "runStatus": { "draft": "Draft", "finalized": "Finalized" },
+        "finalize": "Finalize",
+        "cancel": "Cancel",
+        "finalizeConfirm": "Finalize the {{period}} run for ${{amount}}? This locks its opportunities as paid and can't be undone.",
+        "cancelConfirm": "Cancel the {{period}} draft run? Its opportunities go back to eligible.",
+        "createRunFor": "Create payout run for {{name}}",
+        "fPeriod": "Period label",
+        "fPeriodPh": "e.g. 2026-Q3",
+        "fAmount": "Total amount ($)",
+        "fOpportunities": "Opportunities included ({{count}} selected)"
       }
     },
     "resources": {
@@ -1839,6 +1895,8 @@
       "newUserHint": "These people are emailed when someone signs in to Sales Hub for the first time without any role — their menu stays empty until a role is assigned. If empty, nobody is notified.",
       "partnerOpportunityTitle": "New partner opportunity submitted",
       "partnerOpportunityHint": "These people are emailed when a partner submits a new opportunity through the Partner Portal. If empty, nobody is notified — check the Opportunity Queue manually.",
+      "partnerInvoiceTitle": "Partner invoice uploaded",
+      "partnerInvoiceHint": "These people are emailed (with the invoice attached) when a Partner Admin uploads their invoice for a finalized payout run. If empty, nobody is notified — check Admin → Partners manually.",
       "moreSoon": "More notification types will appear here as they are added."
     },
     "deals": {
@@ -1967,7 +2025,8 @@
         "probation": "Probation ending",
         "new_user": "New user without a role",
         "saas_increase": "SaaS price increase notice",
-        "new_partner_opportunity": "New partner opportunity submitted"
+        "new_partner_opportunity": "New partner opportunity submitted",
+        "partner_invoice_uploaded": "Partner invoice uploaded"
       }
     },
     "recalculate": {
