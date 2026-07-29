@@ -20,6 +20,10 @@ interface Opportunity {
   assignedRepName: string | null;
   leadStage: string | null;
   leadConverted: boolean;
+  // Admin-only (see the "By team member" breakdown below) — a Standard user's own name on every
+  // row would just be redundant, so the column is hidden for them rather than the data withheld.
+  submittedByName: string | null;
+  submittedByEmail: string | null;
 }
 interface TeamMember { id: number; email: string; displayName: string | null; }
 const BLANK_FORM = {
@@ -42,6 +46,7 @@ const PartnerPortal: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ ...BLANK_FORM });
   const [submitting, setSubmitting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   // Admins submit on behalf of any of their own reps, picked from the team roster (SH-27
   // follow-up) — they'll have registered on the platform to be selectable, rather than the old
@@ -91,6 +96,26 @@ const PartnerPortal: React.FC = () => {
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
   const setF = (k: keyof typeof BLANK_FORM, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
+  // SH-35/36 — turn the flat list into a small dashboard: counts double as the status filter
+  // (same pattern as the internal Opportunity Queue), and a Partner Admin additionally sees a
+  // per-team-member breakdown since they're accountable for the whole partnership's pipeline,
+  // not just their own submissions (SH-26).
+  const stats = {
+    all: opportunities.length,
+    pending: opportunities.filter((o) => o.status === 'pending').length,
+    approved: opportunities.filter((o) => o.status === 'approved').length,
+    rejected: opportunities.filter((o) => o.status === 'rejected').length,
+  };
+  const filteredOpportunities = opportunities.filter((o) => statusFilter === 'all' || o.status === statusFilter);
+  const teamBreakdown = isAdmin
+    ? Object.values(opportunities.reduce((acc: Record<string, { name: string; count: number }>, o) => {
+        const key = o.submittedByName || o.submittedByEmail || (t('partnerPortal.unknownSubmitter') as string);
+        acc[key] = acc[key] || { name: key, count: 0 };
+        acc[key].count += 1;
+        return acc;
+      }, {})).sort((a, b) => b.count - a.count)
+    : [];
+
   return (
     <div>
       <div className="mb-6">
@@ -108,49 +133,89 @@ const PartnerPortal: React.FC = () => {
       </div>
 
       {tab === 'list' && (
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          {loading ? (
-            <div className="flex h-32 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
-          ) : opportunities.length === 0 ? (
-            <div className="p-10 text-center text-sm text-body">{t('partnerPortal.noOpportunities')}</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-stroke dark:border-strokedark">
-                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colBusiness')}</th>
-                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colContact')}</th>
-                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colStatus')}</th>
-                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colAssignedRep')}</th>
-                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colLeadStage')}</th>
-                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colSubmitted')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {opportunities.map((o) => (
-                    <tr key={o.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
-                      <td className="px-4 py-3 font-medium text-black dark:text-white">{o.businessName}</td>
-                      <td className="px-4 py-3 text-body">
-                        {[o.contactFirstName, o.contactLastName].filter(Boolean).join(' ') || '—'}
-                        {o.contactEmail && <div className="text-xs text-gray-400">{o.contactEmail}</div>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[o.status]}`}>{t(`partnerPortal.status.${o.status}`)}</span>
-                        {o.status === 'rejected' && o.rejectionReason && <div className="mt-1 text-xs text-gray-400">{o.rejectionReason}</div>}
-                      </td>
-                      <td className="px-4 py-3 text-body">{o.assignedRepName || '—'}</td>
-                      <td className="px-4 py-3 text-body">
-                        {o.leadConverted ? (
-                          <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-success">{t('partnerPortal.leadConverted')}</span>
-                        ) : o.leadStage || '—'}
-                      </td>
-                      <td className="px-4 py-3 text-body">{new Date(o.createdAt).toLocaleDateString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {(['pending', 'approved', 'rejected', 'all'] as const).map((s) => (
+              <button key={s} onClick={() => setStatusFilter(s)}
+                className={`flex flex-col items-start gap-1 rounded-lg border p-3.5 text-left transition ${
+                  statusFilter === s
+                    ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                    : 'border-stroke bg-white hover:border-primary/40 dark:border-strokedark dark:bg-boxdark'
+                }`}>
+                <span className="text-2xl font-bold text-black dark:text-white">{stats[s]}</span>
+                <span className="text-xs font-medium text-body">{s === 'all' ? t('common.all') : t(`partnerPortal.status.${s}`)}</span>
+              </button>
+            ))}
+          </div>
+
+          {isAdmin && teamBreakdown.length > 0 && (
+            <div className="rounded-lg border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="mb-2 text-xs font-bold uppercase text-gray-400">{t('partnerPortal.teamBreakdownTitle')}</div>
+              <div className="flex flex-wrap gap-2">
+                {teamBreakdown.map((m) => (
+                  <span key={m.name} className="inline-flex items-center gap-1.5 rounded-full bg-gray-2 px-3 py-1 text-xs font-medium text-body dark:bg-meta-4">
+                    {m.name} <span className="rounded-full bg-white px-1.5 text-black dark:bg-boxdark dark:text-white">{m.count}</span>
+                  </span>
+                ))}
+              </div>
             </div>
           )}
+
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            {loading ? (
+              <div className="flex h-32 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+            ) : filteredOpportunities.length === 0 ? (
+              <div className="p-10 text-center text-sm text-body">{t('partnerPortal.noOpportunities')}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-stroke dark:border-strokedark">
+                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colBusiness')}</th>
+                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colContact')}</th>
+                      {isAdmin && <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colSubmittedBy')}</th>}
+                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colStatus')}</th>
+                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colAssignedRep')}</th>
+                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colLeadStage')}</th>
+                      {isAdmin && <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colPayout')}</th>}
+                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colSubmitted')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredOpportunities.map((o) => (
+                      <tr key={o.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
+                        <td className="px-4 py-3 font-medium text-black dark:text-white">{o.businessName}</td>
+                        <td className="px-4 py-3 text-body">
+                          {[o.contactFirstName, o.contactLastName].filter(Boolean).join(' ') || '—'}
+                          {o.contactEmail && <div className="text-xs text-gray-400">{o.contactEmail}</div>}
+                        </td>
+                        {isAdmin && <td className="px-4 py-3 text-body">{o.submittedByName || o.submittedByEmail || '—'}</td>}
+                        <td className="px-4 py-3">
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[o.status]}`}>{t(`partnerPortal.status.${o.status}`)}</span>
+                          {o.status === 'rejected' && o.rejectionReason && <div className="mt-1 text-xs text-gray-400">{o.rejectionReason}</div>}
+                        </td>
+                        <td className="px-4 py-3 text-body">{o.assignedRepName || '—'}</td>
+                        <td className="px-4 py-3 text-body">
+                          {o.leadConverted ? (
+                            <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-success">{t('partnerPortal.leadConverted')}</span>
+                          ) : o.leadStage || '—'}
+                        </td>
+                        {isAdmin && (
+                          <td className="px-4 py-3">
+                            <span title={t('partnerPortal.payoutComingSoonHint') as string}
+                              className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">
+                              {t('partnerPortal.payoutComingSoon')}
+                            </span>
+                          </td>
+                        )}
+                        <td className="px-4 py-3 text-body">{new Date(o.createdAt).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
