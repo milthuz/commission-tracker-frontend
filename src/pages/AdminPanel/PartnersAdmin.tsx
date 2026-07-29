@@ -351,7 +351,6 @@ const PartnersAdmin: React.FC = () => {
                     <tr className="border-b border-stroke dark:border-strokedark">
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colBusiness')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colContact')}</th>
-                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.colSubmittedBy')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colStatus')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.crm.title')}</th>
                       <th className="sticky right-0 bg-white px-4 py-3 text-right font-semibold text-black dark:bg-boxdark dark:text-white">{t('common.actions')}</th>
@@ -367,58 +366,76 @@ const PartnersAdmin: React.FC = () => {
                         <td className="px-4 py-3 text-body">
                           {[o.contactFirstName, o.contactLastName].filter(Boolean).join(' ') || '—'}
                           {o.contactEmail && <div className="text-xs text-gray-400">{o.contactEmail}</div>}
+                          {o.submittedByEmail && (
+                            <div className="mt-1 text-xs text-gray-400" title={t('admin.partners.colSubmittedBy') as string}>
+                              ↳ {o.submittedByEmail}
+                            </div>
+                          )}
                         </td>
-                        <td className="px-4 py-3 text-body">{o.submittedByEmail || '—'}</td>
                         <td className="px-4 py-3">
                           <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[o.status]}`}>{t(`partnerPortal.status.${o.status}`)}</span>
                           {o.status === 'rejected' && o.rejectionReason && <div className="mt-1 text-xs text-gray-400">{o.rejectionReason}</div>}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          {o.crmMatchStatus === 'match_found' && (
-                            <button onClick={() => setViewingMatches(o)}
-                              className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning hover:bg-warning/25">
-                              ⚠ {t('admin.partners.crm.matchFoundShort', { count: o.crmMatchRecords.length })}
-                            </button>
-                          )}
-                          {o.crmMatchStatus === 'no_match' && (
-                            <span className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.noMatch')}</span>
-                          )}
-                          {o.crmMatchStatus === 'check_failed' && (
-                            <span className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.checkFailed')}</span>
-                          )}
-                          {!o.crmMatchStatus && (
-                            <span className="whitespace-nowrap text-xs text-gray-400">{t('admin.partners.crm.notChecked')}</span>
-                          )}
-                          {o.status === 'pending' && (
-                            <button onClick={() => recheckCrm(o)} disabled={checkingCrmId === o.id}
-                              className="ml-2 text-xs font-medium text-primary hover:underline disabled:opacity-50">
-                              {checkingCrmId === o.id ? t('admin.partners.crm.checking') : (o.crmMatchStatus ? t('admin.partners.crm.recheck') : t('admin.partners.crm.check'))}
-                            </button>
-                          )}
+                          <div className="flex items-center gap-1">
+                            {o.crmMatchStatus === 'match_found' && (
+                              <button onClick={() => setViewingMatches(o)}
+                                className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning hover:bg-warning/25">
+                                ⚠ {t('admin.partners.crm.matchFoundShort', { count: o.crmMatchRecords.length })}
+                              </button>
+                            )}
+                            {o.crmMatchStatus === 'no_match' && (
+                              <span className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.noMatch')}</span>
+                            )}
+                            {o.crmMatchStatus === 'check_failed' && (
+                              <span className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.checkFailed')}</span>
+                            )}
+                            {!o.crmMatchStatus && (
+                              <span className="whitespace-nowrap text-xs text-gray-400">{t('admin.partners.crm.notChecked')}</span>
+                            )}
+                            {o.status === 'pending' && (
+                              <button onClick={() => recheckCrm(o)} disabled={checkingCrmId === o.id}
+                                title={(o.crmMatchStatus ? t('admin.partners.crm.recheck') : t('admin.partners.crm.check')) as string}
+                                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-primary hover:bg-primary/10 disabled:opacity-50">
+                                {checkingCrmId === o.id ? (
+                                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                ) : (
+                                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4.5 9a7.5 7.5 0 0113-4.5M19.5 15a7.5 7.5 0 01-13 4.5" />
+                                  </svg>
+                                )}
+                              </button>
+                            )}
+                          </div>
                           {o.crmLeadId && (
-                            <div className="mt-1 text-xs text-success">{t('admin.partners.crm.leadCreated', { id: o.crmLeadId })}</div>
+                            <div className="mt-1 flex items-center gap-1 text-xs text-success" title={t('admin.partners.crm.leadCreated', { id: o.crmLeadId }) as string}>
+                              ✓ {o.crmLeadId}
+                            </div>
                           )}
                           {o.crmLeadError && (
-                            <div className="mt-1 text-xs text-danger" title={o.crmLeadError}>{t('admin.partners.crm.leadFailed')}</div>
+                            <div className="mt-1 text-xs text-danger" title={o.crmLeadError}>⚠ {t('admin.partners.crm.leadFailed')}</div>
                           )}
                         </td>
                         <td className="sticky right-0 bg-white px-4 py-3 text-right dark:bg-boxdark">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1.5">
                             {o.status === 'pending' ? (
                               <>
                                 <button onClick={() => approve(o)} disabled={reviewing}
-                                  className="rounded-lg border border-success/40 px-3 py-1.5 text-xs font-medium text-green-700 hover:bg-success/10 disabled:opacity-60 dark:text-success">
+                                  className="rounded-md border border-success/40 px-2 py-1 text-[11px] font-medium text-green-700 hover:bg-success/10 disabled:opacity-60 dark:text-success">
                                   {t('admin.partners.approve')}
                                 </button>
                                 <button onClick={() => { setRejecting(o); setRejectReason(''); }} disabled={reviewing}
-                                  className="rounded-lg border border-danger/40 px-3 py-1.5 text-xs font-medium text-danger hover:bg-danger/10 disabled:opacity-60">
+                                  className="rounded-md border border-danger/40 px-2 py-1 text-[11px] font-medium text-danger hover:bg-danger/10 disabled:opacity-60">
                                   {t('admin.partners.reject')}
                                 </button>
                               </>
                             ) : <span className="text-xs text-gray-400">{o.reviewedBy}</span>}
                             <button onClick={() => deleteOpportunity(o)} disabled={deletingId === o.id}
-                              className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-danger hover:text-danger disabled:opacity-60 dark:border-strokedark">
-                              {t('common.delete')}
+                              title={t('common.delete') as string}
+                              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-stroke text-body hover:border-danger hover:text-danger disabled:opacity-60 dark:border-strokedark">
+                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" />
+                              </svg>
                             </button>
                           </div>
                         </td>
