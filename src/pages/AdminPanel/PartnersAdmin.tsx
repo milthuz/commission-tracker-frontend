@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -45,8 +45,15 @@ const PartnersAdmin: React.FC = () => {
   // Landing on this page is the Opportunity Queue "dashboard" (user request 2026-07-2x) — Manage
   // Partners is reached either via the in-page tab or the Sidebar's "Manage Partners" submenu
   // item, which links here with ?view=manage.
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [sub, setSub] = useState<'partners' | 'queue'>(searchParams.get('view') === 'manage' ? 'partners' : 'queue');
+  // The route stays /admin/partners for both sub-views (only ?view= changes), so AdminPanel never
+  // remounts this component — the useState initializer above only runs once. Re-sync on every
+  // search-param change so the Sidebar's "Manage Partners" link works from an already-open page.
+  useEffect(() => {
+    setSub(searchParams.get('view') === 'manage' ? 'partners' : 'queue');
+  }, [searchParams]);
 
   // Manage Partners
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -251,7 +258,7 @@ const PartnersAdmin: React.FC = () => {
           2026-07-2x), so a second switcher on the page itself would be redundant. */}
       {sub === 'partners' && (
         <div className="mb-4 flex items-center gap-2 text-sm text-body">
-          <button onClick={() => setSub('queue')} className="flex items-center gap-1 font-medium text-primary hover:underline">
+          <button onClick={() => navigate('/admin/partners')} className="flex items-center gap-1 font-medium text-primary hover:underline">
             ← {t('admin.partners.tabs.queue')}
           </button>
           <span>/</span>
