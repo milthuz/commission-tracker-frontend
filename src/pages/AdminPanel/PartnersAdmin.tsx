@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -41,7 +42,11 @@ const STATUS_BADGE: Record<string, string> = {
 
 const PartnersAdmin: React.FC = () => {
   const { t } = useTranslation();
-  const [sub, setSub] = useState<'partners' | 'queue'>('partners');
+  // Landing on this page is the Opportunity Queue "dashboard" (user request 2026-07-2x) — Manage
+  // Partners is reached either via the in-page tab or the Sidebar's "Manage Partners" submenu
+  // item, which links here with ?view=manage.
+  const [searchParams] = useSearchParams();
+  const [sub, setSub] = useState<'partners' | 'queue'>(searchParams.get('view') === 'manage' ? 'partners' : 'queue');
 
   // Manage Partners
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -230,7 +235,7 @@ const PartnersAdmin: React.FC = () => {
   return (
     <div>
       <div className="mb-4 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-        {(['partners', 'queue'] as const).map((key) => (
+        {(['queue', 'partners'] as const).map((key) => (
           <button key={key} onClick={() => setSub(key)}
             className={`rounded-md px-4 py-2 text-sm font-medium transition ${sub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
             {t(`admin.partners.tabs.${key}`)}

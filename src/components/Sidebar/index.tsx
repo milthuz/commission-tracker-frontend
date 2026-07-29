@@ -95,6 +95,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     pathname.includes('resources') || pathname === '/pricing-guide'
   );
 
+  // Partners submenu — clicking "Partners" itself lands on the Opportunity Queue dashboard;
+  // "Manage Partners" (companies/logos/leads config) is the one sub-item, same idiom as Resources
+  // above (user request 2026-07-2x: the queue should be the default view, not an equal tab).
+  const isManagePartnersActive = pathname === '/admin/partners' && location.search.includes('view=manage');
+  const [partnersMenuOpen, setPartnersMenuOpen] = useState(isManagePartnersActive);
+
   // Nested "Resources" group inside the Admin Panel submenu — groups the three editors
   // (storage, hardware, pricing) that used to sit as separate flat entries.
   const [adminResourcesOpen, setAdminResourcesOpen] = useState(
@@ -110,7 +116,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     localStorage.setItem('sidebar-collapsed', String(collapsed));
     // Auto-close the admin/resources submenus when collapsing so they don't pop into the
     // narrow rail awkwardly.
-    if (collapsed) { setAdminMenuOpen(false); setResourcesMenuOpen(false); setAdminResourcesOpen(false); }
+    if (collapsed) { setAdminMenuOpen(false); setResourcesMenuOpen(false); setAdminResourcesOpen(false); setPartnersMenuOpen(false); }
   }, [collapsed]);
 
   // CSS helpers for collapsed mode — applied to every NavLink and the label spans.
@@ -333,30 +339,78 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               {/* <!-- Menu Item Partners (perm: partners:manage) — a flat top-level item, not
                    nested under Admin Panel (user request 2026-07-2x): Admin Panel itself is
                    gated on isAdmin, so a non-admin "Partner Manager" role holding only
-                   partners:manage had no way to reach it at all. --> */}
-              {(isAdmin || can('partners:manage')) && (
-                <li>
-                  <NavLink to="/admin/partners" className={navLinkCls(pathname === '/admin/partners')}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="9" cy="8" r="3" />
-                      <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
-                      <circle cx="17" cy="8" r="2.5" />
-                      <path d="M15.5 14.2c2.5.4 4.5 2.6 4.5 5.8" />
-                    </svg>
-                    <span className={labelCls}>{t('sidebar.partnersAdmin')}</span>
-                    {pendingOppsCount > 0 && !collapsed && (
-                      <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-xs font-semibold text-white">
-                        {pendingOppsCount}
-                      </span>
+                   partners:manage had no way to reach it at all. Clicking it lands on the
+                   Opportunity Queue dashboard; "Manage Partners" is a submenu (user request
+                   2026-07-2x), same expand/collapse idiom as Resources below. --> */}
+              {(isAdmin || can('partners:manage')) && (() => {
+                const partnersIcon = (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="9" cy="8" r="3" />
+                    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+                    <circle cx="17" cy="8" r="2.5" />
+                    <path d="M15.5 14.2c2.5.4 4.5 2.6 4.5 5.8" />
+                  </svg>
+                );
+                const partnersActive = pathname === '/admin/partners';
+                return (
+                  <li>
+                    {collapsed ? (
+                      <NavLink to="/admin/partners" className={navLinkCls(partnersActive)}>
+                        {partnersIcon}
+                        <span className={labelCls}>{t('sidebar.partnersAdmin')}</span>
+                        {pendingOppsCount > 0 && (
+                          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" aria-hidden />
+                        )}
+                        <NewBadge path="/admin/partners" collapsed={collapsed} />
+                        <RailTip label={t('sidebar.partnersAdmin') as string} />
+                      </NavLink>
+                    ) : (
+                      <div className={`${navLinkCls(partnersActive)} pr-2`} onClick={() => setPartnersMenuOpen((v) => !v)}>
+                        <NavLink to="/admin/partners" className="flex flex-1 items-center gap-2.5 overflow-hidden">
+                          {partnersIcon}
+                          <span className={labelCls}>{t('sidebar.partnersAdmin')}</span>
+                          {pendingOppsCount > 0 && (
+                            <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-xs font-semibold text-white">
+                              {pendingOppsCount}
+                            </span>
+                          )}
+                          <NewBadge path="/admin/partners" collapsed={collapsed} />
+                        </NavLink>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPartnersMenuOpen((v) => !v); }}
+                          aria-label={partnersMenuOpen ? (t('sidebar.collapse') as string) : (t('sidebar.expand') as string)}
+                        >
+                          <svg
+                            className={`fill-current transition-transform duration-200 ${partnersMenuOpen ? 'rotate-180' : ''}`}
+                            width="12" height="8" viewBox="0 0 12 8"
+                          >
+                            <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" />
+                          </svg>
+                        </button>
+                      </div>
                     )}
-                    {pendingOppsCount > 0 && collapsed && (
-                      <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" aria-hidden />
+                    {!collapsed && (
+                      <ul
+                        className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 overflow-hidden transition-all duration-200 ${
+                          partnersMenuOpen ? 'max-h-[6rem] opacity-100' : 'max-h-0 opacity-0'
+                        }`}
+                      >
+                        <li>
+                          <NavLink
+                            to="/admin/partners?view=manage"
+                            className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                              isManagePartnersActive ? 'text-white' : ''
+                            }`}
+                          >
+                            {t('admin.partners.tabs.partners')}
+                          </NavLink>
+                        </li>
+                      </ul>
                     )}
-                    <NewBadge path="/admin/partners" collapsed={collapsed} />
-                    <RailTip label={t('sidebar.partnersAdmin') as string} />
-                  </NavLink>
-                </li>
-              )}
+                  </li>
+                );
+              })()}
               {/* <!-- Menu Item Resources (perm: resources:view) — the Hardware & Service Guide
                    nests under it as a submenu, same idiom as the Admin Panel below. --> */}
               {(isAdmin || can('resources:view')) && (() => {
