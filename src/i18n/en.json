@@ -868,6 +868,14 @@
     "saving": "Saving…",
     "exportCsv": "Export CSV",
     "exporting": "Exporting…",
+    "groupView": {
+      "todo": "To do ({{count}})",
+      "done": "Done ({{count}})",
+      "all": "All",
+      "allDone": "Every group has an increase set — nothing left to do.",
+      "noneDone": "No fully-applied groups yet.",
+      "showAll": "Show all groups"
+    },
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
     "groupCount": "{{count}} subscriptions",

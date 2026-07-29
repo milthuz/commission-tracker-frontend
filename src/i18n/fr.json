@@ -868,6 +868,14 @@
     "saving": "Enregistrement…",
     "exportCsv": "Exporter en CSV",
     "exporting": "Exportation…",
+    "groupView": {
+      "todo": "À faire ({{count}})",
+      "done": "Terminés ({{count}})",
+      "all": "Tous",
+      "allDone": "Chaque groupe a une augmentation définie — il ne reste rien à faire.",
+      "noneDone": "Aucun groupe entièrement appliqué pour l'instant.",
+      "showAll": "Afficher tous les groupes"
+    },
     "expandAll": "Tout déplier",
     "collapseAll": "Tout replier",
     "groupCount": "{{count}} abonnements",

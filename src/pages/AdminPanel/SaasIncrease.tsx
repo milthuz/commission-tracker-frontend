@@ -160,6 +160,7 @@ const SaasIncrease: React.FC = () => {
   const [planFilter, setPlanFilter] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('name');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [groupView, setGroupView] = useState<'todo' | 'done' | 'all'>('todo');
   const [refreshingInsights, setRefreshingInsights] = useState(false);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
@@ -410,6 +411,19 @@ const SaasIncrease: React.FC = () => {
   };
 
   const isIncluded = (num: string) => (edits[num]?.increaseValue ?? 0) > 0;
+
+  // Group-level "done" filter — with dozens of org×plan groups, once an increase has been applied
+  // to a group it's just scroll-noise between you and the work that's left. A group counts as done
+  // only when EVERY row in it has an increase (a partially-applied group still has work, so it
+  // stays under "To do"). Defaults to "todo" so applied groups drop out of view as you go, with
+  // one click to review the finished ones.
+  const isGroupDone = (rows: Subscription[]) => rows.length > 0 && rows.every(r => isIncluded(r.subscriptionNumber));
+  const doneGroupCount = groupedRows.reduce((n, [, rows]) => n + (isGroupDone(rows) ? 1 : 0), 0);
+  const todoGroupCount = groupedRows.length - doneGroupCount;
+  const visibleGroups = groupView === 'all'
+    ? groupedRows
+    : groupedRows.filter(([, rows]) => (groupView === 'done' ? isGroupDone(rows) : !isGroupDone(rows)));
+  const visibleRowCount = visibleGroups.reduce((n, [, rows]) => n + rows.length, 0);
 
   // Select-all now lives per-group (the column header only renders inside an expanded group) —
   // "select everything in this group" rather than one global toggle for the whole filtered list.
@@ -1045,8 +1059,21 @@ const SaasIncrease: React.FC = () => {
             </select>
             <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textTer}`} />
           </div>
+          {/* Group view — hides groups you've already fully applied an increase to, so the list
+              shrinks as you work instead of growing into a long scroll. */}
+          <div className={`inline-flex rounded-lg p-0.5 ${raised}`}>
+            <button type="button" onClick={() => setGroupView('todo')} className={segBtn(groupView === 'todo')}>
+              {t('saasIncrease.groupView.todo', { count: todoGroupCount })}
+            </button>
+            <button type="button" onClick={() => setGroupView('done')} className={segBtn(groupView === 'done')}>
+              {t('saasIncrease.groupView.done', { count: doneGroupCount })}
+            </button>
+            <button type="button" onClick={() => setGroupView('all')} className={segBtn(groupView === 'all')}>
+              {t('saasIncrease.groupView.all')}
+            </button>
+          </div>
           <button
-            onClick={() => setExpandedGroups(new Set(groupedRows.map(([key]) => key)))}
+            onClick={() => setExpandedGroups(new Set(visibleGroups.map(([key]) => key)))}
             className={`${raised} px-2.5 py-2 text-xs font-medium ${textSec} hover:text-gray-900 dark:hover:text-white`}
           >
             {t('saasIncrease.expandAll')}
@@ -1214,7 +1241,7 @@ const SaasIncrease: React.FC = () => {
                     </div>
                   );
                 };
-                return groupedRows.flatMap(([key, rows]) => {
+                return visibleGroups.flatMap(([key, rows]) => {
                   const expanded = expandedGroups.has(key);
                   const [orgLabel, planLabel] = key.split('||');
                   const groupCurrentTotal = rows.reduce((sum, r) => sum + r.currentMonthly, 0);
@@ -1271,11 +1298,22 @@ const SaasIncrease: React.FC = () => {
           {!loading && filtered.length === 0 && (
             <div className={`px-4 py-12 text-center text-sm ${textTer}`}>{t('saasIncrease.none')}</div>
           )}
+          {/* Distinguish "your filters match nothing" from "you've applied an increase to every
+              group" — the second is success, not an empty result. */}
+          {!loading && filtered.length > 0 && visibleGroups.length === 0 && (
+            <div className={`px-4 py-12 text-center text-sm ${textTer}`}>
+              {groupView === 'todo' ? t('saasIncrease.groupView.allDone') : t('saasIncrease.groupView.noneDone')}
+              {' '}
+              <button type="button" onClick={() => setGroupView('all')} className="font-medium text-primary underline decoration-dotted underline-offset-2">
+                {t('saasIncrease.groupView.showAll')}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* footer */}
         <div className="flex items-center justify-between border-t border-gray-100 px-4.5 py-3 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]">
-          <span className={`text-sm ${textTer}`}>{t('saasIncrease.showingOf', { visible: filtered.length, total: subs.length })}</span>
+          <span className={`text-sm ${textTer}`}>{t('saasIncrease.showingOf', { visible: visibleRowCount, total: subs.length })}</span>
           <span className={`text-sm ${textSec}`}>{t('saasIncrease.selectedCountLabel', { count: selectedRows.length })} · <span className="font-medium text-primary dark:text-[#F79C6A]">{money(selectedDelta)}/mo</span> {t('saasIncrease.added')}</span>
         </div>
       </div>
