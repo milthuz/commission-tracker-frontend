@@ -234,14 +234,18 @@ const PartnersAdmin: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-        {(['queue', 'partners'] as const).map((key) => (
-          <button key={key} onClick={() => setSub(key)}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition ${sub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
-            {t(`admin.partners.tabs.${key}`)}
+      {/* No in-page tab strip here on purpose — Opportunity Queue is this page's default view,
+          and Manage Partners is reached via the Sidebar's own submenu (user request
+          2026-07-2x), so a second switcher on the page itself would be redundant. */}
+      {sub === 'partners' && (
+        <div className="mb-4 flex items-center gap-2 text-sm text-body">
+          <button onClick={() => setSub('queue')} className="flex items-center gap-1 font-medium text-primary hover:underline">
+            ← {t('admin.partners.tabs.queue')}
           </button>
-        ))}
-      </div>
+          <span>/</span>
+          <span className="font-semibold text-black dark:text-white">{t('admin.partners.tabs.partners')}</span>
+        </div>
+      )}
 
       {sub === 'partners' && (
         <div className="flex flex-col gap-4">
