@@ -2655,6 +2655,7 @@
     "accountInfo": "Informations du compte",
     "accountInfoSubtitle": "Vos informations personnelles",
     "displayName": "Nom d'affichage",
+    "displayNameLocked": "Vos commissions et talons de paie sont rattachés à ce nom : seul un administrateur peut le modifier. Contactez votre gestionnaire s'il est incorrect.",
     "email": "Courriel",
     "role": "Rôle",
     "administrator": "Administrateur",

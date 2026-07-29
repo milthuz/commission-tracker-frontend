@@ -407,7 +407,9 @@ const Profile = () => {
             </div>
             <div className="p-7">
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                {/* Display Name */}
+                {/* Display Name — read-only on purpose. This name is the rep identity every
+                    commission/pay-stub query is scoped to server-side, so it can't be
+                    self-edited; an admin changes it in Admin → Salespeople. */}
                 <div>
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
                     {t('profile.displayName')}
@@ -415,9 +417,10 @@ const Profile = () => {
                   <input
                     type="text"
                     value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    disabled
+                    className="w-full rounded-lg border border-stroke bg-whiter py-3 px-5 text-black outline-none dark:border-form-strokedark dark:bg-form-input dark:text-white cursor-not-allowed opacity-70"
                   />
+                  <p className="mt-1.5 text-xs text-body">{t('profile.displayNameLocked')}</p>
                 </div>
 
                 {/* Email (read only) */}

@@ -2655,6 +2655,7 @@
     "accountInfo": "Account Information",
     "accountInfoSubtitle": "Your personal details",
     "displayName": "Display Name",
+    "displayNameLocked": "Your commissions and pay stubs are tied to this name, so only an admin can change it. Contact your manager if it's wrong.",
     "email": "Email",
     "role": "Role",
     "administrator": "Administrator",

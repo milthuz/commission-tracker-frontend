@@ -1,0 +1,14 @@
+# Netlify serves these headers with every response (this file is copied verbatim from public/
+# into dist/ at build time). Before this file the only security header in production was HSTS,
+# which meant the dashboard could be framed by any origin — i.e. clickjacking was possible on a
+# money/commission UI.
+#
+# No Content-Security-Policy here on purpose: it has to be tailored to the Vite bundle and to the
+# AWS AppStream + PDF iframes the app embeds, so a guessed policy would break the Kaizen demo and
+# the invoice previews. Tracked as a follow-up.
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
