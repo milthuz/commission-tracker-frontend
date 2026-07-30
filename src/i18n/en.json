@@ -3151,6 +3151,39 @@
       "commis": "Commis",
       "sous": "Sous",
       "chef": "Chef"
+    },
+    "join": {
+      "title": "Join The Pass",
+      "sub": "Use the email on your Cluster account. We'll send you a sign-in link — there's no password to remember.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "hello@myrestaurant.ca",
+      "consent": "I accept The Pass program terms and the privacy policy.",
+      "terms": "program terms",
+      "privacy": "privacy policy",
+      "submit": "Send My Link",
+      "eligibility": "The Pass is for Cluster merchants in Canada.",
+      "ladderTitle": "What a referral earns you",
+      "ladderRule": "Your tier never resets. Every restaurant you send that goes live moves you up for good.",
+      "hardware": "The restaurant you refer gets {{amount}} off hardware.",
+      "sentTitle": "Check your email",
+      "sentBody": "We sent a sign-in link to {{email}}. It's valid for 15 minutes and works once.",
+      "sentHint": "Nothing yet? Look in your spam folder, or ask for another link.",
+      "resend": "Send Another Link",
+      "wrongEmail": "Use a different address",
+      "connecting": "Signing you in",
+      "closedTitle": "The Pass isn't open yet",
+      "closedBody": "The program hasn't launched. Talk to your Cluster contact to hear when it does.",
+      "err": {
+        "invalid_email": "That doesn't look like an email address.",
+        "consent_required": "Please accept the program terms to continue.",
+        "program_not_open": "The Pass isn't open yet.",
+        "too_many_attempts": "Too many attempts. Try again in a few minutes.",
+        "email_not_sent": "We couldn't send the email. Please try again shortly.",
+        "link_request_failed": "Something went wrong on our end. Please try again shortly.",
+        "link_invalid_or_expired": "That link has expired or was already used. Ask for a new one.",
+        "member_suspended": "This membership is on hold. Contact your Cluster representative.",
+        "generic": "Something went wrong. Please try again."
+      }
     }
   }
 }

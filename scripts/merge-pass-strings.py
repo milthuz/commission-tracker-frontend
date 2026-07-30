@@ -77,7 +77,15 @@ def merge(bundle_dir):
         path = os.path.join(I18N, '%s.json' % lang)
         base = json.load(io.open(path, encoding='utf-8'), object_pairs_hook=collections.OrderedDict)
         before = {k: v for k, v in base.items() if k != 'pass'}
-        base['pass'] = merged[lang]
+
+        # Tout ce qui vit sous `pass` sans venir du deck est CONSERVE : le design laisse des
+        # trous reconnus (l'adhesion n'est pas dessinee, `pass.join` est de nous), et une
+        # affectation seche les effacerait a la prochaine livraison du designer — en
+        # silence, puisque i18next affiche simplement la cle brute a la place.
+        kept = {k: v for k, v in (base.get('pass') or {}).items() if k not in merged[lang]}
+        if kept:
+            print('conservees hors deck : %s' % ', '.join(sorted(kept)))
+        base['pass'] = collections.OrderedDict(list(merged[lang].items()) + list(kept.items()))
         after = {k: v for k, v in base.items() if k != 'pass'}
         if before != after:
             raise SystemExit('%s : le contenu preexistant aurait ete modifie — abandon.' % path)

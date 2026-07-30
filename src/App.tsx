@@ -20,6 +20,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { NewFeaturesProvider } from './context/NewFeaturesContext';
 import DialogHost from './components/DialogHost';
 import { PartnerAuthProvider } from './context/PartnerAuthContext';
+import { PassAuthProvider } from './context/PassAuthContext';
 import PartnerProtectedRoute from './components/PartnerProtectedRoute';
 import PartnerLayout from './layout/PartnerLayout';
 import PartnerLogin from './pages/PartnerPortal/Login';
@@ -51,6 +52,7 @@ const PartnerPortal = lazy(() => import('./pages/PartnerPortal'));
 const PartnerProfile = lazy(() => import('./pages/PartnerPortal/Profile'));
 const PartnerTeam = lazy(() => import('./pages/PartnerPortal/Team'));
 const PartnerOrganization = lazy(() => import('./pages/PartnerPortal/Organization'));
+const PassJoin = lazy(() => import('./pages/Pass/Join'));
 
 // "/" adapts to the user's role:
 //   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
@@ -174,6 +176,19 @@ function AppContent() {
           <>
             <PageTitle title="Reset Password | Sales Hub" />
             <PartnerResetPassword />
+          </>
+        }
+      />
+
+      {/* La Passe (SH-22) — adhésion et connexion des membres marchands. Route publique :
+          elle est atteinte depuis un courriel, avant toute session. Le lien magique y
+          revient avec ?token= et l'écran l'échange lui-même contre une session. */}
+      <Route
+        path="/pass/connexion"
+        element={
+          <>
+            <PageTitle title="La Passe | Cluster" />
+            <PassJoin />
           </>
         }
       />
@@ -380,10 +395,12 @@ function App() {
   return (
     <AuthProvider>
       <PartnerAuthProvider>
-        <NewFeaturesProvider>
-          <AppContent />
-          <DialogHost />
-        </NewFeaturesProvider>
+        <PassAuthProvider>
+          <NewFeaturesProvider>
+            <AppContent />
+            <DialogHost />
+          </NewFeaturesProvider>
+        </PassAuthProvider>
       </PartnerAuthProvider>
     </AuthProvider>
   );

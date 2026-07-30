@@ -3151,6 +3151,39 @@
       "commis": "Commis",
       "sous": "Sous",
       "chef": "Chef"
+    },
+    "join": {
+      "title": "Joindre La Passe",
+      "sub": "Utilisez le courriel de votre compte Cluster. On vous envoie un lien de connexion — aucun mot de passe à retenir.",
+      "emailLabel": "Courriel",
+      "emailPlaceholder": "bonjour@monrestaurant.ca",
+      "consent": "J'accepte les conditions du programme La Passe et la politique de confidentialité.",
+      "terms": "conditions du programme",
+      "privacy": "politique de confidentialité",
+      "submit": "Envoyer mon lien",
+      "eligibility": "La Passe est réservée aux marchands Cluster du Canada.",
+      "ladderTitle": "Ce que rapporte une recommandation",
+      "ladderRule": "Votre palier ne redescend jamais. Chaque restaurant que vous envoyez et qui entre en service vous fait monter pour de bon.",
+      "hardware": "Le restaurant que vous recommandez obtient {{amount}} de rabais sur le matériel.",
+      "sentTitle": "Vérifiez vos courriels",
+      "sentBody": "Nous avons envoyé un lien de connexion à {{email}}. Il est valide 15 minutes et ne sert qu'une fois.",
+      "sentHint": "Rien encore ? Regardez dans vos indésirables, ou demandez un autre lien.",
+      "resend": "Envoyer un autre lien",
+      "wrongEmail": "Utiliser une autre adresse",
+      "connecting": "Connexion en cours",
+      "closedTitle": "La Passe n'est pas encore ouverte",
+      "closedBody": "Le programme n'est pas lancé. Parlez-en à votre contact Cluster pour savoir quand il le sera.",
+      "err": {
+        "invalid_email": "Cette adresse ne ressemble pas à un courriel.",
+        "consent_required": "Veuillez accepter les conditions du programme pour continuer.",
+        "program_not_open": "La Passe n'est pas encore ouverte.",
+        "too_many_attempts": "Trop de tentatives. Réessayez dans quelques minutes.",
+        "email_not_sent": "L'envoi du courriel a échoué. Réessayez dans un moment.",
+        "link_request_failed": "Un problème est survenu de notre côté. Réessayez dans un moment.",
+        "link_invalid_or_expired": "Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.",
+        "member_suspended": "Cette adhésion est suspendue. Contactez votre représentant Cluster.",
+        "generic": "Un problème est survenu. Réessayez."
+      }
     }
   }
 }
