@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
-import { Eye, Download, X, Users } from 'lucide-react';
+import { Eye, Download, X } from 'lucide-react';
 import { formatDateOnly } from '../utils/date';
 import PayStubModal, { PayStubData } from '../components/PayStubModal';
 import ProbationBadge from '../components/ProbationBadge';
@@ -31,13 +31,6 @@ interface DrillInvoice {
   approvedAt: string | null;
   payoutPaidBy: string | null;
   payoutPaidAt: string | null;
-  // Co-vente : `commission` ci-dessus est la PART de ce vendeur, pas le total du
-  // dossier. Ces champs permettent de l'expliquer — sinon une ligne à moitié du
-  // montant ressemble à une erreur de calcul.
-  primaryRep: string | null;
-  dealCommission: number | null;
-  coSellerName: string | null;
-  coSellerPercent: number | null;
 }
 
 // Map commission_status → { i18n key, color classes }
@@ -155,7 +148,6 @@ const CommissionReport = () => {
   const canApprove = isAdmin || perms.includes('*') || perms.includes('report:approve');
   const canMarkPaid = isAdmin || perms.includes('*') || perms.includes('report:mark_paid');
   const canViewPaystub = isAdmin || perms.includes('*') || perms.includes('report:view_paystub');
-  const canCoSell = isAdmin || perms.includes('*') || perms.includes('report:co_sell');
   // Rep-facing pay stub (Étape 3): app-generated or sourced from a historical import.
   const [payStub, setPayStub] = useState<PayStubData | null>(null);
   const [loadingStub, setLoadingStub] = useState(false);
@@ -189,56 +181,6 @@ const CommissionReport = () => {
   const [missingModal, setMissingModal] = useState<{ open: boolean; invoiceNumber: string; message: string; sending: boolean }>({
     open: false, invoiceNumber: '', message: '', sending: false,
   });
-  // Co-vente : partager un dossier entre deux vendeurs (perm report:co_sell).
-  const [coSellModal, setCoSellModal] = useState<{
-    open: boolean; inv: DrillInvoice | null; name: string; percent: string; saving: boolean; error: string;
-  }>({ open: false, inv: null, name: '', percent: '50', saving: false, error: '' });
-
-  const openCoSell = (inv: DrillInvoice) => setCoSellModal({
-    open: true, inv,
-    name: inv.coSellerName || '',
-    // 50/50 par défaut : c'est le cas courant, et le champ reste libre pour un
-    // 70/30. Sur un dossier déjà partagé, on repart de la valeur en place.
-    percent: inv.coSellerPercent != null ? String(inv.coSellerPercent) : '50',
-    saving: false, error: '',
-  });
-
-  const saveCoSell = async (clear = false) => {
-    const inv = coSellModal.inv;
-    if (!inv) return;
-    setCoSellModal(m => ({ ...m, saving: true, error: '' }));
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        `${API_URL}/api/commissions/${encodeURIComponent(inv.invoiceNumber)}/co-seller`,
-        clear ? { coSellerName: null } : { coSellerName: coSellModal.name, percent: Number(coSellModal.percent) },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      setCoSellModal({ open: false, inv: null, name: '', percent: '50', saving: false, error: '' });
-      setNotification({
-        show: true, type: 'success',
-        message: t(clear ? 'commissionReport.coSell.cleared' : 'commissionReport.coSell.saved') as string,
-      });
-      // Même rafraîchissement que toggleExcludeCommission : le volet déplié ET
-      // les totaux mensuels, sinon la ligne affiche la nouvelle part pendant que
-      // le total du mois montre encore l'ancienne — l'incohérence la plus
-      // susceptible de faire douter d'un chiffre de paie.
-      if (expandedMonth != null && report) {
-        const r = await axios.get(`${API_URL}/api/commissions/invoices`, {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { year: selectedYear, month: String(expandedMonth), repName: report.repName },
-        });
-        setDrillInvoices(r.data.invoices || []);
-      }
-      refreshReport();
-    } catch (e: any) {
-      // Le backend renvoie un message actionnable (ex. dossier déjà payé →
-      // passer par les Ajustements). L'afficher tel quel vaut mieux qu'un
-      // « erreur » générique qui laisse l'admin deviner.
-      setCoSellModal(m => ({ ...m, saving: false, error: e?.response?.data?.error || String(e?.message || e) }));
-    }
-  };
-
   // Client/invoice search across the whole selected year (rep can find a specific deal fast).
   const [searchInput, setSearchInput] = useState('');
   const [searchModal, setSearchModal] = useState<{ open: boolean; q: string; loading: boolean; results: DrillInvoice[] }>({
@@ -746,26 +688,7 @@ const CommissionReport = () => {
               ) : <span className="text-xs text-body">—</span>}
             </td>
             <td className="px-3 py-2.5 text-xs text-right text-body">{formatCurrency(inv.total)}</td>
-            <td className="px-3 py-2.5 text-xs text-right font-medium text-black dark:text-white">
-              {formatCurrency(inv.commission)}
-              {inv.coSellerName && (
-                // On nomme LES DEUX vendeurs et leurs parts plutôt que « partagé
-                // avec X » : le libellé est alors le même pour le principal, le
-                // co-vendeur et l'admin, et personne n'a à deviner de quel côté
-                // il se trouve. Le total du dossier est en infobulle.
-                <div
-                  className="mt-0.5 font-normal text-[10px] leading-tight text-body"
-                  title={inv.dealCommission != null
-                    ? `${t('commissionReport.coSell.dealTotal')} ${formatCurrency(inv.dealCommission)}`
-                    : undefined}
-                >
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary bg-opacity-10 px-1.5 py-0.5 text-primary">
-                    <Users className="h-2.5 w-2.5" />
-                    {inv.primaryRep} {100 - (inv.coSellerPercent || 0)}% · {inv.coSellerName} {inv.coSellerPercent}%
-                  </span>
-                </div>
-              )}
-            </td>
+            <td className="px-3 py-2.5 text-xs text-right font-medium text-black dark:text-white">{formatCurrency(inv.commission)}</td>
             <td className="px-3 py-2.5 text-center">
               {inv.approvalStatus === 'paid' ? (
                 <span className="inline-flex rounded-full bg-success bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-success" title={inv.payoutPaidAt ? `Paid ${formatDateOnly(inv.payoutPaidAt, i18n.language)}` : ''}>PAID</span>
@@ -789,17 +712,6 @@ const CommissionReport = () => {
                 <button onClick={() => handlePrint(inv.invoiceNumber)} className="text-body hover:text-primary transition" title="Print">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                 </button>
-                {canCoSell && inv.approvalStatus !== 'paid' && (
-                  // Masqué sur un dossier payé : le backend refuserait (PAYÉ =
-                  // GELÉ), donc offrir le bouton ne mènerait qu'à une erreur.
-                  <button
-                    onClick={() => openCoSell(inv)}
-                    className={`transition ${inv.coSellerName ? 'text-primary' : 'text-body hover:text-primary'}`}
-                    title={t(inv.coSellerName ? 'commissionReport.coSell.edit' : 'commissionReport.coSell.add') as string}
-                  >
-                    <Users className="h-4 w-4" />
-                  </button>
-                )}
                 {canMarkPaid && inv.approvalStatus !== 'paid' && (
                   inv.commissionStatus === 'excluded' ? (
                     <button onClick={() => toggleExcludeCommission(inv.invoiceNumber, true)} className="text-success hover:text-success/70 transition" title={t('commissionReport.exclude.restore') as string}>
@@ -1023,105 +935,6 @@ const CommissionReport = () => {
       </div>
 
       {/* Missing-commission modal */}
-      {coSellModal.open && coSellModal.inv && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4"
-          onClick={() => !coSellModal.saving && setCoSellModal(m => ({ ...m, open: false }))}
-        >
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">
-              {t('commissionReport.coSell.title')}
-            </h3>
-            <p className="mb-4 text-sm text-body">
-              {t('commissionReport.coSell.subtitle', { invoice: coSellModal.inv.invoiceNumber })}
-            </p>
-
-            <label className="mb-1 block text-xs font-medium text-body">{t('commissionReport.coSell.repLabel')}</label>
-            <select
-              value={coSellModal.name}
-              onChange={(e) => setCoSellModal(m => ({ ...m, name: e.target.value }))}
-              className="mb-4 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
-            >
-              <option value="">{t('commissionReport.coSell.repPlaceholder')}</option>
-              {/* Le vendeur principal est exclu de la liste : le backend le refuserait
-                  et la contrainte SQL aussi, autant ne pas le proposer. */}
-              {salespeople.filter(n => n !== coSellModal.inv?.primaryRep).map(n => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
-
-            <label className="mb-1 block text-xs font-medium text-body">
-              {t('commissionReport.coSell.percentLabel', { rep: coSellModal.name || '…' })}
-            </label>
-            <input
-              type="number" min={1} max={99} step={1}
-              value={coSellModal.percent}
-              onChange={(e) => setCoSellModal(m => ({ ...m, percent: e.target.value }))}
-              className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
-            />
-
-            {/* Aperçu chiffré AVANT d'enregistrer : personne ne devrait avoir à
-                calculer de tête ce que chacun touchera. */}
-            {coSellModal.inv.dealCommission != null && Number(coSellModal.percent) > 0 && Number(coSellModal.percent) < 100 && (
-              <div className="mt-4 rounded bg-gray-50 p-3 text-xs dark:bg-meta-4">
-                <div className="mb-1 flex justify-between text-body">
-                  <span>{t('commissionReport.coSell.dealTotal')}</span>
-                  <span className="font-medium text-black dark:text-white">{formatCurrency(coSellModal.inv.dealCommission)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-body">{coSellModal.inv.primaryRep} · {100 - Number(coSellModal.percent)}%</span>
-                  <span className="font-semibold text-black dark:text-white">
-                    {formatCurrency(coSellModal.inv.dealCommission
-                      - Math.round(Math.round(coSellModal.inv.dealCommission * 100) * Number(coSellModal.percent) / 100) / 100)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-body">{coSellModal.name || '…'} · {Number(coSellModal.percent)}%</span>
-                  <span className="font-semibold text-black dark:text-white">
-                    {formatCurrency(Math.round(Math.round(coSellModal.inv.dealCommission * 100) * Number(coSellModal.percent) / 100) / 100)}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {coSellModal.error && (
-              <div className="mt-4 rounded bg-danger bg-opacity-10 p-3 text-xs text-danger">{coSellModal.error}</div>
-            )}
-
-            <div className="mt-5 flex items-center justify-between gap-2">
-              <div>
-                {coSellModal.inv.coSellerName && (
-                  <button
-                    onClick={() => saveCoSell(true)}
-                    disabled={coSellModal.saving}
-                    className="rounded px-3 py-2 text-sm font-medium text-danger hover:bg-danger hover:bg-opacity-10 disabled:opacity-50"
-                  >
-                    {t('commissionReport.coSell.remove')}
-                  </button>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCoSellModal(m => ({ ...m, open: false }))}
-                  disabled={coSellModal.saving}
-                  className="rounded border border-stroke px-4 py-2 text-sm text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
-                >
-                  {t('common.cancel')}
-                </button>
-                <button
-                  onClick={() => saveCoSell(false)}
-                  disabled={coSellModal.saving || !coSellModal.name
-                    || !(Number(coSellModal.percent) > 0 && Number(coSellModal.percent) < 100)}
-                  className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
-                >
-                  {coSellModal.saving ? t('common.saving') : t('common.save')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {missingModal.open && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>

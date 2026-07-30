@@ -1586,19 +1586,6 @@
       "confirm": "Refuser la commission sur {{invoice}} ? Elle passera à 0 $ (réversible).",
       "restored": "Commission réintégrée — recalcul en cours (~1-3 min)."
     },
-    "coSell": {
-      "title": "Partager ce dossier",
-      "subtitle": "Facture {{invoice}} — la commission est partagée entre deux vendeurs. Les deux gardent le dossier à 100 % pour leurs points et leur quota ; seul l'argent se divise.",
-      "repLabel": "Co-vendeur",
-      "repPlaceholder": "Choisir un vendeur…",
-      "percentLabel": "Part de {{rep}} (%)",
-      "dealTotal": "Commission du dossier",
-      "add": "Partager avec un autre vendeur",
-      "edit": "Modifier le partage",
-      "remove": "Retirer le partage",
-      "saved": "Partage enregistré.",
-      "cleared": "Partage retiré."
-    },
     "type": "Type",
     "approve": "Approuver",
     "markPaid": "Marquer payé",
