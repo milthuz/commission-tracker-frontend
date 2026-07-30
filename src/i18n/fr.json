@@ -92,7 +92,10 @@
   "reseller": {
     "title": "Revendeurs",
     "subtitle": "Activations de licences POS (Zoho) et paiements résiduels (Zentact).",
-    "tabs": { "activations": "Activations POS", "payments": "Paiements" },
+    "tabs": {
+      "activations": "Activations POS",
+      "payments": "Paiements"
+    },
     "filters": {
       "year": "Année",
       "month": "Mois",
@@ -150,7 +153,10 @@
   "revenue": {
     "title": "Revenus de paiements",
     "subtitle": "Transaction Profit des marchands (Zentact) — base des bonus vendeurs et des résiduels revendeurs.",
-    "tabs": { "byRep": "Par vendeur", "byReseller": "Par revendeur" },
+    "tabs": {
+      "byRep": "Par vendeur",
+      "byReseller": "Par revendeur"
+    },
     "kpi": {
       "profit": "Transaction Profit",
       "other": "Other Revenue",
@@ -536,14 +542,46 @@
     "newTag": "Nouveau",
     "existingTag": "Actuel",
     "categories": {
-      "saas": { "eyebrow": "Logiciel", "title": "Forfaits SaaS", "desc": "Licences d’abonnement Cluster OS — forfaits actuels, nouveaux forfaits et Kaizen (V2). En vigueur le 1er avril 2026." },
-      "rental": { "eyebrow": "Services", "title": "Forfaits de location", "desc": "Locations tout-inclus 2 ans (matériel + logiciel + services), facturées mensuellement." },
-      "menu": { "eyebrow": "Services", "title": "Services de montage de menu", "desc": "Forfaits de configuration de menu par taille. Taux horaire 125 $. Prix variables — à confirmer sur soumission." },
-      "install": { "eyebrow": "Services", "title": "Services d’installation", "desc": "Forfaits sur place (Montréal / Québec) et à distance, formation à distance incluse." },
-      "support": { "eyebrow": "Services", "title": "Forfaits de soutien", "desc": "Paliers de soutien de Gold (inclus) à Platinum 24/7, plus concierge Partenaire." },
-      "olo": { "eyebrow": "Modules", "title": "Commande en ligne", "desc": "Services de commande en ligne, à table et par code QR." },
-      "shipping": { "eyebrow": "Logistique", "title": "Grille des frais d’expédition", "desc": "Expédition standard depuis Montréal par région." },
-      "xperio": { "eyebrow": "Services", "title": "Frais sur place et XPERIO", "desc": "Tarifs de service sur place, charges revendeur et déplacements par région." }
+      "saas": {
+        "eyebrow": "Logiciel",
+        "title": "Forfaits SaaS",
+        "desc": "Licences d’abonnement Cluster OS — forfaits actuels, nouveaux forfaits et Kaizen (V2). En vigueur le 1er avril 2026."
+      },
+      "rental": {
+        "eyebrow": "Services",
+        "title": "Forfaits de location",
+        "desc": "Locations tout-inclus 2 ans (matériel + logiciel + services), facturées mensuellement."
+      },
+      "menu": {
+        "eyebrow": "Services",
+        "title": "Services de montage de menu",
+        "desc": "Forfaits de configuration de menu par taille. Taux horaire 125 $. Prix variables — à confirmer sur soumission."
+      },
+      "install": {
+        "eyebrow": "Services",
+        "title": "Services d’installation",
+        "desc": "Forfaits sur place (Montréal / Québec) et à distance, formation à distance incluse."
+      },
+      "support": {
+        "eyebrow": "Services",
+        "title": "Forfaits de soutien",
+        "desc": "Paliers de soutien de Gold (inclus) à Platinum 24/7, plus concierge Partenaire."
+      },
+      "olo": {
+        "eyebrow": "Modules",
+        "title": "Commande en ligne",
+        "desc": "Services de commande en ligne, à table et par code QR."
+      },
+      "shipping": {
+        "eyebrow": "Logistique",
+        "title": "Grille des frais d’expédition",
+        "desc": "Expédition standard depuis Montréal par région."
+      },
+      "xperio": {
+        "eyebrow": "Services",
+        "title": "Frais sur place et XPERIO",
+        "desc": "Tarifs de service sur place, charges revendeur et déplacements par région."
+      }
     }
   },
   "partnerPortal": {
@@ -554,7 +592,12 @@
     "inviteFor": "pour {{partner}}",
     "loadError": "Impossible de charger vos occasions d’affaires.",
     "noOpportunities": "Aucune occasion d’affaires soumise pour le moment.",
-    "tabs": { "list": "Mes occasions", "submit": "Soumettre", "team": "Équipe", "payouts": "Paiements" },
+    "tabs": {
+      "list": "Mes occasions",
+      "submit": "Soumettre",
+      "team": "Équipe",
+      "payouts": "Paiements"
+    },
     "colBusiness": "Entreprise",
     "colContact": "Contact",
     "colStatus": "Statut",
@@ -583,7 +626,11 @@
     "teamBreakdownTitle": "Par membre de l’équipe",
     "unknownSubmitter": "Inconnu",
     "colRole": "Rôle",
-    "status": { "pending": "En attente", "approved": "Approuvée", "rejected": "Refusée" },
+    "status": {
+      "pending": "En attente",
+      "approved": "Approuvée",
+      "rejected": "Refusée"
+    },
     "businessNameRequired": "Le nom de l’entreprise est requis.",
     "submitError": "Impossible de soumettre l’occasion d’affaires. Veuillez réessayer.",
     "fBusinessName": "Nom de l’entreprise",
@@ -1668,7 +1715,11 @@
     "partners": {
       "title": "Partenaires",
       "subtitle": "Gérez les entreprises partenaires et révisez les occasions d’affaires soumises.",
-      "tabs": { "partners": "Gérer les partenaires", "queue": "File des occasions d’affaires", "payouts": "Paiements" },
+      "tabs": {
+        "partners": "Gérer les partenaires",
+        "queue": "File des occasions d’affaires",
+        "payouts": "Paiements"
+      },
       "fName": "Nom du partenaire",
       "creating": "Création…",
       "addPartner": "Ajouter un partenaire",
@@ -1753,7 +1804,10 @@
         "colOpportunities": "Occasions",
         "colAmount": "Montant",
         "colRunStatus": "Statut",
-        "runStatus": { "draft": "Brouillon", "finalized": "Finalisé" },
+        "runStatus": {
+          "draft": "Brouillon",
+          "finalized": "Finalisé"
+        },
         "finalize": "Finaliser",
         "cancel": "Annuler",
         "finalizeConfirm": "Finaliser le run {{period}} pour {{amount}} $ ? Ceci verrouille ses occasions comme payées et est irréversible.",
@@ -1794,7 +1848,10 @@
     "integrations": {
       "title": "Intégrations",
       "subtitle": "Gérer vos connexions Zoho Books et Zentact",
-      "tabs": { "connections": "Connexions", "data": "Recalcul & enrichissement" }
+      "tabs": {
+        "connections": "Connexions",
+        "data": "Recalcul & enrichissement"
+      }
     },
     "zohoSync": {
       "title": "Synchronisation Zoho Books",
@@ -1982,8 +2039,15 @@
     "audit": {
       "title": "Audit",
       "subtitle": "Qui est connecté, depuis combien de temps, et chaque action enregistrée dans l'application.",
-      "tabs": { "dashboard": "Tableau de bord", "logs": "Journal" },
-      "range": { "today": "Aujourd'hui", "7d": "7 jours", "30d": "30 jours" },
+      "tabs": {
+        "dashboard": "Tableau de bord",
+        "logs": "Journal"
+      },
+      "range": {
+        "today": "Aujourd'hui",
+        "7d": "7 jours",
+        "30d": "30 jours"
+      },
       "onlineNow": "En ligne maintenant",
       "activeUsers": "Utilisateurs actifs",
       "totalHours": "Heures connectées (total)",
@@ -2124,7 +2188,11 @@
     "salespeople": {
       "title": "Gérer les vendeurs",
       "subtitle": "Activer/désactiver les vendeurs pour contrôler qui apparaît dans les filtres et rapports de commissions",
-      "tabs": { "reps": "Vendeurs", "teams": "Équipes", "points": "Points par type" },
+      "tabs": {
+        "reps": "Vendeurs",
+        "teams": "Équipes",
+        "points": "Points par type"
+      },
       "totalSalespeople": "Total",
       "addSalesperson": "Ajouter un vendeur",
       "addPlaceholder": "Nom du vendeur (exactement comme dans Zoho)",
@@ -2600,7 +2668,11 @@
     "usersSection": {
       "title": "Gestion des utilisateurs",
       "subtitle": "Rôles, accès administrateur, pré-assignation de rôles et utilisateurs externes",
-      "tabs": { "access": "Accès", "external": "Utilisateurs externes", "impersonation": "Impersonation" }
+      "tabs": {
+        "access": "Accès",
+        "external": "Utilisateurs externes",
+        "impersonation": "Impersonation"
+      }
     },
     "admins": {
       "title": "Accès utilisateurs",
@@ -2772,5 +2844,313 @@
     "currentRelease": "Version actuelle",
     "preRelease": "Pré-version",
     "newReleaseAvailable": "Nouvelle version disponible — cliquez pour voir les nouveautés"
+  },
+  "pass": {
+    "programName": "La Passe",
+    "nav": {
+      "program": "Programme",
+      "hub": "Espace membre",
+      "refer": "Référer",
+      "confirmation": "Confirmation",
+      "emails": "Courriels",
+      "ops": "Suivi interne"
+    },
+    "money": {
+      "t1": "500 $",
+      "t2": "750 $",
+      "t3": "1 000 $",
+      "certificate": "750,00 $",
+      "creditEarned": "2 000 $",
+      "creditIssued": "14 250 $"
+    },
+    "landing": {
+      "eyebrow": "Programme de recommandation marchand · Canada",
+      "title": "Toute grande cuisine repose sur le passe.",
+      "sub": "La Passe, c'est là où les restaurateurs Cluster se passent le mot. Recommandez un restaurant canadien : dès qu'il entre en service, vous obtenez du crédit sur vos frais Cluster — et davantage à chaque recommandation.",
+      "cta1": "Joindre La Passe",
+      "cta2": "Voir l'espace membre",
+      "stat1": "crédit maximal par recommandation",
+      "stat2": "de rabais matériel à offrir",
+      "stat3Value": "Illimité",
+      "stat3": "aucun plafond",
+      "ladderEyebrow": "L'échelle",
+      "ladderTitle": "Plus vous recommandez, plus vous gagnez",
+      "ladderSub": "Votre palier dépend du nombre de recommandations en service sur Cluster. Il ne se réinitialise jamais.",
+      "tierLabel": [
+        "Palier 1",
+        "Palier 2",
+        "Palier 3"
+      ],
+      "rule": [
+        "Votre 1re recommandation en service",
+        "Vos 2e et 3e recommandations",
+        "Votre 4e recommandation et les suivantes"
+      ],
+      "creditEach": "de crédit chacune",
+      "perks1": [
+        "500 $ de crédit par recommandation en service",
+        "500 $ de rabais matériel à remettre à votre recommandation",
+        "Espace membre avec suivi en temps réel"
+      ],
+      "perks2": [
+        "Tout ce qu'offre {tier1}",
+        "Ensemble d'articles promotionnels Cluster",
+        "Accès anticipé aux nouveautés Cluster"
+      ],
+      "perks3": [
+        "Tout ce qu'offre {tier2}",
+        "Inscription au répertoire des partenaires Cluster",
+        "Un chargé de compte dédié chez Cluster"
+      ],
+      "howTitle": "Comment ça marche",
+      "steps": [
+        {
+          "title": "Passez-le-nous",
+          "body": "Indiquez le restaurant et la personne à joindre. Une minute suffit."
+        },
+        {
+          "title": "On prend le relais",
+          "body": "Un spécialiste les joint en 2 jours ouvrables et gère toute l'installation."
+        },
+        {
+          "title": "Ils entrent en service",
+          "body": "Le restaurant commence à prendre des commandes sur Cluster et profite de son rabais matériel."
+        },
+        {
+          "title": "Votre crédit arrive",
+          "body": "Nous l'appliquons à votre compte et vous montez d'un palier."
+        }
+      ],
+      "legal": "Le crédit s'applique aux recommandations admissibles qui deviennent des clients actifs de Cluster au Canada. Offert uniquement aux marchands Cluster au Canada; les entreprises recommandées doivent être situées au Canada. Une seule adhésion par groupe d'entreprises. Le palier est établi selon le nombre total de recommandations en service et ne se réinitialise pas. Tous les montants sont en dollars canadiens. Sous réserve des conditions du programme.",
+      "referCta": "Recommander un restaurant"
+    },
+    "hub": {
+      "greeting": "Bon retour, {firstName}",
+      "meta": "{business} · Membre depuis {joinDate}",
+      "earning": "Vous gagnez {amount} par recommandation en service",
+      "toNext": "Encore {n} pour atteindre {tier3}",
+      "progress": "{live} recommandations sur {target} en service",
+      "unlock": "{tier3} donne accès à 1 000 $ par recommandation, au répertoire et à un chargé de compte",
+      "kpi": {
+        "earned": "Crédit obtenu",
+        "pending": "En attente",
+        "live": "En service",
+        "inProgress": "En cours"
+      },
+      "tableTitle": "Vos recommandations",
+      "tableCount": "{n} au total",
+      "perksTitle": "Vos avantages",
+      "perks": [
+        {
+          "title": "Rabais matériel de 500 $",
+          "body": "À offrir à tout restaurant que vous recommandez."
+        },
+        {
+          "title": "Articles promotionnels",
+          "body": "Expédiés dès que vous atteignez {tier2}."
+        },
+        {
+          "title": "Accès anticipé",
+          "body": "Vous faites partie de la prochaine cohorte bêta."
+        },
+        {
+          "title": "Répertoire des partenaires",
+          "body": "Débloqué à {tier3}."
+        },
+        {
+          "title": "Chargé de compte dédié",
+          "body": "Débloqué à {tier3}."
+        }
+      ]
+    },
+    "form": {
+      "title": "Passez-nous-en un.",
+      "sub": "Dites-nous qui joindre. On s'occupe du reste, et votre crédit arrive dès leur mise en service.",
+      "tierLine": "Vous êtes {tier2} — palier 2",
+      "creditWhen": "de crédit à sa mise en service",
+      "nextTier": "Encore une recommandation en service et vous passez à {tier3} : 1 000 $ chacune par la suite.",
+      "discountTitle": "Ils obtiennent 500 $ de rabais sur le matériel",
+      "discountBody": "Votre rabais suit la recommandation — mentionnez-le lors de votre approche.",
+      "section1": "Restaurant recommandé",
+      "section2": "Vos coordonnées",
+      "fields": {
+        "restaurant": "Nom du restaurant",
+        "contact": "Personne-ressource",
+        "city": "Ville",
+        "province": "Province ou territoire",
+        "postal": "Code postal",
+        "reach": "Courriel ou téléphone",
+        "langPref": "Langue de correspondance",
+        "howKnow": "Comment les connaissez-vous? (facultatif)",
+        "howKnowPlaceholder": "Un voisin de rue qui a dépassé les limites de son système actuel."
+      },
+      "edit": "Modifier",
+      "consent": "Je confirme avoir la permission de partager ces coordonnées et j'accepte les conditions du programme La Passe.",
+      "submit": "Envoyer"
+    },
+    "confirmation": {
+      "title": "C'est sur le passe",
+      "sub": "Merci {firstName} — nous avons reçu votre recommandation pour {restaurant}. Suivez-la en tout temps dans votre espace membre.",
+      "reference": "Référence",
+      "ifLive": "Si celle-ci entre en service",
+      "ifLiveBody": "Vous obtiendrez 750 $ et atteindrez {tier3}, où chaque recommandation suivante vaut 1 000 $.",
+      "toTier": "vers {tier3}",
+      "next": "Les prochaines étapes",
+      "steps": [
+        {
+          "title": "Nous les joignons en 2 jours ouvrables",
+          "body": "Un spécialiste Cluster contacte {restaurant} et applique votre rabais matériel de 500 $."
+        },
+        {
+          "title": "Votre crédit est confirmé à la mise en service",
+          "body": "Dès qu'ils sont clients actifs de Cluster, 750 $ vous reviennent."
+        },
+        {
+          "title": "Le crédit arrive en certificat-cadeau virtuel",
+          "body": "Nous vous l'envoyons par courriel et l'appliquons à votre compte Cluster."
+        }
+      ],
+      "cta1": "Aller à l'espace membre",
+      "cta2": "Recommander un autre"
+    },
+    "emails": {
+      "railTitle": "La Passe · courriels aux membres",
+      "note": "Chaque courriel est envoyé dans la langue de correspondance choisie par le membre. Les versions française et anglaise sont maintenues en parallèle.",
+      "from": "La Passe chez Cluster <lapasse@clusterpos.ca>",
+      "footer": "Vous recevez ce message parce que vous êtes membre de La Passe, le programme de recommandation marchand de Cluster au Canada. Le crédit s'applique aux recommandations admissibles qui deviennent des clients actifs et est assujetti aux conditions du programme. Tous les montants sont en dollars canadiens. Cluster · clusterpos.ca",
+      "certTitle": "Crédit au compte Cluster",
+      "certCode": "Code du certificat",
+      "cadNote": "en dollars canadiens",
+      "tierUnlocked": "Nouveau palier atteint",
+      "tierUnlockedSub": "1 000 $ de crédit pour chaque recommandation à partir de maintenant",
+      "templates": [
+        {
+          "key": "received",
+          "stage": "Reçue",
+          "subject": "Nous avons bien reçu {restaurant}",
+          "preview": "Votre recommandation est sur le passe — voici la suite.",
+          "greeting": "Bonjour {firstName},",
+          "paras": [
+            "Merci de nous avoir passé {restaurant}. La recommandation est enregistrée sous la référence {referenceId}.",
+            "Un spécialiste les joindra dans les 2 jours ouvrables et gérera toute l'installation — y compris le rabais matériel de 500 $ qui accompagne votre recommandation.",
+            "Vous êtes actuellement {tier2} : celle-ci vaut donc 750 $ de crédit au compte dès leur mise en service."
+          ],
+          "cta": "Suivre dans mon espace"
+        },
+        {
+          "key": "live",
+          "stage": "En service",
+          "subject": "{restaurant} est en service sur Cluster",
+          "preview": "Votre recommandation vient d'entrer en service — crédit confirmé.",
+          "greeting": "Bonjour {firstName},",
+          "paras": [
+            "{restaurant} a terminé son installation et prend maintenant ses commandes sur Cluster.",
+            "Cela confirme 750 $ de crédit au compte. Votre certificat arrivera par courriel dans un jour ouvrable.",
+            "Merci d'avoir aidé un autre restaurateur à mieux s'outiller."
+          ],
+          "cta": "Voir mon espace"
+        },
+        {
+          "key": "tier_up",
+          "stage": "Palier",
+          "subject": "Vous avez atteint {tier3}",
+          "preview": "Quatre recommandations en service. Chaque suivante vaut 1 000 $.",
+          "greeting": "Bonjour {firstName},",
+          "paras": [
+            "{restaurant} était votre quatrième recommandation à entrer en service — vous voilà au sommet de La Passe.",
+            "Désormais, chaque recommandation en service vous rapporte 1 000 $ de crédit au compte. Votre inscription au répertoire est en préparation et votre chargé de compte se présentera cette semaine."
+          ],
+          "cta": "Voir mon palier"
+        },
+        {
+          "key": "credit",
+          "stage": "Crédit",
+          "subject": "Votre crédit de 750 $ est prêt",
+          "preview": "Certificat pour la recommandation {restaurant}.",
+          "greeting": "Bonjour {firstName},",
+          "paras": [
+            "Voici votre crédit pour la recommandation {restaurant}.",
+            "La comptabilité a été avisée : le montant sera porté à vos prochaines factures Cluster et apparaîtra automatiquement sur votre prochain relevé."
+          ],
+          "cta": "Voir mon relevé"
+        }
+      ]
+    },
+    "ops": {
+      "title": "La Passe · recommandations marchands",
+      "sub": "Suivez chaque recommandation, changement de palier et émission de crédit.",
+      "export": "Exporter",
+      "kpi": {
+        "total": "Recommandations",
+        "awaiting": "À contacter",
+        "liveMonth": "En service ce mois-ci",
+        "creditIssued": "Crédit émis",
+        "tierUps": "Paliers à confirmer"
+      },
+      "filters": {
+        "all": "Toutes",
+        "new": "Nouvelle",
+        "contacted": "Contactée",
+        "live": "En service",
+        "applied": "Crédit appliqué"
+      },
+      "columns": {
+        "member": "Membre",
+        "restaurant": "Restaurant",
+        "tier": "Palier",
+        "sent": "Envoyée",
+        "status": "Statut",
+        "credit": "Crédit"
+      },
+      "lifetimeLive": "Recommandations en service",
+      "thisPays": "Cette recommandation vaut",
+      "memberLang": "Langue",
+      "tierUpNote": "La mise en service fait monter ce membre d'un palier — envoyez le courriel de palier.",
+      "workflow": "Flux de travail",
+      "nextStep": "Prochaine étape",
+      "actions": {
+        "apply": "Aviser la comptabilité · appliquer le crédit",
+        "certificate": "Envoyer le certificat virtuel",
+        "markContacted": "Marquer contactée",
+        "markLive": "Marquer en service"
+      },
+      "nextSteps": {
+        "new": "Contacter le restaurant dans les 2 jours ouvrables.",
+        "contacted": "En attente de la mise en service — relancer après 5 jours.",
+        "live_tierup": "Appliquer le crédit, envoyer le certificat, puis le courriel de palier.",
+        "live": "Aviser la comptabilité d'appliquer le crédit, puis envoyer le certificat.",
+        "credit_applied": "Terminé — crédit appliqué et certificat envoyé.",
+        "not_qualified": "Aucune action — recommandation non admissible."
+      }
+    },
+    "status": {
+      "new": "Nouvelle",
+      "contacted": "Contactée",
+      "live": "En service",
+      "credit_applied": "Crédit appliqué",
+      "not_qualified": "Non admissible",
+      "submitted": "Envoyée",
+      "pending": "En attente"
+    },
+    "provinceNames": {
+      "AB": "Alberta",
+      "BC": "Colombie-Britannique",
+      "PE": "Île-du-Prince-Édouard",
+      "MB": "Manitoba",
+      "NB": "Nouveau-Brunswick",
+      "NS": "Nouvelle-Écosse",
+      "NU": "Nunavut",
+      "ON": "Ontario",
+      "QC": "Québec",
+      "SK": "Saskatchewan",
+      "NL": "Terre-Neuve-et-Labrador",
+      "NT": "Territoires du Nord-Ouest",
+      "YT": "Yukon"
+    },
+    "tiers": {
+      "commis": "Commis",
+      "sous": "Sous",
+      "chef": "Chef"
+    }
   }
 }

@@ -92,7 +92,10 @@
   "reseller": {
     "title": "Resellers",
     "subtitle": "POS license activations (Zoho) and residual payments (Zentact).",
-    "tabs": { "activations": "POS Activations", "payments": "Payments" },
+    "tabs": {
+      "activations": "POS Activations",
+      "payments": "Payments"
+    },
     "filters": {
       "year": "Year",
       "month": "Month",
@@ -150,7 +153,10 @@
   "revenue": {
     "title": "Processing Revenue",
     "subtitle": "Merchant Transaction Profit from Zentact — basis for salesperson bonuses and reseller residuals.",
-    "tabs": { "byRep": "By salesperson", "byReseller": "By reseller" },
+    "tabs": {
+      "byRep": "By salesperson",
+      "byReseller": "By reseller"
+    },
     "kpi": {
       "profit": "Transaction Profit",
       "other": "Other Revenue",
@@ -536,14 +542,46 @@
     "newTag": "New",
     "existingTag": "Existing",
     "categories": {
-      "saas": { "eyebrow": "Software", "title": "SaaS Packages", "desc": "Cluster OS subscription licenses — existing plans, new packages, and Kaizen (V2). Effective April 1, 2026." },
-      "rental": { "eyebrow": "Services", "title": "Rental Packages", "desc": "2-year all-inclusive hardware + software + services rentals, billed monthly." },
-      "menu": { "eyebrow": "Services", "title": "Menu Build Services", "desc": "Menu configuration packages by size. Hourly rate $125. Prices vary — confirm on quote." },
-      "install": { "eyebrow": "Services", "title": "Installation Services", "desc": "Onsite (Montreal / Quebec City) and remote installation packages, incl. remote training." },
-      "support": { "eyebrow": "Services", "title": "Support Packages", "desc": "Support tiers from Gold (included) to Platinum 24/7, plus Partner concierge." },
-      "olo": { "eyebrow": "Add-ons", "title": "Online Ordering", "desc": "Online, tableside and QR ordering services." },
-      "shipping": { "eyebrow": "Logistics", "title": "Shipping Cost Guidelines", "desc": "Standard shipping from Montreal by region." },
-      "xperio": { "eyebrow": "Services", "title": "On-Site & XPERIO Fees", "desc": "On-site service rates, reseller charges and travel by region." }
+      "saas": {
+        "eyebrow": "Software",
+        "title": "SaaS Packages",
+        "desc": "Cluster OS subscription licenses — existing plans, new packages, and Kaizen (V2). Effective April 1, 2026."
+      },
+      "rental": {
+        "eyebrow": "Services",
+        "title": "Rental Packages",
+        "desc": "2-year all-inclusive hardware + software + services rentals, billed monthly."
+      },
+      "menu": {
+        "eyebrow": "Services",
+        "title": "Menu Build Services",
+        "desc": "Menu configuration packages by size. Hourly rate $125. Prices vary — confirm on quote."
+      },
+      "install": {
+        "eyebrow": "Services",
+        "title": "Installation Services",
+        "desc": "Onsite (Montreal / Quebec City) and remote installation packages, incl. remote training."
+      },
+      "support": {
+        "eyebrow": "Services",
+        "title": "Support Packages",
+        "desc": "Support tiers from Gold (included) to Platinum 24/7, plus Partner concierge."
+      },
+      "olo": {
+        "eyebrow": "Add-ons",
+        "title": "Online Ordering",
+        "desc": "Online, tableside and QR ordering services."
+      },
+      "shipping": {
+        "eyebrow": "Logistics",
+        "title": "Shipping Cost Guidelines",
+        "desc": "Standard shipping from Montreal by region."
+      },
+      "xperio": {
+        "eyebrow": "Services",
+        "title": "On-Site & XPERIO Fees",
+        "desc": "On-site service rates, reseller charges and travel by region."
+      }
     }
   },
   "partnerPortal": {
@@ -554,7 +592,12 @@
     "inviteFor": "for {{partner}}",
     "loadError": "Couldn't load your opportunities.",
     "noOpportunities": "No opportunities submitted yet.",
-    "tabs": { "list": "My Opportunities", "submit": "Submit New", "team": "Team", "payouts": "Payouts" },
+    "tabs": {
+      "list": "My Opportunities",
+      "submit": "Submit New",
+      "team": "Team",
+      "payouts": "Payouts"
+    },
     "colBusiness": "Business",
     "colContact": "Contact",
     "colStatus": "Status",
@@ -583,7 +626,11 @@
     "teamBreakdownTitle": "By team member",
     "unknownSubmitter": "Unknown",
     "colRole": "Role",
-    "status": { "pending": "Pending", "approved": "Approved", "rejected": "Rejected" },
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
     "businessNameRequired": "Business name is required.",
     "submitError": "Couldn't submit the opportunity. Please try again.",
     "fBusinessName": "Business name",
@@ -1668,7 +1715,11 @@
     "partners": {
       "title": "Partners",
       "subtitle": "Manage partner companies and review submitted opportunities.",
-      "tabs": { "partners": "Manage Partners", "queue": "Opportunity Queue", "payouts": "Payouts" },
+      "tabs": {
+        "partners": "Manage Partners",
+        "queue": "Opportunity Queue",
+        "payouts": "Payouts"
+      },
       "fName": "Partner name",
       "creating": "Creating…",
       "addPartner": "Add partner",
@@ -1753,7 +1804,10 @@
         "colOpportunities": "Opportunities",
         "colAmount": "Amount",
         "colRunStatus": "Status",
-        "runStatus": { "draft": "Draft", "finalized": "Finalized" },
+        "runStatus": {
+          "draft": "Draft",
+          "finalized": "Finalized"
+        },
         "finalize": "Finalize",
         "cancel": "Cancel",
         "finalizeConfirm": "Finalize the {{period}} run for ${{amount}}? This locks its opportunities as paid and can't be undone.",
@@ -1794,7 +1848,10 @@
     "integrations": {
       "title": "Integrations",
       "subtitle": "Manage your Zoho Books and Zentact connections",
-      "tabs": { "connections": "Connections", "data": "Recalc & enrichment" }
+      "tabs": {
+        "connections": "Connections",
+        "data": "Recalc & enrichment"
+      }
     },
     "zohoSync": {
       "title": "Zoho Books Sync",
@@ -1982,8 +2039,15 @@
     "audit": {
       "title": "Audit",
       "subtitle": "Who's connected, how long, and every logged action across the app.",
-      "tabs": { "dashboard": "Dashboard", "logs": "Logs" },
-      "range": { "today": "Today", "7d": "7 days", "30d": "30 days" },
+      "tabs": {
+        "dashboard": "Dashboard",
+        "logs": "Logs"
+      },
+      "range": {
+        "today": "Today",
+        "7d": "7 days",
+        "30d": "30 days"
+      },
       "onlineNow": "Online now",
       "activeUsers": "Active users",
       "totalHours": "Total connected hours",
@@ -2124,7 +2188,11 @@
     "salespeople": {
       "title": "Manage Salespeople",
       "subtitle": "Toggle salespeople on/off to control who appears in invoice filters and commission reports",
-      "tabs": { "reps": "Salespeople", "teams": "Teams", "points": "Deal points" },
+      "tabs": {
+        "reps": "Salespeople",
+        "teams": "Teams",
+        "points": "Deal points"
+      },
       "totalSalespeople": "Total",
       "addSalesperson": "Add salesperson",
       "addPlaceholder": "New salesperson name (exactly as in Zoho)",
@@ -2600,7 +2668,11 @@
     "usersSection": {
       "title": "User Management",
       "subtitle": "Roles, admin access, role pre-assignment and external users",
-      "tabs": { "access": "Access", "external": "External users", "impersonation": "Impersonation" }
+      "tabs": {
+        "access": "Access",
+        "external": "External users",
+        "impersonation": "Impersonation"
+      }
     },
     "admins": {
       "title": "User Access",
@@ -2772,5 +2844,313 @@
     "currentRelease": "Current Release",
     "preRelease": "Pre-release",
     "newReleaseAvailable": "New release available — click to see what's new"
+  },
+  "pass": {
+    "programName": "The Pass",
+    "nav": {
+      "program": "Program",
+      "hub": "Member hub",
+      "refer": "Refer",
+      "confirmation": "Confirmation",
+      "emails": "Emails",
+      "ops": "Ops tracker"
+    },
+    "money": {
+      "t1": "$500",
+      "t2": "$750",
+      "t3": "$1,000",
+      "certificate": "$750.00",
+      "creditEarned": "$2,000",
+      "creditIssued": "$14,250"
+    },
+    "landing": {
+      "eyebrow": "Merchant Referral Program · Canada",
+      "title": "Every great kitchen runs on the pass.",
+      "sub": "The Pass is where Cluster operators hand good work to each other. Refer a Canadian restaurant, and when they go live you earn credit toward your own Cluster fees — more with every referral you send.",
+      "cta1": "Join The Pass",
+      "cta2": "See the member hub",
+      "stat1": "top credit per referral",
+      "stat2": "hardware discount you can offer",
+      "stat3Value": "No cap",
+      "stat3": "on referrals",
+      "ladderEyebrow": "The ladder",
+      "ladderTitle": "Refer more, earn more",
+      "ladderSub": "Your tier is set by how many referrals have gone live on Cluster. It never resets.",
+      "tierLabel": [
+        "Tier 1",
+        "Tier 2",
+        "Tier 3"
+      ],
+      "rule": [
+        "Your 1st live referral",
+        "Your 2nd and 3rd live referrals",
+        "Your 4th referral and every one after"
+      ],
+      "creditEach": "credit each",
+      "perks1": [
+        "$500 account credit per live referral",
+        "$500 hardware discount to pass to your referral",
+        "Member hub with live referral tracking"
+      ],
+      "perks2": [
+        "Everything in {tier1}",
+        "Cluster kitchen swag drop",
+        "Early access to new Cluster features"
+      ],
+      "perks3": [
+        "Everything in {tier2}",
+        "Listing in the Cluster partner directory",
+        "A dedicated account contact at Cluster"
+      ],
+      "howTitle": "How it works",
+      "steps": [
+        {
+          "title": "Send it over",
+          "body": "Submit the restaurant and who we should talk to. Takes a minute."
+        },
+        {
+          "title": "We take it from there",
+          "body": "A specialist reaches out within 2 business days and runs the whole setup."
+        },
+        {
+          "title": "They go live",
+          "body": "The restaurant starts taking orders on Cluster — and claims their hardware discount."
+        },
+        {
+          "title": "Your credit lands",
+          "body": "We apply it to your account and move you up the ladder."
+        }
+      ],
+      "legal": "Credit applies to qualified referrals that become active Cluster customers in Canada. Open to Cluster merchants in Canada only; referred businesses must be located in Canada. One membership per business group. Tier is determined by lifetime live referrals and does not reset. All amounts in Canadian dollars. Subject to program terms.",
+      "referCta": "Refer a restaurant"
+    },
+    "hub": {
+      "greeting": "Welcome back, {firstName}",
+      "meta": "{business} · Member since {joinDate}",
+      "earning": "You're earning {amount} per live referral",
+      "toNext": "{n} more to reach {tier3}",
+      "progress": "{live} of {target} referrals live",
+      "unlock": "{tier3} unlocks $1,000 per referral, directory listing, and a dedicated contact",
+      "kpi": {
+        "earned": "Credit earned",
+        "pending": "Pending",
+        "live": "Referrals live",
+        "inProgress": "In progress"
+      },
+      "tableTitle": "Your referrals",
+      "tableCount": "{n} total",
+      "perksTitle": "Your perks",
+      "perks": [
+        {
+          "title": "$500 hardware discount",
+          "body": "Yours to offer any restaurant you refer."
+        },
+        {
+          "title": "Kitchen swag drop",
+          "body": "Shipped when you hit {tier2}."
+        },
+        {
+          "title": "Early feature access",
+          "body": "You're in the next Cluster beta cohort."
+        },
+        {
+          "title": "Partner directory listing",
+          "body": "Unlocks at {tier3}."
+        },
+        {
+          "title": "Dedicated account contact",
+          "body": "Unlocks at {tier3}."
+        }
+      ]
+    },
+    "form": {
+      "title": "Hand one over.",
+      "sub": "Tell us who to talk to. We handle the rest — and your credit lands the day they go live.",
+      "tierLine": "You're {tier2} — Tier 2",
+      "creditWhen": "credit when this one goes live",
+      "nextTier": "One more live referral moves you to {tier3} — $1,000 each from then on.",
+      "discountTitle": "They get $500 off hardware",
+      "discountBody": "Your discount travels with the referral — mention it when you reach out.",
+      "section1": "Restaurant you're referring",
+      "section2": "Your details",
+      "fields": {
+        "restaurant": "Restaurant name",
+        "contact": "Contact name",
+        "city": "City",
+        "province": "Province or territory",
+        "postal": "Postal code",
+        "reach": "Their email or phone",
+        "langPref": "Correspondence language",
+        "howKnow": "How do you know them? (optional)",
+        "howKnowPlaceholder": "A neighbour on the same block — they've outgrown their current POS."
+      },
+      "edit": "Edit",
+      "consent": "I confirm I have permission to share this contact, and I agree to The Pass program terms.",
+      "submit": "Send it over"
+    },
+    "confirmation": {
+      "title": "It's on the pass",
+      "sub": "Thanks, {firstName} — we've picked up your referral for {restaurant}. Track it any time in your member hub.",
+      "reference": "Reference",
+      "ifLive": "If this one goes live",
+      "ifLiveBody": "You'll earn $750 — and reach {tier3}, where every referral after is worth $1,000.",
+      "toTier": "to {tier3}",
+      "next": "What happens next",
+      "steps": [
+        {
+          "title": "We reach out within 2 business days",
+          "body": "A Cluster specialist contacts {restaurant} — and applies your $500 hardware discount."
+        },
+        {
+          "title": "Your credit is confirmed at go-live",
+          "body": "Once they're an active Cluster customer, $750 is yours."
+        },
+        {
+          "title": "Credit lands as a virtual gift certificate",
+          "body": "We email your certificate and apply it to your Cluster account."
+        }
+      ],
+      "cta1": "Go to member hub",
+      "cta2": "Refer another"
+    },
+    "emails": {
+      "railTitle": "The Pass · member emails",
+      "note": "Every email sends in the member's chosen correspondence language. English and French versions are maintained side by side.",
+      "from": "The Pass at Cluster <thepass@clusterpos.ca>",
+      "footer": "You're receiving this because you're a member of The Pass, Cluster's merchant referral program in Canada. Credit applies to qualified referrals that become active customers and is subject to program terms. All amounts in Canadian dollars. Cluster · clusterpos.ca",
+      "certTitle": "Cluster Account Credit",
+      "certCode": "Certificate code",
+      "cadNote": "in Canadian dollars",
+      "tierUnlocked": "New tier unlocked",
+      "tierUnlockedSub": "$1,000 credit for every referral from here on",
+      "templates": [
+        {
+          "key": "received",
+          "stage": "Received",
+          "subject": "We've got {restaurant}",
+          "preview": "Your referral is on the pass — here's what happens next.",
+          "greeting": "Hi {firstName},",
+          "paras": [
+            "Thanks for sending {restaurant} our way. It's logged under reference {referenceId}.",
+            "A specialist reaches out within 2 business days and runs the whole setup — including the $500 hardware discount that travels with your referral.",
+            "You're currently {tier2}, so this one is worth $750 in account credit the day they go live."
+          ],
+          "cta": "Track it in your hub"
+        },
+        {
+          "key": "live",
+          "stage": "Live",
+          "subject": "{restaurant} is live on Cluster",
+          "preview": "Your referral just went live — credit confirmed.",
+          "greeting": "Hi {firstName},",
+          "paras": [
+            "{restaurant} finished setup and is now taking orders on Cluster.",
+            "That's $750 in account credit confirmed. Your certificate arrives in a separate email within one business day.",
+            "Thanks for handing another operator a better setup."
+          ],
+          "cta": "See your hub"
+        },
+        {
+          "key": "tier_up",
+          "stage": "Tier up",
+          "subject": "You've reached {tier3}",
+          "preview": "Four referrals live. Every one from here is worth $1,000.",
+          "greeting": "Hi {firstName},",
+          "paras": [
+            "{restaurant} was your fourth referral to go live — which puts you at the top of The Pass.",
+            "From here, every referral that goes live earns you $1,000 in account credit. Your directory listing is being set up, and your account contact will introduce themselves this week."
+          ],
+          "cta": "View your tier"
+        },
+        {
+          "key": "credit",
+          "stage": "Credit",
+          "subject": "Your $750 Cluster credit is ready",
+          "preview": "Certificate for the {restaurant} referral.",
+          "greeting": "Hi {firstName},",
+          "paras": [
+            "Here's your credit for the {restaurant} referral.",
+            "Accounting has been notified — it'll be applied against your upcoming Cluster invoices and appear on your next statement automatically."
+          ],
+          "cta": "View your statement"
+        }
+      ]
+    },
+    "ops": {
+      "title": "The Pass · merchant referrals",
+      "sub": "Track every referral, tier movement, and credit issuance.",
+      "export": "Export",
+      "kpi": {
+        "total": "Total referrals",
+        "awaiting": "Awaiting contact",
+        "liveMonth": "Live this month",
+        "creditIssued": "Credit issued",
+        "tierUps": "Tier-ups pending"
+      },
+      "filters": {
+        "all": "All",
+        "new": "New",
+        "contacted": "Contacted",
+        "live": "Live",
+        "applied": "Credit applied"
+      },
+      "columns": {
+        "member": "Member",
+        "restaurant": "Restaurant",
+        "tier": "Tier",
+        "sent": "Sent",
+        "status": "Status",
+        "credit": "Credit"
+      },
+      "lifetimeLive": "Lifetime live referrals",
+      "thisPays": "This referral pays",
+      "memberLang": "Language",
+      "tierUpNote": "Going live moves this member up a tier — send the tier-up email.",
+      "workflow": "Workflow",
+      "nextStep": "Next step",
+      "actions": {
+        "apply": "Advise accounting · apply credit",
+        "certificate": "Send virtual gift certificate",
+        "markContacted": "Mark contacted",
+        "markLive": "Mark live"
+      },
+      "nextSteps": {
+        "new": "Contact the restaurant within 2 business days.",
+        "contacted": "Awaiting go-live — follow up if no response in 5 days.",
+        "live_tierup": "Apply the credit, send the certificate, then send the tier-up email.",
+        "live": "Advise accounting to apply the credit, then send the certificate.",
+        "credit_applied": "Complete — credit applied and certificate sent.",
+        "not_qualified": "No action — referral did not qualify."
+      }
+    },
+    "status": {
+      "new": "New",
+      "contacted": "Contacted",
+      "live": "Live",
+      "credit_applied": "Credit applied",
+      "not_qualified": "Not qualified",
+      "submitted": "Submitted",
+      "pending": "Pending"
+    },
+    "provinceNames": {
+      "AB": "Alberta",
+      "BC": "British Columbia",
+      "MB": "Manitoba",
+      "NB": "New Brunswick",
+      "NL": "Newfoundland and Labrador",
+      "NT": "Northwest Territories",
+      "NS": "Nova Scotia",
+      "NU": "Nunavut",
+      "ON": "Ontario",
+      "PE": "Prince Edward Island",
+      "QC": "Quebec",
+      "SK": "Saskatchewan",
+      "YT": "Yukon"
+    },
+    "tiers": {
+      "commis": "Commis",
+      "sous": "Sous",
+      "chef": "Chef"
+    }
   }
 }
