@@ -6,19 +6,29 @@ import { usePassAuth } from '../../context/PassAuthContext';
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-production-b7f9.up.railway.app';
 
 // L'ADHÉSION N'EST PAS DESSINÉE — le design la reconnaît comme un trou (« "Join The Pass"
-// is a CTA with no designed signup/eligibility-check flow »). Cet écran est donc inventé,
-// mais pas librement : il reprend la composition en deux volets déjà utilisée par la page
-// de connexion de Sales Hub, et les jetons visuels du deck (fond #141414, accent #F58345,
-// Satoshi — déjà la police de l'app). Il n'invente que ce que le design ne dit pas.
+// is a CTA with no designed signup/eligibility-check flow »). L'écran est donc inventé,
+// mais sa composition ne l'est pas : c'est celle de l'écran « Référer » du deck (colonne
+// d'argumentaire à gauche, carte blanche d'action à droite, le tout dans un conteneur
+// CENTRÉ et borné). Un plein écran coupé en deux moitiés égales avait été essayé et
+// abandonné : sur un large moniteur, la moitié droite devenait un immense vide.
 //
-// Le volet sombre n'est pas décoratif : c'est le seul argumentaire qu'un marchand arrivant
-// par un courriel verra avant de donner son adresse. Les montants viennent de
-// /api/pass/program, jamais du client (brief, règle 4).
+// Les montants viennent de /api/pass/program, jamais du client (brief, règle 4).
 
 type Step = 'form' | 'sent' | 'connecting' | 'closed';
 
 interface ProgramTier { level: number; key: string; from: number; credit: number }
 interface Program { enabled: boolean; currency: string; hardwareDiscount: number; tiers: ProgramTier[] }
+
+// Le lockup du designer, repris au pixel depuis le chrome du deck : le mot, puis un point
+// orange de 6 px APRÈS lui, aligné au milieu. (Placé sous le « c », il se lit « .cluster ».)
+const ClusterMark = ({ onDark = false }: { onDark?: boolean }) => (
+  <span
+    className={`text-[21px] font-bold leading-none tracking-[-0.02em] ${onDark ? 'text-white' : 'text-[#141414]'}`}
+  >
+    cluster
+    <span className="ml-[2px] inline-block h-[6px] w-[6px] rounded-full bg-[#F58345] align-middle" />
+  </span>
+);
 
 const Join = () => {
   const { t, i18n } = useTranslation();
@@ -134,150 +144,129 @@ const Join = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F6] font-satoshi text-[#141414]">
+    <div className="flex min-h-screen flex-col bg-[#F5F5F6] font-satoshi text-[#141414]">
       <style>{`
         @keyframes passRise { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
         .pass-rise { animation: passRise .22s cubic-bezier(.2,.8,.2,1) both }
       `}</style>
 
-      <div className="grid min-h-screen lg:grid-cols-[0.95fr_1.05fr]">
-        {/* ── Volet sombre : l'argumentaire ─────────────────────────────── */}
-        <aside className="relative overflow-hidden bg-[#141414] px-8 py-12 text-white sm:px-12 lg:px-14 lg:py-16">
-          {/* Halo chaud très discret — le deck éclaire ses fonds sombres plutôt que de les
-              laisser plats, mais sans jamais concurrencer le texte. */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -left-32 -top-32 h-[420px] w-[420px] rounded-full opacity-[0.13] blur-3xl"
-            style={{ background: 'radial-gradient(circle, #F58345 0%, transparent 70%)' }}
-          />
+      <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between px-6 py-7 sm:px-8">
+        <div className="flex items-center gap-3.5">
+          <ClusterMark />
+          <span className="h-[18px] w-px bg-[#D1D1D1]" />
+          <span className="text-[14px] font-medium text-[#61646C]">{t('pass.programName')}</span>
+        </div>
+        <div className="inline-flex rounded-full border border-[#E0E0E0] bg-white p-1 text-[13px] font-medium">
+          {(['fr', 'en'] as const).map((lng) => (
+            <button
+              key={lng}
+              type="button"
+              onClick={() => { i18n.changeLanguage(lng); localStorage.setItem('language', lng); }}
+              className={`rounded-full px-3.5 py-1.5 transition-colors duration-150 ${
+                (lng === 'fr') === !!fr ? 'bg-[#141414] text-white' : 'text-[#61646C] hover:text-[#141414]'
+              }`}
+            >
+              {lng.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </header>
 
-          <div className="relative flex h-full flex-col">
-            <div className="flex items-center gap-4">
-              <span className="relative text-[22px] font-bold lowercase leading-none tracking-tight">
-                cluster
-                <span className="absolute -bottom-1 left-0 block h-[5px] w-[5px] rounded-full bg-[#F58345]" />
-              </span>
-              <span className="h-5 w-px bg-white/20" />
-              <span className="text-[15px] font-medium leading-tight text-white/70">
-                {t('pass.programName')}
-              </span>
-            </div>
+      <main className="mx-auto flex w-full max-w-[1160px] flex-1 items-center px-6 py-6 sm:px-8">
+        <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
+          {/* ── L'argumentaire : ce qu'un marchand doit savoir avant de donner son adresse */}
+          <section className="pass-rise">
+            <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-[#D16630]">
+              {t('pass.landing.eyebrow')}
+            </p>
+            <h1 className="mt-4 max-w-[13ch] text-[40px] font-bold leading-[1.06] tracking-[-0.015em] sm:text-[46px]">
+              {t('pass.landing.title')}
+            </h1>
+            <p className="mt-5 max-w-[46ch] text-[15.5px] leading-[1.62] text-[#61646C]">
+              {t('pass.landing.sub')}
+            </p>
 
-            <div className="pass-rise mt-12 lg:mt-16">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#F58345]/35 bg-[#F58345]/10 px-4 py-2 text-[13px] font-medium text-[#F79C6A]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#F58345]" />
-                {t('pass.landing.eyebrow')}
-              </span>
-
-              <h1 className="mt-7 max-w-[13ch] text-[38px] font-medium leading-[1.08] tracking-[-0.01em] sm:text-[46px] lg:text-[52px]">
-                {t('pass.landing.title')}
-              </h1>
-
-              <p className="mt-6 max-w-[46ch] text-[15px] leading-[1.6] text-white/60">
-                {t('pass.landing.sub')}
-              </p>
-            </div>
-
-            {/* L'échelle, telle que la configuration la définit — jamais recopiée ici. */}
+            {/* L'échelle, telle que la configuration la définit — jamais recopiée ici. La
+                carte pêche est le motif que le deck utilise déjà pour les montants. */}
             {program && (
-              <div className="pass-rise mt-11 lg:mt-14">
-                <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-white/40">
+              <div className="mt-9 rounded-2xl border border-[#FBCDB5] bg-[#FDE6DA]/70 p-6 sm:p-7">
+                <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-[#8A4220]">
                   {t('pass.join.ladderTitle')}
                 </p>
-                <ul className="mt-4 divide-y divide-white/[0.07] border-y border-white/[0.07]">
-                  {program.tiers.map((tier) => (
-                    <li key={tier.level} className="flex items-baseline justify-between gap-6 py-4">
+                <ul className="mt-4 space-y-3.5">
+                  {program.tiers.map((tier, i) => (
+                    <li
+                      key={tier.level}
+                      className={`flex items-baseline justify-between gap-5 ${
+                        i > 0 ? 'border-t border-[#F79C6A]/30 pt-3.5' : ''
+                      }`}
+                    >
                       <div className="min-w-0">
-                        <p className="truncate text-[15px] font-semibold">
+                        <p className="text-[15px] font-bold text-[#141414]">
                           {tierName(tier.key)}
-                          <span className="ml-2 font-normal text-white/35">
+                          <span className="ml-2 text-[13px] font-medium text-[#8A4220]/60">
                             {tierLabels?.[tier.level - 1]}
                           </span>
                         </p>
-                        <p className="mt-1 truncate text-[13px] text-white/45">
+                        <p className="mt-0.5 text-[13px] leading-snug text-[#8A4220]/75">
                           {tierRules?.[tier.level - 1]}
                         </p>
                       </div>
-                      <span className="shrink-0 text-[22px] font-bold leading-none tracking-tight text-[#F58345]">
+                      <span className="shrink-0 text-[24px] font-bold leading-none tracking-[-0.02em] text-[#D16630]">
                         {money(tier.credit)}
                       </span>
                     </li>
                   ))}
                 </ul>
-                <p className="mt-4 max-w-[52ch] text-[13px] leading-relaxed text-white/45">
+                <p className="mt-5 border-t border-[#F79C6A]/30 pt-4 text-[13px] leading-[1.55] text-[#8A4220]/80">
                   {t('pass.join.ladderRule')}
+                  {program.hardwareDiscount > 0 && (
+                    <> {t('pass.join.hardware', { amount: money(program.hardwareDiscount) })}</>
+                  )}
                 </p>
-                {program.hardwareDiscount > 0 && (
-                  <p className="mt-2 max-w-[52ch] text-[13px] leading-relaxed text-white/45">
-                    {t('pass.join.hardware', { amount: money(program.hardwareDiscount) })}
-                  </p>
-                )}
               </div>
             )}
+          </section>
 
-            <p className="mt-auto pt-12 text-[11px] leading-[1.65] text-white/25">
-              {t('pass.landing.legal')}
-            </p>
-          </div>
-        </aside>
-
-        {/* ── Volet clair : l'action ────────────────────────────────────── */}
-        <main className="relative flex flex-col px-6 py-10 sm:px-10 lg:px-14 lg:py-12">
-          <div className="flex justify-end">
-            <div className="inline-flex rounded-full border border-[#E0E0E0] bg-white p-1 text-[13px] font-medium">
-              {(['fr', 'en'] as const).map((lng) => (
-                <button
-                  key={lng}
-                  type="button"
-                  onClick={() => { i18n.changeLanguage(lng); localStorage.setItem('language', lng); }}
-                  className={`rounded-full px-3.5 py-1.5 transition-colors duration-150 ${
-                    (lng === 'fr') === !!fr ? 'bg-[#141414] text-white' : 'text-[#61646C] hover:text-[#141414]'
-                  }`}
-                >
-                  {lng.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex flex-1 items-center justify-center py-10">
-            <div className="pass-rise w-full max-w-[440px] rounded-2xl border border-[#E0E0E0]/70 bg-white p-8 shadow-[0_8px_16px_-4px_rgba(16,24,40,0.06),0_24px_48px_-12px_rgba(16,24,40,0.10)] sm:p-10">
+          {/* ── L'action ─────────────────────────────────────────────────── */}
+          <section className="pass-rise lg:pt-2">
+            <div className="rounded-2xl border border-[#E0E0E0]/70 bg-white p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10">
               {step === 'connecting' && (
-                <div className="flex flex-col items-center gap-5 py-10 text-center">
+                <div className="flex flex-col items-center gap-5 py-16 text-center">
                   <span className="h-9 w-9 animate-spin rounded-full border-2 border-[#E0E0E0] border-t-[#F58345]" />
                   <p className="text-[15px] text-[#61646C]">{t('pass.join.connecting')}</p>
                 </div>
               )}
 
               {step === 'closed' && (
-                <div className="text-center">
-                  <h1 className="text-[26px] font-bold leading-tight tracking-[-0.01em]">
+                <div className="py-8 text-center">
+                  <h2 className="text-[26px] font-bold leading-tight tracking-[-0.01em]">
                     {t('pass.join.closedTitle')}
-                  </h1>
-                  <p className="mt-3 text-[15px] leading-[1.6] text-[#61646C]">
+                  </h2>
+                  <p className="mx-auto mt-3 max-w-[34ch] text-[15px] leading-[1.6] text-[#61646C]">
                     {t('pass.join.closedBody')}
                   </p>
                 </div>
               )}
 
               {step === 'sent' && (
-                <div className="text-center">
+                <div className="py-2 text-center">
                   <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FDE6DA]">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
                       <path d="M3 7.5 12 13l9-5.5M4.5 5.5h15a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17V7a1.5 1.5 0 0 1 1.5-1.5Z"
                         stroke="#D16630" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </span>
-                  <h1 className="mt-5 text-[26px] font-bold leading-tight tracking-[-0.01em]">
+                  <h2 className="mt-5 text-[26px] font-bold leading-tight tracking-[-0.01em]">
                     {t('pass.join.sentTitle')}
-                  </h1>
-                  <p className="mt-3 text-[15px] leading-[1.6] text-[#61646C]">
+                  </h2>
+                  <p className="mx-auto mt-3 max-w-[38ch] text-[15px] leading-[1.6] text-[#61646C]">
                     {t('pass.join.sentBody', { email })}
                   </p>
-                  <p className="mt-4 text-[13px] leading-[1.6] text-[#94969C]">
+                  <p className="mx-auto mt-4 max-w-[38ch] text-[13px] leading-[1.6] text-[#94969C]">
                     {t('pass.join.sentHint')}
                   </p>
-                  <div className="mt-7 flex flex-col gap-2">
+                  <div className="mt-7 flex flex-col items-center gap-2">
                     <button
                       type="button"
                       disabled={busy}
@@ -294,20 +283,15 @@ const Join = () => {
                       {t('pass.join.wrongEmail')}
                     </button>
                   </div>
-                  {error && (
-                    <p role="alert" className="mt-4 text-[13px] text-[#D92D20]">{error}</p>
-                  )}
+                  {error && <p role="alert" className="mt-4 text-[13px] text-[#D92D20]">{error}</p>}
                 </div>
               )}
 
               {step === 'form' && (
                 <form onSubmit={submit} noValidate>
-                  <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-[#D16630]">
-                    {t('pass.programName')}
-                  </p>
-                  <h1 className="mt-2.5 text-[28px] font-bold leading-[1.15] tracking-[-0.01em]">
+                  <h2 className="text-[26px] font-bold leading-[1.15] tracking-[-0.01em]">
                     {t('pass.join.title')}
-                  </h1>
+                  </h2>
                   <p className="mt-3 text-[15px] leading-[1.6] text-[#61646C]">
                     {t('pass.join.sub')}
                   </p>
@@ -367,9 +351,15 @@ const Join = () => {
                 </form>
               )}
             </div>
-          </div>
-        </main>
-      </div>
+          </section>
+        </div>
+      </main>
+
+      <footer className="mx-auto w-full max-w-[1160px] px-6 pb-10 pt-4 sm:px-8">
+        <p className="max-w-[92ch] text-[11px] leading-[1.7] text-[#94969C]">
+          {t('pass.landing.legal')}
+        </p>
+      </footer>
     </div>
   );
 };
