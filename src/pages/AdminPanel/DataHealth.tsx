@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import InvoiceLink from '../../components/InvoiceLink';
+import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -54,11 +55,28 @@ const DataHealth: React.FC = () => {
 
   useEffect(() => { load(false); }, []);
 
-  const resolveReport = async (id: number) => {
+  // Résoudre ouvre d'abord une fenêtre : le vendeur reçoit maintenant un courriel,
+  // et « c'est corrigé » sans dire QUOI l'oblige à aller vérifier lui-même.
+  // La note reste facultative — on ne bloque pas une résolution pour ça.
+  const [resolveModal, setResolveModal] = useState<{ id: number; who: string; note: string } | null>(null);
+
+  const resolveReport = async (id: number, note: string) => {
     setResolving(id);
     try {
-      const r = await fetch(`${API_URL}/api/admin/user-reports/${id}/resolve`, { method: 'POST', headers: authHeaders() });
+      const r = await fetch(`${API_URL}/api/admin/user-reports/${id}/resolve`, {
+        method: 'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note }),
+      });
       if (!r.ok) throw new Error(String(r.status));
+      const out = await r.json();
+      setResolveModal(null);
+      // On dit franchement si l'avis n'est pas parti (pas de courriel au dossier,
+      // SMTP muet…). Annoncer « résolu » en taisant l'échec ferait croire à
+      // l'admin que le vendeur est au courant.
+      if (out.notified === false && out.reason !== 'already_resolved') {
+        dialog.alert(t('dataHealth.reports.notifyFailed', { reason: out.reason || '—' }) as string);
+      }
       await load(true);
     } catch { setError(t('dataHealth.error') as string); }
     finally { setResolving(null); }
@@ -252,7 +270,7 @@ const DataHealth: React.FC = () => {
                       <p className="mt-1 text-[11px] text-gray-400">{new Date(rep.created_at).toLocaleString()}</p>
                     </div>
                     <button
-                      onClick={() => resolveReport(rep.id)}
+                      onClick={() => setResolveModal({ id: rep.id, who: rep.reporter_name || rep.reporter_email || '—', note: '' })}
                       disabled={resolving === rep.id}
                       className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
                     >
@@ -268,6 +286,51 @@ const DataHealth: React.FC = () => {
       )}
 
       {data && <p className="mt-4 text-xs text-gray-400">{t('dataHealth.lastChecked', { time: new Date(data.generatedAt).toLocaleTimeString() })}</p>}
+
+      {resolveModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4"
+          onClick={() => resolving === null && setResolveModal(null)}
+        >
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">
+              {t('dataHealth.reports.resolveTitle')}
+            </h3>
+            <p className="mb-4 text-sm text-body">
+              {t('dataHealth.reports.resolveSubtitle', { who: resolveModal.who })}
+            </p>
+
+            <label className="mb-1 block text-xs font-medium text-body">
+              {t('dataHealth.reports.noteLabel')}
+            </label>
+            <textarea
+              rows={4}
+              autoFocus
+              value={resolveModal.note}
+              onChange={(e) => setResolveModal(m => (m ? { ...m, note: e.target.value } : m))}
+              placeholder={t('dataHealth.reports.notePlaceholder') as string}
+              className="w-full resize-y rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
+            />
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => setResolveModal(null)}
+                disabled={resolving !== null}
+                className="rounded border border-stroke px-4 py-2 text-sm text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => resolveReport(resolveModal.id, resolveModal.note.trim())}
+                disabled={resolving !== null}
+                className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+              >
+                {resolving !== null ? t('dataHealth.reports.resolving') : t('dataHealth.reports.resolveAndNotify')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
