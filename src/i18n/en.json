@@ -1586,6 +1586,19 @@
       "confirm": "Refuse commission on {{invoice}}? It will become $0 (reversible).",
       "restored": "Commission restored — recomputing (~1-3 min)."
     },
+    "coSell": {
+      "title": "Split this deal",
+      "subtitle": "Invoice {{invoice}} — the commission is shared between two reps. Both keep the deal at 100% for their points and quota; only the money is split.",
+      "repLabel": "Co-seller",
+      "repPlaceholder": "Choose a rep…",
+      "percentLabel": "Share for {{rep}} (%)",
+      "dealTotal": "Deal commission",
+      "add": "Split with another rep",
+      "edit": "Edit the split",
+      "remove": "Remove the split",
+      "saved": "Split saved.",
+      "cleared": "Split removed."
+    },
     "type": "Type",
     "approve": "Approve",
     "markPaid": "Mark Paid",
