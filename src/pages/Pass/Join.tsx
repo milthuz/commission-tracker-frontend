@@ -2,7 +2,7 @@ import { useEffect, useState, FormEvent } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePassAuth } from '../../context/PassAuthContext';
-import { ClusterMark, PASS_API as API_URL, PassMotion } from './passUi';
+import { PASS_API as API_URL, PassHeader, PassMotion } from './passUi';
 
 // L'ADHÉSION N'EST PAS DESSINÉE — le design la reconnaît comme un trou (« "Join The Pass"
 // is a CTA with no designed signup/eligibility-check flow »). L'écran est donc inventé,
@@ -135,27 +135,9 @@ const Join = () => {
     <div className="flex min-h-screen flex-col bg-[#F5F5F6] font-satoshi text-[#141414]">
       <PassMotion />
 
-      <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between px-6 py-7 sm:px-8">
-        <div className="flex items-center gap-3.5">
-          <ClusterMark />
-          <span className="h-[18px] w-px bg-[#D1D1D1]" />
-          <span className="text-[14px] font-medium text-[#61646C]">{t('pass.programName')}</span>
-        </div>
-        <div className="inline-flex rounded-full border border-[#E0E0E0] bg-white p-1 text-[13px] font-medium">
-          {(['fr', 'en'] as const).map((lng) => (
-            <button
-              key={lng}
-              type="button"
-              onClick={() => { i18n.changeLanguage(lng); localStorage.setItem('language', lng); }}
-              className={`rounded-full px-3.5 py-1.5 transition-colors duration-150 ${
-                (lng === 'fr') === !!fr ? 'bg-[#141414] text-white' : 'text-[#61646C] hover:text-[#141414]'
-              }`}
-            >
-              {lng.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </header>
+      {/* Même en-tête que les écrans membres : le lockup de La Passe n'existe qu'à un seul
+          endroit du code, donc il ne peut plus diverger d'un écran à l'autre. */}
+      <PassHeader onDark={false} />
 
       <main className="mx-auto flex w-full max-w-[1160px] flex-1 items-center px-6 py-6 sm:px-8">
         <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">

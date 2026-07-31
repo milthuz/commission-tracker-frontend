@@ -3201,7 +3201,8 @@
       "signOut": "Se déconnecter",
       "backToHub": "Retour à mon espace",
       "loadError": "Le chargement de cette page a échoué. Réessayez.",
-      "retry": "Réessayer"
+      "retry": "Réessayer",
+      "by": "par"
     }
   },
   "passOps": {

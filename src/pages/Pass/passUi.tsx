@@ -30,6 +30,52 @@ export const ClusterMark = ({ onDark = false, className = 'h-[26px] w-auto' }: {
 );
 
 /**
+ * Le symbole de La Passe — le bon de commande au rail (direction B, choisie par
+ * l'utilisateur 2026-07-31).
+ *
+ * Aucun mot dans le dessin, et c'est le point : le programme s'appelle « La Passe » en
+ * français et « The Pass » en anglais. Un logotype construit sur des lettres anglaises
+ * aurait cassé dans la moitié des cas ; ici le nom reste du texte composé à côté.
+ *
+ * Le contour utilise `currentColor` : le symbole prend la couleur du texte de son
+ * conteneur, donc une seule définition sert les fonds clairs et sombres. Seul l'accent
+ * orange est fixe.
+ *
+ * `detail={false}` retire les deux lignes intérieures. C'était la faiblesse relevée de
+ * cette direction — sous ~24 px, le bord déchiré ET deux traits deviennent une bouillie.
+ * Le seuil est appliqué automatiquement d'après la taille demandée, plutôt que laissé à
+ * la vigilance de chaque appel.
+ */
+export const PassMark = ({ size = 32, className = '' }: { size?: number; className?: string }) => {
+  const detail = size >= 24;
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      width={size}
+      height={size}
+      fill="none"
+      className={className}
+      role="img"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M17 10h30a3 3 0 0 1 3 3v35l-6-4-6 4-6-4-6 4-6-4-6 4V13a3 3 0 0 1 3-3Z"
+        stroke="currentColor"
+        strokeWidth={detail ? 4.5 : 5.5}
+        strokeLinejoin="round"
+      />
+      {detail && (
+        <>
+          <path d="M23 23h18" stroke="#F58345" strokeWidth={4.5} strokeLinecap="round" />
+          <path d="M23 31h12" stroke="currentColor" strokeWidth={4.5} strokeLinecap="round" opacity={0.4} />
+        </>
+      )}
+    </svg>
+  );
+};
+
+/**
  * Formatage + interpolation pour La Passe.
  *
  * ⚠️ Le deck du designer écrit ses variables en accolades SIMPLES (`{firstName}`), alors
@@ -119,12 +165,19 @@ export const PassHeader = ({
 }) => {
   const { t, i18n, fr } = useFmt();
   return (
-    <header className="mx-auto flex w-full max-w-[1160px] flex-wrap items-center justify-between gap-4 px-6 py-7 sm:px-8">
-      <Link to="/pass" className="flex items-center gap-3.5">
-        <ClusterMark onDark={onDark} />
-        <span className={`h-[18px] w-px ${onDark ? 'bg-white/20' : 'bg-[#D1D1D1]'}`} />
-        <span className={`text-[14px] font-medium ${onDark ? 'text-white/70' : 'text-[#61646C]'}`}>
+    <header className="mx-auto flex w-full max-w-[1160px] flex-wrap items-center justify-between gap-4 px-6 py-5 sm:px-8 sm:py-7">
+      {/* Lockup ENDOSSÉ : le symbole et le nom du programme d'abord, puis « par » et le
+          logo Cluster. La Passe se présente comme une marque à elle, mais jamais sans dire
+          d'où elle vient — l'inverse (Cluster en tête) faisait du programme une sous-page. */}
+      <Link to="/pass" className="flex items-center gap-3">
+        <PassMark size={30} className={onDark ? 'text-white' : 'text-[#141414]'} />
+        <span className={`text-[17px] font-bold leading-none tracking-[-0.01em] ${onDark ? 'text-white' : 'text-[#141414]'}`}>
           {t('pass.programName')}
+        </span>
+        <span className={`ml-1 h-[18px] w-px ${onDark ? 'bg-white/18' : 'bg-[#D1D1D1]'}`} />
+        <span className={`flex items-center gap-2 text-[12.5px] ${onDark ? 'text-white/40' : 'text-[#94969C]'}`}>
+          {t('pass.common.by')}
+          <ClusterMark onDark={onDark} className="h-[15px] w-auto opacity-80" />
         </span>
       </Link>
 
