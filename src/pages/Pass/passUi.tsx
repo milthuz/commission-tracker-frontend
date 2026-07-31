@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import clusterOnDark from '../../images/logo/cluster-wordmark-on-dark.svg';
+import clusterOnLight from '../../images/logo/cluster-wordmark-on-light.svg';
 
 // Pièces partagées par les écrans de La Passe. Elles existent pour une raison précise :
 // le premier écran (adhésion) avait déjà une version bricolée du logo, et trois écrans de
@@ -9,13 +11,22 @@ import { Link } from 'react-router-dom';
 export const PASS_API =
   import.meta.env.VITE_API_URL || 'https://commission-tracker-production-b7f9.up.railway.app';
 
-// Le lockup du designer, repris au pixel depuis le chrome du deck : le mot, puis un point
-// orange de 6 px APRÈS lui, aligné au milieu. (Placé sous le « c », il se lit « .cluster ».)
-export const ClusterMark = ({ onDark = false }: { onDark?: boolean }) => (
-  <span className={`text-[21px] font-bold leading-none tracking-[-0.02em] ${onDark ? 'text-white' : 'text-[#141414]'}`}>
-    cluster
-    <span className="ml-[2px] inline-block h-[6px] w-[6px] rounded-full bg-[#F58345] align-middle" />
-  </span>
+// LE VRAI logo Cluster, les fichiers officiels de clusterpos.com — pas une reconstitution
+// en texte. Le deck du designer dessinait « cluster » suivi d'un point orange : ce lockup
+// appartient à la charte SALES HUB (sa ligne d'endossement « by cluster ● »), pas à celle
+// de Cluster. Le reprendre donnait un faux logo sur un portail destiné à des marchands.
+//
+// Deux variantes officielles, choisies par la SURFACE et non par le thème de l'app : le
+// mot est blanc sur fond sombre, encre foncée sur fond clair. Aucune n'est recolorable —
+// l'orange du logo (#FE6523) n'est d'ailleurs pas celui du système de design du deck
+// (#F58345), et c'est normal : un logo ne se reteinte pas pour s'accorder à une page.
+export const ClusterMark = ({ onDark = false, className = 'h-[26px] w-auto' }: { onDark?: boolean; className?: string }) => (
+  <img
+    src={onDark ? clusterOnDark : clusterOnLight}
+    alt="Cluster"
+    className={className}
+    draggable={false}
+  />
 );
 
 /**
