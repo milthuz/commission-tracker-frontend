@@ -2961,7 +2961,10 @@
           "title": "Dedicated account contact",
           "body": "Unlocks at {tier3}."
         }
-      ]
+      ],
+      "emptyTitle": "No referrals yet",
+      "emptyBody": "Send us your first restaurant. Your credit starts the day they go live.",
+      "lockedAt": "Locked"
     },
     "form": {
       "title": "Hand one over.",
@@ -3184,6 +3187,12 @@
         "member_suspended": "This membership is on hold. Contact your Cluster representative.",
         "generic": "Something went wrong. Please try again."
       }
+    },
+    "common": {
+      "signOut": "Sign Out",
+      "backToHub": "Back to My Hub",
+      "loadError": "We couldn't load this page. Please try again.",
+      "retry": "Try Again"
     }
   }
 }

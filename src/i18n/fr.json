@@ -2961,7 +2961,10 @@
           "title": "Chargé de compte dédié",
           "body": "Débloqué à {tier3}."
         }
-      ]
+      ],
+      "emptyTitle": "Aucune recommandation pour l’instant",
+      "emptyBody": "Envoyez-nous un premier restaurant. Votre crédit démarre dès sa mise en service.",
+      "lockedAt": "Verrouillé"
     },
     "form": {
       "title": "Passez-nous-en un.",
@@ -3184,6 +3187,12 @@
         "member_suspended": "Cette adhésion est suspendue. Contactez votre représentant Cluster.",
         "generic": "Un problème est survenu. Réessayez."
       }
+    },
+    "common": {
+      "signOut": "Se déconnecter",
+      "backToHub": "Retour à mon espace",
+      "loadError": "Le chargement de cette page a échoué. Réessayez.",
+      "retry": "Réessayer"
     }
   }
 }

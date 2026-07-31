@@ -21,6 +21,7 @@ import { NewFeaturesProvider } from './context/NewFeaturesContext';
 import DialogHost from './components/DialogHost';
 import { PartnerAuthProvider } from './context/PartnerAuthContext';
 import { PassAuthProvider } from './context/PassAuthContext';
+import PassProtectedRoute from './components/PassProtectedRoute';
 import PartnerProtectedRoute from './components/PartnerProtectedRoute';
 import PartnerLayout from './layout/PartnerLayout';
 import PartnerLogin from './pages/PartnerPortal/Login';
@@ -53,6 +54,7 @@ const PartnerProfile = lazy(() => import('./pages/PartnerPortal/Profile'));
 const PartnerTeam = lazy(() => import('./pages/PartnerPortal/Team'));
 const PartnerOrganization = lazy(() => import('./pages/PartnerPortal/Organization'));
 const PassJoin = lazy(() => import('./pages/Pass/Join'));
+const PassHub = lazy(() => import('./pages/Pass/Hub'));
 
 // "/" adapts to the user's role:
 //   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
@@ -192,6 +194,20 @@ function AppContent() {
           </>
         }
       />
+
+      {/* La Passe — écrans membres. Aucun layout Sales Hub (pas de Sidebar) : un marchand
+          n'est pas un utilisateur interne, il ne voit que son programme. */}
+      <Route element={<PassProtectedRoute />}>
+        <Route
+          path="/pass"
+          element={
+            <>
+              <PageTitle title="La Passe | Cluster" />
+              <PassHub />
+            </>
+          }
+        />
+      </Route>
 
       {/* Partner Portal — protected routes, own layout (no Sidebar), own auth guard. */}
       <Route element={<PartnerProtectedRoute />}>

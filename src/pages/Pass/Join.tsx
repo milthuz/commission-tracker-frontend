@@ -2,8 +2,7 @@ import { useEffect, useState, FormEvent } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePassAuth } from '../../context/PassAuthContext';
-
-const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-production-b7f9.up.railway.app';
+import { ClusterMark, PASS_API as API_URL, PassMotion } from './passUi';
 
 // L'ADHÉSION N'EST PAS DESSINÉE — le design la reconnaît comme un trou (« "Join The Pass"
 // is a CTA with no designed signup/eligibility-check flow »). L'écran est donc inventé,
@@ -18,17 +17,6 @@ type Step = 'form' | 'sent' | 'connecting' | 'closed';
 
 interface ProgramTier { level: number; key: string; from: number; credit: number }
 interface Program { enabled: boolean; currency: string; hardwareDiscount: number; tiers: ProgramTier[] }
-
-// Le lockup du designer, repris au pixel depuis le chrome du deck : le mot, puis un point
-// orange de 6 px APRÈS lui, aligné au milieu. (Placé sous le « c », il se lit « .cluster ».)
-const ClusterMark = ({ onDark = false }: { onDark?: boolean }) => (
-  <span
-    className={`text-[21px] font-bold leading-none tracking-[-0.02em] ${onDark ? 'text-white' : 'text-[#141414]'}`}
-  >
-    cluster
-    <span className="ml-[2px] inline-block h-[6px] w-[6px] rounded-full bg-[#F58345] align-middle" />
-  </span>
-);
 
 const Join = () => {
   const { t, i18n } = useTranslation();
@@ -145,10 +133,7 @@ const Join = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F5F5F6] font-satoshi text-[#141414]">
-      <style>{`
-        @keyframes passRise { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
-        .pass-rise { animation: passRise .22s cubic-bezier(.2,.8,.2,1) both }
-      `}</style>
+      <PassMotion />
 
       <header className="mx-auto flex w-full max-w-[1160px] items-center justify-between px-6 py-7 sm:px-8">
         <div className="flex items-center gap-3.5">
