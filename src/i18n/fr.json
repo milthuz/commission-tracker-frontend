@@ -2964,7 +2964,8 @@
       ],
       "emptyTitle": "Aucune recommandation pour l’instant",
       "emptyBody": "Envoyez-nous un premier restaurant. Votre crédit démarre dès sa mise en service.",
-      "lockedAt": "Verrouillé"
+      "lockedAt": "Verrouillé",
+      "unlockDyn": "{{tier}} donne accès à {{amount}} par recommandation, au répertoire et à un chargé de compte"
     },
     "form": {
       "title": "Passez-nous-en un.",
@@ -2989,7 +2990,12 @@
       },
       "edit": "Modifier",
       "consent": "Je confirme avoir la permission de partager ces coordonnées et j'accepte les conditions du programme La Passe.",
-      "submit": "Envoyer"
+      "submit": "Envoyer",
+      "tierLineDyn": "Vous êtes {{tier}} — palier {{level}}",
+      "nextTierOne": "Encore une recommandation en service et vous passez à {{tier}} : {{amount}} chacune par la suite.",
+      "nextTierMany": "Encore {{n}} recommandations en service et vous passez à {{tier}} : {{amount}} chacune par la suite.",
+      "discountTitleDyn": "Ils obtiennent {{amount}} de rabais sur le matériel",
+      "sendingLabel": "Envoi en cours"
     },
     "confirmation": {
       "title": "C'est sur le passe",
@@ -3014,7 +3020,9 @@
         }
       ],
       "cta1": "Aller à l'espace membre",
-      "cta2": "Recommander un autre"
+      "cta2": "Recommander un autre",
+      "ifLiveBodyDyn": "Vous obtiendrez {{amount}} pour celle-ci.",
+      "ifLiveBodyTierUp": "Vous obtiendrez {{amount}} et atteindrez {{tier}}, où chaque recommandation suivante vaut {{nextAmount}}."
     },
     "emails": {
       "railTitle": "La Passe · courriels aux membres",

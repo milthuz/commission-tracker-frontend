@@ -2964,7 +2964,8 @@
       ],
       "emptyTitle": "No referrals yet",
       "emptyBody": "Send us your first restaurant. Your credit starts the day they go live.",
-      "lockedAt": "Locked"
+      "lockedAt": "Locked",
+      "unlockDyn": "{{tier}} unlocks {{amount}} per referral, directory listing, and a dedicated contact"
     },
     "form": {
       "title": "Hand one over.",
@@ -2989,7 +2990,12 @@
       },
       "edit": "Edit",
       "consent": "I confirm I have permission to share this contact, and I agree to The Pass program terms.",
-      "submit": "Send it over"
+      "submit": "Send it over",
+      "tierLineDyn": "You're {{tier}} — Tier {{level}}",
+      "nextTierOne": "One more live referral moves you to {{tier}} — {{amount}} each from then on.",
+      "nextTierMany": "{{n}} more live referrals move you to {{tier}} — {{amount}} each from then on.",
+      "discountTitleDyn": "They get {{amount}} off hardware",
+      "sendingLabel": "Sending"
     },
     "confirmation": {
       "title": "It's on the pass",
@@ -3014,7 +3020,9 @@
         }
       ],
       "cta1": "Go to member hub",
-      "cta2": "Refer another"
+      "cta2": "Refer another",
+      "ifLiveBodyDyn": "You'll earn {{amount}} on this one.",
+      "ifLiveBodyTierUp": "You'll earn {{amount}} and reach {{tier}}, where every referral after is worth {{nextAmount}}."
     },
     "emails": {
       "railTitle": "The Pass · member emails",

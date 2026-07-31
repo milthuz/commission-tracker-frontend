@@ -55,6 +55,7 @@ const PartnerTeam = lazy(() => import('./pages/PartnerPortal/Team'));
 const PartnerOrganization = lazy(() => import('./pages/PartnerPortal/Organization'));
 const PassJoin = lazy(() => import('./pages/Pass/Join'));
 const PassHub = lazy(() => import('./pages/Pass/Hub'));
+const PassRefer = lazy(() => import('./pages/Pass/Refer'));
 
 // "/" adapts to the user's role:
 //   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
@@ -204,6 +205,15 @@ function AppContent() {
             <>
               <PageTitle title="La Passe | Cluster" />
               <PassHub />
+            </>
+          }
+        />
+        <Route
+          path="/pass/referer"
+          element={
+            <>
+              <PageTitle title="La Passe | Cluster" />
+              <PassRefer />
             </>
           }
         />

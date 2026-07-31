@@ -148,7 +148,9 @@ const Hub = () => {
             </p>
             {nextTier && (
               <p className="text-[13px] text-white/40">
-                {tf('pass.hub.unlock', { tier3: tierName(nextTier.key) })}
+                {/* Variante paramétrée : la phrase du deck contient « 1 000 $ » en dur,
+                    écrit pour sa persona. Le montant vient de la configuration. */}
+                {tf('pass.hub.unlockDyn', { tier: tierName(nextTier.key), amount: money(nextTier.credit) })}
               </p>
             )}
           </div>
