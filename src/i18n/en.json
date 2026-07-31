@@ -326,7 +326,8 @@
     "deals": "Deals",
     "profile": "Profile",
     "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar"
+    "expand": "Expand sidebar",
+    "passOps": "The Pass"
   },
   "tour": {
     "skip": "Skip",
@@ -3202,5 +3203,28 @@
       "loadError": "We couldn't load this page. Please try again.",
       "retry": "Try Again"
     }
+  },
+  "passOps": {
+    "title": "The Pass — merchant referrals",
+    "sub": "Every referral members have sent, and what each one is waiting on.",
+    "search": "Search restaurant, member, file number",
+    "allStatuses": "All statuses",
+    "empty": "No referrals match these filters.",
+    "emptyAll": "No referrals yet. They appear here the moment a member submits one.",
+    "duplicate": "Possible duplicate",
+    "duplicateHint": "Another file has the same restaurant name and postal code. Decide before applying credit.",
+    "crmFailed": "CRM lead not created",
+    "markContacted": "Contacted",
+    "markLive": "Live",
+    "markNotQualified": "Not qualified",
+    "applyCredit": "Apply credit",
+    "confirmLive": "Mark {{restaurant}} as live? This locks in {{member}}'s credit and moves their lifetime count up — it cannot be undone here.",
+    "confirmCredit": "Apply {{amount}} of credit to {{member}}? Accounting will be emailed.",
+    "confirmNotQualified": "Mark {{restaurant}} as not qualified?",
+    "creditSent": "Credit applied. Accounting notified.",
+    "creditNoRecipients": "Credit applied, but NO ONE was emailed — no accounting recipients are configured.",
+    "lifetime": "{{n}} live to date",
+    "thisPays": "Pays {{amount}}",
+    "actionFailed": "That action failed. Nothing was changed."
   }
 }

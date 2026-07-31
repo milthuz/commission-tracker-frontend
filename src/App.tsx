@@ -56,6 +56,7 @@ const PartnerOrganization = lazy(() => import('./pages/PartnerPortal/Organizatio
 const PassJoin = lazy(() => import('./pages/Pass/Join'));
 const PassHub = lazy(() => import('./pages/Pass/Hub'));
 const PassRefer = lazy(() => import('./pages/Pass/Refer'));
+const PassOps = lazy(() => import('./pages/PassOps'));
 
 // "/" adapts to the user's role:
 //   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
@@ -314,6 +315,18 @@ function AppContent() {
               <>
                 <PageTitle title="Reseller | Sales Hub" />
                 <Reseller />
+              </>
+            }
+          />
+          {/* Suivi interne de La Passe — dans le produit interne (barre latérale, thème
+              Sales Hub), pas dans la marque marchande. Chemin distinct de `/pass`, qui
+              appartient aux membres et a son propre garde d'authentification. */}
+          <Route
+            path="/pass-referrals"
+            element={
+              <>
+                <PageTitle title="The Pass | Sales Hub" />
+                <PassOps />
               </>
             }
           />

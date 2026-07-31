@@ -326,7 +326,8 @@
     "deals": "Transactions",
     "profile": "Profil",
     "collapse": "Réduire la barre latérale",
-    "expand": "Agrandir la barre latérale"
+    "expand": "Agrandir la barre latérale",
+    "passOps": "La Passe"
   },
   "tour": {
     "skip": "Passer",
@@ -3202,5 +3203,28 @@
       "loadError": "Le chargement de cette page a échoué. Réessayez.",
       "retry": "Réessayer"
     }
+  },
+  "passOps": {
+    "title": "La Passe — recommandations marchands",
+    "sub": "Toutes les recommandations envoyées par les membres, et ce que chacune attend.",
+    "search": "Chercher un restaurant, un membre, un dossier",
+    "allStatuses": "Tous les statuts",
+    "empty": "Aucune recommandation ne correspond à ces filtres.",
+    "emptyAll": "Aucune recommandation pour l’instant. Elles apparaissent ici dès qu’un membre en envoie une.",
+    "duplicate": "Doublon possible",
+    "duplicateHint": "Un autre dossier porte le même nom de restaurant et le même code postal. À trancher avant d’appliquer le crédit.",
+    "crmFailed": "Lead CRM non créé",
+    "markContacted": "Contactée",
+    "markLive": "En service",
+    "markNotQualified": "Non admissible",
+    "applyCredit": "Appliquer le crédit",
+    "confirmLive": "Marquer {{restaurant}} en service ? Cela fige le crédit de {{member}} et fait monter son compteur à vie — c’est irréversible depuis cet écran.",
+    "confirmCredit": "Appliquer {{amount}} de crédit à {{member}} ? La comptabilité sera avisée par courriel.",
+    "confirmNotQualified": "Marquer {{restaurant}} comme non admissible ?",
+    "creditSent": "Crédit appliqué. Comptabilité avisée.",
+    "creditNoRecipients": "Crédit appliqué, mais PERSONNE n’a été avisé — aucun destinataire comptable n’est configuré.",
+    "lifetime": "{{n}} en service à ce jour",
+    "thisPays": "Vaut {{amount}}",
+    "actionFailed": "L’action a échoué. Rien n’a été modifié."
   }
 }

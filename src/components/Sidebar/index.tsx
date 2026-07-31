@@ -321,6 +321,23 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Menu Item The Pass ops (perm: pass:referrals) --> */}
+              {can('pass:referrals') && (
+                <li>
+                  <NavLink
+                    to="/pass-referrals"
+                    className={navLinkCls(pathname.includes('pass-referrals'))}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 7h16M4 12h16M4 17h10" />
+                      <circle cx="18.5" cy="17" r="2.5" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.passOps')}</span>
+                    <NewBadge path="/pass-referrals" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.passOps') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Revenue (perm: revenue:view) --> */}
               {can('revenue:view') && (
                 <li>
