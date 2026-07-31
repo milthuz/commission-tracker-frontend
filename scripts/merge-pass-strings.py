@@ -78,14 +78,32 @@ def merge(bundle_dir):
         base = json.load(io.open(path, encoding='utf-8'), object_pairs_hook=collections.OrderedDict)
         before = {k: v for k, v in base.items() if k != 'pass'}
 
-        # Tout ce qui vit sous `pass` sans venir du deck est CONSERVE : le design laisse des
-        # trous reconnus (l'adhesion n'est pas dessinee, `pass.join` est de nous), et une
-        # affectation seche les effacerait a la prochaine livraison du designer — en
-        # silence, puisque i18next affiche simplement la cle brute a la place.
-        kept = {k: v for k, v in (base.get('pass') or {}).items() if k not in merged[lang]}
-        if kept:
-            print('conservees hors deck : %s' % ', '.join(sorted(kept)))
-        base['pass'] = collections.OrderedDict(list(merged[lang].items()) + list(kept.items()))
+        # Tout ce qui vit sous `pass` sans venir du deck est CONSERVE, A TOUTE PROFONDEUR.
+        # Le design laisse des trous reconnus (l'adhesion n'est pas dessinee) et certaines
+        # de ses phrases figent des montants qu'il a fallu rendre parametrables : ces cles
+        # sont a NOUS et vivent souvent DANS une section du deck (`form.tierLineDyn`,
+        # `hub.emptyTitle`). Une premiere version ne conservait que le premier niveau et les
+        # a effacees au premier re-run — en silence, puisque i18next affiche alors la cle
+        # brute a la place du texte. La fusion est donc recursive : le deck gagne sur ce
+        # qu'il definit, le reste survit.
+        kept_report = []
+
+        def deep_merge(deck, ours, path=''):
+            out = collections.OrderedDict()
+            for k, v in deck.items():
+                if k in ours and isinstance(v, dict) and isinstance(ours[k], dict):
+                    out[k] = deep_merge(v, ours[k], '%s.%s' % (path, k))
+                else:
+                    out[k] = v
+            for k, v in ours.items():
+                if k not in deck:
+                    out[k] = v
+                    kept_report.append(('%s.%s' % (path, k)).lstrip('.'))
+            return out
+
+        base['pass'] = deep_merge(merged[lang], base.get('pass') or {})
+        if kept_report:
+            print('conservees hors deck : %s' % ', '.join(sorted(kept_report)))
         after = {k: v for k, v in base.items() if k != 'pass'}
         if before != after:
             raise SystemExit('%s : le contenu preexistant aurait ete modifie — abandon.' % path)

@@ -2962,10 +2962,10 @@
           "body": "Unlocks at {tier3}."
         }
       ],
+      "unlockDyn": "{{tier}} unlocks {{amount}} per referral, directory listing, and a dedicated contact",
       "emptyTitle": "No referrals yet",
       "emptyBody": "Send us your first restaurant. Your credit starts the day they go live.",
-      "lockedAt": "Locked",
-      "unlockDyn": "{{tier}} unlocks {{amount}} per referral, directory listing, and a dedicated contact"
+      "lockedAt": "Locked"
     },
     "form": {
       "title": "Hand one over.",
@@ -3027,8 +3027,8 @@
     "emails": {
       "railTitle": "The Pass · member emails",
       "note": "Every email sends in the member's chosen correspondence language. English and French versions are maintained side by side.",
-      "from": "The Pass at Cluster <thepass@clusterpos.ca>",
-      "footer": "You're receiving this because you're a member of The Pass, Cluster's merchant referral program in Canada. Credit applies to qualified referrals that become active customers and is subject to program terms. All amounts in Canadian dollars. Cluster · clusterpos.ca",
+      "from": "The Pass at Cluster <thepass@clustersystems.com>",
+      "footer": "You're receiving this because you're a member of The Pass, Cluster's merchant referral program in Canada. Credit applies to qualified referrals that become active customers and is subject to program terms. All amounts in Canadian dollars. Cluster · clusterpos.com",
       "certTitle": "Cluster Account Credit",
       "certCode": "Certificate code",
       "cadNote": "in Canadian dollars",

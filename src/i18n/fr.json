@@ -2962,10 +2962,10 @@
           "body": "Débloqué à {tier3}."
         }
       ],
+      "unlockDyn": "{{tier}} donne accès à {{amount}} par recommandation, au répertoire et à un chargé de compte",
       "emptyTitle": "Aucune recommandation pour l’instant",
       "emptyBody": "Envoyez-nous un premier restaurant. Votre crédit démarre dès sa mise en service.",
-      "lockedAt": "Verrouillé",
-      "unlockDyn": "{{tier}} donne accès à {{amount}} par recommandation, au répertoire et à un chargé de compte"
+      "lockedAt": "Verrouillé"
     },
     "form": {
       "title": "Passez-nous-en un.",
@@ -3027,8 +3027,8 @@
     "emails": {
       "railTitle": "La Passe · courriels aux membres",
       "note": "Chaque courriel est envoyé dans la langue de correspondance choisie par le membre. Les versions française et anglaise sont maintenues en parallèle.",
-      "from": "La Passe chez Cluster <lapasse@clusterpos.ca>",
-      "footer": "Vous recevez ce message parce que vous êtes membre de La Passe, le programme de recommandation marchand de Cluster au Canada. Le crédit s'applique aux recommandations admissibles qui deviennent des clients actifs et est assujetti aux conditions du programme. Tous les montants sont en dollars canadiens. Cluster · clusterpos.ca",
+      "from": "La Passe chez Cluster <lapasse@clustersystems.com>",
+      "footer": "Vous recevez ce message parce que vous êtes membre de La Passe, le programme de recommandation marchand de Cluster au Canada. Le crédit s'applique aux recommandations admissibles qui deviennent des clients actifs et est assujetti aux conditions du programme. Tous les montants sont en dollars canadiens. Cluster · clusterpos.com",
       "certTitle": "Crédit au compte Cluster",
       "certCode": "Code du certificat",
       "cadNote": "en dollars canadiens",
