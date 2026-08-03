@@ -58,6 +58,7 @@ const PassHub = lazy(() => import('./pages/Pass/Hub'));
 const PassRefer = lazy(() => import('./pages/Pass/Refer'));
 const PassOps = lazy(() => import('./pages/PassOps'));
 const PassProgram = lazy(() => import('./pages/Pass/Program'));
+const PassLinkPage = lazy(() => import('./pages/Pass/LinkPage'));
 
 // "/" adapts to the user's role:
 //   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
@@ -204,6 +205,19 @@ function AppContent() {
           <>
             <PageTitle title="La Passe | Cluster" />
             <PassProgram />
+          </>
+        }
+      />
+
+      {/* Page publique du lien personnel. Déclarée APRÈS les routes statiques de /pass ;
+          React Router classe de toute façon un segment statique au-dessus d'un paramètre,
+          donc /pass/connexion, /pass/programme et /pass/referer gagnent sur /pass/:slug. */}
+      <Route
+        path="/pass/:slug"
+        element={
+          <>
+            <PageTitle title="La Passe | Cluster" />
+            <PassLinkPage />
           </>
         }
       />
