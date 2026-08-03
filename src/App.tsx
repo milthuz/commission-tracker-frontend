@@ -19,6 +19,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NewFeaturesProvider } from './context/NewFeaturesContext';
 import DialogHost from './components/DialogHost';
+import AppErrorBoundary from './components/AppErrorBoundary';
 import { PartnerAuthProvider } from './context/PartnerAuthContext';
 import { PassAuthProvider } from './context/PassAuthContext';
 import PassProtectedRoute from './components/PassProtectedRoute';
@@ -28,6 +29,32 @@ import PartnerLogin from './pages/PartnerPortal/Login';
 import PartnerAcceptInvite from './pages/PartnerPortal/AcceptInvite';
 import PartnerResetPassword from './pages/PartnerPortal/ResetPassword';
 
+// Un import dynamique qui echoue vide la page : React demonte tout l'arbre, et sans
+// barriere d'erreur l'utilisateur voit un ecran gris. Ca arrive pour une raison banale —
+// coupure reseau d'une seconde, ou un deploiement qui remplace les chunks pendant qu'un
+// onglet est reste ouvert. C'est exactement le « je dois rafraichir une deuxieme fois »
+// signale le 2026-08-03.
+//
+// Ici on recharge UNE fois, tout seul, au lieu de laisser l'utilisateur le decouvrir. Le
+// garde-fou de 10 s empeche la boucle : si le rechargement echoue encore, l'erreur remonte
+// a la barriere, qui affiche un message plutot que du vide.
+const CHUNK_RELOAD_KEY = 'sh-chunk-reload-at';
+function lazyRoute<T extends { default: React.ComponentType<any> }>(factory: () => Promise<T>) {
+  return lazy(() =>
+    factory().catch((err) => {
+      const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0);
+      if (Date.now() - last > 10_000) {
+        sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+        window.location.reload();
+        // Ne se resout jamais : le rechargement prend le relais, et resoudre ici ferait
+        // clignoter un ecran d'erreur juste avant que la page parte.
+        return new Promise<T>(() => {});
+      }
+      throw err;
+    }),
+  );
+}
+
 // PERFORMANCE: everything below is lazy-loaded. Previously all 30 routes were statically imported
 // here, producing ONE 2.70 MB chunk (687 KB gzip) that every user downloaded before first paint —
 // so a sales rep landing on their dashboard was pulling the entire admin panel (37% of the app's
@@ -36,29 +63,29 @@ import PartnerResetPassword from './pages/PartnerPortal/ResetPassword';
 //
 // Kept EAGER on purpose: ZohoLogin / the auth + legal pages (first paint for a signed-out user),
 // RepDashboard (the landing page for most users), Profile, Versions, and the layout/route guards.
-const ECommerce = lazy(() => import('./pages/Dashboard/ECommerce'));
-const ManagerDashboard = lazy(() => import('./pages/Dashboard/ManagerDashboard'));
-const CommissionTracker = lazy(() => import('./pages/CommissionTracker'));
-const CommissionReport = lazy(() => import('./pages/CommissionReport'));
-const AdminPanel = lazy(() => import('./pages/AdminPanel'));
-const SavingsCalculator = lazy(() => import('./pages/SavingsCalculator'));
-const Reseller = lazy(() => import('./pages/Reseller'));
-const Revenue = lazy(() => import('./pages/Revenue'));
-const Resources = lazy(() => import('./pages/Resources'));
-const KaizenDemo = lazy(() => import('./pages/KaizenDemo'));
-const Proposals = lazy(() => import('./pages/Proposals'));
-const PricingGuide = lazy(() => import('./pages/PricingGuide'));
-const SaasIncrease = lazy(() => import('./pages/AdminPanel/SaasIncrease'));
-const PartnerPortal = lazy(() => import('./pages/PartnerPortal'));
-const PartnerProfile = lazy(() => import('./pages/PartnerPortal/Profile'));
-const PartnerTeam = lazy(() => import('./pages/PartnerPortal/Team'));
-const PartnerOrganization = lazy(() => import('./pages/PartnerPortal/Organization'));
-const PassJoin = lazy(() => import('./pages/Pass/Join'));
-const PassHub = lazy(() => import('./pages/Pass/Hub'));
-const PassRefer = lazy(() => import('./pages/Pass/Refer'));
-const PassOps = lazy(() => import('./pages/PassOps'));
-const PassProgram = lazy(() => import('./pages/Pass/Program'));
-const PassLinkPage = lazy(() => import('./pages/Pass/LinkPage'));
+const ECommerce = lazyRoute(() => import('./pages/Dashboard/ECommerce'));
+const ManagerDashboard = lazyRoute(() => import('./pages/Dashboard/ManagerDashboard'));
+const CommissionTracker = lazyRoute(() => import('./pages/CommissionTracker'));
+const CommissionReport = lazyRoute(() => import('./pages/CommissionReport'));
+const AdminPanel = lazyRoute(() => import('./pages/AdminPanel'));
+const SavingsCalculator = lazyRoute(() => import('./pages/SavingsCalculator'));
+const Reseller = lazyRoute(() => import('./pages/Reseller'));
+const Revenue = lazyRoute(() => import('./pages/Revenue'));
+const Resources = lazyRoute(() => import('./pages/Resources'));
+const KaizenDemo = lazyRoute(() => import('./pages/KaizenDemo'));
+const Proposals = lazyRoute(() => import('./pages/Proposals'));
+const PricingGuide = lazyRoute(() => import('./pages/PricingGuide'));
+const SaasIncrease = lazyRoute(() => import('./pages/AdminPanel/SaasIncrease'));
+const PartnerPortal = lazyRoute(() => import('./pages/PartnerPortal'));
+const PartnerProfile = lazyRoute(() => import('./pages/PartnerPortal/Profile'));
+const PartnerTeam = lazyRoute(() => import('./pages/PartnerPortal/Team'));
+const PartnerOrganization = lazyRoute(() => import('./pages/PartnerPortal/Organization'));
+const PassJoin = lazyRoute(() => import('./pages/Pass/Join'));
+const PassHub = lazyRoute(() => import('./pages/Pass/Hub'));
+const PassRefer = lazyRoute(() => import('./pages/Pass/Refer'));
+const PassOps = lazyRoute(() => import('./pages/PassOps'));
+const PassProgram = lazyRoute(() => import('./pages/Pass/Program'));
+const PassLinkPage = lazyRoute(() => import('./pages/Pass/LinkPage'));
 
 // "/" adapts to the user's role:
 //   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
@@ -98,6 +125,7 @@ function AppContent() {
   // ProtectedRoute already gates on it). That was a full second of artificial time-to-interactive
   // for every user, every visit. The timeout was also never cleared.
   return (
+    <AppErrorBoundary>
     <Suspense fallback={<Loader />}>
     <Routes>
       {/* Public Routes */}
@@ -452,6 +480,7 @@ function AppContent() {
       />
     </Routes>
     </Suspense>
+    </AppErrorBoundary>
   );
 }
 
