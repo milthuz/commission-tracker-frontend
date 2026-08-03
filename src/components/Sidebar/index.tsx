@@ -544,22 +544,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
-              {/* <!-- Menu Item Savings calculator (perm: savings:use) --> */}
-              {(isAdmin || can('savings:use')) && (
-                <li>
-                  <NavLink
-                    to="/savings"
-                    className={navLinkCls(pathname.includes('savings'))}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="5" y="3" width="14" height="18" rx="2" />
-                      <path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2" />
-                    </svg>
-                    <span className={labelCls}>{t('sidebar.savings')}</span>
-                    <RailTip label={t('sidebar.savings') as string} />
-                  </NavLink>
-                </li>
-              )}
               {/* <!-- Menu Item SaaS Increase (perm: saas_increase:manage) — moved out of the Admin
                    Panel submenu so the granular saas_increase:* permissions can be assigned to
                    non-admin users; AdminPanel/index.tsx gates its whole render on isAdmin, which
@@ -657,17 +641,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         </NavLink>
                       </li>
                     )}
-                    <li>
-                      <NavLink
-                        to="/admin/savings-pricing"
-                        className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                          pathname === '/admin/savings-pricing' ? 'text-white' : ''
-                        }`}
-                      >
-                        {t('sidebar.savingsPricing')}
-                        <NewBadge path="/admin/savings-pricing" />
-                      </NavLink>
-                    </li>
                     <li>
                       <NavLink
                         to="/admin/notifications"

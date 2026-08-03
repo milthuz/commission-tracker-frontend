@@ -68,7 +68,6 @@ const ManagerDashboard = lazyRoute(() => import('./pages/Dashboard/ManagerDashbo
 const CommissionTracker = lazyRoute(() => import('./pages/CommissionTracker'));
 const CommissionReport = lazyRoute(() => import('./pages/CommissionReport'));
 const AdminPanel = lazyRoute(() => import('./pages/AdminPanel'));
-const SavingsCalculator = lazyRoute(() => import('./pages/SavingsCalculator'));
 const Reseller = lazyRoute(() => import('./pages/Reseller'));
 const Revenue = lazyRoute(() => import('./pages/Revenue'));
 const Resources = lazyRoute(() => import('./pages/Resources'));
@@ -426,15 +425,6 @@ function AppContent() {
               <>
                 <PageTitle title="Propositions | Sales Hub" />
                 <Proposals />
-              </>
-            }
-          />
-          <Route
-            path="/savings"
-            element={
-              <>
-                <PageTitle title="Calculateur d'économies | Sales Hub" />
-                <SavingsCalculator />
               </>
             }
           />

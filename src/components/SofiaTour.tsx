@@ -21,7 +21,6 @@ const NAV_DESC: Record<string, string> = {
   '/resources': 'tour.resourcesBody',
   '/kaizen-demo': 'tour.kaizenBody',
   '/proposals': 'tour.proposalsBody',
-  '/savings': 'tour.savingsBody',
   '/admin/partners': 'tour.partnersBody',
   '/admin': 'tour.adminBody',
   '/profile': 'tour.profileBody',

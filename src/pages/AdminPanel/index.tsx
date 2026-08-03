@@ -15,7 +15,6 @@ import ProbationBadge from '../../components/ProbationBadge';
 import ResourcesAdmin from './ResourcesAdmin';
 import DataHealth from './DataHealth';
 import Audit from './Audit';
-import SavingsPricingAdmin from './SavingsPricingAdmin';
 import HardwareAdmin from './HardwareAdmin';
 import PricingAdmin from './PricingAdmin';
 import PartnersAdmin from './PartnersAdmin';
@@ -1509,7 +1508,6 @@ const AdminPanel = () => {
              activeTab === 'resources' ? t('admin.resources.title') :
              activeTab === 'merchant-links' ? t('admin.merchantLinks.title') :
              activeTab === 'data-health' ? t('dataHealth.title') :
-             activeTab === 'savings-pricing' ? t('savingsPricing.title') :
              activeTab === 'audit' ? t('admin.audit.title') :
              activeTab === 'hardware' ? t('admin.hardware.title') :
              activeTab === 'pricing' ? t('admin.pricing.title') :
@@ -1529,7 +1527,6 @@ const AdminPanel = () => {
              activeTab === 'resources' ? t('admin.resources.subtitle') :
              activeTab === 'merchant-links' ? t('admin.merchantLinks.subtitle') :
              activeTab === 'data-health' ? t('dataHealth.subtitle') :
-             activeTab === 'savings-pricing' ? t('savingsPricing.subtitle') :
              activeTab === 'audit' ? t('admin.audit.subtitle') :
              activeTab === 'hardware' ? t('admin.hardware.subtitle') :
              activeTab === 'pricing' ? t('admin.pricing.subtitle') :
@@ -1553,7 +1550,6 @@ const AdminPanel = () => {
       {/* Content */}
           {activeTab === 'data-health' && <DataHealth />}
           {activeTab === 'audit' && <Audit />}
-          {activeTab === 'savings-pricing' && <SavingsPricingAdmin />}
           {activeTab === 'sync' && (
             <>
             <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
