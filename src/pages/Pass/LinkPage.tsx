@@ -1,6 +1,6 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ClusterMark, PASS_API, PassMotion, useFmt } from './passUi';
+import { ClusterMark, PASS_API, PassLangToggle, PassMotion, useFmt } from './passUi';
 
 // Écran 07 — la page publique du lien personnel d'un membre, `/pass/{slug}`.
 //
@@ -130,9 +130,14 @@ const LinkPage = () => {
     <div className="min-h-screen bg-[#F5F5F6] font-satoshi text-[#141414]">
       <PassMotion />
 
-      <header className={`${wrap} flex items-center justify-between gap-4 py-6`}>
+      <header className={`${wrap} flex flex-wrap items-center justify-between gap-4 py-6`}>
         <ClusterMark className="h-[22px] w-auto" />
-        <span className="text-[13px] text-[#94969C]">{t('pass.region')}</span>
+        <div className="flex items-center gap-4">
+          <span className="text-[13px] text-[#94969C]">{t('pass.region')}</span>
+          {/* Le visiteur arrive froid depuis le lien d'un membre : c'est ici que la bascule
+              de langue compte le plus, il n'a aucune préférence enregistrée. */}
+          <PassLangToggle />
+        </div>
       </header>
 
       <main className={`${wrap} pb-20`}>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePassAuth } from '../../context/PassAuthContext';
-import { ClusterMark, PASS_API, PassMotion, PassPill, useFmt, useTierName } from './passUi';
+import { ClusterMark, PASS_API, PassLangToggle, PassMotion, PassPill, useFmt, useTierName } from './passUi';
 
 // Page programme (écran 01) — page marketing PUBLIQUE, pas un écran du portail. Coquille
 // autonome : en-tête et pied publics, aucune barre latérale, pleine largeur.
@@ -54,6 +54,7 @@ const Program = () => {
             <PassPill />
           </div>
           <div className="flex items-center gap-3">
+            <PassLangToggle onDark />
             {/* Proposé UNIQUEMENT à qui a déjà une session — voir le commentaire d'en-tête. */}
             {isAuthenticated && (
               <Link

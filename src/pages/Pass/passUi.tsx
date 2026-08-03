@@ -54,6 +54,48 @@ export const PassPill = ({ className = '' }: { className?: string }) => {
 };
 
 /**
+ * Bascule de langue des surfaces PUBLIQUES de La Passe.
+ *
+ * Elle manquait sur la page programme et sur la page du lien — soit les deux seuls écrans
+ * où le visiteur n'a aucune préférence enregistrée et aucun autre moyen de changer. Un
+ * restaurateur francophone arrivant par le lien d'un membre depuis un navigateur anglais
+ * était simplement coincé.
+ *
+ * Forme en GROUPE (FR|EN) plutôt que la pastille « code + chevron » du kit portail :
+ * celle-ci est spécifiée pour la topbar du portail, alors qu'ici on est sur une page
+ * publique où les deux langues doivent se voir d'un coup d'œil, en un clic.
+ */
+export const PassLangToggle = ({ onDark = false }: { onDark?: boolean }) => {
+  const { i18n, fr } = useFmt();
+  return (
+    <div
+      className={`inline-flex rounded-full p-1 text-[13px] font-medium ${
+        onDark ? 'border border-white/12 bg-white/[0.04]' : 'border border-[#E0E0E0] bg-white'
+      }`}
+    >
+      {(['fr', 'en'] as const).map((lng) => (
+        <button
+          key={lng}
+          type="button"
+          onClick={() => {
+            i18n.changeLanguage(lng);
+            localStorage.setItem('language', lng);
+          }}
+          aria-pressed={(lng === 'fr') === fr}
+          className={`rounded-full px-3.5 py-1.5 transition-colors duration-150 ${
+            (lng === 'fr') === fr
+              ? onDark ? 'bg-white text-[#141414]' : 'bg-[#141414] text-white'
+              : onDark ? 'text-white/55 hover:text-white' : 'text-[#61646C] hover:text-[#141414]'
+          }`}
+        >
+          {lng.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+/**
  * Formatage + interpolation pour La Passe.
  *
  * ⚠️ Le deck du designer écrit ses variables en accolades SIMPLES (`{firstName}`), alors
