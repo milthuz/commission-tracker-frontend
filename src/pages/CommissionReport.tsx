@@ -750,7 +750,7 @@ const CommissionReport = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
       </div>
     );
   }
@@ -985,7 +985,7 @@ const CommissionReport = () => {
             </div>
             <div className="max-h-[70vh] overflow-auto p-4">
               {searchModal.loading ? (
-                <div className="flex items-center justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
+                <div className="flex items-center justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
               ) : searchModal.results.length === 0 ? (
                 <p className="py-6 text-center text-sm text-body">{t('commissionReport.searchNoResults')}</p>
               ) : (
@@ -1560,7 +1560,7 @@ const CommissionReport = () => {
             <div className="relative overflow-auto" style={{ height: 'calc(90vh - 80px)' }}>
               {previewModal.loading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
-                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
                 </div>
               )}
               <iframe

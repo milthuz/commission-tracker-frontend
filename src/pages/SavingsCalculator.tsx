@@ -140,7 +140,7 @@ const SavingsCalculator: React.FC = () => {
   const inputCls = 'w-full rounded border border-stroke bg-transparent px-2.5 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white';
   const cardCls = 'rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark';
 
-  if (loadingTpl) return <div className="flex justify-center p-10"><span className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+  if (loadingTpl) return <div className="flex justify-center p-10"><span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
 
   return (
     <div className="mx-auto max-w-screen-2xl">

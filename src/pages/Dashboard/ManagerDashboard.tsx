@@ -49,7 +49,7 @@ const ManagerDashboard: React.FC = () => {
 
   if (loading) return (
     <div className="flex h-[60vh] items-center justify-center">
-      <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
     </div>
   );
   if (error) return <div className="flex h-[60vh] items-center justify-center"><p className="text-danger">{error}</p></div>;

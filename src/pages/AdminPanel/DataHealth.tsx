@@ -144,7 +144,7 @@ const DataHealth: React.FC = () => {
 
       {!data && loading && (
         <div className="flex items-center justify-center rounded-xl border border-stroke bg-white p-10 dark:border-strokedark dark:bg-boxdark">
-          <span className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
       )}
 

@@ -200,7 +200,7 @@ const Join = () => {
             <div className="rounded-2xl border border-[#E0E0E0]/70 bg-white dark:bg-[#141414] p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10">
               {step === 'connecting' && (
                 <div className="flex flex-col items-center gap-5 py-16 text-center">
-                  <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#E0E0E0] dark:border-[#242424] border-t-primary" />
+                  <span className="h-8 w-8 animate-spin rounded-full border-4 border-[#E0E0E0] dark:border-[#242424] border-t-primary" />
                   <p className="text-[15px] text-[#61646C] dark:text-white/55">{t('pass.join.connecting')}</p>
                 </div>
               )}

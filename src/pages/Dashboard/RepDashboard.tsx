@@ -116,7 +116,7 @@ const RepDashboard: React.FC = () => {
 
   if (loading) return (
     <div className="flex h-[60vh] items-center justify-center">
-      <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
     </div>
   );
   if (error) return (
@@ -356,7 +356,7 @@ const RepDashboard: React.FC = () => {
                     {open && (
                       <div className="border-t border-stroke px-3 py-2 dark:border-strokedark">
                         {loadingDrill ? (
-                          <div className="flex items-center justify-center py-3"><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
+                          <div className="flex items-center justify-center py-3"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
                         ) : (() => {
                           // Only invoices that actually earned commission (the list total is commission-only).
                           const rows = drillInvoices.filter(inv => inv.commission > 0);

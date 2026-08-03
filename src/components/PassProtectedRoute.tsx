@@ -13,7 +13,7 @@ const PassProtectedRoute = () => {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0A0A0A]">
-        <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-[#F58345]" />
+        <span className="h-8 w-8 animate-spin rounded-full border-4 border-white/15 border-t-primary" />
       </div>
     );
   }
