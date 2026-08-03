@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePassAuth, PASS_TOKEN_KEY } from '../../context/PassAuthContext';
-import { PASS_API, PassHeader, PassMotion, StatusBadge, useFmt, useTierName } from './passUi';
+import { PASS_API, PassMotion, StatusBadge, useFmt, useTierName } from './passUi';
+import { PassPortal } from './PortalShell';
 
 // Espace membre — écran 02 du deck. Fond SOMBRE, contrairement au formulaire d'adhésion :
 // c'est le choix du designer, pas une incohérence (dans le deck, la page programme et
@@ -20,7 +21,7 @@ interface Referral {
 }
 
 const Hub = () => {
-  const { member, logout, refresh } = usePassAuth();
+  const { member, refresh } = usePassAuth();
   const { t, tf, list, money, date, monthYear } = useFmt();
   const tierName = useTierName();
 
@@ -65,25 +66,13 @@ const Hub = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] font-satoshi text-white">
+    <PassPortal title={t('pass.nav.hub')}>
       <PassMotion />
-      <PassHeader
-        right={
-          <button
-            type="button"
-            onClick={logout}
-            className="rounded-full px-3 py-1.5 text-[13px] font-medium text-white/55 transition-colors duration-150 hover:text-white"
-          >
-            {t('pass.common.signOut')}
-          </button>
-        }
-      />
-
-      <main className="mx-auto w-full max-w-[1160px] px-6 pb-16 sm:px-8">
+      <div className="mx-auto w-full max-w-[1160px]">
         {/* ── Salutation + action principale ──────────────────────────── */}
         <div className="pass-rise flex flex-wrap items-start justify-between gap-6">
           <div>
-            <h1 className="text-[32px] font-bold leading-tight tracking-[-0.015em] sm:text-[36px]">
+            <h1 className="text-[30px] font-medium leading-tight tracking-[-0.015em] sm:text-[34px]">
               {tf('pass.hub.greeting', { firstName })}
             </h1>
             <p className="mt-2 text-[14.5px] text-white/45">
@@ -95,7 +84,7 @@ const Hub = () => {
           </div>
           <Link
             to="/pass/referer"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#F58345] px-5 py-3 text-[14.5px] font-bold text-white transition-colors duration-150 hover:bg-[#E5723A] active:bg-[#D16630]"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#F58345] px-5 py-3 text-[14.5px] font-medium text-white transition-colors duration-150 hover:bg-[#E5723A] active:bg-[#D16630]"
           >
             <span className="text-[17px] leading-none">+</span>
             {t('pass.landing.referCta')}
@@ -103,7 +92,7 @@ const Hub = () => {
         </div>
 
         {/* ── Progression de palier ───────────────────────────────────── */}
-        <section className="pass-rise mt-8 rounded-2xl border border-[#242424] bg-[#141414] p-6 sm:p-7">
+        <section className="pass-rise mt-8 rounded-[14px] border border-[#242424] bg-[#141414] p-6 sm:p-7">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3.5">
               <span className="inline-flex items-center gap-2 rounded-full border border-[#F58345]/35 bg-[#F58345]/10 px-3.5 py-1.5 text-[13px] font-semibold text-[#F79C6A]">
@@ -154,9 +143,9 @@ const Hub = () => {
         {/* ── Indicateurs ─────────────────────────────────────────────── */}
         <section className="pass-rise mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {kpis.map((k) => (
-            <div key={k.label} className="rounded-2xl border border-[#242424] bg-[#141414] p-5">
+            <div key={k.label} className="rounded-[14px] border border-[#242424] bg-[#141414] p-5">
               <p className="text-[13px] text-white/40">{k.label}</p>
-              <p className={`mt-2 text-[30px] font-bold leading-none tracking-[-0.02em] ${k.tone}`}>
+              <p className={`mt-2 text-[28px] font-medium leading-none tracking-[-0.02em] ${k.tone}`}>
                 {k.value}
               </p>
             </div>
@@ -169,9 +158,9 @@ const Hub = () => {
               défaut, donc la largeur minimale du tableau élargissait la COLONNE au lieu de
               laisser défiler le conteneur prévu pour ça — une deuxième barre de défilement,
               exactement ce que les conventions du projet interdisent. */}
-          <section className="pass-rise min-w-0 rounded-2xl border border-[#242424] bg-[#141414]">
+          <section className="pass-rise min-w-0 rounded-[14px] border border-[#242424] bg-[#141414]">
             <div className="flex items-center justify-between gap-4 px-6 pt-6">
-              <h2 className="text-[17px] font-bold">{t('pass.hub.tableTitle')}</h2>
+              <h2 className="text-[17px] font-medium">{t('pass.hub.tableTitle')}</h2>
               {!!referrals?.length && (
                 <span className="text-[13px] text-white/35">
                   {tf('pass.hub.tableCount', { n: referrals.length })}
@@ -197,7 +186,7 @@ const Hub = () => {
                 l'air cassé — on montre plutôt l'action qui manque. */}
             {!failed && referrals?.length === 0 && (
               <div className="px-6 py-12 text-center">
-                <p className="text-[16px] font-semibold">{t('pass.hub.emptyTitle')}</p>
+                <p className="text-[16px] font-medium">{t('pass.hub.emptyTitle')}</p>
                 <p className="mx-auto mt-2 max-w-[38ch] text-[14px] leading-[1.6] text-white/45">
                   {t('pass.hub.emptyBody')}
                 </p>
@@ -227,7 +216,7 @@ const Hub = () => {
                     {referrals.map((r) => (
                       <tr key={r.id} className="border-b border-[#242424]/70 last:border-0">
                         <td className="px-6 py-4">
-                          <p className="text-[14.5px] font-semibold">{r.restaurant.name}</p>
+                          <p className="text-[14.5px] font-medium">{r.restaurant.name}</p>
                           <p className="mt-0.5 text-[12.5px] text-white/35">
                             {r.restaurant.city}, {r.restaurant.province}
                           </p>
@@ -238,7 +227,7 @@ const Hub = () => {
                         <td className="px-4 py-4">
                           <StatusBadge status={r.status} />
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-right text-[14.5px] font-bold">
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-[14.5px] font-medium">
                           {r.status === 'not_qualified' || r.creditAmount === null ? (
                             <span className="text-white/25">—</span>
                           ) : (
@@ -256,8 +245,8 @@ const Hub = () => {
           </section>
 
           {/* ── Avantages ────────────────────────────────────────────── */}
-          <section className="pass-rise rounded-2xl border border-[#242424] bg-[#141414] p-6">
-            <h2 className="text-[17px] font-bold">{t('pass.hub.perksTitle')}</h2>
+          <section className="pass-rise rounded-[14px] border border-[#242424] bg-[#141414] p-6">
+            <h2 className="text-[17px] font-medium">{t('pass.hub.perksTitle')}</h2>
             <ul className="mt-5 space-y-5">
               {/* Le palier de chaque avantage est DONNÉ par le deck depuis sa livraison
                   du 2026-08-03 (`tier`, et `locked` pour ceux à débloquer). La version
@@ -274,7 +263,7 @@ const Hub = () => {
                         }`}
                       />
                       <div>
-                        <p className="text-[14px] font-semibold">{perk.title}</p>
+                        <p className="text-[14px] font-medium">{perk.title}</p>
                         <p className="mt-1 text-[13px] leading-[1.55] text-white/45">
                           {/* Les avantages du deck citent le palier qui les débloque. */}
                           {perk.body
@@ -289,8 +278,8 @@ const Hub = () => {
             </ul>
           </section>
         </div>
-      </main>
-    </div>
+      </div>
+    </PassPortal>
   );
 };
 

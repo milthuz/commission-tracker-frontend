@@ -1,7 +1,8 @@
 import { useState, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { usePassAuth, PASS_TOKEN_KEY } from '../../context/PassAuthContext';
-import { PASS_API, PassHeader, PassMotion, useFmt, useTierName } from './passUi';
+import { PASS_API, PassMotion, useFmt, useTierName } from './passUi';
+import { PassPortal } from './PortalShell';
 
 // Formulaire de recommandation (écran 03) + confirmation (écran 04). Les deux vivent sur
 // la MÊME route, en deux états : la confirmation n'est pas une destination, c'est le
@@ -95,11 +96,10 @@ const Refer = () => {
   // ── Confirmation ──────────────────────────────────────────────────────────
   if (done) {
     return (
-      <div className="flex min-h-screen flex-col bg-[#F5F5F6] font-satoshi text-[#141414]">
+      <PassPortal title={t('pass.nav.confirmation')} surface="light">
         <PassMotion />
-        <PassHeader onDark={false} />
-        <main className="mx-auto w-full max-w-[720px] flex-1 px-6 pb-16 sm:px-8">
-          <div className="pass-rise rounded-2xl border border-[#E0E0E0]/70 bg-white p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10">
+        <div className="mx-auto w-full max-w-[720px]">
+          <div className="pass-rise rounded-[14px] border border-[#E0E0E0]/70 bg-white p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10">
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FDE6DA]">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <path d="m4.5 12.5 5 5 10-11" stroke="#D16630" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -176,25 +176,16 @@ const Refer = () => {
               </button>
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </PassPortal>
     );
   }
 
   // ── Formulaire ────────────────────────────────────────────────────────────
   return (
-    <div className="flex min-h-screen flex-col bg-[#F5F5F6] font-satoshi text-[#141414]">
+    <PassPortal title={t('pass.nav.refer')} surface="light">
       <PassMotion />
-      <PassHeader
-        onDark={false}
-        right={
-          <Link to="/pass" className="rounded-full px-3 py-1.5 text-[13px] font-medium text-[#61646C] hover:text-[#141414]">
-            {t('pass.common.backToHub')}
-          </Link>
-        }
-      />
-
-      <main className="mx-auto w-full max-w-[1160px] flex-1 px-6 pb-16 sm:px-8">
+      <div className="mx-auto w-full max-w-[1160px]">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,4fr)_minmax(0,6fr)] lg:gap-14">
           {/* Ce que la recommandation rapporte — la raison d'être du formulaire */}
           <section className="pass-rise min-w-0">
@@ -208,7 +199,7 @@ const Refer = () => {
               {t('pass.form.sub')}
             </p>
 
-            <div className="mt-8 rounded-2xl border border-[#FBCDB5] bg-[#FDE6DA]/70 p-6">
+            <div className="mt-8 rounded-[14px] border border-[#FBCDB5] bg-[#FDE6DA]/70 p-6">
               <p className="flex items-center gap-2 text-[13px] font-semibold text-[#8A4220]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#F58345]" />
                 {/* Variante paramétrée : la phrase du deck fige « palier 2 ». */}
@@ -228,7 +219,7 @@ const Refer = () => {
               )}
             </div>
 
-            <div className="mt-4 rounded-2xl border border-[#E0E0E0] bg-white p-6">
+            <div className="mt-4 rounded-[14px] border border-[#E0E0E0] bg-white p-6">
               <p className="text-[14.5px] font-bold">
                 {tf('pass.form.discountTitleDyn', { amount: money(member.hardwareDiscount) })}
               </p>
@@ -243,7 +234,7 @@ const Refer = () => {
             <form
               onSubmit={submit}
               noValidate
-              className="rounded-2xl border border-[#E0E0E0]/70 bg-white p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10"
+              className="rounded-[14px] border border-[#E0E0E0]/70 bg-white p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10"
             >
               <p className="text-[12px] font-medium uppercase tracking-[0.07em] text-[#94969C]">
                 {t('pass.form.section1')}
@@ -330,8 +321,8 @@ const Refer = () => {
             </form>
           </section>
         </div>
-      </main>
-    </div>
+      </div>
+    </PassPortal>
   );
 };
 
