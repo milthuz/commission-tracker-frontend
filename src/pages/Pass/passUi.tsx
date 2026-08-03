@@ -35,143 +35,20 @@ export const ClusterMark = ({
 );
 
 /**
- * Le symbole de La Passe — le bon de commande au rail (direction B, choisie par
- * l'utilisateur 2026-07-31).
+ * La pastille du programme — c'est ainsi, et SEULEMENT ainsi, que La Passe s'identifie.
  *
- * Aucun mot dans le dessin, et c'est le point : le programme s'appelle « La Passe » en
- * français et « The Pass » en anglais. Un logotype construit sur des lettres anglaises
- * aurait cassé dans la moitié des cas ; ici le nom reste du texte composé à côté.
- *
- * Le contour utilise `currentColor` : le symbole prend la couleur du texte de son
- * conteneur, donc une seule définition sert les fonds clairs et sombres. Seul l'accent
- * orange est fixe.
- *
- * `detail={false}` retire les deux lignes intérieures. C'était la faiblesse relevée de
- * cette direction — sous ~24 px, le bord déchiré ET deux traits deviennent une bouillie.
- * Le seuil est appliqué automatiquement d'après la taille demandée, plutôt que laissé à
- * la vigilance de chaque appel.
+ * Le programme n'a pas de symbole : la livraison du designer (2026-08-03) n'en prévoit
+ * aucun et son brief interdit d'en inventer un. Une première version en avait un, dessiné
+ * ici puis retiré sur décision de l'utilisateur — ne pas le réintroduire sans que le
+ * designer l'ait porté dans sa charte.
  */
-// Géométrie du symbole, sur une grille de 64. Les chiffres sont ici plutôt qu'inlinés
-// pour que l'export de fichiers (SVG autonomes, PNG des courriels) parte EXACTEMENT du
-// même dessin que l'écran — deux définitions auraient divergé dès la première retouche.
-//
-// Le billet occupe 34 × 40 dans une boîte de 64, ce qui laisse un dégagement d'environ
-// 15 % sur chaque bord : la marge de respiration du logo est donc DANS le fichier, et il
-// reste lisible même collé à un autre élément.
-//
-// Le bord déchiré oscille entre y=44 et y=49 sur 34 de large. Version normale : 8 segments
-// de 4,25 (4 dents). Version réduite : 4 segments de 8,5 (2 dents) — sous ~24 px, quatre
-// dents se referment en un trait flou, et c'était la faiblesse connue de cette direction.
-export const PASS_MARK_GEOMETRY = {
-  viewBox: '0 0 64 64',
-  outlineDetailed:
-    'M19 9h26a4 4 0 0 1 4 4v31l-4.25 5-4.25-5-4.25 5-4.25-5-4.25 5-4.25-5-4.25 5-4.25-5V13a4 4 0 0 1 4-4Z',
-  outlineCompact:
-    'M19 9h26a4 4 0 0 1 4 4v31l-8.5 5-8.5-5-8.5 5-8.5-5V13a4 4 0 0 1 4-4Z',
-  lineAccent: 'M22 22h20',
-  lineMuted: 'M22 30h13',
-  strokeDetailed: 4.5,
-  strokeCompact: 5.5,
-  accent: '#F58345',
-  /** En dessous, on bascule sur le dessin réduit. */
-  compactBelow: 24,
-} as const;
-
-export const PassMark = ({ size = 32, className = '' }: { size?: number; className?: string }) => {
-  const g = PASS_MARK_GEOMETRY;
-  const detail = size >= g.compactBelow;
-  return (
-    <svg
-      viewBox={g.viewBox}
-      width={size}
-      height={size}
-      fill="none"
-      className={className}
-      role="img"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d={detail ? g.outlineDetailed : g.outlineCompact}
-        stroke="currentColor"
-        strokeWidth={detail ? g.strokeDetailed : g.strokeCompact}
-        strokeLinejoin="round"
-      />
-      {detail && (
-        <>
-          <path d={g.lineAccent} stroke={g.accent} strokeWidth={g.strokeDetailed} strokeLinecap="round" />
-          <path d={g.lineMuted} stroke="currentColor" strokeWidth={g.strokeDetailed} strokeLinecap="round" opacity={0.38} />
-        </>
-      )}
-    </svg>
-  );
-};
-
-/**
- * Le logo complet, dans ses quatre compositions. Même logique que `SalesHubLogo`, déjà la
- * convention du dépôt — un composant par marque, une variante par usage, plutôt qu'un
- * assemblage refait à la main sur chaque écran.
- *
- * - `mark`      — le symbole seul (favicon, avatar, espace serré).
- * - `horizontal`— symbole + nom. L'usage courant.
- * - `endorsed`  — symbole + nom + « par Cluster ». Toute surface où un marchand pourrait
- *                 ignorer d'où vient le programme : adhésion, courriels, page publique.
- * - `stacked`   — la même chose centrée, pour un placement isolé.
- *
- * Le NOM reste du texte, jamais un tracé : c'est ce qui permet à « La Passe » et
- * « The Pass » d'être le même logo dans les deux langues.
- */
-export const PassLogo = ({
-  variant = 'horizontal',
-  onDark = true,
-  size = 30,
-  className = '',
-}: {
-  variant?: 'mark' | 'horizontal' | 'endorsed' | 'stacked';
-  onDark?: boolean;
-  size?: number;
-  className?: string;
-}) => {
+export const PassPill = ({ className = '' }: { className?: string }) => {
   const { t } = useTranslation();
-  const ink = onDark ? 'text-white' : 'text-[#141414]';
-  const muted = onDark ? 'text-white/40' : 'text-[#94969C]';
-  const rule = onDark ? 'bg-white/18' : 'bg-[#D1D1D1]';
-  const name = (
-    <span className={`font-bold leading-none tracking-[-0.01em] ${ink}`} style={{ fontSize: size * 0.57 }}>
-      {t('pass.programName')}
-    </span>
-  );
-  const endorsement = (
-    <span className={`flex items-center gap-2 ${muted}`} style={{ fontSize: Math.max(11, size * 0.42) }}>
-      {t('pass.common.by')}
-      {/* Le logo Cluster se cale sur la hauteur du symbole (la moitié), pour que les deux
-          marques restent dans un rapport constant quelle que soit la taille demandée. */}
-      <ClusterMark onDark={onDark} className="w-auto opacity-80" style={{ height: Math.round(size * 0.5) }} />
-    </span>
-  );
-
-  if (variant === 'mark') return <PassMark size={size} className={`${ink} ${className}`} />;
-
-  if (variant === 'stacked') {
-    return (
-      <span className={`inline-flex flex-col items-center gap-3 ${className}`}>
-        <PassMark size={size} className={ink} />
-        {name}
-        {endorsement}
-      </span>
-    );
-  }
-
   return (
-    <span className={`inline-flex items-center gap-3 ${className}`}>
-      <PassMark size={size} className={ink} />
-      {name}
-      {variant === 'endorsed' && (
-        <>
-          <span className={`ml-1 h-[18px] w-px ${rule}`} />
-          {endorsement}
-        </>
-      )}
+    <span
+      className={`inline-flex items-center rounded-md bg-[#F58345] px-2.5 py-1 text-[11px] font-bold uppercase leading-none tracking-[0.06em] text-white ${className}`}
+    >
+      {t('pass.programName')}
     </span>
   );
 };
@@ -267,11 +144,12 @@ export const PassHeader = ({
   const { i18n, fr } = useFmt();
   return (
     <header className="mx-auto flex w-full max-w-[1160px] flex-wrap items-center justify-between gap-4 px-6 py-5 sm:px-8 sm:py-7">
-      {/* Lockup ENDOSSÉ : le symbole et le nom du programme d'abord, puis « par » et le
-          logo Cluster. La Passe se présente comme une marque à elle, mais jamais sans dire
-          d'où elle vient — l'inverse (Cluster en tête) faisait du programme une sous-page. */}
-      <Link to="/pass">
-        <PassLogo variant="endorsed" onDark={onDark} size={30} />
+      {/* Identification du programme telle que le designer la définit : le logo Cluster,
+          puis la pastille orange du programme. Pas de symbole, pas d'endossement rédigé —
+          la hiérarchie parle d'elle-même, Cluster d'abord, le programme ensuite. */}
+      <Link to="/pass" className="flex items-center gap-3">
+        <ClusterMark onDark={onDark} className="h-[22px] w-auto" />
+        <PassPill />
       </Link>
 
       <div className="flex items-center gap-3">

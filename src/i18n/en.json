@@ -2856,6 +2856,7 @@
       "emails": "Emails",
       "ops": "Ops tracker"
     },
+    "region": "Canada",
     "money": {
       "t1": "$500",
       "t2": "$750",
@@ -2889,20 +2890,21 @@
       ],
       "creditEach": "credit each",
       "perks1": [
-        "$500 account credit per live referral",
         "$500 hardware discount to pass to your referral",
-        "Member hub with live referral tracking"
+        "Personal referral link and content library",
+        "A shareable member card"
       ],
       "perks2": [
-        "Everything in {tier1}",
-        "Cluster kitchen swag drop",
-        "Early access to new Cluster features"
+        "Cluster kit: jacket, towels, apron",
+        "Early access to new features",
+        "Quarterly product briefing"
       ],
       "perks3": [
-        "Everything in {tier2}",
         "Listing in the Cluster partner directory",
-        "A dedicated account contact at Cluster"
+        "A dedicated account contact",
+        "Priority support and a seat at our annual roundtable"
       ],
+      "cumulativeNote": "Every tier keeps the benefits of the ones below it.",
       "howTitle": "How it works",
       "steps": [
         {
@@ -2922,8 +2924,73 @@
           "body": "We apply it to your account and move you up the ladder."
         }
       ],
+      "benefitsTitle": "Built for people who already talk to other operators",
+      "benefitsSub": "No long form, no chasing anyone for an update. You pass the name, we take it from there.",
+      "benefits": [
+        {
+          "title": "A minute to refer",
+          "body": "Five fields. Your own details are already filled in. Then you follow every step from your member hub."
+        },
+        {
+          "title": "Your tier only goes up",
+          "body": "Every live referral counts for life. You never start over, even after a quiet year."
+        },
+        {
+          "title": "You bring something too",
+          "body": "Your $500 hardware discount travels with the referral. You show up with an offer, not just advice."
+        }
+      ],
+      "teaserTitle": "Everything tracks in your member hub",
+      "teaserSub": "Your tier, credit earned and pending, and the status of every referral — one place, in English or French.",
+      "teaserCta1": "Join The Pass",
+      "teaserCta2": "Already a member? Refer now",
+      "faqTitle": "Frequently asked questions",
+      "faq": [
+        {
+          "q": "Who can join The Pass?",
+          "a": "Any active Cluster merchant in Canada. One membership per business group — a banner or a corporate entity and its affiliates count as a single member, but that member is eligible for a reward on every qualifying location that moves to Cluster."
+        },
+        {
+          "q": "What does \"live\" mean?",
+          "a": "The restaurant has finished setup and has been processing transactions on Cluster for at least seven days. That is when your credit is confirmed."
+        },
+        {
+          "q": "When and how is credit paid out?",
+          "a": "We email a virtual gift certificate within one business day of confirmation. The amount is then applied against your upcoming Cluster invoices and appears on your statement."
+        },
+        {
+          "q": "Does the restaurant I refer have to be in Canada?",
+          "a": "Yes. The program is open to Cluster merchants in Canada, and referred businesses must be located in Canada."
+        },
+        {
+          "q": "My referral isn't showing in my hub. Why?",
+          "a": "Usually the referral was submitted before you joined, or the restaurant had already contacted us on their own. Write to thepass@clustersystems.com and we will check the record."
+        },
+        {
+          "q": "Does a verbal referral count?",
+          "a": "No. It has to come through the form in your member hub to be credited to you."
+        },
+        {
+          "q": "Can my tier go down?",
+          "a": "No. It is set by how many referrals have gone live since you joined, and it never resets."
+        }
+      ],
+      "closeTitle": "Ready to pass a name?",
+      "closeSub": "Joining takes two minutes. Your first referral takes one more.",
+      "closeCta": "Join The Pass",
+      "lastUpdated": "Page last updated July 31, 2026",
+      "termsNote": "Program terms apply.",
       "legal": "Credit applies to qualified referrals that become active Cluster customers in Canada. Open to Cluster merchants in Canada only; referred businesses must be located in Canada. One membership per business group. Tier is determined by lifetime live referrals and does not reset. All amounts in Canadian dollars. Subject to program terms.",
-      "referCta": "Refer a restaurant"
+      "referCta": "Refer a restaurant",
+      "publicHeader": {
+        "hub": "Member hub"
+      },
+      "publicFooter": {
+        "tagline": "Restaurant point of sale · Canada",
+        "terms": "Program terms",
+        "privacy": "Privacy",
+        "contact": "Contact us"
+      }
     },
     "hub": {
       "greeting": "Welcome back, {firstName}",
@@ -2938,31 +3005,82 @@
         "live": "Referrals live",
         "inProgress": "In progress"
       },
+      "shareTitle": "Your referral link",
+      "shareSub": "Any referral that comes through this link is credited to you automatically — no form for you to fill in.",
+      "shareUrl": "saleshub.clusterpos.com/pass/bistroducoin",
+      "shareCopy": "Copy",
+      "shareCopied": "Copied",
+      "shareStat1": "clicks this month",
+      "shareStat2": "referrals from your link",
       "tableTitle": "Your referrals",
       "tableCount": "{n} total",
+      "columns": {
+        "restaurant": "Restaurant",
+        "submitted": "Submitted",
+        "status": "Status",
+        "credit": "Credit"
+      },
       "perksTitle": "Your perks",
       "perks": [
         {
           "title": "$500 hardware discount",
-          "body": "Yours to offer any restaurant you refer."
+          "body": "Yours to offer any restaurant you refer.",
+          "tier": 1
         },
         {
           "title": "Kitchen swag drop",
-          "body": "Shipped when you hit {tier2}."
+          "body": "Shipped when you hit {tier2}.",
+          "tier": 2
         },
         {
           "title": "Early feature access",
-          "body": "You're in the next Cluster beta cohort."
+          "body": "You're in the next Cluster beta cohort.",
+          "tier": 2
         },
         {
           "title": "Partner directory listing",
-          "body": "Unlocks at {tier3}."
+          "body": "Unlocks at {tier3}.",
+          "tier": 3,
+          "locked": true
         },
         {
           "title": "Dedicated account contact",
-          "body": "Unlocks at {tier3}."
+          "body": "Unlocks at {tier3}.",
+          "tier": 3,
+          "locked": true
         }
       ],
+      "resourcesTitle": "Content library",
+      "resourcesSub": "Send these to your contacts. Nothing to write yourself.",
+      "resources": [
+        {
+          "title": "One-page pitch",
+          "meta": "PDF · 1 page"
+        },
+        {
+          "title": "Cluster vs common systems",
+          "meta": "PDF · comparison"
+        },
+        {
+          "title": "Social kit",
+          "meta": "6 assets"
+        },
+        {
+          "title": "Intro email template",
+          "meta": "Text · copy and send"
+        }
+      ],
+      "cardTitle": "Member card",
+      "cardNoLabel": "Member no.",
+      "cardTierLabel": "Tier",
+      "cardSinceLabel": "Since",
+      "cardNo": "PASS-4Q19",
+      "cardSince": "March 2026",
+      "cardNote": "Your card updates itself when your tier changes. Download it to share on LinkedIn or your own site.",
+      "cardDownload": "Download card",
+      "cardCopyLink": "Copy card link",
+      "memberName": "Julie Tremblay",
+      "memberBusiness": "Bistro du Coin",
       "unlockDyn": "{{tier}} unlocks {{amount}} per referral, directory listing, and a dedicated contact",
       "emptyTitle": "No referrals yet",
       "emptyBody": "Send us your first restaurant. Your credit starts the day they go live.",
@@ -3035,10 +3153,13 @@
       "cadNote": "in Canadian dollars",
       "tierUnlocked": "New tier unlocked",
       "tierUnlockedSub": "$1,000 credit for every referral from here on",
+      "perkDirectory": "Partner directory listing",
+      "perkContact": "Dedicated account contact",
       "templates": [
         {
           "key": "received",
           "stage": "Received",
+          "trigger": "on submission",
           "subject": "We've got {restaurant}",
           "preview": "Your referral is on the pass — here's what happens next.",
           "greeting": "Hi {firstName},",
@@ -3052,6 +3173,7 @@
         {
           "key": "live",
           "stage": "Live",
+          "trigger": "referral status becomes live",
           "subject": "{restaurant} is live on Cluster",
           "preview": "Your referral just went live — credit confirmed.",
           "greeting": "Hi {firstName},",
@@ -3065,6 +3187,7 @@
         {
           "key": "tier_up",
           "stage": "Tier up",
+          "trigger": "go-live crosses a tier boundary",
           "subject": "You've reached {tier3}",
           "preview": "Four referrals live. Every one from here is worth $1,000.",
           "greeting": "Hi {firstName},",
@@ -3077,6 +3200,7 @@
         {
           "key": "credit",
           "stage": "Credit",
+          "trigger": "credit issued",
           "subject": "Your $750 Cluster credit is ready",
           "preview": "Certificate for the {restaurant} referral.",
           "greeting": "Hi {firstName},",
@@ -3143,6 +3267,43 @@
       "not_qualified": "Not qualified",
       "submitted": "Submitted",
       "pending": "Pending"
+    },
+    "referralLinkPage": {
+      "eyebrow": "One operator to another",
+      "titleA": "{referrerName}, of {referrerBusiness},",
+      "titleB": "thinks Cluster would suit you.",
+      "sub": "She runs her kitchen on it every day. Because the referral came from her, you start with $500 off your hardware.",
+      "discountLabel": "Your discount",
+      "discountNote": "off starter hardware, thanks to {referrerFirstName}",
+      "whyTitle": "What changes on the floor",
+      "why": [
+        {
+          "title": "A till your staff actually understands",
+          "body": "Trained in an evening, not a week. New hires run it on their first shift."
+        },
+        {
+          "title": "Kitchen and counter on the same beat",
+          "body": "Orders reach the kitchen display without anyone shouting or walking."
+        },
+        {
+          "title": "We handle the switch",
+          "body": "Menu, hardware, training, moving your data over — our team does the work with you."
+        }
+      ],
+      "formTitle": "Let's talk",
+      "formSub": "A specialist reaches out within 2 business days. No commitment.",
+      "fields": {
+        "restaurant": "Restaurant name",
+        "name": "Your name",
+        "city": "City",
+        "province": "Province or territory",
+        "reach": "Email or phone",
+        "lang": "Correspondence language"
+      },
+      "consent": "I agree to be contacted by Cluster about this referral.",
+      "submit": "Have someone call me",
+      "trust": "No credit card. No commitment. You talk to a real person, not a form.",
+      "attribution": "Referred by {referrerName} · {referrerBusiness}"
     },
     "provinceNames": {
       "AB": "Alberta",

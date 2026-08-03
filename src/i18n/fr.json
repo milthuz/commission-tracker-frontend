@@ -2856,6 +2856,7 @@
       "emails": "Courriels",
       "ops": "Suivi interne"
     },
+    "region": "Canada",
     "money": {
       "t1": "500 $",
       "t2": "750 $",
@@ -2889,20 +2890,21 @@
       ],
       "creditEach": "de crédit chacune",
       "perks1": [
-        "500 $ de crédit par recommandation en service",
         "500 $ de rabais matériel à remettre à votre recommandation",
-        "Espace membre avec suivi en temps réel"
+        "Lien de recommandation personnel et bibliothèque de contenu",
+        "Carte de membre partageable"
       ],
       "perks2": [
-        "Tout ce qu'offre {tier1}",
-        "Ensemble d'articles promotionnels Cluster",
-        "Accès anticipé aux nouveautés Cluster"
+        "Ensemble Cluster : veste, linges, tablier",
+        "Accès anticipé aux nouveautés",
+        "Breffage produit trimestriel"
       ],
       "perks3": [
-        "Tout ce qu'offre {tier2}",
         "Inscription au répertoire des partenaires Cluster",
-        "Un chargé de compte dédié chez Cluster"
+        "Chargé de compte dédié",
+        "Soutien prioritaire et invitation à notre table ronde annuelle"
       ],
+      "cumulativeNote": "Chaque palier conserve les avantages des précédents.",
       "howTitle": "Comment ça marche",
       "steps": [
         {
@@ -2922,8 +2924,73 @@
           "body": "Nous l'appliquons à votre compte et vous montez d'un palier."
         }
       ],
+      "benefitsTitle": "Fait pour les gens qui parlent à d'autres restaurateurs",
+      "benefitsSub": "Pas de formulaire à rallonge, pas de suivi à faire soi-même. Vous passez le nom, on s'occupe du reste.",
+      "benefits": [
+        {
+          "title": "Une minute pour recommander",
+          "body": "Cinq champs. Votre profil est déjà rempli. Vous suivez ensuite chaque étape dans votre espace membre."
+        },
+        {
+          "title": "Le palier monte, jamais ne redescend",
+          "body": "Chaque recommandation en service compte à vie. Vous ne repartez jamais de zéro, même après une année tranquille."
+        },
+        {
+          "title": "Vous donnez aussi quelque chose",
+          "body": "Vos 500 $ de rabais matériel suivent la recommandation. Vous arrivez avec une offre, pas juste un conseil."
+        }
+      ],
+      "teaserTitle": "Tout se suit depuis votre espace membre",
+      "teaserSub": "Votre palier, vos crédits obtenus et en attente, le statut de chaque recommandation — au même endroit, en français ou en anglais.",
+      "teaserCta1": "Joindre La Passe",
+      "teaserCta2": "Déjà membre? Recommander",
+      "faqTitle": "Questions fréquentes",
+      "faq": [
+        {
+          "q": "Qui peut adhérer au Passe?",
+          "a": "Tout marchand Cluster actif au Canada. Une seule adhésion par groupe d'entreprises — une bannière ou une société et ses affiliées comptent comme un seul membre, mais ce membre est admissible à une récompense pour chaque établissement admissible qui passe à Cluster."
+        },
+        {
+          "q": "Que veut dire « en service »?",
+          "a": "Le restaurant a terminé son installation et traite des transactions sur Cluster depuis au moins sept jours. C'est à ce moment que votre crédit est confirmé."
+        },
+        {
+          "q": "Quand et comment le crédit est-il versé?",
+          "a": "Nous émettons un certificat-cadeau virtuel par courriel dans un jour ouvrable suivant la confirmation. Le montant est ensuite porté à vos prochaines factures Cluster et apparaît sur votre relevé."
+        },
+        {
+          "q": "Le restaurant que je recommande doit-il être au Canada?",
+          "a": "Oui. Le programme est offert aux marchands Cluster au Canada et les entreprises recommandées doivent être situées au Canada."
+        },
+        {
+          "q": "Ma recommandation n'apparaît pas dans mon espace. Pourquoi?",
+          "a": "Le plus souvent, la recommandation a été soumise avant l'adhésion, ou le restaurant nous avait déjà contactés de son côté. Écrivez à lapasse@clustersystems.com et nous vérifions le dossier."
+        },
+        {
+          "q": "Une recommandation verbale compte-t-elle?",
+          "a": "Non. Elle doit passer par le formulaire de votre espace membre pour vous être attribuée."
+        },
+        {
+          "q": "Mon palier peut-il redescendre?",
+          "a": "Non. Il est établi selon le nombre total de recommandations entrées en service depuis votre adhésion et ne se réinitialise jamais."
+        }
+      ],
+      "closeTitle": "Prêt à passer un nom?",
+      "closeSub": "L'adhésion prend deux minutes. La première recommandation, une de plus.",
+      "closeCta": "Joindre La Passe",
+      "lastUpdated": "Page mise à jour le 31 juillet 2026",
+      "termsNote": "Conditions du programme applicables.",
       "legal": "Le crédit s'applique aux recommandations admissibles qui deviennent des clients actifs de Cluster au Canada. Offert uniquement aux marchands Cluster au Canada; les entreprises recommandées doivent être situées au Canada. Une seule adhésion par groupe d'entreprises. Le palier est établi selon le nombre total de recommandations en service et ne se réinitialise pas. Tous les montants sont en dollars canadiens. Sous réserve des conditions du programme.",
-      "referCta": "Recommander un restaurant"
+      "referCta": "Recommander un restaurant",
+      "publicHeader": {
+        "hub": "Espace membre"
+      },
+      "publicFooter": {
+        "tagline": "Système de point de vente pour restaurants · Canada",
+        "terms": "Conditions du programme",
+        "privacy": "Confidentialité",
+        "contact": "Nous joindre"
+      }
     },
     "hub": {
       "greeting": "Bon retour, {firstName}",
@@ -2938,31 +3005,82 @@
         "live": "En service",
         "inProgress": "En cours"
       },
+      "shareTitle": "Votre lien de recommandation",
+      "shareSub": "Toute recommandation qui passe par ce lien vous est attribuée automatiquement — pas de formulaire à remplir vous-même.",
+      "shareUrl": "saleshub.clusterpos.com/pass/bistroducoin",
+      "shareCopy": "Copier",
+      "shareCopied": "Copié",
+      "shareStat1": "clics ce mois-ci",
+      "shareStat2": "recommandations via le lien",
       "tableTitle": "Vos recommandations",
       "tableCount": "{n} au total",
+      "columns": {
+        "restaurant": "Restaurant",
+        "submitted": "Envoyée",
+        "status": "Statut",
+        "credit": "Crédit"
+      },
       "perksTitle": "Vos avantages",
       "perks": [
         {
           "title": "Rabais matériel de 500 $",
-          "body": "À offrir à tout restaurant que vous recommandez."
+          "body": "À offrir à tout restaurant que vous recommandez.",
+          "tier": 1
         },
         {
           "title": "Articles promotionnels",
-          "body": "Expédiés dès que vous atteignez {tier2}."
+          "body": "Expédiés dès que vous atteignez {tier2}.",
+          "tier": 2
         },
         {
           "title": "Accès anticipé",
-          "body": "Vous faites partie de la prochaine cohorte bêta."
+          "body": "Vous faites partie de la prochaine cohorte bêta.",
+          "tier": 2
         },
         {
           "title": "Répertoire des partenaires",
-          "body": "Débloqué à {tier3}."
+          "body": "Débloqué à {tier3}.",
+          "tier": 3,
+          "locked": true
         },
         {
           "title": "Chargé de compte dédié",
-          "body": "Débloqué à {tier3}."
+          "body": "Débloqué à {tier3}.",
+          "tier": 3,
+          "locked": true
         }
       ],
+      "resourcesTitle": "Bibliothèque de contenu",
+      "resourcesSub": "À envoyer à vos contacts. Rien à rédiger.",
+      "resources": [
+        {
+          "title": "Argumentaire d'une page",
+          "meta": "PDF · 1 page"
+        },
+        {
+          "title": "Cluster comparé aux systèmes courants",
+          "meta": "PDF · comparatif"
+        },
+        {
+          "title": "Trousse réseaux sociaux",
+          "meta": "6 visuels"
+        },
+        {
+          "title": "Modèle de courriel de présentation",
+          "meta": "Texte · à copier"
+        }
+      ],
+      "cardTitle": "Carte de membre",
+      "cardNoLabel": "Membre nº",
+      "cardTierLabel": "Palier",
+      "cardSinceLabel": "Depuis",
+      "cardNo": "PASSE-4Q19",
+      "cardSince": "mars 2026",
+      "cardNote": "La carte se met à jour tout seule quand vous changez de palier. Téléchargez-la pour la partager sur LinkedIn ou sur votre site.",
+      "cardDownload": "Télécharger la carte",
+      "cardCopyLink": "Copier le lien de la carte",
+      "memberName": "Julie Tremblay",
+      "memberBusiness": "Bistro du Coin",
       "unlockDyn": "{{tier}} donne accès à {{amount}} par recommandation, au répertoire et à un chargé de compte",
       "emptyTitle": "Aucune recommandation pour l’instant",
       "emptyBody": "Envoyez-nous un premier restaurant. Votre crédit démarre dès sa mise en service.",
@@ -3035,10 +3153,13 @@
       "cadNote": "en dollars canadiens",
       "tierUnlocked": "Nouveau palier atteint",
       "tierUnlockedSub": "1 000 $ de crédit pour chaque recommandation à partir de maintenant",
+      "perkDirectory": "Répertoire des partenaires",
+      "perkContact": "Chargé de compte dédié",
       "templates": [
         {
           "key": "received",
           "stage": "Reçue",
+          "trigger": "à la soumission",
           "subject": "Nous avons bien reçu {restaurant}",
           "preview": "Votre recommandation est sur le passe — voici la suite.",
           "greeting": "Bonjour {firstName},",
@@ -3052,6 +3173,7 @@
         {
           "key": "live",
           "stage": "En service",
+          "trigger": "la recommandation passe en service",
           "subject": "{restaurant} est en service sur Cluster",
           "preview": "Votre recommandation vient d'entrer en service — crédit confirmé.",
           "greeting": "Bonjour {firstName},",
@@ -3065,6 +3187,7 @@
         {
           "key": "tier_up",
           "stage": "Palier",
+          "trigger": "la mise en service fait franchir un palier",
           "subject": "Vous avez atteint {tier3}",
           "preview": "Quatre recommandations en service. Chaque suivante vaut 1 000 $.",
           "greeting": "Bonjour {firstName},",
@@ -3077,6 +3200,7 @@
         {
           "key": "credit",
           "stage": "Crédit",
+          "trigger": "crédit émis",
           "subject": "Votre crédit de 750 $ est prêt",
           "preview": "Certificat pour la recommandation {restaurant}.",
           "greeting": "Bonjour {firstName},",
@@ -3143,6 +3267,43 @@
       "not_qualified": "Non admissible",
       "submitted": "Envoyée",
       "pending": "En attente"
+    },
+    "referralLinkPage": {
+      "eyebrow": "Une recommandation entre restaurateurs",
+      "titleA": "{referrerName}, du {referrerBusiness},",
+      "titleB": "pense que Cluster vous irait bien.",
+      "sub": "Elle s’en sert tous les jours dans sa cuisine. Parce que la recommandation vient d’elle, vous partez avec 500 $ de rabais sur votre matériel.",
+      "discountLabel": "Votre rabais",
+      "discountNote": "sur le matériel de démarrage, grâce à {referrerFirstName}",
+      "whyTitle": "Ce que ça change en salle",
+      "why": [
+        {
+          "title": "Une caisse que le personnel comprend",
+          "body": "Formation en une soirée, pas en une semaine. Vos nouveaux employés sont autonomes au premier quart."
+        },
+        {
+          "title": "La cuisine et le comptoir au même rythme",
+          "body": "Les commandes partent à l’écran de cuisine sans qu’on ait à crier ou à courir."
+        },
+        {
+          "title": "On s’occupe de la transition",
+          "body": "Menu, matériel, formation, reprise des données : notre équipe fait le travail avec vous."
+        }
+      ],
+      "formTitle": "Parlons-nous",
+      "formSub": "Un spécialiste vous joint dans les 2 jours ouvrables. Sans engagement.",
+      "fields": {
+        "restaurant": "Nom du restaurant",
+        "name": "Votre nom",
+        "city": "Ville",
+        "province": "Province ou territoire",
+        "reach": "Courriel ou téléphone",
+        "lang": "Langue de correspondance"
+      },
+      "consent": "J’accepte d’être contacté par Cluster au sujet de cette recommandation.",
+      "submit": "Être contacté",
+      "trust": "Aucune carte de crédit. Aucun engagement. Vous parlez à une vraie personne, pas à un formulaire.",
+      "attribution": "Recommandé par {referrerName} · {referrerBusiness}"
     },
     "provinceNames": {
       "AB": "Alberta",

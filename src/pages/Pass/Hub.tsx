@@ -19,11 +19,6 @@ interface Referral {
   creditAmount: number | null;
 }
 
-// À quel palier chaque avantage du deck se débloque. Déduit de landing.perks1/2/3, qui
-// groupent exactement ainsi : le rabais matériel dès le palier 1, les articles et l'accès
-// anticipé au 2, le répertoire et le chargé de compte au 3.
-const PERK_UNLOCK_LEVEL = [1, 2, 2, 3, 3];
-
 const Hub = () => {
   const { member, logout, refresh } = usePassAuth();
   const { t, tf, list, money, date, monthYear } = useFmt();
@@ -220,12 +215,12 @@ const Hub = () => {
                 <table className="w-full min-w-[560px] border-collapse text-left">
                   <thead>
                     <tr className="border-y border-[#242424] text-[11px] uppercase tracking-[0.07em] text-white/35">
-                      {/* Les quatre mêmes en-têtes que le tableau ops du deck — le
-                          designer les nomme une seule fois, on ne les redéclare pas. */}
-                      <th className="px-6 py-3 font-medium">{t('pass.ops.columns.restaurant')}</th>
-                      <th className="px-4 py-3 font-medium">{t('pass.ops.columns.sent')}</th>
-                      <th className="px-4 py-3 font-medium">{t('pass.ops.columns.status')}</th>
-                      <th className="px-6 py-3 text-right font-medium">{t('pass.ops.columns.credit')}</th>
+                      {/* Le deck donne maintenant ses propres en-têtes au tableau du
+                          membre — on n'emprunte plus ceux du tableau ops. */}
+                      <th className="px-6 py-3 font-medium">{t('pass.hub.columns.restaurant')}</th>
+                      <th className="px-4 py-3 font-medium">{t('pass.hub.columns.submitted')}</th>
+                      <th className="px-4 py-3 font-medium">{t('pass.hub.columns.status')}</th>
+                      <th className="px-6 py-3 text-right font-medium">{t('pass.hub.columns.credit')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -264,9 +259,12 @@ const Hub = () => {
           <section className="pass-rise rounded-2xl border border-[#242424] bg-[#141414] p-6">
             <h2 className="text-[17px] font-bold">{t('pass.hub.perksTitle')}</h2>
             <ul className="mt-5 space-y-5">
-              {list('pass.hub.perks').map((perk: { title: string; body: string }, i: number) => {
-                const unlockLevel = PERK_UNLOCK_LEVEL[i] ?? 1;
-                const unlocked = member.tier.level >= unlockLevel;
+              {/* Le palier de chaque avantage est DONNÉ par le deck depuis sa livraison
+                  du 2026-08-03 (`tier`, et `locked` pour ceux à débloquer). La version
+                  précédente le déduisait du regroupement de la page programme — juste,
+                  mais une inférence qu'on n'a plus à porter. */}
+              {list('pass.hub.perks').map((perk: { title: string; body: string; tier?: number }) => {
+                const unlocked = member.tier.level >= (perk.tier ?? 1);
                 return (
                   <li key={perk.title} className={unlocked ? '' : 'opacity-45'}>
                     <div className="flex items-start gap-3">
