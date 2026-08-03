@@ -169,7 +169,7 @@ const Versions: React.FC = () => {
             </h3>
           </div>
           <div className="p-6.5 flex items-center justify-center">
-            <div className="h-16 w-16 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
           </div>
         </div>
       </div>

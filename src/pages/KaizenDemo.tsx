@@ -53,7 +53,7 @@ const CapacityPanel: React.FC<{ cap: Capacity | null; loading: boolean; err: str
           {cap && <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${stateColor}`}>{t(`kaizenDemo.sessions.state.${fleetState}`, fleetState)}</span>}
         </div>
         <button onClick={onRefresh} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-stroke px-3 py-2 text-sm font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
-          {loading && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-body border-t-transparent" />}
+          {loading && <span className="h-4 w-4 animate-spin rounded-full border-2 border-body border-t-transparent" />}
           {t('kaizenDemo.sessions.refresh')}
         </button>
       </div>

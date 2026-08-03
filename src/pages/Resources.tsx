@@ -575,7 +575,7 @@ const Resources: React.FC = () => {
           className={`mb-5 flex cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed px-6 py-5 transition ${dragOver ? 'border-primary bg-primary/5' : 'border-stroke bg-gray-1/40 hover:border-primary/60 dark:border-strokedark dark:bg-meta-4/20'} ${importing ? 'pointer-events-none opacity-60' : ''}`}>
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
             {importing
-              ? <span className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               : <svg className="h-5 w-5 text-body" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19V5m0 0l-6 6m6-6l6 6" /></svg>}
           </span>
           <span className="text-sm text-black dark:text-white">
@@ -589,7 +589,7 @@ const Resources: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="flex h-40 items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+        <div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
       ) : isSearching ? (
         /* Flat search results across all folders */
         searchResults.length === 0

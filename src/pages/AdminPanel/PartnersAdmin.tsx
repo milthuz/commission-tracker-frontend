@@ -407,7 +407,7 @@ const PartnersAdmin: React.FC = () => {
 
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             {loadingPartners ? (
-              <div className="flex h-24 items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+              <div className="flex h-24 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
             ) : partners.length === 0 ? (
               <div className="p-8 text-center text-sm text-body">{t('admin.partners.noPartners')}</div>
             ) : (
@@ -474,7 +474,7 @@ const PartnersAdmin: React.FC = () => {
             className="w-full max-w-xs rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             {loadingQueue ? (
-              <div className="flex h-24 items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+              <div className="flex h-24 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
             ) : opportunities.length === 0 ? (
               <div className="p-8 text-center text-sm text-body">{t('admin.partners.noOpportunities')}</div>
             ) : (
@@ -531,7 +531,7 @@ const PartnersAdmin: React.FC = () => {
                                 title={(o.crmMatchStatus ? t('admin.partners.crm.recheck') : t('admin.partners.crm.check')) as string}
                                 className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-primary hover:bg-primary/10 disabled:opacity-50">
                                 {checkingCrmId === o.id ? (
-                                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                                 ) : (
                                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4.5 9a7.5 7.5 0 0113-4.5M19.5 15a7.5 7.5 0 01-13 4.5" />
@@ -610,7 +610,7 @@ const PartnersAdmin: React.FC = () => {
       {sub === 'payouts' && (
         <div className="flex flex-col gap-6">
           {loadingPayouts ? (
-            <div className="flex h-24 items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+            <div className="flex h-24 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : (
             <>
               <div>

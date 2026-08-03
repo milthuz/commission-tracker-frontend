@@ -149,7 +149,7 @@ const PartnerLogin = () => {
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy}
                   className="mx-auto !mt-6 flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.logIn')}
+                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.logIn')}
                 </button>
               </form>
             </>
@@ -176,7 +176,7 @@ const PartnerLogin = () => {
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy || code.length !== 6}
                   className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.verify')}
+                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.verify')}
                 </button>
                 <button type="button" onClick={() => { setError(''); setStep('creds'); }}
                   className="w-full text-center text-sm font-medium text-body hover:text-primary">
@@ -202,7 +202,7 @@ const PartnerLogin = () => {
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy}
                   className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.sendResetLink')}
+                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.sendResetLink')}
                 </button>
                 <button type="button" onClick={() => { setError(''); setStep('creds'); }}
                   className="w-full text-center text-sm font-medium text-body hover:text-primary">

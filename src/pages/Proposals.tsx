@@ -239,7 +239,7 @@ const Proposals: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="flex h-40 items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+        <div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
       ) : error ? (
         <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-danger">{error}</p></div>
       ) : estimates.length === 0 ? (
@@ -291,7 +291,7 @@ const Proposals: React.FC = () => {
             <button onClick={fetchSent} className="rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">{t('proposals.refresh')}</button>
           </div>
           {sentLoading ? (
-            <div className="flex h-40 items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+            <div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : sent.length === 0 ? (
             <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('proposals.sentEmpty')}</p></div>
           ) : (
@@ -416,7 +416,7 @@ const Proposals: React.FC = () => {
             <div className="relative flex-1 overflow-y-auto bg-white dark:bg-boxdark">
               {estPreview.loading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
-                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
               )}
               <iframe
@@ -443,7 +443,7 @@ const Proposals: React.FC = () => {
             <div className="relative flex-1 overflow-y-auto bg-[#eef1f6]">
               {emailPreview.loading ? (
                 <div className="flex h-full items-center justify-center">
-                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
               ) : (
                 <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title="Email preview" />

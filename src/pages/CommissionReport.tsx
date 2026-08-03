@@ -985,7 +985,7 @@ const CommissionReport = () => {
             </div>
             <div className="max-h-[70vh] overflow-auto p-4">
               {searchModal.loading ? (
-                <div className="flex items-center justify-center py-8"><div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
+                <div className="flex items-center justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
               ) : searchModal.results.length === 0 ? (
                 <p className="py-6 text-center text-sm text-body">{t('commissionReport.searchNoResults')}</p>
               ) : (
@@ -1427,7 +1427,7 @@ const CommissionReport = () => {
                               className="inline-flex items-center gap-1 rounded-md border border-stroke px-3 py-1 text-xs font-medium text-body hover:bg-gray-50 hover:text-primary dark:border-strokedark dark:hover:bg-meta-4 transition disabled:opacity-50"
                             >
                               {approvingMonth === m.month ? (
-                                <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                               ) : t('commissionReport.approve')}
                             </button>
                           ) : (
@@ -1444,7 +1444,7 @@ const CommissionReport = () => {
                         <div className="bg-[#8B5CF6] bg-opacity-[0.03] border-b border-[#8B5CF6] border-opacity-20 px-4 py-3 overflow-x-auto">
                           {loadingDrill ? (
                             <div className="flex items-center justify-center py-4">
-                              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                               <span className="ml-2 text-xs text-body">{t('commissionReport.loadingInvoices')}</span>
                             </div>
                           ) : drillInvoices.length === 0 ? (

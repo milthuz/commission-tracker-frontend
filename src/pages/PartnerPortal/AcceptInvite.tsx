@@ -135,7 +135,7 @@ const PartnerAcceptInvite = () => {
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy}
                   className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.invite.continue')}
+                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.invite.continue')}
                 </button>
               </form>
             </>
@@ -160,7 +160,7 @@ const PartnerAcceptInvite = () => {
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy || code.length !== 6}
                   className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.invite.activate')}
+                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.invite.activate')}
                 </button>
               </form>
             </>

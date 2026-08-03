@@ -243,7 +243,7 @@ const HardwareAdmin: React.FC = () => {
 
         <div className="min-w-0 flex-1 pb-20">
           {loading ? (
-            <div className="flex h-40 items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+            <div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : list.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
               <div className="text-sm text-gray-400">{t('admin.hardware.emptyCategory')}</div>

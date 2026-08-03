@@ -213,7 +213,7 @@ const CommissionTracker: React.FC = () => {
   if (loading) return (
     <div className="flex h-[60vh] items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#8B5CF6] border-t-transparent"></div>
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         <p className="text-sm text-gray-500">{t('commissionTracker.loadingPoints')}</p>
       </div>
     </div>

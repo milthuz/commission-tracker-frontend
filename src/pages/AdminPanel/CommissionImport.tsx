@@ -2716,7 +2716,7 @@ const CommissionImport: React.FC = () => {
           </p>
           {reconLoading && (
             <div className="flex items-center justify-center py-10">
-              <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>
           )}
           {!reconLoading && recon && recon.reps.length === 0 && (

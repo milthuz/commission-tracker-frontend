@@ -10,7 +10,7 @@
 const Loader = () => {
   return (
     <div className="flex h-screen items-center justify-center bg-whiten dark:bg-boxdark-2">
-      <div className="h-16 w-16 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+      <div className="h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
     </div>
   );
 };
@@ -24,7 +24,7 @@ const Loader = () => {
  */
 export const ContentLoader = () => (
   <div className="flex min-h-[50vh] items-center justify-center">
-    <div className="h-10 w-10 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
   </div>
 );
 

@@ -1724,7 +1724,7 @@ const SaasIncrease: React.FC = () => {
             <div className="relative flex-1 overflow-y-auto bg-[#eef1f6]">
               {emailPreview.loading ? (
                 <div className="flex h-full items-center justify-center">
-                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
               ) : (
                 <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title="Email preview" />

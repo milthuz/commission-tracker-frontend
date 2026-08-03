@@ -1646,7 +1646,7 @@ const AdminPanel = () => {
                 {syncStatus === 'bulk_started' && (
                   <div className="mt-4 rounded-md bg-warning bg-opacity-10 p-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-warning border-t-transparent"></div>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-warning border-t-transparent"></div>
                       <p className="text-sm font-medium text-warning">
                         {t('admin.zohoSync.fullImportRunning')}
                       </p>
@@ -2974,7 +2974,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 {releaseStatus === 'triggered' && (
                   <div className="mb-4 rounded-md bg-[#8B5CF6] bg-opacity-10 p-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                       <p className="text-sm font-medium text-[#8B5CF6]">
                         {t('admin.releases.workflowTriggered')} v{newVersion}.
                       </p>
@@ -3032,7 +3032,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       {generatingNotes ? (
                         <div className="flex items-center justify-center py-8 rounded border-[1.5px] border-stroke dark:border-form-strokedark">
                           <div className="flex items-center gap-3">
-                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#8B5CF6] border-t-transparent"></div>
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                             <span className="text-sm text-body">Fetching commits and generating notes...</span>
                           </div>
                         </div>

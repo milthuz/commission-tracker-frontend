@@ -47,7 +47,7 @@ export default function InvoicePreviewHost() {
             <>
               {loading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
-                  <span className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
               )}
               <iframe

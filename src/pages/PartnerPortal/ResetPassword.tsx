@@ -73,7 +73,7 @@ const PartnerResetPassword = () => {
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy}
                   className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.reset.submit')}
+                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.reset.submit')}
                 </button>
               </form>
             </>

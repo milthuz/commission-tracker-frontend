@@ -108,7 +108,7 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, or
     setDragNum(null); setDragOverNum(null);
   };
 
-  if (loading) return <div className="flex h-full items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
+  if (loading) return <div className="flex h-full items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>;
   if (!pages.length) return <div className="flex h-full items-center justify-center p-8 text-center text-sm text-gray-400">{t('proposals.previewError')}</div>;
 
   return (

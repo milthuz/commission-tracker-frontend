@@ -96,7 +96,7 @@ const LinkPage = () => {
   if (state === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F5F5F6] dark:bg-[#0A0A0A]">
-        <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#E0E0E0] dark:border-[#242424] border-t-[#F58345]" />
+        <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#E0E0E0] dark:border-[#242424] border-t-primary" />
       </div>
     );
   }

@@ -316,7 +316,7 @@ const PartnerPortal: React.FC = () => {
       {tab === 'payouts' && (
         <div className="flex flex-col gap-6">
           {loadingPayoutsTab ? (
-            <div className="flex h-24 items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+            <div className="flex h-24 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : payoutRuns.length === 0 ? (
             <div className="rounded-sm border border-stroke bg-white p-8 text-center text-sm text-body dark:border-strokedark dark:bg-boxdark">
               {t('partnerPortal.payouts.noRuns')}

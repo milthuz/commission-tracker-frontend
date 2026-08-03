@@ -254,7 +254,7 @@ const PricingAdmin: React.FC = () => {
 
         <div className="min-w-0 flex-1 pb-20">
           {loading ? (
-            <div className="flex h-40 items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+            <div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
               <table className="w-full text-sm">
