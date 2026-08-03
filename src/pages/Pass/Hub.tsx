@@ -28,6 +28,9 @@ const Hub = () => {
   const [referrals, setReferrals] = useState<Referral[] | null>(null);
   const [earnings, setEarnings] = useState<{ credited: number; pending: number } | null>(null);
   const [failed, setFailed] = useState(false);
+  const [share, setShare] = useState<{ url: string; memberNo: string; clicksThisMonth: number; referralsViaLink: number } | null>(null);
+  const [resources, setResources] = useState<{ id: number; title: string; meta: string }[]>([]);
+  const [copied, setCopied] = useState(false);
 
   const load = async () => {
     setFailed(false);
@@ -45,6 +48,23 @@ const Hub = () => {
   };
 
   useEffect(() => { load(); refresh(); }, []);
+
+  // Les trois fonctions de la v2 se chargent à part du tableau : si l'une échoue, elle
+  // disparaît sans emporter le reste de l'espace membre.
+  useEffect(() => {
+    const auth = { Authorization: `Bearer ${localStorage.getItem(PASS_TOKEN_KEY)}` };
+    fetch(`${PASS_API}/api/pass/me/share`, { headers: auth })
+      .then((r) => (r.ok ? r.json() : null)).then((d) => d && setShare(d)).catch(() => {});
+    fetch(`${PASS_API}/api/pass/resources`, { headers: auth })
+      .then((r) => (r.ok ? r.json() : null)).then((d) => d && setResources(d.resources || [])).catch(() => {});
+  }, []);
+
+  const copyLink = async () => {
+    if (!share) return;
+    try { await navigator.clipboard.writeText(`https://${share.url}`); } catch { return; }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   if (!member) return null;
 
@@ -151,6 +171,115 @@ const Hub = () => {
             </div>
           ))}
         </section>
+
+        {/* ── Lien personnel + carte de membre ────────────────────────── */}
+        <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          {share && (
+            <section className="pass-rise min-w-0 rounded-[14px] border border-[#242424] bg-[#141414] p-6">
+              <h2 className="text-[17px] font-medium">{t('pass.hub.shareTitle')}</h2>
+              <p className="mt-2 max-w-[52ch] text-[14px] leading-[1.6] text-white/45">
+                {t('pass.hub.shareSub')}
+              </p>
+
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                {/* Affiché sans protocole — c'est ce qu'on dicte à quelqu'un — mais c'est
+                    l'URL complète qui part dans le presse-papiers. */}
+                <code className="min-w-0 flex-1 truncate rounded-lg border border-[#242424] bg-[#0A0A0A] px-3.5 py-2.5 font-mono text-[13.5px] text-white/80">
+                  {share.url}
+                </code>
+                <button
+                  type="button"
+                  onClick={copyLink}
+                  className={`shrink-0 rounded-lg px-4 py-2.5 text-[13.5px] font-medium text-white transition-colors duration-150 ${
+                    copied ? 'bg-[#17B26A]' : 'bg-[#F58345] hover:bg-[#E5723A]'
+                  }`}
+                >
+                  {copied ? t('pass.hub.shareCopied') : t('pass.hub.shareCopy')}
+                </button>
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-10 border-t border-white/[0.07] pt-5">
+                <div>
+                  <p className="text-[28px] font-medium leading-none tracking-[-0.02em]">{share.clicksThisMonth}</p>
+                  <p className="mt-1.5 text-[13px] text-white/40">{t('pass.hub.shareStat1')}</p>
+                </div>
+                <div>
+                  <p className="text-[28px] font-medium leading-none tracking-[-0.02em]">{share.referralsViaLink}</p>
+                  <p className="mt-1.5 text-[13px] text-white/40">{t('pass.hub.shareStat2')}</p>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Carte de membre — elle se met à jour d'elle-même, puisqu'elle lit le palier
+              vivant plutôt qu'une valeur figée au moment de l'adhésion. */}
+          <section className="pass-rise min-w-0">
+            <h2 className="text-[17px] font-medium">{t('pass.hub.cardTitle')}</h2>
+            <div
+              className="mt-4 rounded-[14px] border border-[#F58345]/25 p-6"
+              style={{ background: 'linear-gradient(150deg,#241a14 0%,#141414 55%)' }}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="truncate text-[17px] font-medium">{member.fullName || member.email}</p>
+                  <p className="mt-0.5 truncate text-[13.5px] text-white/45">{member.business || ''}</p>
+                </div>
+                <span className="shrink-0 rounded-full border border-[#F58345]/40 bg-[#F58345]/10 px-3 py-1 text-[12px] font-medium text-[#F79C6A]">
+                  {t('pass.hub.cardTierLabel')} {member.tier.level} · {tierName(member.tier.key)}
+                </span>
+              </div>
+              <div className="mt-7 flex flex-wrap gap-8">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.07em] text-white/35">{t('pass.hub.cardNoLabel')}</p>
+                  <p className="mt-1 font-mono text-[14px]">{share?.memberNo || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.07em] text-white/35">{t('pass.hub.cardSinceLabel')}</p>
+                  <p className="mt-1 text-[14px]">{monthYear(member.joinedAt)}</p>
+                </div>
+              </div>
+            </div>
+            <p className="mt-3 text-[13px] leading-[1.55] text-white/40">{t('pass.hub.cardNote')}</p>
+            {share && (
+              <button
+                type="button"
+                onClick={copyLink}
+                className="mt-3 rounded-lg border border-white/15 px-4 py-2.5 text-[13.5px] font-medium transition-colors duration-150 hover:border-white/40"
+              >
+                {copied ? t('pass.hub.shareCopied') : t('pass.hub.cardCopyLink')}
+              </button>
+            )}
+          </section>
+        </div>
+
+        {/* ── Bibliothèque de contenu ──────────────────────────────────────
+            Masquée quand elle est vide : une section « rien à télécharger » n'aide
+            personne, et le designer n'a pas dessiné d'état vide pour celle-ci. */}
+        {!!resources.length && (
+          <section className="pass-rise mt-5 rounded-[14px] border border-[#242424] bg-[#141414] p-6">
+            <h2 className="text-[17px] font-medium">{t('pass.hub.resourcesTitle')}</h2>
+            <p className="mt-2 text-[14px] text-white/45">{t('pass.hub.resourcesSub')}</p>
+            <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+              {resources.map((r) => (
+                <li key={r.id}>
+                  <a
+                    href={`${PASS_API}/api/pass/resources/${r.id}/file`}
+                    className="flex items-center justify-between gap-4 rounded-lg border border-[#242424] bg-[#0A0A0A] px-4 py-3.5 transition-colors duration-150 hover:border-[#575A61]"
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-[14px] font-medium">{r.title}</span>
+                      <span className="mt-0.5 block truncate text-[12.5px] text-white/40">{r.meta}</span>
+                    </span>
+                    <svg className="shrink-0 text-white/40" width="16" height="16" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M12 3v13m0 0-4.5-4.5M12 16l4.5-4.5M4 21h16" />
+                    </svg>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* ── Recommandations + avantages ─────────────────────────────── */}
         <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
