@@ -223,6 +223,15 @@ export default function NotificationsAdmin() {
         endpoint={`${API_URL}/api/admin/partner-invoice-recipients`}
         users={users} />
 
+      {/* The Pass: a referral credit was applied → accounting has to post it to the
+          merchant's Zoho Books account. This is the one recipient list where an empty
+          value costs a merchant real money: the credit is recorded and nobody is told. */}
+      <RecipientListCard icon="💳"
+        title={t('admin.notifications.passCreditTitle')}
+        hint={t('admin.notifications.passCreditHint')}
+        endpoint={`${API_URL}/api/admin/pass/credit-recipients`}
+        users={users} />
+
       {/* Email templates: preview every transactional email and send yourself a test copy */}
       <EmailPreview />
 

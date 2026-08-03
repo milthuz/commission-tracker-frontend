@@ -1971,7 +1971,9 @@
       "partnerOpportunityHint": "Ces personnes reçoivent un courriel quand un partenaire soumet une nouvelle occasion d'affaires via le Portail partenaire. Si vide, personne n'est notifié — il faut vérifier la file d'attente manuellement.",
       "partnerInvoiceTitle": "Facture partenaire téléversée",
       "partnerInvoiceHint": "Ces personnes reçoivent un courriel (facture en pièce jointe) quand un Partner Admin téléverse sa facture pour un run de paiement finalisé. Si vide, personne n'est notifié — il faut vérifier Admin → Partenaires manuellement.",
-      "moreSoon": "D'autres types de notifications apparaîtront ici au fur et à mesure."
+      "moreSoon": "D'autres types de notifications apparaîtront ici au fur et à mesure.",
+      "passCreditTitle": "La Passe — crédit à appliquer",
+      "passCreditHint": "Envoyé quand un crédit de recommandation est appliqué, pour que la comptabilité le porte au compte Zoho Books du marchand. Une liste vide n’envoie RIEN — le crédit est enregistré mais personne n’est prévenu, et le marchand n’est jamais payé."
     },
     "deals": {
       "title": "Transactions",

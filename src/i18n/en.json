@@ -1971,7 +1971,9 @@
       "partnerOpportunityHint": "These people are emailed when a partner submits a new opportunity through the Partner Portal. If empty, nobody is notified — check the Opportunity Queue manually.",
       "partnerInvoiceTitle": "Partner invoice uploaded",
       "partnerInvoiceHint": "These people are emailed (with the invoice attached) when a Partner Admin uploads their invoice for a finalized payout run. If empty, nobody is notified — check Admin → Partners manually.",
-      "moreSoon": "More notification types will appear here as they are added."
+      "moreSoon": "More notification types will appear here as they are added.",
+      "passCreditTitle": "The Pass — credit to apply",
+      "passCreditHint": "Emailed when a referral credit is applied, so accounting can post it to the merchant’s Zoho Books account. An empty list sends NOTHING — the credit is recorded but nobody is told, and the merchant never gets paid."
     },
     "deals": {
       "title": "Deals",
