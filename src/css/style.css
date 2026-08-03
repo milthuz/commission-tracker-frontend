@@ -3,8 +3,23 @@
 @tailwind utilities;
 
 @layer base {
+  /* Le fond SOMBRE manquait sur le body : seule la div de DefaultLayout le portait
+     (`dark:bg-boxdark-2`). Tant que React n'avait rien affiché — au chargement, entre
+     deux routes chargées à la demande, ou pendant une erreur — c'est le gris clair du
+     body qu'on voyait. D'où le clignotement à chaque chargement en thème sombre, et le
+     fond gris des « pages blanches » signalées le 2026-08-03.
+     Combiné au script qui pose la classe `dark` avant le premier affichage (index.html),
+     le fond est désormais correct dès la toute première image. */
   body {
     @apply font-satoshi font-normal text-base text-body bg-whiten relative z-1;
+  }
+
+  /* ⚠️ Écrit en CSS direct, PAS avec la variante `dark:` : `darkMode: 'class'` génère un
+     sélecteur DESCENDANT (`.dark .dark\:bg-…`), or la classe `dark` est posée sur le body
+     lui-même — un élément n'est pas son propre descendant, donc `dark:bg-boxdark-2` sur le
+     body ne s'applique jamais. Essayé, vérifié, sans effet. */
+  body.dark {
+    @apply bg-boxdark-2;
   }
 
   /* Native <select> dropdown options render in the OS popup (white background).

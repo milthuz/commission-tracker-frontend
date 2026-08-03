@@ -12,6 +12,28 @@
     <title>Sales Hub</title>
   </head>
   <body>
+    <!--
+      Le thème est posé AVANT le premier affichage. `useColorMode` l'applique dans un
+      `useEffect`, donc après le premier rendu : toute page s'affichait en clair une
+      fraction de seconde puis basculait en sombre. Ce clignotement existait depuis
+      toujours, mais il est devenu criant quand les écrans de La Passe se sont mis à
+      suivre le thème (2026-08-03) — le logo, qui rend ses deux variantes et laisse le CSS
+      choisir, changeait visiblement d'image à chaque chargement.
+
+      Script bloquant et minuscule, volontairement AVANT le bundle : il doit s'exécuter
+      pendant l'analyse du document, pas après. `useColorMode` posera ensuite la même
+      classe, sans effet visible puisqu'elle y sera déjà.
+
+      La valeur est écrite par `useLocalStorage`, donc en JSON — d'où les guillemets.
+      Toute lecture qui échoue laisse simplement le thème clair.
+    -->
+    <script>
+      try {
+        if (JSON.parse(localStorage.getItem('color-theme')) === 'dark') {
+          document.body.classList.add('dark');
+        }
+      } catch (e) {}
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
