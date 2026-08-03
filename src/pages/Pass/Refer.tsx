@@ -88,18 +88,18 @@ const Refer = () => {
   const bad = (f: string) =>
     badFields.includes(f)
       ? 'border-[#F46060] focus:border-[#F46060] focus:ring-[#F46060]/15'
-      : 'border-[#E0E0E0] focus:border-[#F58345] focus:ring-[#F58345]/15';
+      : 'border-[#E0E0E0] dark:border-[#242424] focus:border-[#F58345] focus:ring-[#F58345]/15';
   const field =
-    'mt-2 w-full rounded-xl bg-white px-4 py-3.5 text-[15px] outline-none transition-colors duration-150 placeholder:text-[#94969C] focus:ring-4 border';
-  const label = 'block text-[13px] font-medium text-[#424242]';
+    'mt-2 w-full rounded-xl bg-white dark:bg-[#141414] px-4 py-3.5 text-[15px] outline-none transition-colors duration-150 placeholder:text-[#94969C] dark:placeholder:text-white/35 focus:ring-4 border';
+  const label = 'block text-[13px] font-medium text-[#424242] dark:text-white/80';
 
   // ── Confirmation ──────────────────────────────────────────────────────────
   if (done) {
     return (
-      <PassPortal title={t('pass.nav.confirmation')} surface="light">
+      <PassPortal title={t('pass.nav.confirmation')}>
         <PassMotion />
         <div className="mx-auto w-full max-w-[720px]">
-          <div className="pass-rise rounded-[14px] border border-[#E0E0E0]/70 bg-white p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10">
+          <div className="pass-rise rounded-[14px] border border-[#E0E0E0]/70 bg-white dark:bg-[#141414] p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10">
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#FDE6DA]">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <path d="m4.5 12.5 5 5 10-11" stroke="#D16630" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -108,7 +108,7 @@ const Refer = () => {
             <h1 className="mt-5 text-[30px] font-bold leading-[1.12] tracking-[-0.015em]">
               {t('pass.confirmation.title')}
             </h1>
-            <p className="mt-3 text-[15.5px] leading-[1.6] text-[#61646C]">
+            <p className="mt-3 text-[15.5px] leading-[1.6] text-[#61646C] dark:text-white/55">
               {tf('pass.confirmation.sub', {
                 firstName: (member.fullName || member.email).split(' ')[0],
                 restaurant: done.restaurantName,
@@ -138,18 +138,18 @@ const Refer = () => {
               </div>
             </div>
 
-            <h2 className="mt-8 text-[13px] font-medium uppercase tracking-[0.07em] text-[#94969C]">
+            <h2 className="mt-8 text-[13px] font-medium uppercase tracking-[0.07em] text-[#61646C] dark:text-white/55">
               {t('pass.confirmation.next')}
             </h2>
             <ol className="mt-4 space-y-5">
               {list('pass.confirmation.steps').map((s: { title: string; body: string }, i: number) => (
                 <li key={s.title} className="flex gap-4">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#141414] text-[12px] font-bold text-white">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#141414] dark:bg-white text-[12px] font-bold text-white dark:text-[#141414]">
                     {i + 1}
                   </span>
                   <div>
                     <p className="text-[14.5px] font-semibold">{s.title}</p>
-                    <p className="mt-1 text-[14px] leading-[1.55] text-[#61646C]">
+                    <p className="mt-1 text-[14px] leading-[1.55] text-[#61646C] dark:text-white/55">
                       {s.body.split('{restaurant}').join(done.restaurantName)}
                     </p>
                   </div>
@@ -170,7 +170,7 @@ const Refer = () => {
                   setDone(null); setConsent(false);
                   setForm({ restaurantName: '', contactName: '', city: '', province: '', postalCode: '', contact: '', contactLocale: 'fr-CA', relationship: '' });
                 }}
-                className="rounded-xl border border-[#E0E0E0] px-5 py-3 text-[14.5px] font-semibold transition-colors duration-150 hover:border-[#94969C]"
+                className="rounded-xl border border-[#E0E0E0] dark:border-[#242424] px-5 py-3 text-[14.5px] font-semibold transition-colors duration-150 hover:border-[#94969C] dark:hover:border-white/40"
               >
                 {t('pass.confirmation.cta2')}
               </button>
@@ -183,7 +183,7 @@ const Refer = () => {
 
   // ── Formulaire ────────────────────────────────────────────────────────────
   return (
-    <PassPortal title={t('pass.nav.refer')} surface="light">
+    <PassPortal title={t('pass.nav.refer')}>
       <PassMotion />
       <div className="mx-auto w-full max-w-[1160px]">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,4fr)_minmax(0,6fr)] lg:gap-14">
@@ -195,7 +195,7 @@ const Refer = () => {
             <h1 className="mt-4 text-[40px] font-bold leading-[1.06] tracking-[-0.015em]">
               {t('pass.form.title')}
             </h1>
-            <p className="mt-4 max-w-[42ch] text-[15.5px] leading-[1.62] text-[#61646C]">
+            <p className="mt-4 max-w-[42ch] text-[15.5px] leading-[1.62] text-[#61646C] dark:text-white/55">
               {t('pass.form.sub')}
             </p>
 
@@ -219,11 +219,11 @@ const Refer = () => {
               )}
             </div>
 
-            <div className="mt-4 rounded-[14px] border border-[#E0E0E0] bg-white p-6">
+            <div className="mt-4 rounded-[14px] border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414] p-6">
               <p className="text-[14.5px] font-bold">
                 {tf('pass.form.discountTitleDyn', { amount: money(member.hardwareDiscount) })}
               </p>
-              <p className="mt-2 text-[13.5px] leading-[1.55] text-[#61646C]">
+              <p className="mt-2 text-[13.5px] leading-[1.55] text-[#61646C] dark:text-white/55">
                 {t('pass.form.discountBody')}
               </p>
             </div>
@@ -234,9 +234,9 @@ const Refer = () => {
             <form
               onSubmit={submit}
               noValidate
-              className="rounded-[14px] border border-[#E0E0E0]/70 bg-white p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10"
+              className="rounded-[14px] border border-[#E0E0E0]/70 bg-white dark:bg-[#141414] p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10"
             >
-              <p className="text-[12px] font-medium uppercase tracking-[0.07em] text-[#94969C]">
+              <p className="text-[12px] font-medium uppercase tracking-[0.07em] text-[#61646C] dark:text-white/55">
                 {t('pass.form.section1')}
               </p>
 
@@ -301,7 +301,7 @@ const Refer = () => {
                   placeholder={t('pass.form.fields.howKnowPlaceholder')} />
               </div>
 
-              <label className="mt-6 flex cursor-pointer items-start gap-3 text-[13px] leading-[1.55] text-[#424242]">
+              <label className="mt-6 flex cursor-pointer items-start gap-3 text-[13px] leading-[1.55] text-[#424242] dark:text-white/80">
                 <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}
                   className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#F58345]" />
                 <span>{t('pass.form.consent')}</span>

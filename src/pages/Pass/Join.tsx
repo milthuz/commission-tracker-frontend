@@ -132,12 +132,12 @@ const Join = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#F5F5F6] font-satoshi text-[#141414]">
+    <div className="flex min-h-screen flex-col bg-[#F5F5F6] dark:bg-[#0A0A0A] font-satoshi text-[#141414] dark:text-white">
       <PassMotion />
 
       {/* Même en-tête que les écrans membres : le lockup de La Passe n'existe qu'à un seul
           endroit du code, donc il ne peut plus diverger d'un écran à l'autre. */}
-      <PassHeader onDark={false} />
+      <PassHeader />
 
       <main className="mx-auto flex w-full max-w-[1160px] flex-1 items-center px-6 py-6 sm:px-8">
         <div className="grid w-full gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-16">
@@ -149,7 +149,7 @@ const Join = () => {
             <h1 className="mt-4 max-w-[13ch] text-[40px] font-bold leading-[1.06] tracking-[-0.015em] sm:text-[46px]">
               {t('pass.landing.title')}
             </h1>
-            <p className="mt-5 max-w-[46ch] text-[15.5px] leading-[1.62] text-[#61646C]">
+            <p className="mt-5 max-w-[46ch] text-[15.5px] leading-[1.62] text-[#61646C] dark:text-white/55">
               {t('pass.landing.sub')}
             </p>
 
@@ -169,7 +169,7 @@ const Join = () => {
                       }`}
                     >
                       <div className="min-w-0">
-                        <p className="text-[15px] font-bold text-[#141414]">
+                        <p className="text-[15px] font-bold text-[#141414] dark:text-white">
                           {tierName(tier.key)}
                           <span className="ml-2 text-[13px] font-medium text-[#8A4220]/60">
                             {tierLabels?.[tier.level - 1]}
@@ -197,11 +197,11 @@ const Join = () => {
 
           {/* ── L'action ─────────────────────────────────────────────────── */}
           <section className="pass-rise lg:pt-2">
-            <div className="rounded-2xl border border-[#E0E0E0]/70 bg-white p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10">
+            <div className="rounded-2xl border border-[#E0E0E0]/70 bg-white dark:bg-[#141414] p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10">
               {step === 'connecting' && (
                 <div className="flex flex-col items-center gap-5 py-16 text-center">
-                  <span className="h-9 w-9 animate-spin rounded-full border-2 border-[#E0E0E0] border-t-[#F58345]" />
-                  <p className="text-[15px] text-[#61646C]">{t('pass.join.connecting')}</p>
+                  <span className="h-9 w-9 animate-spin rounded-full border-2 border-[#E0E0E0] dark:border-[#242424] border-t-[#F58345]" />
+                  <p className="text-[15px] text-[#61646C] dark:text-white/55">{t('pass.join.connecting')}</p>
                 </div>
               )}
 
@@ -210,7 +210,7 @@ const Join = () => {
                   <h2 className="text-[26px] font-bold leading-tight tracking-[-0.01em]">
                     {t('pass.join.closedTitle')}
                   </h2>
-                  <p className="mx-auto mt-3 max-w-[34ch] text-[15px] leading-[1.6] text-[#61646C]">
+                  <p className="mx-auto mt-3 max-w-[34ch] text-[15px] leading-[1.6] text-[#61646C] dark:text-white/55">
                     {t('pass.join.closedBody')}
                   </p>
                 </div>
@@ -227,10 +227,10 @@ const Join = () => {
                   <h2 className="mt-5 text-[26px] font-bold leading-tight tracking-[-0.01em]">
                     {t('pass.join.sentTitle')}
                   </h2>
-                  <p className="mx-auto mt-3 max-w-[38ch] text-[15px] leading-[1.6] text-[#61646C]">
+                  <p className="mx-auto mt-3 max-w-[38ch] text-[15px] leading-[1.6] text-[#61646C] dark:text-white/55">
                     {t('pass.join.sentBody', { email })}
                   </p>
-                  <p className="mx-auto mt-4 max-w-[38ch] text-[13px] leading-[1.6] text-[#94969C]">
+                  <p className="mx-auto mt-4 max-w-[38ch] text-[13px] leading-[1.6] text-[#61646C] dark:text-white/55">
                     {t('pass.join.sentHint')}
                   </p>
                   <div className="mt-7 flex flex-col items-center gap-2">
@@ -238,14 +238,14 @@ const Join = () => {
                       type="button"
                       disabled={busy}
                       onClick={() => submit()}
-                      className="rounded-xl border border-[#E0E0E0] px-5 py-3 text-[14px] font-semibold transition-colors duration-150 hover:border-[#94969C] disabled:opacity-50"
+                      className="rounded-xl border border-[#E0E0E0] dark:border-[#242424] px-5 py-3 text-[14px] font-semibold transition-colors duration-150 hover:border-[#94969C] dark:hover:border-white/40 disabled:opacity-50"
                     >
                       {t('pass.join.resend')}
                     </button>
                     <button
                       type="button"
                       onClick={() => { setStep('form'); setError(''); }}
-                      className="py-1 text-[13px] font-medium text-[#61646C] underline-offset-4 hover:underline"
+                      className="py-1 text-[13px] font-medium text-[#61646C] dark:text-white/55 underline-offset-4 hover:underline"
                     >
                       {t('pass.join.wrongEmail')}
                     </button>
@@ -259,11 +259,11 @@ const Join = () => {
                   <h2 className="text-[26px] font-bold leading-[1.15] tracking-[-0.01em]">
                     {t('pass.join.title')}
                   </h2>
-                  <p className="mt-3 text-[15px] leading-[1.6] text-[#61646C]">
+                  <p className="mt-3 text-[15px] leading-[1.6] text-[#61646C] dark:text-white/55">
                     {t('pass.join.sub')}
                   </p>
 
-                  <label htmlFor="pass-email" className="mt-8 block text-[13px] font-medium text-[#424242]">
+                  <label htmlFor="pass-email" className="mt-8 block text-[13px] font-medium text-[#424242] dark:text-white/80">
                     {t('pass.join.emailLabel')}
                   </label>
                   <input
@@ -275,10 +275,10 @@ const Join = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder={t('pass.join.emailPlaceholder')}
-                    className="mt-2 w-full rounded-xl border border-[#E0E0E0] bg-white px-4 py-3.5 text-[15px] outline-none transition-colors duration-150 placeholder:text-[#94969C] focus:border-[#F58345] focus:ring-4 focus:ring-[#F58345]/15"
+                    className="mt-2 w-full rounded-xl border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414] px-4 py-3.5 text-[15px] outline-none transition-colors duration-150 placeholder:text-[#94969C] dark:placeholder:text-white/35 focus:border-[#F58345] focus:ring-4 focus:ring-[#F58345]/15"
                   />
 
-                  <label className="mt-5 flex cursor-pointer items-start gap-3 text-[13px] leading-[1.55] text-[#424242]">
+                  <label className="mt-5 flex cursor-pointer items-start gap-3 text-[13px] leading-[1.55] text-[#424242] dark:text-white/80">
                     <input
                       type="checkbox"
                       checked={consent}
@@ -312,7 +312,7 @@ const Join = () => {
                     {t('pass.join.submit')}
                   </button>
 
-                  <p className="mt-5 text-center text-[12.5px] leading-[1.55] text-[#94969C]">
+                  <p className="mt-5 text-center text-[12.5px] leading-[1.55] text-[#61646C] dark:text-white/55">
                     {t('pass.join.eligibility')}
                   </p>
                 </form>
@@ -323,7 +323,7 @@ const Join = () => {
       </main>
 
       <footer className="mx-auto w-full max-w-[1160px] px-6 pb-10 pt-4 sm:px-8">
-        <p className="max-w-[92ch] text-[11px] leading-[1.7] text-[#94969C]">
+        <p className="max-w-[92ch] text-[11px] leading-[1.7] text-[#61646C] dark:text-white/55">
           {t('pass.landing.legal')}
         </p>
       </footer>

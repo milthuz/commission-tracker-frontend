@@ -1,6 +1,7 @@
 import { CSSProperties, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import useColorMode from '../../hooks/useColorMode';
 import clusterOnDark from '../../images/logo/cluster-wordmark-on-dark.svg';
 import clusterOnLight from '../../images/logo/cluster-wordmark-on-light.svg';
 
@@ -21,17 +22,30 @@ export const PASS_API =
 // l'orange du logo (#FE6523) n'est d'ailleurs pas celui du système de design du deck
 // (#F58345), et c'est normal : un logo ne se reteinte pas pour s'accorder à une page.
 export const ClusterMark = ({
-  onDark = false,
   className = 'h-[26px] w-auto',
   style,
-}: { onDark?: boolean; className?: string; style?: CSSProperties }) => (
-  <img
-    src={onDark ? clusterOnDark : clusterOnLight}
-    alt="Cluster"
-    className={className}
-    style={style}
-    draggable={false}
-  />
+}: { className?: string; style?: CSSProperties }) => (
+  // Les DEUX variantes sont rendues, et c'est le CSS qui montre la bonne. Une première
+  // version choisissait en JavaScript via `useColorMode` — mais ce hook garde un état par
+  // composant : la bascule mettait à jour le sien, jamais celui du logo, qui restait donc
+  // en variante claire sur fond sombre jusqu'au prochain rechargement. Ici il n'y a aucun
+  // état à synchroniser, donc rien à désynchroniser.
+  <>
+    <img
+      src={clusterOnLight}
+      alt="Cluster"
+      className={`${className} dark:hidden`}
+      style={style}
+      draggable={false}
+    />
+    <img
+      src={clusterOnDark}
+      alt="Cluster"
+      className={`${className} hidden dark:block`}
+      style={style}
+      draggable={false}
+    />
+  </>
 );
 
 /**
@@ -65,14 +79,10 @@ export const PassPill = ({ className = '' }: { className?: string }) => {
  * celle-ci est spécifiée pour la topbar du portail, alors qu'ici on est sur une page
  * publique où les deux langues doivent se voir d'un coup d'œil, en un clic.
  */
-export const PassLangToggle = ({ onDark = false }: { onDark?: boolean }) => {
+export const PassLangToggle = () => {
   const { i18n, fr } = useFmt();
   return (
-    <div
-      className={`inline-flex rounded-full p-1 text-[13px] font-medium ${
-        onDark ? 'border border-white/12 bg-white/[0.04]' : 'border border-[#E0E0E0] bg-white'
-      }`}
-    >
+    <div className="inline-flex rounded-full border border-[#E0E0E0] bg-white p-1 text-[13px] font-medium dark:border-white/12 dark:bg-white/[0.04]">
       {(['fr', 'en'] as const).map((lng) => (
         <button
           key={lng}
@@ -84,14 +94,50 @@ export const PassLangToggle = ({ onDark = false }: { onDark?: boolean }) => {
           aria-pressed={(lng === 'fr') === fr}
           className={`rounded-full px-3.5 py-1.5 transition-colors duration-150 ${
             (lng === 'fr') === fr
-              ? onDark ? 'bg-white text-[#141414]' : 'bg-[#141414] text-white'
-              : onDark ? 'text-white/55 hover:text-white' : 'text-[#61646C] hover:text-[#141414]'
+              // La puce ACTIVE est pleine : encre sur clair, blanche sur sombre.
+              ? 'bg-[#141414] text-white dark:bg-white dark:text-[#141414]'
+              : 'text-[#61646C] hover:text-[#141414] dark:text-white/55 dark:hover:text-white'
           }`}
         >
           {lng.toUpperCase()}
         </button>
       ))}
     </div>
+  );
+};
+
+/**
+ * Bascule clair/sombre. Branchée sur `useColorMode` — le MÊME réglage que Sales Hub
+ * (`color-theme` dans localStorage, classe `dark` sur le body), décision utilisateur du
+ * 2026-08-03. Elle est exposée ici parce qu'un marchand membre ne voit jamais la barre
+ * latérale de Sales Hub : sans cette bascule, il hériterait d'un réglage sans pouvoir le
+ * changer.
+ */
+export const PassThemeToggle = () => {
+  const [colorMode, setColorMode] = useColorMode() as [string, (v: string) => void];
+  const dark = colorMode === 'dark';
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={dark}
+      aria-label={dark ? 'Dark' : 'Light'}
+      onClick={() => setColorMode(dark ? 'light' : 'dark')}
+      className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-full border border-[#E0E0E0] bg-white text-[#61646C] transition-colors duration-150 hover:text-[#141414] dark:border-white/12 dark:bg-white/[0.04] dark:text-white/60 dark:hover:text-white"
+    >
+      {dark ? (
+        // Soleil = « passer au clair »
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" />
+        </svg>
+      ) : (
+        // Lune = « passer au sombre »
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" />
+        </svg>
+      )}
+    </button>
   );
 };
 
@@ -150,11 +196,11 @@ export function useTierName() {
 }
 
 const STATUS_TONE: Record<string, string> = {
-  new: 'bg-white/[0.07] text-white/70 ring-white/10',
+  new: 'bg-[#E0E0E0] dark:bg-white/[0.07] text-[#424242] dark:text-white/70 ring-white/10',
   contacted: 'bg-[#FDB022]/12 text-[#FEDF89] ring-[#FDB022]/25',
   live: 'bg-[#608EFA]/12 text-[#9CBBFF] ring-[#608EFA]/25',
   credit_applied: 'bg-[#17B26A]/12 text-[#75E0A7] ring-[#17B26A]/25',
-  not_qualified: 'bg-white/[0.04] text-white/35 ring-white/[0.08]',
+  not_qualified: 'bg-white dark:bg-white/[0.04] text-[#61646C] dark:text-white/35 ring-white/[0.08]',
 };
 
 export const StatusBadge = ({ status }: { status: string }) => {
@@ -176,57 +222,25 @@ export const StatusBadge = ({ status }: { status: string }) => {
  * livré (brief, règle 7) : dans le vrai produit ce sont des routes distinctes, et un
  * membre n'a que deux destinations — son espace et le formulaire.
  */
-export const PassHeader = ({
-  onDark = true,
-  right,
-}: {
-  onDark?: boolean;
-  right?: ReactNode;
-}) => {
-  const { i18n, fr } = useFmt();
-  return (
-    <header className="mx-auto flex w-full max-w-[1160px] flex-wrap items-center justify-between gap-4 px-6 py-5 sm:px-8 sm:py-7">
-      {/* Identification du programme telle que le designer la définit : le logo Cluster,
-          puis la pastille orange du programme. Pas de symbole, pas d'endossement rédigé —
-          la hiérarchie parle d'elle-même, Cluster d'abord, le programme ensuite. */}
-      <Link to="/pass" className="flex items-center gap-3">
-        <ClusterMark onDark={onDark} className="h-[22px] w-auto" />
-        <PassPill />
-      </Link>
+export const PassHeader = ({ right }: { right?: ReactNode }) => (
+  <header className="mx-auto flex w-full max-w-[1160px] flex-wrap items-center justify-between gap-4 px-6 py-5 sm:px-8 sm:py-7">
+    {/* Identification du programme telle que le designer la définit : le logo Cluster,
+        puis la pastille orange du programme. Pas de symbole, pas d'endossement rédigé —
+        la hiérarchie parle d'elle-même, Cluster d'abord, le programme ensuite. */}
+    <Link to="/pass" className="flex items-center gap-3">
+      <ClusterMark className="h-[22px] w-auto" />
+      <PassPill />
+    </Link>
 
-      <div className="flex items-center gap-3">
-        {right}
-        <div
-          className={`inline-flex rounded-full p-1 text-[13px] font-medium ${
-            onDark ? 'border border-white/12 bg-white/[0.04]' : 'border border-[#E0E0E0] bg-white'
-          }`}
-        >
-          {(['fr', 'en'] as const).map((lng) => (
-            <button
-              key={lng}
-              type="button"
-              onClick={() => {
-                i18n.changeLanguage(lng);
-                localStorage.setItem('language', lng);
-              }}
-              className={`rounded-full px-3.5 py-1.5 transition-colors duration-150 ${
-                (lng === 'fr') === fr
-                  ? onDark
-                    ? 'bg-white text-[#141414]'
-                    : 'bg-[#141414] text-white'
-                  : onDark
-                    ? 'text-white/55 hover:text-white'
-                    : 'text-[#61646C] hover:text-[#141414]'
-              }`}
-            >
-              {lng.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      </div>
-    </header>
-  );
-};
+    {/* Les deux bascules côte à côte : la langue et le thème se règlent au même endroit,
+        sur toutes les surfaces de La Passe. */}
+    <div className="flex items-center gap-3">
+      {right}
+      <PassLangToggle />
+      <PassThemeToggle />
+    </div>
+  </header>
+);
 
 /** Animation d'entrée commune — 220 ms, la borne haute que le brief autorise. */
 export const PassMotion = () => (

@@ -80,8 +80,8 @@ const Hub = () => {
 
   const kpis = [
     { label: t('pass.hub.kpi.earned'), value: money(earnings?.credited ?? 0), tone: 'text-[#75E0A7]' },
-    { label: t('pass.hub.kpi.pending'), value: money(earnings?.pending ?? 0), tone: 'text-[#F58345]' },
-    { label: t('pass.hub.kpi.live'), value: String(live), tone: 'text-white' },
+    { label: t('pass.hub.kpi.pending'), value: money(earnings?.pending ?? 0), tone: 'text-[#D16630] dark:text-[#F58345]' },
+    { label: t('pass.hub.kpi.live'), value: String(live), tone: 'text-[#141414] dark:text-white' },
     { label: t('pass.hub.kpi.inProgress'), value: String(inProgress), tone: 'text-[#9CBBFF]' },
   ];
 
@@ -95,7 +95,7 @@ const Hub = () => {
             <h1 className="text-[30px] font-medium leading-tight tracking-[-0.015em] sm:text-[34px]">
               {tf('pass.hub.greeting', { firstName })}
             </h1>
-            <p className="mt-2 text-[14.5px] text-white/45">
+            <p className="mt-2 text-[14.5px] text-[#61646C] dark:text-white/45">
               {tf('pass.hub.meta', {
                 business: member.business || member.email,
                 joinDate: monthYear(member.joinedAt),
@@ -112,19 +112,19 @@ const Hub = () => {
         </div>
 
         {/* ── Progression de palier ───────────────────────────────────── */}
-        <section className="pass-rise mt-8 rounded-[14px] border border-[#242424] bg-[#141414] p-6 sm:p-7">
+        <section className="pass-rise mt-8 rounded-[14px] border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414] p-6 sm:p-7">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3.5">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#F58345]/35 bg-[#F58345]/10 px-3.5 py-1.5 text-[13px] font-semibold text-[#F79C6A]">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#F58345]/35 bg-[#F58345]/10 px-3.5 py-1.5 text-[13px] font-semibold text-[#D16630] dark:text-[#F79C6A]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#F58345]" />
                 {tierName(member.tier.key)}
               </span>
-              <p className="text-[15px] text-white/80">
+              <p className="text-[15px] text-[#424242] dark:text-white/80">
                 {tf('pass.hub.earning', { amount: money(member.tier.credit) })}
               </p>
             </div>
             {nextTier && (
-              <p className="text-[14px] text-white/45">
+              <p className="text-[14px] text-[#61646C] dark:text-white/45">
                 {tf('pass.hub.toNext', {
                   n: nextTier.referralsAway,
                   tier3: tierName(nextTier.key),
@@ -134,7 +134,7 @@ const Hub = () => {
           </div>
 
           <div
-            className="mt-5 h-[6px] w-full overflow-hidden rounded-full bg-white/[0.07]"
+            className="mt-5 h-[6px] w-full overflow-hidden rounded-full bg-[#E0E0E0] dark:bg-white/[0.07]"
             role="progressbar"
             aria-valuenow={live}
             aria-valuemin={0}
@@ -147,11 +147,11 @@ const Hub = () => {
           </div>
 
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[13px] text-white/40">
+            <p className="text-[13px] text-[#61646C] dark:text-white/40">
               {tf('pass.hub.progress', { live, target })}
             </p>
             {nextTier && (
-              <p className="text-[13px] text-white/40">
+              <p className="text-[13px] text-[#61646C] dark:text-white/40">
                 {/* Variante paramétrée : la phrase du deck contient « 1 000 $ » en dur,
                     écrit pour sa persona. Le montant vient de la configuration. */}
                 {tf('pass.hub.unlockDyn', { tier: tierName(nextTier.key), amount: money(nextTier.credit) })}
@@ -163,8 +163,8 @@ const Hub = () => {
         {/* ── Indicateurs ─────────────────────────────────────────────── */}
         <section className="pass-rise mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {kpis.map((k) => (
-            <div key={k.label} className="rounded-[14px] border border-[#242424] bg-[#141414] p-5">
-              <p className="text-[13px] text-white/40">{k.label}</p>
+            <div key={k.label} className="rounded-[14px] border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414] p-5">
+              <p className="text-[13px] text-[#61646C] dark:text-white/40">{k.label}</p>
               <p className={`mt-2 text-[28px] font-medium leading-none tracking-[-0.02em] ${k.tone}`}>
                 {k.value}
               </p>
@@ -175,22 +175,22 @@ const Hub = () => {
         {/* ── Lien personnel + carte de membre ────────────────────────── */}
         <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           {share && (
-            <section className="pass-rise min-w-0 rounded-[14px] border border-[#242424] bg-[#141414] p-6">
+            <section className="pass-rise min-w-0 rounded-[14px] border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414] p-6">
               <h2 className="text-[17px] font-medium">{t('pass.hub.shareTitle')}</h2>
-              <p className="mt-2 max-w-[52ch] text-[14px] leading-[1.6] text-white/45">
+              <p className="mt-2 max-w-[52ch] text-[14px] leading-[1.6] text-[#61646C] dark:text-white/45">
                 {t('pass.hub.shareSub')}
               </p>
 
               <div className="mt-5 flex flex-wrap items-center gap-2">
                 {/* Affiché sans protocole — c'est ce qu'on dicte à quelqu'un — mais c'est
                     l'URL complète qui part dans le presse-papiers. */}
-                <code className="min-w-0 flex-1 truncate rounded-lg border border-[#242424] bg-[#0A0A0A] px-3.5 py-2.5 font-mono text-[13.5px] text-white/80">
+                <code className="min-w-0 flex-1 truncate rounded-lg border border-[#E0E0E0] dark:border-[#242424] bg-[#F5F5F6] dark:bg-[#0A0A0A] px-3.5 py-2.5 font-mono text-[13.5px] text-[#424242] dark:text-white/80">
                   {share.url}
                 </code>
                 <button
                   type="button"
                   onClick={copyLink}
-                  className={`shrink-0 rounded-lg px-4 py-2.5 text-[13.5px] font-medium text-white transition-colors duration-150 ${
+                  className={`shrink-0 rounded-lg px-4 py-2.5 text-[13.5px] font-medium text-[#141414] dark:text-white transition-colors duration-150 ${
                     copied ? 'bg-[#17B26A]' : 'bg-[#F58345] hover:bg-[#E5723A]'
                   }`}
                 >
@@ -198,14 +198,14 @@ const Hub = () => {
                 </button>
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-10 border-t border-white/[0.07] pt-5">
+              <div className="mt-6 flex flex-wrap gap-10 border-t border-[#E0E0E0] dark:border-white/[0.07] pt-5">
                 <div>
                   <p className="text-[28px] font-medium leading-none tracking-[-0.02em]">{share.clicksThisMonth}</p>
-                  <p className="mt-1.5 text-[13px] text-white/40">{t('pass.hub.shareStat1')}</p>
+                  <p className="mt-1.5 text-[13px] text-[#61646C] dark:text-white/40">{t('pass.hub.shareStat1')}</p>
                 </div>
                 <div>
                   <p className="text-[28px] font-medium leading-none tracking-[-0.02em]">{share.referralsViaLink}</p>
-                  <p className="mt-1.5 text-[13px] text-white/40">{t('pass.hub.shareStat2')}</p>
+                  <p className="mt-1.5 text-[13px] text-[#61646C] dark:text-white/40">{t('pass.hub.shareStat2')}</p>
                 </div>
               </div>
             </section>
@@ -222,29 +222,29 @@ const Hub = () => {
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p className="truncate text-[17px] font-medium">{member.fullName || member.email}</p>
-                  <p className="mt-0.5 truncate text-[13.5px] text-white/45">{member.business || ''}</p>
+                  <p className="mt-0.5 truncate text-[13.5px] text-[#61646C] dark:text-white/45">{member.business || ''}</p>
                 </div>
-                <span className="shrink-0 rounded-full border border-[#F58345]/40 bg-[#F58345]/10 px-3 py-1 text-[12px] font-medium text-[#F79C6A]">
+                <span className="shrink-0 rounded-full border border-[#F58345]/40 bg-[#F58345]/10 px-3 py-1 text-[12px] font-medium text-[#D16630] dark:text-[#F79C6A]">
                   {t('pass.hub.cardTierLabel')} {member.tier.level} · {tierName(member.tier.key)}
                 </span>
               </div>
               <div className="mt-7 flex flex-wrap gap-8">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.07em] text-white/35">{t('pass.hub.cardNoLabel')}</p>
+                  <p className="text-[11px] uppercase tracking-[0.07em] text-[#61646C] dark:text-white/35">{t('pass.hub.cardNoLabel')}</p>
                   <p className="mt-1 font-mono text-[14px]">{share?.memberNo || '—'}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.07em] text-white/35">{t('pass.hub.cardSinceLabel')}</p>
+                  <p className="text-[11px] uppercase tracking-[0.07em] text-[#61646C] dark:text-white/35">{t('pass.hub.cardSinceLabel')}</p>
                   <p className="mt-1 text-[14px]">{monthYear(member.joinedAt)}</p>
                 </div>
               </div>
             </div>
-            <p className="mt-3 text-[13px] leading-[1.55] text-white/40">{t('pass.hub.cardNote')}</p>
+            <p className="mt-3 text-[13px] leading-[1.55] text-[#61646C] dark:text-white/40">{t('pass.hub.cardNote')}</p>
             {share && (
               <button
                 type="button"
                 onClick={copyLink}
-                className="mt-3 rounded-lg border border-white/15 px-4 py-2.5 text-[13.5px] font-medium transition-colors duration-150 hover:border-white/40"
+                className="mt-3 rounded-lg border border-[#D1D1D1] dark:border-white/15 px-4 py-2.5 text-[13.5px] font-medium transition-colors duration-150 hover:border-[#94969C] dark:hover:border-white/40"
               >
                 {copied ? t('pass.hub.shareCopied') : t('pass.hub.cardCopyLink')}
               </button>
@@ -256,21 +256,21 @@ const Hub = () => {
             Masquée quand elle est vide : une section « rien à télécharger » n'aide
             personne, et le designer n'a pas dessiné d'état vide pour celle-ci. */}
         {!!resources.length && (
-          <section className="pass-rise mt-5 rounded-[14px] border border-[#242424] bg-[#141414] p-6">
+          <section className="pass-rise mt-5 rounded-[14px] border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414] p-6">
             <h2 className="text-[17px] font-medium">{t('pass.hub.resourcesTitle')}</h2>
-            <p className="mt-2 text-[14px] text-white/45">{t('pass.hub.resourcesSub')}</p>
+            <p className="mt-2 text-[14px] text-[#61646C] dark:text-white/45">{t('pass.hub.resourcesSub')}</p>
             <ul className="mt-5 grid gap-3 sm:grid-cols-2">
               {resources.map((r) => (
                 <li key={r.id}>
                   <a
                     href={`${PASS_API}/api/pass/resources/${r.id}/file`}
-                    className="flex items-center justify-between gap-4 rounded-lg border border-[#242424] bg-[#0A0A0A] px-4 py-3.5 transition-colors duration-150 hover:border-[#575A61]"
+                    className="flex items-center justify-between gap-4 rounded-lg border border-[#E0E0E0] dark:border-[#242424] bg-[#F5F5F6] dark:bg-[#0A0A0A] px-4 py-3.5 transition-colors duration-150 hover:border-[#94969C] dark:hover:border-[#575A61]"
                   >
                     <span className="min-w-0">
                       <span className="block truncate text-[14px] font-medium">{r.title}</span>
-                      <span className="mt-0.5 block truncate text-[12.5px] text-white/40">{r.meta}</span>
+                      <span className="mt-0.5 block truncate text-[12.5px] text-[#61646C] dark:text-white/40">{r.meta}</span>
                     </span>
-                    <svg className="shrink-0 text-white/40" width="16" height="16" viewBox="0 0 24 24"
+                    <svg className="shrink-0 text-[#61646C] dark:text-white/40" width="16" height="16" viewBox="0 0 24 24"
                          fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                       <path d="M12 3v13m0 0-4.5-4.5M12 16l4.5-4.5M4 21h16" />
                     </svg>
@@ -287,11 +287,11 @@ const Hub = () => {
               défaut, donc la largeur minimale du tableau élargissait la COLONNE au lieu de
               laisser défiler le conteneur prévu pour ça — une deuxième barre de défilement,
               exactement ce que les conventions du projet interdisent. */}
-          <section className="pass-rise min-w-0 rounded-[14px] border border-[#242424] bg-[#141414]">
+          <section className="pass-rise min-w-0 rounded-[14px] border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414]">
             <div className="flex items-center justify-between gap-4 px-6 pt-6">
               <h2 className="text-[17px] font-medium">{t('pass.hub.tableTitle')}</h2>
               {!!referrals?.length && (
-                <span className="text-[13px] text-white/35">
+                <span className="text-[13px] text-[#61646C] dark:text-white/35">
                   {tf('pass.hub.tableCount', { n: referrals.length })}
                 </span>
               )}
@@ -299,11 +299,11 @@ const Hub = () => {
 
             {failed && (
               <div className="px-6 py-10 text-center">
-                <p className="text-[14.5px] text-white/50">{t('pass.common.loadError')}</p>
+                <p className="text-[14.5px] text-[#61646C] dark:text-white/50">{t('pass.common.loadError')}</p>
                 <button
                   type="button"
                   onClick={load}
-                  className="mt-4 rounded-xl border border-white/15 px-4 py-2.5 text-[13.5px] font-semibold transition-colors duration-150 hover:border-white/35"
+                  className="mt-4 rounded-xl border border-[#D1D1D1] dark:border-white/15 px-4 py-2.5 text-[13.5px] font-semibold transition-colors duration-150 hover:border-[#94969C] dark:hover:border-white/35"
                 >
                   {t('pass.common.retry')}
                 </button>
@@ -316,7 +316,7 @@ const Hub = () => {
             {!failed && referrals?.length === 0 && (
               <div className="px-6 py-12 text-center">
                 <p className="text-[16px] font-medium">{t('pass.hub.emptyTitle')}</p>
-                <p className="mx-auto mt-2 max-w-[38ch] text-[14px] leading-[1.6] text-white/45">
+                <p className="mx-auto mt-2 max-w-[38ch] text-[14px] leading-[1.6] text-[#61646C] dark:text-white/45">
                   {t('pass.hub.emptyBody')}
                 </p>
                 <Link
@@ -332,7 +332,7 @@ const Hub = () => {
               <div className="mt-5 overflow-x-auto">
                 <table className="w-full min-w-[560px] border-collapse text-left">
                   <thead>
-                    <tr className="border-y border-[#242424] text-[11px] uppercase tracking-[0.07em] text-white/35">
+                    <tr className="border-y border-[#E0E0E0] dark:border-[#242424] text-[11px] uppercase tracking-[0.07em] text-[#61646C] dark:text-white/35">
                       {/* Le deck donne maintenant ses propres en-têtes au tableau du
                           membre — on n'emprunte plus ceux du tableau ops. */}
                       <th className="px-6 py-3 font-medium">{t('pass.hub.columns.restaurant')}</th>
@@ -346,11 +346,11 @@ const Hub = () => {
                       <tr key={r.id} className="border-b border-[#242424]/70 last:border-0">
                         <td className="px-6 py-4">
                           <p className="text-[14.5px] font-medium">{r.restaurant.name}</p>
-                          <p className="mt-0.5 text-[12.5px] text-white/35">
+                          <p className="mt-0.5 text-[12.5px] text-[#61646C] dark:text-white/35">
                             {r.restaurant.city}, {r.restaurant.province}
                           </p>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-[13.5px] text-white/55">
+                        <td className="whitespace-nowrap px-4 py-4 text-[13.5px] text-[#61646C] dark:text-white/55">
                           {date(r.submittedAt)}
                         </td>
                         <td className="px-4 py-4">
@@ -358,9 +358,9 @@ const Hub = () => {
                         </td>
                         <td className="whitespace-nowrap px-6 py-4 text-right text-[14.5px] font-medium">
                           {r.status === 'not_qualified' || r.creditAmount === null ? (
-                            <span className="text-white/25">—</span>
+                            <span className="text-[#61646C] dark:text-white/25">—</span>
                           ) : (
-                            <span className={r.status === 'credit_applied' ? 'text-[#75E0A7]' : 'text-[#F58345]'}>
+                            <span className={r.status === 'credit_applied' ? 'text-[#75E0A7]' : 'text-[#D16630] dark:text-[#F58345]'}>
                               {money(r.creditAmount)}
                             </span>
                           )}
@@ -374,7 +374,7 @@ const Hub = () => {
           </section>
 
           {/* ── Avantages ────────────────────────────────────────────── */}
-          <section className="pass-rise rounded-[14px] border border-[#242424] bg-[#141414] p-6">
+          <section className="pass-rise rounded-[14px] border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414] p-6">
             <h2 className="text-[17px] font-medium">{t('pass.hub.perksTitle')}</h2>
             <ul className="mt-5 space-y-5">
               {/* Le palier de chaque avantage est DONNÉ par le deck depuis sa livraison
@@ -393,7 +393,7 @@ const Hub = () => {
                       />
                       <div>
                         <p className="text-[14px] font-medium">{perk.title}</p>
-                        <p className="mt-1 text-[13px] leading-[1.55] text-white/45">
+                        <p className="mt-1 text-[13px] leading-[1.55] text-[#61646C] dark:text-white/45">
                           {/* Les avantages du deck citent le palier qui les débloque. */}
                           {perk.body
                             .split('{tier2}').join(tierName('sous'))

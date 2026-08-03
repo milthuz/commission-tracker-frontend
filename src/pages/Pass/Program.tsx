@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePassAuth } from '../../context/PassAuthContext';
-import { ClusterMark, PASS_API, PassLangToggle, PassMotion, PassPill, useFmt, useTierName } from './passUi';
+import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, PassPill, useFmt, useTierName } from './passUi';
 
 // Page programme (écran 01) — page marketing PUBLIQUE, pas un écran du portail. Coquille
 // autonome : en-tête et pied publics, aucune barre latérale, pleine largeur.
@@ -39,27 +39,28 @@ const Program = () => {
   const btnPrimary =
     'inline-flex items-center justify-center gap-2 rounded-xl bg-[#F58345] px-6 py-3.5 text-[15px] font-medium text-white transition-colors duration-150 hover:bg-[#E5723A] active:bg-[#D16630]';
   const btnGhost =
-    'inline-flex items-center justify-center rounded-xl border border-white/20 px-6 py-3.5 text-[15px] font-medium text-white transition-colors duration-150 hover:border-white/45';
+    'inline-flex items-center justify-center rounded-xl border border-[#D1D1D1] dark:border-white/20 px-6 py-3.5 text-[15px] font-medium text-[#141414] dark:text-white transition-colors duration-150 hover:border-[#94969C] dark:hover:border-white/45';
   const wrap = 'mx-auto w-full max-w-[1100px] px-6 sm:px-8';
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] font-satoshi text-white">
+    <div className="min-h-screen bg-[#F5F5F6] dark:bg-[#0A0A0A] font-satoshi text-[#141414] dark:text-white">
       <PassMotion />
 
       {/* ── En-tête public ─────────────────────────────────────────────── */}
-      <header className="border-b border-[#242424]">
+      <header className="border-b border-[#E0E0E0] dark:border-[#242424]">
         <div className={`${wrap} flex flex-wrap items-center justify-between gap-4 py-5`}>
           <div className="flex items-center gap-3">
-            <ClusterMark onDark className="h-[22px] w-auto" />
+            <ClusterMark className="h-[22px] w-auto" />
             <PassPill />
           </div>
           <div className="flex items-center gap-3">
-            <PassLangToggle onDark />
+            <PassLangToggle />
+            <PassThemeToggle />
             {/* Proposé UNIQUEMENT à qui a déjà une session — voir le commentaire d'en-tête. */}
             {isAuthenticated && (
               <Link
                 to="/pass"
-                className="rounded-xl border border-white/20 px-4 py-2.5 text-[14px] font-medium transition-colors duration-150 hover:border-white/45"
+                className="rounded-xl border border-[#D1D1D1] dark:border-white/20 px-4 py-2.5 text-[14px] font-medium transition-colors duration-150 hover:border-[#94969C] dark:hover:border-white/45"
               >
                 {t('pass.landing.publicHeader.hub')}
               </Link>
@@ -73,14 +74,14 @@ const Program = () => {
 
       {/* ── Héros ──────────────────────────────────────────────────────── */}
       <section className={`${wrap} pass-rise py-16 text-center sm:py-24`}>
-        <span className="inline-flex items-center gap-2 rounded-full border border-[#F58345]/35 bg-[#F58345]/10 px-4 py-2 text-[13px] font-medium text-[#F79C6A]">
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#F58345]/35 bg-[#F58345]/10 px-4 py-2 text-[13px] font-medium text-[#D16630] dark:text-[#F79C6A]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#F58345]" />
           {t('pass.landing.eyebrow')}
         </span>
         <h1 className="mx-auto mt-7 max-w-[15ch] text-[42px] font-medium leading-[1.06] tracking-[-0.015em] sm:text-[56px]">
           {t('pass.landing.title')}
         </h1>
-        <p className="mx-auto mt-6 max-w-[58ch] text-[16.5px] leading-[1.65] text-white/55">
+        <p className="mx-auto mt-6 max-w-[58ch] text-[16.5px] leading-[1.65] text-[#61646C] dark:text-white/55">
           {t('pass.landing.sub')}
         </p>
         <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
@@ -91,7 +92,7 @@ const Program = () => {
         {/* Les trois chiffres du héros sortent de la configuration : le crédit le plus
             élevé de l'échelle et le rabais matériel, jamais des nombres recopiés. */}
         {program && (
-          <div className="mx-auto mt-14 grid max-w-[760px] gap-8 border-t border-white/[0.08] pt-10 sm:grid-cols-3">
+          <div className="mx-auto mt-14 grid max-w-[760px] gap-8 border-t border-[#E0E0E0] dark:border-white/[0.08] pt-10 sm:grid-cols-3">
             {[
               { v: topCredit !== null ? money(topCredit) : '—', l: t('pass.landing.stat1') },
               { v: money(program.hardwareDiscount), l: t('pass.landing.stat2') },
@@ -99,7 +100,7 @@ const Program = () => {
             ].map((s) => (
               <div key={s.l}>
                 <p className="text-[30px] font-medium leading-none tracking-[-0.02em]">{s.v}</p>
-                <p className="mt-2 text-[13px] leading-snug text-white/45">{s.l}</p>
+                <p className="mt-2 text-[13px] leading-snug text-[#61646C] dark:text-white/45">{s.l}</p>
               </div>
             ))}
           </div>
@@ -107,39 +108,39 @@ const Program = () => {
       </section>
 
       {/* ── L'échelle ──────────────────────────────────────────────────── */}
-      <section className="border-y border-[#242424] bg-[#0F0F0F] py-16 sm:py-20">
+      <section className="border-y border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#0F0F0F] py-16 sm:py-20">
         <div className={wrap}>
-          <p className="text-center text-[12px] font-medium uppercase tracking-[0.09em] text-[#F79C6A]">
+          <p className="text-center text-[12px] font-medium uppercase tracking-[0.09em] text-[#D16630] dark:text-[#F79C6A]">
             {t('pass.landing.ladderEyebrow')}
           </p>
           <h2 className="mx-auto mt-4 max-w-[22ch] text-center text-[32px] font-medium leading-[1.12] tracking-[-0.015em] sm:text-[40px]">
             {t('pass.landing.ladderTitle')}
           </h2>
-          <p className="mx-auto mt-4 max-w-[56ch] text-center text-[15.5px] leading-[1.6] text-white/50">
+          <p className="mx-auto mt-4 max-w-[56ch] text-center text-[15.5px] leading-[1.6] text-[#61646C] dark:text-white/50">
             {t('pass.landing.ladderSub')}
           </p>
 
           <div className="mt-12 grid gap-5 lg:grid-cols-3">
             {tiers.map((tier, i) => (
-              <div key={tier.level} className="flex flex-col rounded-[14px] border border-[#242424] bg-[#141414] p-6 sm:p-7">
-                <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-white/40">
+              <div key={tier.level} className="flex flex-col rounded-[14px] border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414] p-6 sm:p-7">
+                <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-[#61646C] dark:text-white/40">
                   {labels?.[i]}
                 </p>
                 <p className="mt-3 text-[17px] font-medium">{tierName(tier.key)}</p>
                 {/* Le montant EST le titre de la carte — le brief interdit de le répéter
                     en puce parmi les avantages. */}
-                <p className="mt-4 text-[40px] font-medium leading-none tracking-[-0.02em] text-[#F58345]">
+                <p className="mt-4 text-[40px] font-medium leading-none tracking-[-0.02em] text-[#D16630] dark:text-[#F58345]">
                   {money(tier.credit)}
                 </p>
-                <p className="mt-2 text-[13px] text-white/45">{t('pass.landing.creditEach')}</p>
-                <p className="mt-5 border-t border-white/[0.08] pt-5 text-[13.5px] leading-snug text-white/55">
+                <p className="mt-2 text-[13px] text-[#61646C] dark:text-white/45">{t('pass.landing.creditEach')}</p>
+                <p className="mt-5 border-t border-[#E0E0E0] dark:border-white/[0.08] pt-5 text-[13.5px] leading-snug text-[#61646C] dark:text-white/55">
                   {rules?.[i]}
                 </p>
                 <ul className="mt-5 space-y-3">
                   {/* Chaque palier liste ses avantages PROPRES — la v2 du design a
                       supprimé les « tout ce qu'offre le palier inférieur ». */}
                   {perksFor(tier.level).map((p) => (
-                    <li key={p} className="flex gap-3 text-[13.5px] leading-[1.5] text-white/70">
+                    <li key={p} className="flex gap-3 text-[13.5px] leading-[1.5] text-[#424242] dark:text-white/70">
                       <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#F58345]" />
                       {p}
                     </li>
@@ -148,7 +149,7 @@ const Program = () => {
               </div>
             ))}
           </div>
-          <p className="mt-6 text-center text-[13px] text-white/40">{t('pass.landing.cumulativeNote')}</p>
+          <p className="mt-6 text-center text-[13px] text-[#61646C] dark:text-white/40">{t('pass.landing.cumulativeNote')}</p>
         </div>
       </section>
 
@@ -157,21 +158,21 @@ const Program = () => {
         <h2 className="mx-auto max-w-[24ch] text-center text-[30px] font-medium leading-[1.14] tracking-[-0.015em] sm:text-[36px]">
           {t('pass.landing.benefitsTitle')}
         </h2>
-        <p className="mx-auto mt-4 max-w-[58ch] text-center text-[15.5px] leading-[1.6] text-white/50">
+        <p className="mx-auto mt-4 max-w-[58ch] text-center text-[15.5px] leading-[1.6] text-[#61646C] dark:text-white/50">
           {t('pass.landing.benefitsSub')}
         </p>
         <div className="mt-12 grid gap-8 sm:grid-cols-3">
           {(list('pass.landing.benefits') as { title: string; body: string }[]).map((b) => (
             <div key={b.title}>
               <p className="text-[16px] font-medium">{b.title}</p>
-              <p className="mt-2.5 text-[14.5px] leading-[1.6] text-white/50">{b.body}</p>
+              <p className="mt-2.5 text-[14.5px] leading-[1.6] text-[#61646C] dark:text-white/50">{b.body}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Comment ça marche ──────────────────────────────────────────── */}
-      <section className="border-y border-[#242424] bg-[#0F0F0F] py-16 sm:py-20">
+      <section className="border-y border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#0F0F0F] py-16 sm:py-20">
         <div className={wrap}>
           <h2 className="text-center text-[30px] font-medium leading-[1.14] tracking-[-0.015em] sm:text-[36px]">
             {t('pass.landing.howTitle')}
@@ -179,11 +180,11 @@ const Program = () => {
           <ol className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {(list('pass.landing.steps') as { title: string; body: string }[]).map((s, i) => (
               <li key={s.title}>
-                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#F58345]/40 bg-[#F58345]/10 text-[13px] font-medium text-[#F79C6A]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#F58345]/40 bg-[#F58345]/10 text-[13px] font-medium text-[#D16630] dark:text-[#F79C6A]">
                   {i + 1}
                 </span>
                 <p className="mt-4 text-[16px] font-medium">{s.title}</p>
-                <p className="mt-2 text-[14.5px] leading-[1.6] text-white/50">{s.body}</p>
+                <p className="mt-2 text-[14.5px] leading-[1.6] text-[#61646C] dark:text-white/50">{s.body}</p>
               </li>
             ))}
           </ol>
@@ -192,11 +193,11 @@ const Program = () => {
 
       {/* ── Teaser de l'espace membre ──────────────────────────────────── */}
       <section className={`${wrap} py-16 sm:py-20`}>
-        <div className="rounded-[14px] border border-[#242424] bg-[#141414] px-6 py-12 text-center sm:px-12">
+        <div className="rounded-[14px] border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414] px-6 py-12 text-center sm:px-12">
           <h2 className="mx-auto max-w-[22ch] text-[28px] font-medium leading-[1.16] tracking-[-0.015em] sm:text-[34px]">
             {t('pass.landing.teaserTitle')}
           </h2>
-          <p className="mx-auto mt-4 max-w-[56ch] text-[15.5px] leading-[1.6] text-white/50">
+          <p className="mx-auto mt-4 max-w-[56ch] text-[15.5px] leading-[1.6] text-[#61646C] dark:text-white/50">
             {t('pass.landing.teaserSub')}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -209,7 +210,7 @@ const Program = () => {
       </section>
 
       {/* ── FAQ ────────────────────────────────────────────────────────── */}
-      <section className="border-y border-[#242424] bg-[#0F0F0F] py-16 sm:py-20">
+      <section className="border-y border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#0F0F0F] py-16 sm:py-20">
         <div className={`${wrap} max-w-[820px]`}>
           <h2 className="text-center text-[30px] font-medium leading-[1.14] tracking-[-0.015em] sm:text-[36px]">
             {t('pass.landing.faqTitle')}
@@ -219,7 +220,7 @@ const Program = () => {
               aucun risque de voir l'un sans l'autre. `aria-expanded` + `aria-controls`
               donnent au clavier et aux lecteurs d'écran ce que le <details> natif offrait.
               Le chevron est l'une des deux seules animations que le brief autorise. */}
-          <div className="mt-10 divide-y divide-[#242424] border-y border-[#242424]">
+          <div className="mt-10 divide-y divide-[#E0E0E0] dark:divide-[#242424] border-y border-[#E0E0E0] dark:border-[#242424]">
             {(list('pass.landing.faq') as { q: string; a: string }[]).map((f, i) => {
               const open = !!openFaq[i];
               return (
@@ -238,7 +239,7 @@ const Program = () => {
                           `transform-box`, alors que sur un élément HTML elle est au centre
                           par défaut — ce qu'on veut pour un chevron qui bascule. */}
                       <span
-                        className="mt-1 inline-flex shrink-0 text-white/40"
+                        className="mt-1 inline-flex shrink-0 text-[#61646C] dark:text-white/40"
                         style={{
                           transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
                           transition: 'transform 180ms cubic-bezier(.2,.8,.2,1)',
@@ -254,7 +255,7 @@ const Program = () => {
                     </button>
                   </h3>
                   {open && (
-                    <p id={`faq-a-${i}`} className="max-w-[70ch] pb-6 pr-10 text-[14.5px] leading-[1.7] text-white/55">
+                    <p id={`faq-a-${i}`} className="max-w-[70ch] pb-6 pr-10 text-[14.5px] leading-[1.7] text-[#61646C] dark:text-white/55">
                       {f.a}
                     </p>
                   )}
@@ -270,33 +271,33 @@ const Program = () => {
         <h2 className="mx-auto max-w-[18ch] text-[34px] font-medium leading-[1.1] tracking-[-0.015em] sm:text-[44px]">
           {t('pass.landing.closeTitle')}
         </h2>
-        <p className="mx-auto mt-4 max-w-[50ch] text-[16px] leading-[1.6] text-white/50">
+        <p className="mx-auto mt-4 max-w-[50ch] text-[16px] leading-[1.6] text-[#61646C] dark:text-white/50">
           {t('pass.landing.closeSub')}
         </p>
         <Link to="/pass/connexion" className={`${btnPrimary} mt-8`}>{t('pass.landing.closeCta')}</Link>
-        <p className="mt-5 text-[12.5px] text-white/35">{t('pass.landing.termsNote')}</p>
+        <p className="mt-5 text-[12.5px] text-[#61646C] dark:text-white/35">{t('pass.landing.termsNote')}</p>
       </section>
 
       {/* ── Pied public ────────────────────────────────────────────────── */}
-      <footer className="border-t border-[#242424] py-12">
+      <footer className="border-t border-[#E0E0E0] dark:border-[#242424] py-12">
         <div className={wrap}>
           <div className="flex flex-wrap items-start justify-between gap-8">
             <div>
-              <ClusterMark onDark className="h-[20px] w-auto" />
-              <p className="mt-3 text-[13px] text-white/40">{t('pass.landing.publicFooter.tagline')}</p>
+              <ClusterMark className="h-[20px] w-auto" />
+              <p className="mt-3 text-[13px] text-[#61646C] dark:text-white/40">{t('pass.landing.publicFooter.tagline')}</p>
             </div>
             <div className="flex flex-wrap gap-x-7 gap-y-2 text-[13.5px]">
-              <Link to="/terms" className="text-white/55 hover:text-white">{t('pass.landing.publicFooter.terms')}</Link>
-              <Link to="/privacy" className="text-white/55 hover:text-white">{t('pass.landing.publicFooter.privacy')}</Link>
-              <a href="mailto:lapasse@clustersystems.com" className="text-white/55 hover:text-white">
+              <Link to="/terms" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">{t('pass.landing.publicFooter.terms')}</Link>
+              <Link to="/privacy" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">{t('pass.landing.publicFooter.privacy')}</Link>
+              <a href="mailto:lapasse@clustersystems.com" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">
                 {t('pass.landing.publicFooter.contact')}
               </a>
             </div>
           </div>
-          <p className="mt-10 max-w-[100ch] text-[11.5px] leading-[1.7] text-white/25">
+          <p className="mt-10 max-w-[100ch] text-[11.5px] leading-[1.7] text-[#61646C] dark:text-white/25">
             {t('pass.landing.legal')}
           </p>
-          <p className="mt-3 text-[11.5px] text-white/20">{t('pass.landing.lastUpdated')}</p>
+          <p className="mt-3 text-[11.5px] text-[#61646C] dark:text-white/20">{t('pass.landing.lastUpdated')}</p>
         </div>
       </footer>
     </div>

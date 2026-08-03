@@ -1,6 +1,6 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ClusterMark, PASS_API, PassLangToggle, PassMotion, useFmt } from './passUi';
+import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, useFmt } from './passUi';
 
 // Écran 07 — la page publique du lien personnel d'un membre, `/pass/{slug}`.
 //
@@ -87,16 +87,16 @@ const LinkPage = () => {
   const bad = (f: string) =>
     badFields.includes(f)
       ? 'border-[#F46060] focus:border-[#F46060] focus:ring-[#F46060]/15'
-      : 'border-[#E0E0E0] focus:border-[#F58345] focus:ring-[#F58345]/15';
+      : 'border-[#E0E0E0] dark:border-[#242424] focus:border-[#F58345] focus:ring-[#F58345]/15';
   const field =
-    'mt-2 w-full rounded-xl border bg-white px-4 py-3.5 text-[15px] outline-none transition-colors duration-150 placeholder:text-[#94969C] focus:ring-4';
-  const label = 'block text-[13px] font-medium text-[#424242]';
+    'mt-2 w-full rounded-xl border bg-white dark:bg-[#141414] px-4 py-3.5 text-[15px] outline-none transition-colors duration-150 placeholder:text-[#94969C] dark:placeholder:text-white/35 focus:ring-4';
+  const label = 'block text-[13px] font-medium text-[#424242] dark:text-white/80';
   const wrap = 'mx-auto w-full max-w-[1100px] px-6 sm:px-8';
 
   if (state === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F5F5F6]">
-        <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#E0E0E0] border-t-[#F58345]" />
+      <div className="flex min-h-screen items-center justify-center bg-[#F5F5F6] dark:bg-[#0A0A0A]">
+        <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#E0E0E0] dark:border-[#242424] border-t-[#F58345]" />
       </div>
     );
   }
@@ -105,7 +105,7 @@ const LinkPage = () => {
   // dit pas LAQUELLE — un visiteur n'a rien à apprendre de l'état du compte d'un tiers.
   if (state === 'gone') {
     return (
-      <div className="flex min-h-screen flex-col bg-[#F5F5F6] font-satoshi text-[#141414]">
+      <div className="flex min-h-screen flex-col bg-[#F5F5F6] dark:bg-[#0A0A0A] font-satoshi text-[#141414] dark:text-white">
         <header className={`${wrap} py-6`}>
           <ClusterMark className="h-[22px] w-auto" />
         </header>
@@ -127,16 +127,17 @@ const LinkPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F5F6] font-satoshi text-[#141414]">
+    <div className="min-h-screen bg-[#F5F5F6] dark:bg-[#0A0A0A] font-satoshi text-[#141414] dark:text-white">
       <PassMotion />
 
       <header className={`${wrap} flex flex-wrap items-center justify-between gap-4 py-6`}>
         <ClusterMark className="h-[22px] w-auto" />
         <div className="flex items-center gap-4">
-          <span className="text-[13px] text-[#94969C]">{t('pass.region')}</span>
+          <span className="text-[13px] text-[#61646C] dark:text-white/55">{t('pass.region')}</span>
           {/* Le visiteur arrive froid depuis le lien d'un membre : c'est ici que la bascule
               de langue compte le plus, il n'a aucune préférence enregistrée. */}
           <PassLangToggle />
+            <PassThemeToggle />
         </div>
       </header>
 
@@ -155,7 +156,7 @@ const LinkPage = () => {
               <br />
               {t('pass.referralLinkPage.titleB')}
             </h1>
-            <p className="mt-5 max-w-[46ch] text-[15.5px] leading-[1.62] text-[#61646C]">
+            <p className="mt-5 max-w-[46ch] text-[15.5px] leading-[1.62] text-[#61646C] dark:text-white/55">
               {t('pass.referralLinkPage.sub')}
             </p>
 
@@ -174,14 +175,14 @@ const LinkPage = () => {
               </div>
             )}
 
-            <h2 className="mt-10 text-[13px] font-medium uppercase tracking-[0.07em] text-[#94969C]">
+            <h2 className="mt-10 text-[13px] font-medium uppercase tracking-[0.07em] text-[#61646C] dark:text-white/55">
               {t('pass.referralLinkPage.whyTitle')}
             </h2>
             <ul className="mt-5 space-y-5">
               {(list('pass.referralLinkPage.why') as { title: string; body: string }[]).map((w) => (
                 <li key={w.title}>
                   <p className="text-[15.5px] font-medium">{w.title}</p>
-                  <p className="mt-1.5 max-w-[52ch] text-[14.5px] leading-[1.6] text-[#61646C]">{w.body}</p>
+                  <p className="mt-1.5 max-w-[52ch] text-[14.5px] leading-[1.6] text-[#61646C] dark:text-white/55">{w.body}</p>
                 </li>
               ))}
             </ul>
@@ -189,7 +190,7 @@ const LinkPage = () => {
 
           {/* ── Le formulaire, ou sa confirmation ───────────────────────── */}
           <section className="pass-rise min-w-0">
-            <div className="rounded-[14px] border border-[#E0E0E0]/70 bg-white p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10">
+            <div className="rounded-[14px] border border-[#E0E0E0]/70 bg-white dark:bg-[#141414] p-8 shadow-[0_4px_6px_-2px_rgba(16,24,40,0.03),0_12px_16px_-4px_rgba(16,24,40,0.06)] sm:p-10">
               {state === 'sent' ? (
                 <div className="py-6 text-center">
                   <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FDE6DA]">
@@ -200,7 +201,7 @@ const LinkPage = () => {
                   <h2 className="mt-5 text-[24px] font-medium leading-tight tracking-[-0.01em]">
                     {t('pass.referralLinkPage.formTitle')}
                   </h2>
-                  <p className="mx-auto mt-3 max-w-[34ch] text-[15px] leading-[1.6] text-[#61646C]">
+                  <p className="mx-auto mt-3 max-w-[34ch] text-[15px] leading-[1.6] text-[#61646C] dark:text-white/55">
                     {t('pass.referralLinkPage.formSub')}
                   </p>
                 </div>
@@ -209,7 +210,7 @@ const LinkPage = () => {
                   <h2 className="text-[24px] font-medium leading-tight tracking-[-0.01em]">
                     {t('pass.referralLinkPage.formTitle')}
                   </h2>
-                  <p className="mt-2.5 text-[14.5px] leading-[1.6] text-[#61646C]">
+                  <p className="mt-2.5 text-[14.5px] leading-[1.6] text-[#61646C] dark:text-white/55">
                     {t('pass.referralLinkPage.formSub')}
                   </p>
 
@@ -254,7 +255,7 @@ const LinkPage = () => {
                     </select>
                   </div>
 
-                  <label className="mt-6 flex cursor-pointer items-start gap-3 text-[13px] leading-[1.55] text-[#424242]">
+                  <label className="mt-6 flex cursor-pointer items-start gap-3 text-[13px] leading-[1.55] text-[#424242] dark:text-white/80">
                     <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}
                       className="mt-0.5 h-[18px] w-[18px] shrink-0 cursor-pointer accent-[#F58345]" />
                     <span>{t('pass.referralLinkPage.consent')}</span>
@@ -272,7 +273,7 @@ const LinkPage = () => {
                     {t('pass.referralLinkPage.submit')}
                   </button>
 
-                  <p className="mt-5 text-[12.5px] leading-[1.55] text-[#94969C]">
+                  <p className="mt-5 text-[12.5px] leading-[1.55] text-[#61646C] dark:text-white/55">
                     {t('pass.referralLinkPage.trust')}
                   </p>
                 </form>
@@ -282,27 +283,27 @@ const LinkPage = () => {
         </div>
       </main>
 
-      <footer className="border-t border-[#E0E0E0] py-8">
+      <footer className="border-t border-[#E0E0E0] dark:border-[#242424] py-8">
         <div className={`${wrap} flex flex-wrap items-center justify-between gap-4`}>
           {/* Attribution : le visiteur doit savoir de qui vient la recommandation. */}
-          <p className="text-[13px] text-[#61646C]">
+          <p className="text-[13px] text-[#61646C] dark:text-white/55">
             {tf('pass.referralLinkPage.attribution', {
               referrerName: ref?.referrerName || '',
               referrerBusiness: ref?.referrerBusiness || '',
             })}
           </p>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-[13px]">
-            <Link to="/terms" className="text-[#61646C] hover:text-[#141414]">
+            <Link to="/terms" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">
               {t('pass.landing.publicFooter.terms')}
             </Link>
-            <Link to="/privacy" className="text-[#61646C] hover:text-[#141414]">
+            <Link to="/privacy" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">
               {t('pass.landing.publicFooter.privacy')}
             </Link>
           </div>
         </div>
         {/* Mention légale reprise de la page programme, PAS réécrite : inventer une clause
             sur un rabais est une décision juridique, pas de rédaction. */}
-        <p className={`${wrap} mt-6 max-w-[100ch] text-[11.5px] leading-[1.7] text-[#94969C]`}>
+        <p className={`${wrap} mt-6 max-w-[100ch] text-[11.5px] leading-[1.7] text-[#61646C] dark:text-white/55`}>
           {t('pass.landing.legal')}
         </p>
       </footer>
