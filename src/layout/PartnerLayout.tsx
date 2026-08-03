@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
+import { ContentLoader } from '../common/Loader';
 import { Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PartnerSidebar from '../components/PartnerHeader/PartnerSidebar';
@@ -119,7 +120,9 @@ const PartnerLayout: React.FC = () => {
 
           <main>
             <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-              <Outlet />
+              <Suspense fallback={<ContentLoader />}>
+                <Outlet />
+              </Suspense>
             </div>
           </main>
         </div>

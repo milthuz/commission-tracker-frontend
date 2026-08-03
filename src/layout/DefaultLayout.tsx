@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from '../components/Header/index';
 import Sidebar from '../components/Sidebar/index';
@@ -9,6 +9,7 @@ import NewFeatureBanner from '../components/NewFeatureBanner';
 import ChatAssistant from '../components/ChatAssistant';
 import SofiaTour from '../components/SofiaTour';
 import InvoicePreviewHost from '../components/InvoicePreviewHost';
+import { ContentLoader } from '../common/Loader';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -34,7 +35,16 @@ const DefaultLayout: React.FC = () => {
           <main>
             <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
               <NewFeatureBanner />
-              <Outlet />
+              {/* La frontière Suspense est ICI, pas autour de toutes les routes.
+                  Avant, la seule frontière englobait l'application entière : chaque clic
+                  de menu chargeait un module à la demande, donc suspendait TOUT — barre
+                  latérale, en-tête, bannières — et les remplaçait par un chargeur plein
+                  écran blanc, avant de tout remonter. D'où le clignotement à chaque
+                  changement de section, et l'impression d'un rechargement complet.
+                  Ici, la coquille reste montée et seul le contenu se renouvelle. */}
+              <Suspense fallback={<ContentLoader />}>
+                <Outlet />
+              </Suspense>
             </div>
           </main>
           {/* <!-- ===== Main Content End ===== --> */}
