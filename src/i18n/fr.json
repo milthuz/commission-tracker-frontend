@@ -3394,7 +3394,8 @@
     "actionFailed": "L’action a échoué. Rien n’a été modifié.",
     "tabs": {
       "referrals": "Recommandations",
-      "library": "Bibliothèque"
+      "library": "Bibliothèque",
+      "config": "Configuration"
     },
     "lib": {
       "title": "Bibliothèque de contenu",
@@ -3415,6 +3416,32 @@
       "fileRequired": "Choisissez un fichier.",
       "tooLarge": "Ce fichier dépasse 10 Mo. Ces contenus sont faits pour être envoyés par courriel à un restaurateur.",
       "failed": "Le téléversement a échoué. Rien n'a été ajouté."
+    },
+    "cfg": {
+      "title": "Configuration du programme",
+      "sub": "Tous les montants montrés aux membres viennent d’ici — page programme, espace membre, formulaire, courriels et actions ops.",
+      "enabled": "Programme ouvert aux membres",
+      "enabledOn": "Les marchands peuvent adhérer, se connecter et soumettre des recommandations.",
+      "enabledOff": "Les écrans membres répondent « pas encore ouverte ». Rien n’est visible des marchands.",
+      "confirmOpen": "Ouvrir La Passe aux membres ? Les marchands clients de Cluster pourront adhérer et soumettre des recommandations immédiatement.",
+      "confirmClose": "Fermer La Passe ? Les membres existants perdent l’accès à leur espace jusqu’à la réouverture.",
+      "hardware": "Rabais matériel pour le restaurant recommandé",
+      "tiers": "L’échelle",
+      "tierKey": "Clé",
+      "tierFrom": "À partir de (mises en service à vie)",
+      "tierCredit": "Crédit par mise en service",
+      "addTier": "Ajouter un palier",
+      "removeTier": "Retirer",
+      "save": "Enregistrer la configuration",
+      "saving": "Enregistrement",
+      "saved": "Configuration enregistrée.",
+      "reset": "Rétablir les valeurs par défaut",
+      "warnAmounts": "Baisser un montant baisse aussi ce que paieront les recommandations en cours : le crédit est calculé à la mise en service, pas à la soumission. Les membres ont vu l’ancien montant.",
+      "ruleFirstZero": "Le premier palier doit commencer à 0 — sinon un membre sans recommandation n’appartient à aucun palier.",
+      "ruleIncreasing": "Les seuils doivent croître strictement, sans quoi le montant versé dépendrait de l’ordre des lignes.",
+      "rulePositive": "Chaque palier exige un seuil de 0 ou plus et un crédit supérieur à 0.",
+      "failed": "L’enregistrement a échoué. Rien n’a été modifié.",
+      "preview": "Avec cette échelle, les mises en service successives paient :"
     }
   }
 }

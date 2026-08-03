@@ -3394,7 +3394,8 @@
     "actionFailed": "That action failed. Nothing was changed.",
     "tabs": {
       "referrals": "Referrals",
-      "library": "Content library"
+      "library": "Content library",
+      "config": "Configuration"
     },
     "lib": {
       "title": "Content library",
@@ -3415,6 +3416,32 @@
       "fileRequired": "Choose a file.",
       "tooLarge": "That file is over 10 MB. These are meant to be emailed to a restaurateur.",
       "failed": "Upload failed. Nothing was added."
+    },
+    "cfg": {
+      "title": "Program configuration",
+      "sub": "Every amount shown to members comes from here — landing page, hub, form, emails and ops actions.",
+      "enabled": "Program open to members",
+      "enabledOn": "Members can join, sign in and submit referrals.",
+      "enabledOff": "Member screens answer \"not open yet\". Nothing is visible to merchants.",
+      "confirmOpen": "Open The Pass to members? Merchants who are Cluster customers will be able to join and submit referrals immediately.",
+      "confirmClose": "Close The Pass? Existing members lose access to their hub until you reopen it.",
+      "hardware": "Hardware discount for the referred restaurant",
+      "tiers": "The ladder",
+      "tierKey": "Key",
+      "tierFrom": "From (lifetime live referrals)",
+      "tierCredit": "Credit per live referral",
+      "addTier": "Add a tier",
+      "removeTier": "Remove",
+      "save": "Save configuration",
+      "saving": "Saving",
+      "saved": "Configuration saved.",
+      "reset": "Restore defaults",
+      "warnAmounts": "Lowering an amount also lowers what pending referrals will pay: the credit is calculated when a referral goes live, not when it was submitted. Members were shown the old amount.",
+      "ruleFirstZero": "The first tier must start at 0 — otherwise a member with no referral belongs to no tier.",
+      "ruleIncreasing": "Thresholds must strictly increase, or the amount paid would depend on row order.",
+      "rulePositive": "Every tier needs a threshold of 0 or more and a credit above 0.",
+      "failed": "Save failed. Nothing was changed.",
+      "preview": "With this ladder, successive live referrals pay:"
     }
   }
 }

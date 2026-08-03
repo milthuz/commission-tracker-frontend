@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 import PassLibraryAdmin from './PassLibraryAdmin';
+import PassConfigAdmin from './PassConfigAdmin';
 
 // Suivi interne des recommandations de La Passe (écran 06 du deck), permission
 // `pass:referrals`. Écran du PRODUIT INTERNE, pas de la marque La Passe : barre latérale,
@@ -51,7 +52,7 @@ const PassOps = () => {
   const [notice, setNotice] = useState<{ tone: 'ok' | 'warn' | 'error'; text: string } | null>(null);
   // Sous-onglets en barre de pastilles — le patron des autres pages du panneau admin.
   // La barre latérale du produit n'imbrique jamais ses menus.
-  const [tab, setTab] = useState<'referrals' | 'library'>('referrals');
+  const [tab, setTab] = useState<'referrals' | 'library' | 'config'>('referrals');
 
   const money = (n: number) =>
     new Intl.NumberFormat(fr ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n || 0);
@@ -157,7 +158,7 @@ const PassOps = () => {
       </div>
 
       <div className="mb-5 inline-flex rounded-sm border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-        {(['referrals', 'library'] as const).map((k) => (
+        {(['referrals', 'library', 'config'] as const).map((k) => (
           <button
             key={k}
             type="button"
@@ -172,6 +173,7 @@ const PassOps = () => {
       </div>
 
       {tab === 'library' && <PassLibraryAdmin />}
+      {tab === 'config' && <PassConfigAdmin />}
 
       {tab === 'referrals' && (
       <>
