@@ -2108,7 +2108,11 @@
         "new_user": "Nouvel utilisateur sans rôle",
         "new_partner_opportunity": "Nouvelle occasion d'affaires soumise par un partenaire",
         "partner_invoice_uploaded": "Facture partenaire téléversée",
-        "saas_increase": "Avis d'augmentation de prix SaaS"
+        "saas_increase": "Avis d'augmentation de prix SaaS",
+        "pass_received": "La Passe — recommandation reçue",
+        "pass_live": "La Passe — recommandation en service",
+        "pass_tier_up": "La Passe — nouveau palier atteint",
+        "pass_credit": "La Passe — crédit et certificat"
       }
     },
     "recalculate": {

@@ -2108,7 +2108,11 @@
         "new_user": "New user without a role",
         "saas_increase": "SaaS price increase notice",
         "new_partner_opportunity": "New partner opportunity submitted",
-        "partner_invoice_uploaded": "Partner invoice uploaded"
+        "partner_invoice_uploaded": "Partner invoice uploaded",
+        "pass_received": "The Pass — referral received",
+        "pass_live": "The Pass — referral live",
+        "pass_tier_up": "The Pass — new tier reached",
+        "pass_credit": "The Pass — credit and certificate"
       }
     },
     "recalculate": {

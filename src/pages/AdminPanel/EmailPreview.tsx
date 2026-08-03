@@ -8,6 +8,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 // All transactional email templates, in the order shown in the dropdown. Labels are i18n keys.
 const TEMPLATE_TYPES = [
   'invitation', 'reset', 'paystub', 'payroll', 'feature_request', 'missing_commission', 'missing_points', 'report_resolved', 'probation', 'new_user', 'saas_increase', 'new_partner_opportunity', 'partner_invoice_uploaded',
+  // La Passe — les seuls de la liste à partir d'une enveloppe et d'une adresse qui ne
+  // sont pas celles de Sales Hub. Leur aperçu passe par le VRAI constructeur côté
+  // serveur, donc ce qu'on voit ici est ce qui part.
+  'pass_received', 'pass_live', 'pass_tier_up', 'pass_credit',
 ] as const;
 type TemplateType = (typeof TEMPLATE_TYPES)[number];
 
