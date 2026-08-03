@@ -3391,6 +3391,30 @@
     "creditNoRecipients": "Crédit appliqué, mais PERSONNE n’a été avisé — aucun destinataire comptable n’est configuré.",
     "lifetime": "{{n}} en service à ce jour",
     "thisPays": "Vaut {{amount}}",
-    "actionFailed": "L’action a échoué. Rien n’a été modifié."
+    "actionFailed": "L’action a échoué. Rien n’a été modifié.",
+    "tabs": {
+      "referrals": "Recommandations",
+      "library": "Bibliothèque"
+    },
+    "lib": {
+      "title": "Bibliothèque de contenu",
+      "sub": "Ce que les membres envoient à leurs contacts. Affiché dans la langue de chaque membre, donc les deux titres sont exigés.",
+      "titleFr": "Titre (français)",
+      "titleEn": "Titre (anglais)",
+      "metaFr": "Légende (français)",
+      "metaEn": "Légende (anglais)",
+      "metaHint": "ex. « PDF · 1 page »",
+      "file": "Fichier",
+      "order": "Ordre",
+      "add": "Ajouter à la bibliothèque",
+      "adding": "Téléversement",
+      "empty": "Rien dans la bibliothèque. Les membres ne voient aucune section tant que vous n'avez rien ajouté.",
+      "delete": "Retirer",
+      "confirmDelete": "Retirer « {{title}} » de la bibliothèque ? Les membres y perdent accès immédiatement.",
+      "titlesRequired": "Les deux titres sont exigés — la bibliothèque s’affiche dans la langue de chaque membre.",
+      "fileRequired": "Choisissez un fichier.",
+      "tooLarge": "Ce fichier dépasse 10 Mo. Ces contenus sont faits pour être envoyés par courriel à un restaurateur.",
+      "failed": "Le téléversement a échoué. Rien n'a été ajouté."
+    }
   }
 }

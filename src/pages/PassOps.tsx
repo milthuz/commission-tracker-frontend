@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
+import PassLibraryAdmin from './PassLibraryAdmin';
 
 // Suivi interne des recommandations de La Passe (écran 06 du deck), permission
 // `pass:referrals`. Écran du PRODUIT INTERNE, pas de la marque La Passe : barre latérale,
@@ -48,6 +49,9 @@ const PassOps = () => {
   const [q, setQ] = useState('');
   const [busyId, setBusyId] = useState<number | null>(null);
   const [notice, setNotice] = useState<{ tone: 'ok' | 'warn' | 'error'; text: string } | null>(null);
+  // Sous-onglets en barre de pastilles — le patron des autres pages du panneau admin.
+  // La barre latérale du produit n'imbrique jamais ses menus.
+  const [tab, setTab] = useState<'referrals' | 'library'>('referrals');
 
   const money = (n: number) =>
     new Intl.NumberFormat(fr ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n || 0);
@@ -152,6 +156,25 @@ const PassOps = () => {
         <p className="mt-1 text-sm text-bodydark2">{t('passOps.sub')}</p>
       </div>
 
+      <div className="mb-5 inline-flex rounded-sm border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+        {(['referrals', 'library'] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setTab(k)}
+            className={`rounded-sm px-4 py-2 text-sm font-medium transition-colors duration-150 ${
+              tab === k ? 'bg-primary text-white' : 'text-bodydark2 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            {t(`passOps.tabs.${k}`)}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'library' && <PassLibraryAdmin />}
+
+      {tab === 'referrals' && (
+      <>
       {/* Indicateurs */}
       {!!kpis.length && (
         <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -305,6 +328,8 @@ const PassOps = () => {
           </table>
         </div>
       </div>
+      </>
+      )}
     </>
   );
 };

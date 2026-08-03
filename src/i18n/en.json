@@ -3391,6 +3391,30 @@
     "creditNoRecipients": "Credit applied, but NO ONE was emailed — no accounting recipients are configured.",
     "lifetime": "{{n}} live to date",
     "thisPays": "Pays {{amount}}",
-    "actionFailed": "That action failed. Nothing was changed."
+    "actionFailed": "That action failed. Nothing was changed.",
+    "tabs": {
+      "referrals": "Referrals",
+      "library": "Content library"
+    },
+    "lib": {
+      "title": "Content library",
+      "sub": "What members send to their contacts. Shown in each member's own language, so both titles are required.",
+      "titleFr": "Title (French)",
+      "titleEn": "Title (English)",
+      "metaFr": "Caption (French)",
+      "metaEn": "Caption (English)",
+      "metaHint": "e.g. \"PDF · 1 page\"",
+      "file": "File",
+      "order": "Order",
+      "add": "Add To Library",
+      "adding": "Uploading",
+      "empty": "Nothing in the library yet. Members see no library section until you add something.",
+      "delete": "Remove",
+      "confirmDelete": "Remove \"{{title}}\" from the library? Members lose access to it immediately.",
+      "titlesRequired": "Both titles are required — the library shows in each member’s own language.",
+      "fileRequired": "Choose a file.",
+      "tooLarge": "That file is over 10 MB. These are meant to be emailed to a restaurateur.",
+      "failed": "Upload failed. Nothing was added."
+    }
   }
 }
