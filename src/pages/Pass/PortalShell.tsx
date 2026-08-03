@@ -34,10 +34,8 @@ const ICONS: Record<string, ReactNode> = {
   refer: <path d="M12 5v14M5 12h14" />,
 };
 
-// « Programme » (la page marketing publique) n'y est pas ENCORE : elle n'est pas
-// construite, et un menu qui mène à une page inexistante est pire qu'un menu court.
-// À rajouter en même temps que l'écran.
 const NAV = [
+  { key: 'program', to: '/pass/programme', end: false },
   { key: 'hub', to: '/pass', end: true },
   { key: 'refer', to: '/pass/referer', end: false },
 ] as const;
