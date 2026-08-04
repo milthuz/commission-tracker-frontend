@@ -13,7 +13,18 @@ const detectBrowserLanguage = (): string => {
 };
 
 // Get saved language from localStorage or fall back to the browser-detected guess.
-const savedLanguage = localStorage.getItem('language') || detectBrowserLanguage();
+// Le domaine d'entrée annonce déjà la langue : quelqu'un qui ouvre `thepass.` ou
+// `partners.` a cliqué sur un lien anglais. On s'en sert AVANT de deviner d'après le
+// navigateur, mais APRÈS un choix explicite déjà enregistré — un visiteur qui a basculé
+// la langue à la main ne doit pas la voir revenir en arrière au rechargement.
+const domainLanguage = (): string | null => {
+  const h = typeof location !== 'undefined' ? location.hostname : '';
+  if (/^(lapasse|partenaires)\./.test(h)) return 'fr';
+  if (/^(thepass|partners)\./.test(h)) return 'en';
+  return null;
+};
+
+const savedLanguage = localStorage.getItem('language') || domainLanguage() || detectBrowserLanguage();
 if (!localStorage.getItem('language')) localStorage.setItem('language', savedLanguage);
 
 i18n

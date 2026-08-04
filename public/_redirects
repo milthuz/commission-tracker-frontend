@@ -1,2 +1,13 @@
 /favicon.ico   /cluster-favicon-32.png   200
+# Portes d'entrée dédiées. Le MÊME site Netlify est servi sous plusieurs noms ; sans
+# ces règles, la racine de chaque domaine afficherait la connexion Sales Hub.
+# Une redirection (301), pas une réécriture : l'application lit l'adresse de la barre
+# pour choisir sa page, donc l'adresse doit vraiment changer.
+# Ces lignes sont inertes tant que les domaines ne résolvent pas — elles peuvent partir
+# en production avant le DNS.
+https://partenaires.clusterpos.com/   /partner-portal   301!
+https://partners.clusterpos.com/      /partner-portal   301!
+https://lapasse.clusterpos.com/       /pass/programme   301!
+https://thepass.clusterpos.com/       /pass/programme   301!
+
 /*    /index.html   200
