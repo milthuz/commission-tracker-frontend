@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ClusterWordmark from '../ClusterWordmark';
+import clusterIcon from '../../images/logo/cluster-appicon.svg';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 
@@ -87,7 +88,12 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
         <div className={`flex items-center gap-2 py-5.5 lg:py-6.5 ${collapsed ? 'flex-col justify-center px-2 gap-1.5' : 'justify-between px-6'}`}>
           <div className={`flex items-center ${collapsed ? 'flex-col gap-1.5' : 'gap-3'}`}>
             <NavLink to="/partner-portal" className="flex items-center" title={collapsed ? `Cluster — Portail partenaire (v${appVersion})` : undefined}>
-              <ClusterWordmark tone="dark" className={collapsed ? 'h-7 w-auto' : 'h-[26px] w-auto'} />
+              {/* Replie, le rail fait ~60 px : le mot-symbole y devient illisible. L'icone
+                  « C » du kit 2026 est faite pour ces espaces carres — meme principe que
+                  le glyphe de la barre laterale interne. */}
+              {collapsed
+                ? <img src={clusterIcon} alt="Cluster" className="h-8 w-8" draggable={false} />
+                : <ClusterWordmark tone="dark" className="h-[26px] w-auto" />}
             </NavLink>
             <span className={`${collapsed ? 'text-[10px]' : 'text-xs'} font-semibold leading-none text-white`}>v{appVersion}</span>
           </div>
