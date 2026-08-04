@@ -746,7 +746,10 @@
       "sofiaBody": "Click me anytime for help, or to take this tour again. Enjoy the Partner Portal!",
       "askPlaceholder": "Ask Sofia a question…",
       "askError": "Sorry, something went wrong — try again."
-    }
+    },
+    "localeFr": "French",
+    "localeEn": "English",
+    "inviteLocaleHint": "Language of the invitation email"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",

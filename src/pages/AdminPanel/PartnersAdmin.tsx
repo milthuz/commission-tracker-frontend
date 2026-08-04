@@ -61,7 +61,7 @@ const PAYOUT_BADGE: Record<string, string> = {
 };
 
 const PartnersAdmin: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // Landing on this page is the Opportunity Queue "dashboard" (user request 2026-07-2x) — Manage
   // Partners is reached either via the in-page tab or the Sidebar's "Manage Partners" submenu
   // item, which links here with ?view=manage.
@@ -89,6 +89,8 @@ const PartnersAdmin: React.FC = () => {
   const [inviteFor, setInviteFor] = useState<Partner | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
+  // Langue du courriel d'invitation, par defaut celle de l'admin qui invite.
+  const [inviteLocale, setInviteLocale] = useState<'fr' | 'en'>((i18n.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en');
   const [inviting, setInviting] = useState(false);
 
   const fetchPartners = async () => {
@@ -162,7 +164,7 @@ const PartnersAdmin: React.FC = () => {
     setInviting(true);
     try {
       await axios.post(`${API_URL}/api/admin/partners/${inviteFor.id}/invite-admin`,
-        { email: inviteEmail.trim(), name: inviteName.trim() }, { headers: authHeaders() });
+        { email: inviteEmail.trim(), name: inviteName.trim(), locale: inviteLocale }, { headers: authHeaders() });
       setInviteFor(null); setInviteEmail(''); setInviteName('');
       await fetchPartners();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to send invite'); }
@@ -939,6 +941,10 @@ const PartnersAdmin: React.FC = () => {
               <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} type="email" required
                 placeholder={t('partnerPortal.fEmail') as string} className={inputCls} />
               <input value={inviteName} onChange={(e) => setInviteName(e.target.value)} placeholder={t('partnerPortal.fName') as string} className={inputCls} />
+              <select value={inviteLocale} onChange={(e) => setInviteLocale(e.target.value as 'fr' | 'en')} className={inputCls}>
+                <option value="fr">{t('partnerPortal.localeFr')}</option>
+                <option value="en">{t('partnerPortal.localeEn')}</option>
+              </select>
               <button type="submit" disabled={inviting}
                 className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
                 {inviting ? t('partnerPortal.inviting') : t('partnerPortal.invite')}

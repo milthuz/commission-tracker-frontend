@@ -746,7 +746,10 @@
       "sofiaBody": "Cliquez sur moi en tout temps pour de l’aide, ou pour refaire cette visite. Profitez bien du Portail partenaire!",
       "askPlaceholder": "Posez une question à Sofia…",
       "askError": "Désolée, une erreur est survenue — réessayez."
-    }
+    },
+    "localeFr": "Français",
+    "localeEn": "Anglais",
+    "inviteLocaleHint": "Langue du courriel d'invitation"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",

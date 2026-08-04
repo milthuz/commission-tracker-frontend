@@ -16,7 +16,7 @@ interface TeamUser {
 // Partner Portal now has a real left nav (user request 2026-07-2x), so Team is a top-level
 // section rather than a subtab of Opportunities.
 const PartnerTeam: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = usePartnerAuth();
 
   const [team, setTeam] = useState<TeamUser[]>([]);
@@ -24,6 +24,11 @@ const PartnerTeam: React.FC = () => {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
   const [inviteRole, setInviteRole] = useState<'standard' | 'admin'>('standard');
+  // Langue du courriel d'invitation. Par defaut celle de la personne qui invite : dans
+  // la vaste majorite des cas elle invite quelqu'un de son equipe, donc de sa langue.
+  const [inviteLocale, setInviteLocale] = useState<'fr' | 'en'>(
+    (i18n.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en'
+  );
   const [inviting, setInviting] = useState(false);
 
   const fetchTeam = async () => {
@@ -42,7 +47,7 @@ const PartnerTeam: React.FC = () => {
     setInviting(true);
     try {
       await axios.post(`${API_URL}/api/partner-portal/team/invite`,
-        { email: inviteEmail.trim(), name: inviteName.trim(), role: inviteRole },
+        { email: inviteEmail.trim(), name: inviteName.trim(), role: inviteRole, locale: inviteLocale },
         { headers: authHeaders() });
       setInviteEmail(''); setInviteName(''); setInviteRole('standard');
       await fetchTeam();
@@ -69,6 +74,11 @@ const PartnerTeam: React.FC = () => {
             <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as 'standard' | 'admin')} className={`${inputCls} max-w-[160px]`}>
               <option value="standard">{t('partnerPortal.roleStandard')}</option>
               <option value="admin">{t('partnerPortal.roleAdmin')}</option>
+            </select>
+            <select value={inviteLocale} onChange={(e) => setInviteLocale(e.target.value as 'fr' | 'en')} className={`${inputCls} max-w-[160px]`}
+              title={t('partnerPortal.inviteLocaleHint') as string}>
+              <option value="fr">{t('partnerPortal.localeFr')}</option>
+              <option value="en">{t('partnerPortal.localeEn')}</option>
             </select>
             <button type="submit" disabled={inviting}
               className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
