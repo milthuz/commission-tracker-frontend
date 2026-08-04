@@ -2157,11 +2157,7 @@ const CommissionImport: React.FC = () => {
           <div className="flex flex-wrap items-end gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-body">Rep</label>
-              <select value={mbRep} onChange={(e) => setMbRep(e.target.value)}
-                className="w-48 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                <option value="">{t('admin.commissionImport.manualBonus.selectRep')}</option>
-                {reps.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
+              <Select value={mbRep} onChange={(v) => setMbRep(v)} options={reps.map((r) => ({ value: r, label: r }))} placeholder={t('admin.commissionImport.manualBonus.selectRep') as string} className="w-48" />
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.month')}</label>
@@ -2235,11 +2231,7 @@ const CommissionImport: React.FC = () => {
           <div className="flex flex-wrap items-end gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-body">Rep</label>
-              <select value={maRep} onChange={(e) => setMaRep(e.target.value)}
-                className="w-48 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                <option value="">{t('admin.commissionImport.manualBonus.selectRep')}</option>
-                {reps.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
+              <Select value={maRep} onChange={(v) => setMaRep(v)} options={reps.map((r) => ({ value: r, label: r }))} placeholder={t('admin.commissionImport.manualBonus.selectRep') as string} className="w-48" />
             </div>
             <div className="flex-1 min-w-[220px]">
               <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualActivation.businessName')}</label>
@@ -2346,10 +2338,7 @@ const CommissionImport: React.FC = () => {
               {/* Where applied suggestions land — defaults to the current month */}
               <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
                 <label className="text-xs font-medium text-body">{t('admin.commissionImport.adjustments.sugTargetLabel')}</label>
-                <select value={sugMonth} onChange={(e) => setSugMonth(parseInt(e.target.value))}
-                  className="rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white">
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthName(m)}</option>)}
-                </select>
+                <Select value={String(sugMonth)} onChange={(v) => setSugMonth(parseInt(v))} options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))} className="w-40" />
                 <input type="number" value={sugYear} onChange={(e) => setSugYear(parseInt(e.target.value) || sugYear)}
                   className="w-20 rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
               </div>
@@ -2423,19 +2412,12 @@ const CommissionImport: React.FC = () => {
             <div className="flex flex-wrap items-end gap-3">
               <div>
                 <label className="mb-1 block text-xs font-medium text-body">Rep</label>
-                <select value={adjRep} onChange={(e) => { setAdjRep(e.target.value); fetchAdjUnpaid(e.target.value); }}
-                  className="w-48 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                  <option value="">{t('admin.commissionImport.manualBonus.selectRep')}</option>
-                  {reps.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
+                <Select value={adjRep} onChange={(v) => { setAdjRep(v); fetchAdjUnpaid(v); }} options={reps.map((r) => ({ value: r, label: r }))} placeholder={t('admin.commissionImport.manualBonus.selectRep') as string} className="w-48" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.targetMonth')}</label>
                 <div className="flex gap-2">
-                  <select value={adjMonth} onChange={(e) => setAdjMonth(parseInt(e.target.value))}
-                    className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthName(m)}</option>)}
-                  </select>
+                  <Select value={String(adjMonth)} onChange={(v) => setAdjMonth(parseInt(v))} options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))} className="w-40" />
                   <input type="number" value={adjYear} onChange={(e) => setAdjYear(parseInt(e.target.value) || adjYear)}
                     className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
                 </div>
@@ -2682,12 +2664,7 @@ const CommissionImport: React.FC = () => {
             <p className="text-sm text-body">{t('admin.commissionImport.reconciliation.subtitle')}</p>
           </div>
           <div className="flex items-center gap-2">
-            <select value={reconYear} onChange={(e) => setReconYear(parseInt(e.target.value))}
-              className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white">
-              {Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
+            <Select value={String(reconYear)} onChange={(v) => setReconYear(parseInt(v))} options={Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i).map((y) => ({ value: String(y), label: String(y) }))} className="w-32" />
             <button onClick={reconExportExcel} disabled={!recon || reconLoading}
               className="rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-white disabled:opacity-50">
               Excel
