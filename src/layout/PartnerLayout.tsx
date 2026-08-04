@@ -1,4 +1,5 @@
 import React, { Suspense, useEffect, useState } from 'react';
+import axios from 'axios';
 import { ContentLoader } from '../common/Loader';
 import { Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -12,10 +13,25 @@ import PartnerSofiaTour from '../components/PartnerHeader/PartnerSofiaTour';
 // 2026-07-2x: the Partner Portal should act like Sales Hub, not a stripped-down shell) — the
 // brand mark and app version now live in PartnerSidebar (like the internal Sidebar), so the
 // header only carries the mobile hamburger, language/theme toggles, and the user dropdown.
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const partnerAuthHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('partnerToken')}` });
+
 const PartnerLayout: React.FC = () => {
   const { i18n } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const setLang = (l: 'en' | 'fr') => { i18n.changeLanguage(l); localStorage.setItem('language', l); };
+  // La bascule change l'affichage ET la langue du compte : sans le second appel, un
+  // partenaire lisant le portail en anglais continuerait de recevoir ses courriels dans
+  // la langue choisie par la personne qui l'a invite, il y a peut-etre des mois.
+  //
+  // Volontairement sans await ni message d'erreur : l'affichage doit basculer tout de
+  // suite, et rater l'enregistrement d'une preference ne vaut pas d'interrompre
+  // quelqu'un. La prochaine bascule reessaiera.
+  const setLang = (l: 'en' | 'fr') => {
+    i18n.changeLanguage(l);
+    localStorage.setItem('language', l);
+    axios.put(`${API_URL}/api/partner-portal/locale`, { locale: l }, { headers: partnerAuthHeaders() })
+      .catch(() => {});
+  };
 
   // Shares the same 'darkMode' localStorage key as the internal Header — a device-level
   // preference, not a per-account setting, so both apps should agree on it.
