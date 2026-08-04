@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { dialog } from '../../lib/dialog';
@@ -1077,10 +1078,15 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
               <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} type="email" required
                 placeholder={t('partnerPortal.fEmail') as string} className={inputCls} />
               <input value={inviteName} onChange={(e) => setInviteName(e.target.value)} placeholder={t('partnerPortal.fName') as string} className={inputCls} />
-              <select value={inviteLocale} onChange={(e) => setInviteLocale(e.target.value as 'fr' | 'en')} className={inputCls}>
-                <option value="fr">{t('partnerPortal.localeFr')}</option>
-                <option value="en">{t('partnerPortal.localeEn')}</option>
-              </select>
+              <Select
+                value={inviteLocale}
+                onChange={(v) => setInviteLocale(v as 'fr' | 'en')}
+                options={[
+                  { value: 'fr', label: t('partnerPortal.localeFr') as string },
+                  { value: 'en', label: t('partnerPortal.localeEn') as string },
+                ]}
+                aria-label={t('partnerPortal.inviteLocaleHint') as string}
+              />
               <button type="submit" disabled={inviting}
                 className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
                 {inviting ? t('partnerPortal.inviting') : t('partnerPortal.invite')}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import { dialog } from '../../lib/dialog';
@@ -75,11 +76,16 @@ const PartnerTeam: React.FC = () => {
               <option value="standard">{t('partnerPortal.roleStandard')}</option>
               <option value="admin">{t('partnerPortal.roleAdmin')}</option>
             </select>
-            <select value={inviteLocale} onChange={(e) => setInviteLocale(e.target.value as 'fr' | 'en')} className={`${inputCls} max-w-[160px]`}
-              title={t('partnerPortal.inviteLocaleHint') as string}>
-              <option value="fr">{t('partnerPortal.localeFr')}</option>
-              <option value="en">{t('partnerPortal.localeEn')}</option>
-            </select>
+            <Select
+              value={inviteLocale}
+              onChange={(v) => setInviteLocale(v as 'fr' | 'en')}
+              options={[
+                { value: 'fr', label: t('partnerPortal.localeFr') as string },
+                { value: 'en', label: t('partnerPortal.localeEn') as string },
+              ]}
+              aria-label={t('partnerPortal.inviteLocaleHint') as string}
+              className="max-w-[160px]"
+            />
             <button type="submit" disabled={inviting}
               className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
               {inviting ? t('partnerPortal.inviting') : t('partnerPortal.invite')}
