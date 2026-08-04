@@ -1738,7 +1738,16 @@
       "deletePartner": "Delete",
       "deleteConfirm": "Delete the partner \"{{name}}\"? This cannot be undone.",
       "deleteConfirmData": "\"{{name}}\" still has data attached: {{users}} user account(s), {{opportunities}} opportunity(ies), {{invoices}} invoice(s) and {{runs}} payout run(s).\n\nDeleting the partner deletes ALL of it, permanently. Continue?",
-      "deleteFailed": "Could not delete the partner"
+      "deleteFailed": "Could not delete the partner",
+      "invitesTitle": "Invitation tracking",
+      "invitesHint": "Sent, link opened, account activated. \"Opened\" means the invitation link was clicked — email opens are not tracked.",
+      "invitesEmpty": "No invitation sent yet",
+      "inviteSent": "Sent",
+      "inviteOpened": "Link opened",
+      "inviteAccepted": "Activated",
+      "inviteBy": "Invited by",
+      "invitePending": "Pending",
+      "inviteExpired": "Expired"
     },
     "resources": {
       "title": "Resources storage",

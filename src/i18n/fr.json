@@ -1738,7 +1738,16 @@
       "deletePartner": "Supprimer",
       "deleteConfirm": "Supprimer le partenaire « {{name}} » ? Cette action est irréversible.",
       "deleteConfirmData": "« {{name}} » a encore des données rattachées : {{users}} compte(s), {{opportunities}} opportunité(s), {{invoices}} facture(s) et {{runs}} cycle(s) de versement.\n\nSupprimer le partenaire supprime TOUT cela, définitivement. Continuer ?",
-      "deleteFailed": "Impossible de supprimer le partenaire"
+      "deleteFailed": "Impossible de supprimer le partenaire",
+      "invitesTitle": "Suivi des invitations",
+      "invitesHint": "Envoyée, lien ouvert, compte activé. « Ouvert » signifie que le lien a été cliqué — l'ouverture du courriel n'est pas suivie.",
+      "invitesEmpty": "Aucune invitation envoyée pour le moment",
+      "inviteSent": "Envoyée",
+      "inviteOpened": "Lien ouvert",
+      "inviteAccepted": "Activé",
+      "inviteBy": "Invité par",
+      "invitePending": "En attente",
+      "inviteExpired": "Expirée"
     },
     "resources": {
       "title": "Stockage des ressources",

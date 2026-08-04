@@ -89,6 +89,27 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
   const [inviteFor, setInviteFor] = useState<Partner | null>(null);
   const [deletingPartnerId, setDeletingPartnerId] = useState<number | null>(null);
 
+  type Invite = {
+    id: number; email: string; name: string | null; role: string; status: string;
+    partnerName: string; invitedBy: string | null;
+    invitedAt: string | null; openedAt: string | null; activatedAt: string | null;
+    expiresAt: string | null;
+  };
+  const [invites, setInvites] = useState<Invite[]>([]);
+  useEffect(() => {
+    axios.get(`${API_URL}/api/admin/partner-invites`, { headers: authHeaders() })
+      .then((r) => setInvites(r.data.invites || []))
+      .catch(() => {});
+  }, []);
+  const fmtDate = (d: string | null) =>
+    d ? new Date(d).toLocaleDateString(i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA',
+          { year: 'numeric', month: 'short', day: 'numeric' }) : null;
+  // Un tiret plutot qu'une case vide : « rien ne s'est produit » et « la colonne ne
+  // s'applique pas » ne doivent pas se ressembler.
+  const Step = ({ at, pending }: { at: string | null; pending?: boolean }) =>
+    at ? <span className="text-black dark:text-white">{fmtDate(at)}</span>
+       : <span className={pending ? 'text-warning' : 'text-gray-400'}>{pending ? t('admin.partners.invitePending') : '—'}</span>;
+
   // Deux temps, et le second n'est demande QUE s'il y a quelque chose a perdre.
   // Le premier appel n'efface rien tant qu'il reste des donnees rattachees : le serveur
   // repond 409 avec le decompte, ce qui permet d'annoncer ce qui va disparaitre au lieu
@@ -498,6 +519,52 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
               </table>
             )}
           </div>
+
+        {/* Suivi des invitations : envoyee -> lien ouvert -> compte active. */}
+        <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+            <h4 className="text-sm font-bold text-black dark:text-white">{t('admin.partners.invitesTitle')}</h4>
+            <p className="mt-0.5 text-xs text-body">{t('admin.partners.invitesHint')}</p>
+          </div>
+          {invites.length === 0 ? (
+            <p className="px-6 py-8 text-center text-sm text-gray-400">{t('admin.partners.invitesEmpty')}</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-stroke dark:border-strokedark">
+                    <th className="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.colPartner')}</th>
+                    <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('partnerPortal.fEmail')}</th>
+                    <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteSent')}</th>
+                    <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteOpened')}</th>
+                    <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteAccepted')}</th>
+                    <th className="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteBy')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invites.map((iv) => {
+                    const pending = iv.status === 'invited';
+                    const expired = pending && !!iv.expiresAt && new Date(iv.expiresAt) < new Date();
+                    return (
+                      <tr key={iv.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
+                        <td className="whitespace-nowrap px-6 py-3 font-medium text-black dark:text-white">{iv.partnerName}</td>
+                        <td className="px-4 py-3">
+                          <span className="text-black dark:text-white">{iv.email}</span>
+                          {iv.role === 'admin' && <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{t('partnerPortal.roleAdmin')}</span>}
+                          {expired && <span className="ml-2 rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-danger">{t('admin.partners.inviteExpired')}</span>}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3"><Step at={iv.invitedAt} /></td>
+                        <td className="whitespace-nowrap px-4 py-3"><Step at={iv.openedAt} pending={pending && !expired} /></td>
+                        <td className="whitespace-nowrap px-4 py-3"><Step at={iv.activatedAt} pending={pending && !expired} /></td>
+                        <td className="whitespace-nowrap px-6 py-3 text-body">{iv.invitedBy || '—'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
         </div>
       )}
 
