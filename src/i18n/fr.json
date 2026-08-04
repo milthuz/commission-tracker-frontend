@@ -1747,7 +1747,11 @@
       "inviteAccepted": "Activé",
       "inviteBy": "Invité par",
       "invitePending": "En attente",
-      "inviteExpired": "Expirée"
+      "inviteExpired": "Expirée",
+      "revokeInvite": "Révoquer",
+      "revokeConfirm": "Révoquer l'invitation envoyée à {{email}} ? Le lien cesse de fonctionner immédiatement.",
+      "revokeActive": "Ce compte est déjà actif — révoquer une invitation ne s'applique plus.",
+      "revokeFailed": "Impossible de révoquer l'invitation"
     },
     "resources": {
       "title": "Stockage des ressources",

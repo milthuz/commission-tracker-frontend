@@ -101,6 +101,19 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
       .then((r) => setInvites(r.data.invites || []))
       .catch(() => {});
   }, []);
+  const [revokingId, setRevokingId] = useState<number | null>(null);
+  const revokeInvite = async (iv: Invite) => {
+    if (!(await dialog.confirm(t('admin.partners.revokeConfirm', { email: iv.email }) as string))) return;
+    setRevokingId(iv.id);
+    try {
+      await axios.delete(`${API_URL}/api/admin/partner-invites/${iv.id}`, { headers: authHeaders() });
+      setInvites((prev) => prev.filter((x) => x.id !== iv.id));
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error === 'already_active'
+        ? t('admin.partners.revokeActive') as string
+        : t('admin.partners.revokeFailed') as string);
+    } finally { setRevokingId(null); }
+  };
   const fmtDate = (d: string | null) =>
     d ? new Date(d).toLocaleDateString(i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA',
           { year: 'numeric', month: 'short', day: 'numeric' }) : null;
@@ -539,6 +552,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
                     <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteOpened')}</th>
                     <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteAccepted')}</th>
                     <th className="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteBy')}</th>
+                    <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -557,6 +571,14 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
                         <td className="whitespace-nowrap px-4 py-3"><Step at={iv.openedAt} pending={pending && !expired} /></td>
                         <td className="whitespace-nowrap px-4 py-3"><Step at={iv.activatedAt} pending={pending && !expired} /></td>
                         <td className="whitespace-nowrap px-6 py-3 text-body">{iv.invitedBy || '—'}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-right">
+                          {pending && (
+                            <button onClick={() => revokeInvite(iv)} disabled={revokingId === iv.id}
+                              className="rounded-lg border border-stroke px-3 py-1 text-xs font-medium text-danger hover:border-danger disabled:opacity-50 dark:border-strokedark">
+                              {t('admin.partners.revokeInvite')}
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
