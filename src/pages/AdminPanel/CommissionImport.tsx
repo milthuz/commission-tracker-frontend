@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import PayStubModal, { PayStubData } from '../../components/PayStubModal';
@@ -1708,10 +1709,7 @@ const CommissionImport: React.FC = () => {
             <div>
               <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.month')}</label>
               <div className="flex gap-2">
-                <select value={payMonth} onChange={(e) => setPayMonth(parseInt(e.target.value))}
-                  className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthName(m)}</option>)}
-                </select>
+                <Select value={String(payMonth)} onChange={(v) => setPayMonth(parseInt(v))} options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))} className="w-40" />
                 <input type="number" value={payYear} onChange={(e) => setPayYear(parseInt(e.target.value) || payYear)}
                   className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
               </div>
@@ -1886,11 +1884,7 @@ const CommissionImport: React.FC = () => {
             <div>
               <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.month')}</label>
               <div className="flex gap-2">
-                <select value={bonusSendMonth} onChange={(e) => setBonusSendMonth(parseInt(e.target.value) as 6 | 12)}
-                  className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                  <option value={6}>{t('admin.commissionImport.bonusPayroll.june')}</option>
-                  <option value={12}>{t('admin.commissionImport.bonusPayroll.december')}</option>
-                </select>
+                <Select value={String(bonusSendMonth)} onChange={(v) => setBonusSendMonth(parseInt(v) as 6 | 12)} options={[{ value: "6", label: t('admin.commissionImport.bonusPayroll.june') as string }, { value: "12", label: t('admin.commissionImport.bonusPayroll.december') as string }]} className="w-40" />
                 <input type="number" value={bonusSendYear} onChange={(e) => setBonusSendYear(parseInt(e.target.value) || bonusSendYear)}
                   className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
               </div>
@@ -2058,14 +2052,7 @@ const CommissionImport: React.FC = () => {
         </div>
         <div className="px-6 py-4">
           <div className="mb-4 flex flex-wrap items-center gap-3">
-            <select
-              value={procMonth}
-              onChange={(e) => setProcMonth(parseInt(e.target.value) as 6 | 12)}
-              className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input"
-            >
-              <option value={6}>{t('admin.commissionImport.processing.june')}</option>
-              <option value={12}>{t('admin.commissionImport.processing.december')}</option>
-            </select>
+            <Select value={String(procMonth)} onChange={(v) => setProcMonth(parseInt(v) as 6 | 12)} options={[{ value: "6", label: t('admin.commissionImport.processing.june') as string }, { value: "12", label: t('admin.commissionImport.processing.december') as string }]} className="w-40" />
             <input
               type="number"
               value={procYear}
@@ -2179,10 +2166,7 @@ const CommissionImport: React.FC = () => {
             <div>
               <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.month')}</label>
               <div className="flex gap-2">
-                <select value={mbMonth} onChange={(e) => setMbMonth(parseInt(e.target.value))}
-                  className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => <option key={m} value={m}>{monthName(m)}</option>)}
-                </select>
+                <Select value={String(mbMonth)} onChange={(v) => setMbMonth(parseInt(v))} options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))} className="w-40" />
                 <input type="number" value={mbYear} onChange={(e) => setMbYear(parseInt(e.target.value) || mbYear)}
                   className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
               </div>
