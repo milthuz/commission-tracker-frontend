@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
-import SalesHubLogo from '../../components/SalesHubLogo';
+import ClusterWordmark from '../../components/ClusterWordmark';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import { getDeviceToken, storeDeviceToken } from '../../lib/deviceTrust';
 
@@ -100,7 +100,7 @@ const PartnerLogin = () => {
     <div className="flex min-h-screen">
       <div className="relative hidden w-1/2 flex-col bg-[#0f1722] lg:flex">
         <div className="px-12 py-10">
-          <SalesHubLogo variant="lockup" textClassName="text-white" />
+          <ClusterWordmark tone="dark" className="h-8 w-auto" />
         </div>
         <div className="flex flex-1 flex-col items-center justify-center px-16 pb-24 text-center">
           <h1 className="mb-6 max-w-lg text-5xl font-bold leading-tight text-white">
@@ -117,7 +117,7 @@ const PartnerLogin = () => {
 
       <div className="flex w-full flex-col items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2 lg:w-1/2">
         <div className="mb-8 rounded-xl bg-[#0f1722] px-6 py-5 lg:hidden">
-          <SalesHubLogo variant="lockup" textClassName="text-white" />
+          <ClusterWordmark tone="dark" className="h-8 w-auto" />
         </div>
 
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl dark:bg-boxdark sm:p-10">

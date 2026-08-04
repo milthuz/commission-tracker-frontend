@@ -189,7 +189,7 @@ function AppContent() {
         path="/partner-portal/login"
         element={
           <>
-            <PageTitle title="Partner Portal | Sales Hub" />
+            <PageTitle title="Portail partenaire | Cluster" />
             <PartnerLogin />
           </>
         }
@@ -279,7 +279,7 @@ function AppContent() {
             path="/partner-portal"
             element={
               <>
-                <PageTitle title="Partner Portal | Sales Hub" />
+                <PageTitle title="Portail partenaire | Cluster" />
                 <PartnerPortal />
               </>
             }

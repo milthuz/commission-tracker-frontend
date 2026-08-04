@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import SalesHubLogo from '../SalesHubLogo';
+import ClusterWordmark from '../ClusterWordmark';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 
@@ -86,12 +86,8 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
       >
         <div className={`flex items-center gap-2 py-5.5 lg:py-6.5 ${collapsed ? 'flex-col justify-center px-2 gap-1.5' : 'justify-between px-6'}`}>
           <div className={`flex items-center ${collapsed ? 'flex-col gap-1.5' : 'gap-3'}`}>
-            <NavLink to="/partner-portal" className="flex items-center" title={collapsed ? `Sales Hub v${appVersion}` : undefined}>
-              {collapsed ? (
-                <SalesHubLogo variant="glyph" className="h-9 w-9" textClassName="text-white" />
-              ) : (
-                <SalesHubLogo variant="lockup" size="sm" textClassName="text-white" />
-              )}
+            <NavLink to="/partner-portal" className="flex items-center" title={collapsed ? `Cluster — Portail partenaire (v${appVersion})` : undefined}>
+              <ClusterWordmark tone="dark" className={collapsed ? 'h-7 w-auto' : 'h-[26px] w-auto'} />
             </NavLink>
             <span className={`${collapsed ? 'text-[10px]' : 'text-xs'} font-semibold leading-none text-white`}>v{appVersion}</span>
           </div>
@@ -223,6 +219,11 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
               </ul>
             </div>
           </nav>
+          {!collapsed && (
+            <div className="mt-auto px-6 pb-5 pt-3">
+              <p className="text-[10px] leading-none text-bodydark2">{t('partnerPortal.poweredBy')}</p>
+            </div>
+          )}
         </div>
       </aside>
 

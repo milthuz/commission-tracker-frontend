@@ -749,7 +749,8 @@
     },
     "localeFr": "French",
     "localeEn": "English",
-    "inviteLocaleHint": "Language of the invitation email"
+    "inviteLocaleHint": "Language of the invitation email",
+    "poweredBy": "Powered by Sales Hub"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",
