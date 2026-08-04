@@ -1733,7 +1733,11 @@
         "fPeriodPh": "e.g. 2026-Q3",
         "fAmount": "Total amount ($)",
         "fOpportunities": "Opportunities included ({{count}} selected)"
-      }
+      },
+      "deletePartner": "Delete",
+      "deleteConfirm": "Delete the partner \"{{name}}\"? This cannot be undone.",
+      "deleteConfirmData": "\"{{name}}\" still has data attached: {{users}} user account(s), {{opportunities}} opportunity(ies), {{invoices}} invoice(s) and {{runs}} payout run(s).\n\nDeleting the partner deletes ALL of it, permanently. Continue?",
+      "deleteFailed": "Could not delete the partner"
     },
     "resources": {
       "title": "Resources storage",

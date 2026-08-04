@@ -60,7 +60,7 @@ const PAYOUT_BADGE: Record<string, string> = {
   paid: 'bg-primary text-white',
 };
 
-const PartnersAdmin: React.FC = () => {
+const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
   const { t, i18n } = useTranslation();
   // Landing on this page is the Opportunity Queue "dashboard" (user request 2026-07-2x) — Manage
   // Partners is reached either via the in-page tab or the Sidebar's "Manage Partners" submenu
@@ -87,6 +87,44 @@ const PartnersAdmin: React.FC = () => {
   const [newPartnerName, setNewPartnerName] = useState('');
   const [creating, setCreating] = useState(false);
   const [inviteFor, setInviteFor] = useState<Partner | null>(null);
+  const [deletingPartnerId, setDeletingPartnerId] = useState<number | null>(null);
+
+  // Deux temps, et le second n'est demande QUE s'il y a quelque chose a perdre.
+  // Le premier appel n'efface rien tant qu'il reste des donnees rattachees : le serveur
+  // repond 409 avec le decompte, ce qui permet d'annoncer ce qui va disparaitre au lieu
+  // de demander « etes-vous sur ? » dans le vide. Une confirmation qui ne dit pas ce
+  // qu'elle detruit n'est pas une confirmation.
+  const deletePartner = async (p: Partner) => {
+    if (!(await dialog.confirm(t('admin.partners.deleteConfirm', { name: p.name }) as string))) return;
+    setDeletingPartnerId(p.id);
+    try {
+      await axios.delete(`${API_URL}/api/admin/partners/${p.id}`, { headers: authHeaders() });
+      await fetchPartners();
+    } catch (e: any) {
+      const d = e?.response?.data;
+      if (e?.response?.status === 409 && d?.error === 'partner_has_data') {
+        const c = d.counts || {};
+        const ok = await dialog.confirm(t('admin.partners.deleteConfirmData', {
+          name: d.name || p.name,
+          users: c.users || 0,
+          opportunities: c.opportunities || 0,
+          invoices: c.invoices || 0,
+          runs: c.payout_runs || 0,
+        }) as string);
+        if (!ok) { setDeletingPartnerId(null); return; }
+        try {
+          await axios.delete(`${API_URL}/api/admin/partners/${p.id}?force=1`, { headers: authHeaders() });
+          await fetchPartners();
+        } catch (e2: any) {
+          dialog.alert(e2?.response?.data?.error || t('admin.partners.deleteFailed') as string);
+        }
+      } else {
+        dialog.alert(d?.error || t('admin.partners.deleteFailed') as string);
+      }
+    } finally {
+      setDeletingPartnerId(null);
+    }
+  };
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
   // Langue du courriel d'invitation, par defaut celle de l'admin qui invite.
@@ -443,6 +481,15 @@ const PartnersAdmin: React.FC = () => {
                             className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
                             {t('admin.partners.inviteAdmin')}
                           </button>
+                          {canDelete && (
+                            <button onClick={() => deletePartner(p)} disabled={deletingPartnerId === p.id}
+                              title={t('admin.partners.deletePartner') as string}
+                              className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-danger hover:border-danger disabled:opacity-50 dark:border-strokedark">
+                              {deletingPartnerId === p.id
+                                ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-danger border-t-transparent" />
+                                : t('admin.partners.deletePartner')}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
