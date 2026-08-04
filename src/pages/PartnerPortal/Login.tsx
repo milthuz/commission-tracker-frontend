@@ -170,7 +170,7 @@ const PartnerLogin = () => {
                 />
                 <label className="flex items-center gap-2.5 text-sm text-black dark:text-bodydark">
                   <input type="checkbox" checked={rememberDevice} onChange={(e) => setRememberDevice(e.target.checked)}
-                    className="h-4 w-4 rounded border-stroke text-primary focus:ring-primary dark:border-strokedark" />
+                    className="h-4 w-4 rounded-[6px] border-stroke text-primary focus:ring-primary dark:border-strokedark" />
                   {t('auth.rememberDevice')}
                 </label>
                 {error && <p className="text-sm text-danger">{error}</p>}

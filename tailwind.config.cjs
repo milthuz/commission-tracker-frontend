@@ -16,6 +16,38 @@ module.exports = {
       ...defaultTheme.screens,
     },
     extend: {
+      // ---------------------------------------------------------------------
+      // RAYONS DES COINS — une seule échelle pour toute l'application.
+      //
+      // Le code utilisait six rayons différents pour des boîtes (2, 4, 6, 8, 12
+      // et 16 px), choisis au cas par cas : deux cartes voisines n'avaient pas
+      // les mêmes coins, et le 2 px de `rounded-sm` (le gabarit de carte livré
+      // avec le thème) se lisait carrément carré à côté d'un `rounded-xl`.
+      //
+      // On remappe l'échelle plutôt que de réécrire les ~1 030 utilisations :
+      // un seul endroit à relire, un seul endroit à changer si le goût évolue,
+      // et surtout tout code écrit PLUS TARD tombe juste sans avoir à y penser —
+      // y compris les gabarits du thème, qui continueront d'écrire `rounded-sm`.
+      //
+      // Il ne reste que deux valeurs en pratique :
+      //   contrôles (boutons, champs, puces, petits blocs) → 10 px
+      //   conteneurs (cartes, panneaux, fenêtres modales)  → 14 px
+      // `rounded-full` n'est pas touché : pastilles, avatars et indicateurs de
+      // chargement doivent rester des cercles.
+      //
+      // ⚠️ Le nom des classes ne décrit donc plus leur valeur (`rounded-sm` ne
+      // vaut plus 2 px). C'est le prix de l'uniformité sans réécriture massive.
+      borderRadius: {
+        none: '0',
+        sm: '0.625rem',    // 10 px — ex-2 px
+        DEFAULT: '0.625rem', // 10 px — ex-4 px
+        md: '0.625rem',    // 10 px — ex-6 px
+        lg: '0.875rem',    // 14 px — ex-8 px
+        xl: '0.875rem',    // 14 px — ex-12 px
+        '2xl': '1.125rem', // 18 px — ex-16 px
+        '3xl': '1.5rem',   // 24 px
+        full: '9999px',
+      },
       colors: {
         current: 'currentColor',
         transparent: 'transparent',

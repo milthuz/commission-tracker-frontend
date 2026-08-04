@@ -125,7 +125,7 @@ const FormLayout = () => {
                         id="formCheckbox"
                         className="taskCheckbox sr-only"
                       />
-                      <div className="box mr-3 flex h-5 w-5 items-center justify-center rounded border border-stroke dark:border-strokedark">
+                      <div className="box mr-3 flex h-5 w-5 items-center justify-center rounded-[6px] border border-stroke dark:border-strokedark">
                         <span className="text-white opacity-0">
                           <svg
                             className="fill-current"

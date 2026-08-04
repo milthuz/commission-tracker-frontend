@@ -19,7 +19,7 @@ const CheckboxThree = () => {
             }}
           />
           <div
-            className={`box mr-4 flex h-5 w-5 items-center justify-center rounded border ${
+            className={`box mr-4 flex h-5 w-5 items-center justify-center rounded-[6px] border ${
               isChecked && 'border-primary bg-gray dark:bg-transparent'
             }`}
           >
