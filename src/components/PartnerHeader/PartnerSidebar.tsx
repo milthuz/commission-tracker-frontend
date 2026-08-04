@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ClusterWordmark from '../ClusterWordmark';
+import SalesHubLogo from '../SalesHubLogo';
 import clusterIcon from '../../images/logo/cluster-appicon.svg';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
@@ -227,7 +228,8 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
           </nav>
           {!collapsed && (
             <div className="mt-auto px-6 pb-5 pt-3">
-              <p className="text-[10px] leading-none text-bodydark2">{t('partnerPortal.poweredBy')}</p>
+              <p className="mb-2 text-[11px] leading-none text-bodydark2">{t('partnerPortal.poweredBy')}</p>
+              <SalesHubLogo variant="lockup" size="sm" textClassName="text-bodydark" />
             </div>
           )}
         </div>
