@@ -3184,10 +3184,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   {t('admin.impersonate.selectLabel')}
                 </label>
                 <div className="flex flex-wrap gap-3 items-center">
-                  <select
-                    defaultValue={localStorage.getItem('impersonateAs') || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
+                  <Select
+                    value={localStorage.getItem('impersonateAs') || ''}
+                    onChange={(val) => {
                       if (val) {
                         const u = adminUsers.find(x => x.email === val);
                         localStorage.setItem('impersonateAs', val);
@@ -3198,17 +3197,21 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       }
                       window.location.reload();
                     }}
-                    className="rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
-                  >
-                    <option value="">{t('admin.impersonate.noImpersonation')}</option>
-                    {[...adminUsers]
-                      .sort((a, b) => (a.displayName || a.email).localeCompare(b.displayName || b.email))
-                      .map(u => (
-                        <option key={u.email} value={u.email}>
-                          {(u.displayName || u.email)}{u.displayName ? ` (${u.email})` : ''}{u.isAdmin ? ' — admin' : ''}
-                        </option>
-                      ))}
-                  </select>
+                    options={[
+                      // ⚠️ La valeur vide est une ENTRÉE RÉELLE et doit le rester : c'est le
+                      // seul moyen d'ARRÊTER une usurpation depuis ce menu. En placeholder,
+                      // elle ne serait pas sélectionnable sur bureau, et un administrateur
+                      // se retrouverait enfermé dans l'identité d'un autre.
+                      { value: '', label: t('admin.impersonate.noImpersonation') as string },
+                      ...[...adminUsers]
+                        .sort((a, b) => (a.displayName || a.email).localeCompare(b.displayName || b.email))
+                        .map(u => ({
+                          value: u.email,
+                          label: `${u.displayName || u.email}${u.displayName ? ` (${u.email})` : ''}${u.isAdmin ? ' · admin' : ''}`,
+                        })),
+                    ]}
+                    buttonClassName={'rounded border border-stroke bg-transparent px-4 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input'}
+                  />
                   {localStorage.getItem('impersonateAs') && (
                     <button
                       onClick={() => {
