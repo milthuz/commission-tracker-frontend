@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
@@ -107,14 +108,7 @@ export default function ResellerAdmin() {
               <div key={u.email} className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-medium text-black dark:text-white">{u.email}</span>
                 <span className="text-xs text-body">({u.locations} {t('reseller.activations.locations')}, {u.licenses} {t('reseller.activations.licenses')})</span>
-                <select
-                  defaultValue=""
-                  onChange={(e) => e.target.value && assignEmail(u.email, parseInt(e.target.value))}
-                  className="ml-auto rounded border-[1.5px] border-stroke bg-transparent px-2 py-1 text-sm dark:border-form-strokedark dark:bg-form-input"
-                >
-                  <option value="">{t('admin.resellers.assignTo')}</option>
-                  {resellers.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                </select>
+                <Select value="" onChange={(v) => v && assignEmail(u.email, parseInt(v))} options={resellers.map((r) => ({ value: String(r.id), label: r.name }))} placeholder={t('admin.resellers.assignTo') as string} className="ml-auto" buttonClassName={'rounded border-[1.5px] border-stroke bg-transparent px-2 py-1 text-sm dark:border-form-strokedark dark:bg-form-input'} />
               </div>
             ))}
           </div>
