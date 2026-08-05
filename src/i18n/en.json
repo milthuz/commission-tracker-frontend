@@ -1705,12 +1705,6 @@
         "linkSearchPh": "Search customer name…",
         "linkSearchHint": "Type at least 2 characters to search.",
         "linkNoResults": "No matching customers found.",
-        "status": {
-          "not_eligible": "Not eligible yet",
-          "eligible": "Eligible for payout",
-          "in_run": "In payout run",
-          "paid": "Paid"
-        },
         "pendingTitle": "Pending payouts",
         "noPending": "No partner has eligible opportunities right now.",
         "opportunityCount_one": "{{count}} eligible opportunity",

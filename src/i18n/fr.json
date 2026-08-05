@@ -1705,12 +1705,6 @@
         "linkSearchPh": "Rechercher un nom de client…",
         "linkSearchHint": "Tapez au moins 2 caractères pour rechercher.",
         "linkNoResults": "Aucun client correspondant trouvé.",
-        "status": {
-          "not_eligible": "Pas encore éligible",
-          "eligible": "Éligible au paiement",
-          "in_run": "Dans un run de paiement",
-          "paid": "Payé"
-        },
         "pendingTitle": "Paiements en attente",
         "noPending": "Aucun partenaire n'a d'occasion éligible pour le moment.",
         "opportunityCount_one": "{{count}} occasion éligible",

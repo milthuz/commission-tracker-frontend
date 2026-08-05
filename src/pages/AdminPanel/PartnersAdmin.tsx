@@ -742,7 +742,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
                                 <>
                                   <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${PAYOUT_BADGE[o.payoutStatus]}`}
                                     title={o.linkedCustomerName}>
-                                    {t(`admin.partners.payout.status.${o.payoutStatus}`)}
+                                    {t(`partnerPortal.payoutStatus.${o.payoutStatus}`)}
                                   </span>
                                   {o.payoutStatus === 'not_eligible' && (
                                     <button onClick={() => openLinking(o)} title={t('admin.partners.payout.relink') as string}
