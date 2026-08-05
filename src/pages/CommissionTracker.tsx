@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Select from '../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { formatDateOnly } from '../utils/date';
@@ -291,26 +292,8 @@ const CommissionTracker: React.FC = () => {
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <select
-            value={selectedMonth}
-            onChange={e => setSelectedMonth(parseInt(e.target.value))}
-            className="rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white"
-          >
-            {MONTH_NAMES.map((m, i) => (
-              <option key={i} value={i + 1}>{m}</option>
-            ))}
-          </select>
-          <select
-            value={selectedYear}
-            onChange={e => setSelectedYear(parseInt(e.target.value))}
-            className="rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white"
-          >
-            {/* Data starts Jan 2025 — list current year down to 2025 only */}
-            {[...Array(new Date().getFullYear() - 2024)].map((_, i) => {
-              const y = new Date().getFullYear() - i;
-              return <option key={y} value={y}>{y}</option>;
-            })}
-          </select>
+          <Select value={String(selectedMonth)} onChange={(v) => setSelectedMonth(parseInt(v))} options={MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }))} buttonClassName={'rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white'} />
+          <Select value={String(selectedYear)} onChange={(v) => setSelectedYear(parseInt(v))} options={[...Array(new Date().getFullYear() - 2024)].map((_, i) => { const y = new Date().getFullYear() - i; return { value: String(y), label: String(y) }; })} buttonClassName={'rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white'} />
         </div>
       </div>
 
@@ -691,16 +674,7 @@ const CommissionTracker: React.FC = () => {
                               </td>
                               {isAdmin && rep.repName === 'Unassigned' && (
                                 <td className="px-6 py-3">
-                                  <select
-                                    defaultValue=""
-                                    onChange={(e) => assignMerchant(m.merchant_account_id, e.target.value)}
-                                    className="rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white"
-                                  >
-                                    <option value="" disabled>{t('commissionTracker.selectRep')}</option>
-                                    {activeReps.map(name => (
-                                      <option key={name} value={name}>{name}</option>
-                                    ))}
-                                  </select>
+                                  <Select value="" onChange={(v) => assignMerchant(m.merchant_account_id, v)} options={activeReps.map((name) => ({ value: name, label: name }))} placeholder={t('commissionTracker.selectRep') as string} buttonClassName={'rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white'} />
                                 </td>
                               )}
                             </tr>
