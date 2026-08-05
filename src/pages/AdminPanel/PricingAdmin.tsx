@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
@@ -360,9 +361,7 @@ const PricingAdmin: React.FC = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <label className="flex flex-col gap-1">
                     <span className="text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fCat')}</span>
-                    <select value={form.catId} onChange={(e) => setForm({ ...form, catId: e.target.value })} className={inputCls}>
-                      {CATS.map((c) => <option key={c} value={c}>{catLabel(c)}</option>)}
-                    </select>
+                    <Select value={form.catId} onChange={(v) => setForm({ ...form, catId: v })} options={CATS.map((c) => ({ value: c, label: catLabel(c) }))} buttonClassName={inputCls} />
                   </label>
                   <label className="flex flex-col gap-1"><span className="text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fSku')}</span><input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={`${inputCls} font-mono`} /></label>
                 </div>
