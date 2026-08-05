@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Select from './Select';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../lib/dialog';
@@ -628,10 +629,7 @@ const PayStubModal: React.FC<{
                   {onAdjusted && (
                     <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-warning/30 pt-3">
                       <span className="text-xs font-medium text-body">{tp('reportTo')}</span>
-                      <select value={adjMonth} onChange={(e) => setAdjMonth(parseInt(e.target.value))}
-                        className="rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input">
-                        {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => <option key={m} value={m}>{monthName(m)}</option>)}
-                      </select>
+                      <Select value={String(adjMonth)} onChange={(v) => setAdjMonth(parseInt(v))} options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))} buttonClassName={'rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input'} />
                       <input type="number" value={adjYear} onChange={(e) => setAdjYear(parseInt(e.target.value) || adjYear)}
                         className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
                       <button onClick={reportMissed} disabled={adjBusy}
