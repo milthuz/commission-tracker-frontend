@@ -43,9 +43,17 @@ const Select: React.FC<{
   className?: string;
   disabled?: boolean;
   placeholder?: string;
+  /**
+   * REMPLACE l'habillage par défaut au lieu de s'y ajouter. Nécessaire pour les menus
+   * qui ont leur propre allure — pastille arrondie, puce de filtre — car deux classes
+   * Tailwind concurrentes (`rounded` contre `rounded-full`) ne se résolvent pas par
+   * l'ordre où on les écrit mais par leur ordre dans la feuille de style : le résultat
+   * serait imprévisible. Mieux vaut ne pas mettre les deux en présence.
+   */
+  buttonClassName?: string;
   id?: string;
   'aria-label'?: string;
-}> = ({ value, onChange, options, className = '', disabled, placeholder, id, ...aria }) => {
+}> = ({ value, onChange, options, className = '', disabled, placeholder, buttonClassName, id, ...aria }) => {
   const isDesktop = useIsDesktop();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -53,6 +61,7 @@ const Select: React.FC<{
   const listRef = useRef<HTMLUListElement>(null);
   const typed = useRef({ text: '', at: 0 });
 
+  const skin = buttonClassName ?? BASE;
   const selected = options.find((o) => o.value === value);
   const label = selected?.label ?? placeholder ?? '';
 
@@ -130,7 +139,7 @@ const Select: React.FC<{
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className={`${BASE} ${className}`}
+        className={`${skin} ${className}`}
       >
         {placeholder && <option value="">{placeholder}</option>}
         {options.map((o) => (
@@ -152,7 +161,7 @@ const Select: React.FC<{
         disabled={disabled}
         onClick={() => (open ? setOpen(false) : openAt())}
         onKeyDown={onKeyDown}
-        className={`${BASE} flex items-center justify-between gap-2 text-left`}
+        className={`${skin} flex items-center justify-between gap-2 text-left`}
       >
         <span className={selected ? '' : 'text-gray-400'}>{label}</span>
         <svg

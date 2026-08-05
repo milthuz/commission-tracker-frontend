@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
@@ -1037,17 +1038,11 @@ const SaasIncrease: React.FC = () => {
             />
           </div>
           <div className="relative">
-            <select value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)} className={`appearance-none ${chipInput} py-2.5 pl-3 pr-8 text-sm`}>
-              <option value="">{t('saasIncrease.allOrgs')}</option>
-              {orgs.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
-            </select>
+            <Select value={orgFilter} onChange={(v) => setOrgFilter(v)} options={orgs.map((o) => ({ value: String(o.id), label: o.name }))} placeholder={t('saasIncrease.allOrgs') as string} buttonClassName={`${chipInput} py-2.5 pl-3 pr-8 text-sm`} />
             <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textTer}`} />
           </div>
           <div className="relative">
-            <select value={planFilter} onChange={(e) => setPlanFilter(e.target.value)} className={`appearance-none ${chipInput} py-2.5 pl-3 pr-8 text-sm`}>
-              <option value="">{t('saasIncrease.allPlans')}</option>
-              {plans.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
+            <Select value={planFilter} onChange={(v) => setPlanFilter(v)} options={plans.map((p) => ({ value: p, label: p }))} placeholder={t('saasIncrease.allPlans') as string} buttonClassName={`${chipInput} py-2.5 pl-3 pr-8 text-sm`} />
             <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textTer}`} />
           </div>
           <div className="relative">
