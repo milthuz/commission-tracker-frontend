@@ -1,4 +1,5 @@
 import { useEffect, useState, FormEvent } from 'react';
+import Select from '../../components/Select';
 import { useParams, Link } from 'react-router-dom';
 import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, useFmt } from './passUi';
 
@@ -234,11 +235,7 @@ const LinkPage = () => {
                       <label htmlFor="lp-prov" className={label}>{t('pass.referralLinkPage.fields.province')}</label>
                       {/* Liste fermée de 13 entrées, revalidée côté serveur : « Canada
                           seulement » est une règle d'éligibilité, pas un détail d'adresse. */}
-                      <select id="lp-prov" required value={form.province} onChange={set('province')}
-                        className={`${field} ${bad('province')} appearance-none`}>
-                        <option value="" disabled />
-                        {PROVINCES.map((c) => <option key={c} value={c}>{provinceName(c)}</option>)}
-                      </select>
+                      <Select id="lp-prov" required value={form.province} onChange={(v) => set('province')({ target: { value: v } })} options={PROVINCES.map((c) => ({ value: c, label: provinceName(c) }))} placeholder="" buttonClassName={`${field} ${bad('province')}`} />
                     </div>
                   </div>
                   <div className="mt-4">
@@ -248,11 +245,7 @@ const LinkPage = () => {
                   </div>
                   <div className="mt-4">
                     <label htmlFor="lp-lang" className={label}>{t('pass.referralLinkPage.fields.lang')}</label>
-                    <select id="lp-lang" value={form.contactLocale} onChange={set('contactLocale')}
-                      className={`${field} ${bad('contactLocale')} appearance-none`}>
-                      <option value="fr-CA">Français</option>
-                      <option value="en-CA">English</option>
-                    </select>
+                    <Select id="lp-lang" value={form.contactLocale} onChange={(v) => set('contactLocale')({ target: { value: v } })} options={[{ value: 'fr-CA', label: 'Français' }, { value: 'en-CA', label: 'English' }]} buttonClassName={`${field} ${bad('contactLocale')}`} />
                   </div>
 
                   <label className="mt-6 flex cursor-pointer items-start gap-3 text-[13px] leading-[1.55] text-[#424242] dark:text-white/80">
