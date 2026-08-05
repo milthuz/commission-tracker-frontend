@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+
+const AUDIT_SELECT =
+  'w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -181,24 +185,15 @@ const Audit: React.FC = () => {
             <div className="flex flex-wrap items-end gap-3">
               <div className="min-w-[160px]">
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.audit.filterActor')}</label>
-                <select value={actor} onChange={(e) => setActor(e.target.value)} className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white">
-                  <option value="">{t('admin.audit.all')}</option>
-                  {facets.actors.map((a) => <option key={a} value={a}>{a}</option>)}
-                </select>
+                <Select value={actor} onChange={(v) => setActor(v)} options={[{ value: '', label: t('admin.audit.all') as string }, ...facets.actors.map((a) => ({ value: a, label: a }))]} buttonClassName={AUDIT_SELECT} />
               </div>
               <div className="min-w-[140px]">
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.audit.filterEntityType')}</label>
-                <select value={entityType} onChange={(e) => setEntityType(e.target.value)} className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white">
-                  <option value="">{t('admin.audit.all')}</option>
-                  {facets.entityTypes.map((a) => <option key={a} value={a}>{a}</option>)}
-                </select>
+                <Select value={entityType} onChange={(v) => setEntityType(v)} options={[{ value: '', label: t('admin.audit.all') as string }, ...facets.entityTypes.map((a) => ({ value: a, label: a }))]} buttonClassName={AUDIT_SELECT} />
               </div>
               <div className="min-w-[160px]">
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.audit.filterEventType')}</label>
-                <select value={eventType} onChange={(e) => setEventType(e.target.value)} className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white">
-                  <option value="">{t('admin.audit.all')}</option>
-                  {facets.eventTypes.map((a) => <option key={a} value={a}>{a}</option>)}
-                </select>
+                <Select value={eventType} onChange={(v) => setEventType(v)} options={[{ value: '', label: t('admin.audit.all') as string }, ...facets.eventTypes.map((a) => ({ value: a, label: a }))]} buttonClassName={AUDIT_SELECT} />
               </div>
               <div className="min-w-[130px]">
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.audit.filterFrom')}</label>
