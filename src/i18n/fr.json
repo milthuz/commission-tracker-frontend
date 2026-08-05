@@ -1752,7 +1752,13 @@
       "revokeInvite": "Révoquer",
       "revokeConfirm": "Révoquer l'invitation envoyée à {{email}} ? Le lien cesse de fonctionner immédiatement.",
       "revokeActive": "Ce compte est déjà actif — révoquer une invitation ne s'applique plus.",
-      "revokeFailed": "Impossible de révoquer l'invitation"
+      "revokeFailed": "Impossible de révoquer l'invitation",
+      "logoAdd": "Ajouter un logo",
+      "logoReplace": "Remplacer",
+      "logoRemove": "Retirer le logo",
+      "logoUploading": "Téléversement…",
+      "logoFailed": "Impossible d'enregistrer le logo",
+      "logoRemoveConfirm": "Retirer le logo de {{name}} ?"
     },
     "resources": {
       "title": "Stockage des ressources",

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
@@ -89,6 +89,43 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
   const [creating, setCreating] = useState(false);
   const [inviteFor, setInviteFor] = useState<Partner | null>(null);
   const [deletingPartnerId, setDeletingPartnerId] = useState<number | null>(null);
+
+  // Logo d'un partenaire. UN seul champ de fichier cache, reutilise pour toutes les
+  // lignes — en poser un par ligne multiplierait les elements sans rien apporter.
+  const logoInput = useRef<HTMLInputElement | null>(null);
+  const [logoFor, setLogoFor] = useState<Partner | null>(null);
+  const [logoBusy, setLogoBusy] = useState<number | null>(null);
+  // Change a chaque televersement pour casser le cache du navigateur : l'URL du logo ne
+  // change pas, donc sans ce parametre l'ancienne image resterait affichee.
+  const [logoV, setLogoV] = useState(0);
+
+  const pickLogo = (p: Partner) => { setLogoFor(p); logoInput.current?.click(); };
+
+  const uploadLogo = async (file: File) => {
+    if (!logoFor) return;
+    setLogoBusy(logoFor.id);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      await axios.post(`${API_URL}/api/admin/partners/${logoFor.id}/logo`, fd, { headers: authHeaders() });
+      setLogoV((v) => v + 1);
+      await fetchPartners();
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || t('admin.partners.logoFailed') as string);
+    } finally { setLogoBusy(null); setLogoFor(null); }
+  };
+
+  const removeLogo = async (p: Partner) => {
+    if (!(await dialog.confirm(t('admin.partners.logoRemoveConfirm', { name: p.name }) as string))) return;
+    setLogoBusy(p.id);
+    try {
+      await axios.delete(`${API_URL}/api/admin/partners/${p.id}/logo`, { headers: authHeaders() });
+      setLogoV((v) => v + 1);
+      await fetchPartners();
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || t('admin.partners.logoFailed') as string);
+    } finally { setLogoBusy(null); }
+  };
 
   type Invite = {
     id: number; email: string; name: string | null; role: string; status: string;
@@ -453,6 +490,14 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
 
   return (
+    <>
+      <input
+        ref={logoInput}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadLogo(f); }}
+      />
     <div>
       {/* No in-page tab strip here on purpose — Opportunity Queue is this page's default view,
           and Manage Partners is reached via the Sidebar's own submenu (user request
@@ -512,6 +557,26 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
                             className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
                             {t('admin.partners.editPartner')}
                           </button>
+                          {p.hasLogo ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-stroke px-2 py-1 dark:border-strokedark">
+                              <img src={`${API_URL}/api/partner-portal/organization/logo/${p.id}?v=${logoV}`}
+                                alt={p.name} className="h-5 w-auto max-w-[70px] object-contain" />
+                              <button onClick={() => pickLogo(p)} disabled={logoBusy === p.id}
+                                className="text-xs font-medium text-body hover:text-primary disabled:opacity-50">
+                                {t('admin.partners.logoReplace')}
+                              </button>
+                              <button onClick={() => removeLogo(p)} disabled={logoBusy === p.id}
+                                title={t('admin.partners.logoRemove') as string}
+                                className="text-danger hover:opacity-70 disabled:opacity-50">
+                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                              </button>
+                            </span>
+                          ) : (
+                            <button onClick={() => pickLogo(p)} disabled={logoBusy === p.id}
+                              className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark">
+                              {logoBusy === p.id ? t('admin.partners.logoUploading') : t('admin.partners.logoAdd')}
+                            </button>
+                          )}
                           <button onClick={() => setInviteFor(p)}
                             className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
                             {t('admin.partners.inviteAdmin')}
@@ -1090,6 +1155,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

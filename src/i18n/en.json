@@ -1752,7 +1752,13 @@
       "revokeInvite": "Revoke",
       "revokeConfirm": "Revoke the invitation sent to {{email}}? The link stops working immediately.",
       "revokeActive": "This account is already active — revoking an invitation no longer applies.",
-      "revokeFailed": "Could not revoke the invitation"
+      "revokeFailed": "Could not revoke the invitation",
+      "logoAdd": "Add logo",
+      "logoReplace": "Replace",
+      "logoRemove": "Remove logo",
+      "logoUploading": "Uploading…",
+      "logoFailed": "Could not save the logo",
+      "logoRemoveConfirm": "Remove the logo of {{name}}?"
     },
     "resources": {
       "title": "Resources storage",
