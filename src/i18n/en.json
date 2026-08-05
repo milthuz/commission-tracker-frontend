@@ -1701,7 +1701,7 @@
         "relink": "Change linked customer",
         "unlink": "Unlink",
         "linkFor": "Link \"{{name}}\" to a customer",
-        "linkHint": "Search for the real, invoiced Sales Hub customer this opportunity became. Payout eligibility is checked against that customer's paid invoices.",
+        "linkHint": "Record which invoiced Sales Hub customer this opportunity became. Bookkeeping only: payout eligibility comes from the deal's deposit date in Zoho, not from this link.",
         "linkSearchPh": "Search customer name…",
         "linkSearchHint": "Type at least 2 characters to search.",
         "linkNoResults": "No matching customers found.",

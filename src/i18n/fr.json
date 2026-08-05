@@ -1701,7 +1701,7 @@
         "relink": "Changer le client lié",
         "unlink": "Délier",
         "linkFor": "Lier « {{name}} » à un client",
-        "linkHint": "Recherchez le vrai client facturé de Sales Hub que cette occasion est devenue. L'éligibilité au paiement est vérifiée par rapport aux factures payées de ce client.",
+        "linkHint": "Notez quel client facturé de Sales Hub cette occasion est devenue. Tenue de compte seulement : l'éligibilité au paiement dépend de la date de dépôt du deal dans Zoho, pas de ce rattachement.",
         "linkSearchPh": "Rechercher un nom de client…",
         "linkSearchHint": "Tapez au moins 2 caractères pour rechercher.",
         "linkNoResults": "Aucun client correspondant trouvé.",
