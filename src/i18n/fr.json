@@ -1736,7 +1736,13 @@
         "fPeriod": "Étiquette de période",
         "fPeriodPh": "ex. 2026-T3",
         "fAmount": "Montant total ($)",
-        "fOpportunities": "Occasions incluses ({{count}} sélectionnée(s))"
+        "fOpportunities": "Occasions incluses ({{count}} sélectionnée(s))",
+        "dealAmbiguous": "Deal ambigu",
+        "dealAmbiguousHint": "Plusieurs deals portent ce nom d'entreprise dans Zoho — aucun n'est retenu, verser sur le mauvais serait pire que ne rien verser. Renomme-en un ou fusionne-les dans Zoho.",
+        "dealNotFound": "Deal introuvable",
+        "dealNotFoundHint": "Aucun deal Zoho ne porte ce nom d'entreprise. Vérifie le nom du deal après la conversion du lead — Zoho permet de le renommer.",
+        "awaitingDeposit": "En attente de la date de dépôt dans Zoho (champ « Deposit Information Received »)",
+        "depositOn": "Date de dépôt : {{date}}"
       },
       "deletePartner": "Supprimer",
       "deleteConfirm": "Supprimer le partenaire « {{name}} » ? Cette action est irréversible.",

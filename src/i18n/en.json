@@ -1736,7 +1736,13 @@
         "fPeriod": "Period label",
         "fPeriodPh": "e.g. 2026-Q3",
         "fAmount": "Total amount ($)",
-        "fOpportunities": "Opportunities included ({{count}} selected)"
+        "fOpportunities": "Opportunities included ({{count}} selected)",
+        "dealAmbiguous": "Ambiguous deal",
+        "dealAmbiguousHint": "Several deals share this business name in Zoho — none is picked, since paying against the wrong one would be worse than not paying. Rename or merge them in Zoho.",
+        "dealNotFound": "Deal not found",
+        "dealNotFoundHint": "No Zoho deal carries this business name. Check the deal name after the lead conversion — Zoho allows renaming it.",
+        "awaitingDeposit": "Waiting on the deposit date in Zoho (\"Deposit Information Received\" field)",
+        "depositOn": "Deposit date: {{date}}"
       },
       "deletePartner": "Delete",
       "deleteConfirm": "Delete the partner \"{{name}}\"? This cannot be undone.",

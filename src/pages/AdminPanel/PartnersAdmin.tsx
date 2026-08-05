@@ -34,10 +34,16 @@ interface Opportunity {
   crmMatchRecords: CrmMatch[];
   crmLeadId: string | null;
   crmLeadError: string | null;
-  // SH-40/41 — set once the partner manager manually links this opportunity to the real,
-  // invoiced Sales Hub customer it became (see recomputePartnerPayoutStatus's comment).
+  // SH-40/41 — tenue de compte de l'admin. ⚠️ Ne commande PLUS l'éligibilité au versement depuis
+  // le 2026-08-05 : c'est la date de dépôt du Deal Zoho qui décide (voir crmDepositDate).
   linkedCustomerName: string | null;
   payoutStatus: 'not_eligible' | 'eligible' | 'in_run' | 'paid';
+  // Ce qui commande réellement le versement, et pourquoi il peut rester bloqué.
+  // `crmDealLookup` = les deux SEULS cas où une vente réelle n'aboutit pas : plusieurs deals
+  // homonymes (aucun n'est retenu, verser sur le mauvais serait pire) ou aucun deal à ce nom.
+  crmDepositDate: string | null;
+  crmDealStage: string | null;
+  crmDealLookup: 'ambiguous' | 'not_found' | null;
 }
 interface PendingPartnerPayout {
   partnerId: number; partnerName: string; payoutRate: number | null; suggestedAmount: number | null;
@@ -737,22 +743,31 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
                             <div className="mt-1 text-xs text-danger" title={o.crmLeadError}>⚠ {t('admin.partners.crm.leadFailed')}</div>
                           )}
                           {o.status === 'approved' && (
-                            <div className="mt-1 flex items-center gap-1">
+                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                              {/* Le statut de versement s'affiche TOUJOURS : il ne dépend plus du
+                                  rattachement client, donc le conditionner à celui-ci cachait
+                                  l'information à ceux qui en avaient le plus besoin. L'infobulle
+                                  dit ce qu'on attend — une date, ou rien. */}
+                              <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${PAYOUT_BADGE[o.payoutStatus]}`}
+                                title={(o.crmDepositDate
+                                  ? t('admin.partners.payout.depositOn', { date: new Date(o.crmDepositDate).toLocaleDateString(i18n.language) })
+                                  : t('admin.partners.payout.awaitingDeposit')) as string}>
+                                {t(`admin.partners.payout.status.${o.payoutStatus}`)}
+                              </span>
+                              {/* Les deux SEULS cas où une vente réelle reste bloquée. Sans les
+                                  nommer, « non éligible » est indistinguable d'une attente normale
+                                  et personne ne sait qu'il faut intervenir dans Zoho. */}
+                              {o.payoutStatus === 'not_eligible' && o.crmDealLookup && (
+                                <span className="whitespace-nowrap rounded-full bg-danger/15 px-2 py-0.5 text-[11px] font-semibold text-danger"
+                                  title={t(`admin.partners.payout.${o.crmDealLookup === 'ambiguous' ? 'dealAmbiguousHint' : 'dealNotFoundHint'}`) as string}>
+                                  ⚠ {t(`admin.partners.payout.${o.crmDealLookup === 'ambiguous' ? 'dealAmbiguous' : 'dealNotFound'}`)}
+                                </span>
+                              )}
                               {o.linkedCustomerName ? (
-                                <>
-                                  <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${PAYOUT_BADGE[o.payoutStatus]}`}
-                                    title={o.linkedCustomerName}>
-                                    {t(`admin.partners.payout.status.${o.payoutStatus}`)}
-                                  </span>
-                                  {o.payoutStatus === 'not_eligible' && (
-                                    <button onClick={() => openLinking(o)} title={t('admin.partners.payout.relink') as string}
-                                      className="flex h-4 w-4 items-center justify-center text-gray-400 hover:text-primary">
-                                      <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9.5L21 5m0 0v5m0-5h-5" />
-                                      </svg>
-                                    </button>
-                                  )}
-                                </>
+                                <button onClick={() => openLinking(o)} title={`${o.linkedCustomerName} — ${t('admin.partners.payout.relink')}`}
+                                  className="inline-block max-w-[140px] truncate text-[11px] text-gray-400 hover:text-primary hover:underline">
+                                  🔗 {o.linkedCustomerName}
+                                </button>
                               ) : (
                                 <button onClick={() => openLinking(o)}
                                   className="whitespace-nowrap text-[11px] font-medium text-primary hover:underline">
