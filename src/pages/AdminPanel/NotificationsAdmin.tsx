@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
@@ -81,17 +82,7 @@ function RecipientPicker({
 
       {/* Add controls: pick a known user OR type a manual address */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <select
-          value=""
-          onChange={(e) => { if (e.target.value) add(e.target.value); }}
-          className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white sm:w-64">
-          <option value="">{t('admin.notifications.pickUser')}</option>
-          {available.map((u) => (
-            <option key={u.email} value={u.email}>
-              {u.displayName ? `${u.displayName} — ${u.email}` : u.email}
-            </option>
-          ))}
-        </select>
+        <Select value="" onChange={(v) => { if (v) add(v); }} options={available.map((u) => ({ value: u.email, label: u.displayName ? `${u.displayName} · ${u.email}` : u.email }))} placeholder={t('admin.notifications.pickUser') as string} className="sm:w-64" buttonClassName={'w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white'} />
         <div className="flex grow gap-2">
           <input
             value={manual}
