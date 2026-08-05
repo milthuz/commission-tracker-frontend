@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
@@ -359,9 +360,7 @@ const HardwareAdmin: React.FC = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <label className="flex flex-col gap-1">
                     <span className="text-xs font-semibold uppercase text-gray-400">{t('admin.hardware.fCat')}</span>
-                    <select value={form.catId} onChange={(e) => setF('catId', e.target.value)} className={inputCls}>
-                      {categories.map((c) => <option key={c.id} value={c.id}>{catLabel(c.id)}</option>)}
-                    </select>
+                    <Select value={form.catId} onChange={(v) => setF('catId', v)} options={categories.map((c) => ({ value: String(c.id), label: catLabel(c.id) }))} buttonClassName={inputCls} />
                   </label>
                   <label className="flex flex-col gap-1"><span className="text-xs font-semibold uppercase text-gray-400">{t('admin.hardware.fPrice')}</span><input value={form.price} onChange={(e) => setF('price', e.target.value)} placeholder="$0" className={inputCls} /></label>
                 </div>
