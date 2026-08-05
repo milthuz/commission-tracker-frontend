@@ -751,7 +751,8 @@
     "localeEn": "English",
     "inviteLocaleHint": "Language of the invitation email",
     "poweredBy": "Powered by",
-    "sortByDate": "Sort by date"
+    "sortByDate": "Sort by date",
+    "dealBadge": "Deal"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",

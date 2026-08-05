@@ -20,6 +20,8 @@ interface Opportunity {
   // stage in Zoho CRM, so the partner can track their deal without seeing internal review data.
   assignedRepName: string | null;
   leadStage: string | null;
+  dealStage?: string | null;
+  depositDate?: string | null;
   leadConverted: boolean;
   // Admin-only (see the "By team member" breakdown below) — a Standard user's own name on every
   // row would just be redundant, so the column is hidden for them rather than the data withheld.
@@ -271,7 +273,14 @@ const PartnerPortal: React.FC = () => {
                         </td>
                         <td className="px-4 py-3 text-body">{o.assignedRepName || '—'}</td>
                         <td className="px-4 py-3 text-body">
-                          {o.leadConverted ? (
+                          {o.dealStage ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">
+                                {t('partnerPortal.dealBadge')}
+                              </span>
+                              <span className="text-black dark:text-white">{o.dealStage}</span>
+                            </span>
+                          ) : o.leadConverted ? (
                             <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-success">{t('partnerPortal.leadConverted')}</span>
                           ) : o.leadStage || '—'}
                         </td>

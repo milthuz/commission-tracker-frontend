@@ -751,7 +751,8 @@
     "localeEn": "Anglais",
     "inviteLocaleHint": "Langue du courriel d'invitation",
     "poweredBy": "Propulsé par",
-    "sortByDate": "Trier par date"
+    "sortByDate": "Trier par date",
+    "dealBadge": "Deal"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",
