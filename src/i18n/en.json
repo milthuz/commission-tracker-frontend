@@ -1767,7 +1767,25 @@
       "logoUploading": "Uploading…",
       "logoFailed": "Could not save the logo",
       "logoRemoveConfirm": "Remove the logo of {{name}}?",
-      "logoLabel": "Partner logo"
+      "logoLabel": "Partner logo",
+      "queue": {
+        "colPartner": "Partner",
+        "colDuplicates": "Zoho duplicates",
+        "colDeal": "Deal stage",
+        "colReason": "Rejection reason",
+        "allPartners": "All partners",
+        "dupOn": "{{count}} on {{fields}}",
+        "on": {
+          "name": "name",
+          "email": "email",
+          "phone": "phone"
+        },
+        "viewInZoho": "View in Zoho",
+        "reviewedBy": "Reviewed by",
+        "pageInfo": "{{from}}–{{to}} of {{total}}",
+        "prev": "Previous",
+        "next": "Next"
+      }
     },
     "resources": {
       "title": "Resources storage",

@@ -1767,7 +1767,25 @@
       "logoUploading": "Téléversement…",
       "logoFailed": "Impossible d'enregistrer le logo",
       "logoRemoveConfirm": "Retirer le logo de {{name}} ?",
-      "logoLabel": "Logo du partenaire"
+      "logoLabel": "Logo du partenaire",
+      "queue": {
+        "colPartner": "Partenaire",
+        "colDuplicates": "Doublons Zoho",
+        "colDeal": "Étape du deal",
+        "colReason": "Raison du refus",
+        "allPartners": "Tous les partenaires",
+        "dupOn": "{{count}} sur {{fields}}",
+        "on": {
+          "name": "le nom",
+          "email": "le courriel",
+          "phone": "le téléphone"
+        },
+        "viewInZoho": "Voir dans Zoho",
+        "reviewedBy": "Révisé par",
+        "pageInfo": "{{from}}–{{to}} sur {{total}}",
+        "prev": "Précédent",
+        "next": "Suivant"
+      }
     },
     "resources": {
       "title": "Stockage des ressources",

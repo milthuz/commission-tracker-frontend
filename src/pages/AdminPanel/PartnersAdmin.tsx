@@ -17,6 +17,9 @@ interface Partner {
 }
 interface CrmMatch {
   module: 'Leads' | 'Contacts' | 'Accounts'; id: string; name: string; company: string | null;
+  // Sur QUOI la fiche a matche (nom / courriel / telephone), fusionne quand plusieurs criteres
+  // trouvent la meme fiche. Absent des verifications faites avant le 2026-08-05.
+  matchedOn?: ('name' | 'email' | 'phone')[];
   phone: string | null; email: string | null; city: string | null; crmUrl: string | null;
 }
 interface Opportunity {
@@ -313,11 +316,197 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
     rejected: allOpportunities.filter((o) => o.status === 'rejected').length,
     all: allOpportunities.length,
   };
+  // Filtre partenaire + tri par date + pagination (2026-08-05). La liste des partenaires vient des
+  // opportunites elles-memes, pas de la table `partners` : on ne propose que des partenaires qui
+  // ont effectivement quelque chose dans la file, et le filtre ne peut pas pointer dans le vide.
+  const [partnerFilter, setPartnerFilter] = useState('');
+  const [dateSort, setDateSort] = useState<'desc' | 'asc'>('desc');
+  const [page, setPage] = useState(0);
+  const QUEUE_PAGE_SIZE = 50;
+  const partnerNames = [...new Set(allOpportunities.map((o) => o.partnerName))].sort((a, b) => a.localeCompare(b));
+  // Nom -> fiche partenaire, pour afficher le logo quand il y en a un (convention du projet :
+  // le logo seul s'il existe, le nom sinon).
+  const partnerByName = new Map(partners.map((p) => [p.name, p]));
+
   const searchLower = queueSearch.trim().toLowerCase();
-  const opportunities = allOpportunities.filter((o) =>
-    (statusFilter === 'all' || o.status === statusFilter)
-    && (!searchLower || o.businessName.toLowerCase().includes(searchLower) || o.partnerName.toLowerCase().includes(searchLower))
-  );
+  const filteredQueue = allOpportunities
+    .filter((o) =>
+      (statusFilter === 'all' || o.status === statusFilter)
+      && (!partnerFilter || o.partnerName === partnerFilter)
+      && (!searchLower || o.businessName.toLowerCase().includes(searchLower) || o.partnerName.toLowerCase().includes(searchLower))
+    )
+    // `filter` a deja produit un nouveau tableau, donc trier en place ne touche pas l'etat.
+    .sort((a, b) => (dateSort === 'desc' ? 1 : -1) * (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+  const queueTotal = filteredQueue.length;
+  const opportunities = filteredQueue.slice(page * QUEUE_PAGE_SIZE, (page + 1) * QUEUE_PAGE_SIZE);
+  // Changer de filtre en etant page 3 laissait un tableau vide sans explication.
+  useEffect(() => { setPage(0); }, [statusFilter, queueSearch, partnerFilter]);
+
+  // Les colonnes SUIVENT la vue : reviser, suivre et archiver ne demandent pas les memes
+  // informations, et tout empiler dans une colonne « Zoho CRM » fourre-tout la rendait illisible.
+  const QUEUE_COLS: Record<typeof statusFilter, string[]> = {
+    pending:  ['partner', 'business', 'duplicates', 'submitted'],
+    approved: ['partner', 'business', 'deal', 'payout', 'submitted'],
+    rejected: ['partner', 'business', 'reason', 'submitted'],
+    all:      ['partner', 'business', 'state', 'submitted'],
+  };
+  const cols = QUEUE_COLS[statusFilter];
+  const COL_LABEL: Record<string, string> = {
+    partner:    t('admin.partners.queue.colPartner') as string,
+    business:   t('partnerPortal.colBusinessContact') as string,
+    duplicates: t('admin.partners.queue.colDuplicates') as string,
+    deal:       t('admin.partners.queue.colDeal') as string,
+    payout:     t('partnerPortal.colPayout') as string,
+    reason:     t('admin.partners.queue.colReason') as string,
+    state:      t('partnerPortal.colStatus') as string,
+    submitted:  t('partnerPortal.colSubmitted') as string,
+  };
+
+  // Une cellule par cle de colonne, ecrite UNE fois : les quatre vues partagent ce rendu, donc
+  // corriger « Entreprise / contact » le corrige partout, au lieu de quatre tableaux a maintenir.
+  const dupFieldLabel = (f: string) => t(`admin.partners.queue.on.${f}`) as string;
+  const renderQueueCell = (o: Opportunity, c: string) => {
+    switch (c) {
+      case 'partner': {
+        // Convention du projet : le logo SEUL quand il existe, le nom sinon.
+        const p = partnerByName.get(o.partnerName);
+        return p?.hasLogo ? (
+          <img src={`${API_URL}/api/partner-portal/organization/logo/${p.id}?v=${logoV}`}
+            alt={o.partnerName} title={o.partnerName}
+            className="h-6 w-auto max-w-[110px] object-contain object-left" />
+        ) : (
+          <span className="whitespace-nowrap text-xs font-medium text-black dark:text-white">{o.partnerName}</span>
+        );
+      }
+      case 'business': {
+        const who = [o.contactFirstName, o.contactLastName].filter(Boolean).join(' ');
+        const contact = [who, o.contactEmail].filter(Boolean).join(' · ');
+        return (
+          <div className="leading-tight">
+            <div className="max-w-[210px] truncate font-medium text-black dark:text-white" title={o.businessName}>{o.businessName}</div>
+            {contact && <div className="max-w-[210px] truncate text-[11px] text-gray-400" title={contact}>{contact}</div>}
+            {o.submittedByEmail && (
+              <div className="max-w-[210px] truncate text-[11px] text-gray-400"
+                title={`${t('admin.partners.colSubmittedBy')} : ${o.submittedByEmail}`}>↳ {o.submittedByEmail}</div>
+            )}
+          </div>
+        );
+      }
+      case 'duplicates': {
+        // SUR QUOI ca a matche, pas seulement combien : « 30 sur le courriel » est du bruit (adresse
+        // partagee ou de test), « 1 sur le nom d'entreprise » est un vrai risque de doublon.
+        // Les fiches verifiees avant 2026-08-05 n'ont pas ce detail : on retombe alors sur l'ancien
+        // libelle plutot que d'afficher une phrase trouee.
+        const fields = [...new Set((o.crmMatchRecords || []).flatMap((m) => m.matchedOn || []))];
+        return (
+          <div className="flex items-center gap-1">
+            {o.crmMatchStatus === 'match_found' && (
+              <button onClick={() => setViewingMatches(o)}
+                className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning hover:bg-warning/25">
+                ⚠ {fields.length
+                  ? t('admin.partners.queue.dupOn', { count: o.crmMatchRecords.length, fields: fields.map(dupFieldLabel).join(' + ') })
+                  : t('admin.partners.crm.matchFoundShort', { count: o.crmMatchRecords.length })}
+              </button>
+            )}
+            {o.crmMatchStatus === 'no_match' && (
+              <span className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.noMatch')}</span>
+            )}
+            {o.crmMatchStatus === 'check_failed' && (
+              <span className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.checkFailed')}</span>
+            )}
+            {!o.crmMatchStatus && <span className="whitespace-nowrap text-xs text-gray-400">{t('admin.partners.crm.notChecked')}</span>}
+            {o.status === 'pending' && (
+              <button onClick={() => recheckCrm(o)} disabled={checkingCrmId === o.id}
+                title={(o.crmMatchStatus ? t('admin.partners.crm.recheck') : t('admin.partners.crm.check')) as string}
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-primary hover:bg-primary/10 disabled:opacity-50">
+                {checkingCrmId === o.id ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                ) : (
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4.5 9a7.5 7.5 0 0113-4.5M19.5 15a7.5 7.5 0 01-13 4.5" />
+                  </svg>
+                )}
+              </button>
+            )}
+          </div>
+        );
+      }
+      case 'deal':
+        return (
+          <div className="leading-tight">
+            <div className="whitespace-nowrap text-body">{o.crmDealStage || '—'}</div>
+            {/* 19 chiffres bruts ne disaient rien : l'identifiant devient un lien vers la fiche. */}
+            {o.crmLeadId && (
+              <a href={`https://crm.zoho.com/crm/tab/Leads/${o.crmLeadId}`} target="_blank" rel="noreferrer"
+                title={t('admin.partners.crm.leadCreated', { id: o.crmLeadId }) as string}
+                className="whitespace-nowrap text-[11px] text-primary hover:underline">{t('admin.partners.queue.viewInZoho')}</a>
+            )}
+            {o.crmLeadError && (
+              <div className="whitespace-nowrap text-[11px] text-danger" title={o.crmLeadError}>⚠ {t('admin.partners.crm.leadFailed')}</div>
+            )}
+          </div>
+        );
+      case 'payout':
+        return (
+          <div className="flex flex-wrap items-center gap-1">
+            <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${PAYOUT_BADGE[o.payoutStatus]}`}
+              title={(o.crmDepositDate
+                ? t('admin.partners.payout.depositOn', { date: new Date(o.crmDepositDate).toLocaleDateString(i18n.language) })
+                : t('admin.partners.payout.awaitingDeposit')) as string}>
+              {t(`admin.partners.payout.status.${o.payoutStatus}`)}
+            </span>
+            {o.payoutStatus === 'not_eligible' && o.crmDealLookup && (
+              <span className="whitespace-nowrap rounded-full bg-danger/15 px-2 py-0.5 text-[11px] font-semibold text-danger"
+                title={t(`admin.partners.payout.${o.crmDealLookup === 'ambiguous' ? 'dealAmbiguousHint' : 'dealNotFoundHint'}`) as string}>
+                ⚠ {t(`admin.partners.payout.${o.crmDealLookup === 'ambiguous' ? 'dealAmbiguous' : 'dealNotFound'}`)}
+              </span>
+            )}
+            {o.linkedCustomerName ? (
+              <button onClick={() => openLinking(o)} title={`${o.linkedCustomerName} — ${t('admin.partners.payout.relink')}`}
+                className="inline-block max-w-[140px] truncate text-[11px] text-gray-400 hover:text-primary hover:underline">
+                🔗 {o.linkedCustomerName}
+              </button>
+            ) : (
+              <button onClick={() => openLinking(o)}
+                className="whitespace-nowrap text-[11px] font-medium text-primary hover:underline">
+                🔗 {t('admin.partners.payout.linkButton')}
+              </button>
+            )}
+          </div>
+        );
+      case 'reason':
+        return o.rejectionReason
+          ? <div className="max-w-[260px] text-[11px] leading-tight text-gray-400">{o.rejectionReason}</div>
+          : <span className="text-gray-400">—</span>;
+      case 'state':
+        return (
+          <div className="flex flex-wrap items-center gap-1">
+            <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[o.status]}`}>{t(`partnerPortal.status.${o.status}`)}</span>
+            {o.status === 'approved' && (
+              <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${PAYOUT_BADGE[o.payoutStatus]}`}>
+                {t(`admin.partners.payout.status.${o.payoutStatus}`)}
+              </span>
+            )}
+          </div>
+        );
+      case 'submitted':
+        return (
+          <div className="leading-tight">
+            <div className="whitespace-nowrap tabular-nums text-body">
+              {new Date(o.createdAt).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit' })}
+            </div>
+            {/* Le reviseur sortait de la colonne « Actions », ou il n'etait pas une action. */}
+            {o.status !== 'pending' && o.reviewedBy && (
+              <div className="ml-auto max-w-[170px] truncate text-[11px] text-gray-400"
+                title={`${t('admin.partners.queue.reviewedBy')} : ${o.reviewedBy}`}>{o.reviewedBy}</div>
+            )}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   useEffect(() => { if (sub === 'queue') fetchQueue(); }, [sub]);
 
   const [rejecting, setRejecting] = useState<Opportunity | null>(null);
@@ -663,9 +852,25 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
               </button>
             ))}
           </div>
-          <input value={queueSearch} onChange={(e) => setQueueSearch(e.target.value)}
-            placeholder={t('admin.partners.searchPh') as string}
-            className="w-full max-w-xs rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+          {/* Barre de filtres en carte pleine largeur : selecteurs a gauche, recherche qui
+              s'etire. Le filtre partenaire n'apparait que s'il y a plus d'un partenaire dans la
+              file — un selecteur a un seul choix n'est pas un filtre, c'est du decor. */}
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-stroke bg-white p-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+            {partnerNames.length > 1 && (
+              <Select
+                value={partnerFilter}
+                onChange={(v) => setPartnerFilter(v)}
+                options={[
+                  { value: '', label: t('admin.partners.queue.allPartners') as string },
+                  ...partnerNames.map((n) => ({ value: n, label: n })),
+                ]}
+                buttonClassName="w-full min-w-[200px] rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white sm:w-auto"
+              />
+            )}
+            <input value={queueSearch} onChange={(e) => setQueueSearch(e.target.value)}
+              placeholder={t('admin.partners.searchPh') as string}
+              className="min-w-[200px] flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+          </div>
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             {loadingQueue ? (
               <div className="flex h-24 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
@@ -673,110 +878,37 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
               <div className="p-8 text-center text-sm text-body">{t('admin.partners.noOpportunities')}</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full min-w-[820px] text-sm">
                   <thead>
                     <tr className="border-b border-stroke dark:border-strokedark">
-                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colBusiness')}</th>
-                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colContact')}</th>
-                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colStatus')}</th>
-                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.crm.title')}</th>
-                      <th className="sticky right-0 bg-white px-4 py-3 text-right font-semibold text-black dark:bg-boxdark dark:text-white">{t('common.actions')}</th>
+                      {cols.map((c) => (
+                        <th key={c} className={`px-3 py-2.5 align-bottom text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 ${
+                          c === 'submitted' ? 'w-full text-right' : 'text-left'
+                        }`}>
+                          {c === 'submitted' ? (
+                            <button type="button" onClick={() => setDateSort((d) => (d === 'desc' ? 'asc' : 'desc'))}
+                              title={t('partnerPortal.sortByDate') as string}
+                              className="inline-flex items-center gap-1 font-semibold uppercase hover:text-primary">
+                              {COL_LABEL[c]}
+                              <svg className={`h-3 w-3 transition-transform ${dateSort === 'asc' ? 'rotate-180' : ''}`}
+                                fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                          ) : COL_LABEL[c]}
+                        </th>
+                      ))}
+                      <th className="sticky right-0 bg-white px-3 py-2.5 text-right align-bottom text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-boxdark dark:text-gray-400">{t('common.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {opportunities.map((o) => (
                       <tr key={o.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
-                        <td className="px-4 py-3">
-                          <div className="text-xs text-gray-400">{o.partnerName}</div>
-                          <div className="font-medium text-black dark:text-white">{o.businessName}</div>
-                        </td>
-                        <td className="px-4 py-3 text-body">
-                          {[o.contactFirstName, o.contactLastName].filter(Boolean).join(' ') || '—'}
-                          {o.contactEmail && <div className="text-xs text-gray-400">{o.contactEmail}</div>}
-                          {o.submittedByEmail && (
-                            <div className="mt-1 text-xs text-gray-400" title={t('admin.partners.colSubmittedBy') as string}>
-                              ↳ {o.submittedByEmail}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[o.status]}`}>{t(`partnerPortal.status.${o.status}`)}</span>
-                          {o.status === 'rejected' && o.rejectionReason && <div className="mt-1 text-xs text-gray-400">{o.rejectionReason}</div>}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center gap-1">
-                            {o.crmMatchStatus === 'match_found' && (
-                              <button onClick={() => setViewingMatches(o)}
-                                className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-warning/15 px-2.5 py-0.5 text-xs font-semibold text-warning hover:bg-warning/25">
-                                ⚠ {t('admin.partners.crm.matchFoundShort', { count: o.crmMatchRecords.length })}
-                              </button>
-                            )}
-                            {o.crmMatchStatus === 'no_match' && (
-                              <span className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.noMatch')}</span>
-                            )}
-                            {o.crmMatchStatus === 'check_failed' && (
-                              <span className="whitespace-nowrap rounded-full bg-gray-2 px-2.5 py-0.5 text-xs font-semibold text-gray-500 dark:bg-meta-4">{t('admin.partners.crm.checkFailed')}</span>
-                            )}
-                            {!o.crmMatchStatus && (
-                              <span className="whitespace-nowrap text-xs text-gray-400">{t('admin.partners.crm.notChecked')}</span>
-                            )}
-                            {o.status === 'pending' && (
-                              <button onClick={() => recheckCrm(o)} disabled={checkingCrmId === o.id}
-                                title={(o.crmMatchStatus ? t('admin.partners.crm.recheck') : t('admin.partners.crm.check')) as string}
-                                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-primary hover:bg-primary/10 disabled:opacity-50">
-                                {checkingCrmId === o.id ? (
-                                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                ) : (
-                                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h5M20 20v-5h-5M4.5 9a7.5 7.5 0 0113-4.5M19.5 15a7.5 7.5 0 01-13 4.5" />
-                                  </svg>
-                                )}
-                              </button>
-                            )}
-                          </div>
-                          {o.crmLeadId && (
-                            <div className="mt-1 flex items-center gap-1 text-xs text-success" title={t('admin.partners.crm.leadCreated', { id: o.crmLeadId }) as string}>
-                              ✓ {o.crmLeadId}
-                            </div>
-                          )}
-                          {o.crmLeadError && (
-                            <div className="mt-1 text-xs text-danger" title={o.crmLeadError}>⚠ {t('admin.partners.crm.leadFailed')}</div>
-                          )}
-                          {o.status === 'approved' && (
-                            <div className="mt-1 flex flex-wrap items-center gap-1">
-                              {/* Le statut de versement s'affiche TOUJOURS : il ne dépend plus du
-                                  rattachement client, donc le conditionner à celui-ci cachait
-                                  l'information à ceux qui en avaient le plus besoin. L'infobulle
-                                  dit ce qu'on attend — une date, ou rien. */}
-                              <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${PAYOUT_BADGE[o.payoutStatus]}`}
-                                title={(o.crmDepositDate
-                                  ? t('admin.partners.payout.depositOn', { date: new Date(o.crmDepositDate).toLocaleDateString(i18n.language) })
-                                  : t('admin.partners.payout.awaitingDeposit')) as string}>
-                                {t(`admin.partners.payout.status.${o.payoutStatus}`)}
-                              </span>
-                              {/* Les deux SEULS cas où une vente réelle reste bloquée. Sans les
-                                  nommer, « non éligible » est indistinguable d'une attente normale
-                                  et personne ne sait qu'il faut intervenir dans Zoho. */}
-                              {o.payoutStatus === 'not_eligible' && o.crmDealLookup && (
-                                <span className="whitespace-nowrap rounded-full bg-danger/15 px-2 py-0.5 text-[11px] font-semibold text-danger"
-                                  title={t(`admin.partners.payout.${o.crmDealLookup === 'ambiguous' ? 'dealAmbiguousHint' : 'dealNotFoundHint'}`) as string}>
-                                  ⚠ {t(`admin.partners.payout.${o.crmDealLookup === 'ambiguous' ? 'dealAmbiguous' : 'dealNotFound'}`)}
-                                </span>
-                              )}
-                              {o.linkedCustomerName ? (
-                                <button onClick={() => openLinking(o)} title={`${o.linkedCustomerName} — ${t('admin.partners.payout.relink')}`}
-                                  className="inline-block max-w-[140px] truncate text-[11px] text-gray-400 hover:text-primary hover:underline">
-                                  🔗 {o.linkedCustomerName}
-                                </button>
-                              ) : (
-                                <button onClick={() => openLinking(o)}
-                                  className="whitespace-nowrap text-[11px] font-medium text-primary hover:underline">
-                                  🔗 {t('admin.partners.payout.linkButton')}
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </td>
+                        {cols.map((c) => (
+                          <td key={c} className={`px-3 py-2 align-top ${c === 'submitted' ? 'text-right' : ''}`}>
+                            {renderQueueCell(o, c)}
+                          </td>
+                        ))}
                         <td className="sticky right-0 bg-white px-4 py-3 text-right dark:bg-boxdark">
                           <div className="flex items-center justify-end gap-1.5">
                             {o.status === 'pending' ? (
@@ -790,7 +922,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
                                   {t('admin.partners.reject')}
                                 </button>
                               </>
-                            ) : <span className="text-xs text-gray-400">{o.reviewedBy}</span>}
+                            ) : null}
                             <button onClick={() => deleteOpportunity(o)} disabled={deletingId === o.id}
                               title={t('common.delete') as string}
                               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-stroke text-body hover:border-danger hover:text-danger disabled:opacity-60 dark:border-strokedark">
@@ -804,6 +936,33 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+            {/* Pagination cote client : la file entiere est deja chargee (les compteurs des quatre
+                cartes en dependent), on ne fait que decouper l'affichage. La recherche porte donc
+                sur TOUT, pas seulement sur la page visible — l'inverse serait un piege.
+                ⚠️ Plafond de cette approche : quelques milliers de lignes. Au-dela il faudra
+                paginer cote serveur, et deplacer la recherche avec. */}
+            {queueTotal > QUEUE_PAGE_SIZE && (
+              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stroke px-4 py-3 dark:border-strokedark">
+                <span className="text-xs text-body">
+                  {t('admin.partners.queue.pageInfo', {
+                    from: page * QUEUE_PAGE_SIZE + 1,
+                    to: Math.min((page + 1) * QUEUE_PAGE_SIZE, queueTotal),
+                    total: queueTotal,
+                  })}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setPage((n) => Math.max(0, n - 1))} disabled={page === 0}
+                    className="rounded-md border border-stroke px-3 py-1 text-xs font-medium text-body hover:border-primary hover:text-primary disabled:opacity-40 dark:border-strokedark">
+                    {t('admin.partners.queue.prev')}
+                  </button>
+                  <button onClick={() => setPage((n) => n + 1)}
+                    disabled={(page + 1) * QUEUE_PAGE_SIZE >= queueTotal}
+                    className="rounded-md border border-stroke px-3 py-1 text-xs font-medium text-body hover:border-primary hover:text-primary disabled:opacity-40 dark:border-strokedark">
+                    {t('admin.partners.queue.next')}
+                  </button>
+                </div>
               </div>
             )}
           </div>
