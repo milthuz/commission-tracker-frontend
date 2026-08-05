@@ -597,6 +597,7 @@
       "payouts": "Paiements"
     },
     "colBusiness": "Entreprise",
+    "colBusinessContact": "Entreprise / contact",
     "colContact": "Contact",
     "colStatus": "Statut",
     "colAssignedRep": "Représentant assigné",
@@ -606,9 +607,9 @@
     "colSubmittedBy": "Soumis par",
     "colPayout": "Paiement",
     "payoutStatus": {
-      "not_eligible": "Pas encore éligible",
-      "eligible": "Éligible au paiement",
-      "in_run": "Dans un run de paiement",
+      "not_eligible": "Non éligible",
+      "eligible": "Éligible",
+      "in_run": "Dans un run",
       "paid": "Payé"
     },
     "payouts": {

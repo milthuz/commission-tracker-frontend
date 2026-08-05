@@ -597,6 +597,7 @@
       "payouts": "Payouts"
     },
     "colBusiness": "Business",
+    "colBusinessContact": "Business / contact",
     "colContact": "Contact",
     "colStatus": "Status",
     "colAssignedRep": "Assigned rep",
@@ -606,9 +607,9 @@
     "colSubmittedBy": "Submitted by",
     "colPayout": "Payout",
     "payoutStatus": {
-      "not_eligible": "Not eligible yet",
-      "eligible": "Eligible for payout",
-      "in_run": "In payout run",
+      "not_eligible": "Not eligible",
+      "eligible": "Eligible",
+      "in_run": "In a run",
       "paid": "Paid"
     },
     "payouts": {

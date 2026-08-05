@@ -242,14 +242,14 @@ const PartnerPortal: React.FC = () => {
                   <thead>
                     <tr className="border-b border-stroke dark:border-strokedark">
                       {[
-                        'colBusiness', 'colContact', ...(isAdmin ? ['colSubmittedBy'] : []),
+                        'colBusinessContact', ...(isAdmin ? ['colSubmittedBy'] : []),
                         'colStatus', 'colAssignedRep', 'colLeadStage', ...(isAdmin ? ['colPayout'] : []),
                       ].map((k) => (
-                        <th key={k} className="px-3 py-2.5 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        <th key={k} className="px-2.5 py-2.5 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                           {t(`partnerPortal.${k}`)}
                         </th>
                       ))}
-                      <th className="w-full px-3 py-2.5 align-bottom text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      <th className="w-full px-2.5 py-2.5 align-bottom text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                         <button
                           type="button"
                           onClick={() => setDateSort((d) => (d === 'desc' ? 'asc' : 'desc'))}
@@ -268,32 +268,36 @@ const PartnerPortal: React.FC = () => {
                   <tbody>
                     {filteredOpportunities.map((o) => (
                       <tr key={o.id} className="border-b border-stroke last:border-0 hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/40">
-                        {/* Les deux colonnes de texte libre sont TRONQUEES, pas mises en
-                            `nowrap` : un nom d'entreprise long imposait 245 px a lui seul et
-                            poussait le tableau a 1353 px, donc a defiler sur un portable. Valeur
-                            complete au survol. Les cellules courtes (badges, noms de
-                            representants, date) restent en `nowrap` : c'est la que le retour a la
-                            ligne etait absurde. */}
-                        <td className="px-3 py-2 font-medium text-black dark:text-white">
-                          <div className="max-w-[190px] truncate" title={o.businessName}>{o.businessName}</div>
-                        </td>
-                        <td className="px-3 py-2 leading-tight text-body">
-                          <div className="max-w-[170px] truncate" title={[o.contactFirstName, o.contactLastName].filter(Boolean).join(' ')}>
-                            {[o.contactFirstName, o.contactLastName].filter(Boolean).join(' ') || '—'}
+                        {/* Entreprise ET contact dans une seule cellule : ce sont deux facettes du
+                            meme interlocuteur, et la ligne faisait DEJA deux lignes de haut a
+                            cause du courriel — la colonne « Contact » separee coutait 214 px pour
+                            zero ligne supplementaire. C'est ce qui fait tenir le tableau sans
+                            barre de defilement horizontale.
+                            Les textes libres sont tronques (valeur complete au survol) plutot que
+                            mis en `nowrap` : un nom d'entreprise long imposait 245 px a lui seul.
+                            Les cellules courtes (badges, representant, date) restent en `nowrap` :
+                            c'est la que le retour a la ligne etait absurde. */}
+                        <td className="px-2.5 py-2 leading-tight">
+                          <div className="max-w-[210px] truncate font-medium text-black dark:text-white" title={o.businessName}>
+                            {o.businessName}
                           </div>
-                          {o.contactEmail && (
-                            <div className="max-w-[190px] truncate text-[11px] text-gray-400" title={o.contactEmail}>{o.contactEmail}</div>
-                          )}
+                          {(() => {
+                            const who = [o.contactFirstName, o.contactLastName].filter(Boolean).join(' ');
+                            const sub = [who, o.contactEmail].filter(Boolean).join(' · ');
+                            return sub ? (
+                              <div className="max-w-[210px] truncate text-[11px] text-gray-400" title={sub}>{sub}</div>
+                            ) : null;
+                          })()}
                         </td>
-                        {isAdmin && <td className="whitespace-nowrap px-3 py-2 text-body">{o.submittedByName || o.submittedByEmail || '—'}</td>}
-                        <td className="px-3 py-2">
+                        {isAdmin && <td className="whitespace-nowrap px-2.5 py-2 text-body">{o.submittedByName || o.submittedByEmail || '—'}</td>}
+                        <td className="px-2.5 py-2">
                           <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[o.status]}`}>{t(`partnerPortal.status.${o.status}`)}</span>
                           {/* Seul cas ou l'on accepte de faire grandir la ligne : un refus sans sa
                               raison obligerait a aller la chercher ailleurs. */}
                           {o.status === 'rejected' && o.rejectionReason && <div className="mt-1 max-w-[220px] text-[11px] leading-tight text-gray-400">{o.rejectionReason}</div>}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-2 text-body">{o.assignedRepName || '—'}</td>
-                        <td className="whitespace-nowrap px-3 py-2 text-body">
+                        <td className="whitespace-nowrap px-2.5 py-2 text-body">{o.assignedRepName || '—'}</td>
+                        <td className="whitespace-nowrap px-2.5 py-2 text-body">
                           {o.dealStage ? (
                             <span className="inline-flex items-center gap-1.5">
                               <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">
@@ -306,7 +310,7 @@ const PartnerPortal: React.FC = () => {
                           ) : o.leadStage || '—'}
                         </td>
                         {isAdmin && (
-                          <td className="px-3 py-2">
+                          <td className="px-2.5 py-2">
                             <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${PAYOUT_BADGE[o.payoutStatus]}`}>
                               {t(`partnerPortal.payoutStatus.${o.payoutStatus}`)}
                             </span>
@@ -314,7 +318,7 @@ const PartnerPortal: React.FC = () => {
                         )}
                         {/* Date compactee et alignee a droite : `8/5/2026` etait ambigu en FR comme
                             en EN, `05/08/26` suit la langue choisie dans l'app. */}
-                        <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-body">
+                        <td className="whitespace-nowrap px-2.5 py-2 text-right tabular-nums text-body">
                           {new Date(o.createdAt).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit' })}
                         </td>
                       </tr>
