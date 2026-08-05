@@ -906,14 +906,7 @@ const SaasIncrease: React.FC = () => {
               <div className="flex items-center gap-2.5">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-primary dark:text-[#F79C6A]">{t('saasIncrease.activeScenario')}</span>
                 <div className="relative">
-                  <select
-                    value={activeScenarioId ?? ''}
-                    onChange={(e) => setActiveScenarioId(e.target.value ? Number(e.target.value) : null)}
-                    className="appearance-none rounded-full border border-orange-200 bg-white py-1.5 pl-3.5 pr-8 text-sm font-medium text-gray-900 outline-none dark:border-[#2a2320] dark:bg-[#0A0A0A] dark:text-white"
-                  >
-                    {scenarios.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-[#999AA7]" />
+                  <Select value={activeScenarioId != null ? String(activeScenarioId) : ''} onChange={(v) => setActiveScenarioId(v ? Number(v) : null)} options={scenarios.map((sc) => ({ value: String(sc.id), label: sc.name }))} buttonClassName={'rounded-full border border-orange-200 bg-white py-1.5 pl-3.5 pr-3 text-sm font-medium text-gray-900 outline-none dark:border-[#2a2320] dark:bg-[#0A0A0A] dark:text-white'} />
                 </div>
                 <button
                   type="button" onClick={() => deleteScenario(activeScenarioId)}
@@ -1382,13 +1375,7 @@ const SaasIncrease: React.FC = () => {
                       </button>
                       {templates.length > 0 && (
                         <>
-                          <select
-                            value={chosenTemplateId ?? ''}
-                            onChange={(e) => setGroupTemplateChoice(prev => ({ ...prev, [key]: Number(e.target.value) }))}
-                            className={`rounded-md px-2 py-1.5 text-xs ${chipInput}`}
-                          >
-                            {templates.map(tp => <option key={tp.id} value={tp.id}>{tp.name}</option>)}
-                          </select>
+                          <Select value={chosenTemplateId != null ? String(chosenTemplateId) : ''} onChange={(v) => setGroupTemplateChoice((prev) => ({ ...prev, [key]: Number(v) }))} options={templates.map((tp) => ({ value: String(tp.id), label: tp.name }))} buttonClassName={`rounded-md px-2 py-1.5 text-xs ${chipInput}`} />
                           <button
                             type="button"
                             onClick={() => draftNotifications(items.map(it => it.id), chosenTemplateId)}
