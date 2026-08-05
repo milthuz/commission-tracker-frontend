@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Select from '../../components/Select';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
@@ -281,17 +282,7 @@ const ECommerce: React.FC = () => {
             <h5 className="text-xl font-semibold text-black dark:text-white">
               {t('dashboard.monthlyRevenueTrend')}
             </h5>
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-              className="rounded-lg border border-stroke bg-white px-3 py-1.5 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white"
-            >
-              {/* Data starts Jan 2025 — list current year down to 2025 only */}
-              {[...Array(new Date().getFullYear() - 2024)].map((_, i) => {
-                const y = new Date().getFullYear() - i;
-                return <option key={y} value={y}>{y}</option>;
-              })}
-            </select>
+            <Select value={String(selectedYear)} onChange={(v) => setSelectedYear(parseInt(v))} options={[...Array(new Date().getFullYear() - 2024)].map((_, i) => { const y = new Date().getFullYear() - i; return { value: String(y), label: String(y) }; })} buttonClassName={'rounded-lg border border-stroke bg-white px-3 py-1.5 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white'} />
           </div>
           <div>
             <ReactApexChart
