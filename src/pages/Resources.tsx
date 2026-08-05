@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Select from '../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../lib/dialog';
@@ -714,11 +715,7 @@ const Resources: React.FC = () => {
                   className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
               )}
               <div className="grid grid-cols-2 gap-3">
-                <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white">
-                  <option value="">{t('resources.noCategory')}</option>
-                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <Select value={form.category} onChange={(v) => setForm({ ...form, category: v })} options={[{ value: '', label: t('resources.noCategory') as string }, ...categories.map((c) => ({ value: c, label: c }))]} buttonClassName={'rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white'} />
                 <input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder={t('resources.fTags') as string}
                   className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
               </div>
