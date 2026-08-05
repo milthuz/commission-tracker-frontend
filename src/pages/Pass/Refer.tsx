@@ -1,4 +1,5 @@
 import { useState, FormEvent } from 'react';
+import Select from '../../components/Select';
 import { Link } from 'react-router-dom';
 import { usePassAuth, PASS_TOKEN_KEY } from '../../context/PassAuthContext';
 import { PASS_API, PassMotion, useFmt, useTierName } from './passUi';
@@ -264,13 +265,7 @@ const Refer = () => {
                   <label htmlFor="r-prov" className={label}>{t('pass.form.fields.province')}</label>
                   {/* Liste FERMÉE de 13 entrées — « Canada seulement » est une règle
                       d'éligibilité, pas une ligne de copie, et le serveur la revalide. */}
-                  <select id="r-prov" required value={form.province} onChange={set('province')}
-                    className={`${field} ${bad('province')} appearance-none`}>
-                    <option value="" disabled />
-                    {PROVINCES.map((code) => (
-                      <option key={code} value={code}>{provinceName(code)}</option>
-                    ))}
-                  </select>
+                  <Select id="r-prov" required value={form.province} onChange={(v) => set('province')({ target: { value: v } })} options={PROVINCES.map((code) => ({ value: code, label: provinceName(code) }))} placeholder="" buttonClassName={`${field} ${bad('province')}`} />
                 </div>
                 <div>
                   <label htmlFor="r-postal" className={label}>{t('pass.form.fields.postal')}</label>
@@ -287,11 +282,7 @@ const Refer = () => {
 
               <div className="mt-4">
                 <label htmlFor="r-lang" className={label}>{t('pass.form.fields.langPref')}</label>
-                <select id="r-lang" value={form.contactLocale} onChange={set('contactLocale')}
-                  className={`${field} ${bad('contactLocale')} appearance-none`}>
-                  <option value="fr-CA">Français</option>
-                  <option value="en-CA">English</option>
-                </select>
+                <Select id="r-lang" value={form.contactLocale} onChange={(v) => set('contactLocale')({ target: { value: v } })} options={[{ value: 'fr-CA', label: 'Français' }, { value: 'en-CA', label: 'English' }]} buttonClassName={`${field} ${bad('contactLocale')}`} />
               </div>
 
               <div className="mt-4">

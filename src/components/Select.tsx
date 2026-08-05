@@ -51,9 +51,19 @@ const Select: React.FC<{
    * serait imprévisible. Mieux vaut ne pas mettre les deux en présence.
    */
   buttonClassName?: string;
+  /**
+   * Sur bureau, le composant est un BOUTON : il ne participe donc pas à la validation
+   * native du formulaire. Là où `required` était la seule barrière avant envoi — c'est le
+   * cas du formulaire de recommandation de La Passe, qui ne vérifie côté client que le
+   * consentement — le perdre ferait passer un champ vide jusqu'au serveur, et l'erreur
+   * remonterait après l'envoi au lieu de bloquer le bouton.
+   *
+   * D'où un champ caché, synchronisé sur la valeur, qui rend la barrière au navigateur.
+   */
+  required?: boolean;
   id?: string;
   'aria-label'?: string;
-}> = ({ value, onChange, options, className = '', disabled, placeholder, buttonClassName, id, ...aria }) => {
+}> = ({ value, onChange, options, className = '', disabled, placeholder, buttonClassName, required, id, ...aria }) => {
   const isDesktop = useIsDesktop();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
@@ -139,6 +149,7 @@ const Select: React.FC<{
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
+        required={required}
         className={`${skin} ${className}`}
       >
         {placeholder && <option value="">{placeholder}</option>}
@@ -151,6 +162,16 @@ const Select: React.FC<{
 
   return (
     <div ref={boxRef} className={`relative ${className}`}>
+      {required && (
+        <input
+          tabIndex={-1}
+          aria-hidden="true"
+          required
+          value={value}
+          onChange={() => {}}
+          className="absolute bottom-0 left-1/2 h-px w-px -translate-x-1/2 opacity-0"
+        />
+      )}
       <button
         type="button"
         id={id}
