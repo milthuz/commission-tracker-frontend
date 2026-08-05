@@ -584,8 +584,8 @@
   },
   "partnerPortal": {
     "title": "Partner Portal",
-    "loginTagline": "Grow together with Sales Hub",
-    "loginTaglineSub": "Submit opportunities and track their status, all in one place.",
+    "loginTagline": "Your referrals, rewarded",
+    "loginTaglineSub": "Submit an opportunity, follow its progress and your payouts — all in one place.",
     "loginSubtitle": "Sign in to your Partner Portal account",
     "inviteFor": "for {{partner}}",
     "loadError": "Couldn't load your opportunities.",

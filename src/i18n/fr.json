@@ -584,8 +584,8 @@
   },
   "partnerPortal": {
     "title": "Portail partenaire",
-    "loginTagline": "Grandissons ensemble avec Sales Hub",
-    "loginTaglineSub": "Soumettez des occasions d’affaires et suivez leur statut, tout au même endroit.",
+    "loginTagline": "Vos références, récompensées",
+    "loginTaglineSub": "Soumettez une occasion d’affaires, suivez son avancement et vos versements — au même endroit.",
     "loginSubtitle": "Connectez-vous à votre compte du Portail partenaire",
     "inviteFor": "pour {{partner}}",
     "loadError": "Impossible de charger vos occasions d’affaires.",
