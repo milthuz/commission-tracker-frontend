@@ -1785,6 +1785,25 @@
         "pageInfo": "{{from}}–{{to}} sur {{total}}",
         "prev": "Précédent",
         "next": "Suivant"
+      },
+      "migration": {
+        "title": "Reprise de l’ancien portail",
+        "hint": "Dépose le fichier de migration préparé hors ligne. La simulation exécute les vraies requêtes dans une transaction annulée : elle n’écrit rien, mais le rapport est exact. « Appliquer » ne s’ouvre qu’après une simulation réussie du même fichier. L’opération est réexécutable sans créer de doublon.",
+        "pick": "Choisir le fichier…",
+        "simulate": "Simuler",
+        "simulating": "Simulation…",
+        "apply": "Appliquer",
+        "applying": "Application…",
+        "needSimulation": "Simule d’abord ce fichier",
+        "applyConfirm": "Appliquer la migration pour de vrai ? Les lignes seront créées en production. L’opération est réexécutable sans doublon, mais rien ne les supprimera automatiquement.",
+        "dryRunNotice": "Simulation — rien n’a été écrit",
+        "done": "Appliqué",
+        "usersLine": "Usagers du portail",
+        "oppsLine": "Opportunités",
+        "counts": "{{created}} créé(s) · {{already}} déjà présent(s) · {{refused}} écarté(s)",
+        "attributed": "Attribuées à leur auteur",
+        "refusedTitle": "Écartés ({{count}})",
+        "notInvited": "Importé, non invité"
       }
     },
     "resources": {

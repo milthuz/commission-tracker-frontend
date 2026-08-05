@@ -70,7 +70,7 @@ const PAYOUT_BADGE: Record<string, string> = {
   paid: 'bg-primary text-white',
 };
 
-const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
+const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = ({ canDelete, canMigrate }) => {
   const { t, i18n } = useTranslation();
   // Landing on this page is the Opportunity Queue "dashboard" (user request 2026-07-2x) — Manage
   // Partners is reached either via the in-page tab or the Sidebar's "Manage Partners" submenu
@@ -686,6 +686,36 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
     finally { setRunningActionId(null); }
   };
 
+
+  // --- Reprise de l'ancien portail (permission `partners:migrate`, invisible sans elle).
+  // La transformation des exports Zoho est faite hors ligne ; cet ecran ne fait que porter la
+  // charge utile deja normalisee, montrer ce qu'elle produirait, puis l'appliquer.
+  const [migFile, setMigFile] = useState<File | null>(null);
+  const [migReport, setMigReport] = useState<any>(null);
+  const [migBusy, setMigBusy] = useState<'' | 'dry' | 'apply'>('');
+  // « Appliquer » n'est ouvert qu'apres une simulation REUSSIE du MEME fichier : changer de fichier
+  // remet le verrou. Sans ca, on pourrait ecrire 850 lignes sans avoir rien verifie.
+  const [migSimulatedFor, setMigSimulatedFor] = useState<string>('');
+  const migInput = useRef<HTMLInputElement>(null);
+
+  const runMigration = async (dryRun: boolean) => {
+    if (!migFile) return;
+    setMigBusy(dryRun ? 'dry' : 'apply');
+    setMigReport(null);
+    try {
+      const payload = JSON.parse(await migFile.text());
+      const r = await axios.post(`${API_URL}/api/admin/partner-migration`, { ...payload, dryRun },
+        { headers: authHeaders() });
+      setMigReport(r.data);
+      if (dryRun) setMigSimulatedFor(migFile.name + ':' + migFile.size);
+      else { setMigSimulatedFor(''); await fetchPartners(); await fetchQueue(); }
+    } catch (e: any) {
+      const d = e?.response?.data;
+      dialog.alert(d?.error || e?.message || 'Migration failed');
+      if (d?.report) setMigReport(d.report);
+    } finally { setMigBusy(''); }
+  };
+
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
 
   return (
@@ -810,6 +840,9 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
                         <td className="px-4 py-3">
                           <span className="text-black dark:text-white">{iv.email}</span>
                           {iv.role === 'admin' && <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{t('partnerPortal.roleAdmin')}</span>}
+                          {/* Repris de l'ancien portail et JAMAIS invite : sans cette pastille, la
+                              ligne se lisait comme une invitation en attente qui n'existe pas. */}
+                          {iv.status === 'imported' && <span className="ml-2 rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-semibold uppercase text-gray-500 dark:bg-meta-4">{t('admin.partners.migration.notInvited')}</span>}
                           {expired && <span className="ml-2 rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-danger">{t('admin.partners.inviteExpired')}</span>}
                         </td>
                         <td className="whitespace-nowrap px-4 py-3"><Step at={iv.invitedAt} /></td>
@@ -832,6 +865,75 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
             </div>
           )}
         </div>
+          {canMigrate && (
+            <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partners.migration.title')}</h3>
+              <p className="mb-4 max-w-3xl text-xs text-body">{t('admin.partners.migration.hint')}</p>
+              <input ref={migInput} type="file" accept="application/json,.json" className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0] || null; e.target.value = '';
+                  setMigFile(f); setMigReport(null); setMigSimulatedFor('');
+                }} />
+              <div className="flex flex-wrap items-center gap-3">
+                <button onClick={() => migInput.current?.click()}
+                  className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
+                  {t('admin.partners.migration.pick')}
+                </button>
+                {migFile && <span className="text-xs text-body">{migFile.name} · {Math.round(migFile.size / 1024)} Ko</span>}
+                <button onClick={() => runMigration(true)} disabled={!migFile || !!migBusy}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                  {migBusy === 'dry' ? t('admin.partners.migration.simulating') : t('admin.partners.migration.simulate')}
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!await dialog.confirm(t('admin.partners.migration.applyConfirm') as string)) return;
+                    runMigration(false);
+                  }}
+                  disabled={!migFile || !!migBusy || migSimulatedFor !== migFile.name + ':' + migFile.size}
+                  title={migFile && migSimulatedFor !== migFile.name + ':' + migFile.size
+                    ? (t('admin.partners.migration.needSimulation') as string) : undefined}
+                  className="rounded-lg bg-success px-4 py-2 text-sm font-semibold text-green-900 hover:bg-opacity-90 disabled:opacity-40">
+                  {migBusy === 'apply' ? t('admin.partners.migration.applying') : t('admin.partners.migration.apply')}
+                </button>
+              </div>
+              {migReport && (
+                <div className="mt-4 rounded-lg border border-stroke p-4 dark:border-strokedark">
+                  <div className={`mb-3 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                    migReport.dryRun ? 'bg-warning/15 text-warning' : 'bg-success/15 text-green-700 dark:text-success'}`}>
+                    {t(migReport.dryRun ? 'admin.partners.migration.dryRunNotice' : 'admin.partners.migration.done')}
+                  </div>
+                  <div className="grid gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
+                    <div className="font-semibold text-black dark:text-white">{t('admin.partners.migration.usersLine')}</div>
+                    <div className="text-body">{t('admin.partners.migration.counts', {
+                      created: migReport.users?.created ?? 0, already: migReport.users?.alreadyThere ?? 0,
+                      refused: migReport.users?.refusedCount ?? 0 })}</div>
+                    <div className="font-semibold text-black dark:text-white">{t('admin.partners.migration.oppsLine')}</div>
+                    <div className="text-body">{t('admin.partners.migration.counts', {
+                      created: migReport.opportunities?.created ?? 0, already: migReport.opportunities?.alreadyThere ?? 0,
+                      refused: migReport.opportunities?.refusedCount ?? 0 })}</div>
+                    <div className="font-semibold text-black dark:text-white">{t('admin.partners.migration.attributed')}</div>
+                    <div className="text-body">{migReport.opportunities?.attributed ?? 0}</div>
+                  </div>
+                  {/* Les refus sont montres, jamais avales : une ligne ecartee en silence est une
+                      ligne qu'on croit importee. */}
+                  {[['users', migReport.users], ['opportunities', migReport.opportunities]].map(([k, sec]: any) => (
+                    (sec?.refused?.length > 0) && (
+                      <div key={k} className="mt-3">
+                        <div className="mb-1 text-[11px] font-bold uppercase text-danger">
+                          {t('admin.partners.migration.refusedTitle', { count: sec.refusedCount ?? sec.refused.length })}
+                        </div>
+                        <ul className="max-h-40 overflow-y-auto text-[11px] text-body">
+                          {sec.refused.map((r: any, i: number) => (
+                            <li key={i}>· {r.key || r.email || '?'} — {r.why}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -966,6 +1068,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
               </div>
             )}
           </div>
+
         </div>
       )}
 

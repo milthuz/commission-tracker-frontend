@@ -1785,6 +1785,25 @@
         "pageInfo": "{{from}}–{{to}} of {{total}}",
         "prev": "Previous",
         "next": "Next"
+      },
+      "migration": {
+        "title": "Legacy portal import",
+        "hint": "Drop in the migration file prepared offline. The simulation runs the real queries inside a rolled-back transaction: it writes nothing, yet the report is exact. “Apply” only unlocks after a successful simulation of the same file. The operation can be re-run without creating duplicates.",
+        "pick": "Choose file…",
+        "simulate": "Simulate",
+        "simulating": "Simulating…",
+        "apply": "Apply",
+        "applying": "Applying…",
+        "needSimulation": "Simulate this file first",
+        "applyConfirm": "Apply the migration for real? Rows will be created in production. It can be re-run without duplicates, but nothing will remove them automatically.",
+        "dryRunNotice": "Simulation — nothing was written",
+        "done": "Applied",
+        "usersLine": "Portal users",
+        "oppsLine": "Opportunities",
+        "counts": "{{created}} created · {{already}} already there · {{refused}} skipped",
+        "attributed": "Attributed to their author",
+        "refusedTitle": "Skipped ({{count}})",
+        "notInvited": "Imported, not invited"
       }
     },
     "resources": {
