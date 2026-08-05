@@ -562,21 +562,7 @@ const CommissionTracker: React.FC = () => {
                             </td>
                             <td className="px-6 py-3">
                               {isAdmin && editingDealSource === deal.crm_deal_id ? (
-                                <select
-                                  autoFocus
-                                  value={deal.lead_source_group || ''}
-                                  onChange={(e) => { overrideDealSource(deal.crm_deal_id, e.target.value); setEditingDealSource(null); }}
-                                  onBlur={() => setEditingDealSource(null)}
-                                  className="rounded border border-primary bg-transparent px-2 py-1 text-xs outline-none dark:bg-form-input text-black dark:text-white"
-                                >
-                                  <option value="">—</option>
-                                  {(data.leadSourceGroups || []).map(g => (
-                                    <option key={g} value={g}>{g}</option>
-                                  ))}
-                                  {deal.lead_source_group && !(data.leadSourceGroups || []).includes(deal.lead_source_group) && (
-                                    <option value={deal.lead_source_group}>{deal.lead_source_group}</option>
-                                  )}
-                                </select>
+                                <Select autoOpen onClose={() => setEditingDealSource(null)} value={deal.lead_source_group || ''} onChange={(v) => { overrideDealSource(deal.crm_deal_id, v); setEditingDealSource(null); }} options={[{ value: '', label: '—' }, ...(data.leadSourceGroups || []).map((g) => ({ value: g, label: g }))]} buttonClassName={'rounded border border-primary bg-transparent px-2 py-1 text-xs outline-none dark:bg-form-input text-black dark:text-white'} />
                               ) : (
                                 <span className="inline-flex items-center gap-1.5">
                                   <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getSourceBadgeColor(deal.lead_source_group)}`}>

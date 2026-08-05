@@ -61,11 +61,23 @@ const Select: React.FC<{
    * D'où un champ caché, synchronisé sur la valeur, qui rend la barrière au navigateur.
    */
   required?: boolean;
+  /**
+   * Ouvre la liste dès l'apparition. Pour les éditeurs EN LIGNE : on clique sur une
+   * valeur dans un tableau, le menu doit s'ouvrir tout de suite — exiger un second clic
+   * transformerait une correction rapide en corvée.
+   */
+  autoOpen?: boolean;
+  /**
+   * Appelé quand la liste se referme sans choix — clic ailleurs, Échap, perte de focus.
+   * C'est ce qui permet à l'appelant de replier son éditeur en ligne : sans ça, il
+   * resterait ouvert et vide après un abandon.
+   */
+  onClose?: () => void;
   id?: string;
   'aria-label'?: string;
-}> = ({ value, onChange, options, className = '', disabled, placeholder, buttonClassName, required, id, ...aria }) => {
+}> = ({ value, onChange, options, className = '', disabled, placeholder, buttonClassName, required, autoOpen, onClose, id, ...aria }) => {
   const isDesktop = useIsDesktop();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!autoOpen);
   const [active, setActive] = useState(0);
   const boxRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -78,7 +90,7 @@ const Select: React.FC<{
   useEffect(() => {
     if (!open) return;
     const away = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) { setOpen(false); onClose?.(); }
     };
     document.addEventListener('mousedown', away);
     return () => document.removeEventListener('mousedown', away);
@@ -91,6 +103,9 @@ const Select: React.FC<{
     const el = listRef.current.children[active] as HTMLElement | undefined;
     el?.scrollIntoView({ block: 'nearest' });
   }, [open, active]);
+
+  const btnRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => { if (autoOpen) btnRef.current?.focus(); }, [autoOpen]);
 
   const openAt = () => {
     const i = options.findIndex((o) => o.value === value);
@@ -127,7 +142,7 @@ const Select: React.FC<{
     else if (e.key === 'Home') { e.preventDefault(); setActive(0); }
     else if (e.key === 'End') { e.preventDefault(); setActive(options.length - 1); }
     else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(active); }
-    else if (e.key === 'Escape' || e.key === 'Tab') { setOpen(false); }
+    else if (e.key === 'Escape' || e.key === 'Tab') { setOpen(false); onClose?.(); }
     else if (e.key.length === 1) {
       // Frappe rapide : le natif saute à l'entrée qui commence par ce qu'on tape, et les
       // gens s'en servent sans y penser. Une liste maison qui l'oublie paraît cassée.
@@ -161,7 +176,16 @@ const Select: React.FC<{
   }
 
   return (
-    <div ref={boxRef} className={`relative ${className}`}>
+    <div
+      ref={boxRef}
+      className={`relative ${className}`}
+      onBlur={(e) => {
+        // Uniquement pour un editeur en ligne : ailleurs, perdre le focus ne doit pas
+        // refermer un menu qu'on vient d'ouvrir a la souris.
+        if (!autoOpen) return;
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setOpen(false); onClose?.(); }
+      }}
+    >
       {required && (
         <input
           tabIndex={-1}
@@ -174,6 +198,7 @@ const Select: React.FC<{
       )}
       <button
         type="button"
+        ref={btnRef}
         id={id}
         {...aria}
         role="combobox"
