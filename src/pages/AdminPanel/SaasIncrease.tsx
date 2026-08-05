@@ -1039,11 +1039,9 @@ const SaasIncrease: React.FC = () => {
           </div>
           <div className="relative">
             <Select value={orgFilter} onChange={(v) => setOrgFilter(v)} options={orgs.map((o) => ({ value: String(o.id), label: o.name }))} placeholder={t('saasIncrease.allOrgs') as string} buttonClassName={`${chipInput} py-2.5 pl-3 pr-8 text-sm`} />
-            <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textTer}`} />
           </div>
           <div className="relative">
             <Select value={planFilter} onChange={(v) => setPlanFilter(v)} options={plans.map((p) => ({ value: p, label: p }))} placeholder={t('saasIncrease.allPlans') as string} buttonClassName={`${chipInput} py-2.5 pl-3 pr-8 text-sm`} />
-            <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textTer}`} />
           </div>
           <div className="relative">
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} className={`appearance-none ${chipInput} py-2.5 pl-3 pr-8 text-sm`}>
