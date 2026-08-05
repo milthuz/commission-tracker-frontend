@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Select from '../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -854,44 +855,15 @@ const CommissionReport = () => {
         <div className="flex flex-col gap-2 rounded-lg border border-stroke bg-white p-3 shadow-default dark:border-strokedark dark:bg-boxdark md:flex-row md:items-center">
           {/* Rep Selector (Admin only) */}
           {canViewOthers && salespeople.length > 0 && (
-            <select
-              value={selectedRep}
-              onChange={(e) => setSelectedRep(e.target.value)}
-              className="w-full rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:w-52"
-            >
-              {isSalesperson && <option value="">{t('commissionReport.myReport')}</option>}
-              {salespeople.map(rep => (
-                <option key={rep} value={rep}>{rep}</option>
-              ))}
-            </select>
+            <Select value={selectedRep} onChange={(v) => setSelectedRep(v)} options={[...(isSalesperson ? [{ value: '', label: t('commissionReport.myReport') as string }] : []), ...salespeople.map((rep) => ({ value: rep, label: rep }))]} buttonClassName={'w-full rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:w-52'} />
           )}
 
           <div className="flex gap-2">
             {/* Month Selector */}
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:flex-none"
-            >
-              <option value="all">All Months</option>
-              {MONTH_NAMES.map((name, i) => (
-                <option key={i} value={i + 1}>{name}</option>
-              ))}
-            </select>
+            <Select value={selectedMonth} onChange={(v) => setSelectedMonth(v)} options={[{ value: 'all', label: 'All Months' }, ...MONTH_NAMES.map((name, i) => ({ value: String(i + 1), label: name }))]} buttonClassName={'flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:flex-none'} />
 
             {/* Year Selector */}
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:flex-none"
-            >
-              {/* Data starts Jan 2025 — list current year down to 2025, minus admin-disabled years */}
-              {Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i)
-                .filter(y => !disabledYears.includes(y))
-                .map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-            </select>
+            <Select value={selectedYear} onChange={(v) => setSelectedYear(v)} options={Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i).filter((y) => !disabledYears.includes(y)).map((y) => ({ value: String(y), label: String(y) }))} buttonClassName={'flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:flex-none'} />
           </div>
 
           {/* Client / invoice search — stretches to fill the bar */}
