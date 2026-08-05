@@ -226,7 +226,7 @@ const Select: React.FC<{
           // `w-full` collait la liste a la largeur du bouton : des libelles plus longs que lui
           // s'y retrouvaient comprimes. `min-w-full w-max` la laisse s'elargir au contenu,
           // avec un plafond pour qu'un libelle aberrant ne traverse pas la page.
-          className="absolute z-[9999] mt-1 max-h-60 min-w-full w-max max-w-[min(24rem,80vw)] overflow-y-auto rounded border border-stroke bg-white py-1 shadow-default dark:border-strokedark dark:bg-boxdark"
+          className="absolute z-[9999] mt-1 max-h-60 min-w-full w-max max-w-[min(24rem,80vw)] overflow-y-auto thin-scrollbar rounded border border-stroke bg-white py-1 shadow-default dark:border-strokedark dark:bg-boxdark"
         >
           {options.map((o, i) => (
             <li
