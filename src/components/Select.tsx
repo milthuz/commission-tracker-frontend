@@ -177,7 +177,10 @@ const Select: React.FC<{
           ref={listRef}
           role="listbox"
           tabIndex={-1}
-          className="absolute z-[9999] mt-1 max-h-60 w-full overflow-y-auto rounded border border-stroke bg-white py-1 shadow-default dark:border-strokedark dark:bg-boxdark"
+          // `w-full` collait la liste a la largeur du bouton : des libelles plus longs que lui
+          // s'y retrouvaient comprimes. `min-w-full w-max` la laisse s'elargir au contenu,
+          // avec un plafond pour qu'un libelle aberrant ne traverse pas la page.
+          className="absolute z-[9999] mt-1 max-h-60 min-w-full w-max max-w-[min(24rem,80vw)] overflow-y-auto rounded border border-stroke bg-white py-1 shadow-default dark:border-strokedark dark:bg-boxdark"
         >
           {options.map((o, i) => (
             <li
@@ -186,7 +189,7 @@ const Select: React.FC<{
               aria-selected={o.value === value}
               onMouseEnter={() => setActive(i)}
               onMouseDown={(e) => { e.preventDefault(); pick(i); }}
-              className={`cursor-pointer px-4 py-2 text-sm ${
+              className={`cursor-pointer whitespace-nowrap px-4 py-2 text-sm ${
                 o.disabled
                   ? 'cursor-not-allowed text-gray-400'
                   : i === active

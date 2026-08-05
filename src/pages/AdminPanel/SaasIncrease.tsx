@@ -1044,13 +1044,7 @@ const SaasIncrease: React.FC = () => {
             <Select value={planFilter} onChange={(v) => setPlanFilter(v)} options={plans.map((p) => ({ value: p, label: p }))} placeholder={t('saasIncrease.allPlans') as string} buttonClassName={`${chipInput} py-2.5 pl-3 pr-8 text-sm`} />
           </div>
           <div className="relative">
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)} className={`appearance-none ${chipInput} py-2.5 pl-3 pr-8 text-sm`}>
-              <option value="name">{t('saasIncrease.sortName')}</option>
-              <option value="oldest">{t('saasIncrease.sortOldest')}</option>
-              <option value="newest">{t('saasIncrease.sortNewest')}</option>
-              <option value="mrr">{t('saasIncrease.sortMrr')}</option>
-            </select>
-            <ChevronDown className={`pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textTer}`} />
+            <Select value={sortBy} onChange={(v) => setSortBy(v as SortBy)} options={[{ value: "name", label: t('saasIncrease.sortName') as string }, { value: "oldest", label: t('saasIncrease.sortOldest') as string }, { value: "newest", label: t('saasIncrease.sortNewest') as string }, { value: "mrr", label: t('saasIncrease.sortMrr') as string }]} buttonClassName={`${chipInput} py-2.5 pl-3 pr-8 text-sm`} />
           </div>
           {/* Group view — hides groups you've already fully applied an increase to, so the list
               shrinks as you work instead of growing into a long scroll. */}
