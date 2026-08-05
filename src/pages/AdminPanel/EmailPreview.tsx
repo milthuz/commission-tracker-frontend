@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
@@ -63,19 +64,12 @@ export default function EmailPreview() {
         <div className="mb-5 flex flex-wrap items-end gap-4">
           <div>
             <label className={labelCls}>{t('admin.emailPreview.template')}</label>
-            <select className={selectCls} value={type} onChange={(e) => setType(e.target.value as TemplateType)}>
-              {TEMPLATE_TYPES.map((ty) => (
-                <option key={ty} value={ty}>{t(`admin.emailPreview.types.${ty}`)}</option>
-              ))}
-            </select>
+            <Select buttonClassName={selectCls} value={type} onChange={(v) => setType(v as TemplateType)} options={TEMPLATE_TYPES.map((ty) => ({ value: ty, label: t(`admin.emailPreview.types.${ty}`) as string }))} />
           </div>
 
           <div>
             <label className={labelCls}>{t('admin.emailPreview.language')}</label>
-            <select className={selectCls} value={lang} onChange={(e) => setLang(e.target.value as 'fr' | 'en')}>
-              <option value="fr">Français</option>
-              <option value="en">English</option>
-            </select>
+            <Select buttonClassName={selectCls} value={lang} onChange={(v) => setLang(v as 'fr' | 'en')} options={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} />
           </div>
 
           <div className="grow">
