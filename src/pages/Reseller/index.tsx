@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
@@ -155,42 +156,17 @@ function FilterBar({
     <div className="mb-6 flex flex-wrap items-end gap-4">
       <div>
         <label className={labelCls}>{t('reseller.filters.year')}</label>
-        <select className={selectCls} value={filter.year} onChange={(e) => setFilter({ ...filter, year: e.target.value })}>
-          <option value="all">{t('reseller.filters.all')}</option>
-          {years.map((y) => (
-            <option key={y} value={String(y)}>
-              {y}
-            </option>
-          ))}
-        </select>
+        <Select buttonClassName={selectCls} value={filter.year} onChange={(v) => setFilter({ ...filter, year: v })} options={[{ value: 'all', label: t('reseller.filters.all') as string }, ...years.map((y) => ({ value: String(y), label: String(y) }))]} />
       </div>
 
       <div>
         <label className={labelCls}>{t('reseller.filters.month')}</label>
-        <select className={selectCls} value={filter.month} onChange={(e) => setFilter({ ...filter, month: e.target.value })}>
-          <option value="all">{t('reseller.filters.allMonths')}</option>
-          {months.map((m) => (
-            <option key={m.value} value={m.value}>
-              {m.label.charAt(0).toUpperCase() + m.label.slice(1)}
-            </option>
-          ))}
-        </select>
+        <Select buttonClassName={selectCls} value={filter.month} onChange={(v) => setFilter({ ...filter, month: v })} options={[{ value: 'all', label: t('reseller.filters.allMonths') as string }, ...months.map((m) => ({ value: m.value, label: m.label.charAt(0).toUpperCase() + m.label.slice(1) }))]} />
       </div>
 
       <div>
         <label className={labelCls}>{t('reseller.filters.reseller')}</label>
-        <select
-          className={selectCls}
-          value={filter.reseller}
-          onChange={(e) => setFilter({ ...filter, reseller: e.target.value })}
-        >
-          <option value="all">{t('reseller.filters.all')}</option>
-          {resellers.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
+        <Select buttonClassName={selectCls} value={filter.reseller} onChange={(v) => setFilter({ ...filter, reseller: v })} options={[{ value: 'all', label: t('reseller.filters.all') as string }, ...resellers.map((r) => ({ value: r, label: r }))]} />
       </div>
 
       <div className="relative ml-auto">
