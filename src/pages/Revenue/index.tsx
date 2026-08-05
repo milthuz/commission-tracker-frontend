@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
@@ -315,16 +316,11 @@ export default function Revenue() {
               <div className="mb-6 flex flex-wrap items-end gap-4">
                 <div>
                   <label className={labelCls}>{t('revenue.filters.year')}</label>
-                  <select className={selectCls} value={year} onChange={(e) => setYear(Number(e.target.value))}>
-                    {years.map((y) => (<option key={y} value={y}>{y}</option>))}
-                  </select>
+                  <Select buttonClassName={selectCls} value={String(year)} onChange={(v) => setYear(Number(v))} options={years.map((y) => ({ value: String(y), label: String(y) }))} />
                 </div>
                 <div>
                   <label className={labelCls}>{t('revenue.filters.month')}</label>
-                  <select className={selectCls} value={filter.month} onChange={(e) => setFilter({ ...filter, month: e.target.value })}>
-                    <option value="all">{t('revenue.filters.allMonths')}</option>
-                    {months.map((m) => (<option key={m.value} value={m.value}>{m.label.charAt(0).toUpperCase() + m.label.slice(1)}</option>))}
-                  </select>
+                  <Select buttonClassName={selectCls} value={filter.month} onChange={(v) => setFilter({ ...filter, month: v })} options={[{ value: 'all', label: t('revenue.filters.allMonths') as string }, ...months.map((m) => ({ value: m.value, label: m.label.charAt(0).toUpperCase() + m.label.slice(1) }))]} />
                 </div>
                 <div className="relative ml-auto">
                   <label className={labelCls}>{t('revenue.filters.search')}</label>
