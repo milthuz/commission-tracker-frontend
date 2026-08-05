@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import Select from '../components/Select';
 import { useTranslation } from 'react-i18next';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 import PassLibraryAdmin from './PassLibraryAdmin';
@@ -193,16 +194,7 @@ const PassOps = () => {
           sélecteurs à gauche, recherche qui s'étire, jamais flottante à côté du titre. */}
       <div className="mb-5 rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex flex-wrap items-center gap-3">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="rounded border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4"
-          >
-            <option value="">{t('pass.ops.filters.all')}</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>{t(`pass.status.${s}`)}</option>
-            ))}
-          </select>
+          <Select value={status} onChange={(v) => setStatus(v)} options={[{ value: '', label: t('pass.ops.filters.all') as string }, ...STATUSES.map((st) => ({ value: st, label: t(`pass.status.${st}`) as string }))]} buttonClassName={'rounded border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4'} />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
