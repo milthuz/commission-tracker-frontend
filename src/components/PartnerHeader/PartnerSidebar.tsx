@@ -66,7 +66,7 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
     `group relative flex w-full items-center rounded-sm py-2.5 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
       collapsed ? 'justify-center px-2' : 'gap-2.5 px-4'
     } ${active ? 'bg-graydark dark:bg-meta-4' : ''}`;
-  const labelCls = collapsed ? 'sr-only' : '';
+  const labelCls = collapsed ? 'sr-only' : 'text-left';
 
   const RailTip = ({ label }: { label: string }) =>
     collapsed ? (
@@ -172,7 +172,7 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
                         collapsed ? 'justify-center px-2' : 'justify-between gap-2.5 px-4'
                       } ${pathname.startsWith('/partner-portal/team') || pathname.startsWith('/partner-portal/organization') ? 'bg-graydark dark:bg-meta-4' : ''}`}
                     >
-                      <div className={`flex items-center ${collapsed ? '' : 'gap-2.5'}`}>
+                      <div className={`flex min-w-0 items-center ${collapsed ? '' : 'gap-2.5'}`}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                           <circle cx="12" cy="12" r="3" />
                           <path d="M19 12a7 7 0 0 0-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.3-1.3L13.6 2h-3.2l-.4 2.5A7 7 0 0 0 7.7 5.8l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5.2 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.3 1.3l.4 2.5h3.2l.4-2.5a7 7 0 0 0 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z" />
