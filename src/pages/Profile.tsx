@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PasswordInput from '../components/PasswordInput';
 import Select from '../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -653,8 +654,8 @@ const Profile = () => {
                       <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
                         {t('profile.pin.current')}
                       </label>
-                      <input
-                        type="password" inputMode="numeric" value={currentPin}
+                      <PasswordInput
+                         inputMode="numeric" value={currentPin}
                         onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, ''))}
                         className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
                       />
@@ -664,8 +665,8 @@ const Profile = () => {
                     <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
                       {hasPin ? t('profile.pin.new') : t('profile.pin.set')}
                     </label>
-                    <input
-                      type="password" inputMode="numeric" value={newPin}
+                    <PasswordInput
+                       inputMode="numeric" value={newPin}
                       onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
                       placeholder="••••"
                       className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
@@ -675,8 +676,8 @@ const Profile = () => {
                     <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
                       {t('profile.pin.confirm')}
                     </label>
-                    <input
-                      type="password" inputMode="numeric" value={confirmPin}
+                    <PasswordInput
+                       inputMode="numeric" value={confirmPin}
                       onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
                       placeholder="••••"
                       className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
@@ -809,7 +810,7 @@ const Profile = () => {
               <>
                 <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('profile.twoFactor.resetTitle')}</h3>
                 <p className="mb-4 text-sm text-body">{t('profile.twoFactor.confirmPasswordFirst')}</p>
-                <input type="password" autoComplete="current-password"
+                <PasswordInput  autoComplete="current-password"
                   value={resetPassword} onChange={(e) => setResetPassword(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && resetPassword) submitResetPassword(); }}
                   placeholder={t('profile.currentPassword') as string}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PasswordInput from '../../components/PasswordInput';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
@@ -161,16 +162,16 @@ const PartnerProfile: React.FC = () => {
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.profile.currentPassword')}</label>
-                <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={inputCls} />
+                <PasswordInput  value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={inputCls} />
               </div>
               <div />
               <div>
                 <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.profile.newPassword')}</label>
-                <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputCls} />
+                <PasswordInput  value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputCls} />
               </div>
               <div>
                 <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.profile.confirmPassword')}</label>
-                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputCls} />
+                <PasswordInput  value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputCls} />
               </div>
             </div>
             {pwError && <p className="mt-3 text-sm text-danger">{pwError}</p>}
@@ -214,7 +215,7 @@ const PartnerProfile: React.FC = () => {
               <>
                 <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.resetTitle')}</h3>
                 <p className="mb-4 text-sm text-body">{t('partnerPortal.profile.twoFactor.confirmPasswordFirst')}</p>
-                <input type="password" autoComplete="current-password"
+                <PasswordInput  autoComplete="current-password"
                   value={resetPassword} onChange={(e) => setResetPassword(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && resetPassword) submitResetPassword(); }}
                   placeholder={t('partnerPortal.profile.currentPassword') as string}

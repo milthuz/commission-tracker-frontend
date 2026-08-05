@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import PasswordInput from '../../components/PasswordInput';
 import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
@@ -1643,8 +1644,8 @@ const SaasIncrease: React.FC = () => {
                     ) : (
                       <div>
                         <label className={`mb-1 block text-xs ${textTer}`}>{t('saasIncrease.push.pinLabel')}</label>
-                        <input
-                          type="password" inputMode="numeric" autoFocus value={pushModal.pin}
+                        <PasswordInput
+                           inputMode="numeric" autoFocus value={pushModal.pin}
                           onChange={(e) => setPushModal(m => m ? { ...m, pin: e.target.value.replace(/\D/g, '') } : m)}
                           className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`}
                         />
