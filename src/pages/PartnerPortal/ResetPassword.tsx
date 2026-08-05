@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PasswordInput from '../../components/PasswordInput';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import SalesHubLogo from '../../components/SalesHubLogo';
@@ -63,10 +64,10 @@ const PartnerResetPassword = () => {
               <h2 className="mb-2 text-center text-2xl font-bold text-black dark:text-white">{t('auth.reset.title')}</h2>
               <p className="mb-8 text-center text-sm text-body">{t('auth.reset.subtitle')}</p>
               <form onSubmit={submit} className="space-y-4">
-                <input type="password" required value={pw1} autoComplete="new-password"
+                <PasswordInput  required value={pw1} autoComplete="new-password"
                   onChange={(e) => setPw1(e.target.value)}
                   placeholder={t('auth.invite.choosePassword') as string} className={inputCls} />
-                <input type="password" required value={pw2} autoComplete="new-password"
+                <PasswordInput  required value={pw2} autoComplete="new-password"
                   onChange={(e) => setPw2(e.target.value)}
                   placeholder={t('auth.invite.confirmPassword') as string} className={inputCls} />
                 <p className="text-xs text-body">{t('auth.invite.pwHint')}</p>

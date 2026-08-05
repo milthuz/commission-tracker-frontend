@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PasswordInput from '../../components/PasswordInput';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -146,8 +147,8 @@ const ZohoLogin = () => {
                   placeholder={t('auth.email') as string}
                   className={inputCls}
                 />
-                <input
-                  type="password" required value={password} autoComplete="current-password"
+                <PasswordInput
+                   required value={password} autoComplete="current-password"
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t('auth.password') as string}
                   className={inputCls}

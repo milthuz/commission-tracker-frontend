@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PasswordInput from '../../components/PasswordInput';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
@@ -125,10 +126,10 @@ const PartnerAcceptInvite = () => {
               </p>
               {partnerName && <p className="mb-8 text-center text-sm text-body">{t('partnerPortal.inviteFor', { partner: partnerName })}</p>}
               <form onSubmit={submitPassword} className={`space-y-4 ${partnerName ? '' : 'mt-8'}`}>
-                <input type="password" required value={pw1} autoComplete="new-password"
+                <PasswordInput  required value={pw1} autoComplete="new-password"
                   onChange={(e) => setPw1(e.target.value)}
                   placeholder={t('auth.invite.choosePassword') as string} className={inputCls} />
-                <input type="password" required value={pw2} autoComplete="new-password"
+                <PasswordInput  required value={pw2} autoComplete="new-password"
                   onChange={(e) => setPw2(e.target.value)}
                   placeholder={t('auth.invite.confirmPassword') as string} className={inputCls} />
                 <p className="text-xs text-body">{t('auth.invite.pwHint')}</p>

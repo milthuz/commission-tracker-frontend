@@ -156,7 +156,16 @@ const PartnerPortal: React.FC = () => {
     approved: opportunities.filter((o) => o.status === 'approved').length,
     rejected: opportunities.filter((o) => o.status === 'rejected').length,
   };
-  const filteredOpportunities = opportunities.filter((o) => statusFilter === 'all' || o.status === statusFilter);
+  // Tri par date de soumission. Plus recent d'abord par defaut : c'est ce qu'on veut voir
+  // en ouvrant la page. On trie une COPIE — trier `opportunities` en place muterait l'etat.
+  const [dateSort, setDateSort] = useState<'desc' | 'asc'>('desc');
+  const filteredOpportunities = opportunities
+    .filter((o) => statusFilter === 'all' || o.status === statusFilter)
+    .slice()
+    .sort((a, b) => {
+      const d = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return dateSort === 'asc' ? d : -d;
+    });
   const teamBreakdown = isAdmin
     ? Object.values(opportunities.reduce((acc: Record<string, { name: string; count: number }>, o) => {
         const key = o.submittedByName || o.submittedByEmail || (t('partnerPortal.unknownSubmitter') as string);
@@ -231,7 +240,20 @@ const PartnerPortal: React.FC = () => {
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colAssignedRep')}</th>
                       <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colLeadStage')}</th>
                       {isAdmin && <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colPayout')}</th>}
-                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('partnerPortal.colSubmitted')}</th>
+                      <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">
+                        <button
+                          type="button"
+                          onClick={() => setDateSort((d) => (d === 'desc' ? 'asc' : 'desc'))}
+                          title={t('partnerPortal.sortByDate') as string}
+                          className="inline-flex items-center gap-1 font-semibold hover:text-primary"
+                        >
+                          {t('partnerPortal.colSubmitted')}
+                          <svg className={`h-3 w-3 transition-transform ${dateSort === 'asc' ? 'rotate-180' : ''}`}
+                            fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>

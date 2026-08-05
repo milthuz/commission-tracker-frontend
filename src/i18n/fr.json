@@ -750,7 +750,8 @@
     "localeFr": "Français",
     "localeEn": "Anglais",
     "inviteLocaleHint": "Langue du courriel d'invitation",
-    "poweredBy": "Propulsé par"
+    "poweredBy": "Propulsé par",
+    "sortByDate": "Trier par date"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",

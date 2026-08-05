@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PasswordInput from '../../components/PasswordInput';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -122,10 +123,10 @@ const AcceptInvite = () => {
                 {t('auth.invite.subtitle')} <span className="font-semibold text-black dark:text-white">{inviteEmail}</span>
               </p>
               <form onSubmit={submitPassword} className="space-y-4">
-                <input type="password" required value={pw1} autoComplete="new-password"
+                <PasswordInput  required value={pw1} autoComplete="new-password"
                   onChange={(e) => setPw1(e.target.value)}
                   placeholder={t('auth.invite.choosePassword') as string} className={inputCls} />
-                <input type="password" required value={pw2} autoComplete="new-password"
+                <PasswordInput  required value={pw2} autoComplete="new-password"
                   onChange={(e) => setPw2(e.target.value)}
                   placeholder={t('auth.invite.confirmPassword') as string} className={inputCls} />
                 <p className="text-xs text-body">{t('auth.invite.pwHint')}</p>
