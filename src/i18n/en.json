@@ -1758,7 +1758,8 @@
       "logoRemove": "Remove logo",
       "logoUploading": "Uploading…",
       "logoFailed": "Could not save the logo",
-      "logoRemoveConfirm": "Remove the logo of {{name}}?"
+      "logoRemoveConfirm": "Remove the logo of {{name}}?",
+      "logoLabel": "Partner logo"
     },
     "resources": {
       "title": "Resources storage",

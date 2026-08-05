@@ -109,6 +109,9 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
       fd.append('file', file);
       await axios.post(`${API_URL}/api/admin/partners/${logoFor.id}/logo`, fd, { headers: authHeaders() });
       setLogoV((v) => v + 1);
+      // La fiche ouverte porte sa propre copie du partenaire : sans cette ligne, elle
+      // continuerait d'afficher « Ajouter un logo » alors que le logo est en place.
+      setEditingPartner((prev) => (prev && prev.id === logoFor.id ? { ...prev, hasLogo: true } : prev));
       await fetchPartners();
     } catch (e: any) {
       dialog.alert(e?.response?.data?.error || t('admin.partners.logoFailed') as string);
@@ -121,6 +124,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
     try {
       await axios.delete(`${API_URL}/api/admin/partners/${p.id}/logo`, { headers: authHeaders() });
       setLogoV((v) => v + 1);
+      setEditingPartner((prev) => (prev && prev.id === p.id ? { ...prev, hasLogo: false } : prev));
       await fetchPartners();
     } catch (e: any) {
       dialog.alert(e?.response?.data?.error || t('admin.partners.logoFailed') as string);
@@ -557,26 +561,6 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
                             className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
                             {t('admin.partners.editPartner')}
                           </button>
-                          {p.hasLogo ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-stroke px-2 py-1 dark:border-strokedark">
-                              <img src={`${API_URL}/api/partner-portal/organization/logo/${p.id}?v=${logoV}`}
-                                alt={p.name} className="h-5 w-auto max-w-[70px] object-contain" />
-                              <button onClick={() => pickLogo(p)} disabled={logoBusy === p.id}
-                                className="text-xs font-medium text-body hover:text-primary disabled:opacity-50">
-                                {t('admin.partners.logoReplace')}
-                              </button>
-                              <button onClick={() => removeLogo(p)} disabled={logoBusy === p.id}
-                                title={t('admin.partners.logoRemove') as string}
-                                className="text-danger hover:opacity-70 disabled:opacity-50">
-                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                              </button>
-                            </span>
-                          ) : (
-                            <button onClick={() => pickLogo(p)} disabled={logoBusy === p.id}
-                              className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark">
-                              {logoBusy === p.id ? t('admin.partners.logoUploading') : t('admin.partners.logoAdd')}
-                            </button>
-                          )}
                           <button onClick={() => setInviteFor(p)}
                             className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
                             {t('admin.partners.inviteAdmin')}
@@ -1042,6 +1026,29 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean }> = ({ canDelete }) => {
                 <input value={editForm.leadSource} onChange={(e) => setEditForm({ ...editForm, leadSource: e.target.value })}
                   placeholder={t('admin.partners.leadSourcePh') as string} className={inputCls} />
                 <p className="mt-1 text-xs text-gray-400">{t('admin.partners.leadSourceHint')}</p>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.logoLabel')}</label>
+                {editingPartner.hasLogo ? (
+                  <div className="flex items-center gap-3">
+                    <img src={`${API_URL}/api/partner-portal/organization/logo/${editingPartner.id}?v=${logoV}`}
+                      alt={editingPartner.name}
+                      className="h-10 w-auto max-w-[140px] rounded border border-stroke bg-white object-contain p-1 dark:border-strokedark" />
+                    <button type="button" onClick={() => pickLogo(editingPartner)} disabled={logoBusy === editingPartner.id}
+                      className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark">
+                      {logoBusy === editingPartner.id ? t('admin.partners.logoUploading') : t('admin.partners.logoReplace')}
+                    </button>
+                    <button type="button" onClick={() => removeLogo(editingPartner)} disabled={logoBusy === editingPartner.id}
+                      className="text-xs font-medium text-danger hover:opacity-70 disabled:opacity-50">
+                      {t('admin.partners.logoRemove')}
+                    </button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => pickLogo(editingPartner)} disabled={logoBusy === editingPartner.id}
+                    className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark">
+                    {logoBusy === editingPartner.id ? t('admin.partners.logoUploading') : t('admin.partners.logoAdd')}
+                  </button>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.fPayoutRate')}</label>

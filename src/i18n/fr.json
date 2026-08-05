@@ -1758,7 +1758,8 @@
       "logoRemove": "Retirer le logo",
       "logoUploading": "Téléversement…",
       "logoFailed": "Impossible d'enregistrer le logo",
-      "logoRemoveConfirm": "Retirer le logo de {{name}} ?"
+      "logoRemoveConfirm": "Retirer le logo de {{name}} ?",
+      "logoLabel": "Logo du partenaire"
     },
     "resources": {
       "title": "Stockage des ressources",
