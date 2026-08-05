@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Select from '../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -63,6 +64,9 @@ const TIMEZONES = [
   { code: 'Europe/London', label: 'GMT (London)' },
   { code: 'Europe/Paris', label: 'CET (Paris)' },
 ];
+
+const PREF_SELECT =
+  'w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
@@ -495,15 +499,7 @@ const Profile = () => {
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
                     {t('profile.language')}
                   </label>
-                  <select
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-                  >
-                    {LANGUAGES.map(l => (
-                      <option key={l.code} value={l.code}>{l.label}</option>
-                    ))}
-                  </select>
+                  <Select value={language} onChange={setLanguage} options={LANGUAGES.map((o) => ({ value: o.code, label: o.label }))} buttonClassName={PREF_SELECT} />
                 </div>
 
                 {/* Currency */}
@@ -511,15 +507,7 @@ const Profile = () => {
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
                     {t('profile.currency')}
                   </label>
-                  <select
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-                  >
-                    {CURRENCIES.map(c => (
-                      <option key={c.code} value={c.code}>{c.label}</option>
-                    ))}
-                  </select>
+                  <Select value={currency} onChange={setCurrency} options={CURRENCIES.map((o) => ({ value: o.code, label: o.label }))} buttonClassName={PREF_SELECT} />
                 </div>
 
                 {/* Date Format */}
@@ -527,15 +515,7 @@ const Profile = () => {
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
                     {t('profile.dateFormat')}
                   </label>
-                  <select
-                    value={dateFormat}
-                    onChange={(e) => setDateFormat(e.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-                  >
-                    {DATE_FORMATS.map(f => (
-                      <option key={f.code} value={f.code}>{f.label}</option>
-                    ))}
-                  </select>
+                  <Select value={dateFormat} onChange={setDateFormat} options={DATE_FORMATS.map((o) => ({ value: o.code, label: o.label }))} buttonClassName={PREF_SELECT} />
                 </div>
 
                 {/* Timezone */}
@@ -543,15 +523,7 @@ const Profile = () => {
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
                     {t('profile.timezone')}
                   </label>
-                  <select
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
-                    className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-                  >
-                    {TIMEZONES.map(t => (
-                      <option key={t.code} value={t.code}>{t.label}</option>
-                    ))}
-                  </select>
+                  <Select value={timezone} onChange={setTimezone} options={TIMEZONES.map((o) => ({ value: o.code, label: o.label }))} buttonClassName={PREF_SELECT} />
                 </div>
               </div>
 
