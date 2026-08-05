@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
@@ -288,12 +289,7 @@ const PartnerPortal: React.FC = () => {
               {isAdmin && (
                 <fieldset className="flex flex-col gap-3 rounded-lg border border-stroke p-4 dark:border-strokedark">
                   <span className="text-xs font-bold uppercase text-gray-400">{t('partnerPortal.fRepSection')}</span>
-                  <select value={selectedRepUserId} onChange={(e) => selectRep(e.target.value)} className={inputCls}>
-                    <option value="">{t('partnerPortal.fRepSelectPlaceholder')}</option>
-                    {teamMembers.map((m) => (
-                      <option key={m.id} value={m.id}>{m.displayName || m.email}</option>
-                    ))}
-                  </select>
+                  <Select value={selectedRepUserId} onChange={(v) => selectRep(v)} options={[{ value: '', label: t('partnerPortal.fRepSelectPlaceholder') as string }, ...teamMembers.map((m) => ({ value: String(m.id), label: m.displayName || m.email }))]} buttonClassName={inputCls} />
                   <p className="text-xs text-gray-400">{t('partnerPortal.fRepSelectHint')}</p>
                 </fieldset>
               )}

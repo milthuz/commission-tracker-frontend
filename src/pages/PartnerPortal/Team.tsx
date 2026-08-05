@@ -72,10 +72,7 @@ const PartnerTeam: React.FC = () => {
             <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} type="email" required
               placeholder={t('partnerPortal.fEmail') as string} className={`${inputCls} max-w-xs`} />
             <input value={inviteName} onChange={(e) => setInviteName(e.target.value)} placeholder={t('partnerPortal.fName') as string} className={`${inputCls} max-w-xs`} />
-            <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value as 'standard' | 'admin')} className={`${inputCls} max-w-[160px]`}>
-              <option value="standard">{t('partnerPortal.roleStandard')}</option>
-              <option value="admin">{t('partnerPortal.roleAdmin')}</option>
-            </select>
+            <Select value={inviteRole} onChange={(v) => setInviteRole(v as 'standard' | 'admin')} options={[{ value: 'standard', label: t('partnerPortal.roleStandard') as string }, { value: 'admin', label: t('partnerPortal.roleAdmin') as string }]} buttonClassName={inputCls} className="max-w-[160px]" />
             <Select
               value={inviteLocale}
               onChange={(v) => setInviteLocale(v as 'fr' | 'en')}
