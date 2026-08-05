@@ -1803,7 +1803,8 @@
         "counts": "{{created}} créé(s) · {{already}} déjà présent(s) · {{refused}} écarté(s)",
         "attributed": "Attribuées à leur auteur",
         "refusedTitle": "Écartés ({{count}})",
-        "notInvited": "Importé, non invité"
+        "notInvited": "Importé",
+        "notInvitedHint": "Repris de l’ancien portail et jamais invité — aucune connexion possible avant une invitation."
       }
     },
     "resources": {

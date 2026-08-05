@@ -165,9 +165,11 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
         : t('admin.partners.revokeFailed') as string);
     } finally { setRevokingId(null); }
   };
+  // Format court : « 5 aout 2026 » reservait 88 px par colonne de date, sur TROIS colonnes, ce qui
+  // suffisait a faire deborder le tableau et a faire apparaitre une barre de defilement.
   const fmtDate = (d: string | null) =>
     d ? new Date(d).toLocaleDateString(i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA',
-          { year: 'numeric', month: 'short', day: 'numeric' }) : null;
+          { year: '2-digit', month: '2-digit', day: '2-digit' }) : null;
   // Un tiret plutot qu'une case vide : « rien ne s'est produit » et « la colonne ne
   // s'applique pas » ne doivent pas se ressembler.
   const Step = ({ at, pending }: { at: string | null; pending?: boolean }) =>
@@ -821,12 +823,12 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-stroke dark:border-strokedark">
-                    <th className="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.colPartner')}</th>
-                    <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('partnerPortal.fEmail')}</th>
-                    <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteSent')}</th>
-                    <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteOpened')}</th>
-                    <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteAccepted')}</th>
-                    <th className="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteBy')}</th>
+                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.colPartner')}</th>
+                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('partnerPortal.fEmail')}</th>
+                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteSent')}</th>
+                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteOpened')}</th>
+                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteAccepted')}</th>
+                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteBy')}</th>
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
@@ -836,19 +838,30 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                     const expired = pending && !!iv.expiresAt && new Date(iv.expiresAt) < new Date();
                     return (
                       <tr key={iv.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
-                        <td className="whitespace-nowrap px-6 py-3 font-medium text-black dark:text-white">{iv.partnerName}</td>
+                        <td className="whitespace-nowrap px-4 py-3 font-medium text-black dark:text-white">{iv.partnerName}</td>
                         <td className="px-4 py-3">
-                          <span className="text-black dark:text-white">{iv.email}</span>
-                          {iv.role === 'admin' && <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{t('partnerPortal.roleAdmin')}</span>}
-                          {/* Repris de l'ancien portail et JAMAIS invite : sans cette pastille, la
-                              ligne se lisait comme une invitation en attente qui n'existe pas. */}
-                          {iv.status === 'imported' && <span className="ml-2 rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-semibold uppercase text-gray-500 dark:bg-meta-4">{t('admin.partners.migration.notInvited')}</span>}
-                          {expired && <span className="ml-2 rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-danger">{t('admin.partners.inviteExpired')}</span>}
+                          <div className="flex items-center">
+                            <span className="max-w-[170px] truncate text-black dark:text-white" title={iv.email}>{iv.email}</span>
+                            {iv.role === 'admin' && <span className="ml-2 shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{t('partnerPortal.roleAdmin')}</span>}
+                            {/* Repris de l'ancien portail et JAMAIS invite : sans cette pastille, la
+                                ligne se lisait comme une invitation en attente qui n'existe pas.
+                                Libelle court, sens complet dans l'infobulle : la version longue
+                                imposait 100 px a la colonne et la faisait passer sur deux lignes. */}
+                            {iv.status === 'imported' && (
+                              <span className="ml-2 shrink-0 rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-semibold uppercase text-gray-500 dark:bg-meta-4"
+                                title={t('admin.partners.migration.notInvitedHint') as string}>
+                                {t('admin.partners.migration.notInvited')}
+                              </span>
+                            )}
+                            {expired && <span className="ml-2 shrink-0 rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-danger">{t('admin.partners.inviteExpired')}</span>}
+                          </div>
                         </td>
                         <td className="whitespace-nowrap px-4 py-3"><Step at={iv.invitedAt} /></td>
                         <td className="whitespace-nowrap px-4 py-3"><Step at={iv.openedAt} pending={pending && !expired} /></td>
                         <td className="whitespace-nowrap px-4 py-3"><Step at={iv.activatedAt} pending={pending && !expired} /></td>
-                        <td className="whitespace-nowrap px-6 py-3 text-body">{iv.invitedBy || '—'}</td>
+                        <td className="px-4 py-3 text-body">
+                          <div className="max-w-[150px] truncate" title={iv.invitedBy || undefined}>{iv.invitedBy || '—'}</div>
+                        </td>
                         <td className="whitespace-nowrap px-4 py-3 text-right">
                           {pending && (
                             <button onClick={() => revokeInvite(iv)} disabled={revokingId === iv.id}
