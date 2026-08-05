@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -1961,16 +1962,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                               {formatDateOnly(m.activated_at)}
                                             </td>
                                             <td className="px-3 py-2">
-                                              <select
-                                                defaultValue=""
-                                                onChange={(e) => assignMerchantRep(m.merchant_account_id, e.target.value)}
-                                                className="rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white"
-                                              >
-                                                <option value="" disabled>{t('admin.zentact.selectRep')}</option>
-                                {salespeople.filter(sp => sp.isActive).map(sp => (
-                                                  <option key={sp.name} value={sp.name}>{sp.name}</option>
-                                                ))}
-                                              </select>
+                                              <Select value="" onChange={(v) => assignMerchantRep(m.merchant_account_id, v)} options={salespeople.filter(sp => sp.isActive).map((sp) => ({ value: sp.name, label: sp.name }))} placeholder={t('admin.zentact.selectRep') as string} buttonClassName={'rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white'} />
                                             </td>
                                           </tr>
                                         );
@@ -2848,16 +2840,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                             </div>
                             <div>
                               <span className="mb-1 block text-xs font-medium text-body">{t('admin.teams.team')}</span>
-                              <select
-                                value={person.teamId ?? ''}
-                                onChange={(e) => assignTeam(person.name, e.target.value === '' ? null : parseInt(e.target.value))}
-                                className="w-full rounded border border-stroke bg-transparent px-2 py-1.5 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
-                              >
-                                <option value="">{t('admin.teams.noTeam')}</option>
-                                {teams.map(tm => (
-                                  <option key={tm.id} value={tm.id}>{tm.name}</option>
-                                ))}
-                              </select>
+                              <Select value={person.teamId != null ? String(person.teamId) : ''} onChange={(v) => assignTeam(person.name, v === '' ? null : parseInt(v))} options={[{ value: '', label: t('admin.teams.noTeam') as string }, ...teams.map((tm) => ({ value: String(tm.id), label: tm.name }))]} buttonClassName={'w-full rounded border border-stroke bg-transparent px-2 py-1.5 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white'} />
                             </div>
                           </div>
                         </div>
@@ -3058,14 +3041,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       <p className="mb-2 text-xs text-body">{t('admin.releases.newTagsHint')}</p>
                       {newFeatureTags.map((tag, i) => (
                         <div key={i} className="mb-2 grid grid-cols-1 gap-2 rounded border border-stroke p-3 dark:border-strokedark sm:grid-cols-12">
-                          <select
-                            value={tag.path}
-                            onChange={(e) => { const c = [...newFeatureTags]; c[i] = { ...c[i], path: e.target.value }; setNewFeatureTags(c); }}
-                            className="rounded border-[1.5px] border-stroke bg-transparent px-2 py-1.5 text-sm dark:border-form-strokedark dark:bg-form-input sm:col-span-3"
-                          >
-                            <option value="">{t('admin.releases.selectItem')}</option>
-                            {RESELLER_MENU_ITEMS.map((m) => <option key={m.path} value={m.path}>{m.label}</option>)}
-                          </select>
+                          <Select value={tag.path} onChange={(v) => { const c = [...newFeatureTags]; c[i] = { ...c[i], path: v }; setNewFeatureTags(c); }} options={[{ value: '', label: t('admin.releases.selectItem') as string }, ...RESELLER_MENU_ITEMS.map((mi) => ({ value: mi.path, label: mi.label }))]} className="sm:col-span-3" buttonClassName={'rounded border-[1.5px] border-stroke bg-transparent px-2 py-1.5 text-sm dark:border-form-strokedark dark:bg-form-input'} />
                           <input
                             value={tag.title}
                             onChange={(e) => { const c = [...newFeatureTags]; c[i] = { ...c[i], title: e.target.value }; setNewFeatureTags(c); }}
