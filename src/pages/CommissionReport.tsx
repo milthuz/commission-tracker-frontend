@@ -860,7 +860,7 @@ const CommissionReport = () => {
 
           <div className="flex gap-2">
             {/* Month Selector */}
-            <Select value={selectedMonth} onChange={(v) => setSelectedMonth(v)} options={[{ value: 'all', label: 'All Months' }, ...MONTH_NAMES.map((name, i) => ({ value: String(i + 1), label: name }))]} buttonClassName={'flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:flex-none'} />
+            <Select value={selectedMonth} onChange={(v) => setSelectedMonth(v)} options={[{ value: 'all', label: t('commissionReport.allMonths') as string }, ...MONTH_NAMES.map((name, i) => ({ value: String(i + 1), label: name }))]} buttonClassName={'flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:flex-none'} />
 
             {/* Year Selector */}
             <Select value={selectedYear} onChange={(v) => setSelectedYear(v)} options={Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i).filter((y) => !disabledYears.includes(y)).map((y) => ({ value: String(y), label: String(y) }))} buttonClassName={'flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:flex-none'} />

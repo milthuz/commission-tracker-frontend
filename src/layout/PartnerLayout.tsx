@@ -17,6 +17,16 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const partnerAuthHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('partnerToken')}` });
 
 const PartnerLayout: React.FC = () => {
+  // Le portail affiche la marque Cluster ; son onglet doit suivre. Les icones d'origine
+  // sont restaurees au demontage — sans ca, revenir a Sales Hub garderait l'icone Cluster
+  // jusqu'au prochain rechargement complet.
+  useEffect(() => {
+    const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]'));
+    const before = links.map((l) => l.href);
+    links.forEach((l) => { l.href = '/cluster-favicon.png?v=1'; });
+    return () => { links.forEach((l, i) => { l.href = before[i]; }); };
+  }, []);
+
   const { i18n } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // La bascule change l'affichage ET la langue du compte : sans le second appel, un
