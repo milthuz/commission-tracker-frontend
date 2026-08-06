@@ -941,7 +941,12 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                     <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteOpened')}</th>
                     <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteAccepted')}</th>
                     <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteBy')}</th>
-                    <th className="px-4 py-3"></th>
+                    {/* Colonne d'actions COLLÉE à droite, fond opaque : David ne voyait pas les deux
+                        boutons, alors qu'ils sont rendus sans condition. La seule explication tenable
+                        était qu'ils sortaient du champ visible quand le tableau défile. Collée, la
+                        colonne ne peut plus disparaître — c'est la convention déjà utilisée pour les
+                        tableaux denses de l'app. */}
+                    <th className="sticky right-0 bg-white px-4 py-3 text-right align-bottom text-xs font-semibold uppercase tracking-wide text-body dark:bg-boxdark">{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -975,7 +980,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                         <td className="px-4 py-3 text-body">
                           <div className="max-w-[150px] truncate" title={iv.invitedBy || undefined}>{iv.invitedBy || '—'}</div>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-right">
+                        <td className="sticky right-0 whitespace-nowrap bg-white px-4 py-3 text-right dark:bg-boxdark">
                           {/* Icones et non libelles : ce tableau tenait tout juste sans barre de
                               defilement, deux boutons textuels l'y auraient ramene. */}
                           <div className="flex items-center justify-end gap-1.5">
