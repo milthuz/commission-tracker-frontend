@@ -1275,15 +1275,18 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                   </div>
                   {/* Chaque catégorie non traitée est nommée avec son compte EXACT : une ligne
                       écartée en silence est une ligne qu'on croit reprise. */}
+                  {/* Deux niveaux que la couleur doit distinguer : ROUGE = la ligne n'a PAS été
+                      reprise ; ORANGE = elle l'a été, mais un point mérite un œil. */}
                   {([
-                    ['unresolvedInvoice', 'admin.partners.payoutImport.unresolvedInvoice'],
-                    ['notMatched',        'admin.partners.payoutImport.notMatched'],
-                    ['ambiguous',         'admin.partners.payoutImport.ambiguous'],
-                    ['wouldNotBeEligible','admin.partners.payoutImport.wouldNotBeEligible'],
+                    ['settledWithoutInvoice', 'admin.partners.payoutImport.settledWithoutInvoice'],
+                    ['notMatched',            'admin.partners.payoutImport.notMatched'],
+                    ['ambiguous',             'admin.partners.payoutImport.ambiguous'],
+                    ['wouldNotBeEligible',    'admin.partners.payoutImport.wouldNotBeEligible'],
                   ] as const).map(([key, label]) => (
                     (payReport[key + 'Count'] > 0) && (
                       <div key={key} className="mt-3">
-                        <div className={`mb-1 text-[11px] font-bold uppercase ${key === 'wouldNotBeEligible' ? 'text-warning' : 'text-danger'}`}>
+                        <div className={`mb-1 text-[11px] font-bold uppercase ${
+                          key === 'notMatched' || key === 'ambiguous' ? 'text-danger' : 'text-warning'}`}>
                           {t(label, { count: payReport[key + 'Count'] })}
                         </div>
                         <ul className="max-h-40 overflow-y-auto text-[11px] text-body">

@@ -1852,10 +1852,10 @@
         "settled": "Marqués réglés (payés hors Sales Hub)",
         "due": "Marqués dus",
         "unchanged": "Déjà dans l’état voulu",
-        "unresolvedInvoice": "Facture introuvable dans Sales Hub ({{count}})",
-        "notMatched": "Aucune opportunité correspondante ({{count}})",
+        "notMatched": "Aucune opportunité correspondante — non reprises ({{count}})",
         "ambiguous": "Plusieurs opportunités du même nom — aucune choisie ({{count}})",
-        "wouldNotBeEligible": "Marqués dus alors que la règle ne les aurait pas trouvés éligibles ({{count}})"
+        "wouldNotBeEligible": "Marqués dus alors que la règle ne les aurait pas trouvés éligibles ({{count}})",
+        "settledWithoutInvoice": "Reprises malgré une facture absente de Sales Hub ({{count}})"
       }
     },
     "resources": {
