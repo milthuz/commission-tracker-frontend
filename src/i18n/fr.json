@@ -1814,7 +1814,11 @@
         "partnerExisting": "existe déjà"
       },
       "fInitialPayoutRate": "Versement initial ($ par lead)",
-      "initialPayoutRateHint": "Dû pour le lead lui-même, même si l’affaire ne se conclut pas. Laisser vide si ce partenaire n’y a pas droit."
+      "initialPayoutRateHint": "Dû pour le lead lui-même, même si l’affaire ne se conclut pas. Laisser vide si ce partenaire n’y a pas droit.",
+      "seeUsersOf": "Voir les usagers de {{name}}",
+      "allPartnersUsers": "Tous les partenaires",
+      "usersShown": "{{shown}} sur {{total}}",
+      "noUsersForPartner": "Aucun usager pour ce partenaire."
     },
     "resources": {
       "title": "Stockage des ressources",

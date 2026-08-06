@@ -1814,7 +1814,11 @@
         "partnerExisting": "already exists"
       },
       "fInitialPayoutRate": "Initial payout ($ per lead)",
-      "initialPayoutRateHint": "Owed for the lead itself, even if the deal never closes. Leave empty if this partner is not entitled to it."
+      "initialPayoutRateHint": "Owed for the lead itself, even if the deal never closes. Leave empty if this partner is not entitled to it.",
+      "seeUsersOf": "See {{name}}’s users",
+      "allPartnersUsers": "All partners",
+      "usersShown": "{{shown}} of {{total}}",
+      "noUsersForPartner": "No users for this partner."
     },
     "resources": {
       "title": "Resources storage",

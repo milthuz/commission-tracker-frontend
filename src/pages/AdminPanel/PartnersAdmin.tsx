@@ -151,6 +151,16 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
     expiresAt: string | null;
   };
   const [invites, setInvites] = useState<Invite[]>([]);
+  // Filtre par partenaire de la carte des usagers. Le compte de la colonne « Usagers » le pose,
+  // ce qui evite un ecran de plus : la carte existante DEVIENT l'annuaire par partenaire.
+  // Indispensable des la migration Moneris — 177 lignes dans une liste a plat sont illisibles.
+  const [userDirFilter, setUserDirFilter] = useState('');
+  const userDirRef = useRef<HTMLDivElement>(null);
+  const showPartnerUsers = (name: string) => {
+    setUserDirFilter(name);
+    // Le clic doit AMENER a la liste : filtrer une carte qu'on ne voit pas ne se remarque pas.
+    setTimeout(() => userDirRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  };
   useEffect(() => {
     axios.get(`${API_URL}/api/admin/partner-invites`, { headers: authHeaders() })
       .then((r) => setInvites(r.data.invites || []))
@@ -335,6 +345,10 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   // Nom -> fiche partenaire, pour afficher le logo quand il y en a un (convention du projet :
   // le logo seul s'il existe, le nom sinon).
   const partnerByName = new Map(partners.map((p) => [p.name, p]));
+
+  // Partenaires reellement presents dans la liste des usagers, et lignes affichees.
+  const invitePartnerNames = [...new Set(invites.map((i) => i.partnerName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const shownInvites = userDirFilter ? invites.filter((i) => i.partnerName === userDirFilter) : invites;
 
   const searchLower = queueSearch.trim().toLowerCase();
   const filteredQueue = allOpportunities
@@ -781,7 +795,15 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                   {partners.map((p) => (
                     <tr key={p.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
                       <td className="px-4 py-3 font-medium text-black dark:text-white">{p.name}</td>
-                      <td className="px-4 py-3 text-body">{p.userCount}</td>
+                      <td className="px-4 py-3 text-body">
+                        {p.userCount > 0 ? (
+                          <button onClick={() => showPartnerUsers(p.name)}
+                            title={t('admin.partners.seeUsersOf', { name: p.name }) as string}
+                            className="font-semibold text-primary hover:underline">
+                            {p.userCount}
+                          </button>
+                        ) : <span className="text-gray-400">0</span>}
+                      </td>
                       <td className="px-4 py-3">
                         <button onClick={() => toggleActive(p)}
                           className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${p.active ? 'bg-success/15 text-green-700 dark:text-success' : 'bg-gray-2 text-gray-500 dark:bg-meta-4'}`}>
@@ -816,14 +838,40 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
             )}
           </div>
 
-        {/* Suivi des invitations : envoyee -> lien ouvert -> compte active. */}
-        <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        {/* Usagers du portail, par partenaire. Reste le suivi des invitations (envoyee -> lien
+            ouvert -> compte active) : ce sont les memes lignes, vues comme un annuaire. */}
+        <div ref={userDirRef} className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h4 className="text-sm font-bold text-black dark:text-white">{t('admin.partners.invitesTitle')}</h4>
-            <p className="mt-0.5 text-xs text-body">{t('admin.partners.invitesHint')}</p>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-bold text-black dark:text-white">{t('admin.partners.invitesTitle')}</h4>
+                <p className="mt-0.5 text-xs text-body">{t('admin.partners.invitesHint')}</p>
+              </div>
+              {/* Selecteur affiche seulement au-dela d'un partenaire : a un seul choix, ce n'est
+                  pas un filtre, c'est du decor. `|| userDirFilter` est un garde-fou : un clic sur le
+                  compte pose un filtre, et sans le selecteur il n'y aurait aucun moyen de l'annuler. */}
+              {(invitePartnerNames.length > 1 || userDirFilter) && (
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={userDirFilter}
+                    onChange={(v) => setUserDirFilter(v)}
+                    options={[
+                      { value: '', label: t('admin.partners.allPartnersUsers') as string },
+                      ...invitePartnerNames.map((n) => ({ value: n, label: n })),
+                    ]}
+                    buttonClassName="min-w-[200px] rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+                  />
+                  {/* Le nombre affiche vs le total : « filtre » et « il n'y a que ca » ne doivent
+                      pas se ressembler. */}
+                  <span className="whitespace-nowrap text-xs text-body">
+                    {t('admin.partners.usersShown', { shown: shownInvites.length, total: invites.length })}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-          {invites.length === 0 ? (
-            <p className="px-6 py-8 text-center text-sm text-gray-400">{t('admin.partners.invitesEmpty')}</p>
+          {shownInvites.length === 0 ? (
+            <p className="px-6 py-8 text-center text-sm text-gray-400">{t(userDirFilter ? 'admin.partners.noUsersForPartner' : 'admin.partners.invitesEmpty')}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -839,7 +887,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                   </tr>
                 </thead>
                 <tbody>
-                  {invites.map((iv) => {
+                  {shownInvites.map((iv) => {
                     const pending = iv.status === 'invited';
                     const expired = pending && !!iv.expiresAt && new Date(iv.expiresAt) < new Date();
                     return (
