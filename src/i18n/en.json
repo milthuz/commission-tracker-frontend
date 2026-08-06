@@ -1767,7 +1767,14 @@
         "kind": {
           "initial": "Initial payout",
           "conversion": "Conversion"
-        }
+        },
+        "calc": "{{count}} × ${{rate}}",
+        "showDetail": "Details",
+        "hideDetail": "Hide",
+        "colCustomer": "Invoiced customer",
+        "colWhy": "Why it is due",
+        "paidOn": "paid on {{date}}",
+        "noInvoiceWhy": "⚠ no paid invoice found"
       },
       "deletePartner": "Delete",
       "deleteConfirm": "Delete the partner \"{{name}}\"? This cannot be undone.",

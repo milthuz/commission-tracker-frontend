@@ -1767,7 +1767,14 @@
         "kind": {
           "initial": "Versement initial",
           "conversion": "Conversion"
-        }
+        },
+        "calc": "{{count}} × {{rate}} $",
+        "showDetail": "Détail",
+        "hideDetail": "Masquer",
+        "colCustomer": "Client facturé",
+        "colWhy": "Ce qui la rend due",
+        "paidOn": "payée le {{date}}",
+        "noInvoiceWhy": "⚠ aucune facture payée trouvée"
       },
       "deletePartner": "Supprimer",
       "deleteConfirm": "Supprimer le partenaire « {{name}} » ? Cette action est irréversible.",

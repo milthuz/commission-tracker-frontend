@@ -54,7 +54,11 @@ interface PendingPartnerPayout {
   // Un partenaire peut avoir DEUX groupes en attente : l'initial (dû pour le lead) et la
   // conversion. Ils ne se payent pas ensemble, donc un run porte un seul type.
   kind: 'initial' | 'conversion';
-  opportunities: { id: number; businessName: string; linkedCustomerName: string | null; createdAt: string }[];
+  opportunities: {
+    id: number; businessName: string; linkedCustomerName: string | null; createdAt: string;
+    // Ce qui rend la ligne due : la premiere facture payee de ce client.
+    invoiceNumber?: string | null; invoicePaidDate?: string | null; externalRef?: string | null;
+  }[];
 }
 interface PayoutRun {
   id: number; partnerName: string; periodLabel: string; status: 'draft' | 'finalized';
@@ -796,6 +800,10 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
     finally { setLoadingPayouts(false); }
   };
   useEffect(() => { if (sub === 'payouts') fetchPayouts(); }, [sub]);
+
+  // Depliage du detail d'un versement en attente. « 14 opportunites, 2800 $ » ne se verifie pas ;
+  // la liste des 14, avec la facture qui rend chacune due, oui.
+  const [openPendingKey, setOpenPendingKey] = useState<string | null>(null);
 
   const [creatingRunFor, setCreatingRunFor] = useState<PendingPartnerPayout | null>(null);
   const [runPeriod, setRunPeriod] = useState('');
@@ -1542,24 +1550,86 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                     {pendingPartners.map((p) => (
                       // Cle sur (partenaire, type) : le meme partenaire apparait deux fois quand il
                       // a de l'initial ET de la conversion en attente.
-                      <div key={`${p.partnerId}:${p.kind}`} className="flex items-center justify-between gap-3 rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-semibold text-black dark:text-white">{p.partnerName}</span>
+                      <div key={`${p.partnerId}:${p.kind}`} className="rounded-lg border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+                        <div className="flex items-center justify-between gap-3 p-4">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-semibold text-black dark:text-white">{p.partnerName}</span>
+                            </div>
+                            <div className="text-xs text-gray-400">{t('admin.partners.payout.opportunityCount', { count: p.opportunities.length })}</div>
                           </div>
-                          <div className="text-xs text-gray-400">{t('admin.partners.payout.opportunityCount', { count: p.opportunities.length })}</div>
+                          <div className="flex items-center gap-3">
+                            {p.payoutRate === null ? (
+                              <span className="text-xs font-medium text-warning">{t('admin.partners.payout.noRateWarning')}</span>
+                            ) : (
+                              <div className="text-right">
+                                <div className="font-bold text-black dark:text-white">${p.suggestedAmount?.toFixed(2)}</div>
+                                {/* Le calcul, pas seulement son résultat : un total qu'on ne peut pas
+                                    refaire de tête ne se vérifie pas. */}
+                                <div className="text-[11px] text-gray-400">
+                                  {t('admin.partners.payout.calc', { count: p.opportunities.length, rate: p.payoutRate.toFixed(2) })}
+                                </div>
+                              </div>
+                            )}
+                            <button
+                              onClick={() => setOpenPendingKey(openPendingKey === `${p.partnerId}:${p.kind}` ? null : `${p.partnerId}:${p.kind}`)}
+                              className="whitespace-nowrap rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
+                              {openPendingKey === `${p.partnerId}:${p.kind}`
+                                ? t('admin.partners.payout.hideDetail')
+                                : t('admin.partners.payout.showDetail')}
+                            </button>
+                            <button onClick={() => openCreateRun(p)} disabled={p.payoutRate === null}
+                              className="whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
+                              {t('admin.partners.payout.createRun')}
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          {p.payoutRate === null ? (
-                            <span className="text-xs font-medium text-warning">{t('admin.partners.payout.noRateWarning')}</span>
-                          ) : (
-                            <span className="font-bold text-black dark:text-white">${p.suggestedAmount?.toFixed(2)}</span>
-                          )}
-                          <button onClick={() => openCreateRun(p)} disabled={p.payoutRate === null}
-                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
-                            {t('admin.partners.payout.createRun')}
-                          </button>
-                        </div>
+                        {openPendingKey === `${p.partnerId}:${p.kind}` && (
+                          <div className="overflow-x-auto border-t border-stroke dark:border-strokedark">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="border-b border-stroke dark:border-strokedark">
+                                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{t('partnerPortal.colBusiness')}</th>
+                                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{t('admin.partners.payout.colCustomer')}</th>
+                                  <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{t('admin.partners.payout.colWhy')}</th>
+                                  <th className="w-full px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{t('admin.partners.payout.colAmount')}</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {p.opportunities.map((o) => (
+                                  <tr key={o.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
+                                    <td className="px-3 py-2">
+                                      <div className="max-w-[220px] truncate font-medium text-black dark:text-white" title={o.businessName}>{o.businessName}</div>
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      <div className="max-w-[200px] truncate text-body" title={o.linkedCustomerName || undefined}>{o.linkedCustomerName || '—'}</div>
+                                    </td>
+                                    <td className="px-3 py-2 text-body">
+                                      {/* La justification, ou son absence dite clairement : une ligne
+                                          due sans facture payée signalerait une incohérence. */}
+                                      {o.invoiceNumber ? (
+                                        <span className="whitespace-nowrap">
+                                          {o.invoiceNumber}
+                                          {o.invoicePaidDate && (
+                                            <span className="text-gray-400">
+                                              {' · '}{t('admin.partners.payout.paidOn', {
+                                                date: new Date(o.invoicePaidDate).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit' }) })}
+                                            </span>
+                                          )}
+                                        </span>
+                                      ) : (
+                                        <span className="whitespace-nowrap text-warning">{t('admin.partners.payout.noInvoiceWhy')}</span>
+                                      )}
+                                    </td>
+                                    <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-body">
+                                      {p.payoutRate !== null ? '$' + p.payoutRate.toFixed(2) : '—'}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
