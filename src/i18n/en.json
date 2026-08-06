@@ -1879,7 +1879,9 @@
           "portal-migration": "Portal",
           "payout-history": "Payouts"
         }
-      }
+      },
+      "clusterRepPrefix": "Cluster ·",
+      "clusterRepHint": "Cluster rep assigned in Zoho: {{name}}"
     },
     "resources": {
       "title": "Resources storage",

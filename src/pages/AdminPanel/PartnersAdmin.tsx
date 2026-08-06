@@ -45,6 +45,7 @@ interface Opportunity {
   // Ce qui commande réellement le versement, et pourquoi il peut rester bloqué.
   // `crmDealLookup` = les deux SEULS cas où une vente réelle n'aboutit pas : plusieurs deals
   // homonymes (aucun n'est retenu, verser sur le mauvais serait pire) ou aucun deal à ce nom.
+  crmOwnerName: string | null;
   crmDepositDate: string | null;
   crmDealStage: string | null;
   crmDealLookup: 'ambiguous' | 'not_found' | null;
@@ -533,12 +534,32 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
       case 'partner': {
         // Convention du projet : le logo SEUL quand il existe, le nom sinon.
         const p = partnerByName.get(o.partnerName);
-        return p?.hasLogo ? (
-          <img src={`${API_URL}/api/partner-portal/organization/logo/${p.id}?v=${logoV}`}
-            alt={o.partnerName} title={o.partnerName}
-            className="h-6 w-auto max-w-[110px] object-contain object-left" />
-        ) : (
-          <span className="whitespace-nowrap text-xs font-medium text-black dark:text-white">{o.partnerName}</span>
+        // Les DEUX representants sous l'identite du partenaire : celui du partenaire, qui a apporte
+        // l'affaire, et celui de Cluster, a qui le Lead a ete assigne dans Zoho. Ici plutot que dans
+        // une colonne de plus : le tableau tenait tout juste sans barre de defilement, et la ligne ne
+        // grandit pas puisque la cellule « Entreprise / contact » fait deja trois lignes.
+        const repPartenaire = [o.repFirstName, o.repLastName].filter(Boolean).join(' ') || o.repEmail || null;
+        return (
+          <div className="leading-tight">
+            {p?.hasLogo ? (
+              <img src={`${API_URL}/api/partner-portal/organization/logo/${p.id}?v=${logoV}`}
+                alt={o.partnerName} title={o.partnerName}
+                className="h-6 w-auto max-w-[110px] object-contain object-left" />
+            ) : (
+              <span className="whitespace-nowrap text-xs font-medium text-black dark:text-white">{o.partnerName}</span>
+            )}
+            {repPartenaire && (
+              <div className="max-w-[150px] truncate text-[11px] text-gray-400" title={`${o.partnerName} : ${repPartenaire}`}>
+                {repPartenaire}
+              </div>
+            )}
+            {o.crmOwnerName && (
+              <div className="max-w-[150px] truncate text-[11px] text-primary"
+                title={t('admin.partners.clusterRepHint', { name: o.crmOwnerName }) as string}>
+                {t('admin.partners.clusterRepPrefix')} {o.crmOwnerName}
+              </div>
+            )}
+          </div>
         );
       }
       case 'business': {
