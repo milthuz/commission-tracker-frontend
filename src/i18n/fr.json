@@ -1856,6 +1856,22 @@
         "ambiguous": "Plusieurs opportunités du même nom — aucune choisie ({{count}})",
         "wouldNotBeEligible": "Marqués dus alors que la règle ne les aurait pas trouvés éligibles ({{count}})",
         "settledWithoutInvoice": "Reprises malgré une facture absente de Sales Hub ({{count}})"
+      },
+      "importHistory": {
+        "title": "Historique des reprises",
+        "hint": "Chaque reprise appliquée laisse une trace : quand, par qui, et le rapport complet — y compris les lignes écartées. Les simulations n’y figurent pas, elles ne changent rien.",
+        "empty": "Aucune reprise appliquée pour le moment.",
+        "colWhen": "Quand",
+        "colKind": "Type",
+        "colResult": "Résultat",
+        "colWho": "Par",
+        "details": "voir le détail",
+        "sumMigration": "{{users}} usager(s), {{opps}} opportunité(s)",
+        "sumPayouts": "{{settled}} réglé(s), {{due}} dû(s)",
+        "kind": {
+          "portal-migration": "Portail",
+          "payout-history": "Versements"
+        }
       }
     },
     "resources": {

@@ -1856,6 +1856,22 @@
         "ambiguous": "Several opportunities with the same name — none picked ({{count}})",
         "wouldNotBeEligible": "Marked due although the rule would not find them eligible ({{count}})",
         "settledWithoutInvoice": "Imported despite the invoice being absent from Sales Hub ({{count}})"
+      },
+      "importHistory": {
+        "title": "Import history",
+        "hint": "Every applied import leaves a trace: when, by whom, and the full report — including the skipped rows. Simulations are not listed; they change nothing.",
+        "empty": "No import applied yet.",
+        "colWhen": "When",
+        "colKind": "Type",
+        "colResult": "Result",
+        "colWho": "By",
+        "details": "see details",
+        "sumMigration": "{{users}} user(s), {{opps}} opportunity(ies)",
+        "sumPayouts": "{{settled}} settled, {{due}} due",
+        "kind": {
+          "portal-migration": "Portal",
+          "payout-history": "Payouts"
+        }
       }
     },
     "resources": {

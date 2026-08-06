@@ -271,17 +271,31 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
     setPayReport(null);
     try {
       const payload = JSON.parse(await payFile.text());
-      const r = await axios.post(`${API_URL}/api/admin/partner-payouts/import-history`, { ...payload, dryRun },
-        { headers: authHeaders() });
+      const r = await axios.post(`${API_URL}/api/admin/partner-payouts/import-history`,
+        { ...payload, dryRun, fileName: payFile.name }, { headers: authHeaders() });
       setPayReport(r.data);
       if (dryRun) setPaySimulatedFor(payFile.name + ':' + payFile.size);
-      else { setPaySimulatedFor(''); await fetchPayouts(); await fetchQueue(); }
+      else { setPaySimulatedFor(''); await fetchPayouts(); await fetchQueue(); await fetchDataImports(); }
     } catch (e: any) {
       const d = e?.response?.data;
       dialog.alert(d?.error || e?.message || 'Import failed');
       if (d?.report) setPayReport(d.report);
     } finally { setPayBusy(''); }
   };
+
+  // Historique des reprises APPLIQUEES. Se recharge apres chaque application, pour que la nouvelle
+  // ligne apparaisse sans que David ait a se demander si elle a bien ete enregistree.
+  type DataImport = { id: number; kind: string; partnerName: string | null; source: string | null;
+    fileName: string | null; importedAt: string; importedBy: string | null; report: any };
+  const [dataImports, setDataImports] = useState<DataImport[]>([]);
+  const [openImportId, setOpenImportId] = useState<number | null>(null);
+  const fetchDataImports = async () => {
+    try {
+      const r = await axios.get(`${API_URL}/api/admin/partner-data-imports`, { headers: authHeaders() });
+      setDataImports(r.data.imports || []);
+    } catch { /* la permission peut manquer : l'historique reste simplement vide */ }
+  };
+  useEffect(() => { if (sub === 'imports' && canMigrate) fetchDataImports(); }, [sub, canMigrate]);
 
   const [revokingId, setRevokingId] = useState<number | null>(null);
   const revokeInvite = async (iv: Invite) => {
@@ -849,11 +863,11 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
     setMigReport(null);
     try {
       const payload = JSON.parse(await migFile.text());
-      const r = await axios.post(`${API_URL}/api/admin/partner-migration`, { ...payload, dryRun },
-        { headers: authHeaders() });
+      const r = await axios.post(`${API_URL}/api/admin/partner-migration`,
+        { ...payload, dryRun, fileName: migFile.name }, { headers: authHeaders() });
       setMigReport(r.data);
       if (dryRun) setMigSimulatedFor(migFile.name + ':' + migFile.size);
-      else { setMigSimulatedFor(''); await fetchPartners(); await fetchQueue(); }
+      else { setMigSimulatedFor(''); await fetchPartners(); await fetchQueue(); await fetchDataImports(); }
     } catch (e: any) {
       const d = e?.response?.data;
       dialog.alert(d?.error || e?.message || 'Migration failed');
@@ -1301,6 +1315,78 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
               )}
             </div>
           )}
+
+          {/* Historique. Seules les reprises APPLIQUEES y figurent : une simulation ne change rien,
+              l'y inscrire ferait croire a une reprise qui n'a pas eu lieu. */}
+          <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partners.importHistory.title')}</h3>
+            <p className="mb-4 max-w-3xl text-xs text-body">{t('admin.partners.importHistory.hint')}</p>
+            {dataImports.length === 0 ? (
+              <p className="py-4 text-center text-sm text-gray-400">{t('admin.partners.importHistory.empty')}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-stroke dark:border-strokedark">
+                      <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{t('admin.partners.importHistory.colWhen')}</th>
+                      <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{t('admin.partners.importHistory.colKind')}</th>
+                      <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{t('admin.partners.importHistory.colResult')}</th>
+                      <th className="w-full px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{t('admin.partners.importHistory.colWho')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dataImports.map((imp) => {
+                      const r = imp.report || {};
+                      // Un resume par type : les deux reprises ne comptent pas les memes choses.
+                      const resume = imp.kind === 'portal-migration'
+                        ? t('admin.partners.importHistory.sumMigration', {
+                            users: r.users?.created ?? 0, opps: r.opportunities?.created ?? 0 })
+                        : t('admin.partners.importHistory.sumPayouts', {
+                            settled: r.markedPaid ?? 0, due: r.markedDue ?? 0 });
+                      return (
+                        <React.Fragment key={imp.id}>
+                          <tr className="border-b border-stroke last:border-0 dark:border-strokedark">
+                            <td className="whitespace-nowrap px-3 py-2 tabular-nums text-body">
+                              {new Date(imp.importedAt).toLocaleString(i18n.language, {
+                                day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-2">
+                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                                imp.kind === 'portal-migration' ? 'bg-primary/10 text-primary' : 'bg-success/15 text-green-700 dark:text-success'}`}>
+                                {t(`admin.partners.importHistory.kind.${imp.kind}`, { defaultValue: imp.kind })}
+                              </span>
+                              {imp.partnerName && <span className="ml-2 text-xs text-body">{imp.partnerName}</span>}
+                            </td>
+                            <td className="px-3 py-2 text-body">
+                              <button onClick={() => setOpenImportId(openImportId === imp.id ? null : imp.id)}
+                                className="text-left hover:text-primary hover:underline">
+                                {resume} <span className="text-gray-400">· {t('admin.partners.importHistory.details')}</span>
+                              </button>
+                              {imp.fileName && <div className="max-w-[260px] truncate text-[11px] text-gray-400" title={imp.fileName}>{imp.fileName}</div>}
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              <div className="ml-auto max-w-[200px] truncate text-[11px] text-gray-400" title={imp.importedBy || undefined}>{imp.importedBy || '—'}</div>
+                            </td>
+                          </tr>
+                          {openImportId === imp.id && (
+                            <tr className="border-b border-stroke dark:border-strokedark">
+                              {/* Le rapport COMPLET, tel qu'il a ete produit — y compris les lignes
+                                  ecartees, qui sont justement ce qu'on cherche des semaines plus tard. */}
+                              <td colSpan={4} className="bg-gray-2 px-3 py-3 dark:bg-meta-4">
+                                <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-all text-[11px] leading-tight text-body">
+                                  {JSON.stringify(imp.report, null, 1)}
+                                </pre>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
