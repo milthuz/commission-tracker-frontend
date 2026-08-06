@@ -548,9 +548,13 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
             ) : (
               <span className="whitespace-nowrap text-xs font-medium text-black dark:text-white">{o.partnerName}</span>
             )}
+            {/* Representant du PARTENAIRE, celui qui a apporte l'affaire. Le libelle porte le nom du
+                partenaire : sans lui, deux lignes de noms cote a cote ne disent pas qui est qui —
+                c'est exactement l'erreur signalee par David. */}
             {repPartenaire && (
-              <div className="max-w-[150px] truncate text-[11px] text-gray-400" title={`${o.partnerName} : ${repPartenaire}`}>
-                {repPartenaire}
+              <div className="max-w-[150px] truncate text-[11px] text-gray-400"
+                title={t('admin.partners.partnerRepHint', { partner: o.partnerName, name: repPartenaire }) as string}>
+                {o.partnerName} · {repPartenaire}
               </div>
             )}
             {o.crmOwnerName && (

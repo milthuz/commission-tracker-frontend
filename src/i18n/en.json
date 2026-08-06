@@ -1881,7 +1881,8 @@
         }
       },
       "clusterRepPrefix": "Cluster ·",
-      "clusterRepHint": "Cluster rep assigned in Zoho: {{name}}"
+      "clusterRepHint": "Cluster rep, owner of the deal in Zoho: {{name}}",
+      "partnerRepHint": "{{partner}} rep: {{name}}"
     },
     "resources": {
       "title": "Resources storage",
