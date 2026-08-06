@@ -63,12 +63,9 @@ interface AdminUser {
   isDemo?: boolean;
   createdAt: string | null;
   lastLogin: string | null;
-  userType?: 'zoho' | 'external' | 'pending' | 'partner';
-  // Comptes du portail partenaire : un compte a part entiere, avec sa propre identite technique.
-  // Une meme adresse peut donc apparaitre DEUX fois dans la liste (Sales Hub + portail).
-  partnerUserId?: number;
-  partnerName?: string;
-  partnerRole?: 'admin' | 'standard';
+  userType?: 'zoho' | 'external' | 'pending';
+  // ⚠️ Les comptes du PORTAIL partenaire n'apparaissent PAS ici, par choix : cette page ne montre
+  // que les comptes Sales Hub. Les comptes de portail se gerent dans Partners > Users.
   localUserId?: number;
   status?: string;
   roles?: { id: number; name: string }[];
@@ -699,11 +696,9 @@ const AdminPanel = () => {
   // sur `/status` alors que les comptes de portail le font sur l'URL de base. Les confondre renvoie
   // un 404 silencieux au clic — d'où deux URL explicites plutôt qu'une seule devinée.
   const accountUrls = (u: AdminUser) =>
-    u.userType === 'partner'
-      ? { status: `${API_URL}/api/admin/partner-users/${u.partnerUserId}`, del: `${API_URL}/api/admin/partner-users/${u.partnerUserId}` }
-      : u.userType === 'external'
-        ? { status: `${API_URL}/api/admin/local-users/${u.localUserId}/status`, del: `${API_URL}/api/admin/local-users/${u.localUserId}` }
-        : null;
+    u.userType === 'external'
+      ? { status: `${API_URL}/api/admin/local-users/${u.localUserId}/status`, del: `${API_URL}/api/admin/local-users/${u.localUserId}` }
+      : null;
   const setAccountStatus = async (u: AdminUser, status: 'active' | 'disabled') => {
     const url = accountUrls(u)?.status;
     if (!url) return;
@@ -3359,10 +3354,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       </thead>
                       <tbody>
                         {adminUsers.map((user) => (
-                          // ⚠️ La cle ne peut plus etre le courriel : une adresse presente a la
-                          // fois dans Sales Hub et dans le portail produit deux lignes, et deux
-                          // cles identiques font dérailler le rendu de React.
-                          <tr key={`${user.userType || 'zoho'}:${user.partnerUserId ?? user.localUserId ?? user.email}`}
+                          // La cle inclut le type : les courriels sont uniques par type mais pas
+                          // forcement entre types, et une cle dupliquee fait derailler React.
+                          <tr key={`${user.userType || 'zoho'}:${user.localUserId ?? user.email}`}
                             className="border-b border-stroke dark:border-strokedark">
                             <td className="px-4 py-5">
                               <p className="text-black dark:text-white font-medium">{user.email}</p>
@@ -3371,18 +3365,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
                                     user.userType === 'external'
                                       ? 'bg-primary bg-opacity-10 text-primary'
-                                      : user.userType === 'partner'
-                                        ? 'bg-[#8B5CF6] bg-opacity-10 text-[#8B5CF6]'
-                                        : 'bg-warning bg-opacity-10 text-warning'
+                                      : 'bg-warning bg-opacity-10 text-warning'
                                   }`}>
                                     {t(`admin.admins.type_${user.userType}`)}
-                                  </span>
-                                )}
-                                {/* De QUEL partenaire : sans ça, deux comptes de portail se
-                                    ressemblent et on ne sait pas lequel on désactive. */}
-                                {user.userType === 'partner' && user.partnerName && (
-                                  <span className="inline-flex rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-body dark:bg-meta-4">
-                                    {user.partnerName}{user.partnerRole === 'admin' ? ' · ' + t('partnerPortal.roleAdmin') : ''}
                                   </span>
                                 )}
                                 {user.status === 'disabled' && (
@@ -3451,7 +3436,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 {user.isAdmin ? t('admin.admins.revokeAdmin') : t('admin.admins.grantAdmin')}
                               </button>
                               )}
-                              {user.userType !== 'pending' && user.userType !== 'partner' && (
+                              {user.userType !== 'pending' && (
                               <button
                                 onClick={() => toggleDemoMode(user.email, user.isDemo === true)}
                                 title={t('admin.admins.demoHint') as string}
@@ -3468,7 +3453,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   vrai interrupteur : portail et externes. Un compte Zoho se
                                   connecte par SSO, le bloquer demanderait un mécanisme qui
                                   n'existe pas encore. */}
-                              {(user.userType === 'partner' || user.userType === 'external') && (
+                              {user.userType === 'external' && (
                                 <button
                                   onClick={() => setAccountStatus(user, user.status === 'disabled' ? 'active' : 'disabled')}
                                   className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition ${

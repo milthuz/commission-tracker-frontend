@@ -81,13 +81,14 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   // item, which links here with ?view=manage.
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const subFromParams = (): 'partners' | 'payouts' | 'queue' => {
+  const subFromParams = (): 'partners' | 'payouts' | 'queue' | 'users' => {
     const v = searchParams.get('view');
     if (v === 'manage') return 'partners';
     if (v === 'payouts') return 'payouts';
+    if (v === 'users') return 'users';
     return 'queue';
   };
-  const [sub, setSub] = useState<'partners' | 'payouts' | 'queue'>(subFromParams());
+  const [sub, setSub] = useState<'partners' | 'payouts' | 'queue' | 'users'>(subFromParams());
   // The route stays /admin/partners for every sub-view (only ?view= changes), so AdminPanel never
   // remounts this component — the useState initializer above only runs once. Re-sync on every
   // search-param change so the Sidebar's submenu links work from an already-open page.
@@ -158,8 +159,9 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   const userDirRef = useRef<HTMLDivElement>(null);
   const showPartnerUsers = (name: string) => {
     setUserDirFilter(name);
-    // Le clic doit AMENER a la liste : filtrer une carte qu'on ne voit pas ne se remarque pas.
-    setTimeout(() => userDirRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    // La liste vit maintenant dans sa PROPRE vue : le clic doit y naviguer, plus seulement faire
+    // defiler. Le filtre est pose avant la navigation, il survit au changement de vue.
+    navigate('/admin/partners?view=users');
   };
   useEffect(() => {
     axios.get(`${API_URL}/api/admin/partner-invites`, { headers: authHeaders() })
@@ -803,7 +805,11 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
             ← {t('admin.partners.tabs.queue')}
           </button>
           <span>/</span>
-          <span className="font-semibold text-black dark:text-white">{t(sub === 'partners' ? 'admin.partners.tabs.partners' : 'admin.partners.tabs.payouts')}</span>
+          <span className="font-semibold text-black dark:text-white">
+            {t(sub === 'partners' ? 'admin.partners.tabs.partners'
+              : sub === 'users' ? 'admin.partners.tabs.users'
+              : 'admin.partners.tabs.payouts')}
+          </span>
         </div>
       )}
 
@@ -882,6 +888,14 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
             )}
           </div>
 
+        </div>
+      )}
+
+      {/* Vue « Usagers » : les comptes du PORTAIL partenaire, et eux seuls. Ils ne figurent
+          volontairement pas dans Admin Panel > Users, qui ne montre que les comptes
+          Sales Hub — deux mondes distincts, deux endroits. */}
+      {sub === 'users' && (
+        <div className="flex flex-col gap-4">
         {/* Usagers du portail, par partenaire. Reste le suivi des invitations (envoyee -> lien
             ouvert -> compte active) : ce sont les memes lignes, vues comme un annuaire. */}
         <div ref={userDirRef} className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">

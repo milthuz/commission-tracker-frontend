@@ -1657,7 +1657,8 @@
       "tabs": {
         "partners": "Gérer les partenaires",
         "queue": "File des occasions d’affaires",
-        "payouts": "Paiements"
+        "payouts": "Paiements",
+        "users": "Usagers"
       },
       "fName": "Nom du partenaire",
       "creating": "Création…",
@@ -2737,8 +2738,7 @@
       "rolesVsAdminHint": "Pour un accès complet, utilise plutôt le bouton Admin — il donne tout (tous les menus + le Panneau d'admin). Les rôles servent aux utilisateurs non-admins (ex. Management, Sales Rep).",
       "managedTeams": "Équipes gérées",
       "managedTeamsHint": "Ce manager ne verra que la ou les équipes sélectionnées sur son tableau de bord et dans le suivi.",
-      "noTeams": "Aucune équipe créée pour l'instant.",
-      "type_partner": "Portail"
+      "noTeams": "Aucune équipe créée pour l'instant."
     }
   },
   "header": {
