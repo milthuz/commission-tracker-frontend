@@ -847,22 +847,36 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
         onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) uploadLogo(f); }}
       />
     <div>
-      {/* No in-page tab strip here on purpose — Opportunity Queue is this page's default view,
-          and Manage Partners is reached via the Sidebar's own submenu (user request
-          2026-07-2x), so a second switcher on the page itself would be redundant. */}
-      {sub !== 'queue' && (
-        <div className="mb-4 flex items-center gap-2 text-sm text-body">
-          <button onClick={() => navigate('/admin/partners')} className="flex items-center gap-1 font-medium text-primary hover:underline">
-            ← {t('admin.partners.tabs.queue')}
+      {/* Barre de pastilles, et non plus un fil d'Ariane « ← File d'opportunités / Users ».
+          Ce fil prétendait une HIÉRARCHIE qui n'existe pas : les quatre vues sont sœurs, aucune
+          n'est sous une autre. Il passait tant qu'il n'y avait que deux vues ; à quatre il ment,
+          et il n'offre aucun moyen de passer directement d'une vue à l'autre.
+          (L'ancien commentaire disait « pas de barre d'onglets, la barre latérale suffit » — vrai
+          en juillet avec deux vues, faux maintenant. Les pastilles sont d'ailleurs le motif déjà
+          utilisé par Commissions et par le portail.) */}
+      <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+        {([
+          { key: 'queue',    to: '/admin/partners',              label: 'admin.partners.tabs.queue' },
+          { key: 'partners', to: '/admin/partners?view=manage',  label: 'admin.partners.tabs.partners' },
+          { key: 'users',    to: '/admin/partners?view=users',   label: 'admin.partners.tabs.users' },
+          { key: 'payouts',  to: '/admin/partners?view=payouts', label: 'admin.partners.tabs.payouts' },
+        ] as const).map((tab) => (
+          <button key={tab.key} onClick={() => navigate(tab.to)}
+            className={`rounded-md px-4 py-2 text-sm font-medium transition ${
+              sub === tab.key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'
+            }`}>
+            {t(tab.label)}
+            {/* Le nombre de dossiers à réviser se lit sur l'onglet, pas seulement dans la barre
+                latérale : c'est la seule action qui attend vraiment quelqu'un. */}
+            {tab.key === 'queue' && queueStats.pending > 0 && (
+              <span className={`ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                sub === 'queue' ? 'bg-white/20 text-white' : 'bg-warning/20 text-warning'}`}>
+                {queueStats.pending}
+              </span>
+            )}
           </button>
-          <span>/</span>
-          <span className="font-semibold text-black dark:text-white">
-            {t(sub === 'partners' ? 'admin.partners.tabs.partners'
-              : sub === 'users' ? 'admin.partners.tabs.users'
-              : 'admin.partners.tabs.payouts')}
-          </span>
-        </div>
-      )}
+        ))}
+      </div>
 
       {sub === 'partners' && (
         <div className="flex flex-col gap-4">
