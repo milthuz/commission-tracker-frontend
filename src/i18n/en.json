@@ -1655,7 +1655,7 @@
       "fLeadSource": "Lead Source (sent to Zoho CRM)",
       "leadSourcePh": "e.g. this partner's name",
       "leadSourceHint": "Sent as the Lead Source field when a Lead is created in Zoho CRM on approval. Leave empty to omit it.",
-      "fPayoutRate": "Payout rate ($ per opportunity)",
+      "fPayoutRate": "Conversion payout ($ per sale)",
       "payoutRatePh": "e.g. 200.00",
       "payoutRateHint": "Flat amount paid once per eligible opportunity (not recurring). Leave empty until a rate is negotiated with this partner.",
       "billingContact": "Billing contact",
@@ -1808,7 +1808,9 @@
         "targetPartner": "Target partner:",
         "partnerNew": "will be created",
         "partnerExisting": "already exists"
-      }
+      },
+      "fInitialPayoutRate": "Initial payout ($ per lead)",
+      "initialPayoutRateHint": "Owed for the lead itself, even if the deal never closes. Leave empty if this partner is not entitled to it."
     },
     "resources": {
       "title": "Resources storage",

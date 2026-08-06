@@ -14,6 +14,7 @@ interface Partner {
   billingContactName: string | null; billingContactEmail: string | null; billingContactPhone: string | null;
   businessContactName: string | null; businessContactEmail: string | null; businessContactPhone: string | null;
   payoutRate: number | null;
+  initialPayoutRate: number | null;
 }
 interface CrmMatch {
   module: 'Leads' | 'Contacts' | 'Accounts'; id: string; name: string; company: string | null;
@@ -251,7 +252,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   // 2026-07-2x, after the Zoho screenshot showed Lead Source as a required, unmapped field).
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [editForm, setEditForm] = useState({
-    name: '', leadSource: '', payoutRate: '',
+    name: '', leadSource: '', payoutRate: '', initialPayoutRate: '',
     billingContactName: '', billingContactEmail: '', billingContactPhone: '',
     businessContactName: '', businessContactEmail: '', businessContactPhone: '',
   });
@@ -261,6 +262,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
     setEditingPartner(p);
     setEditForm({
       name: p.name, leadSource: p.leadSource || '', payoutRate: p.payoutRate !== null ? String(p.payoutRate) : '',
+      initialPayoutRate: p.initialPayoutRate !== null ? String(p.initialPayoutRate) : '',
       billingContactName: p.billingContactName || '', billingContactEmail: p.billingContactEmail || '', billingContactPhone: p.billingContactPhone || '',
       businessContactName: p.businessContactName || '', businessContactEmail: p.businessContactEmail || '', businessContactPhone: p.businessContactPhone || '',
     });
@@ -274,6 +276,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
       await axios.put(`${API_URL}/api/admin/partners/${editingPartner.id}`, {
         name: editForm.name.trim(), active: editingPartner.active,
         leadSource: editForm.leadSource.trim(), payoutRate: editForm.payoutRate.trim() === '' ? null : editForm.payoutRate.trim(),
+        initialPayoutRate: editForm.initialPayoutRate.trim() === '' ? null : editForm.initialPayoutRate.trim(),
         billingContactName: editForm.billingContactName.trim(), billingContactEmail: editForm.billingContactEmail.trim(), billingContactPhone: editForm.billingContactPhone.trim(),
         businessContactName: editForm.businessContactName.trim(), businessContactEmail: editForm.businessContactEmail.trim(), businessContactPhone: editForm.businessContactPhone.trim(),
       }, { headers: authHeaders() });
@@ -1353,6 +1356,14 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                     {logoBusy === editingPartner.id ? t('admin.partners.logoUploading') : t('admin.partners.logoAdd')}
                   </button>
                 )}
+              </div>
+              {/* Deux montants distincts, et le libelle doit dire LEQUEL : l'initial est du pour le
+                  lead meme si l'affaire ne se conclut pas, celui de conversion recompense la vente. */}
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.fInitialPayoutRate')}</label>
+                <input value={editForm.initialPayoutRate} onChange={(e) => setEditForm({ ...editForm, initialPayoutRate: e.target.value })}
+                  type="number" min="0" step="0.01" placeholder={t('admin.partners.payoutRatePh') as string} className={inputCls} />
+                <p className="mt-1 text-xs text-gray-400">{t('admin.partners.initialPayoutRateHint')}</p>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.fPayoutRate')}</label>

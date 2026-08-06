@@ -1655,7 +1655,7 @@
       "fLeadSource": "Source de piste (envoyée à Zoho CRM)",
       "leadSourcePh": "ex. le nom de ce partenaire",
       "leadSourceHint": "Envoyée comme champ Lead Source lors de la création d’une piste dans Zoho CRM à l’approbation. Laisser vide pour l’omettre.",
-      "fPayoutRate": "Taux de paiement ($ par dossier)",
+      "fPayoutRate": "Versement à la conversion ($ par vente)",
       "payoutRatePh": "ex. 200.00",
       "payoutRateHint": "Montant fixe versé une seule fois par dossier éligible (non récurrent). Laisser vide jusqu'à ce qu'un taux soit négocié avec ce partenaire.",
       "billingContact": "Contact de facturation",
@@ -1808,7 +1808,9 @@
         "targetPartner": "Partenaire visé :",
         "partnerNew": "sera créé",
         "partnerExisting": "existe déjà"
-      }
+      },
+      "fInitialPayoutRate": "Versement initial ($ par lead)",
+      "initialPayoutRateHint": "Dû pour le lead lui-même, même si l’affaire ne se conclut pas. Laisser vide si ce partenaire n’y a pas droit."
     },
     "resources": {
       "title": "Stockage des ressources",
