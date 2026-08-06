@@ -1843,7 +1843,19 @@
       "inviteBulkSending": "Envoi… {{done}} / {{total}}",
       "inviteBulkConfirm": "Envoyer {{count}} invitation(s) maintenant ? Chaque personne recevra un courriel avec un lien valide 7 jours. Les comptes déjà actifs sont ignorés.",
       "inviteBulkDone": "{{sent}} invitation(s) envoyée(s) · {{skipped}} ignorée(s) · {{failed}} en échec.",
-      "selectAllShown": "Tout sélectionner (lignes affichées)"
+      "selectAllShown": "Tout sélectionner (lignes affichées)",
+      "payoutImport": {
+        "title": "Reprise des versements déjà réglés",
+        "hint": "Dépose le fichier préparé depuis l’historique Moneris. Il marque comme RÉGLÉS les versements déjà payés hors Sales Hub, et comme DUS ceux qui restent. Le rattachement se fait par numéro de facture, pas par nom d’entreprise — les noms ont changé depuis. Simulation d’abord, comme pour la migration.",
+        "applyConfirm": "Appliquer la reprise ? Les dossiers concernés seront marqués réglés ou dus. L’opération est réexécutable sans doubler, mais rien ne l’annulera automatiquement.",
+        "settled": "Marqués réglés (payés hors Sales Hub)",
+        "due": "Marqués dus",
+        "unchanged": "Déjà dans l’état voulu",
+        "unresolvedInvoice": "Facture introuvable dans Sales Hub ({{count}})",
+        "notMatched": "Aucune opportunité correspondante ({{count}})",
+        "ambiguous": "Plusieurs opportunités du même nom — aucune choisie ({{count}})",
+        "wouldNotBeEligible": "Marqués dus alors que la règle ne les aurait pas trouvés éligibles ({{count}})"
+      }
     },
     "resources": {
       "title": "Stockage des ressources",

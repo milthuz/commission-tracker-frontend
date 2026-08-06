@@ -1843,7 +1843,19 @@
       "inviteBulkSending": "Sending… {{done}} / {{total}}",
       "inviteBulkConfirm": "Send {{count}} invitation(s) now? Each person receives an email with a link valid for 7 days. Already-active accounts are skipped.",
       "inviteBulkDone": "{{sent}} invitation(s) sent · {{skipped}} skipped · {{failed}} failed.",
-      "selectAllShown": "Select all (shown rows)"
+      "selectAllShown": "Select all (shown rows)",
+      "payoutImport": {
+        "title": "Import settled payouts",
+        "hint": "Drop in the file built from the Moneris history. It marks as SETTLED the payouts already paid outside Sales Hub, and as DUE the ones still owed. Matching is by invoice number, not business name — the names have changed since. Simulate first, as with the migration.",
+        "applyConfirm": "Apply the import? The matched records will be marked settled or due. It can be re-run without doubling, but nothing will undo it automatically.",
+        "settled": "Marked settled (paid outside Sales Hub)",
+        "due": "Marked due",
+        "unchanged": "Already in the target state",
+        "unresolvedInvoice": "Invoice not found in Sales Hub ({{count}})",
+        "notMatched": "No matching opportunity ({{count}})",
+        "ambiguous": "Several opportunities with the same name — none picked ({{count}})",
+        "wouldNotBeEligible": "Marked due although the rule would not find them eligible ({{count}})"
+      }
     },
     "resources": {
       "title": "Resources storage",
