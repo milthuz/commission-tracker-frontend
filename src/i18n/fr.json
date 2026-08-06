@@ -1658,7 +1658,8 @@
         "partners": "Gérer les partenaires",
         "queue": "File des occasions d’affaires",
         "payouts": "Paiements",
-        "users": "Usagers"
+        "users": "Usagers",
+        "imports": "Reprise de données"
       },
       "fName": "Nom du partenaire",
       "creating": "Création…",

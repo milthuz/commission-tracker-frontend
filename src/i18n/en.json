@@ -1658,7 +1658,8 @@
         "partners": "Manage Partners",
         "queue": "Opportunity Queue",
         "payouts": "Payouts",
-        "users": "Users"
+        "users": "Users",
+        "imports": "Data import"
       },
       "fName": "Partner name",
       "creating": "Creating…",

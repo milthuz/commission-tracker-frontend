@@ -81,14 +81,15 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   // item, which links here with ?view=manage.
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const subFromParams = (): 'partners' | 'payouts' | 'queue' | 'users' => {
+  const subFromParams = (): 'partners' | 'payouts' | 'queue' | 'users' | 'imports' => {
     const v = searchParams.get('view');
     if (v === 'manage') return 'partners';
     if (v === 'payouts') return 'payouts';
     if (v === 'users') return 'users';
+    if (v === 'imports') return 'imports';
     return 'queue';
   };
-  const [sub, setSub] = useState<'partners' | 'payouts' | 'queue' | 'users'>(subFromParams());
+  const [sub, setSub] = useState<'partners' | 'payouts' | 'queue' | 'users' | 'imports'>(subFromParams());
   // The route stays /admin/partners for every sub-view (only ?view= changes), so AdminPanel never
   // remounts this component — the useState initializer above only runs once. Re-sync on every
   // search-param change so the Sidebar's submenu links work from an already-open page.
@@ -885,6 +886,9 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
           { key: 'partners', to: '/admin/partners?view=manage',  label: 'admin.partners.tabs.partners' },
           { key: 'users',    to: '/admin/partners?view=users',   label: 'admin.partners.tabs.users' },
           { key: 'payouts',  to: '/admin/partners?view=payouts', label: 'admin.partners.tabs.payouts' },
+          // La reprise n'apparait que pour qui peut l'executer : une pastille qu'on ne peut pas
+          // utiliser est du bruit pour tous les autres.
+          ...(canMigrate ? [{ key: 'imports' as const, to: '/admin/partners?view=imports', label: 'admin.partners.tabs.imports' }] : []),
         ] as const).map((tab) => (
           <button key={tab.key} onClick={() => navigate(tab.to)}
             className={`rounded-md px-4 py-2 text-sm font-medium transition ${
@@ -1133,6 +1137,16 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
             </div>
           )}
         </div>
+        </div>
+      )}
+
+      {/* Categorie « Reprise » : les outils d'import a usage unique vivent ICI, et non en bas
+          d'ecrans operationnels ou ils encombraient — la carte de migration s'etait meme
+          retrouvee sur l'ecran Usagers en suivant la liste lors d'un deplacement anterieur.
+          Visible uniquement avec `partners:migrate`, donc invisible pour tout le monde par
+          defaut. */}
+      {sub === 'imports' && canMigrate && (
+        <div className="flex flex-col gap-4">
           {canMigrate && (
             <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
               <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partners.migration.title')}</h3>
@@ -1207,6 +1221,74 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                         <ul className="max-h-40 overflow-y-auto text-[11px] text-body">
                           {sec.refused.map((r: any, i: number) => (
                             <li key={i}>· {r.key || r.email || '?'} — {r.why}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {canMigrate && (
+            <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+              <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partners.payoutImport.title')}</h3>
+              <p className="mb-4 max-w-3xl text-xs text-body">{t('admin.partners.payoutImport.hint')}</p>
+              <input ref={payInput} type="file" accept="application/json,.json" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = '';
+                  setPayFile(f); setPayReport(null); setPaySimulatedFor(''); }} />
+              <div className="flex flex-wrap items-center gap-3">
+                <button onClick={() => payInput.current?.click()}
+                  className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
+                  {t('admin.partners.migration.pick')}
+                </button>
+                {payFile && <span className="text-xs text-body">{payFile.name} · {Math.round(payFile.size / 1024)} Ko</span>}
+                <button onClick={() => runPayoutImport(true)} disabled={!payFile || !!payBusy}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                  {payBusy === 'dry' ? t('admin.partners.migration.simulating') : t('admin.partners.migration.simulate')}
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!await dialog.confirm(t('admin.partners.payoutImport.applyConfirm') as string)) return;
+                    runPayoutImport(false);
+                  }}
+                  disabled={!payFile || !!payBusy || paySimulatedFor !== payFile.name + ':' + payFile.size}
+                  title={payFile && paySimulatedFor !== payFile.name + ':' + payFile.size
+                    ? (t('admin.partners.migration.needSimulation') as string) : undefined}
+                  className="rounded-lg bg-success px-4 py-2 text-sm font-semibold text-green-900 hover:bg-opacity-90 disabled:opacity-40">
+                  {payBusy === 'apply' ? t('admin.partners.migration.applying') : t('admin.partners.migration.apply')}
+                </button>
+              </div>
+              {payReport && (
+                <div className="mt-4 rounded-lg border border-stroke p-4 dark:border-strokedark">
+                  <div className={`mb-3 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                    payReport.dryRun ? 'bg-warning/15 text-warning' : 'bg-success/15 text-green-700 dark:text-success'}`}>
+                    {t(payReport.dryRun ? 'admin.partners.migration.dryRunNotice' : 'admin.partners.migration.done')}
+                  </div>
+                  <div className="grid gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
+                    <div className="font-semibold text-black dark:text-white">{t('admin.partners.payoutImport.settled')}</div>
+                    <div className="text-body">{payReport.markedPaid ?? 0}</div>
+                    <div className="font-semibold text-black dark:text-white">{t('admin.partners.payoutImport.due')}</div>
+                    <div className="text-body">{payReport.markedDue ?? 0}</div>
+                    <div className="font-semibold text-black dark:text-white">{t('admin.partners.payoutImport.unchanged')}</div>
+                    <div className="text-body">{payReport.unchanged ?? 0}</div>
+                  </div>
+                  {/* Chaque catégorie non traitée est nommée avec son compte EXACT : une ligne
+                      écartée en silence est une ligne qu'on croit reprise. */}
+                  {([
+                    ['unresolvedInvoice', 'admin.partners.payoutImport.unresolvedInvoice'],
+                    ['notMatched',        'admin.partners.payoutImport.notMatched'],
+                    ['ambiguous',         'admin.partners.payoutImport.ambiguous'],
+                    ['wouldNotBeEligible','admin.partners.payoutImport.wouldNotBeEligible'],
+                  ] as const).map(([key, label]) => (
+                    (payReport[key + 'Count'] > 0) && (
+                      <div key={key} className="mt-3">
+                        <div className={`mb-1 text-[11px] font-bold uppercase ${key === 'wouldNotBeEligible' ? 'text-warning' : 'text-danger'}`}>
+                          {t(label, { count: payReport[key + 'Count'] })}
+                        </div>
+                        <ul className="max-h-40 overflow-y-auto text-[11px] text-body">
+                          {(payReport[key] || []).map((x: any, i: number) => (
+                            <li key={i}>· {x.invoice || '?'} — {x.account || x.customer || ''}{x.invoiceStatus ? ` (facture ${x.invoiceStatus})` : ''}</li>
                           ))}
                         </ul>
                       </div>
@@ -1448,74 +1530,6 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                 )}
               </div>
 
-              {canMigrate && (
-                <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-                  <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partners.payoutImport.title')}</h3>
-                  <p className="mb-4 max-w-3xl text-xs text-body">{t('admin.partners.payoutImport.hint')}</p>
-                  <input ref={payInput} type="file" accept="application/json,.json" className="hidden"
-                    onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = '';
-                      setPayFile(f); setPayReport(null); setPaySimulatedFor(''); }} />
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button onClick={() => payInput.current?.click()}
-                      className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
-                      {t('admin.partners.migration.pick')}
-                    </button>
-                    {payFile && <span className="text-xs text-body">{payFile.name} · {Math.round(payFile.size / 1024)} Ko</span>}
-                    <button onClick={() => runPayoutImport(true)} disabled={!payFile || !!payBusy}
-                      className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
-                      {payBusy === 'dry' ? t('admin.partners.migration.simulating') : t('admin.partners.migration.simulate')}
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (!await dialog.confirm(t('admin.partners.payoutImport.applyConfirm') as string)) return;
-                        runPayoutImport(false);
-                      }}
-                      disabled={!payFile || !!payBusy || paySimulatedFor !== payFile.name + ':' + payFile.size}
-                      title={payFile && paySimulatedFor !== payFile.name + ':' + payFile.size
-                        ? (t('admin.partners.migration.needSimulation') as string) : undefined}
-                      className="rounded-lg bg-success px-4 py-2 text-sm font-semibold text-green-900 hover:bg-opacity-90 disabled:opacity-40">
-                      {payBusy === 'apply' ? t('admin.partners.migration.applying') : t('admin.partners.migration.apply')}
-                    </button>
-                  </div>
-                  {payReport && (
-                    <div className="mt-4 rounded-lg border border-stroke p-4 dark:border-strokedark">
-                      <div className={`mb-3 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                        payReport.dryRun ? 'bg-warning/15 text-warning' : 'bg-success/15 text-green-700 dark:text-success'}`}>
-                        {t(payReport.dryRun ? 'admin.partners.migration.dryRunNotice' : 'admin.partners.migration.done')}
-                      </div>
-                      <div className="grid gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
-                        <div className="font-semibold text-black dark:text-white">{t('admin.partners.payoutImport.settled')}</div>
-                        <div className="text-body">{payReport.markedPaid ?? 0}</div>
-                        <div className="font-semibold text-black dark:text-white">{t('admin.partners.payoutImport.due')}</div>
-                        <div className="text-body">{payReport.markedDue ?? 0}</div>
-                        <div className="font-semibold text-black dark:text-white">{t('admin.partners.payoutImport.unchanged')}</div>
-                        <div className="text-body">{payReport.unchanged ?? 0}</div>
-                      </div>
-                      {/* Chaque catégorie non traitée est nommée avec son compte EXACT : une ligne
-                          écartée en silence est une ligne qu'on croit reprise. */}
-                      {([
-                        ['unresolvedInvoice', 'admin.partners.payoutImport.unresolvedInvoice'],
-                        ['notMatched',        'admin.partners.payoutImport.notMatched'],
-                        ['ambiguous',         'admin.partners.payoutImport.ambiguous'],
-                        ['wouldNotBeEligible','admin.partners.payoutImport.wouldNotBeEligible'],
-                      ] as const).map(([key, label]) => (
-                        (payReport[key + 'Count'] > 0) && (
-                          <div key={key} className="mt-3">
-                            <div className={`mb-1 text-[11px] font-bold uppercase ${key === 'wouldNotBeEligible' ? 'text-warning' : 'text-danger'}`}>
-                              {t(label, { count: payReport[key + 'Count'] })}
-                            </div>
-                            <ul className="max-h-40 overflow-y-auto text-[11px] text-body">
-                              {(payReport[key] || []).map((x: any, i: number) => (
-                                <li key={i}>· {x.invoice || '?'} — {x.account || x.customer || ''}{x.invoiceStatus ? ` (facture ${x.invoiceStatus})` : ''}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
             </>
           )}
         </div>
