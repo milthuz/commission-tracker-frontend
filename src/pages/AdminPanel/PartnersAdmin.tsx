@@ -212,6 +212,51 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
     } finally { setBusyUserId(null); }
   };
 
+  // Invitation en LOT. Un compte actif n'est jamais invitable : lui renvoyer une invitation
+  // reinitialiserait son mot de passe et sa 2FA. Un compte desactive non plus — il faut d'abord le
+  // reactiver, sinon on enverrait un courriel a quelqu'un qu'on vient de couper.
+  const canInvite = (iv: Invite) => iv.status === 'imported' || iv.status === 'invited';
+  const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set());
+  const [inviteProgress, setInviteProgress] = useState<{ done: number; total: number } | null>(null);
+  const toggleUserSelected = (id: number) =>
+    setSelectedUsers((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const toggleAllShown = () => setSelectedUsers((prev) => {
+    const n = new Set(prev);
+    if (allShownSelected) invitableShown.forEach((iv) => n.delete(iv.id));
+    else invitableShown.forEach((iv) => n.add(iv.id));
+    return n;
+  });
+
+  const CHUNK = 25;   // le serveur plafonne a 50 ; on reste en dessous pour des requetes courtes
+  const inviteSelected = async () => {
+    const ids = invitableShown.filter((iv) => selectedUsers.has(iv.id)).map((iv) => iv.id);
+    if (!ids.length) return;
+    if (!(await dialog.confirm(t('admin.partners.inviteBulkConfirm', { count: ids.length }) as string))) return;
+    const total = { sent: 0, skipped: 0, failed: [] as any[] };
+    setInviteProgress({ done: 0, total: ids.length });
+    try {
+      // Par tranches : un seul appel de 177 ferait expirer la requete, et un echec partiel doit
+      // rester lisible. Le rapport se cumule, donc on sait toujours ou on s'est arrete.
+      for (let i = 0; i < ids.length; i += CHUNK) {
+        const r = await axios.post(`${API_URL}/api/admin/partner-users/invite`,
+          { ids: ids.slice(i, i + CHUNK) }, { headers: authHeaders() });
+        total.sent += r.data.sent?.length || 0;
+        total.skipped += r.data.skipped?.length || 0;
+        total.failed.push(...(r.data.failed || []));
+        setInviteProgress({ done: Math.min(i + CHUNK, ids.length), total: ids.length });
+      }
+      setSelectedUsers(new Set());
+      await refreshUsers();
+      dialog.alert(t('admin.partners.inviteBulkDone', {
+        sent: total.sent, skipped: total.skipped, failed: total.failed.length,
+      }) as string + (total.failed.length
+        ? '\n\n' + total.failed.slice(0, 10).map((f) => `· ${f.email} — ${f.why}`).join('\n')
+        : ''));
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || e?.message || 'Invite failed');
+    } finally { setInviteProgress(null); }
+  };
+
   const [revokingId, setRevokingId] = useState<number | null>(null);
   const revokeInvite = async (iv: Invite) => {
     if (!(await dialog.confirm(t('admin.partners.revokeConfirm', { email: iv.email }) as string))) return;
@@ -395,6 +440,12 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   // Partenaires reellement presents dans la liste des usagers, et lignes affichees.
   const invitePartnerNames = [...new Set(invites.map((i) => i.partnerName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const shownInvites = userDirFilter ? invites.filter((i) => i.partnerName === userDirFilter) : invites;
+  // Tout selectionner = tout ce qui est AFFICHE et invitable, donc le filtre par partenaire est
+  // respecte : on ne peut pas inviter tout Moneris en croyant ne cocher que ce qu'on voit.
+  // ⚠️ Doit rester APRES shownInvites : declare plus haut, TypeScript refuse (usage avant
+  // declaration) — les fonctions plus haut peuvent s'y referer, elles ne s'executent qu'apres.
+  const invitableShown = shownInvites.filter(canInvite);
+  const allShownSelected = invitableShown.length > 0 && invitableShown.every((iv) => selectedUsers.has(iv.id));
 
   const searchLower = queueSearch.trim().toLowerCase();
   const filteredQueue = allOpportunities
@@ -908,6 +959,16 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
               {/* Selecteur affiche seulement au-dela d'un partenaire : a un seul choix, ce n'est
                   pas un filtre, c'est du decor. `|| userDirFilter` est un garde-fou : un clic sur le
                   compte pose un filtre, et sans le selecteur il n'y aurait aucun moyen de l'annuler. */}
+              {/* Envoi des invitations. Le bouton dit COMBIEN il en enverra : « Inviter » seul, sur
+                  177 lignes, est une promesse trop vague pour un geste irreversible. */}
+              {invitableShown.length > 0 && (
+                <button onClick={inviteSelected} disabled={!selectedUsers.size || !!inviteProgress}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
+                  {inviteProgress
+                    ? t('admin.partners.inviteBulkSending', { done: inviteProgress.done, total: inviteProgress.total })
+                    : t('admin.partners.inviteBulk', { count: selectedUsers.size })}
+                </button>
+              )}
               {(invitePartnerNames.length > 1 || userDirFilter) && (
                 <div className="flex items-center gap-2">
                   <Select
@@ -935,6 +996,13 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-stroke dark:border-strokedark">
+                    <th className="w-10 px-2 py-3 align-bottom">
+                      {invitableShown.length > 0 && (
+                        <input type="checkbox" checked={allShownSelected} onChange={toggleAllShown}
+                          title={t('admin.partners.selectAllShown') as string}
+                          className="h-4 w-4 cursor-pointer accent-primary" />
+                      )}
+                    </th>
                     <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.colPartner')}</th>
                     <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('partnerPortal.fEmail')}</th>
                     <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteSent')}</th>
@@ -955,6 +1023,15 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                     const expired = pending && !!iv.expiresAt && new Date(iv.expiresAt) < new Date();
                     return (
                       <tr key={iv.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
+                        <td className="w-10 px-2 py-3">
+                          {/* Pas de case sur un compte actif ou desactive : on ne propose pas un
+                              geste que le serveur refusera. */}
+                          {canInvite(iv) && (
+                            <input type="checkbox" checked={selectedUsers.has(iv.id)}
+                              onChange={() => toggleUserSelected(iv.id)}
+                              className="h-4 w-4 cursor-pointer accent-primary" />
+                          )}
+                        </td>
                         <td className="whitespace-nowrap px-4 py-3 font-medium text-black dark:text-white">{iv.partnerName}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center">

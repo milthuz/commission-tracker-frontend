@@ -1838,7 +1838,12 @@
       "seeUsersOf": "See {{name}}’s users",
       "allPartnersUsers": "All partners",
       "usersShown": "{{shown}} of {{total}}",
-      "noUsersForPartner": "No users for this partner."
+      "noUsersForPartner": "No users for this partner.",
+      "inviteBulk": "Invite ({{count}})",
+      "inviteBulkSending": "Sending… {{done}} / {{total}}",
+      "inviteBulkConfirm": "Send {{count}} invitation(s) now? Each person receives an email with a link valid for 7 days. Already-active accounts are skipped.",
+      "inviteBulkDone": "{{sent}} invitation(s) sent · {{skipped}} skipped · {{failed}} failed.",
+      "selectAllShown": "Select all (shown rows)"
     },
     "resources": {
       "title": "Resources storage",

@@ -1838,7 +1838,12 @@
       "seeUsersOf": "Voir les usagers de {{name}}",
       "allPartnersUsers": "Tous les partenaires",
       "usersShown": "{{shown}} sur {{total}}",
-      "noUsersForPartner": "Aucun usager pour ce partenaire."
+      "noUsersForPartner": "Aucun usager pour ce partenaire.",
+      "inviteBulk": "Inviter ({{count}})",
+      "inviteBulkSending": "Envoi… {{done}} / {{total}}",
+      "inviteBulkConfirm": "Envoyer {{count}} invitation(s) maintenant ? Chaque personne recevra un courriel avec un lien valide 7 jours. Les comptes déjà actifs sont ignorés.",
+      "inviteBulkDone": "{{sent}} invitation(s) envoyée(s) · {{skipped}} ignorée(s) · {{failed}} en échec.",
+      "selectAllShown": "Tout sélectionner (lignes affichées)"
     },
     "resources": {
       "title": "Stockage des ressources",
