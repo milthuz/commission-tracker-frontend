@@ -1675,7 +1675,7 @@
       "fLeadSource": "Source de piste (envoyée à Zoho CRM)",
       "leadSourcePh": "ex. le nom de ce partenaire",
       "leadSourceHint": "Envoyée comme champ Lead Source lors de la création d’une piste dans Zoho CRM à l’approbation. Laisser vide pour l’omettre.",
-      "fPayoutRate": "Versement à la conversion ($ par vente)",
+      "fPayoutRate": "Versement par affaire conclue ($)",
       "payoutRatePh": "ex. 200.00",
       "payoutRateHint": "Montant fixe versé une seule fois par dossier éligible (non récurrent). Laisser vide jusqu'à ce qu'un taux soit négocié avec ce partenaire.",
       "billingContact": "Contact de facturation",

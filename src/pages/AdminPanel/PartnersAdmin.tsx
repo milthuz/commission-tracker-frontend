@@ -1350,10 +1350,6 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="font-semibold text-black dark:text-white">{p.partnerName}</span>
-                            <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                              p.kind === 'initial' ? 'bg-primary/10 text-primary' : 'bg-success/15 text-green-700 dark:text-success'}`}>
-                              {t(`admin.partners.payout.kind.${p.kind}`)}
-                            </span>
                           </div>
                           <div className="text-xs text-gray-400">{t('admin.partners.payout.opportunityCount', { count: p.opportunities.length })}</div>
                         </div>
@@ -1397,17 +1393,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                         {runs.map((r) => (
                           <tr key={r.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
                             <td className="px-4 py-3 font-medium text-black dark:text-white">{r.partnerName}</td>
-                            <td className="px-4 py-3 text-body">
-                              {/* Le type doit se lire sur la ligne : un run de 50 $ ne dit pas de
-                                  lui-même s'il payait des leads ou des ventes. */}
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span>{r.periodLabel}</span>
-                                <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
-                                  r.kind === 'initial' ? 'bg-primary/10 text-primary' : 'bg-success/15 text-green-700 dark:text-success'}`}>
-                                  {t(`admin.partners.payout.kind.${r.kind}`)}
-                                </span>
-                              </div>
-                            </td>
+                            <td className="px-4 py-3 text-body">{r.periodLabel}</td>
                             <td className="px-4 py-3 text-body">{r.opportunityCount}</td>
                             <td className="px-4 py-3 text-body">${r.totalAmount.toFixed(2)}</td>
                             <td className="px-4 py-3">
@@ -1602,14 +1588,8 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                   </button>
                 )}
               </div>
-              {/* Deux montants distincts, et le libelle doit dire LEQUEL : l'initial est du pour le
-                  lead meme si l'affaire ne se conclut pas, celui de conversion recompense la vente. */}
-              <div>
-                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.fInitialPayoutRate')}</label>
-                <input value={editForm.initialPayoutRate} onChange={(e) => setEditForm({ ...editForm, initialPayoutRate: e.target.value })}
-                  type="number" min="0" step="0.01" placeholder={t('admin.partners.payoutRatePh') as string} className={inputCls} />
-                <p className="mt-1 text-xs text-gray-400">{t('admin.partners.initialPayoutRateHint')}</p>
-              </div>
+              {/* UN SEUL montant : le versement du par affaire conclue. Le second champ, ajoute puis
+                  retire le 2026-08-06, promettait un versement a l'approbation que David ne veut pas. */}
               <div>
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.fPayoutRate')}</label>
                 <input value={editForm.payoutRate} onChange={(e) => setEditForm({ ...editForm, payoutRate: e.target.value })}
