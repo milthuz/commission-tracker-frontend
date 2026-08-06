@@ -63,7 +63,14 @@ interface AdminUser {
   isDemo?: boolean;
   createdAt: string | null;
   lastLogin: string | null;
-  userType?: 'zoho' | 'external' | 'pending';
+  userType?: 'zoho' | 'external' | 'pending' | 'partner';
+  // Comptes du portail partenaire : un compte a part entiere, avec sa propre identite technique.
+  // Une meme adresse peut donc apparaitre DEUX fois dans la liste (Sales Hub + portail).
+  partnerUserId?: number;
+  partnerName?: string;
+  partnerRole?: 'admin' | 'standard';
+  localUserId?: number;
+  status?: string;
   roles?: { id: number; name: string }[];
 }
 
@@ -681,6 +688,56 @@ const AdminPanel = () => {
     } catch (error: any) {
       const msg = error.response?.data?.error || t('admin.admins.failedUpdate');
       dialog.alert(msg);
+    }
+  };
+
+  // Un compte de portail et un compte externe se gerent par leur ID sur leur propre point d'acces.
+  // Router ici plutot que dans le bouton : la regle « quel compte est vise » ne doit exister qu'une
+  // fois. Les refus du serveur (dernier administrateur, historique rattache) sont traduits, et la
+  // desactivation est proposee quand la suppression est impossible.
+  // ⚠️ Les deux familles n'ont PAS la même forme d'URL : les comptes externes changent de statut
+  // sur `/status` alors que les comptes de portail le font sur l'URL de base. Les confondre renvoie
+  // un 404 silencieux au clic — d'où deux URL explicites plutôt qu'une seule devinée.
+  const accountUrls = (u: AdminUser) =>
+    u.userType === 'partner'
+      ? { status: `${API_URL}/api/admin/partner-users/${u.partnerUserId}`, del: `${API_URL}/api/admin/partner-users/${u.partnerUserId}` }
+      : u.userType === 'external'
+        ? { status: `${API_URL}/api/admin/local-users/${u.localUserId}/status`, del: `${API_URL}/api/admin/local-users/${u.localUserId}` }
+        : null;
+  const setAccountStatus = async (u: AdminUser, status: 'active' | 'disabled') => {
+    const url = accountUrls(u)?.status;
+    if (!url) return;
+    if (!(await dialog.confirm(t(status === 'disabled' ? 'partnerPortal.userMgmt.confirmDisable' : 'partnerPortal.userMgmt.confirmEnable',
+      { email: u.email }) as string))) return;
+    try {
+      await axios.put(url, { status }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      await fetchAdminUsers();
+    } catch (e: any) {
+      const d = e?.response?.data;
+      dialog.alert(d?.error === 'last_admin'
+        ? (t('partnerPortal.userMgmt.errLastAdmin', { name: d.partnerName }) as string)
+        : (d?.error || e?.message || t('admin.admins.failedUpdate')));
+    }
+  };
+  const deleteAnyUser = async (u: AdminUser) => {
+    const urls = accountUrls(u);
+    if (!urls) return deleteUser(u.email);   // comptes Zoho / en attente : chemin historique
+    if (!(await dialog.confirm(t('partnerPortal.userMgmt.confirmDelete', { email: u.email }) as string))) return;
+    const hdrs = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
+    try {
+      await axios.delete(urls.del, hdrs);
+      await fetchAdminUsers();
+    } catch (e: any) {
+      const d = e?.response?.data;
+      if (d?.error === 'last_admin') { dialog.alert(t('partnerPortal.userMgmt.errLastAdmin', { name: d.partnerName }) as string); return; }
+      if (d?.error === 'user_has_history') {
+        const ok = await dialog.confirm(t('partnerPortal.userMgmt.errHistoryAskDisable', {
+          email: d.email, opportunities: d.counts?.opportunities ?? 0, invoices: d.counts?.invoices ?? 0,
+        }) as string);
+        if (ok) { await axios.put(urls.status, { status: 'disabled' }, hdrs); await fetchAdminUsers(); }
+        return;
+      }
+      dialog.alert(d?.error || e?.message || t('admin.admins.failedUpdate'));
     }
   };
 
@@ -3302,7 +3359,11 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       </thead>
                       <tbody>
                         {adminUsers.map((user) => (
-                          <tr key={user.email} className="border-b border-stroke dark:border-strokedark">
+                          // ⚠️ La cle ne peut plus etre le courriel : une adresse presente a la
+                          // fois dans Sales Hub et dans le portail produit deux lignes, et deux
+                          // cles identiques font dérailler le rendu de React.
+                          <tr key={`${user.userType || 'zoho'}:${user.partnerUserId ?? user.localUserId ?? user.email}`}
+                            className="border-b border-stroke dark:border-strokedark">
                             <td className="px-4 py-5">
                               <p className="text-black dark:text-white font-medium">{user.email}</p>
                               <div className="mt-1 flex flex-wrap gap-1">
@@ -3310,9 +3371,23 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
                                     user.userType === 'external'
                                       ? 'bg-primary bg-opacity-10 text-primary'
-                                      : 'bg-warning bg-opacity-10 text-warning'
+                                      : user.userType === 'partner'
+                                        ? 'bg-[#8B5CF6] bg-opacity-10 text-[#8B5CF6]'
+                                        : 'bg-warning bg-opacity-10 text-warning'
                                   }`}>
                                     {t(`admin.admins.type_${user.userType}`)}
+                                  </span>
+                                )}
+                                {/* De QUEL partenaire : sans ça, deux comptes de portail se
+                                    ressemblent et on ne sait pas lequel on désactive. */}
+                                {user.userType === 'partner' && user.partnerName && (
+                                  <span className="inline-flex rounded-full bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-body dark:bg-meta-4">
+                                    {user.partnerName}{user.partnerRole === 'admin' ? ' · ' + t('partnerPortal.roleAdmin') : ''}
+                                  </span>
+                                )}
+                                {user.status === 'disabled' && (
+                                  <span className="inline-flex rounded-full bg-danger bg-opacity-10 px-2 py-0.5 text-[10px] font-bold uppercase text-danger">
+                                    {t('partnerPortal.userStatus.disabled')}
                                   </span>
                                 )}
                                 {user.isDemo && (
@@ -3376,7 +3451,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 {user.isAdmin ? t('admin.admins.revokeAdmin') : t('admin.admins.grantAdmin')}
                               </button>
                               )}
-                              {user.userType !== 'pending' && (
+                              {user.userType !== 'pending' && user.userType !== 'partner' && (
                               <button
                                 onClick={() => toggleDemoMode(user.email, user.isDemo === true)}
                                 title={t('admin.admins.demoHint') as string}
@@ -3389,8 +3464,27 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 {user.isDemo ? t('admin.admins.demoOff') : t('admin.admins.demoOn')}
                               </button>
                               )}
+                              {/* Désactiver / réactiver — disponible pour les comptes qui ont un
+                                  vrai interrupteur : portail et externes. Un compte Zoho se
+                                  connecte par SSO, le bloquer demanderait un mécanisme qui
+                                  n'existe pas encore. */}
+                              {(user.userType === 'partner' || user.userType === 'external') && (
+                                <button
+                                  onClick={() => setAccountStatus(user, user.status === 'disabled' ? 'active' : 'disabled')}
+                                  className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
+                                    user.status === 'disabled'
+                                      ? 'bg-success text-white hover:bg-opacity-90'
+                                      : 'border border-stroke text-body hover:border-danger hover:text-danger dark:border-strokedark'
+                                  }`}
+                                >
+                                  {t(user.status === 'disabled' ? 'partnerPortal.userMgmt.enable' : 'partnerPortal.userMgmt.disable')}
+                                </button>
+                              )}
+                              {/* ⚠️ La suppression est ROUTÉE selon le type : supprimer par courriel
+                                  viserait le compte Sales Hub alors que la ligne montre un compte de
+                                  portail. Deux comptes, deux points d'accès. */}
                               <button
-                                onClick={() => deleteUser(user.email)}
+                                onClick={() => deleteAnyUser(user)}
                                 className="inline-flex items-center justify-center rounded-md border border-danger border-opacity-40 px-3 py-1.5 text-xs font-medium text-danger transition hover:bg-danger hover:bg-opacity-10"
                               >
                                 {t('admin.admins.deleteUser')}
