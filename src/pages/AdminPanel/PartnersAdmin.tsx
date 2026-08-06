@@ -166,6 +166,50 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
       .then((r) => setInvites(r.data.invites || []))
       .catch(() => {});
   }, []);
+  // Gestion d'un usager partenaire depuis l'admin interne. Les regles vivent cote serveur
+  // (dernier administrateur, historique rattache) ; ici on TRADUIT ses refus et on propose la
+  // desactivation quand la suppression est impossible.
+  const [busyUserId, setBusyUserId] = useState<number | null>(null);
+  const explainUserRefusal = async (e: any, onDisableInstead?: () => Promise<void>) => {
+    const d = e?.response?.data;
+    if (d?.error === 'last_admin') { dialog.alert(t('partnerPortal.userMgmt.errLastAdmin', { name: d.partnerName }) as string); return; }
+    if (d?.error === 'user_has_history') {
+      const ok = await dialog.confirm(t('partnerPortal.userMgmt.errHistoryAskDisable', {
+        email: d.email, opportunities: d.counts?.opportunities ?? 0, invoices: d.counts?.invoices ?? 0,
+      }) as string);
+      if (ok && onDisableInstead) await onDisableInstead();
+      return;
+    }
+    dialog.alert(d?.error || e?.message || 'Action failed');
+  };
+  const refreshUsers = async () => {
+    const r = await axios.get(`${API_URL}/api/admin/partner-invites`, { headers: authHeaders() });
+    setInvites(r.data.invites || []);
+    await fetchPartners();   // le compte par partenaire change aussi
+  };
+  const setUserStatus = async (iv: Invite, status: 'active' | 'disabled') => {
+    if (!(await dialog.confirm(t(status === 'disabled' ? 'partnerPortal.userMgmt.confirmDisable' : 'partnerPortal.userMgmt.confirmEnable',
+      { email: iv.email }) as string))) return;
+    setBusyUserId(iv.id);
+    try {
+      await axios.put(`${API_URL}/api/admin/partner-users/${iv.id}`, { status }, { headers: authHeaders() });
+      await refreshUsers();
+    } catch (e) { await explainUserRefusal(e); } finally { setBusyUserId(null); }
+  };
+  const deletePartnerUser = async (iv: Invite) => {
+    if (!(await dialog.confirm(t('partnerPortal.userMgmt.confirmDelete', { email: iv.email }) as string))) return;
+    setBusyUserId(iv.id);
+    try {
+      await axios.delete(`${API_URL}/api/admin/partner-users/${iv.id}`, { headers: authHeaders() });
+      await refreshUsers();
+    } catch (e) {
+      await explainUserRefusal(e, async () => {
+        await axios.put(`${API_URL}/api/admin/partner-users/${iv.id}`, { status: 'disabled' }, { headers: authHeaders() });
+        await refreshUsers();
+      });
+    } finally { setBusyUserId(null); }
+  };
+
   const [revokingId, setRevokingId] = useState<number | null>(null);
   const revokeInvite = async (iv: Invite) => {
     if (!(await dialog.confirm(t('admin.partners.revokeConfirm', { email: iv.email }) as string))) return;
@@ -908,6 +952,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                               </span>
                             )}
                             {expired && <span className="ml-2 shrink-0 rounded-full bg-danger/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-danger">{t('admin.partners.inviteExpired')}</span>}
+                            {iv.status === 'disabled' && <span className="ml-2 shrink-0 rounded-full bg-danger/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-danger">{t('partnerPortal.userStatus.disabled')}</span>}
                           </div>
                         </td>
                         <td className="whitespace-nowrap px-4 py-3"><Step at={iv.invitedAt} /></td>
@@ -917,12 +962,33 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                           <div className="max-w-[150px] truncate" title={iv.invitedBy || undefined}>{iv.invitedBy || '—'}</div>
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-right">
-                          {pending && (
-                            <button onClick={() => revokeInvite(iv)} disabled={revokingId === iv.id}
-                              className="rounded-lg border border-stroke px-3 py-1 text-xs font-medium text-danger hover:border-danger disabled:opacity-50 dark:border-strokedark">
-                              {t('admin.partners.revokeInvite')}
+                          {/* Icones et non libelles : ce tableau tenait tout juste sans barre de
+                              defilement, deux boutons textuels l'y auraient ramene. */}
+                          <div className="flex items-center justify-end gap-1.5">
+                            {pending && (
+                              <button onClick={() => revokeInvite(iv)} disabled={revokingId === iv.id}
+                                className="rounded-lg border border-stroke px-2 py-1 text-[11px] font-medium text-danger hover:border-danger disabled:opacity-50 dark:border-strokedark">
+                                {t('admin.partners.revokeInvite')}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setUserStatus(iv, iv.status === 'disabled' ? 'active' : 'disabled')}
+                              disabled={busyUserId === iv.id}
+                              title={t(iv.status === 'disabled' ? 'partnerPortal.userMgmt.enable' : 'partnerPortal.userMgmt.disable') as string}
+                              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-stroke disabled:opacity-50 dark:border-strokedark ${
+                                iv.status === 'disabled' ? 'text-green-700 hover:border-success dark:text-success' : 'text-body hover:border-danger hover:text-danger'}`}>
+                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M18.36 6.64A9 9 0 1 1 5.64 6.64M12 2v10" />
+                              </svg>
                             </button>
-                          )}
+                            <button onClick={() => deletePartnerUser(iv)} disabled={busyUserId === iv.id}
+                              title={t('partnerPortal.userMgmt.delete') as string}
+                              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-stroke text-body hover:border-danger hover:text-danger disabled:opacity-50 dark:border-strokedark">
+                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z" />
+                              </svg>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

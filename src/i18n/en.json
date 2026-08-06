@@ -753,7 +753,26 @@
     "inviteLocaleHint": "Language of the invitation email",
     "poweredBy": "Powered by",
     "sortByDate": "Sort by date",
-    "dealBadge": "Deal"
+    "dealBadge": "Deal",
+    "userMgmt": {
+      "title": "Account management",
+      "disable": "Disable",
+      "enable": "Re-enable",
+      "delete": "Delete",
+      "confirmDisable": "Disable {{email}}? The account will no longer be able to sign in. Nothing is lost and access can be restored at any time.",
+      "confirmEnable": "Re-enable {{email}}?",
+      "confirmDelete": "Permanently delete {{email}}? This cannot be undone.",
+      "confirmRole": "Make {{email}} a {{role}}?",
+      "errLastAdmin": "Not possible: this is the last active admin of {{name}}. Appoint another admin first, otherwise nobody could invite or manage accounts.",
+      "errSelf": "You cannot change or delete your own account here.",
+      "errHistoryAskDisable": "{{email}} is linked to {{opportunities}} opportunity(ies) and {{invoices}} invoice(s): deleting is impossible without erasing that history.\n\nDisable the account instead? It will no longer be able to sign in and nothing will be lost."
+    },
+    "userStatus": {
+      "active": "Active",
+      "invited": "Invited",
+      "imported": "Imported",
+      "disabled": "Disabled"
+    }
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",

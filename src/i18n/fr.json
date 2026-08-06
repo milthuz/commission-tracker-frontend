@@ -753,7 +753,26 @@
     "inviteLocaleHint": "Langue du courriel d'invitation",
     "poweredBy": "Propulsé par",
     "sortByDate": "Trier par date",
-    "dealBadge": "Deal"
+    "dealBadge": "Deal",
+    "userMgmt": {
+      "title": "Gestion du compte",
+      "disable": "Désactiver",
+      "enable": "Réactiver",
+      "delete": "Supprimer",
+      "confirmDisable": "Désactiver {{email}} ? Le compte ne pourra plus se connecter. Rien n’est perdu et l’accès peut être rendu à tout moment.",
+      "confirmEnable": "Réactiver {{email}} ?",
+      "confirmDelete": "Supprimer définitivement {{email}} ? Cette action est irréversible.",
+      "confirmRole": "Faire de {{email}} un {{role}} ?",
+      "errLastAdmin": "Impossible : c’est le dernier administrateur actif de {{name}}. Nomme un autre administrateur d’abord, sinon plus personne ne pourrait inviter ni gérer les comptes.",
+      "errSelf": "Tu ne peux pas modifier ni supprimer ton propre compte ici.",
+      "errHistoryAskDisable": "{{email}} est rattaché à {{opportunities}} opportunité(s) et {{invoices}} facture(s) : la suppression est impossible sans effacer cet historique.\n\nDésactiver le compte à la place ? Il ne pourra plus se connecter et rien ne sera perdu."
+    },
+    "userStatus": {
+      "active": "Actif",
+      "invited": "Invité",
+      "imported": "Importé",
+      "disabled": "Désactivé"
+    }
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",
