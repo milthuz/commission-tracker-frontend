@@ -1742,7 +1742,11 @@
         "dealNotFound": "Deal not found",
         "dealNotFoundHint": "No Zoho deal carries this business name. Check the deal name after the lead conversion — Zoho allows renaming it.",
         "awaitingDeposit": "Waiting on the deposit date in Zoho (\"Deposit Information Received\" field)",
-        "depositOn": "Deposit date: {{date}}"
+        "depositOn": "Deposit date: {{date}}",
+        "kind": {
+          "initial": "Initial payout",
+          "conversion": "Conversion"
+        }
       },
       "deletePartner": "Delete",
       "deleteConfirm": "Delete the partner \"{{name}}\"? This cannot be undone.",

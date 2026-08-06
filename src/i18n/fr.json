@@ -1742,7 +1742,11 @@
         "dealNotFound": "Deal introuvable",
         "dealNotFoundHint": "Aucun deal Zoho ne porte ce nom d'entreprise. Vérifie le nom du deal après la conversion du lead — Zoho permet de le renommer.",
         "awaitingDeposit": "En attente de la date de dépôt dans Zoho (champ « Deposit Information Received »)",
-        "depositOn": "Date de dépôt : {{date}}"
+        "depositOn": "Date de dépôt : {{date}}",
+        "kind": {
+          "initial": "Versement initial",
+          "conversion": "Conversion"
+        }
       },
       "deletePartner": "Supprimer",
       "deleteConfirm": "Supprimer le partenaire « {{name}} » ? Cette action est irréversible.",

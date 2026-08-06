@@ -51,11 +51,14 @@ interface Opportunity {
 }
 interface PendingPartnerPayout {
   partnerId: number; partnerName: string; payoutRate: number | null; suggestedAmount: number | null;
+  // Un partenaire peut avoir DEUX groupes en attente : l'initial (dû pour le lead) et la
+  // conversion. Ils ne se payent pas ensemble, donc un run porte un seul type.
+  kind: 'initial' | 'conversion';
   opportunities: { id: number; businessName: string; linkedCustomerName: string | null; createdAt: string }[];
 }
 interface PayoutRun {
   id: number; partnerName: string; periodLabel: string; status: 'draft' | 'finalized';
-  totalAmount: number; opportunityCount: number;
+  totalAmount: number; opportunityCount: number; kind: 'initial' | 'conversion';
   createdBy: string | null; createdAt: string; finalizedBy: string | null; finalizedAt: string | null;
 }
 
@@ -662,7 +665,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
     setSavingRun(true);
     try {
       await axios.post(`${API_URL}/api/admin/partner-payouts/runs`, {
-        partnerId: creatingRunFor.partnerId, periodLabel: runPeriod.trim(),
+        partnerId: creatingRunFor.partnerId, periodLabel: runPeriod.trim(), kind: creatingRunFor.kind,
         totalAmount: runAmount.trim() || 0, opportunityIds: [...runSelectedIds],
       }, { headers: authHeaders() });
       setCreatingRunFor(null);
@@ -1117,9 +1120,17 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                 ) : (
                   <div className="flex flex-col gap-2">
                     {pendingPartners.map((p) => (
-                      <div key={p.partnerId} className="flex items-center justify-between gap-3 rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
+                      // Cle sur (partenaire, type) : le meme partenaire apparait deux fois quand il
+                      // a de l'initial ET de la conversion en attente.
+                      <div key={`${p.partnerId}:${p.kind}`} className="flex items-center justify-between gap-3 rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
                         <div>
-                          <div className="font-semibold text-black dark:text-white">{p.partnerName}</div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-semibold text-black dark:text-white">{p.partnerName}</span>
+                            <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                              p.kind === 'initial' ? 'bg-primary/10 text-primary' : 'bg-success/15 text-green-700 dark:text-success'}`}>
+                              {t(`admin.partners.payout.kind.${p.kind}`)}
+                            </span>
+                          </div>
                           <div className="text-xs text-gray-400">{t('admin.partners.payout.opportunityCount', { count: p.opportunities.length })}</div>
                         </div>
                         <div className="flex items-center gap-3">
@@ -1162,7 +1173,17 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                         {runs.map((r) => (
                           <tr key={r.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
                             <td className="px-4 py-3 font-medium text-black dark:text-white">{r.partnerName}</td>
-                            <td className="px-4 py-3 text-body">{r.periodLabel}</td>
+                            <td className="px-4 py-3 text-body">
+                              {/* Le type doit se lire sur la ligne : un run de 50 $ ne dit pas de
+                                  lui-même s'il payait des leads ou des ventes. */}
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span>{r.periodLabel}</span>
+                                <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                                  r.kind === 'initial' ? 'bg-primary/10 text-primary' : 'bg-success/15 text-green-700 dark:text-success'}`}>
+                                  {t(`admin.partners.payout.kind.${r.kind}`)}
+                                </span>
+                              </div>
+                            </td>
                             <td className="px-4 py-3 text-body">{r.opportunityCount}</td>
                             <td className="px-4 py-3 text-body">${r.totalAmount.toFixed(2)}</td>
                             <td className="px-4 py-3">
