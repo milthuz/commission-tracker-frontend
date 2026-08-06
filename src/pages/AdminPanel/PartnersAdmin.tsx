@@ -915,6 +915,20 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                     migReport.dryRun ? 'bg-warning/15 text-warning' : 'bg-success/15 text-green-700 dark:text-success'}`}>
                     {t(migReport.dryRun ? 'admin.partners.migration.dryRunNotice' : 'admin.partners.migration.done')}
                   </div>
+                  {/* OU les lignes atterrissent. Le partenaire vient du fichier, pas d'un menu — un
+                      sélecteur permettrait de déposer 674 opportunités sur le mauvais partenaire.
+                      Mais il doit se LIRE avant le clic : sans ça, la question se pose. */}
+                  {migReport.partner && (
+                    <div className="mb-3 rounded-lg bg-gray-2 px-3 py-2 text-xs dark:bg-meta-4">
+                      <span className="text-body">{t('admin.partners.migration.targetPartner')} </span>
+                      <span className="font-semibold text-black dark:text-white">{migReport.partner}</span>
+                      <span className={`ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                        migReport.partnerCreated ? 'bg-primary/10 text-primary' : 'bg-success/15 text-green-700 dark:text-success'}`}>
+                        {t(migReport.partnerCreated ? 'admin.partners.migration.partnerNew' : 'admin.partners.migration.partnerExisting')}
+                      </span>
+                      {migReport.source && <span className="ml-2 text-gray-400">· {migReport.source}</span>}
+                    </div>
+                  )}
                   <div className="grid gap-x-8 gap-y-1 text-xs sm:grid-cols-2">
                     <div className="font-semibold text-black dark:text-white">{t('admin.partners.migration.usersLine')}</div>
                     <div className="text-body">{t('admin.partners.migration.counts', {

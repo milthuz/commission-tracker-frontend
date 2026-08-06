@@ -1804,7 +1804,10 @@
         "attributed": "Attribuées à leur auteur",
         "refusedTitle": "Écartés ({{count}})",
         "notInvited": "Importé",
-        "notInvitedHint": "Repris de l’ancien portail et jamais invité — aucune connexion possible avant une invitation."
+        "notInvitedHint": "Repris de l’ancien portail et jamais invité — aucune connexion possible avant une invitation.",
+        "targetPartner": "Partenaire visé :",
+        "partnerNew": "sera créé",
+        "partnerExisting": "existe déjà"
       }
     },
     "resources": {

@@ -1804,7 +1804,10 @@
         "attributed": "Attributed to their author",
         "refusedTitle": "Skipped ({{count}})",
         "notInvited": "Imported",
-        "notInvitedHint": "Carried over from the legacy portal and never invited — cannot sign in until invited."
+        "notInvitedHint": "Carried over from the legacy portal and never invited — cannot sign in until invited.",
+        "targetPartner": "Target partner:",
+        "partnerNew": "will be created",
+        "partnerExisting": "already exists"
       }
     },
     "resources": {
