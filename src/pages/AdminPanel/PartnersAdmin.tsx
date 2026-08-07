@@ -582,13 +582,13 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                 partenaire : sans lui, deux lignes de noms cote a cote ne disent pas qui est qui —
                 c'est exactement l'erreur signalee par David. */}
             {repPartenaire && (
-              <div className="max-w-[150px] truncate text-[11px] text-gray-400"
+              <div className="max-w-[128px] truncate text-[11px] text-gray-400"
                 title={t('admin.partners.partnerRepHint', { partner: o.partnerName, name: repPartenaire }) as string}>
                 {o.partnerName} · {repPartenaire}
               </div>
             )}
             {o.crmOwnerName && (
-              <div className="max-w-[150px] truncate text-[11px] text-primary"
+              <div className="max-w-[128px] truncate text-[11px] text-primary"
                 title={t('admin.partners.clusterRepHint', { name: o.crmOwnerName }) as string}>
                 {t('admin.partners.clusterRepPrefix')} {o.crmOwnerName}
               </div>
@@ -601,10 +601,10 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
         const contact = [who, o.contactEmail].filter(Boolean).join(' · ');
         return (
           <div className="leading-tight">
-            <div className="max-w-[210px] truncate font-medium text-black dark:text-white" title={o.businessName}>{o.businessName}</div>
-            {contact && <div className="max-w-[210px] truncate text-[11px] text-gray-400" title={contact}>{contact}</div>}
+            <div className="max-w-[185px] truncate font-medium text-black dark:text-white" title={o.businessName}>{o.businessName}</div>
+            {contact && <div className="max-w-[185px] truncate text-[11px] text-gray-400" title={contact}>{contact}</div>}
             {o.submittedByEmail && (
-              <div className="max-w-[210px] truncate text-[11px] text-gray-400"
+              <div className="max-w-[185px] truncate text-[11px] text-gray-400"
                 title={`${t('admin.partners.colSubmittedBy')} : ${o.submittedByEmail}`}>↳ {o.submittedByEmail}</div>
             )}
           </div>
@@ -652,7 +652,10 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
       case 'deal':
         return (
           <div className="leading-tight">
-            <div className="whitespace-nowrap text-body">{o.crmDealStage || '—'}</div>
+            {/* Seule cellule du tableau sans plafond de largeur : « Deposit Information Received »
+                imposait 207 px a la colonne. Tronquee comme les autres, avec le libelle entier en
+                infobulle. */}
+            <div className="max-w-[150px] truncate text-body" title={o.crmDealStage || undefined}>{o.crmDealStage || '—'}</div>
             {/* 19 chiffres bruts ne disaient rien : l'identifiant devient un lien vers la fiche. */}
             {o.crmLeadId && (
               <a href={`https://crm.zoho.com/crm/tab/Leads/${o.crmLeadId}`} target="_blank" rel="noreferrer"
