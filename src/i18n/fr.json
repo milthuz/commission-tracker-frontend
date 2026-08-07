@@ -1882,7 +1882,8 @@
       },
       "clusterRepPrefix": "Cluster ·",
       "clusterRepHint": "Représentant Cluster assigné dans Zoho : {{name}}",
-      "partnerRepHint": "Représentant {{partner}} : {{name}}"
+      "partnerRepHint": "Représentant {{partner}} : {{name}}",
+      "colInvitation": "Invitation"
     },
     "resources": {
       "title": "Stockage des ressources",

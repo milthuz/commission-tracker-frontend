@@ -320,11 +320,38 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   const fmtDate = (d: string | null) =>
     d ? new Date(d).toLocaleDateString(i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA',
           { year: '2-digit', month: '2-digit', day: '2-digit' }) : null;
-  // Un tiret plutot qu'une case vide : « rien ne s'est produit » et « la colonne ne
-  // s'applique pas » ne doivent pas se ressembler.
-  const Step = ({ at, pending }: { at: string | null; pending?: boolean }) =>
-    at ? <span className="text-black dark:text-white">{fmtDate(at)}</span>
-       : <span className={pending ? 'text-warning' : 'text-gray-400'}>{pending ? t('admin.partners.invitePending') : '—'}</span>;
+  // Les trois etapes d'une invitation tenaient dans TROIS colonnes, dont deux vides la plupart
+  // du temps, plus une quatrieme pour l'auteur : c'est ce qui poussait le tableau hors du champ
+  // et obligeait a defiler de gauche a droite. Elles sont SEQUENTIELLES — on n'en montre donc
+  // qu'une, la plus avancee. Les trois pastilles disent d'un coup d'oeil ou en est la ligne, et
+  // l'infobulle garde la chaine complete, dates et auteur compris : rien n'est perdu, seule la
+  // place l'est.
+  const InviteCell = ({ iv, pending, expired }: { iv: Invite; pending: boolean; expired: boolean }) => {
+    const etapes = [
+      { at: iv.invitedAt, label: t('admin.partners.inviteSent') as string },
+      { at: iv.openedAt, label: t('admin.partners.inviteOpened') as string },
+      { at: iv.activatedAt, label: t('admin.partners.inviteAccepted') as string },
+    ];
+    const atteinte = etapes.reduce((acc, e, i) => (e.at ? i : acc), -1);
+    if (atteinte < 0) return <span className="text-gray-400">—</span>;
+    const infobulle = etapes.map((e) => `${e.label} : ${e.at ? fmtDate(e.at) : '—'}`).join('\n')
+      + (iv.invitedBy ? `\n${t('admin.partners.inviteBy')} : ${iv.invitedBy}` : '');
+    return (
+      <div className="flex items-center gap-2 whitespace-nowrap" title={infobulle}>
+        <span className="flex shrink-0 gap-1">
+          {etapes.map((e, i) => (
+            <span key={i} className={`h-1.5 w-1.5 rounded-full ${
+              e.at ? 'bg-primary'
+                   : expired ? 'bg-danger/40'
+                   : pending ? 'bg-warning/60'
+                   : 'bg-gray-300 dark:bg-strokedark'}`} />
+          ))}
+        </span>
+        <span className="text-black dark:text-white">{etapes[atteinte].label}</span>
+        <span className="text-xs text-body">{fmtDate(etapes[atteinte].at as string)}</span>
+      </div>
+    );
+  };
 
   // Deux temps, et le second n'est demande QUE s'il y a quelque chose a perdre.
   // Le premier appel n'efface rien tant qu'il reste des donnees rattachees : le serveur
@@ -485,6 +512,9 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   // Partenaires reellement presents dans la liste des usagers, et lignes affichees.
   const invitePartnerNames = [...new Set(invites.map((i) => i.partnerName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   const shownInvites = userDirFilter ? invites.filter((i) => i.partnerName === userDirFilter) : invites;
+  // Meme raisonnement que pour le selecteur juste a cote : une colonne qui repete 177 fois la
+  // meme valeur ne distingue rien, elle prend juste la largeur qui manque ailleurs.
+  const showPartnerCol = !userDirFilter && invitePartnerNames.length > 1;
   // Tout selectionner = tout ce qui est AFFICHE et invitable, donc le filtre par partenaire est
   // respecte : on ne peut pas inviter tout Moneris en croyant ne cocher que ce qu'on voit.
   // ⚠️ Doit rester APRES shownInvites : declare plus haut, TypeScript refuse (usage avant
@@ -1093,12 +1123,11 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                           className="h-4 w-4 cursor-pointer accent-primary" />
                       )}
                     </th>
-                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.colPartner')}</th>
+                    {showPartnerCol && (
+                      <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.colPartner')}</th>
+                    )}
                     <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('partnerPortal.fEmail')}</th>
-                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteSent')}</th>
-                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteOpened')}</th>
-                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteAccepted')}</th>
-                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.inviteBy')}</th>
+                    <th className="px-4 py-3 align-bottom text-left text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.colInvitation')}</th>
                     {/* Colonne d'actions COLLÉE à droite, fond opaque : David ne voyait pas les deux
                         boutons, alors qu'ils sont rendus sans condition. La seule explication tenable
                         était qu'ils sortaient du champ visible quand le tableau défile. Collée, la
@@ -1122,10 +1151,12 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                               className="h-4 w-4 cursor-pointer accent-primary" />
                           )}
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3 font-medium text-black dark:text-white">{iv.partnerName}</td>
+                        {showPartnerCol && (
+                          <td className="whitespace-nowrap px-4 py-3 font-medium text-black dark:text-white">{iv.partnerName}</td>
+                        )}
                         <td className="px-4 py-3">
                           <div className="flex items-center">
-                            <span className="max-w-[170px] truncate text-black dark:text-white" title={iv.email}>{iv.email}</span>
+                            <span className="max-w-[260px] truncate text-black dark:text-white" title={iv.email}>{iv.email}</span>
                             {iv.role === 'admin' && <span className="ml-2 shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-primary">{t('partnerPortal.roleAdmin')}</span>}
                             {/* Repris de l'ancien portail et JAMAIS invite : sans cette pastille, la
                                 ligne se lisait comme une invitation en attente qui n'existe pas.
@@ -1141,11 +1172,8 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                             {iv.status === 'disabled' && <span className="ml-2 shrink-0 rounded-full bg-danger/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-danger">{t('partnerPortal.userStatus.disabled')}</span>}
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-4 py-3"><Step at={iv.invitedAt} /></td>
-                        <td className="whitespace-nowrap px-4 py-3"><Step at={iv.openedAt} pending={pending && !expired} /></td>
-                        <td className="whitespace-nowrap px-4 py-3"><Step at={iv.activatedAt} pending={pending && !expired} /></td>
-                        <td className="px-4 py-3 text-body">
-                          <div className="max-w-[150px] truncate" title={iv.invitedBy || undefined}>{iv.invitedBy || '—'}</div>
+                        <td className="px-4 py-3">
+                          <InviteCell iv={iv} pending={pending && !expired} expired={expired} />
                         </td>
                         <td className="sticky right-0 whitespace-nowrap bg-white px-4 py-3 text-right dark:bg-boxdark">
                           {/* Icones et non libelles : ce tableau tenait tout juste sans barre de
