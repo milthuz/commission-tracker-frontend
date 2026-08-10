@@ -162,6 +162,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   // ce qui evite un ecran de plus : la carte existante DEVIENT l'annuaire par partenaire.
   // Indispensable des la migration Moneris — 177 lignes dans une liste a plat sont illisibles.
   const [userDirFilter, setUserDirFilter] = useState('');
+  const [userSearch, setUserSearch] = useState('');
   const userDirRef = useRef<HTMLDivElement>(null);
   const showPartnerUsers = (name: string) => {
     setUserDirFilter(name);
@@ -516,7 +517,13 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
 
   // Partenaires reellement presents dans la liste des usagers, et lignes affichees.
   const invitePartnerNames = [...new Set(invites.map((i) => i.partnerName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  const shownInvites = userDirFilter ? invites.filter((i) => i.partnerName === userDirFilter) : invites;
+  // Recherche sur l'adresse ET le nom affiche : on cherche parfois « Shanna », parfois « @moneris ».
+  const userSearchLower = userSearch.trim().toLowerCase();
+  const shownInvites = invites.filter((i) =>
+    (!userDirFilter || i.partnerName === userDirFilter)
+    && (!userSearchLower
+      || i.email.toLowerCase().includes(userSearchLower)
+      || (i.name || '').toLowerCase().includes(userSearchLower)));
   // Meme raisonnement que pour le selecteur juste a cote : une colonne qui repete 177 fois la
   // meme valeur ne distingue rien, elle prend juste la largeur qui manque ailleurs.
   const showPartnerCol = !userDirFilter && invitePartnerNames.length > 1;
@@ -526,6 +533,18 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   // declaration) — les fonctions plus haut peuvent s'y referer, elles ne s'executent qu'apres.
   const invitableShown = shownInvites.filter(canInvite);
   const allShownSelected = invitableShown.length > 0 && invitableShown.every((iv) => selectedUsers.has(iv.id));
+  // La selection ne doit JAMAIS contenir de lignes invisibles. Sans ceci : on coche cinq usagers,
+  // on tape une recherche, et le bouton annonce toujours « Inviter (5) » alors qu'une seule ligne
+  // est a l'ecran — pour un envoi de courriels irreversible. Filtrer ou chercher relache donc ce
+  // qui sort du champ. Meme intention que « tout selectionner », qui ne prend que l'affiche.
+  useEffect(() => {
+    setSelectedUsers((prev) => {
+      if (!prev.size) return prev;                       // rendu inutile evite
+      const visibles = new Set(shownInvites.map((i) => i.id));
+      const garde = [...prev].filter((id) => visibles.has(id));
+      return garde.length === prev.size ? prev : new Set(garde);
+    });
+  }, [userDirFilter, userSearchLower]);
 
   // Lignes de la vue courante, avant les autres filtres : c'est la base des listes d'options.
   const queueInView = allOpportunities.filter((o) => statusFilter === 'all' || o.status === statusFilter);
@@ -1103,21 +1122,14 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                 <h4 className="text-sm font-bold text-black dark:text-white">{t('admin.partners.invitesTitle')}</h4>
                 <p className="mt-0.5 text-xs text-body">{t('admin.partners.invitesHint')}</p>
               </div>
-              {/* Selecteur affiche seulement au-dela d'un partenaire : a un seul choix, ce n'est
-                  pas un filtre, c'est du decor. `|| userDirFilter` est un garde-fou : un clic sur le
-                  compte pose un filtre, et sans le selecteur il n'y aurait aucun moyen de l'annuler. */}
-              {/* Envoi des invitations. Le bouton dit COMBIEN il en enverra : « Inviter » seul, sur
-                  177 lignes, est une promesse trop vague pour un geste irreversible. */}
-              {invitableShown.length > 0 && (
-                <button onClick={inviteSelected} disabled={!selectedUsers.size || !!inviteProgress}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
-                  {inviteProgress
-                    ? t('admin.partners.inviteBulkSending', { done: inviteProgress.done, total: inviteProgress.total })
-                    : t('admin.partners.inviteBulk', { count: selectedUsers.size })}
-                </button>
-              )}
-              {(invitePartnerNames.length > 1 || userDirFilter) && (
-                <div className="flex items-center gap-2">
+              {/* Disposition retenue partout ailleurs dans l'app : selecteurs a gauche, recherche
+                  qui s'etire, action epinglee a droite. L'envoi etait a gauche, ce qui ne laissait
+                  a la recherche aucune place pour s'etendre.
+                  Le selecteur ne s'affiche qu'au-dela d'un partenaire — a un seul choix, ce n'est
+                  pas un filtre, c'est du decor. `|| userDirFilter` est un garde-fou : un clic sur
+                  le compte des usagers pose un filtre, et sans le selecteur rien ne l'annulerait. */}
+              <div className="flex flex-1 flex-wrap items-center gap-3">
+                {(invitePartnerNames.length > 1 || userDirFilter) && (
                   <Select
                     value={userDirFilter}
                     onChange={(v) => setUserDirFilter(v)}
@@ -1125,19 +1137,38 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                       { value: '', label: t('admin.partners.allPartnersUsers') as string },
                       ...invitePartnerNames.map((n) => ({ value: n, label: n })),
                     ]}
-                    buttonClassName="min-w-[200px] rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+                    buttonClassName="min-w-[180px] rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
                   />
-                  {/* Le nombre affiche vs le total : « filtre » et « il n'y a que ca » ne doivent
-                      pas se ressembler. */}
+                )}
+                <input value={userSearch} onChange={(e) => setUserSearch(e.target.value)}
+                  placeholder={t('admin.partners.userSearchPh') as string}
+                  className="min-w-[200px] flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+                {/* Le nombre affiche vs le total : « un filtre mord » et « il n'y a que ca » ne
+                    doivent pas se ressembler. */}
+                {(userDirFilter || userSearchLower) && (
                   <span className="whitespace-nowrap text-xs text-body">
                     {t('admin.partners.usersShown', { shown: shownInvites.length, total: invites.length })}
                   </span>
-                </div>
+                )}
+              </div>
+              {/* Le bouton dit COMBIEN il enverra : « Inviter » seul, sur 177 lignes, est une
+                  promesse trop vague pour un geste irreversible. */}
+              {invitableShown.length > 0 && (
+                <button onClick={inviteSelected} disabled={!selectedUsers.size || !!inviteProgress}
+                  className="shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
+                  {inviteProgress
+                    ? t('admin.partners.inviteBulkSending', { done: inviteProgress.done, total: inviteProgress.total })
+                    : t('admin.partners.inviteBulk', { count: selectedUsers.size })}
+                </button>
               )}
             </div>
           </div>
           {shownInvites.length === 0 ? (
-            <p className="px-6 py-8 text-center text-sm text-gray-400">{t(userDirFilter ? 'admin.partners.noUsersForPartner' : 'admin.partners.invitesEmpty')}</p>
+            <p className="px-6 py-8 text-center text-sm text-gray-400">
+              {t(userSearchLower ? 'admin.partners.noUsersForSearch'
+                 : userDirFilter ? 'admin.partners.noUsersForPartner'
+                 : 'admin.partners.invitesEmpty')}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

@@ -1888,7 +1888,9 @@
       "clusterRepPrefix": "Cluster ·",
       "clusterRepHint": "Représentant Cluster assigné dans Zoho : {{name}}",
       "partnerRepHint": "Représentant {{partner}} : {{name}}",
-      "colInvitation": "Invitation"
+      "colInvitation": "Invitation",
+      "userSearchPh": "Rechercher par courriel ou nom…",
+      "noUsersForSearch": "Aucun usager ne correspond à cette recherche."
     },
     "resources": {
       "title": "Stockage des ressources",
