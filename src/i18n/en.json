@@ -772,6 +772,9 @@
       "invited": "Invited",
       "imported": "Imported",
       "disabled": "Disabled"
+    },
+    "login": {
+      "partnerInactive": "Your organization’s portal access is closed. Your credentials are valid — please contact your Cluster representative."
     }
   },
   "kaizenDemo": {
@@ -1890,7 +1893,8 @@
       "partnerRepHint": "{{partner}} rep: {{name}}",
       "colInvitation": "Invitation",
       "userSearchPh": "Search by email or name…",
-      "noUsersForSearch": "No user matches that search."
+      "noUsersForSearch": "No user matches that search.",
+      "deactivateConfirm": "Deactivate “{{name}}”? Its {{count}} user(s) will no longer be able to sign in to the portal, activate an invitation, or reset their password. Accounts are not deleted — reactivating the partner restores their access."
     },
     "resources": {
       "title": "Resources storage",

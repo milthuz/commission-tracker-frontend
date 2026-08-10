@@ -419,6 +419,12 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   };
 
   const toggleActive = async (p: Partner) => {
+    // Ce commutateur FERME l'acces depuis 2026-08-10 : connexion, activation d'invitation et
+    // reinitialisation. Une bascule silencieuse enfermerait des gens sans que personne ne
+    // l'ait voulu — la confirmation dit donc combien de comptes elle coupe. Reactiver ne
+    // detruit rien, on ne demande donc rien dans ce sens.
+    if (p.active && !(await dialog.confirm(
+      t('admin.partners.deactivateConfirm', { name: p.name, count: p.userCount }) as string))) return;
     try {
       await axios.put(`${API_URL}/api/admin/partners/${p.id}`, { name: p.name, active: !p.active }, { headers: authHeaders() });
       await fetchPartners();

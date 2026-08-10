@@ -772,6 +772,9 @@
       "invited": "Invité",
       "imported": "Importé",
       "disabled": "Désactivé"
+    },
+    "login": {
+      "partnerInactive": "L’accès de votre organisation au portail est fermé. Vos identifiants sont valides — contactez votre responsable Cluster."
     }
   },
   "kaizenDemo": {
@@ -1890,7 +1893,8 @@
       "partnerRepHint": "Représentant {{partner}} : {{name}}",
       "colInvitation": "Invitation",
       "userSearchPh": "Rechercher par courriel ou nom…",
-      "noUsersForSearch": "Aucun usager ne correspond à cette recherche."
+      "noUsersForSearch": "Aucun usager ne correspond à cette recherche.",
+      "deactivateConfirm": "Désactiver « {{name}} » ? Ses {{count}} usager(s) ne pourront plus se connecter au portail, ni activer une invitation, ni réinitialiser leur mot de passe. Les comptes ne sont pas supprimés — réactiver le partenaire leur rend l’accès."
     },
     "resources": {
       "title": "Stockage des ressources",
