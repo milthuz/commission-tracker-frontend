@@ -251,9 +251,11 @@ const CommissionImport: React.FC = () => {
       // `details` porte le motif technique. Le cacher a produit un « Failed to send payroll »
       // impossible a diagnostiquer : c'est un ecran d'administration, le motif appartient a
       // celui qui doit reparer.
+      // `error` CONTIENT deja `details` depuis que le serveur le concatene : tester l'egalite ne
+      // suffisait pas, le motif s'affichait deux fois de suite dans la meme phrase.
       const d = e?.response?.data;
-      dialog.alert([d?.error || 'Failed to send', d?.details && d.details !== d.error ? d.details : null]
-        .filter(Boolean).join(' — '));
+      const principal = d?.error || 'Failed to send';
+      dialog.alert(d?.details && !principal.includes(d.details) ? `${principal} — ${d.details}` : principal);
     }
     finally { setPaySending(false); }
   };
