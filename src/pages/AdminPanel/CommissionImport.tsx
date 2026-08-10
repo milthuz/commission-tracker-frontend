@@ -247,7 +247,14 @@ const CommissionImport: React.FC = () => {
       dialog.alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
       await fetchPayroll();   // refresh so the sent reps show the "Sent" badge
       fetchPaySends();        // refresh the send history
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to send'); }
+    } catch (e: any) {
+      // `details` porte le motif technique. Le cacher a produit un « Failed to send payroll »
+      // impossible a diagnostiquer : c'est un ecran d'administration, le motif appartient a
+      // celui qui doit reparer.
+      const d = e?.response?.data;
+      dialog.alert([d?.error || 'Failed to send', d?.details && d.details !== d.error ? d.details : null]
+        .filter(Boolean).join(' — '));
+    }
     finally { setPaySending(false); }
   };
 
