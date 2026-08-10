@@ -2186,7 +2186,9 @@
         "pass_received": "La Passe — recommandation reçue",
         "pass_live": "La Passe — recommandation en service",
         "pass_tier_up": "La Passe — nouveau palier atteint",
-        "pass_credit": "La Passe — crédit et certificat"
+        "pass_credit": "La Passe — crédit et certificat",
+        "partner_invite": "Portail partenaire — invitation",
+        "partner_reset": "Portail partenaire — réinitialisation du mot de passe"
       }
     },
     "recalculate": {
