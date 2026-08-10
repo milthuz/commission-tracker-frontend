@@ -501,6 +501,11 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   // opportunites elles-memes, pas de la table `partners` : on ne propose que des partenaires qui
   // ont effectivement quelque chose dans la file, et le filtre ne peut pas pointer dans le vide.
   const [partnerFilter, setPartnerFilter] = useState('');
+  // Representant Cluster et etat du versement. Les options se deduisent des lignes de la VUE
+  // COURANTE, pas de toute la file : un choix qui ne peut rien ramener ne doit pas etre propose.
+  const [clusterRepFilter, setClusterRepFilter] = useState('');
+  const [payoutFilter, setPayoutFilter] = useState('');
+  const SANS_REP = '__sans__';
   const [dateSort, setDateSort] = useState<'desc' | 'asc'>('desc');
   const [page, setPage] = useState(0);
   const QUEUE_PAGE_SIZE = 50;
@@ -522,19 +527,38 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
   const invitableShown = shownInvites.filter(canInvite);
   const allShownSelected = invitableShown.length > 0 && invitableShown.every((iv) => selectedUsers.has(iv.id));
 
+  // Lignes de la vue courante, avant les autres filtres : c'est la base des listes d'options.
+  const queueInView = allOpportunities.filter((o) => statusFilter === 'all' || o.status === statusFilter);
+  const clusterRepNames = [...new Set(queueInView.map((o) => o.crmOwnerName).filter(Boolean) as string[])]
+    .sort((a, b) => a.localeCompare(b));
+  const sansRepCount = queueInView.filter((o) => !o.crmOwnerName).length;
+  const payoutStates = [...new Set(queueInView.map((o) => o.payoutStatus).filter(Boolean) as string[])].sort();
+
   const searchLower = queueSearch.trim().toLowerCase();
   const filteredQueue = allOpportunities
     .filter((o) =>
       (statusFilter === 'all' || o.status === statusFilter)
       && (!partnerFilter || o.partnerName === partnerFilter)
       && (!searchLower || o.businessName.toLowerCase().includes(searchLower) || o.partnerName.toLowerCase().includes(searchLower))
+      // `SANS_REP` est un choix a part entiere : apres la reprise des 674 dossiers, « lesquels
+      // n'ont personne » est exactement la question qu'on se pose.
+      && (!clusterRepFilter || (clusterRepFilter === SANS_REP ? !o.crmOwnerName : o.crmOwnerName === clusterRepFilter))
+      && (!payoutFilter || o.payoutStatus === payoutFilter)
     )
     // `filter` a deja produit un nouveau tableau, donc trier en place ne touche pas l'etat.
     .sort((a, b) => (dateSort === 'desc' ? 1 : -1) * (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   const queueTotal = filteredQueue.length;
   const opportunities = filteredQueue.slice(page * QUEUE_PAGE_SIZE, (page + 1) * QUEUE_PAGE_SIZE);
   // Changer de filtre en etant page 3 laissait un tableau vide sans explication.
-  useEffect(() => { setPage(0); }, [statusFilter, queueSearch, partnerFilter]);
+  useEffect(() => { setPage(0); }, [statusFilter, queueSearch, partnerFilter, clusterRepFilter, payoutFilter]);
+  // Changer de vue peut rendre un filtre impossible a satisfaire (un representant qui n'a aucune
+  // ligne rejetee, par exemple). On le laisse tomber plutot que d'afficher un tableau vide dont
+  // rien n'explique le vide.
+  useEffect(() => {
+    if (clusterRepFilter && clusterRepFilter !== SANS_REP && !clusterRepNames.includes(clusterRepFilter)) setClusterRepFilter('');
+    if (clusterRepFilter === SANS_REP && !sansRepCount) setClusterRepFilter('');
+    if (payoutFilter && !payoutStates.includes(payoutFilter)) setPayoutFilter('');
+  }, [statusFilter, clusterRepNames.join('|'), payoutStates.join('|'), sansRepCount]);
 
   // Les colonnes SUIVENT la vue : reviser, suivre et archiver ne demandent pas les memes
   // informations, et tout empiler dans une colonne « Zoho CRM » fourre-tout la rendait illisible.
@@ -1486,9 +1510,48 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                 buttonClassName="w-full min-w-[200px] rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white sm:w-auto"
               />
             )}
+            {/* Representant Cluster : ne s'affiche que s'il y a de quoi distinguer. « Sans
+                representant » est propose seulement s'il existe de telles lignes. */}
+            {(clusterRepNames.length > 1 || (clusterRepNames.length === 1 && sansRepCount > 0)) && (
+              <Select
+                value={clusterRepFilter}
+                onChange={(v) => setClusterRepFilter(v)}
+                options={[
+                  { value: '', label: t('admin.partners.queue.allClusterReps') as string },
+                  ...clusterRepNames.map((n) => ({ value: n, label: n })),
+                  ...(sansRepCount ? [{ value: SANS_REP, label: `${t('admin.partners.queue.noClusterRep')} (${sansRepCount})` }] : []),
+                ]}
+                buttonClassName="w-full min-w-[190px] rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white sm:w-auto"
+              />
+            )}
+            {payoutStates.length > 1 && (
+              <Select
+                value={payoutFilter}
+                onChange={(v) => setPayoutFilter(v)}
+                options={[
+                  { value: '', label: t('admin.partners.queue.allPayouts') as string },
+                  ...payoutStates.map((st) => ({ value: st, label: t(`admin.partners.payout.status.${st}`) as string })),
+                ]}
+                buttonClassName="w-full min-w-[170px] rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white sm:w-auto"
+              />
+            )}
             <input value={queueSearch} onChange={(e) => setQueueSearch(e.target.value)}
               placeholder={t('admin.partners.searchPh') as string}
               className="min-w-[200px] flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+            {/* Combien on voit sur combien, et de quoi tout relacher d'un geste : une liste courte
+                doit dire si c'est un filtre qui mord ou s'il n'y a vraiment rien. */}
+            {(partnerFilter || clusterRepFilter || payoutFilter || searchLower) && (
+              <div className="flex items-center gap-2">
+                <span className="whitespace-nowrap text-xs text-body">
+                  {t('admin.partners.queue.shown', { shown: queueTotal, total: queueInView.length })}
+                </span>
+                <button type="button"
+                  onClick={() => { setPartnerFilter(''); setClusterRepFilter(''); setPayoutFilter(''); setQueueSearch(''); }}
+                  className="whitespace-nowrap rounded-lg border border-stroke px-3 py-2 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
+                  {t('admin.partners.queue.resetFilters')}
+                </button>
+              </div>
+            )}
           </div>
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             {loadingQueue ? (

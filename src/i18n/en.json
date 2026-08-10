@@ -1816,7 +1816,12 @@
         "reviewedBy": "Reviewed by",
         "pageInfo": "{{from}}–{{to}} of {{total}}",
         "prev": "Previous",
-        "next": "Next"
+        "next": "Next",
+        "allClusterReps": "All Cluster reps",
+        "noClusterRep": "No Cluster rep",
+        "allPayouts": "All payout states",
+        "shown": "{{shown}} of {{total}}",
+        "resetFilters": "Reset"
       },
       "migration": {
         "title": "Legacy portal import",

@@ -1816,7 +1816,12 @@
         "reviewedBy": "Révisé par",
         "pageInfo": "{{from}}–{{to}} sur {{total}}",
         "prev": "Précédent",
-        "next": "Suivant"
+        "next": "Suivant",
+        "allClusterReps": "Tous les représentants Cluster",
+        "noClusterRep": "Sans représentant Cluster",
+        "allPayouts": "Tous les versements",
+        "shown": "{{shown}} sur {{total}}",
+        "resetFilters": "Réinitialiser"
       },
       "migration": {
         "title": "Reprise de l’ancien portail",
