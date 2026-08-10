@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import { dialog } from '../../lib/dialog';
+import { portalError } from './serverError';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('partnerToken')}` });
@@ -34,7 +35,7 @@ const PartnerOrganization: React.FC = () => {
       setLogoVersion((v) => v + 1);
       setLogoOk(true);
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || t('partnerPortal.organization.uploadFailed') as string);
+      dialog.alert(portalError(e?.response?.data?.error, t, t('partnerPortal.organization.uploadFailed') as string));
     } finally {
       setUploading(false);
     }
@@ -47,7 +48,7 @@ const PartnerOrganization: React.FC = () => {
       setLogoVersion((v) => v + 1);
       setLogoOk(false);
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || t('partnerPortal.organization.removeFailed') as string);
+      dialog.alert(portalError(e?.response?.data?.error, t, t('partnerPortal.organization.removeFailed') as string));
     }
   };
 

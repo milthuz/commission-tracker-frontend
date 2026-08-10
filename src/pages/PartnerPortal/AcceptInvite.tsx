@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import ClusterWordmark from '../../components/ClusterWordmark';
+import { portalError } from './serverError';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -65,7 +66,7 @@ const PartnerAcceptInvite = () => {
         body: JSON.stringify({ token, password: pw1 }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || 'Failed'); return; }
+      if (!r.ok) { setError(portalError(d.error, t, 'Failed')); return; }
       setQr(d.qrDataUrl); setSecret(d.secret); setSetupToken(d.setupToken);
       setStep('qr');
     } catch {
@@ -82,7 +83,7 @@ const PartnerAcceptInvite = () => {
         body: JSON.stringify({ setupToken, code }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || 'Invalid code'); return; }
+      if (!r.ok) { setError(portalError(d.error, t, 'Invalid code')); return; }
       const v = await fetch(`${API_URL}/api/partner-auth/verify`, { headers: { Authorization: `Bearer ${d.token}` } });
       const vd = await v.json();
       login(vd.user, d.token);

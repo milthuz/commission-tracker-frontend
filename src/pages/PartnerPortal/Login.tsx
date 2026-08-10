@@ -6,6 +6,7 @@ import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import ClusterWordmark from '../../components/ClusterWordmark';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import { getDeviceToken, storeDeviceToken } from '../../lib/deviceTrust';
+import { portalError } from './serverError';
 
 const DEVICE_TOKEN_PREFIX = 'partnerDeviceToken';
 
@@ -59,7 +60,7 @@ const PartnerLogin = () => {
       // `partner_inactive` est un code, pas une phrase : le montrer tel quel a un partenaire
       // ne lui apprend rien. Et le message doit se distinguer d'un mot de passe refuse —
       // sinon la personne cherche indefiniment une erreur de saisie qui n'existe pas.
-      if (!r.ok) { setError(d.error === 'partner_inactive' ? t('partnerPortal.login.partnerInactive') as string : (d.error || 'Login failed')); return; }
+      if (!r.ok) { setError(portalError(d.error, t, 'Login failed')); return; }
       if (d.mfaRequired) { setMfaToken(d.mfaToken); setCode(''); setStep('mfa'); }
       else if (d.token) { await finishLogin(d.token); } // trusted device — MFA skipped
     } catch {
@@ -76,7 +77,7 @@ const PartnerLogin = () => {
         body: JSON.stringify({ mfaToken, code, rememberDevice }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error === 'partner_inactive' ? t('partnerPortal.login.partnerInactive') as string : (d.error || 'Invalid code')); return; }
+      if (!r.ok) { setError(portalError(d.error, t, 'Invalid code')); return; }
       if (d.deviceToken) storeDeviceToken(DEVICE_TOKEN_PREFIX, email, d.deviceToken);
       await finishLogin(d.token);
     } catch {

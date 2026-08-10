@@ -773,8 +773,8 @@
       "imported": "Importé",
       "disabled": "Désactivé"
     },
-    "login": {
-      "partnerInactive": "L’accès de votre organisation au portail est fermé. Vos identifiants sont valides — contactez votre responsable Cluster."
+    "serverError": {
+      "partnerInactive": "Votre organisation n’a plus accès au portail. Ce n’est pas un problème de mot de passe : vos identifiants sont valides. Contactez votre responsable Cluster pour rétablir l’accès."
     }
   },
   "kaizenDemo": {

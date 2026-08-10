@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import { dialog } from '../../lib/dialog';
+import { portalError } from './serverError';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('partnerToken')}` });
@@ -48,7 +49,7 @@ const PartnerProfile: React.FC = () => {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || t('partnerPortal.profile.saveFailed') as string);
+      dialog.alert(portalError(e?.response?.data?.error, t, t('partnerPortal.profile.saveFailed') as string));
     } finally {
       setSaving(false);
     }
@@ -66,7 +67,7 @@ const PartnerProfile: React.FC = () => {
       setPwSaved(true);
       setTimeout(() => setPwSaved(false), 3000);
     } catch (e: any) {
-      setPwError(e?.response?.data?.error || t('partnerPortal.profile.passwordSaveFailed') as string);
+      setPwError(portalError(e?.response?.data?.error, t, t('partnerPortal.profile.passwordSaveFailed') as string));
     } finally {
       setPwSaving(false);
     }

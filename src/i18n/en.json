@@ -773,8 +773,8 @@
       "imported": "Imported",
       "disabled": "Disabled"
     },
-    "login": {
-      "partnerInactive": "Your organization’s portal access is closed. Your credentials are valid — please contact your Cluster representative."
+    "serverError": {
+      "partnerInactive": "Your organization no longer has access to the portal. This is not a password problem — your credentials are valid. Contact your Cluster representative to restore access."
     }
   },
   "kaizenDemo": {

@@ -4,6 +4,7 @@ import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import { dialog } from '../../lib/dialog';
+import { portalError } from './serverError';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('partnerToken')}` });
@@ -37,7 +38,7 @@ const PartnerTeam: React.FC = () => {
     try {
       const r = await axios.get(`${API_URL}/api/partner-portal/team`, { headers: authHeaders() });
       setTeam(r.data.users || []);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('partnerPortal.loadError') as string); }
+    } catch (e: any) { dialog.alert(portalError(e?.response?.data?.error, t, t('partnerPortal.loadError') as string)); }
     finally { setTeamLoading(false); }
   };
   useEffect(() => { fetchTeam(); }, []);
