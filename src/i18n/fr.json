@@ -102,7 +102,9 @@
       "lead": "Créer cette piste dans Zoho CRM ?",
       "deal": "Créer cette opportunité dans Zoho CRM ?",
       "update": "Appliquer cette modification dans Zoho CRM ?",
-      "callLog": "Consigner cet appel dans Zoho CRM ?"
+      "callLog": "Consigner cet appel dans Zoho CRM ?",
+      "transition": "Faire passer cette fiche à l'étape suivante ?",
+      "email": "Envoyer ce courriel au client ?"
     },
     "field": {
       "title": "Titre",
@@ -115,7 +117,7 @@
       "phone": "Téléphone",
       "source": "Source",
       "dealName": "Opportunité",
-      "stage": "Étape",
+      "stage": "Nouvelle étape",
       "amount": "Montant",
       "record": "Fiche",
       "duration": "Durée",
@@ -137,7 +139,10 @@
       "crm_update_record": "Modification de champ",
       "crm_list_my_records": "Liste de vos fiches",
       "crm_log_call": "Appel consigné",
-      "crm_get_history": "Lecture de l'historique"
+      "crm_get_history": "Lecture de l'historique",
+      "crm_get_blueprint": "Vérification des étapes",
+      "crm_apply_transition": "Changement d'étape",
+      "crm_send_email": "Courriel"
     },
     "emptyValue": "(vide)",
     "crmSuggestions": [
