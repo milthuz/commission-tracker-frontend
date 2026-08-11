@@ -142,7 +142,9 @@
       "crm_get_history": "Read the history",
       "crm_get_blueprint": "Checked the stage rules",
       "crm_apply_transition": "Stage change",
-      "crm_send_email": "Email"
+      "crm_send_email": "Email",
+      "hub_read": "Read your Sales Hub data",
+      "hub_list_estimates": "Listed your estimates"
     },
     "emptyValue": "(empty)",
     "crmSuggestions": [
@@ -156,7 +158,11 @@
     "outcome": {
       "sent": "You approved this — sent to Zoho",
       "cancelled": "You cancelled this — nothing was sent"
-    }
+    },
+    "hubSuggestions": [
+      "How much did I earn this month?",
+      "Show me my quota progress"
+    ]
   },
   "reseller": {
     "title": "Resellers",

@@ -142,7 +142,9 @@
       "crm_get_history": "Lecture de l'historique",
       "crm_get_blueprint": "Vérification des étapes",
       "crm_apply_transition": "Changement d'étape",
-      "crm_send_email": "Courriel"
+      "crm_send_email": "Courriel",
+      "hub_read": "Lecture de vos données Sales Hub",
+      "hub_list_estimates": "Liste de vos devis"
     },
     "emptyValue": "(vide)",
     "crmSuggestions": [
@@ -156,7 +158,11 @@
     "outcome": {
       "sent": "Vous avez approuvé — envoyé dans Zoho",
       "cancelled": "Vous avez annulé — rien n'a été envoyé"
-    }
+    },
+    "hubSuggestions": [
+      "Combien j'ai gagné ce mois-ci ?",
+      "Où en est mon quota ?"
+    ]
   },
   "reseller": {
     "title": "Revendeurs",
