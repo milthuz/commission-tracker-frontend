@@ -140,7 +140,13 @@
       "Which deals are going stale?",
       "Find the Flameo deal in the CRM",
       "What do I have in my pipeline?"
-    ]
+    ],
+    "expand": "Expand",
+    "collapse": "Shrink",
+    "outcome": {
+      "sent": "You approved this — sent to Zoho",
+      "cancelled": "You cancelled this — nothing was sent"
+    }
   },
   "reseller": {
     "title": "Resellers",

@@ -37,6 +37,9 @@ interface ChatMsg {
   pending?: PendingAction;
   downloads?: DownloadRef[];
   done?: boolean;   // set once a pending action has been confirmed or cancelled
+  // What the user decided. Kept so the thread still shows, on re-reading, that
+  // an approval happened here — the card itself is gone by then.
+  outcome?: 'sent' | 'cancelled';
 }
 
 interface ChatAssistantProps {
@@ -64,6 +67,14 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
+  // Expanded is a real preference, not a per-open toggle: someone who works out
+  // of Sofia wants the big panel every time, and re-clicking it on every visit
+  // is the kind of small friction that makes people stop using a tool.
+  const [expanded, setExpanded] = useState(() => localStorage.getItem('sofia:expanded') === '1');
+  const toggleExpanded = () => setExpanded((v) => {
+    localStorage.setItem('sofia:expanded', v ? '0' : '1');
+    return !v;
+  });
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
@@ -116,7 +127,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
     if (busy) return;
     setError('');
     setBusy(true);
-    setMsgs((prev) => prev.map((m, i) => (i === idx ? { ...m, done: true } : m)));
+    setMsgs((prev) => prev.map((m, i) => (i === idx ? { ...m, done: true, outcome: 'sent' } : m)));
     try {
       const token = localStorage.getItem(tokenKey);
       const r = await axios.post(`${API_URL}${endpoint.replace(/\/chat$/, '/confirm-action')}`,
@@ -126,7 +137,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
     } catch (e: any) {
       // Re-open the card on failure: a write the user approved but that never
       // reached Zoho must not look like it succeeded.
-      setMsgs((prev) => prev.map((m, i) => (i === idx ? { ...m, done: false } : m)));
+      setMsgs((prev) => prev.map((m, i) => (i === idx ? { ...m, done: false, outcome: undefined } : m)));
       setError(e?.response?.status === 400
         ? (t(`${i18nPrefix}.actionExpired`) as string)
         : (t(`${i18nPrefix}.error`) as string));
@@ -135,7 +146,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
 
   const cancelAction = (idx: number) => {
     setMsgs((prev) => [
-      ...prev.map((m, i) => (i === idx ? { ...m, done: true } : m)),
+      ...prev.map((m, i) => (i === idx ? { ...m, done: true, outcome: 'cancelled' as const } : m)),
       { role: 'assistant', content: t(`${i18nPrefix}.actionCancelled`) as string },
     ]);
   };
@@ -177,7 +188,14 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
     <>
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-4 z-[9990] flex h-[min(560px,calc(100vh-8rem))] w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className={`fixed bottom-24 right-4 z-[9990] flex flex-col overflow-hidden rounded-2xl border border-stroke bg-white shadow-default transition-[width,height] duration-200 dark:border-strokedark dark:bg-boxdark ${
+          expanded
+            // Roomy enough for a table of records or a before/after card without
+            // every line wrapping. Caps keep it off the sidebar on wide screens
+            // and inside the viewport on small ones.
+            ? 'h-[calc(100vh-7.5rem)] w-[min(880px,calc(100vw-2rem))]'
+            : 'h-[min(620px,calc(100vh-8rem))] w-[min(420px,calc(100vw-2rem))]'
+        }`}>
           {/* Header */}
           <div className="flex items-center justify-between bg-[#1c2434] px-5 py-4">
             <div className="flex items-center gap-3">
@@ -196,6 +214,21 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
                   </svg>
                 </button>
               )}
+              {/* Expand / collapse — hidden on phones, where the panel already
+                  fills the screen and the control would only take space. */}
+              <button onClick={toggleExpanded}
+                title={t(`${i18nPrefix}.${expanded ? 'collapse' : 'expand'}`) as string}
+                className="hidden rounded p-1.5 text-white/70 hover:bg-white/10 hover:text-white sm:block">
+                {expanded ? (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                  </svg>
+                )}
+              </button>
               <button onClick={() => setOpen(false)} title={t(`${i18nPrefix}.close`) as string}
                 className="rounded p-1.5 text-white/70 hover:bg-white/10 hover:text-white">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -206,7 +239,11 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
           </div>
 
           {/* Messages */}
-          <div ref={bodyRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+          {/* Expanded, the column is centred and capped: a 880px-wide line of
+              text is measurably harder to read than a 700px one, so the extra
+              width goes to tables and cards, not to prose. */}
+          <div ref={bodyRef}
+            className={`flex-1 space-y-3 overflow-y-auto px-4 py-4 ${expanded ? 'mx-auto w-full max-w-3xl' : ''}`}>
             {msgs.length === 0 && (
               <div>
                 <div className="mb-3 rounded-2xl rounded-tl-sm bg-gray-2 px-4 py-3 text-sm text-black dark:bg-meta-4 dark:text-white">
@@ -255,6 +292,20 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
                     {m.content}
                   </div>
                 </div>
+
+                {/* Settled write — the card is gone, but the thread should still
+                    show that a decision was made here, and which one. */}
+                {m.pending && m.done && m.outcome && (
+                  <p className={`flex items-center gap-1.5 text-[11px] font-medium ${
+                    m.outcome === 'sent' ? 'text-success' : 'text-body dark:text-bodydark'
+                  }`}>
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round"
+                        d={m.outcome === 'sent' ? 'M4.5 12.75l6 6 9-13.5' : 'M6 18L18 6M6 6l12 12'} />
+                    </svg>
+                    {t(`${i18nPrefix}.outcome.${m.outcome}`)}
+                  </p>
+                )}
 
                 {/* Pending CRM write — nothing has been sent to Zoho yet. */}
                 {m.pending && !m.done && (
@@ -344,7 +395,9 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
           {/* Input */}
           <form
             onSubmit={(e) => { e.preventDefault(); send(); }}
-            className="flex items-center gap-2 border-t border-stroke bg-white px-3 py-3 dark:border-strokedark dark:bg-boxdark"
+            className={`flex w-full items-center gap-2 border-t border-stroke bg-white px-3 py-3 dark:border-strokedark dark:bg-boxdark ${
+              expanded ? 'mx-auto max-w-3xl border-x-0' : ''
+            }`}
           >
             <input
               ref={inputRef}

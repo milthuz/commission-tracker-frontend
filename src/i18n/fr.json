@@ -140,7 +140,13 @@
       "Quelles opportunités traînent ?",
       "Trouve la fiche de Flameo dans le CRM",
       "Qu'est-ce que j'ai dans mon pipeline ?"
-    ]
+    ],
+    "expand": "Agrandir",
+    "collapse": "Réduire",
+    "outcome": {
+      "sent": "Vous avez approuvé — envoyé dans Zoho",
+      "cancelled": "Vous avez annulé — rien n'a été envoyé"
+    }
   },
   "reseller": {
     "title": "Revendeurs",
