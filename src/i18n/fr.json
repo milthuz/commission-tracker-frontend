@@ -133,7 +133,13 @@
       "crm_list_fields": "Vérification des champs",
       "crm_update_record": "Modification de champ"
     },
-    "emptyValue": "(vide)"
+    "emptyValue": "(vide)",
+    "crmSuggestions": [
+      "Trouve la fiche de Flameo dans le CRM",
+      "Qu'est-ce que j'ai dans mon pipeline ?",
+      "Ajoute une note à un marchand",
+      "Exporte mes opportunités ouvertes"
+    ]
   },
   "reseller": {
     "title": "Revendeurs",

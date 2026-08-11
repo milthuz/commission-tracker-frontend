@@ -133,7 +133,13 @@
       "crm_list_fields": "Checked the fields",
       "crm_update_record": "Field change"
     },
-    "emptyValue": "(empty)"
+    "emptyValue": "(empty)",
+    "crmSuggestions": [
+      "Find the Flameo deal in the CRM",
+      "What do I have in my pipeline?",
+      "Add a note to a merchant",
+      "Export my open deals"
+    ]
   },
   "reseller": {
     "title": "Resellers",

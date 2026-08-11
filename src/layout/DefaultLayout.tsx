@@ -10,9 +10,16 @@ import ChatAssistant from '../components/ChatAssistant';
 import SofiaTour from '../components/SofiaTour';
 import InvoicePreviewHost from '../components/InvoicePreviewHost';
 import { ContentLoader } from '../common/Loader';
+import { useAuth } from '../context/AuthContext';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Sofia's CRM starter prompts are only worth showing to someone who can act
+  // on them. Resolved here (inside AuthProvider) and passed down, because
+  // ChatAssistant is also mounted by the Partner Portal, outside this context.
+  const { user } = useAuth();
+  const perms = user?.permissions || [];
+  const crmEnabled = perms.includes('*') || perms.some((p) => p.startsWith('assistant:crm'));
 
   return (
     <div className="dark:bg-boxdark-2 dark:text-bodydark">
@@ -52,7 +59,7 @@ const DefaultLayout: React.FC = () => {
         {/* <!-- ===== Content Area End ===== --> */}
       </div>
       {/* <!-- ===== Page Wrapper End ===== --> */}
-      <ChatAssistant />
+      <ChatAssistant crmEnabled={crmEnabled} />
       <SofiaTour />
       <InvoicePreviewHost />
     </div>

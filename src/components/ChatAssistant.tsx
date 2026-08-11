@@ -48,6 +48,10 @@ interface ChatAssistantProps {
   endpoint?: string;
   // Event name dispatched when "Start tour" is clicked — the matching tour component listens.
   tourEventName?: string;
+  // Show the CRM starter prompts. Passed in rather than read from AuthContext
+  // because the Partner Portal reuses this component outside that provider,
+  // where useAuth() throws.
+  crmEnabled?: boolean;
 }
 
 // Floating AI help assistant (bottom-right). Glassy translucent bubble that opens a
@@ -56,6 +60,7 @@ interface ChatAssistantProps {
 // (see PartnerHeader/PartnerChatAssistant.tsx) instead of duplicating the whole widget.
 const ChatAssistant: React.FC<ChatAssistantProps> = ({
   i18nPrefix = 'assistant', tokenKey = 'token', endpoint = '/api/assistant/chat', tourEventName = 'sofia:tour',
+  crmEnabled = false,
 }) => {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -156,7 +161,17 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
     }
   };
 
-  const suggestions: string[] = t(`${i18nPrefix}.suggestions`, { returnObjects: true }) as unknown as string[];
+  const baseSuggestions = t(`${i18nPrefix}.suggestions`, { returnObjects: true }) as unknown as string[];
+  // CRM prompts come FIRST when available — they are the reason to open the
+  // panel now, and burying them under "how are commissions calculated" is how a
+  // new capability goes unnoticed.
+  const crmSuggestions = crmEnabled
+    ? (t(`${i18nPrefix}.crmSuggestions`, { returnObjects: true, defaultValue: [] }) as unknown as string[])
+    : [];
+  const suggestions: string[] = [
+    ...(Array.isArray(crmSuggestions) ? crmSuggestions : []),
+    ...(Array.isArray(baseSuggestions) ? baseSuggestions : []),
+  ];
 
   return (
     <>
