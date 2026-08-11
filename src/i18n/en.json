@@ -100,7 +100,8 @@
       "task": "Create this follow-up task?",
       "call": "Schedule this call back?",
       "lead": "Create this lead in Zoho CRM?",
-      "deal": "Create this deal in Zoho CRM?"
+      "deal": "Create this deal in Zoho CRM?",
+      "update": "Apply this change in Zoho CRM?"
     },
     "field": {
       "title": "Title",
@@ -114,7 +115,8 @@
       "source": "Source",
       "dealName": "Deal",
       "stage": "Stage",
-      "amount": "Amount"
+      "amount": "Amount",
+      "record": "Record"
     },
     "tools": {
       "crm_find_record": "Searched CRM",
@@ -126,8 +128,12 @@
       "crm_add_note": "Note",
       "crm_schedule_followup": "Follow-up",
       "crm_create_lead": "New lead",
-      "crm_create_deal": "New deal"
-    }
+      "crm_create_deal": "New deal",
+      "crm_list_modules": "Listed CRM modules",
+      "crm_list_fields": "Checked the fields",
+      "crm_update_record": "Field change"
+    },
+    "emptyValue": "(empty)"
   },
   "reseller": {
     "title": "Resellers",

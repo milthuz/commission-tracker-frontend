@@ -17,7 +17,15 @@ interface PendingAction {
   tool: string;
   // `details` is a generic [labelKey, value] list built server-side from the real
   // arguments, so a new write tool renders here without a frontend change.
-  summary: { kind: string; details?: [string, string][]; content?: string };
+  summary: {
+    kind: string;
+    details?: [string, string][];
+    content?: string;
+    // [field, before, after] — only on updates, where the new value is
+    // meaningless without the value it replaces.
+    changes?: [string, string, string][];
+    error?: string;
+  };
 }
 
 interface DownloadRef { token: string; filename: string; rowCount: number; }
@@ -253,12 +261,34 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
                           <dd className="inline font-medium break-words">{value}</dd>
                         </div>
                       ))}
+                      {/* Before → after. The struck-through value is what this
+                          overwrites; updates have no undo, so it is shown, not
+                          summarised. */}
+                      {!!m.pending.summary.changes?.length && (
+                        <div className="mt-1.5 space-y-1 rounded-lg bg-white p-2 dark:bg-boxdark">
+                          {m.pending.summary.changes.map(([field, before, after]) => (
+                            <div key={field} className="flex flex-wrap items-baseline gap-1.5">
+                              <span className="text-body dark:text-bodydark">
+                                {t(`${i18nPrefix}.field.${field}`, { defaultValue: field })}:
+                              </span>
+                              <span className="text-body line-through dark:text-bodydark">{before || t(`${i18nPrefix}.emptyValue`)}</span>
+                              <span className="text-body dark:text-bodydark">→</span>
+                              <span className="font-semibold text-black dark:text-white">{after}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {m.pending.summary.error && (
+                        <p className="mt-1.5 text-xs font-medium text-danger">{m.pending.summary.error}</p>
+                      )}
                       {m.pending.summary.content && (
                         <div className="mt-1.5 whitespace-pre-wrap rounded-lg bg-white p-2 font-medium dark:bg-boxdark">{m.pending.summary.content}</div>
                       )}
                     </dl>
                     <div className="flex gap-2">
-                      <button onClick={() => confirmAction(i, m.pending!)} disabled={busy}
+                      {/* No Confirm when the preview already failed — offering it
+                          would only send a write we know cannot succeed. */}
+                      <button onClick={() => confirmAction(i, m.pending!)} disabled={busy || !!m.pending.summary.error}
                         className="flex-1 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white transition hover:bg-opacity-90 disabled:opacity-40">
                         {t(`${i18nPrefix}.confirmSend`)}
                       </button>

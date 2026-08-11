@@ -100,7 +100,8 @@
       "task": "Créer cette tâche de suivi ?",
       "call": "Planifier ce rappel téléphonique ?",
       "lead": "Créer cette piste dans Zoho CRM ?",
-      "deal": "Créer cette opportunité dans Zoho CRM ?"
+      "deal": "Créer cette opportunité dans Zoho CRM ?",
+      "update": "Appliquer cette modification dans Zoho CRM ?"
     },
     "field": {
       "title": "Titre",
@@ -114,7 +115,8 @@
       "source": "Source",
       "dealName": "Opportunité",
       "stage": "Étape",
-      "amount": "Montant"
+      "amount": "Montant",
+      "record": "Fiche"
     },
     "tools": {
       "crm_find_record": "Recherche dans le CRM",
@@ -126,8 +128,12 @@
       "crm_add_note": "Note",
       "crm_schedule_followup": "Suivi",
       "crm_create_lead": "Nouvelle piste",
-      "crm_create_deal": "Nouvelle opportunité"
-    }
+      "crm_create_deal": "Nouvelle opportunité",
+      "crm_list_modules": "Liste des modules CRM",
+      "crm_list_fields": "Vérification des champs",
+      "crm_update_record": "Modification de champ"
+    },
+    "emptyValue": "(vide)"
   },
   "reseller": {
     "title": "Revendeurs",
