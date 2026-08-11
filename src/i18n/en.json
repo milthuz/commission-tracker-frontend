@@ -87,7 +87,34 @@
     "notConfigured": "The assistant isn't configured yet — ask your administrator.",
     "rateLimited": "Too many messages — please wait a few minutes.",
     "error": "Something went wrong — please try again.",
-    "disclaimer": "AI assistant — may make mistakes. It can't see your data."
+    "disclaimer": "AI assistant — may make mistakes. Always check what it writes to Zoho.",
+    "confirmSend": "Confirm",
+    "confirmCancel": "Cancel",
+    "actionCancelled": "Okay — nothing was sent to Zoho.",
+    "actionExpired": "That request expired. Ask me again and I'll rebuild it.",
+    "downloadFailed": "The file couldn't be downloaded — try asking again.",
+    "rows": "{{count}} row",
+    "rows_other": "{{count}} rows",
+    "confirmTitle": {
+      "note": "Add this note to Zoho CRM?",
+      "task": "Create this follow-up task?",
+      "call": "Schedule this call back?"
+    },
+    "field": {
+      "title": "Title",
+      "subject": "Subject",
+      "when": "When"
+    },
+    "tools": {
+      "crm_find_record": "Searched CRM",
+      "crm_get_record": "Read the record",
+      "crm_pipeline_stats": "Pulled pipeline stats",
+      "crm_list_reports": "Listed CRM reports",
+      "crm_run_report": "Ran a CRM report",
+      "crm_export": "Built an Excel file",
+      "crm_add_note": "Note",
+      "crm_schedule_followup": "Follow-up"
+    }
   },
   "reseller": {
     "title": "Resellers",
@@ -2802,6 +2829,38 @@
       "managedTeams": "Managed teams",
       "managedTeamsHint": "This manager will see only the selected team(s) on their dashboard and in the tracker.",
       "noTeams": "No teams created yet."
+    },
+    "sofia": {
+      "tab": "Sofia",
+      "title": "Sofia — CRM access & governance",
+      "intro": "Sofia can look up Zoho CRM records, add notes and schedule follow-ups on behalf of users. What each person can do is set by their role; this page is the master switch and the record of what was done.",
+      "switchLabel": "Sofia may act in Zoho CRM",
+      "switchHint": "Turning this off removes every CRM tool from Sofia for everyone, including administrators. Roles are left untouched.",
+      "turnOn": "Turn on",
+      "turnOff": "Turn off",
+      "offNotice": "Sofia currently has no CRM access. She still answers questions about the app.",
+      "permsHint": "Per-user control lives in Roles: “Sofia can look up…” (read, own records), “…team(s) this user manages” (team leads), “…add CRM notes and schedule follow-ups” (write).",
+      "auditTitle": "What Sofia did",
+      "refresh": "Refresh",
+      "loading": "Loading…",
+      "empty": "Nothing yet. Notes, follow-ups, exports and report runs appear here. Plain lookups are not logged.",
+      "loadError": "Could not load Sofia’s settings.",
+      "saveError": "Could not save — try again.",
+      "ok": "Done",
+      "failed": "Failed",
+      "col": {
+        "when": "When",
+        "who": "Who",
+        "what": "Action",
+        "detail": "Detail",
+        "scope": "Visibility",
+        "result": "Result"
+      },
+      "scope": {
+        "own": "Own",
+        "team": "Team",
+        "all": "All reps"
+      }
     }
   },
   "header": {

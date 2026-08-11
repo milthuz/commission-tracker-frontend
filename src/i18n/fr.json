@@ -87,7 +87,34 @@
     "notConfigured": "L'assistant n'est pas encore configuré — demandez à votre administrateur.",
     "rateLimited": "Trop de messages — patientez quelques minutes.",
     "error": "Une erreur est survenue — réessayez.",
-    "disclaimer": "Assistant IA — peut faire des erreurs. Il ne voit pas vos données."
+    "disclaimer": "Assistant IA — peut faire des erreurs. Vérifiez toujours ce qu'il écrit dans Zoho.",
+    "confirmSend": "Confirmer",
+    "confirmCancel": "Annuler",
+    "actionCancelled": "D'accord — rien n'a été envoyé dans Zoho.",
+    "actionExpired": "Cette demande a expiré. Redemandez-moi et je la referai.",
+    "downloadFailed": "Le fichier n'a pas pu être téléchargé — redemandez-moi.",
+    "rows": "{{count}} ligne",
+    "rows_other": "{{count}} lignes",
+    "confirmTitle": {
+      "note": "Ajouter cette note dans Zoho CRM ?",
+      "task": "Créer cette tâche de suivi ?",
+      "call": "Planifier ce rappel téléphonique ?"
+    },
+    "field": {
+      "title": "Titre",
+      "subject": "Objet",
+      "when": "Quand"
+    },
+    "tools": {
+      "crm_find_record": "Recherche dans le CRM",
+      "crm_get_record": "Lecture de la fiche",
+      "crm_pipeline_stats": "Statistiques du pipeline",
+      "crm_list_reports": "Liste des rapports CRM",
+      "crm_run_report": "Exécution d'un rapport CRM",
+      "crm_export": "Fichier Excel créé",
+      "crm_add_note": "Note",
+      "crm_schedule_followup": "Suivi"
+    }
   },
   "reseller": {
     "title": "Revendeurs",
@@ -2802,6 +2829,38 @@
       "managedTeams": "Équipes gérées",
       "managedTeamsHint": "Ce manager ne verra que la ou les équipes sélectionnées sur son tableau de bord et dans le suivi.",
       "noTeams": "Aucune équipe créée pour l'instant."
+    },
+    "sofia": {
+      "tab": "Sofia",
+      "title": "Sofia — accès au CRM et gouvernance",
+      "intro": "Sofia peut consulter les fiches Zoho CRM, ajouter des notes et planifier des suivis au nom des usagers. Ce que chacun peut faire dépend de son rôle ; cette page est l’interrupteur principal et le registre de ce qui a été fait.",
+      "switchLabel": "Sofia peut agir dans Zoho CRM",
+      "switchHint": "Désactiver retire tous les outils CRM de Sofia pour tout le monde, y compris les administrateurs. Les rôles ne sont pas modifiés.",
+      "turnOn": "Activer",
+      "turnOff": "Désactiver",
+      "offNotice": "Sofia n’a présentement aucun accès au CRM. Elle répond toujours aux questions sur l’application.",
+      "permsHint": "Le contrôle par usager se fait dans les Rôles : « Sofia peut consulter… » (lecture, ses fiches), « …des équipes gérées » (chefs d’équipe), « …ajouter des notes et planifier des suivis » (écriture).",
+      "auditTitle": "Ce que Sofia a fait",
+      "refresh": "Actualiser",
+      "loading": "Chargement…",
+      "empty": "Rien pour l’instant. Les notes, suivis, exports et rapports exécutés apparaissent ici. Les simples consultations ne sont pas journalisées.",
+      "loadError": "Impossible de charger les réglages de Sofia.",
+      "saveError": "Enregistrement impossible — réessayez.",
+      "ok": "Réussi",
+      "failed": "Échec",
+      "col": {
+        "when": "Quand",
+        "who": "Qui",
+        "what": "Action",
+        "detail": "Détail",
+        "scope": "Visibilité",
+        "result": "Résultat"
+      },
+      "scope": {
+        "own": "Ses fiches",
+        "team": "Équipe",
+        "all": "Tous"
+      }
     }
   },
   "header": {
