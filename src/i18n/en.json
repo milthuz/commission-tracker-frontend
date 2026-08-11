@@ -2192,7 +2192,8 @@
         "pass_tier_up": "The Pass — new tier reached",
         "pass_credit": "The Pass — credit and certificate",
         "partner_invite": "Partner portal — invitation",
-        "partner_reset": "Partner portal — password reset"
+        "partner_reset": "Partner portal — password reset",
+        "partner_invite_migration": "Partner portal — migration invitation (legacy portal)"
       }
     },
     "recalculate": {

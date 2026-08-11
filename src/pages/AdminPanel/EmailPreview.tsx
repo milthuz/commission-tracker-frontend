@@ -15,7 +15,7 @@ const TEMPLATE_TYPES = [
   'pass_received', 'pass_live', 'pass_tier_up', 'pass_credit',
   // Portail partenaire : marque Cluster et domaine partenaire, pas ceux de Sales Hub. Comme
   // pour La Passe, l'apercu vient du VRAI constructeur, donc ce qu'on voit est ce qui part.
-  'partner_invite', 'partner_reset',
+  'partner_invite', 'partner_reset', 'partner_invite_migration',
 ] as const;
 type TemplateType = (typeof TEMPLATE_TYPES)[number];
 

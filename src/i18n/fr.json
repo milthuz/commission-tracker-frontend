@@ -2192,7 +2192,8 @@
         "pass_tier_up": "La Passe — nouveau palier atteint",
         "pass_credit": "La Passe — crédit et certificat",
         "partner_invite": "Portail partenaire — invitation",
-        "partner_reset": "Portail partenaire — réinitialisation du mot de passe"
+        "partner_reset": "Portail partenaire — réinitialisation du mot de passe",
+        "partner_invite_migration": "Portail partenaire — invitation de reprise (ancien portail)"
       }
     },
     "recalculate": {
