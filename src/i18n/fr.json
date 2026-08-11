@@ -72,8 +72,8 @@
   },
   "assistant": {
     "title": "Sofia",
-    "subtitle": "Ton guide Sales Hub — pose-moi tes questions",
-    "greeting": "Bonjour, je suis Sofia 👋 ton guide Sales Hub. Demande-moi comment les commissions sont calculées, où trouver quelque chose, ou comment fonctionne une fonctionnalité — ou fais une visite guidée.",
+    "subtitle": "Votre assistante des ventes",
+    "greeting": "Bonjour, je suis Sofia 👋 votre assistante des ventes. Demandez-moi comment les commissions sont calculées ou où trouver quelque chose — et si vous avez l'accès au CRM, je peux consulter vos opportunités et vos pistes, ajouter des notes, planifier des suivis et créer des exports.",
     "startTour": "Faire la visite guidée",
     "placeholder": "Posez une question…",
     "suggestions": [
@@ -98,12 +98,23 @@
     "confirmTitle": {
       "note": "Ajouter cette note dans Zoho CRM ?",
       "task": "Créer cette tâche de suivi ?",
-      "call": "Planifier ce rappel téléphonique ?"
+      "call": "Planifier ce rappel téléphonique ?",
+      "lead": "Créer cette piste dans Zoho CRM ?",
+      "deal": "Créer cette opportunité dans Zoho CRM ?"
     },
     "field": {
       "title": "Titre",
       "subject": "Objet",
-      "when": "Quand"
+      "when": "Quand",
+      "module": "Type de fiche",
+      "company": "Entreprise",
+      "contact": "Contact",
+      "email": "Courriel",
+      "phone": "Téléphone",
+      "source": "Source",
+      "dealName": "Opportunité",
+      "stage": "Étape",
+      "amount": "Montant"
     },
     "tools": {
       "crm_find_record": "Recherche dans le CRM",
@@ -111,9 +122,11 @@
       "crm_pipeline_stats": "Statistiques du pipeline",
       "crm_list_reports": "Liste des rapports CRM",
       "crm_run_report": "Exécution d'un rapport CRM",
-      "crm_export": "Fichier Excel créé",
+      "crm_export": "Fichier créé",
       "crm_add_note": "Note",
-      "crm_schedule_followup": "Suivi"
+      "crm_schedule_followup": "Suivi",
+      "crm_create_lead": "Nouvelle piste",
+      "crm_create_deal": "Nouvelle opportunité"
     }
   },
   "reseller": {

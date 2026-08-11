@@ -72,8 +72,8 @@
   },
   "assistant": {
     "title": "Sofia",
-    "subtitle": "Your Sales Hub guide — ask me anything",
-    "greeting": "Hi, I'm Sofia 👋 your Sales Hub guide. Ask me how commissions are calculated, where to find something, or how a feature works — or take a quick guided tour.",
+    "subtitle": "Your Sales Assistant",
+    "greeting": "Hi, I'm Sofia 👋 your Sales Assistant. Ask me how commissions are calculated or where to find something — and if you have CRM access, I can look up your deals and leads, add notes, schedule follow-ups and build exports.",
     "startTour": "Take a guided tour",
     "placeholder": "Ask a question…",
     "suggestions": [
@@ -98,12 +98,23 @@
     "confirmTitle": {
       "note": "Add this note to Zoho CRM?",
       "task": "Create this follow-up task?",
-      "call": "Schedule this call back?"
+      "call": "Schedule this call back?",
+      "lead": "Create this lead in Zoho CRM?",
+      "deal": "Create this deal in Zoho CRM?"
     },
     "field": {
       "title": "Title",
       "subject": "Subject",
-      "when": "When"
+      "when": "When",
+      "module": "Record type",
+      "company": "Business",
+      "contact": "Contact",
+      "email": "Email",
+      "phone": "Phone",
+      "source": "Source",
+      "dealName": "Deal",
+      "stage": "Stage",
+      "amount": "Amount"
     },
     "tools": {
       "crm_find_record": "Searched CRM",
@@ -111,9 +122,11 @@
       "crm_pipeline_stats": "Pulled pipeline stats",
       "crm_list_reports": "Listed CRM reports",
       "crm_run_report": "Ran a CRM report",
-      "crm_export": "Built an Excel file",
+      "crm_export": "Built a file",
       "crm_add_note": "Note",
-      "crm_schedule_followup": "Follow-up"
+      "crm_schedule_followup": "Follow-up",
+      "crm_create_lead": "New lead",
+      "crm_create_deal": "New deal"
     }
   },
   "reseller": {

@@ -15,7 +15,9 @@ interface ToolAction { tool: string; }
 interface PendingAction {
   token: string;
   tool: string;
-  summary: { kind: string; module?: string; title?: string | null; content?: string; subject?: string | null; when?: string };
+  // `details` is a generic [labelKey, value] list built server-side from the real
+  // arguments, so a new write tool renders here without a frontend change.
+  summary: { kind: string; details?: [string, string][]; content?: string };
 }
 
 interface DownloadRef { token: string; filename: string; rowCount: number; }
@@ -243,15 +245,14 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
                       })}
                     </p>
                     <dl className="mb-3 space-y-1 text-xs text-black dark:text-white">
-                      {m.pending.summary.title && (
-                        <div><dt className="inline text-body dark:text-bodydark">{t(`${i18nPrefix}.field.title`)}: </dt><dd className="inline font-medium">{m.pending.summary.title}</dd></div>
-                      )}
-                      {m.pending.summary.subject && (
-                        <div><dt className="inline text-body dark:text-bodydark">{t(`${i18nPrefix}.field.subject`)}: </dt><dd className="inline font-medium">{m.pending.summary.subject}</dd></div>
-                      )}
-                      {m.pending.summary.when && (
-                        <div><dt className="inline text-body dark:text-bodydark">{t(`${i18nPrefix}.field.when`)}: </dt><dd className="inline font-medium">{m.pending.summary.when}</dd></div>
-                      )}
+                      {(m.pending.summary.details || []).map(([key, value]) => (
+                        <div key={key}>
+                          <dt className="inline text-body dark:text-bodydark">
+                            {t(`${i18nPrefix}.field.${key}`, { defaultValue: key })}:{' '}
+                          </dt>
+                          <dd className="inline font-medium break-words">{value}</dd>
+                        </div>
+                      ))}
                       {m.pending.summary.content && (
                         <div className="mt-1.5 whitespace-pre-wrap rounded-lg bg-white p-2 font-medium dark:bg-boxdark">{m.pending.summary.content}</div>
                       )}
