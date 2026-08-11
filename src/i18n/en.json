@@ -1894,7 +1894,11 @@
       "colInvitation": "Invitation",
       "userSearchPh": "Search by email or name…",
       "noUsersForSearch": "No user matches that search.",
-      "deactivateConfirm": "Deactivate “{{name}}”? Its {{count}} user(s) will no longer be able to sign in to the portal, activate an invitation, or reset their password. Accounts are not deleted — reactivating the partner restores their access."
+      "deactivateConfirm": "Deactivate “{{name}}”? Its {{count}} user(s) will no longer be able to sign in to the portal, activate an invitation, or reset their password. Accounts are not deleted — reactivating the partner restores their access.",
+      "colInvitations": "Invitations",
+      "invNone": "None sent",
+      "invSummary": "{{invited}} sent · {{opened}} link opened · {{activated}} activated",
+      "invHint": "{{invited}} invitation(s) sent, of which {{opened}} had the link opened and {{activated}} account(s) activated. Last send: {{when}}. “Link opened” means the person clicked — the email open itself is not tracked."
     },
     "resources": {
       "title": "Resources storage",

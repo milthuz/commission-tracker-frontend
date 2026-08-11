@@ -1894,7 +1894,11 @@
       "colInvitation": "Invitation",
       "userSearchPh": "Rechercher par courriel ou nom…",
       "noUsersForSearch": "Aucun usager ne correspond à cette recherche.",
-      "deactivateConfirm": "Désactiver « {{name}} » ? Ses {{count}} usager(s) ne pourront plus se connecter au portail, ni activer une invitation, ni réinitialiser leur mot de passe. Les comptes ne sont pas supprimés — réactiver le partenaire leur rend l’accès."
+      "deactivateConfirm": "Désactiver « {{name}} » ? Ses {{count}} usager(s) ne pourront plus se connecter au portail, ni activer une invitation, ni réinitialiser leur mot de passe. Les comptes ne sont pas supprimés — réactiver le partenaire leur rend l’accès.",
+      "colInvitations": "Invitations",
+      "invNone": "Aucune envoyée",
+      "invSummary": "{{invited}} envoyée(s) · {{opened}} lien ouvert · {{activated}} activé(s)",
+      "invHint": "{{invited}} invitation(s) envoyée(s), dont {{opened}} où le lien a été ouvert et {{activated}} compte(s) activé(s). Dernier envoi : {{when}}. « Lien ouvert » signifie que la personne a cliqué — l’ouverture du courriel elle-même n’est pas mesurée."
     },
     "resources": {
       "title": "Stockage des ressources",

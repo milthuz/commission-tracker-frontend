@@ -10,6 +10,7 @@ const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('toke
 
 interface Partner {
   id: number; name: string; active: boolean; createdAt: string; hasLogo: boolean; userCount: number;
+  invitedCount: number; openedCount: number; activatedCount: number; lastInvitedAt: string | null;
   leadSource: string | null;
   billingContactName: string | null; billingContactEmail: string | null; billingContactPhone: string | null;
   businessContactName: string | null; businessContactEmail: string | null; businessContactPhone: string | null;
@@ -1060,6 +1061,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                   <tr className="border-b border-stroke dark:border-strokedark">
                     <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.fName')}</th>
                     <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.colUsers')}</th>
+                    <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.colInvitations')}</th>
                     <th className="px-4 py-3 text-left font-semibold text-black dark:text-white">{t('admin.partners.colActive')}</th>
                     <th className="px-4 py-3 text-right font-semibold text-black dark:text-white">{t('common.actions')}</th>
                   </tr>
@@ -1076,6 +1078,29 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
                             {p.userCount}
                           </button>
                         ) : <span className="text-gray-400">0</span>}
+                      </td>
+                      {/* Ou en est l'adoption, sans ouvrir l'annuaire. Trois nombres plutot qu'un
+                          seul : « 4 envoyees » sans le reste ne dit pas si quelqu'un est entre.
+                          ⚠️ « Lien ouvert » n'est PAS « courriel lu » — l'infobulle le dit, parce
+                          que confondre les deux ferait conclure a tort qu'un partenaire ignore
+                          nos courriels. Voir le commentaire sur invite_opened_at cote serveur. */}
+                      <td className="px-4 py-3">
+                        {p.invitedCount === 0 ? (
+                          <span className="whitespace-nowrap text-xs text-gray-400">{t('admin.partners.invNone')}</span>
+                        ) : (
+                          <button onClick={() => showPartnerUsers(p.name)}
+                            title={t('admin.partners.invHint', {
+                              invited: p.invitedCount, opened: p.openedCount, activated: p.activatedCount,
+                              when: p.lastInvitedAt ? fmtDate(p.lastInvitedAt) : '—',
+                            }) as string}
+                            className="flex items-center gap-1.5 whitespace-nowrap text-xs hover:underline">
+                            <span className="font-semibold text-black dark:text-white">{p.invitedCount}</span>
+                            <span className="text-gray-400">→</span>
+                            <span className={p.openedCount ? 'font-semibold text-primary' : 'text-gray-400'}>{p.openedCount}</span>
+                            <span className="text-gray-400">→</span>
+                            <span className={p.activatedCount ? 'font-semibold text-green-700 dark:text-success' : 'text-gray-400'}>{p.activatedCount}</span>
+                          </button>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <button onClick={() => toggleActive(p)}
