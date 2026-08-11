@@ -101,7 +101,8 @@
       "call": "Schedule this call back?",
       "lead": "Create this lead in Zoho CRM?",
       "deal": "Create this deal in Zoho CRM?",
-      "update": "Apply this change in Zoho CRM?"
+      "update": "Apply this change in Zoho CRM?",
+      "callLog": "Log this call in Zoho CRM?"
     },
     "field": {
       "title": "Title",
@@ -116,7 +117,9 @@
       "dealName": "Deal",
       "stage": "Stage",
       "amount": "Amount",
-      "record": "Record"
+      "record": "Record",
+      "duration": "Duration",
+      "result": "Outcome"
     },
     "tools": {
       "crm_find_record": "Searched CRM",
@@ -132,7 +135,9 @@
       "crm_list_modules": "Listed CRM modules",
       "crm_list_fields": "Checked the fields",
       "crm_update_record": "Field change",
-      "crm_list_my_records": "Listed your records"
+      "crm_list_my_records": "Listed your records",
+      "crm_log_call": "Logged a call",
+      "crm_get_history": "Read the history"
     },
     "emptyValue": "(empty)",
     "crmSuggestions": [

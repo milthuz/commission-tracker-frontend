@@ -101,7 +101,8 @@
       "call": "Planifier ce rappel téléphonique ?",
       "lead": "Créer cette piste dans Zoho CRM ?",
       "deal": "Créer cette opportunité dans Zoho CRM ?",
-      "update": "Appliquer cette modification dans Zoho CRM ?"
+      "update": "Appliquer cette modification dans Zoho CRM ?",
+      "callLog": "Consigner cet appel dans Zoho CRM ?"
     },
     "field": {
       "title": "Titre",
@@ -116,7 +117,9 @@
       "dealName": "Opportunité",
       "stage": "Étape",
       "amount": "Montant",
-      "record": "Fiche"
+      "record": "Fiche",
+      "duration": "Durée",
+      "result": "Résultat"
     },
     "tools": {
       "crm_find_record": "Recherche dans le CRM",
@@ -132,7 +135,9 @@
       "crm_list_modules": "Liste des modules CRM",
       "crm_list_fields": "Vérification des champs",
       "crm_update_record": "Modification de champ",
-      "crm_list_my_records": "Liste de vos fiches"
+      "crm_list_my_records": "Liste de vos fiches",
+      "crm_log_call": "Appel consigné",
+      "crm_get_history": "Lecture de l'historique"
     },
     "emptyValue": "(vide)",
     "crmSuggestions": [
