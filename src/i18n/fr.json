@@ -131,14 +131,15 @@
       "crm_create_deal": "Nouvelle opportunité",
       "crm_list_modules": "Liste des modules CRM",
       "crm_list_fields": "Vérification des champs",
-      "crm_update_record": "Modification de champ"
+      "crm_update_record": "Modification de champ",
+      "crm_list_my_records": "Liste de vos fiches"
     },
     "emptyValue": "(vide)",
     "crmSuggestions": [
+      "Qu'est-ce que je dois relancer aujourd'hui ?",
+      "Quelles opportunités traînent ?",
       "Trouve la fiche de Flameo dans le CRM",
-      "Qu'est-ce que j'ai dans mon pipeline ?",
-      "Ajoute une note à un marchand",
-      "Exporte mes opportunités ouvertes"
+      "Qu'est-ce que j'ai dans mon pipeline ?"
     ]
   },
   "reseller": {

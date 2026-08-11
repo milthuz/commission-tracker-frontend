@@ -131,14 +131,15 @@
       "crm_create_deal": "New deal",
       "crm_list_modules": "Listed CRM modules",
       "crm_list_fields": "Checked the fields",
-      "crm_update_record": "Field change"
+      "crm_update_record": "Field change",
+      "crm_list_my_records": "Listed your records"
     },
     "emptyValue": "(empty)",
     "crmSuggestions": [
+      "What should I follow up on today?",
+      "Which deals are going stale?",
       "Find the Flameo deal in the CRM",
-      "What do I have in my pipeline?",
-      "Add a note to a merchant",
-      "Export my open deals"
+      "What do I have in my pipeline?"
     ]
   },
   "reseller": {
