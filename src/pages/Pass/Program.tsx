@@ -89,13 +89,14 @@ const Program = () => {
           {isAuthenticated && <Link to="/pass" className={btnGhost}>{t('pass.landing.cta2')}</Link>}
         </div>
 
-        {/* Les trois chiffres du héros sortent de la configuration : le crédit le plus
-            élevé de l'échelle et le rabais matériel, jamais des nombres recopiés. */}
+        {/* Le crédit maximal sort de la CONFIGURATION, jamais d'un nombre recopié.
+            Le rabais matériel a été retiré d'ici : il ne s'adresse plus au restaurant
+            recommandé, et David l'a aussi sorti des paliers — il n'a donc plus de place
+            sur la page publique. Le champ reste en configuration, simplement inutilisé. */}
         {program && (
-          <div className="mx-auto mt-14 grid max-w-[760px] gap-8 border-t border-[#E0E0E0] dark:border-white/[0.08] pt-10 sm:grid-cols-3">
+          <div className="mx-auto mt-14 grid max-w-[560px] gap-8 border-t border-[#E0E0E0] dark:border-white/[0.08] pt-10 sm:grid-cols-2">
             {[
               { v: topCredit !== null ? money(topCredit) : '—', l: t('pass.landing.stat1') },
-              { v: money(program.hardwareDiscount), l: t('pass.landing.stat2') },
               { v: t('pass.landing.stat3Value'), l: t('pass.landing.stat3') },
             ].map((s) => (
               <div key={s.l}>
