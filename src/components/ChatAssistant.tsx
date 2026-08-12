@@ -82,6 +82,52 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
   const bodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // --- dictation ------------------------------------------------------------
+  // Browser-native speech recognition: no backend, no vendor, no cost. The whole
+  // point is the rep who has just hung up and will not open a keyboard to write
+  // "called the owner, wants a quote next week".
+  //
+  // Chrome/Edge/Safari only — Firefox has no SpeechRecognition. The button
+  // simply does not render where it is unsupported, rather than failing on click.
+  const SR: any = typeof window !== 'undefined'
+    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    : null;
+  const [listening, setListening] = useState(false);
+  const recogRef = useRef<any>(null);
+
+  const toggleDictation = () => {
+    if (!SR) return;
+    if (listening) { recogRef.current?.stop(); return; }
+
+    const r = new SR();
+    r.lang = i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA';
+    r.interimResults = true;   // let the user watch it form, and catch mistakes early
+    r.continuous = true;       // dictating a call summary takes more than one breath
+    recogRef.current = r;
+
+    // Keep whatever was already typed; dictation appends rather than replaces.
+    const base = input ? input.trimEnd() + ' ' : '';
+    r.onresult = (e: any) => {
+      let text = '';
+      for (let k = e.resultIndex; k < e.results.length; k++) text += e.results[k][0].transcript;
+      setInput(base + text);
+    };
+    r.onerror = (e: any) => {
+      setListening(false);
+      // "no-speech" and a user-cancelled permission are not worth an error
+      // banner; anything else the user should know about.
+      if (e?.error && !['no-speech', 'aborted'].includes(e.error)) {
+        setError(t(`${i18nPrefix}.dictationError`) as string);
+      }
+    };
+    r.onend = () => { setListening(false); inputRef.current?.focus(); };
+    try { r.start(); setListening(true); setError(''); }
+    catch { setListening(false); }
+  };
+
+  // Never leave the microphone open when the panel closes.
+  useEffect(() => { if (!open && recogRef.current) { recogRef.current.stop(); } }, [open]);
+
   useEffect(() => {
     // Keep the latest message in view
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight, behavior: 'smooth' });
@@ -403,10 +449,27 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={t(`${i18nPrefix}.placeholder`) as string}
+              placeholder={t(`${i18nPrefix}.${listening ? 'listening' : 'placeholder'}`) as string}
               maxLength={2000}
               className="flex-1 rounded-full border border-stroke bg-white px-4 py-2.5 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
             />
+            {/* Dictation. It fills the box and stops there — it never submits.
+                Speech recognition mishears, and Sofia writes to real customer
+                records; the user must get to read it back before it goes. */}
+            {SR && (
+              <button type="button" onClick={toggleDictation} disabled={busy}
+                title={t(`${i18nPrefix}.${listening ? 'stopDictation' : 'dictate'}`) as string}
+                aria-pressed={listening}
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition disabled:opacity-40 ${
+                  listening
+                    ? 'animate-pulse bg-danger text-white'
+                    : 'border border-stroke text-body hover:border-primary hover:text-primary dark:border-strokedark dark:text-bodydark'
+                }`}>
+                <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                </svg>
+              </button>
+            )}
             <button type="submit" disabled={busy || !input.trim()}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white transition hover:bg-opacity-90 disabled:opacity-40">
               <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

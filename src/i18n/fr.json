@@ -162,7 +162,11 @@
     "hubSuggestions": [
       "Combien j'ai gagné ce mois-ci ?",
       "Où en est mon quota ?"
-    ]
+    ],
+    "dictate": "Dicter",
+    "stopDictation": "Arrêter la dictée",
+    "listening": "À l'écoute… parlez, puis relisez",
+    "dictationError": "La dictée s'est arrêtée — vérifiez que le micro est autorisé."
   },
   "reseller": {
     "title": "Revendeurs",

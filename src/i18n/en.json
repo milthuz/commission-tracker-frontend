@@ -162,7 +162,11 @@
     "hubSuggestions": [
       "How much did I earn this month?",
       "Show me my quota progress"
-    ]
+    ],
+    "dictate": "Dictate",
+    "stopDictation": "Stop dictating",
+    "listening": "Listening… speak, then read it back",
+    "dictationError": "Dictation stopped — check that the microphone is allowed."
   },
   "reseller": {
     "title": "Resellers",
