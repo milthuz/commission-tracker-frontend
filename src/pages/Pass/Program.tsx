@@ -32,7 +32,13 @@ const Program = () => {
 
   const tiers = program?.tiers || [];
   const topCredit = tiers.length ? Math.max(...tiers.map((x) => x.credit)) : null;
-  const perksFor = (level: number) => list(`pass.landing.perks${level}`) as string[];
+  // Les avantages peuvent porter {amount} (le rabais matériel des paliers 2 et 3) : on les
+  // remplit ici comme les chiffres du héros, plutôt que de figer un montant dans la copie —
+  // il est modifiable dans l'écran d'administration.
+  const perksFor = (level: number) =>
+    (list(`pass.landing.perks${level}`) as string[]).map((line) =>
+      line.replace('{amount}', money(program?.hardwareDiscount ?? 0))
+    );
   const rules = list('pass.landing.rule') as string[];
   const labels = list('pass.landing.tierLabel') as string[];
 

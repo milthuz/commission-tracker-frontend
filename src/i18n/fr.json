@@ -3093,12 +3093,14 @@
       "perks2": [
         "Jusqu'à 750 $ en crédit Cluster pour la 2ᵉ et la 3ᵉ référence",
         "Cluster Swag",
-        "5 % de rabais sur les produits Cluster, en crédit Cluster"
+        "5 % de rabais sur les produits Cluster, en crédit Cluster",
+        "Rabais matériel de {amount} sur votre propre équipement"
       ],
       "perks3": [
         "Jusqu'à 1 000 $ en crédit Cluster par référence",
         "Contact dédié pour vos références",
-        "10 % de rabais sur les produits Cluster, en crédit Cluster"
+        "10 % de rabais sur les produits Cluster, en crédit Cluster",
+        "Rabais matériel de {amount} sur votre propre équipement"
       ],
       "cumulativeNote": "Chaque palier conserve les avantages des précédents.",
       "howTitle": "Comment ça marche",

@@ -3093,12 +3093,14 @@
       "perks2": [
         "Up to $750 in Cluster credit for your 2nd and 3rd referral",
         "Cluster Swag",
-        "5% off Cluster products, as Cluster credit"
+        "5% off Cluster products, as Cluster credit",
+        "{amount} hardware discount on your own equipment"
       ],
       "perks3": [
         "Up to $1,000 in Cluster credit per referral",
         "A dedicated contact for your referrals",
-        "10% off Cluster products, as Cluster credit"
+        "10% off Cluster products, as Cluster credit",
+        "{amount} hardware discount on your own equipment"
       ],
       "cumulativeNote": "Every tier keeps the benefits of the ones below it.",
       "howTitle": "How it works",
