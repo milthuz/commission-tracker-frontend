@@ -105,6 +105,31 @@ const Program = () => {
             ))}
           </div>
         )}
+      
+        {/* Visuel produit, sous le bloc de texte plutot qu'a cote : en deux colonnes il
+            faudrait empiler en mobile de toute facon, et un heros centre supporte mieux
+            une image large qu'une grille qui se casse.
+
+            Deux resolutions via `srcSet` — 1600 px suffit au conteneur borne a 1160 px,
+            2400 px sert les ecrans a haute densite. En JPEG et non PNG : une PHOTO en PNG
+            stocke chaque pixel, la source pesait 4,3 Mo contre 153 Ko ici. C'est la
+            premiere image que voit un restaurateur, elle ne doit pas retarder la page.
+
+            `loading="eager"` : elle est au-dessus de la ligne de flottaison, la differer
+            ferait sauter la mise en page au chargement. */}
+        <div className="mx-auto mt-14 max-w-[1160px] overflow-hidden rounded-[14px] border border-black/5 shadow-2xl dark:border-white/10">
+          <img
+            src="/pass-hero.jpg"
+            srcSet="/pass-hero.jpg 1600w, /pass-hero@2x.jpg 2400w"
+            sizes="(min-width: 1200px) 1160px, 100vw"
+            width={1600}
+            height={900}
+            alt={t('pass.landing.heroAlt') as string}
+            loading="eager"
+            className="block h-auto w-full"
+            draggable={false}
+          />
+        </div>
       </section>
 
       {/* ── L'échelle ──────────────────────────────────────────────────── */}

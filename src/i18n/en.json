@@ -3186,7 +3186,8 @@
         "terms": "Program terms",
         "privacy": "Privacy",
         "contact": "Contact us"
-      }
+      },
+      "heroAlt": "The Cluster point of sale on a restaurant counter"
     },
     "hub": {
       "greeting": "Welcome back, {firstName}",
