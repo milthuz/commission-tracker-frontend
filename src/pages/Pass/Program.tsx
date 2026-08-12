@@ -101,8 +101,8 @@ const Program = () => {
               { v: t('pass.landing.stat3Value'), l: t('pass.landing.stat3') },
             ].map((s) => (
               <div key={s.l}>
-                <p className="text-[30px] font-medium leading-none tracking-[-0.02em]">{s.v}</p>
-                <p className="mt-2 text-[13px] leading-snug text-[#61646C] dark:text-white/45">{s.l}</p>
+                <p className="text-[40px] font-medium leading-none tracking-[-0.02em] sm:text-[46px]">{s.v}</p>
+                <p className="mt-3 text-[14.5px] leading-snug text-[#61646C] dark:text-white/45">{s.l}</p>
               </div>
             ))}
           </div>
