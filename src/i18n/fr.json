@@ -3085,7 +3085,7 @@
       ],
       "creditEach": "de crédit chacune",
       "perks1": [
-        "Jusqu'à 500 $ en crédit Cluster par référence qui prend Cluster et Cluster Pay",
+        "Jusqu'à 500 $ en crédit Cluster par référence",
         "Lien de recommandation personnel et bibliothèque de contenu",
         "Carte de membre partageable"
       ],
@@ -3175,7 +3175,7 @@
       "closeCta": "Joindre La Passe",
       "lastUpdated": "Page mise à jour le 31 juillet 2026",
       "termsNote": "Conditions du programme applicables.",
-      "legal": "Le crédit s'applique aux recommandations admissibles qui deviennent des clients actifs de Cluster au Canada. Offert uniquement aux marchands Cluster au Canada; les entreprises recommandées doivent être situées au Canada. Une seule adhésion par groupe d'entreprises. Le palier est établi selon le nombre total de recommandations en service et ne se réinitialise pas. Tous les montants sont en dollars canadiens. Sous réserve des conditions du programme.",
+      "legal": "Le crédit s'applique aux recommandations admissibles qui deviennent des clients actifs de Cluster au Canada. Offert uniquement aux marchands Cluster au Canada; les entreprises recommandées doivent être situées au Canada. Une seule adhésion par groupe d'entreprises. Le palier est établi selon le nombre total de recommandations en service et ne se réinitialise pas. Tous les montants sont en dollars canadiens. Sous réserve des conditions du programme. Le crédit est versé lorsque le restaurant recommandé devient actif sur Cluster ou Cluster Pay ; le montant maximal du palier s'applique lorsqu'il adopte les deux.",
       "referCta": "Recommander un restaurant",
       "publicHeader": {
         "hub": "Espace membre"

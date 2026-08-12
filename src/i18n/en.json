@@ -3085,7 +3085,7 @@
       ],
       "creditEach": "credit each",
       "perks1": [
-        "Up to $500 in Cluster credit per referral that takes Cluster and Cluster Pay",
+        "Up to $500 in Cluster credit per referral",
         "Personal referral link and content library",
         "Shareable member card"
       ],
@@ -3175,7 +3175,7 @@
       "closeCta": "Join The Pass",
       "lastUpdated": "Page last updated July 31, 2026",
       "termsNote": "Program terms apply.",
-      "legal": "Credit applies to qualified referrals that become active Cluster customers in Canada. Open to Cluster merchants in Canada only; referred businesses must be located in Canada. One membership per business group. Tier is determined by lifetime live referrals and does not reset. All amounts in Canadian dollars. Subject to program terms.",
+      "legal": "Credit applies to qualified referrals that become active Cluster customers in Canada. Open to Cluster merchants in Canada only; referred businesses must be located in Canada. One membership per business group. Tier is determined by lifetime live referrals and does not reset. All amounts in Canadian dollars. Subject to program terms. The credit is paid once the referred restaurant goes live on Cluster or Cluster Pay; the tier's maximum applies when it adopts both.",
       "referCta": "Refer a restaurant",
       "publicHeader": {
         "hub": "Member hub"
