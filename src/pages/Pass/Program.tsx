@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PassTierBadge from './PassTierBadge';
 import { Link } from 'react-router-dom';
 import { usePassAuth } from '../../context/PassAuthContext';
 import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, PassPill, useFmt, useTierName } from './passUi';
@@ -149,7 +150,8 @@ const Program = () => {
           <div className="mt-12 grid gap-5 lg:grid-cols-3">
             {tiers.map((tier, i) => (
               <div key={tier.level} className="flex flex-col rounded-[14px] border border-[#E0E0E0] dark:border-[#242424] bg-white dark:bg-[#141414] p-6 sm:p-7">
-                <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-[#61646C] dark:text-white/40">
+                <PassTierBadge level={tier.level} className="h-14 w-14" />
+                <p className="mt-4 text-[12px] font-medium uppercase tracking-[0.08em] text-[#61646C] dark:text-white/40">
                   {labels?.[i]}
                 </p>
                 <p className="mt-3 text-[17px] font-medium">{tierName(tier.key)}</p>
