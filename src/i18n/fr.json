@@ -3068,7 +3068,7 @@
       "cta1": "Joindre La Passe",
       "cta2": "Voir l'espace membre",
       "stat1": "crédit maximal par recommandation",
-      "stat2": "en crédit Cluster par référence",
+      "stat2": "de rabais matériel sur votre équipement",
       "stat3Value": "Illimité",
       "stat3": "aucun plafond",
       "ladderEyebrow": "L'échelle",
@@ -3093,14 +3093,12 @@
       "perks2": [
         "Jusqu'à 750 $ en crédit Cluster pour la 2ᵉ et la 3ᵉ référence",
         "Cluster Swag",
-        "5 % de rabais sur les produits Cluster, en crédit Cluster",
-        "Rabais matériel de {amount} sur votre propre équipement"
+        "5 % de rabais sur les produits Cluster, en crédit Cluster"
       ],
       "perks3": [
         "Jusqu'à 1 000 $ en crédit Cluster par référence",
         "Contact dédié pour vos références",
-        "10 % de rabais sur les produits Cluster, en crédit Cluster",
-        "Rabais matériel de {amount} sur votre propre équipement"
+        "10 % de rabais sur les produits Cluster, en crédit Cluster"
       ],
       "cumulativeNote": "Chaque palier conserve les avantages des précédents.",
       "howTitle": "Comment ça marche",
