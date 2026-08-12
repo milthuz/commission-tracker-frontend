@@ -24,7 +24,7 @@ interface Referrer {
 
 const LinkPage = () => {
   const { slug = '' } = useParams();
-  const { t, tf, list, money } = useFmt();
+  const { t, tf, list } = useFmt();
 
   const [ref, setRef] = useState<Referrer | null>(null);
   const [state, setState] = useState<'loading' | 'ready' | 'gone' | 'sent'>('loading');
@@ -160,21 +160,6 @@ const LinkPage = () => {
             <p className="mt-5 max-w-[46ch] text-[15.5px] leading-[1.62] text-[#61646C] dark:text-white/55">
               {t('pass.referralLinkPage.sub')}
             </p>
-
-            {/* Le rabais est le seul chiffre de la page — il vient de la configuration. */}
-            {!!ref && (
-              <div className="mt-8 rounded-[14px] border border-[#FBCDB5] bg-[#FDE6DA]/70 p-6">
-                <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-[#8A4220]">
-                  {t('pass.referralLinkPage.discountLabel')}
-                </p>
-                <p className="mt-3 text-[40px] font-medium leading-none tracking-[-0.02em] text-[#D16630]">
-                  {money(ref.hardwareDiscount)}
-                </p>
-                <p className="mt-2 text-[13.5px] text-[#8A4220]/85">
-                  {tf('pass.referralLinkPage.discountNote', { referrerFirstName: ref.referrerFirstName })}
-                </p>
-              </div>
-            )}
 
             <h2 className="mt-10 text-[13px] font-medium uppercase tracking-[0.07em] text-[#61646C] dark:text-white/55">
               {t('pass.referralLinkPage.whyTitle')}

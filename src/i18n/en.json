@@ -3068,7 +3068,7 @@
       "cta1": "Join The Pass",
       "cta2": "See the member hub",
       "stat1": "top credit per referral",
-      "stat2": "hardware discount you can offer",
+      "stat2": "in Cluster credit per referral",
       "stat3Value": "No cap",
       "stat3": "on referrals",
       "ladderEyebrow": "The ladder",
@@ -3086,19 +3086,19 @@
       ],
       "creditEach": "credit each",
       "perks1": [
-        "$500 hardware discount to pass to your referral",
+        "Up to $500 in Cluster credit per referral that takes Cluster and Cluster Pay",
         "Personal referral link and content library",
-        "A shareable member card"
+        "Shareable member card"
       ],
       "perks2": [
-        "Cluster kit: jacket, towels, apron",
-        "Early access to new features",
-        "Quarterly product briefing"
+        "Up to $750 in Cluster credit for your 2nd and 3rd referral",
+        "Cluster Swag",
+        "5% off Cluster products, as Cluster credit"
       ],
       "perks3": [
-        "Listing in the Cluster partner directory",
-        "A dedicated account contact",
-        "Priority support and a seat at our annual roundtable"
+        "Up to $1,000 in Cluster credit per referral",
+        "A dedicated contact for your referrals",
+        "10% off Cluster products, as Cluster credit"
       ],
       "cumulativeNote": "Every tier keeps the benefits of the ones below it.",
       "howTitle": "How it works",
@@ -3113,7 +3113,7 @@
         },
         {
           "title": "They go live",
-          "body": "The restaurant starts taking orders on Cluster — and claims their hardware discount."
+          "body": "The restaurant starts taking orders on Cluster, and your credit is applied to your account."
         },
         {
           "title": "Your credit lands",
@@ -3133,7 +3133,7 @@
         },
         {
           "title": "You bring something too",
-          "body": "Your $500 hardware discount travels with the referral. You show up with an offer, not just advice."
+          "body": "Your Cluster credit follows your referrals. You recommend a tool you already use, and your own bill benefits."
         }
       ],
       "teaserTitle": "Everything tracks in your member hub",
@@ -3220,7 +3220,7 @@
       "perksTitle": "Your perks",
       "perks": [
         {
-          "title": "$500 hardware discount",
+          "title": "Up to $500 in Cluster credit",
           "body": "Yours to offer any restaurant you refer.",
           "tier": 1
         },
@@ -3289,8 +3289,8 @@
       "tierLine": "You're {tier2} — Tier 2",
       "creditWhen": "credit when this one goes live",
       "nextTier": "One more live referral moves you to {tier3} — $1,000 each from then on.",
-      "discountTitle": "They get $500 off hardware",
-      "discountBody": "Your discount travels with the referral — mention it when you reach out.",
+      "discountTitle": "You're recommending a tool you use",
+      "discountBody": "Tell them about your experience — that's what convinces a restaurateur, not a discount.",
       "section1": "Restaurant you're referring",
       "section2": "Your details",
       "fields": {
@@ -3310,7 +3310,7 @@
       "tierLineDyn": "You're {{tier}} — Tier {{level}}",
       "nextTierOne": "One more live referral moves you to {{tier}} — {{amount}} each from then on.",
       "nextTierMany": "{{n}} more live referrals move you to {{tier}} — {{amount}} each from then on.",
-      "discountTitleDyn": "They get {{amount}} off hardware",
+      "discountTitleDyn": "You're recommending a tool you use",
       "sendingLabel": "Sending"
     },
     "confirmation": {
@@ -3324,7 +3324,7 @@
       "steps": [
         {
           "title": "We reach out within 2 business days",
-          "body": "A Cluster specialist contacts {restaurant} — and applies your $500 hardware discount."
+          "body": "A Cluster specialist contacts {restaurant} and takes over from there."
         },
         {
           "title": "Your credit is confirmed at go-live",
@@ -3362,7 +3362,7 @@
           "greeting": "Hi {firstName},",
           "paras": [
             "Thanks for sending {restaurant} our way. It's logged under reference {referenceId}.",
-            "A specialist reaches out within 2 business days and runs the whole setup — including the $500 hardware discount that travels with your referral.",
+            "A specialist will reach out within 2 business days and handle the whole setup.",
             "You're currently {tier2}, so this one is worth $750 in account credit the day they go live."
           ],
           "cta": "Track it in your hub"
@@ -3469,9 +3469,9 @@
       "eyebrow": "One operator to another",
       "titleA": "{referrerName}, of {referrerBusiness},",
       "titleB": "thinks Cluster would suit you.",
-      "sub": "She runs her kitchen on it every day. Because the referral came from her, you start with $500 off your hardware.",
-      "discountLabel": "Your discount",
-      "discountNote": "off starter hardware, thanks to {referrerFirstName}",
+      "sub": "She uses it every day in her kitchen. If she's telling you about it, it's because she wants you to try it.",
+      "discountLabel": "",
+      "discountNote": "",
       "whyTitle": "What changes on the floor",
       "why": [
         {
@@ -3534,7 +3534,7 @@
       "eligibility": "The Pass is for Cluster merchants in Canada.",
       "ladderTitle": "What a referral earns you",
       "ladderRule": "Your tier never resets. Every restaurant you send that goes live moves you up for good.",
-      "hardware": "The restaurant you refer gets {{amount}} off hardware.",
+      "hardware": "Refer a restaurateur and earn Cluster credit on your invoices.",
       "sentTitle": "Check your email",
       "sentBody": "We sent a sign-in link to {{email}}. It's valid for 15 minutes and works once.",
       "sentHint": "Nothing yet? Look in your spam folder, or ask for another link.",

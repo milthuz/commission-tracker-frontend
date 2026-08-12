@@ -3068,7 +3068,7 @@
       "cta1": "Joindre La Passe",
       "cta2": "Voir l'espace membre",
       "stat1": "crédit maximal par recommandation",
-      "stat2": "de rabais matériel à offrir",
+      "stat2": "en crédit Cluster par référence",
       "stat3Value": "Illimité",
       "stat3": "aucun plafond",
       "ladderEyebrow": "L'échelle",
@@ -3086,19 +3086,19 @@
       ],
       "creditEach": "de crédit chacune",
       "perks1": [
-        "500 $ de rabais matériel à remettre à votre recommandation",
+        "Jusqu'à 500 $ en crédit Cluster par référence qui prend Cluster et Cluster Pay",
         "Lien de recommandation personnel et bibliothèque de contenu",
         "Carte de membre partageable"
       ],
       "perks2": [
-        "Ensemble Cluster : veste, linges, tablier",
-        "Accès anticipé aux nouveautés",
-        "Breffage produit trimestriel"
+        "Jusqu'à 750 $ en crédit Cluster pour la 2ᵉ et la 3ᵉ référence",
+        "Cluster Swag",
+        "5 % de rabais sur les produits Cluster, en crédit Cluster"
       ],
       "perks3": [
-        "Inscription au répertoire des partenaires Cluster",
-        "Chargé de compte dédié",
-        "Soutien prioritaire et invitation à notre table ronde annuelle"
+        "Jusqu'à 1 000 $ en crédit Cluster par référence",
+        "Contact dédié pour vos références",
+        "10 % de rabais sur les produits Cluster, en crédit Cluster"
       ],
       "cumulativeNote": "Chaque palier conserve les avantages des précédents.",
       "howTitle": "Comment ça marche",
@@ -3113,7 +3113,7 @@
         },
         {
           "title": "Ils entrent en service",
-          "body": "Le restaurant commence à prendre des commandes sur Cluster et profite de son rabais matériel."
+          "body": "Le restaurant commence à prendre des commandes sur Cluster, et votre crédit est porté à votre compte."
         },
         {
           "title": "Votre crédit arrive",
@@ -3133,7 +3133,7 @@
         },
         {
           "title": "Vous donnez aussi quelque chose",
-          "body": "Vos 500 $ de rabais matériel suivent la recommandation. Vous arrivez avec une offre, pas juste un conseil."
+          "body": "Votre crédit Cluster suit vos références. Vous recommandez un outil que vous utilisez déjà, et votre facture en profite."
         }
       ],
       "teaserTitle": "Tout se suit depuis votre espace membre",
@@ -3220,7 +3220,7 @@
       "perksTitle": "Vos avantages",
       "perks": [
         {
-          "title": "Rabais matériel de 500 $",
+          "title": "Jusqu'à 500 $ en crédit Cluster",
           "body": "À offrir à tout restaurant que vous recommandez.",
           "tier": 1
         },
@@ -3289,8 +3289,8 @@
       "tierLine": "Vous êtes {tier2} — palier 2",
       "creditWhen": "de crédit à sa mise en service",
       "nextTier": "Encore une recommandation en service et vous passez à {tier3} : 1 000 $ chacune par la suite.",
-      "discountTitle": "Ils obtiennent 500 $ de rabais sur le matériel",
-      "discountBody": "Votre rabais suit la recommandation — mentionnez-le lors de votre approche.",
+      "discountTitle": "Vous recommandez un outil que vous utilisez",
+      "discountBody": "Parlez-leur de votre expérience — c'est ce qui convainc un restaurateur, pas un rabais.",
       "section1": "Restaurant recommandé",
       "section2": "Vos coordonnées",
       "fields": {
@@ -3310,7 +3310,7 @@
       "tierLineDyn": "Vous êtes {{tier}} — palier {{level}}",
       "nextTierOne": "Encore une recommandation en service et vous passez à {{tier}} : {{amount}} chacune par la suite.",
       "nextTierMany": "Encore {{n}} recommandations en service et vous passez à {{tier}} : {{amount}} chacune par la suite.",
-      "discountTitleDyn": "Ils obtiennent {{amount}} de rabais sur le matériel",
+      "discountTitleDyn": "Vous recommandez un outil que vous utilisez",
       "sendingLabel": "Envoi en cours"
     },
     "confirmation": {
@@ -3324,7 +3324,7 @@
       "steps": [
         {
           "title": "Nous les joignons en 2 jours ouvrables",
-          "body": "Un spécialiste Cluster contacte {restaurant} et applique votre rabais matériel de 500 $."
+          "body": "Un spécialiste Cluster contacte {restaurant} et prend le relais de la présentation."
         },
         {
           "title": "Votre crédit est confirmé à la mise en service",
@@ -3362,7 +3362,7 @@
           "greeting": "Bonjour {firstName},",
           "paras": [
             "Merci de nous avoir passé {restaurant}. La recommandation est enregistrée sous la référence {referenceId}.",
-            "Un spécialiste les joindra dans les 2 jours ouvrables et gérera toute l'installation — y compris le rabais matériel de 500 $ qui accompagne votre recommandation.",
+            "Un spécialiste les joindra dans les 2 jours ouvrables et gérera toute l'installation.",
             "Vous êtes actuellement {tier2} : celle-ci vaut donc 750 $ de crédit au compte dès leur mise en service."
           ],
           "cta": "Suivre dans mon espace"
@@ -3469,9 +3469,9 @@
       "eyebrow": "Une recommandation entre restaurateurs",
       "titleA": "{referrerName}, du {referrerBusiness},",
       "titleB": "pense que Cluster vous irait bien.",
-      "sub": "Elle s’en sert tous les jours dans sa cuisine. Parce que la recommandation vient d’elle, vous partez avec 500 $ de rabais sur votre matériel.",
-      "discountLabel": "Votre rabais",
-      "discountNote": "sur le matériel de démarrage, grâce à {referrerFirstName}",
+      "sub": "Elle s’en sert tous les jours dans sa cuisine. Si elle vous en parle, c’est qu’elle a envie que vous l’essayiez.",
+      "discountLabel": "",
+      "discountNote": "",
       "whyTitle": "Ce que ça change en salle",
       "why": [
         {
@@ -3534,7 +3534,7 @@
       "eligibility": "La Passe est réservée aux marchands Cluster du Canada.",
       "ladderTitle": "Ce que rapporte une recommandation",
       "ladderRule": "Votre palier ne redescend jamais. Chaque restaurant que vous envoyez et qui entre en service vous fait monter pour de bon.",
-      "hardware": "Le restaurant que vous recommandez obtient {{amount}} de rabais sur le matériel.",
+      "hardware": "Recommandez un restaurateur et recevez du crédit Cluster sur vos factures.",
       "sentTitle": "Vérifiez vos courriels",
       "sentBody": "Nous avons envoyé un lien de connexion à {{email}}. Il est valide 15 minutes et ne sert qu'une fois.",
       "sentHint": "Rien encore ? Regardez dans vos indésirables, ou demandez un autre lien.",
