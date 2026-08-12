@@ -274,6 +274,25 @@ const LinkPage = () => {
             </div>
           </section>
         </div>
+
+        {/* Le meme visuel que la page programme, HORS de la grille pour tenir la pleine
+            largeur — a l'interieur il n'occuperait qu'une des deux colonnes.
+            Sous le formulaire et non au-dessus : ici le visiteur arrive pour repondre a
+            une recommandation, pas pour decouvrir un produit. Le formulaire d'abord, la
+            preuve ensuite. */}
+        <div className="mt-14 overflow-hidden rounded-[14px] border border-black/5 shadow-2xl dark:border-white/10">
+          <img
+            src="/pass-hero.jpg"
+            srcSet="/pass-hero.jpg 1600w, /pass-hero@2x.jpg 2400w"
+            sizes="(min-width: 1200px) 1160px, 100vw"
+            width={1600}
+            height={900}
+            alt={t('pass.landing.heroAlt') as string}
+            loading="lazy"
+            className="block h-auto w-full"
+            draggable={false}
+          />
+        </div>
       </main>
 
       <footer className="border-t border-[#E0E0E0] dark:border-[#242424] py-8">
