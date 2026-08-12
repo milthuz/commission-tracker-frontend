@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import PassTierBadge from './PassTierBadge';
 import { Link } from 'react-router-dom';
 import { usePassAuth, PASS_TOKEN_KEY } from '../../context/PassAuthContext';
 import { PASS_API, PassMotion, StatusBadge, useFmt, useTierName } from './passUi';
@@ -220,9 +221,15 @@ const Hub = () => {
               style={{ background: 'linear-gradient(150deg,#241a14 0%,#141414 55%)' }}
             >
               <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
+                <div className="flex min-w-0 items-start gap-4">
+                  {/* La meme pastille que sur la page programme : le membre retrouve ici
+                      le rang qu'il a vu annonce, dessine pareil. Une pastille differente
+                      d'un ecran a l'autre obligerait a refaire le lien mentalement. */}
+                  <PassTierBadge level={member.tier.level} className="h-12 w-12 shrink-0" />
+                  <div className="min-w-0">
                   <p className="truncate text-[17px] font-medium">{member.fullName || member.email}</p>
                   <p className="mt-0.5 truncate text-[13.5px] text-[#61646C] dark:text-white/45">{member.business || ''}</p>
+                  </div>
                 </div>
                 <span className="shrink-0 rounded-full border border-[#F58345]/40 bg-[#F58345]/10 px-3 py-1 text-[12px] font-medium text-[#D16630] dark:text-[#F79C6A]">
                   {t('pass.hub.cardTierLabel')} {member.tier.level} · {tierName(member.tier.key)}
