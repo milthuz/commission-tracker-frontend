@@ -1,7 +1,7 @@
 import { useEffect, useState, FormEvent } from 'react';
 import Select from '../../components/Select';
 import { useParams, Link } from 'react-router-dom';
-import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, useFmt, passPrivacyUrl } from './passUi';
+import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, useFmt, passPrivacyUrl, usePassFavicon } from './passUi';
 
 // Écran 07 — la page publique du lien personnel d'un membre, `/pass/{slug}`.
 //
@@ -23,6 +23,7 @@ interface Referrer {
 }
 
 const LinkPage = () => {
+  usePassFavicon();
   const { slug = '' } = useParams();
   const { t, tf, list } = useFmt();
 

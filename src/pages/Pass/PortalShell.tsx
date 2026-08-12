@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { usePassAuth } from '../../context/PassAuthContext';
-import { ClusterMark, PassPill, PassThemeToggle, useFmt } from './passUi';
+import { ClusterMark, PassPill, PassThemeToggle, useFmt, usePassFavicon } from './passUi';
 
 // La coquille du portail, telle que la v2 du design la spécifie : barre latérale de
 // 230 px et topbar de 64 px. Les écrans membres ne sont donc plus des pages autonomes.
@@ -46,6 +46,7 @@ const NAV = [
 // 2026-08-03), c'est le thème qui gouverne : une surface figée par écran le
 // contredirait, et un formulaire resterait blanc en pleine interface sombre.
 export const PassPortal = ({ title, children }: { title: string; children: ReactNode }) => {
+  usePassFavicon();
   const { t, i18n, fr } = useFmt();
   const { member, logout } = usePassAuth();
 

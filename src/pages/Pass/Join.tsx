@@ -2,7 +2,7 @@ import { useEffect, useState, FormEvent } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePassAuth } from '../../context/PassAuthContext';
-import { PASS_API as API_URL, PassHeader, PassMotion, passPrivacyUrl } from './passUi';
+import { PASS_API as API_URL, PassHeader, PassMotion, passPrivacyUrl, usePassFavicon } from './passUi';
 
 // L'ADHÉSION N'EST PAS DESSINÉE — le design la reconnaît comme un trou (« "Join The Pass"
 // is a CTA with no designed signup/eligibility-check flow »). L'écran est donc inventé,
@@ -19,6 +19,7 @@ interface ProgramTier { level: number; key: string; from: number; credit: number
 interface Program { enabled: boolean; currency: string; hardwareDiscount: number; tiers: ProgramTier[] }
 
 const Join = () => {
+  usePassFavicon();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { login, isAuthenticated } = usePassAuth();

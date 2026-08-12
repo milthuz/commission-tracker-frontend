@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import PassTierBadge from './PassTierBadge';
 import { Link } from 'react-router-dom';
 import { usePassAuth } from '../../context/PassAuthContext';
-import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, PassPill, useFmt, useTierName, passPrivacyUrl } from './passUi';
+import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, PassPill, useFmt, useTierName, passPrivacyUrl, usePassFavicon } from './passUi';
 
 // Page programme (écran 01) — page marketing PUBLIQUE, pas un écran du portail. Coquille
 // autonome : en-tête et pied publics, aucune barre latérale, pleine largeur.
@@ -18,6 +18,7 @@ interface Tier { level: number; key: string; from: number; credit: number }
 interface Program { enabled: boolean; hardwareDiscount: number; tiers: Tier[] }
 
 const Program = () => {
+  usePassFavicon();
   const { t, list, money } = useFmt();
   const tierName = useTierName();
   const { isAuthenticated } = usePassAuth();

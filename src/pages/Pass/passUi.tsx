@@ -1,4 +1,4 @@
-import { CSSProperties, ReactNode } from 'react';
+import { CSSProperties, ReactNode, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import useColorMode from '../../hooks/useColorMode';
@@ -12,6 +12,23 @@ import clusterOnLight from '../../images/logo/cluster-wordmark-on-light.svg';
 // La politique de confidentialite vit sur le SITE Cluster, pas dans Sales Hub : la page
 // s'adresse a des restaurateurs, et l'outil interne n'est pas l'entite qui recueille leurs
 // donnees. Deux adresses, une par langue.
+// La Passe s'adresse a des restaurateurs sous la marque Cluster : son onglet doit porter
+// l'icone Cluster, pas le « S » de Sales Hub. Meme mecanique que le portail partenaire.
+//
+// Les icones d'origine sont RESTAUREES au demontage : sans ca, revenir dans Sales Hub
+// garderait l'icone Cluster jusqu'au prochain rechargement complet, et on croirait etre
+// reste dans La Passe.
+export const usePassFavicon = () => {
+  useEffect(() => {
+    const links = Array.from(
+      document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]')
+    );
+    const before = links.map((l) => l.href);
+    links.forEach((l) => { l.href = '/cluster-favicon.png?v=1'; });
+    return () => { links.forEach((l, i) => { l.href = before[i]; }); };
+  }, []);
+};
+
 export const passPrivacyUrl = (lang?: string) =>
   String(lang || (typeof document !== 'undefined' ? document.documentElement.lang : 'fr'))
     .toLowerCase().startsWith('fr')
