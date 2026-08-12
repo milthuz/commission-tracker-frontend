@@ -9,6 +9,15 @@ import clusterOnLight from '../../images/logo/cluster-wordmark-on-light.svg';
 // le premier écran (adhésion) avait déjà une version bricolée du logo, et trois écrans de
 // plus arrivent. Ce qui se répète vit ici, pas recopié à chaque fois.
 
+// La politique de confidentialite vit sur le SITE Cluster, pas dans Sales Hub : la page
+// s'adresse a des restaurateurs, et l'outil interne n'est pas l'entite qui recueille leurs
+// donnees. Deux adresses, une par langue.
+export const passPrivacyUrl = (lang?: string) =>
+  String(lang || (typeof document !== 'undefined' ? document.documentElement.lang : 'fr'))
+    .toLowerCase().startsWith('fr')
+    ? 'https://www.clusterpos.com/fr-ca/privacy-policy'
+    : 'https://www.clusterpos.com/en-ca/privacy-policy';
+
 export const PASS_API =
   import.meta.env.VITE_API_URL || 'https://commission-tracker-production-b7f9.up.railway.app';
 

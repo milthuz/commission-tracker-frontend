@@ -2,7 +2,7 @@ import { useEffect, useState, FormEvent } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePassAuth } from '../../context/PassAuthContext';
-import { PASS_API as API_URL, PassHeader, PassMotion } from './passUi';
+import { PASS_API as API_URL, PassHeader, PassMotion, passPrivacyUrl } from './passUi';
 
 // L'ADHÉSION N'EST PAS DESSINÉE — le design la reconnaît comme un trou (« "Join The Pass"
 // is a CTA with no designed signup/eligibility-check flow »). L'écran est donc inventé,
@@ -291,9 +291,9 @@ const Join = () => {
                         {t('pass.join.terms')}
                       </Link>
                       {' · '}
-                      <Link to="/privacy" target="_blank" className="text-[#D16630] underline-offset-2 hover:underline">
+                      <a href={passPrivacyUrl(i18n.language)} target="_blank" rel="noopener noreferrer" className="text-[#D16630] underline-offset-2 hover:underline">
                         {t('pass.join.privacy')}
-                      </Link>
+                      </a>
                     </span>
                   </label>
 

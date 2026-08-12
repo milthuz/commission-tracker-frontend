@@ -1,7 +1,7 @@
 import { useEffect, useState, FormEvent } from 'react';
 import Select from '../../components/Select';
 import { useParams, Link } from 'react-router-dom';
-import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, useFmt } from './passUi';
+import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, useFmt, passPrivacyUrl } from './passUi';
 
 // Écran 07 — la page publique du lien personnel d'un membre, `/pass/{slug}`.
 //
@@ -293,9 +293,9 @@ const LinkPage = () => {
             <Link to="/terms" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">
               {t('pass.landing.publicFooter.terms')}
             </Link>
-            <Link to="/privacy" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">
+            <a href={passPrivacyUrl()} target="_blank" rel="noopener noreferrer" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">
               {t('pass.landing.publicFooter.privacy')}
-            </Link>
+            </a>
           </div>
         </div>
         {/* Mention légale reprise de la page programme, PAS réécrite : inventer une clause

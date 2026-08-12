@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import PassTierBadge from './PassTierBadge';
 import { Link } from 'react-router-dom';
 import { usePassAuth } from '../../context/PassAuthContext';
-import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, PassPill, useFmt, useTierName } from './passUi';
+import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, PassPill, useFmt, useTierName, passPrivacyUrl } from './passUi';
 
 // Page programme (écran 01) — page marketing PUBLIQUE, pas un écran du portail. Coquille
 // autonome : en-tête et pied publics, aucune barre latérale, pleine largeur.
@@ -316,7 +316,7 @@ const Program = () => {
             </div>
             <div className="flex flex-wrap gap-x-7 gap-y-2 text-[13.5px]">
               <Link to="/terms" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">{t('pass.landing.publicFooter.terms')}</Link>
-              <Link to="/privacy" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">{t('pass.landing.publicFooter.privacy')}</Link>
+              <a href={passPrivacyUrl()} target="_blank" rel="noopener noreferrer" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">{t('pass.landing.publicFooter.privacy')}</a>
               <a href="mailto:lapasse@clustersystems.com" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">
                 {t('pass.landing.publicFooter.contact')}
               </a>
