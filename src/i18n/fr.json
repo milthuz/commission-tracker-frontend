@@ -3638,6 +3638,12 @@
       "rulePositive": "Chaque palier exige un seuil de 0 ou plus et un crédit supérieur à 0.",
       "failed": "L’enregistrement a échoué. Rien n’a été modifié.",
       "preview": "Avec cette échelle, les mises en service successives paient :"
-    }
+    },
+    "creditTitle": "Confirmer le crédit",
+    "creditAmountLabel": "Montant à créditer",
+    "creditCeiling": "Maximum du palier : {{amount}}",
+    "creditOutOfRange": "Le montant doit être supérieur à 0 et ne pas dépasser {{amount}}.",
+    "creditConfirm": "Confirmer et aviser la comptabilité",
+    "cancel": "Annuler"
   }
 }

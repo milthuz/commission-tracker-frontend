@@ -3638,6 +3638,12 @@
       "rulePositive": "Every tier needs a threshold of 0 or more and a credit above 0.",
       "failed": "Save failed. Nothing was changed.",
       "preview": "With this ladder, successive live referrals pay:"
-    }
+    },
+    "creditTitle": "Confirm the credit",
+    "creditAmountLabel": "Amount to credit",
+    "creditCeiling": "Tier maximum: {{amount}}",
+    "creditOutOfRange": "The amount must be above 0 and no more than {{amount}}.",
+    "creditConfirm": "Confirm and notify accounting",
+    "cancel": "Cancel"
   }
 }

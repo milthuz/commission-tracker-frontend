@@ -29,6 +29,7 @@ interface Referral {
   tierAtSubmission: number | null;
   tierAtLive: number | null;
   creditAmount: number | null;
+  creditMax: number | null;
   certificateCode: string | null;
   possibleDuplicate: boolean;
   crmLeadId: string | null;
@@ -106,12 +107,25 @@ const PassOps = () => {
     }
   };
 
-  const applyCredit = async (r: Referral) => {
-    const member = r.member.business || r.member.email;
-    if (!window.confirm(t('passOps.confirmCredit', { amount: money(r.creditAmount || 0), member }))) return;
-    setBusyId(r.id); setNotice(null);
+  // Le palier donne un PLAFOND, pas un montant : on ne sait qu'ici quels services la
+  // référence a réellement pris. D'où une saisie, pré-remplie au plafond — le cas le plus
+  // fréquent reste le montant plein, et pré-remplir évite de retaper ce qui est déjà juste.
+  const [creditFor, setCreditFor] = useState<Referral | null>(null);
+  const [creditInput, setCreditInput] = useState('');
+
+  const openCredit = (r: Referral) => {
+    setCreditFor(r);
+    setCreditInput(String(r.creditMax ?? r.creditAmount ?? ''));
+  };
+
+  const applyCredit = async (r: Referral, amount: number) => {
+    setBusyId(r.id); setNotice(null); setCreditFor(null);
     try {
-      const res = await fetch(`${API_URL}/api/admin/pass/referrals/${r.id}/credit`, { method: 'POST', headers: auth() });
+      const res = await fetch(`${API_URL}/api/admin/pass/referrals/${r.id}/credit`, {
+        method: 'POST',
+        headers: { ...auth(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount }),
+      });
       if (!res.ok) throw new Error();
       const data = await res.json();
       // Une liste de destinataires vide n'envoie RIEN. Le dire franchement : croire la
@@ -297,7 +311,7 @@ const PassOps = () => {
                         </button>
                       )}
                       {r.status === 'live' && (
-                        <button disabled={busyId === r.id} onClick={() => applyCredit(r)}
+                        <button disabled={busyId === r.id} onClick={() => openCredit(r)}
                           title={t('pass.ops.actions.apply')}
                           className="whitespace-nowrap rounded bg-success px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-40">
                           {t('passOps.applyCredit')}
@@ -324,7 +338,44 @@ const PassOps = () => {
       </div>
       </>
       )}
+      {creditFor && (() => {
+        const ceiling = creditFor.creditMax ?? creditFor.creditAmount ?? 0;
+        const asked = Number(creditInput);
+        // Le serveur borne aussi : ceci n'est qu'un garde-fou de saisie, pas la règle.
+        const invalid = !Number.isFinite(asked) || asked <= 0 || asked > ceiling;
+        return (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4"
+            onMouseDown={(e) => { if (e.target === e.currentTarget) setCreditFor(null); }}>
+            <div className="w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
+              <p className="text-base font-bold text-black dark:text-white">{t('passOps.creditTitle')}</p>
+              <p className="mt-1 text-sm text-body">
+                {creditFor.restaurant.name} — {creditFor.member.business || creditFor.member.email}
+              </p>
+              <label className="mt-5 block text-xs font-medium text-body">{t('passOps.creditAmountLabel')}</label>
+              <input
+                type="number" min={1} max={ceiling} step="0.01" autoFocus
+                value={creditInput}
+                onChange={(e) => setCreditInput(e.target.value)}
+                className="mt-1 w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+              />
+              <p className="mt-2 text-xs text-body">{t('passOps.creditCeiling', { amount: money(ceiling) })}</p>
+              {invalid && <p className="mt-2 text-xs font-medium text-danger">{t('passOps.creditOutOfRange', { amount: money(ceiling) })}</p>}
+              <div className="mt-6 flex justify-end gap-3">
+                <button onClick={() => setCreditFor(null)}
+                  className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:border-primary dark:border-strokedark">
+                  {t('passOps.cancel')}
+                </button>
+                <button disabled={invalid} onClick={() => applyCredit(creditFor, asked)}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+                  {t('passOps.creditConfirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </>
+
   );
 };
 
