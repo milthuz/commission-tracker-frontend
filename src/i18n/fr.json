@@ -3048,7 +3048,6 @@
   },
   "pass": {
     "programName": "La Passe",
-    "upTo": "Jusqu'à",
     "nav": {
       "program": "Programme",
       "hub": "Espace membre",
@@ -3199,7 +3198,7 @@
       "earning": "Vous gagnez jusqu'à {amount} par recommandation en service",
       "toNext": "Encore {n} pour atteindre {tier3}",
       "progress": "{live} recommandations sur {target} en service",
-      "unlock": "{tier3} donne accès à 1 000 $ par recommandation, au répertoire et à un chargé de compte",
+      "unlock": "{tier3} porte le crédit jusqu'à 1 000 $ par recommandation, et donne accès au répertoire et à un chargé de compte",
       "kpi": {
         "earned": "Crédit obtenu",
         "pending": "En attente (maximum)",
@@ -3292,7 +3291,7 @@
       "sub": "Dites-nous qui joindre. On s'occupe du reste, et votre crédit arrive dès leur mise en service.",
       "tierLine": "Vous êtes {tier2} — palier 2",
       "creditWhen": "de crédit à sa mise en service, selon les services retenus",
-      "nextTier": "Encore une recommandation en service et vous passez à {tier3} : 1 000 $ chacune par la suite.",
+      "nextTier": "Encore une recommandation en service et vous passez à {tier3} : jusqu'à 1 000 $ chacune par la suite.",
       "discountTitle": "Vous recommandez un outil que vous utilisez",
       "discountBody": "Parlez-leur de votre expérience — c'est ce qui convainc un restaurateur, pas un rabais.",
       "section1": "Restaurant recommandé",
@@ -3322,7 +3321,7 @@
       "sub": "Merci {firstName} — nous avons reçu votre recommandation pour {restaurant}. Suivez-la en tout temps dans votre espace membre.",
       "reference": "Référence",
       "ifLive": "Si celle-ci entre en service",
-      "ifLiveBody": "Vous obtiendrez 750 $ et atteindrez {tier3}, où chaque recommandation suivante vaut 1 000 $.",
+      "ifLiveBody": "Vous obtiendrez jusqu'à 750 $ et atteindrez {tier3}, où chaque recommandation suivante vaut jusqu'à 1 000 $.",
       "toTier": "vers {tier3}",
       "next": "Les prochaines étapes",
       "steps": [
@@ -3353,7 +3352,7 @@
       "certCode": "Code du certificat",
       "cadNote": "en dollars canadiens",
       "tierUnlocked": "Nouveau palier atteint",
-      "tierUnlockedSub": "1 000 $ de crédit pour chaque recommandation à partir de maintenant",
+      "tierUnlockedSub": "Jusqu'à 1 000 $ de crédit pour chaque recommandation à partir de maintenant",
       "perkDirectory": "Répertoire des partenaires",
       "perkContact": "Chargé de compte dédié",
       "templates": [
@@ -3367,7 +3366,7 @@
           "paras": [
             "Merci de nous avoir passé {restaurant}. La recommandation est enregistrée sous la référence {referenceId}.",
             "Un spécialiste les joindra dans les 2 jours ouvrables et gérera toute l'installation.",
-            "Vous êtes actuellement {tier2} : celle-ci vaut donc 750 $ de crédit au compte dès leur mise en service."
+            "Vous êtes actuellement {tier2} : celle-ci peut vous valoir jusqu'à 750 $ de crédit au compte. Nous confirmons le montant exact à leur mise en service, selon les services qu'ils retiennent."
           ],
           "cta": "Suivre dans mon espace"
         },
@@ -3376,11 +3375,11 @@
           "stage": "En service",
           "trigger": "la recommandation passe en service",
           "subject": "{restaurant} est en service sur Cluster",
-          "preview": "Votre recommandation vient d'entrer en service — crédit confirmé.",
+          "preview": "Votre recommandation vient d'entrer en service — votre crédit s'en vient.",
           "greeting": "Bonjour {firstName},",
           "paras": [
             "{restaurant} a terminé son installation et prend maintenant ses commandes sur Cluster.",
-            "Cela confirme 750 $ de crédit au compte. Votre certificat arrivera par courriel dans un jour ouvrable.",
+            "Votre crédit pour cette recommandation peut atteindre 750 $. Nous confirmons le montant exact selon les services retenus, puis votre certificat suit par courriel.",
             "Merci d'avoir aidé un autre restaurateur à mieux s'outiller."
           ],
           "cta": "Voir mon espace"
@@ -3390,11 +3389,11 @@
           "stage": "Palier",
           "trigger": "la mise en service fait franchir un palier",
           "subject": "Vous avez atteint {tier3}",
-          "preview": "Quatre recommandations en service. Chaque suivante vaut 1 000 $.",
+          "preview": "Quatre recommandations en service. Chaque suivante peut valoir jusqu'à 1 000 $.",
           "greeting": "Bonjour {firstName},",
           "paras": [
             "{restaurant} était votre quatrième recommandation à entrer en service — vous voilà au sommet de La Passe.",
-            "Désormais, chaque recommandation en service vous rapporte 1 000 $ de crédit au compte. Votre inscription au répertoire est en préparation et votre chargé de compte se présentera cette semaine."
+            "Désormais, chaque recommandation en service peut vous rapporter jusqu'à 1 000 $ de crédit au compte. Votre inscription au répertoire est en préparation et votre chargé de compte se présentera cette semaine."
           ],
           "cta": "Voir mon palier"
         },
@@ -3526,6 +3525,7 @@
       "sous": "Sous",
       "chef": "Chef"
     },
+    "upTo": "Jusqu'à",
     "join": {
       "title": "Joindre La Passe",
       "sub": "Utilisez le courriel de votre compte Cluster. On vous envoie un lien de connexion — aucun mot de passe à retenir.",

@@ -3048,7 +3048,6 @@
   },
   "pass": {
     "programName": "The Pass",
-    "upTo": "Up to",
     "nav": {
       "program": "Program",
       "hub": "Member hub",
@@ -3199,7 +3198,7 @@
       "earning": "You're earning up to {amount} per live referral",
       "toNext": "{n} more to reach {tier3}",
       "progress": "{live} of {target} referrals live",
-      "unlock": "{tier3} unlocks $1,000 per referral, directory listing, and a dedicated contact",
+      "unlock": "{tier3} raises your credit to up to $1,000 per referral, plus directory listing and a dedicated contact",
       "kpi": {
         "earned": "Credit earned",
         "pending": "Pending (maximum)",
@@ -3292,7 +3291,7 @@
       "sub": "Tell us who to talk to. We handle the rest — and your credit lands the day they go live.",
       "tierLine": "You're {tier2} — Tier 2",
       "creditWhen": "credit when this one goes live, based on the services they take",
-      "nextTier": "One more live referral moves you to {tier3} — $1,000 each from then on.",
+      "nextTier": "One more live referral moves you to {tier3} — up to $1,000 each from then on.",
       "discountTitle": "You're recommending a tool you use",
       "discountBody": "Tell them about your experience — that's what convinces a restaurateur, not a discount.",
       "section1": "Restaurant you're referring",
@@ -3322,7 +3321,7 @@
       "sub": "Thanks, {firstName} — we've picked up your referral for {restaurant}. Track it any time in your member hub.",
       "reference": "Reference",
       "ifLive": "If this one goes live",
-      "ifLiveBody": "You'll earn $750 — and reach {tier3}, where every referral after is worth $1,000.",
+      "ifLiveBody": "You'll earn up to $750 — and reach {tier3}, where every referral after is worth up to $1,000.",
       "toTier": "to {tier3}",
       "next": "What happens next",
       "steps": [
@@ -3353,7 +3352,7 @@
       "certCode": "Certificate code",
       "cadNote": "in Canadian dollars",
       "tierUnlocked": "New tier unlocked",
-      "tierUnlockedSub": "$1,000 credit for every referral from here on",
+      "tierUnlockedSub": "Up to $1,000 credit for every referral from here on",
       "perkDirectory": "Partner directory listing",
       "perkContact": "Dedicated account contact",
       "templates": [
@@ -3366,8 +3365,8 @@
           "greeting": "Hi {firstName},",
           "paras": [
             "Thanks for sending {restaurant} our way. It's logged under reference {referenceId}.",
-            "A specialist will reach out within 2 business days and handle the whole setup.",
-            "You're currently {tier2}, so this one is worth $750 in account credit the day they go live."
+            "A specialist reaches out within 2 business days and runs the whole setup.",
+            "You're currently {tier2}, so this one can be worth up to $750 in account credit. We confirm the exact amount when they go live, based on the services they take."
           ],
           "cta": "Track it in your hub"
         },
@@ -3376,11 +3375,11 @@
           "stage": "Live",
           "trigger": "referral status becomes live",
           "subject": "{restaurant} is live on Cluster",
-          "preview": "Your referral just went live — credit confirmed.",
+          "preview": "Your referral just went live — your credit is on the way.",
           "greeting": "Hi {firstName},",
           "paras": [
             "{restaurant} finished setup and is now taking orders on Cluster.",
-            "That's $750 in account credit confirmed. Your certificate arrives in a separate email within one business day.",
+            "Your credit for this referral can reach up to $750. We confirm the exact amount based on the services they took, then your certificate follows by email.",
             "Thanks for handing another operator a better setup."
           ],
           "cta": "See your hub"
@@ -3390,11 +3389,11 @@
           "stage": "Tier up",
           "trigger": "go-live crosses a tier boundary",
           "subject": "You've reached {tier3}",
-          "preview": "Four referrals live. Every one from here is worth $1,000.",
+          "preview": "Four referrals live. Every one from here can be worth up to $1,000.",
           "greeting": "Hi {firstName},",
           "paras": [
             "{restaurant} was your fourth referral to go live — which puts you at the top of The Pass.",
-            "From here, every referral that goes live earns you $1,000 in account credit. Your directory listing is being set up, and your account contact will introduce themselves this week."
+            "From here, every referral that goes live can earn you up to $1,000 in account credit. Your directory listing is being set up, and your account contact will introduce themselves this week."
           ],
           "cta": "View your tier"
         },
@@ -3526,6 +3525,7 @@
       "sous": "Sous",
       "chef": "Chef"
     },
+    "upTo": "Up to",
     "join": {
       "title": "Join The Pass",
       "sub": "Use the email on your Cluster account. We'll send you a sign-in link — there's no password to remember.",
