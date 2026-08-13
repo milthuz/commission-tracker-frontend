@@ -50,8 +50,6 @@ const PassConfigAdmin = () => {
   for (let i = 1; i < tiers.length; i++) {
     if (num(tiers[i].from) <= num(tiers[i - 1].from)) { problems.push(t('passOps.cfg.ruleIncreasing')); break; }
   }
-  const hardwareOk = Number.isFinite(num(cfg.hardwareDiscount)) && num(cfg.hardwareDiscount) >= 0;
-
   // Aperçu des six premiers versements : le palier se lit sur le compteur AVANT d'y ajouter
   // le dossier courant, donc l'échelle ne se déduit pas d'un coup d'œil au tableau.
   const preview = (() => {
@@ -70,9 +68,12 @@ const PassConfigAdmin = () => {
       const r = await fetch(`${API_URL}/api/admin/pass/config`, {
         method: 'PUT',
         headers: { ...auth(), 'Content-Type': 'application/json' },
+        // `hardwareDiscount` n'est PAS envoyé : le champ a été retiré de cet écran et le
+        // serveur conserve la valeur en place quand elle est absente. L'envoyer depuis un
+        // état devenu non éditable reviendrait à réécrire à l'aveugle un montant que plus
+        // personne ne voit.
         body: JSON.stringify({
           enabled: cfg.enabled,
-          hardwareDiscount: num(cfg.hardwareDiscount),
           tiers: tiers.map((x) => ({ key: x.key, from: num(x.from), credit: num(x.credit) })),
         }),
       });
@@ -132,16 +133,10 @@ const PassConfigAdmin = () => {
         </div>
       </div>
 
-      {/* Rabais matériel */}
-      <div className={card}>
-        <label htmlFor="cfg-hw" className={label}>{t('passOps.cfg.hardware')}</label>
-        <div className="mt-2 max-w-[220px]">
-          <input id="cfg-hw" type="number" min={0} value={cfg.hardwareDiscount}
-            onChange={(e) => setCfg({ ...cfg, hardwareDiscount: e.target.value })}
-            className={`${input} ${hardwareOk ? '' : 'border-danger'}`} />
-        </div>
-      </div>
-
+      {/* Le champ « Rabais matériel » vivait ici. Retiré le 2026-08-13 : la promesse a été
+          retirée du programme le 12 août, et modifier le montant ne changeait plus rien de
+          visible pour personne. La valeur reste en configuration côté serveur (voir
+          PASS_CONFIG_DEFAULTS) au cas où le rabais revienne. */}
       {/* L'échelle */}
       <div className={card}>
         <h4 className="text-base font-semibold text-black dark:text-white">{t('passOps.cfg.tiers')}</h4>
@@ -225,7 +220,7 @@ const PassConfigAdmin = () => {
         )}
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <button type="button" onClick={save} disabled={busy || !!problems.length || !hardwareOk}
+          <button type="button" onClick={save} disabled={busy || !!problems.length}
             className="inline-flex items-center gap-2 rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
             {busy && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
             {busy ? t('passOps.cfg.saving') : t('passOps.cfg.save')}
