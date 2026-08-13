@@ -3048,6 +3048,7 @@
   },
   "pass": {
     "programName": "La Passe",
+    "upTo": "Jusqu'à",
     "nav": {
       "program": "Programme",
       "hub": "Espace membre",
@@ -3195,13 +3196,13 @@
     "hub": {
       "greeting": "Bon retour, {firstName}",
       "meta": "{business} · Membre depuis {joinDate}",
-      "earning": "Vous gagnez {amount} par recommandation en service",
+      "earning": "Vous gagnez jusqu'à {amount} par recommandation en service",
       "toNext": "Encore {n} pour atteindre {tier3}",
       "progress": "{live} recommandations sur {target} en service",
       "unlock": "{tier3} donne accès à 1 000 $ par recommandation, au répertoire et à un chargé de compte",
       "kpi": {
         "earned": "Crédit obtenu",
-        "pending": "En attente",
+        "pending": "En attente (maximum)",
         "live": "En service",
         "inProgress": "En cours"
       },
@@ -3281,7 +3282,7 @@
       "cardCopyLink": "Copier le lien de la carte",
       "memberName": "Julie Tremblay",
       "memberBusiness": "Bistro du Coin",
-      "unlockDyn": "{{tier}} donne accès à {{amount}} par recommandation, au répertoire et à un chargé de compte",
+      "unlockDyn": "{{tier}} porte le crédit jusqu'à {{amount}} par recommandation, et donne accès au répertoire et à un chargé de compte",
       "emptyTitle": "Aucune recommandation pour l’instant",
       "emptyBody": "Envoyez-nous un premier restaurant. Votre crédit démarre dès sa mise en service.",
       "lockedAt": "Verrouillé"
@@ -3290,7 +3291,7 @@
       "title": "Passez-nous-en un.",
       "sub": "Dites-nous qui joindre. On s'occupe du reste, et votre crédit arrive dès leur mise en service.",
       "tierLine": "Vous êtes {tier2} — palier 2",
-      "creditWhen": "de crédit à sa mise en service",
+      "creditWhen": "de crédit à sa mise en service, selon les services retenus",
       "nextTier": "Encore une recommandation en service et vous passez à {tier3} : 1 000 $ chacune par la suite.",
       "discountTitle": "Vous recommandez un outil que vous utilisez",
       "discountBody": "Parlez-leur de votre expérience — c'est ce qui convainc un restaurateur, pas un rabais.",
@@ -3311,8 +3312,8 @@
       "consent": "Je confirme avoir la permission de partager ces coordonnées et j'accepte les conditions du programme La Passe.",
       "submit": "Envoyer",
       "tierLineDyn": "Vous êtes {{tier}} — palier {{level}}",
-      "nextTierOne": "Encore une recommandation en service et vous passez à {{tier}} : {{amount}} chacune par la suite.",
-      "nextTierMany": "Encore {{n}} recommandations en service et vous passez à {{tier}} : {{amount}} chacune par la suite.",
+      "nextTierOne": "Encore une recommandation en service et vous passez à {{tier}} : jusqu'à {{amount}} chacune par la suite.",
+      "nextTierMany": "Encore {{n}} recommandations en service et vous passez à {{tier}} : jusqu'à {{amount}} chacune par la suite.",
       "discountTitleDyn": "Vous recommandez un outil que vous utilisez",
       "sendingLabel": "Envoi en cours"
     },
@@ -3330,8 +3331,8 @@
           "body": "Un spécialiste Cluster contacte {restaurant} et prend le relais de la présentation."
         },
         {
-          "title": "Votre crédit est confirmé à la mise en service",
-          "body": "Dès qu'ils sont clients actifs de Cluster, 750 $ vous reviennent."
+          "title": "Votre crédit est confirmé après leur mise en service",
+          "body": "Dès qu'ils sont clients actifs de Cluster, nous confirmons le montant qui vous revient selon les services qu'ils ont retenus."
         },
         {
           "title": "Le crédit arrive en certificat-cadeau virtuel",
@@ -3340,8 +3341,8 @@
       ],
       "cta1": "Aller à l'espace membre",
       "cta2": "Recommander un autre",
-      "ifLiveBodyDyn": "Vous obtiendrez {{amount}} pour celle-ci.",
-      "ifLiveBodyTierUp": "Vous obtiendrez {{amount}} et atteindrez {{tier}}, où chaque recommandation suivante vaut {{nextAmount}}."
+      "ifLiveBodyDyn": "Vous obtiendrez jusqu'à {{amount}} pour celle-ci.",
+      "ifLiveBodyTierUp": "Vous obtiendrez jusqu'à {{amount}} et atteindrez {{tier}}, où chaque recommandation suivante vaut jusqu'à {{nextAmount}}."
     },
     "emails": {
       "railTitle": "La Passe · courriels aux membres",
@@ -3632,7 +3633,7 @@
       "saving": "Enregistrement",
       "saved": "Configuration enregistrée.",
       "reset": "Rétablir les valeurs par défaut",
-      "warnAmounts": "Baisser un montant baisse aussi ce que paieront les recommandations en cours : le crédit est calculé à la mise en service, pas à la soumission. Les membres ont vu l’ancien montant.",
+      "warnAmounts": "Un montant de palier est un PLAFOND : le crédit réel est confirmé à la main, dossier par dossier, après la mise en service. Le baisser ne touche que les recommandations soumises à partir de maintenant — celles déjà soumises gardent en plancher le montant qui a été affiché à leur membre.",
       "ruleFirstZero": "Le premier palier doit commencer à 0 — sinon un membre sans recommandation n’appartient à aucun palier.",
       "ruleIncreasing": "Les seuils doivent croître strictement, sans quoi le montant versé dépendrait de l’ordre des lignes.",
       "rulePositive": "Chaque palier exige un seuil de 0 ou plus et un crédit supérieur à 0.",

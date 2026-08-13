@@ -206,7 +206,14 @@ const Refer = () => {
                 {/* Variante paramétrée : la phrase du deck fige « palier 2 ». */}
                 {tf('pass.form.tierLineDyn', { tier: tierName(member.tier.key), level: member.tier.level })}
               </p>
-              <p className="mt-3 text-[40px] font-bold leading-none tracking-[-0.02em] text-[#D16630]">
+              {/* Le palier ne donne qu'un PLAFOND — le montant réel est confirmé à la main
+                  après la mise en service, selon les services que la référence retient. Le
+                  « Jusqu'à » porte donc la modulation, comme sur les cartes de la page
+                  programme : sans lui, ce chiffre de 40 px est une promesse ferme. */}
+              <p className="mt-3 flex items-baseline gap-2 text-[40px] font-bold leading-none tracking-[-0.02em] text-[#D16630]">
+                <span className="text-[15px] font-semibold tracking-normal text-[#8A4220]/75">
+                  {t('pass.upTo')}
+                </span>
                 {money(member.tier.credit)}
               </p>
               <p className="mt-2 text-[13.5px] text-[#8A4220]/80">{t('pass.form.creditWhen')}</p>

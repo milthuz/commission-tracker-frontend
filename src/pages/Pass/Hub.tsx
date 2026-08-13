@@ -368,6 +368,15 @@ const Hub = () => {
                             <span className="text-[#61646C] dark:text-white/25">—</span>
                           ) : (
                             <span className={r.status === 'credit_applied' ? 'text-[#75E0A7]' : 'text-[#D16630] dark:text-[#F58345]'}>
+                              {/* Tant que le crédit n'est pas appliqué, ce chiffre est le
+                                  PLAFOND du palier, pas le montant dû : il ne se confirme
+                                  qu'à la main après la mise en service. La couleur seule
+                                  ne dit pas ça — le mot, oui. */}
+                              {r.status !== 'credit_applied' && (
+                                <span className="mr-1 text-[11.5px] font-normal text-[#61646C] dark:text-white/40">
+                                  {t('pass.upTo')}
+                                </span>
+                              )}
                               {money(r.creditAmount)}
                             </span>
                           )}

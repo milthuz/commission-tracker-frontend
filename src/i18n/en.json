@@ -3048,6 +3048,7 @@
   },
   "pass": {
     "programName": "The Pass",
+    "upTo": "Up to",
     "nav": {
       "program": "Program",
       "hub": "Member hub",
@@ -3195,13 +3196,13 @@
     "hub": {
       "greeting": "Welcome back, {firstName}",
       "meta": "{business} · Member since {joinDate}",
-      "earning": "You're earning {amount} per live referral",
+      "earning": "You're earning up to {amount} per live referral",
       "toNext": "{n} more to reach {tier3}",
       "progress": "{live} of {target} referrals live",
       "unlock": "{tier3} unlocks $1,000 per referral, directory listing, and a dedicated contact",
       "kpi": {
         "earned": "Credit earned",
-        "pending": "Pending",
+        "pending": "Pending (maximum)",
         "live": "Referrals live",
         "inProgress": "In progress"
       },
@@ -3281,7 +3282,7 @@
       "cardCopyLink": "Copy card link",
       "memberName": "Julie Tremblay",
       "memberBusiness": "Bistro du Coin",
-      "unlockDyn": "{{tier}} unlocks {{amount}} per referral, directory listing, and a dedicated contact",
+      "unlockDyn": "{{tier}} raises your credit to up to {{amount}} per referral, plus directory listing and a dedicated contact",
       "emptyTitle": "No referrals yet",
       "emptyBody": "Send us your first restaurant. Your credit starts the day they go live.",
       "lockedAt": "Locked"
@@ -3290,7 +3291,7 @@
       "title": "Hand one over.",
       "sub": "Tell us who to talk to. We handle the rest — and your credit lands the day they go live.",
       "tierLine": "You're {tier2} — Tier 2",
-      "creditWhen": "credit when this one goes live",
+      "creditWhen": "credit when this one goes live, based on the services they take",
       "nextTier": "One more live referral moves you to {tier3} — $1,000 each from then on.",
       "discountTitle": "You're recommending a tool you use",
       "discountBody": "Tell them about your experience — that's what convinces a restaurateur, not a discount.",
@@ -3311,8 +3312,8 @@
       "consent": "I confirm I have permission to share this contact, and I agree to The Pass program terms.",
       "submit": "Send it over",
       "tierLineDyn": "You're {{tier}} — Tier {{level}}",
-      "nextTierOne": "One more live referral moves you to {{tier}} — {{amount}} each from then on.",
-      "nextTierMany": "{{n}} more live referrals move you to {{tier}} — {{amount}} each from then on.",
+      "nextTierOne": "One more live referral moves you to {{tier}} — up to {{amount}} each from then on.",
+      "nextTierMany": "{{n}} more live referrals move you to {{tier}} — up to {{amount}} each from then on.",
       "discountTitleDyn": "You're recommending a tool you use",
       "sendingLabel": "Sending"
     },
@@ -3330,8 +3331,8 @@
           "body": "A Cluster specialist contacts {restaurant} and takes over from there."
         },
         {
-          "title": "Your credit is confirmed at go-live",
-          "body": "Once they're an active Cluster customer, $750 is yours."
+          "title": "Your credit is confirmed after they go live",
+          "body": "Once they're an active Cluster customer, we confirm the amount that comes back to you, based on the services they took."
         },
         {
           "title": "Credit lands as a virtual gift certificate",
@@ -3340,8 +3341,8 @@
       ],
       "cta1": "Go to member hub",
       "cta2": "Refer another",
-      "ifLiveBodyDyn": "You'll earn {{amount}} on this one.",
-      "ifLiveBodyTierUp": "You'll earn {{amount}} and reach {{tier}}, where every referral after is worth {{nextAmount}}."
+      "ifLiveBodyDyn": "You'll earn up to {{amount}} on this one.",
+      "ifLiveBodyTierUp": "You'll earn up to {{amount}} and reach {{tier}}, where every referral after is worth up to {{nextAmount}}."
     },
     "emails": {
       "railTitle": "The Pass · member emails",
@@ -3632,7 +3633,7 @@
       "saving": "Saving",
       "saved": "Configuration saved.",
       "reset": "Restore defaults",
-      "warnAmounts": "Lowering an amount also lowers what pending referrals will pay: the credit is calculated when a referral goes live, not when it was submitted. Members were shown the old amount.",
+      "warnAmounts": "A tier amount is a CEILING: the real credit is confirmed by hand, referral by referral, after go-live. Lowering it only affects referrals submitted from now on — already-submitted ones keep the amount their member was shown as a floor.",
       "ruleFirstZero": "The first tier must start at 0 — otherwise a member with no referral belongs to no tier.",
       "ruleIncreasing": "Thresholds must strictly increase, or the amount paid would depend on row order.",
       "rulePositive": "Every tier needs a threshold of 0 or more and a credit above 0.",
