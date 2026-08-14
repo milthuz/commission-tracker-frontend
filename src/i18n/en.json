@@ -3538,7 +3538,7 @@
       "eligibility": "The Pass is for Cluster merchants in Canada.",
       "ladderTitle": "What a referral earns you",
       "ladderRule": "Your tier never resets. Every restaurant you send that goes live moves you up for good.",
-      "hardware": "Refer a restaurateur and earn Cluster credit on your invoices.",
+      "creditLine": "Refer a restaurateur and earn Cluster credit on your invoices.",
       "sentTitle": "Check your email",
       "sentBody": "We sent a sign-in link to {{email}}. It's valid for 15 minutes and works once.",
       "sentHint": "Nothing yet? Look in your spam folder, or ask for another link.",

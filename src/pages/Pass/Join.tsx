@@ -187,10 +187,12 @@ const Join = () => {
                   ))}
                 </ul>
                 <p className="mt-5 border-t border-[#F79C6A]/30 pt-4 text-[13px] leading-[1.55] text-[#8A4220]/80">
-                  {t('pass.join.ladderRule')}
-                  {program.hardwareDiscount > 0 && (
-                    <> {t('pass.join.hardware', { amount: money(program.hardwareDiscount) })}</>
-                  )}
+                  {t('pass.join.ladderRule')}{' '}
+                  {/* Cette phrase parlait du rabais matériel, d'où la condition sur son
+                      montant. Elle parle maintenant du CRÉDIT, qui existe toujours — la
+                      garder conditionnelle la faisait disparaître si le montant tombait à
+                      0, pour une raison qui n'avait plus de rapport avec elle. */}
+                  {t('pass.join.creditLine')}
                 </p>
               </div>
             )}

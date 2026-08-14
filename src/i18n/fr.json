@@ -3538,7 +3538,7 @@
       "eligibility": "La Passe est réservée aux marchands Cluster du Canada.",
       "ladderTitle": "Ce que rapporte une recommandation",
       "ladderRule": "Votre palier ne redescend jamais. Chaque restaurant que vous envoyez et qui entre en service vous fait monter pour de bon.",
-      "hardware": "Recommandez un restaurateur et recevez du crédit Cluster sur vos factures.",
+      "creditLine": "Recommandez un restaurateur et recevez du crédit Cluster sur vos factures.",
       "sentTitle": "Vérifiez vos courriels",
       "sentBody": "Nous avons envoyé un lien de connexion à {{email}}. Il est valide 15 minutes et ne sert qu'une fois.",
       "sentHint": "Rien encore ? Regardez dans vos indésirables, ou demandez un autre lien.",
