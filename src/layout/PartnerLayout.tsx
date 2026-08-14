@@ -23,7 +23,11 @@ const PartnerLayout: React.FC = () => {
   useEffect(() => {
     const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]'));
     const before = links.map((l) => l.href);
-    links.forEach((l) => { l.href = '/cluster-favicon.png?v=1'; });
+    // Meme repartition que La Passe (voir usePassFavicon) : le 32x32 officiel pour l'onglet,
+    // le grand fichier uniquement pour l'icone d'ecran d'accueil iOS.
+    links.forEach((l) => {
+      l.href = l.rel === 'apple-touch-icon' ? '/cluster-favicon.png?v=2' : '/cluster-favicon-32.png?v=2';
+    });
     return () => { links.forEach((l, i) => { l.href = before[i]; }); };
   }, []);
 

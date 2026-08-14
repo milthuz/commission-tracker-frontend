@@ -24,7 +24,14 @@ export const usePassFavicon = () => {
       document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]')
     );
     const before = links.map((l) => l.href);
-    links.forEach((l) => { l.href = '/cluster-favicon.png?v=1'; });
+    // Deux fichiers, choisis par le ROLE du lien. L'onglet reçoit le 32x32 officiel
+    // (`cluster-favicon-32.png`) : servir le 1000x1000 dans une pastille de 16 px laissait
+    // le navigateur le réduire lui-même, ce qui rend l'icône trouble, et coûtait 12 Ko pour
+    // un onglet. L'icône d'écran d'accueil iOS garde le grand fichier — c'est le seul
+    // endroit où sa taille sert.
+    links.forEach((l) => {
+      l.href = l.rel === 'apple-touch-icon' ? '/cluster-favicon.png?v=2' : '/cluster-favicon-32.png?v=2';
+    });
     return () => { links.forEach((l, i) => { l.href = before[i]; }); };
   }, []);
 };
