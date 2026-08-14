@@ -291,7 +291,7 @@ const LinkPage = () => {
             })}
           </p>
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-[13px]">
-            <Link to="/terms" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">
+            <Link to="/pass/conditions" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">
               {t('pass.landing.publicFooter.terms')}
             </Link>
             <a href={passPrivacyUrl()} target="_blank" rel="noopener noreferrer" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">

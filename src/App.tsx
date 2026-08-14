@@ -85,6 +85,7 @@ const PassRefer = lazyRoute(() => import('./pages/Pass/Refer'));
 const PassOps = lazyRoute(() => import('./pages/PassOps'));
 const PassProgram = lazyRoute(() => import('./pages/Pass/Program'));
 const PassLinkPage = lazyRoute(() => import('./pages/Pass/LinkPage'));
+const PassTerms = lazyRoute(() => import('./pages/Pass/Terms'));
 
 // "/" adapts to the user's role:
 //   • Admin (* / admin:access / dashboard:view_admin) → finance dashboard
@@ -232,6 +233,18 @@ function AppContent() {
           <>
             <PageTitle title="La Passe | Cluster" />
             <PassProgram />
+          </>
+        }
+      />
+
+      {/* Conditions du programme — publiques : le lien est offert AVANT l'adhésion, sur
+          l'écran de consentement, donc la page doit s'ouvrir sans session. */}
+      <Route
+        path="/pass/conditions"
+        element={
+          <>
+            <PageTitle title="Conditions | La Passe" />
+            <PassTerms />
           </>
         }
       />

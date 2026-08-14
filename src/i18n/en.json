@@ -3566,6 +3566,128 @@
       "loadError": "We couldn't load this page. Please try again.",
       "retry": "Try Again",
       "by": "by"
+    },
+    "terms": {
+      "navTitle": "Terms",
+      "title": "The Pass program terms",
+      "sub": "The rules of Cluster's referral program, open to Cluster merchants in Canada.",
+      "versionLabel": "Version",
+      "updatedLabel": "In effect since",
+      "tocTitle": "Contents",
+      "backToProgram": "Back to the program",
+      "privacyLink": "Privacy policy",
+      "amountsNote": "Current amounts, tiers and perks are published on the program page. They are not repeated here so that a single source governs.",
+      "sections": [
+        {
+          "h": "1. The program",
+          "p": [
+            "The Pass is Cluster's referral program. A member merchant introduces a restaurant to us; if that restaurant becomes an active Cluster customer, the member receives credit on their Cluster account.",
+            "The program is offered in Canada only."
+          ]
+        },
+        {
+          "h": "2. Who can be a member",
+          "p": [
+            "Membership is open to active Cluster customers based in Canada. It is held in the business's name, in a commercial context.",
+            "One membership per business or group of businesses.",
+            "Access works through a link sent to the customer account's email address. That address identifies the member: credit is applied to the matching account.",
+            "Cluster may suspend or withdraw a membership in case of misrepresentation, abuse of the program, or unwanted solicitation carried out in its name."
+          ]
+        },
+        {
+          "h": "3. Which referrals qualify",
+          "p": [
+            "The referred restaurant must be based in Canada and must not already be a Cluster customer.",
+            "A member cannot refer themselves, nor a business they control or that belongs to their group.",
+            "By submitting a referral, the member confirms they obtained the contact's permission before sharing their details with us.",
+            "Cluster determines whether each referral qualifies."
+          ]
+        },
+        {
+          "h": "4. One credit per restaurant: first to submit",
+          "p": [
+            "If several members refer the same restaurant, the credit goes to whoever submitted first. Matching is done on the restaurant's name and city.",
+            "A referral found not to qualify does not prevent another member from later referring the same restaurant."
+          ]
+        },
+        {
+          "h": "5. How the credit is set",
+          "p": [
+            "The program has tiers. A member's tier depends on how many of their referrals have gone live since they joined; it never moves back down.",
+            "The tier that applies to a referral is the one reached BEFORE that referral is counted. In other words, the referral that crosses a tier threshold is paid at the previous tier, and the ones after it at the new tier.",
+            "The amount attached to a tier is a MAXIMUM. The exact amount for a referral is confirmed by Cluster based on the services the referred restaurant takes.",
+            "Entitlement to the credit arises when the referred restaurant becomes an active customer of Cluster or Cluster Pay. The tier's maximum amount applies when it adopts both.",
+            "All amounts are in Canadian dollars."
+          ]
+        },
+        {
+          "h": "6. The amount shown at submission is guaranteed",
+          "p": [
+            "The amount of the member's tier at the moment they submit a referral is guaranteed as a MINIMUM for that referral, even if program amounts are later reduced.",
+            "If their tier rises between submission and go-live, the higher amount applies."
+          ]
+        },
+        {
+          "h": "7. Form of the credit",
+          "p": [
+            "The credit is applied to the member's Cluster account and offsets their invoices. It is not paid in cash, is not redeemable for cash, and is not transferable to another business.",
+            "Cluster issues a credit note and notifies the member."
+          ]
+        },
+        {
+          "h": "8. The credit is vested",
+          "p": [
+            "Once granted, the credit stays with the member. If the referred restaurant later stops being a Cluster customer, the credit is not reclaimed."
+          ]
+        },
+        {
+          "h": "9. No expiry",
+          "p": [
+            "Neither a granted credit nor a tier reached expires."
+          ]
+        },
+        {
+          "h": "10. Other tier perks",
+          "p": [
+            "Some tiers unlock further perks, including a discount on Cluster products granted as Cluster credit, promotional items, and a dedicated contact.",
+            "These perks are granted on the terms in effect when they are requested. They are not redeemable for cash."
+          ]
+        },
+        {
+          "h": "11. Changes to or end of the program",
+          "p": [
+            "Cluster may change the program's amounts, tiers and perks, or end the program, at any time.",
+            "Referrals already submitted remain governed by the terms in effect on their submission date, including the guarantee in section 6."
+          ]
+        },
+        {
+          "h": "12. Taxes",
+          "p": [
+            "Credit received may have tax or accounting consequences for the member business. It is the member's responsibility to assess and comply with them."
+          ]
+        },
+        {
+          "h": "13. Personal information",
+          "p": [
+            "To contact a referred restaurant, Cluster collects the business name, city, province, and the contact's details as provided by the member.",
+            "This information is handled in accordance with Cluster's privacy policy.",
+            "The member remains responsible for having obtained the contact's permission before sharing their details."
+          ]
+        },
+        {
+          "h": "14. Language",
+          "p": [
+            "Members choose their correspondence language when they join; program communications are sent in that language.",
+            "These terms are maintained in French and in English."
+          ]
+        },
+        {
+          "h": "15. Contact us",
+          "p": [
+            "For any question about the program: thepass@clustersystems.com."
+          ]
+        }
+      ]
     }
   },
   "passOps": {

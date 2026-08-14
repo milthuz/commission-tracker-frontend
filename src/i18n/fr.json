@@ -3566,6 +3566,128 @@
       "loadError": "Le chargement de cette page a échoué. Réessayez.",
       "retry": "Réessayer",
       "by": "par"
+    },
+    "terms": {
+      "navTitle": "Conditions",
+      "title": "Conditions du programme La Passe",
+      "sub": "Les règles du programme de recommandation de Cluster, offert aux marchands Cluster du Canada.",
+      "versionLabel": "Version",
+      "updatedLabel": "En vigueur depuis le",
+      "tocTitle": "Sommaire",
+      "backToProgram": "Retour au programme",
+      "privacyLink": "Politique de confidentialité",
+      "amountsNote": "Les montants, les paliers et les avantages en vigueur sont publiés sur la page du programme. Ils ne sont pas repris ici afin qu'une seule source fasse foi.",
+      "sections": [
+        {
+          "h": "1. Le programme",
+          "p": [
+            "La Passe est le programme de recommandation de Cluster. Un marchand membre nous présente un restaurant ; si ce restaurant devient client actif de Cluster, le membre reçoit un crédit à son compte Cluster.",
+            "Le programme est offert au Canada seulement."
+          ]
+        },
+        {
+          "h": "2. Qui peut être membre",
+          "p": [
+            "L'adhésion est réservée aux clients actifs de Cluster établis au Canada. Elle est prise au nom de l'entreprise, dans un cadre commercial.",
+            "Une seule adhésion par entreprise ou groupe d'entreprises.",
+            "L'accès se fait par un lien envoyé à l'adresse de courriel du compte client. Cette adresse identifie le membre : le crédit est porté au compte correspondant.",
+            "Cluster peut suspendre ou retirer une adhésion en cas de fausse déclaration, d'abus du programme, ou de sollicitation non désirée faite en son nom."
+          ]
+        },
+        {
+          "h": "3. Quelles recommandations sont admissibles",
+          "p": [
+            "Le restaurant recommandé doit être établi au Canada et ne pas être déjà client de Cluster.",
+            "Un membre ne peut pas se recommander lui-même, ni recommander une entreprise qu'il contrôle ou qui fait partie de son groupe.",
+            "En soumettant une recommandation, le membre confirme avoir obtenu la permission de la personne concernée avant de nous transmettre ses coordonnées.",
+            "Cluster établit l'admissibilité de chaque recommandation."
+          ]
+        },
+        {
+          "h": "4. Un seul crédit par restaurant : premier arrivé",
+          "p": [
+            "Si plusieurs membres recommandent le même restaurant, le crédit revient à celui dont la recommandation a été soumise la première. Le rapprochement se fait sur le nom du restaurant et sa ville.",
+            "Une recommandation jugée non admissible ne bloque pas une recommandation ultérieure du même restaurant par un autre membre."
+          ]
+        },
+        {
+          "h": "5. Comment le crédit est établi",
+          "p": [
+            "Le programme comporte des paliers. Le palier d'un membre dépend du nombre de ses recommandations entrées en service depuis son adhésion ; il ne redescend jamais.",
+            "Le palier applicable à une recommandation est celui atteint AVANT que cette recommandation ne soit comptée. Autrement dit, la recommandation qui fait franchir un palier est payée au palier précédent, et les suivantes au nouveau palier.",
+            "Le montant associé à un palier est un MAXIMUM. Le montant exact d'une recommandation est confirmé par Cluster selon les services retenus par le restaurant recommandé.",
+            "Le droit au crédit naît lorsque le restaurant recommandé devient client actif de Cluster ou de Cluster Pay. Le montant maximal du palier s'applique lorsqu'il adopte les deux.",
+            "Tous les montants sont en dollars canadiens."
+          ]
+        },
+        {
+          "h": "6. Le montant vu à la soumission est garanti",
+          "p": [
+            "Le montant du palier du membre au moment où il soumet une recommandation lui est garanti comme MINIMUM pour cette recommandation, même si les montants du programme sont réduits par la suite.",
+            "Si son palier monte entre la soumission et la mise en service, c'est le montant le plus élevé qui s'applique."
+          ]
+        },
+        {
+          "h": "7. Forme du crédit",
+          "p": [
+            "Le crédit est porté au compte Cluster du membre et s'applique à ses factures. Il n'est pas versé en argent, n'est pas échangeable contre de l'argent, et n'est pas transférable à une autre entreprise.",
+            "Cluster émet une note de crédit et en avise le membre."
+          ]
+        },
+        {
+          "h": "8. Le crédit est acquis",
+          "p": [
+            "Une fois accordé, le crédit demeure acquis au membre. Si le restaurant recommandé cesse par la suite d'être client de Cluster, le crédit n'est pas repris."
+          ]
+        },
+        {
+          "h": "9. Aucune expiration",
+          "p": [
+            "Ni le crédit accordé ni le palier atteint n'expirent."
+          ]
+        },
+        {
+          "h": "10. Autres avantages de palier",
+          "p": [
+            "Certains paliers donnent accès à d'autres avantages, notamment un rabais sur les produits Cluster accordé sous forme de crédit Cluster, des articles promotionnels, et un contact dédié.",
+            "Ces avantages sont accordés selon les modalités en vigueur au moment où ils sont demandés. Ils ne sont pas échangeables contre de l'argent."
+          ]
+        },
+        {
+          "h": "11. Modification ou fin du programme",
+          "p": [
+            "Cluster peut modifier les montants, les paliers et les avantages du programme, ou y mettre fin, en tout temps.",
+            "Les recommandations déjà soumises demeurent régies par les conditions en vigueur à la date de leur soumission, y compris la garantie prévue à l'article 6."
+          ]
+        },
+        {
+          "h": "12. Fiscalité",
+          "p": [
+            "Le crédit reçu peut avoir des conséquences fiscales ou comptables pour l'entreprise membre. Il lui appartient de les évaluer et de s'y conformer."
+          ]
+        },
+        {
+          "h": "13. Renseignements personnels",
+          "p": [
+            "Pour communiquer avec un restaurant recommandé, Cluster recueille le nom de l'entreprise, sa ville, sa province, et les coordonnées de la personne à joindre, telles que fournies par le membre.",
+            "Ces renseignements sont traités conformément à la politique de confidentialité de Cluster.",
+            "Le membre demeure responsable d'avoir obtenu la permission de la personne concernée avant de transmettre ses coordonnées."
+          ]
+        },
+        {
+          "h": "14. Langue",
+          "p": [
+            "Le membre choisit sa langue de correspondance à l'adhésion ; les communications du programme lui sont envoyées dans cette langue.",
+            "Les présentes conditions sont maintenues en français et en anglais."
+          ]
+        },
+        {
+          "h": "15. Nous joindre",
+          "p": [
+            "Pour toute question sur le programme : lapasse@clustersystems.com."
+          ]
+        }
+      ]
     }
   },
   "passOps": {

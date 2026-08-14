@@ -315,7 +315,14 @@ const Program = () => {
           {t('pass.landing.closeSub')}
         </p>
         <Link to="/pass/connexion" className={`${btnPrimary} mt-8`}>{t('pass.landing.closeCta')}</Link>
-        <p className="mt-5 text-[12.5px] text-[#61646C] dark:text-white/35">{t('pass.landing.termsNote')}</p>
+        {/* Cliquable : cette mention se trouve juste sous l'appel à l'action, là où quelqu'un
+            cherche justement les règles avant de s'engager. La laisser en texte mort obligeait
+            à retrouver le lien dans le pied de page. */}
+        <p className="mt-5 text-[12.5px] text-[#61646C] dark:text-white/35">
+          <Link to="/pass/conditions" className="underline-offset-2 hover:underline">
+            {t('pass.landing.termsNote')}
+          </Link>
+        </p>
       </section>
 
       {/* ── Pied public ────────────────────────────────────────────────── */}
@@ -327,7 +334,7 @@ const Program = () => {
               <p className="mt-3 text-[13px] text-[#61646C] dark:text-white/40">{t('pass.landing.publicFooter.tagline')}</p>
             </div>
             <div className="flex flex-wrap gap-x-7 gap-y-2 text-[13.5px]">
-              <Link to="/terms" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">{t('pass.landing.publicFooter.terms')}</Link>
+              <Link to="/pass/conditions" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">{t('pass.landing.publicFooter.terms')}</Link>
               <a href={passPrivacyUrl()} target="_blank" rel="noopener noreferrer" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">{t('pass.landing.publicFooter.privacy')}</a>
               <a href="mailto:lapasse@clustersystems.com" className="text-[#61646C] dark:text-white/55 hover:text-[#141414] dark:hover:text-white">
                 {t('pass.landing.publicFooter.contact')}

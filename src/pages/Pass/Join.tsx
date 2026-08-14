@@ -290,7 +290,10 @@ const Join = () => {
                     />
                     <span>
                       {t('pass.join.consent')}{' '}
-                      <Link to="/terms" target="_blank" className="text-[#D16630] underline-offset-2 hover:underline">
+                      {/* Les conditions du PROGRAMME, pas celles de Sales Hub : ce lien
+                          menait au document interne des vendeurs, que le marchand n'accepte
+                          pas et qui ne décrit rien de ce à quoi il consent ici. */}
+                      <Link to="/pass/conditions" target="_blank" className="text-[#D16630] underline-offset-2 hover:underline">
                         {t('pass.join.terms')}
                       </Link>
                       {' · '}
