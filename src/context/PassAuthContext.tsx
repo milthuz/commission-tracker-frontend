@@ -16,6 +16,10 @@ export interface PassTier {
   level: number;
   key: string;
   credit: number;
+  // Optionnel : le palier 1 n'accorde pas ce rabais, et une configuration enregistrée avant
+  // l'ajout du champ peut ne pas le porter (le serveur la complète, mais le type reste
+  // honnête sur ce qui peut arriver).
+  productDiscountPct?: number;
 }
 
 export interface PassMember {

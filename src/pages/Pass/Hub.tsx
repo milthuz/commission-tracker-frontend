@@ -244,6 +244,19 @@ const Hub = () => {
                   <p className="text-[11px] uppercase tracking-[0.07em] text-[#61646C] dark:text-white/35">{t('pass.hub.cardSinceLabel')}</p>
                   <p className="mt-1 text-[14px]">{monthYear(member.joinedAt)}</p>
                 </div>
+                {/* Le rabais du palier, troisième fait de la carte. Absent au palier 1, qui
+                    ne l'accorde pas : « 0 % » se lirait comme un avantage retiré, et c'est
+                    la même règle que sur les cartes de la page programme.
+                    Le taux vient du palier VIVANT, donc il suit une montée de palier — et
+                    un changement de configuration — sans que la carte soit régénérée. */}
+                {!!Number(member.tier.productDiscountPct) && (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.07em] text-[#61646C] dark:text-white/35">{t('pass.hub.cardDiscountLabel')}</p>
+                    <p className="mt-1 text-[14px]">
+                      {tf('pass.hub.cardDiscountValue', { pct: Number(member.tier.productDiscountPct) })}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             <p className="mt-3 text-[13px] leading-[1.55] text-[#61646C] dark:text-white/40">{t('pass.hub.cardNote')}</p>

@@ -3283,7 +3283,9 @@
       "unlockDyn": "{{tier}} porte le crédit jusqu'à {{amount}} par recommandation, et donne accès au répertoire et à un chargé de compte",
       "emptyTitle": "Aucune recommandation pour l’instant",
       "emptyBody": "Envoyez-nous un premier restaurant. Votre crédit démarre dès sa mise en service.",
-      "lockedAt": "Verrouillé"
+      "lockedAt": "Verrouillé",
+      "cardDiscountLabel": "Rabais produits",
+      "cardDiscountValue": "{{pct}} %"
     },
     "form": {
       "title": "Passez-nous-en un.",

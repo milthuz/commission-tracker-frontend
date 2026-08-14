@@ -3283,7 +3283,9 @@
       "unlockDyn": "{{tier}} raises your credit to up to {{amount}} per referral, plus directory listing and a dedicated contact",
       "emptyTitle": "No referrals yet",
       "emptyBody": "Send us your first restaurant. Your credit starts the day they go live.",
-      "lockedAt": "Locked"
+      "lockedAt": "Locked",
+      "cardDiscountLabel": "Product discount",
+      "cardDiscountValue": "{{pct}}%"
     },
     "form": {
       "title": "Hand one over.",
