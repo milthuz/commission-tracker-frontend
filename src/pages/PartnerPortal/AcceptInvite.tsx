@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import ClusterWordmark from '../../components/ClusterWordmark';
 import { portalError } from './serverError';
+import { useClusterFavicon } from '../../hooks/useClusterFavicon';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -13,6 +14,10 @@ type Step = 'loading' | 'invalid' | 'password' | 'qr' | 'done';
 // Modeled on Authentication/AcceptInvite.tsx's loading/invalid/password/qr/done step machine,
 // pointed at /api/partner-auth/invite* instead of /api/auth/invite*.
 const PartnerAcceptInvite = () => {
+  // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
+  useClusterFavicon();
+  // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
+  useClusterFavicon();
   const { t } = useTranslation();
   const { login } = usePartnerAuth();
   const navigate = useNavigate();

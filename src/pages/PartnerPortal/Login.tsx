@@ -7,6 +7,7 @@ import ClusterWordmark from '../../components/ClusterWordmark';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import { getDeviceToken, storeDeviceToken } from '../../lib/deviceTrust';
 import { portalError } from './serverError';
+import { useClusterFavicon } from '../../hooks/useClusterFavicon';
 
 const DEVICE_TOKEN_PREFIX = 'partnerDeviceToken';
 
@@ -18,6 +19,10 @@ type Step = 'creds' | 'mfa' | 'forgot' | 'forgotSent';
 // Zoho SSO button and "no account? sign up" block — a partner account only ever has email+
 // password+TOTP, no SSO option.
 const PartnerLogin = () => {
+  // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
+  useClusterFavicon();
+  // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
+  useClusterFavicon();
   const { t } = useTranslation();
   const { isAuthenticated, login } = usePartnerAuth();
   const navigate = useNavigate();

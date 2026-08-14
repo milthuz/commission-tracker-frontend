@@ -199,7 +199,7 @@ function AppContent() {
         path="/partner-portal/accept-invite"
         element={
           <>
-            <PageTitle title="Invitation | Sales Hub" />
+            <PageTitle title="Invitation | Cluster" />
             <PartnerAcceptInvite />
           </>
         }
@@ -208,7 +208,7 @@ function AppContent() {
         path="/partner-portal/reset-password"
         element={
           <>
-            <PageTitle title="Reset Password | Sales Hub" />
+            <PageTitle title="Mot de passe | Cluster" />
             <PartnerResetPassword />
           </>
         }

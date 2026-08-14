@@ -8,6 +8,7 @@ import PartnerDropdownUser from '../components/PartnerHeader/PartnerDropdownUser
 import PartnerDropdownNotification from '../components/PartnerHeader/PartnerDropdownNotification';
 import PartnerChatAssistant from '../components/PartnerHeader/PartnerChatAssistant';
 import PartnerSofiaTour from '../components/PartnerHeader/PartnerSofiaTour';
+import { useClusterFavicon } from '../hooks/useClusterFavicon';
 
 // Mirrors layout/DefaultLayout.tsx's Sidebar + Header + content-area split (user decision
 // 2026-07-2x: the Partner Portal should act like Sales Hub, not a stripped-down shell) — the
@@ -17,19 +18,8 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const partnerAuthHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('partnerToken')}` });
 
 const PartnerLayout: React.FC = () => {
-  // Le portail affiche la marque Cluster ; son onglet doit suivre. Les icones d'origine
-  // sont restaurees au demontage — sans ca, revenir a Sales Hub garderait l'icone Cluster
-  // jusqu'au prochain rechargement complet.
-  useEffect(() => {
-    const links = Array.from(document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]'));
-    const before = links.map((l) => l.href);
-    // Meme repartition que La Passe (voir usePassFavicon) : le 32x32 officiel pour l'onglet,
-    // le grand fichier uniquement pour l'icone d'ecran d'accueil iOS.
-    links.forEach((l) => {
-      l.href = l.rel === 'apple-touch-icon' ? '/cluster-favicon.png?v=2' : '/cluster-favicon-32.png?v=2';
-    });
-    return () => { links.forEach((l, i) => { l.href = before[i]; }); };
-  }, []);
+  // Le portail affiche la marque Cluster ; son onglet doit suivre.
+  useClusterFavicon();
 
   const { i18n } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);

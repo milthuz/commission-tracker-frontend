@@ -3,11 +3,16 @@ import PasswordInput from '../../components/PasswordInput';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import SalesHubLogo from '../../components/SalesHubLogo';
+import { useClusterFavicon } from '../../hooks/useClusterFavicon';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
 // Modeled on Authentication/ResetPassword.tsx, pointed at /api/partner-auth/reset-password.
 const PartnerResetPassword = () => {
+  // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
+  useClusterFavicon();
+  // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
+  useClusterFavicon();
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const token = params.get('token') || '';
