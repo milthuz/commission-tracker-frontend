@@ -4,6 +4,7 @@ import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { dialog } from '../../lib/dialog';
+import PartnerStats from './PartnerStats';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -80,22 +81,23 @@ const PAYOUT_BADGE: Record<string, string> = {
   paid: 'bg-primary text-white',
 };
 
-const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = ({ canDelete, canMigrate }) => {
+const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canStats?: boolean }> = ({ canDelete, canMigrate, canStats }) => {
   const { t, i18n } = useTranslation();
   // Landing on this page is the Opportunity Queue "dashboard" (user request 2026-07-2x) — Manage
   // Partners is reached either via the in-page tab or the Sidebar's "Manage Partners" submenu
   // item, which links here with ?view=manage.
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const subFromParams = (): 'partners' | 'payouts' | 'queue' | 'users' | 'imports' => {
+  const subFromParams = (): 'partners' | 'payouts' | 'queue' | 'users' | 'imports' | 'stats' => {
     const v = searchParams.get('view');
     if (v === 'manage') return 'partners';
     if (v === 'payouts') return 'payouts';
     if (v === 'users') return 'users';
     if (v === 'imports') return 'imports';
+    if (v === 'stats') return 'stats';
     return 'queue';
   };
-  const [sub, setSub] = useState<'partners' | 'payouts' | 'queue' | 'users' | 'imports'>(subFromParams());
+  const [sub, setSub] = useState<'partners' | 'payouts' | 'queue' | 'users' | 'imports' | 'stats'>(subFromParams());
   // The route stays /admin/partners for every sub-view (only ?view= changes), so AdminPanel never
   // remounts this component — the useState initializer above only runs once. Re-sync on every
   // search-param change so the Sidebar's submenu links work from an already-open page.
@@ -1019,6 +1021,8 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
           // La reprise n'apparait que pour qui peut l'executer : une pastille qu'on ne peut pas
           // utiliser est du bruit pour tous les autres.
           ...(canMigrate ? [{ key: 'imports' as const, to: '/admin/partners?view=imports', label: 'admin.partners.tabs.imports' }] : []),
+          // Meme raisonnement que pour la reprise : visible seulement pour qui a la permission.
+          ...(canStats ? [{ key: 'stats' as const, to: '/admin/partners?view=stats', label: 'admin.partners.tabs.stats' }] : []),
         ] as const).map((tab) => (
           <button key={tab.key} onClick={() => navigate(tab.to)}
             className={`rounded-md px-4 py-2 text-sm font-medium transition ${
@@ -1309,6 +1313,8 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean }> = (
           retrouvee sur l'ecran Usagers en suivant la liste lors d'un deplacement anterieur.
           Visible uniquement avec `partners:migrate`, donc invisible pour tout le monde par
           defaut. */}
+      {sub === 'stats' && canStats && <PartnerStats />}
+
       {sub === 'imports' && canMigrate && (
         <div className="flex flex-col gap-4">
           {canMigrate && (

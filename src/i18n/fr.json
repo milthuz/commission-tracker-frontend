@@ -1741,7 +1741,8 @@
         "queue": "File des occasions d’affaires",
         "payouts": "Paiements",
         "users": "Usagers",
-        "imports": "Reprise de données"
+        "imports": "Reprise de données",
+        "stats": "Statistiques"
       },
       "fName": "Nom du partenaire",
       "creating": "Création…",
@@ -2913,6 +2914,38 @@
         "team": "Équipe",
         "all": "Tous"
       }
+    },
+    "partnerStats": {
+      "funnelTitle": "Adoption du portail",
+      "funnelHint": "Combien de personnes invitées sont réellement entrées. Chaque étape est un fait enregistré côté serveur.",
+      "step": {
+        "users": "Comptes créés",
+        "invited": "Invitations envoyées",
+        "opened": "Liens ouverts",
+        "activated": "Comptes activés",
+        "everLoggedIn": "Déjà connectés",
+        "active30d": "Actifs (30 j)"
+      },
+      "byPartner": "Par partenaire",
+      "colOpps": "Opportunités",
+      "loginsTitle": "Connexions",
+      "loginsHint": "90 derniers jours, tous partenaires confondus.",
+      "logins": "Connexions",
+      "noLogins": "Aucune connexion depuis 90 jours.",
+      "submissionsTitle": "Opportunités soumises",
+      "submissionsHint": "12 derniers mois, par mois de soumission.",
+      "submissions": "Opportunités",
+      "noSubmissions": "Aucune opportunité soumise sur la période.",
+      "dormantTitle": "Comptes dormants",
+      "dormantHint": "Activés, mais sans connexion depuis 30 jours — l’accès fonctionne, c’est l’usage qui manque.",
+      "dormantNone": "Aucun compte dormant.",
+      "lastSeen": "vu le {{date}}",
+      "neverReturned": "jamais revenu depuis l’activation",
+      "topTitle": "Qui utilise le portail",
+      "topHint": "Les 25 dernières personnes connectées.",
+      "topNone": "Personne ne s’est encore connecté.",
+      "userCounts": "{{logins}} connexion(s) · {{submissions}} soumission(s)",
+      "disclaimer": "Seuls les faits enregistrés côté serveur sont comptés : connexions, activations, soumissions. Les pages consultées, le temps passé et les parcours ne sont pas mesurés. « Liens ouverts » signifie que la personne a cliqué sur son invitation — l’ouverture du courriel elle-même n’est pas suivie."
     }
   },
   "header": {
