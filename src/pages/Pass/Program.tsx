@@ -14,12 +14,12 @@ import { ClusterMark, PASS_API, PassLangToggle, PassThemeToggle, PassMotion, Pas
 //
 // Les montants viennent de /api/pass/program, jamais du client (règle 4 du brief).
 
-interface Tier { level: number; key: string; from: number; credit: number }
+interface Tier { level: number; key: string; from: number; credit: number; productDiscountPct?: number }
 interface Program { enabled: boolean; hardwareDiscount: number; tiers: Tier[] }
 
 const Program = () => {
   usePassFavicon();
-  const { t, list, money } = useFmt();
+  const { t, list, money, tf } = useFmt();
   const tierName = useTierName();
   const { isAuthenticated } = usePassAuth();
   const [program, setProgram] = useState<Program | null>(null);
@@ -34,7 +34,18 @@ const Program = () => {
 
   const tiers = program?.tiers || [];
   const topCredit = tiers.length ? Math.max(...tiers.map((x) => x.credit)) : null;
-  const perksFor = (level: number) => list(`pass.landing.perks${level}`) as string[];
+  // Les avantages fixes viennent de la copie ; celui qui porte un POURCENTAGE vient de la
+  // configuration et se compose ici. Il est AJOUTÉ en fin de liste — position qu'il occupait
+  // quand il était écrit en dur — plutôt que substitué à un rang donné : dépendre de l'index
+  // d'une puce dans un tableau de copie casse dès que le designer en insère une.
+  //
+  // Rien n'est affiché quand le taux est 0 : le palier 1 n'accorde pas ce rabais, et une
+  // puce « 0 % de rabais » se lit comme un avantage retiré.
+  const perksFor = (tier: Tier) => {
+    const fixed = list(`pass.landing.perks${tier.level}`) as string[];
+    const pct = Number(tier.productDiscountPct) || 0;
+    return pct > 0 ? [...fixed, tf('pass.landing.perkDiscountDyn', { pct })] : fixed;
+  };
   const rules = list('pass.landing.rule') as string[];
   const labels = list('pass.landing.tierLabel') as string[];
 
@@ -168,7 +179,7 @@ const Program = () => {
                 <ul className="mt-5 space-y-3">
                   {/* Chaque palier liste ses avantages PROPRES — la v2 du design a
                       supprimé les « tout ce qu'offre le palier inférieur ». */}
-                  {perksFor(tier.level).map((p) => (
+                  {perksFor(tier).map((p) => (
                     <li key={p} className="flex gap-3 text-[13.5px] leading-[1.5] text-[#424242] dark:text-white/70">
                       <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#F58345]" />
                       {p}

@@ -3095,13 +3095,11 @@
       ],
       "perks2": [
         "Up to $750 in Cluster credit for your 2nd and 3rd referral",
-        "Cluster Swag",
-        "5% off Cluster products, as Cluster credit"
+        "Cluster Swag"
       ],
       "perks3": [
         "Up to $1,000 in Cluster credit per referral",
-        "A dedicated contact for your referrals",
-        "10% off Cluster products, as Cluster credit"
+        "A dedicated contact for your referrals"
       ],
       "cumulativeNote": "Every tier keeps the benefits of the ones below it.",
       "howTitle": "How it works",
@@ -3190,7 +3188,8 @@
         "privacy": "Privacy",
         "contact": "Contact us"
       },
-      "heroAlt": "The Cluster point of sale on a restaurant counter"
+      "heroAlt": "The Cluster point of sale on a restaurant counter",
+      "perkDiscountDyn": "{{pct}}% off Cluster products, as Cluster credit"
     },
     "hub": {
       "greeting": "Welcome back, {firstName}",
@@ -3638,7 +3637,9 @@
       "ruleIncreasing": "Thresholds must strictly increase, or the amount paid would depend on row order.",
       "rulePositive": "Every tier needs a threshold of 0 or more and a credit above 0.",
       "failed": "Save failed. Nothing was changed.",
-      "preview": "With this ladder, successive live referrals pay:"
+      "preview": "With this ladder, successive live referrals pay:",
+      "tierDiscount": "Product discount (%)",
+      "ruleDiscount": "The product discount must be a percentage between 0 and 100."
     },
     "creditTitle": "Confirm the credit",
     "creditAmountLabel": "Amount to credit",

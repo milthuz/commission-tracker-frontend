@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-production-b7f9.up.railway.app';
 
-interface Tier { level: number; from: number | string; credit: number | string; key: string }
+interface Tier { level: number; from: number | string; credit: number | string; key: string; productDiscountPct: number | string }
 interface Config { enabled: boolean; currency: string; hardwareDiscount: number | string; tiers: Tier[] }
 
 const PassConfigAdmin = () => {
@@ -47,6 +47,11 @@ const PassConfigAdmin = () => {
   if (tiers.some((x) => !Number.isFinite(num(x.from)) || num(x.from) < 0 || !Number.isFinite(num(x.credit)) || num(x.credit) <= 0))
     problems.push(t('passOps.cfg.rulePositive'));
   if (tiers.length && num(tiers[0].from) !== 0) problems.push(t('passOps.cfg.ruleFirstZero'));
+  // Un rabais vide vaut 0 (le palier 1 n'en accorde pas), donc seule une valeur SAISIE et
+  // hors bornes est un problème.
+  if (tiers.some((x) => x.productDiscountPct !== '' && x.productDiscountPct !== null &&
+        (!Number.isFinite(num(x.productDiscountPct)) || num(x.productDiscountPct) < 0 || num(x.productDiscountPct) > 100)))
+    problems.push(t('passOps.cfg.ruleDiscount'));
   for (let i = 1; i < tiers.length; i++) {
     if (num(tiers[i].from) <= num(tiers[i - 1].from)) { problems.push(t('passOps.cfg.ruleIncreasing')); break; }
   }
@@ -74,7 +79,12 @@ const PassConfigAdmin = () => {
         // personne ne voit.
         body: JSON.stringify({
           enabled: cfg.enabled,
-          tiers: tiers.map((x) => ({ key: x.key, from: num(x.from), credit: num(x.credit) })),
+          tiers: tiers.map((x) => ({
+            key: x.key, from: num(x.from), credit: num(x.credit),
+            // Vide → 0, pas NaN : le serveur refuserait un NaN, et « aucun rabais » est un
+            // réglage légitime, pas une omission.
+            productDiscountPct: x.productDiscountPct === '' || x.productDiscountPct === null ? 0 : num(x.productDiscountPct),
+          })),
         }),
       });
       if (!r.ok) throw new Error();
@@ -142,12 +152,15 @@ const PassConfigAdmin = () => {
         <h4 className="text-base font-semibold text-black dark:text-white">{t('passOps.cfg.tiers')}</h4>
 
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[620px] table-auto">
+          {/* 760 et non 620 : la colonne « Rabais produits » est la 5ᵉ, et sans cet
+              élargissement elle comprime les quatre autres au lieu de laisser défiler. */}
+          <table className="w-full min-w-[760px] table-auto">
             <thead>
               <tr className="bg-gray-2 text-left dark:bg-meta-4">
                 <th className="whitespace-nowrap px-4 py-3 text-sm font-medium text-black dark:text-white">{t('passOps.cfg.tierKey')}</th>
                 <th className="whitespace-nowrap px-4 py-3 text-sm font-medium text-black dark:text-white">{t('passOps.cfg.tierFrom')}</th>
                 <th className="whitespace-nowrap px-4 py-3 text-sm font-medium text-black dark:text-white">{t('passOps.cfg.tierCredit')}</th>
+                <th className="whitespace-nowrap px-4 py-3 text-sm font-medium text-black dark:text-white">{t('passOps.cfg.tierDiscount')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -162,6 +175,10 @@ const PassConfigAdmin = () => {
                   </td>
                   <td className="px-4 py-3">
                     <input type="number" min={1} value={x.credit} onChange={(e) => setTier(i, 'credit', e.target.value)} className={input} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <input type="number" min={0} max={100} value={x.productDiscountPct}
+                      onChange={(e) => setTier(i, 'productDiscountPct', e.target.value)} className={input} />
                   </td>
                   <td className="px-4 py-3 text-right">
                     {/* Le dernier palier ne se retire pas : une échelle vide est refusée par
@@ -181,7 +198,7 @@ const PassConfigAdmin = () => {
         </div>
 
         <button type="button"
-          onClick={() => setCfg({ ...cfg, tiers: [...tiers, { level: tiers.length + 1, key: '', from: '', credit: '' }] })}
+          onClick={() => setCfg({ ...cfg, tiers: [...tiers, { level: tiers.length + 1, key: '', from: '', credit: '', productDiscountPct: 0 }] })}
           className="mt-4 rounded border border-stroke px-4 py-2 text-sm font-medium hover:border-primary hover:text-primary dark:border-strokedark">
           {t('passOps.cfg.addTier')}
         </button>

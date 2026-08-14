@@ -3095,13 +3095,11 @@
       ],
       "perks2": [
         "Jusqu'à 750 $ en crédit Cluster pour la 2ᵉ et la 3ᵉ référence",
-        "Cluster Swag",
-        "5 % de rabais sur les produits Cluster, en crédit Cluster"
+        "Cluster Swag"
       ],
       "perks3": [
         "Jusqu'à 1 000 $ en crédit Cluster par référence",
-        "Contact dédié pour vos références",
-        "10 % de rabais sur les produits Cluster, en crédit Cluster"
+        "Contact dédié pour vos références"
       ],
       "cumulativeNote": "Chaque palier conserve les avantages des précédents.",
       "howTitle": "Comment ça marche",
@@ -3190,7 +3188,8 @@
         "privacy": "Confidentialité",
         "contact": "Nous joindre"
       },
-      "heroAlt": "Le point de vente Cluster sur une table de restaurant"
+      "heroAlt": "Le point de vente Cluster sur une table de restaurant",
+      "perkDiscountDyn": "{{pct}} % de rabais sur les produits Cluster, en crédit Cluster"
     },
     "hub": {
       "greeting": "Bon retour, {firstName}",
@@ -3638,7 +3637,9 @@
       "ruleIncreasing": "Les seuils doivent croître strictement, sans quoi le montant versé dépendrait de l’ordre des lignes.",
       "rulePositive": "Chaque palier exige un seuil de 0 ou plus et un crédit supérieur à 0.",
       "failed": "L’enregistrement a échoué. Rien n’a été modifié.",
-      "preview": "Avec cette échelle, les mises en service successives paient :"
+      "preview": "Avec cette échelle, les mises en service successives paient :",
+      "tierDiscount": "Rabais produits (%)",
+      "ruleDiscount": "Le rabais produits doit être un pourcentage entre 0 et 100."
     },
     "creditTitle": "Confirmer le crédit",
     "creditAmountLabel": "Montant à créditer",
