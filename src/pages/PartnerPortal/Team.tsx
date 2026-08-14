@@ -20,6 +20,33 @@ interface TeamUser {
 const PartnerTeam: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user } = usePartnerAuth();
+  // Code d'organisation. Chargé seulement pour un administrateur : le serveur refuse de toute
+  // façon, mais un appel qu'on sait voué au 403 est du bruit dans les journaux.
+  const [joinCode, setJoinCode] = useState<string | null>(null);
+  const [joinDomains, setJoinDomains] = useState<string | null>(null);
+  const [joinEnabled, setJoinEnabled] = useState(false);
+  const [rotating, setRotating] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (user?.role !== 'admin') return;
+    axios.get(`${API_URL}/api/partner-portal/team/join-code`, { headers: authHeaders() })
+      .then((r) => { setJoinCode(r.data.joinCode); setJoinEnabled(!!r.data.joinEnabled); setJoinDomains(r.data.joinEmailDomains); })
+      // Silencieux : l'absence de code n'empêche rien, et une erreur rouge en haut de l'écran
+      // Équipe ferait croire à une panne alors que l'inscription est simplement fermée.
+      .catch(() => {});
+  }, [user?.role]);
+
+  const rotateCode = async () => {
+    if (!(await dialog.confirm(t('partnerPortal.join.rotateConfirm') as string))) return;
+    setRotating(true);
+    try {
+      const r = await axios.post(`${API_URL}/api/partner-portal/team/join-code`, {}, { headers: authHeaders() });
+      setJoinCode(r.data.joinCode);
+    } catch (e: any) {
+      dialog.alert(portalError(e?.response?.data?.error, t, t('partnerPortal.join.rotateFailed') as string));
+    } finally { setRotating(false); }
+  };
 
   const [team, setTeam] = useState<TeamUser[]>([]);
   const [teamLoading, setTeamLoading] = useState(true);
@@ -109,6 +136,39 @@ const PartnerTeam: React.FC = () => {
       </div>
 
       <div className="flex flex-col gap-6">
+        {/* Le code d'organisation passe AVANT l'invitation nominative : partager un code à toute
+            son équipe est devenu le geste principal, inviter une personne à la fois l'exception.
+            Visible des seuls administrateurs — un usager standard n'a personne à inviter. */}
+        {user?.role === 'admin' && joinEnabled && joinCode && (
+          <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-1 text-sm font-bold text-black dark:text-white">{t('partnerPortal.join.title')}</div>
+            <p className="mb-4 text-sm text-body">{t('partnerPortal.join.hint')}</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <button type="button"
+                onClick={() => { navigator.clipboard?.writeText(joinCode); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                title={t('partnerPortal.join.copy') as string}
+                className="rounded-lg border border-stroke px-4 py-3 font-mono text-lg tracking-widest text-black hover:border-primary dark:border-strokedark dark:text-white">
+                {joinCode}
+              </button>
+              {copied && <span className="text-xs text-green-700 dark:text-success">{t('partnerPortal.join.copied')}</span>}
+              <button type="button" onClick={rotateCode} disabled={rotating}
+                className="rounded-lg border border-stroke px-3 py-2 text-xs font-medium text-body hover:border-danger hover:text-danger disabled:opacity-50 dark:border-strokedark">
+                {rotating ? '…' : t('partnerPortal.join.rotate')}
+              </button>
+            </div>
+            {/* Les domaines en LECTURE : c'est ce que l'administrateur répondra au collègue dont
+                l'adresse personnelle est refusée. Il ne peut pas les changer — c'est ce qui rend
+                le code inoffensif s'il circule trop. */}
+            {joinDomains && (
+              <p className="mt-3 text-xs text-body">{t('partnerPortal.join.domains', { domains: joinDomains })}</p>
+            )}
+            <p className="mt-1 break-all text-xs text-body">
+              {t('partnerPortal.join.linkHint')}{' '}
+              <span className="font-mono">{window.location.origin}/partner-portal/signup?code={joinCode}</span>
+            </p>
+          </div>
+        )}
+
         <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="mb-4 text-sm font-bold text-black dark:text-white">{t('partnerPortal.inviteTeammate')}</div>
           <form onSubmit={inviteUser} className="flex flex-wrap items-end gap-3">

@@ -882,6 +882,18 @@
       "errEmail": "Cette adresse courriel n’est pas valide.",
       "errName": "Votre nom est requis.",
       "errCode": "Code invalide. Réessayez avec le code affiché en ce moment."
+    },
+    "join": {
+      "title": "Code d’organisation",
+      "hint": "Partagez ce code avec vos collègues : ils créent leur compte eux-mêmes, sans invitation.",
+      "copy": "Copier le code",
+      "copied": "Copié",
+      "rotate": "Régénérer",
+      "rotateConfirm": "Régénérer le code ? Celui que vous avez déjà partagé cessera immédiatement de fonctionner. Les comptes déjà créés ne sont pas touchés.",
+      "rotateFailed": "Impossible de régénérer le code.",
+      "domains": "Seules les adresses de ces domaines sont acceptées : {{domains}}.",
+      "linkHint": "Lien tout prêt :",
+      "signup_closed": "L’inscription libre est fermée pour votre organisation. Contactez votre responsable Cluster."
     }
   },
   "kaizenDemo": {

@@ -882,6 +882,18 @@
       "errEmail": "That email address is not valid.",
       "errName": "Your name is required.",
       "errCode": "Invalid code. Try again with the code showing right now."
+    },
+    "join": {
+      "title": "Organization code",
+      "hint": "Share this code with your colleagues: they create their own accounts, no invitation needed.",
+      "copy": "Copy code",
+      "copied": "Copied",
+      "rotate": "Regenerate",
+      "rotateConfirm": "Regenerate the code? The one you already shared will stop working immediately. Existing accounts are unaffected.",
+      "rotateFailed": "Could not regenerate the code.",
+      "domains": "Only addresses on these domains are accepted: {{domains}}.",
+      "linkHint": "Ready-made link:",
+      "signup_closed": "Self sign-up is closed for your organization. Please contact your Cluster representative."
     }
   },
   "kaizenDemo": {
