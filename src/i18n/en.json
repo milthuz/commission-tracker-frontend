@@ -854,6 +854,34 @@
     },
     "serverError": {
       "partnerInactive": "Your organization no longer has access to the portal. This is not a password problem — your credentials are valid. Contact your Cluster representative to restore access."
+    },
+    "signup": {
+      "title": "Create my account",
+      "subtitle": "Join your organization’s partner portal.",
+      "orgCode": "Organization code",
+      "orgCodeHint": "Provided by your organization. Twelve characters, no I, O, 0 or 1.",
+      "emailHint": "Use your work address — only your organization’s domains are accepted.",
+      "password": "Password",
+      "passwordConfirm": "Confirm password",
+      "passwordMismatch": "The two passwords do not match.",
+      "passwordTooShort": "Password must be at least 8 characters.",
+      "submit": "Create my account",
+      "creating": "Creating…",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "noAccount": "Have an organization code?",
+      "createOne": "Create an account",
+      "twoFactorTitle": "Secure your account",
+      "twoFactorSubtitle": "Scan this code with your authenticator app, then enter the six digits.",
+      "twoFactorSubtitlePartner": "Welcome to {{partner}}. Scan this code with your authenticator app, then enter the six digits.",
+      "finish": "Finish",
+      "verifying": "Verifying…",
+      "errInvalidCode": "That organization code is not valid, or sign-up is closed. Please check it with your organization.",
+      "errDomain": "This address is not on an allowed domain for this organization. Please use your work address.",
+      "errExists": "An account already exists for this address. Sign in, or use “forgot password”.",
+      "errEmail": "That email address is not valid.",
+      "errName": "Your name is required.",
+      "errCode": "Invalid code. Try again with the code showing right now."
     }
   },
   "kaizenDemo": {
@@ -1978,7 +2006,22 @@
       "colInvitations": "Invitations",
       "invNone": "None sent",
       "invSummary": "{{invited}} sent · {{opened}} link opened · {{activated}} activated",
-      "invHint": "{{invited}} invitation(s) sent, of which {{opened}} had the link opened and {{activated}} account(s) activated. Last send: {{when}}. “Link opened” means the person clicked — the email open itself is not tracked."
+      "invHint": "{{invited}} invitation(s) sent, of which {{opened}} had the link opened and {{activated}} account(s) activated. Last send: {{when}}. “Link opened” means the person clicked — the email open itself is not tracked.",
+      "join": {
+        "title": "Self sign-up",
+        "hint": "Give the organization one code: their staff create their own accounts.",
+        "enabled": "Open",
+        "domains": "Allowed email domains",
+        "domainsHint": "Comma-separated. Subdomains are accepted.",
+        "domainsRequired": "⚠ A domain is required to open sign-up — without one the server will refuse every account creation.",
+        "none": "No code generated",
+        "generate": "Generate a code",
+        "rotate": "Regenerate",
+        "rotateConfirm": "Regenerate the code? The one in circulation will stop working immediately. Existing accounts are unaffected.",
+        "copy": "Copy code",
+        "copied": "Copied",
+        "linkHint": "Ready-made link:"
+      }
     },
     "resources": {
       "title": "Resources storage",

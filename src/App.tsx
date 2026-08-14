@@ -28,6 +28,7 @@ import PartnerLayout from './layout/PartnerLayout';
 import PartnerLogin from './pages/PartnerPortal/Login';
 import PartnerAcceptInvite from './pages/PartnerPortal/AcceptInvite';
 import PartnerResetPassword from './pages/PartnerPortal/ResetPassword';
+import PartnerSignup from './pages/PartnerPortal/Signup';
 
 // Un import dynamique qui echoue vide la page : React demonte tout l'arbre, et sans
 // barriere d'erreur l'utilisateur voit un ecran gris. Ca arrive pour une raison banale —
@@ -192,6 +193,18 @@ function AppContent() {
           <>
             <PageTitle title="Portail partenaire | Cluster" />
             <PartnerLogin />
+          </>
+        }
+      />
+      {/* Inscription libre par code d'organisation — publique par nature : la personne n'a pas
+          encore de compte. Ce que le code ouvre reste borne (compte standard, ses seules
+          soumissions), et le domaine de courriel est impose cote serveur. */}
+      <Route
+        path="/partner-portal/signup"
+        element={
+          <>
+            <PageTitle title="Créer mon compte | Cluster" />
+            <PartnerSignup />
           </>
         }
       />

@@ -17,6 +17,7 @@ interface Partner {
   businessContactName: string | null; businessContactEmail: string | null; businessContactPhone: string | null;
   payoutRate: number | null;
   initialPayoutRate: number | null;
+  joinCode: string | null; joinEmailDomains: string | null; joinEnabled: boolean;
 }
 interface CrmMatch {
   module: 'Leads' | 'Contacts' | 'Accounts'; id: string; name: string; company: string | null;
@@ -441,8 +442,32 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
     name: '', leadSource: '', payoutRate: '', initialPayoutRate: '',
     billingContactName: '', billingContactEmail: '', billingContactPhone: '',
     businessContactName: '', businessContactEmail: '', businessContactPhone: '',
+    // Inscription libre : l'interrupteur et les domaines autorisés. Le CODE, lui, vit à part —
+    // il n'est pas saisi mais généré par le serveur.
+    joinEnabled: false, joinEmailDomains: '',
   });
   const [savingEdit, setSavingEdit] = useState(false);
+
+  // Le code vit a part du formulaire : il n'est pas saisi, il est GENERE par le serveur.
+  const [joinCode, setJoinCode] = useState('');
+  const [rotating, setRotating] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
+
+  const rotateJoinCode = async () => {
+    if (!editingPartner) return;
+    // Confirmation seulement s'il y a quelque chose a casser : remplacer un code EXISTANT
+    // invalide celui qui circule deja, ce qui est precisement le but quand il a fuite — mais
+    // une surprise quand on voulait juste en creer un.
+    if (joinCode && !(await dialog.confirm(t('admin.partners.join.rotateConfirm') as string))) return;
+    setRotating(true);
+    try {
+      const r = await axios.post(`${API_URL}/api/admin/partners/${editingPartner.id}/join-code`, {}, { headers: authHeaders() });
+      setJoinCode(r.data.joinCode);
+      await fetchPartners();
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || 'Failed to generate the code');
+    } finally { setRotating(false); }
+  };
 
   const openEdit = (p: Partner) => {
     setEditingPartner(p);
@@ -451,7 +476,9 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
       initialPayoutRate: p.initialPayoutRate !== null ? String(p.initialPayoutRate) : '',
       billingContactName: p.billingContactName || '', billingContactEmail: p.billingContactEmail || '', billingContactPhone: p.billingContactPhone || '',
       businessContactName: p.businessContactName || '', businessContactEmail: p.businessContactEmail || '', businessContactPhone: p.businessContactPhone || '',
+      joinEnabled: !!p.joinEnabled, joinEmailDomains: p.joinEmailDomains || '',
     });
+    setJoinCode(p.joinCode || '');
   };
 
   const saveEdit = async (e: React.FormEvent) => {
@@ -465,6 +492,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
         initialPayoutRate: editForm.initialPayoutRate.trim() === '' ? null : editForm.initialPayoutRate.trim(),
         billingContactName: editForm.billingContactName.trim(), billingContactEmail: editForm.billingContactEmail.trim(), billingContactPhone: editForm.billingContactPhone.trim(),
         businessContactName: editForm.businessContactName.trim(), businessContactEmail: editForm.businessContactEmail.trim(), businessContactPhone: editForm.businessContactPhone.trim(),
+        joinEnabled: editForm.joinEnabled, joinEmailDomains: editForm.joinEmailDomains.trim(),
       }, { headers: authHeaders() });
       setEditingPartner(null);
       await fetchPartners();
@@ -2046,6 +2074,56 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
                   retire le 2026-08-06, promettait un versement a l'approbation que David ne veut pas. */}
               <div>
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.fPayoutRate')}</label>
+                {/* Inscription libre — encadre a part : c'est le seul reglage de cette fiche qui
+                    ouvre une porte vers l'exterieur, il ne doit pas se confondre avec les taux. */}
+                <div className="sm:col-span-2 rounded-lg border border-stroke p-4 dark:border-strokedark">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-black dark:text-white">{t('admin.partners.join.title')}</div>
+                      <div className="mt-0.5 text-xs text-body">{t('admin.partners.join.hint')}</div>
+                    </div>
+                    <label className="flex shrink-0 cursor-pointer items-center gap-2">
+                      <input type="checkbox" checked={editForm.joinEnabled}
+                        onChange={(e) => setEditForm({ ...editForm, joinEnabled: e.target.checked })}
+                        className="h-4 w-4 cursor-pointer accent-primary" />
+                      <span className="text-sm text-black dark:text-white">{t('admin.partners.join.enabled')}</span>
+                    </label>
+                  </div>
+
+                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.join.domains')}</label>
+                  <input value={editForm.joinEmailDomains}
+                    onChange={(e) => setEditForm({ ...editForm, joinEmailDomains: e.target.value })}
+                    placeholder="moneris.com"
+                    className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+                  {/* Dit la consequence, pas la regle : sans domaine, rien ne s'ouvre. */}
+                  <p className={`mt-1 text-xs ${editForm.joinEnabled && !editForm.joinEmailDomains.trim() ? 'text-danger' : 'text-body'}`}>
+                    {editForm.joinEnabled && !editForm.joinEmailDomains.trim()
+                      ? t('admin.partners.join.domainsRequired')
+                      : t('admin.partners.join.domainsHint')}
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {joinCode ? (
+                      <button type="button"
+                        onClick={() => { navigator.clipboard?.writeText(joinCode); setCodeCopied(true); setTimeout(() => setCodeCopied(false), 1500); }}
+                        title={t('admin.partners.join.copy') as string}
+                        className="rounded-lg border border-stroke px-3 py-2 font-mono text-sm tracking-widest text-black hover:border-primary dark:border-strokedark dark:text-white">
+                        {joinCode}
+                      </button>
+                    ) : <span className="text-xs text-gray-400">{t('admin.partners.join.none')}</span>}
+                    {codeCopied && <span className="text-xs text-green-700 dark:text-success">{t('admin.partners.join.copied')}</span>}
+                    <button type="button" onClick={rotateJoinCode} disabled={rotating}
+                      className="rounded-lg border border-stroke px-3 py-2 text-xs font-medium text-body hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark">
+                      {rotating ? '…' : t(joinCode ? 'admin.partners.join.rotate' : 'admin.partners.join.generate')}
+                    </button>
+                  </div>
+                  {joinCode && (
+                    <p className="mt-2 break-all text-xs text-body">
+                      {t('admin.partners.join.linkHint')} <span className="font-mono">/partner-portal/signup?code={joinCode}</span>
+                    </p>
+                  )}
+                </div>
+
                 <input value={editForm.payoutRate} onChange={(e) => setEditForm({ ...editForm, payoutRate: e.target.value })}
                   type="number" min="0" step="0.01" placeholder={t('admin.partners.payoutRatePh') as string} className={inputCls} />
                 <p className="mt-1 text-xs text-gray-400">{t('admin.partners.payoutRateHint')}</p>

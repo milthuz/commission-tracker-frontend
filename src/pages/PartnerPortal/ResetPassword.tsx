@@ -11,8 +11,6 @@ const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-
 const PartnerResetPassword = () => {
   // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
   useClusterFavicon();
-  // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
-  useClusterFavicon();
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const token = params.get('token') || '';

@@ -854,6 +854,34 @@
     },
     "serverError": {
       "partnerInactive": "Votre organisation n’a plus accès au portail. Ce n’est pas un problème de mot de passe : vos identifiants sont valides. Contactez votre responsable Cluster pour rétablir l’accès."
+    },
+    "signup": {
+      "title": "Créer mon compte",
+      "subtitle": "Rejoignez le portail partenaire de votre organisation.",
+      "orgCode": "Code d’organisation",
+      "orgCodeHint": "Fourni par votre organisation. Douze caractères, sans I, O, 0 ni 1.",
+      "emailHint": "Utilisez votre adresse professionnelle — seuls les domaines de votre organisation sont acceptés.",
+      "password": "Mot de passe",
+      "passwordConfirm": "Confirmer le mot de passe",
+      "passwordMismatch": "Les deux mots de passe ne sont pas identiques.",
+      "passwordTooShort": "Le mot de passe doit faire au moins 8 caractères.",
+      "submit": "Créer mon compte",
+      "creating": "Création…",
+      "haveAccount": "Vous avez déjà un compte ?",
+      "signIn": "Se connecter",
+      "noAccount": "Vous avez un code d’organisation ?",
+      "createOne": "Créer mon compte",
+      "twoFactorTitle": "Sécurisez votre compte",
+      "twoFactorSubtitle": "Scannez ce code avec votre application d’authentification, puis entrez les six chiffres.",
+      "twoFactorSubtitlePartner": "Bienvenue chez {{partner}}. Scannez ce code avec votre application d’authentification, puis entrez les six chiffres.",
+      "finish": "Terminer",
+      "verifying": "Vérification…",
+      "errInvalidCode": "Ce code d’organisation n’est pas valide, ou l’inscription est fermée. Vérifiez-le auprès de votre organisation.",
+      "errDomain": "Cette adresse n’appartient pas à un domaine autorisé pour cette organisation. Utilisez votre adresse professionnelle.",
+      "errExists": "Un compte existe déjà pour cette adresse. Connectez-vous, ou utilisez « mot de passe oublié ».",
+      "errEmail": "Cette adresse courriel n’est pas valide.",
+      "errName": "Votre nom est requis.",
+      "errCode": "Code invalide. Réessayez avec le code affiché en ce moment."
     }
   },
   "kaizenDemo": {
@@ -1978,7 +2006,22 @@
       "colInvitations": "Invitations",
       "invNone": "Aucune envoyée",
       "invSummary": "{{invited}} envoyée(s) · {{opened}} lien ouvert · {{activated}} activé(s)",
-      "invHint": "{{invited}} invitation(s) envoyée(s), dont {{opened}} où le lien a été ouvert et {{activated}} compte(s) activé(s). Dernier envoi : {{when}}. « Lien ouvert » signifie que la personne a cliqué — l’ouverture du courriel elle-même n’est pas mesurée."
+      "invHint": "{{invited}} invitation(s) envoyée(s), dont {{opened}} où le lien a été ouvert et {{activated}} compte(s) activé(s). Dernier envoi : {{when}}. « Lien ouvert » signifie que la personne a cliqué — l’ouverture du courriel elle-même n’est pas mesurée.",
+      "join": {
+        "title": "Inscription libre",
+        "hint": "Donne un seul code à l’organisation : ses employés créent leur compte eux-mêmes.",
+        "enabled": "Ouverte",
+        "domains": "Domaines de courriel autorisés",
+        "domainsHint": "Séparés par des virgules. Les sous-domaines sont acceptés.",
+        "domainsRequired": "⚠ Un domaine est obligatoire pour ouvrir l’inscription — sans lui, le serveur refusera toute création de compte.",
+        "none": "Aucun code généré",
+        "generate": "Générer un code",
+        "rotate": "Régénérer",
+        "rotateConfirm": "Régénérer le code ? Celui qui circule cessera immédiatement de fonctionner. Les comptes déjà créés ne sont pas touchés.",
+        "copy": "Copier le code",
+        "copied": "Copié",
+        "linkHint": "Lien tout prêt :"
+      }
     },
     "resources": {
       "title": "Stockage des ressources",

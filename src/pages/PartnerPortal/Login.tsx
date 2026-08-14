@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import PasswordInput from '../../components/PasswordInput';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import ClusterWordmark from '../../components/ClusterWordmark';
@@ -19,8 +19,6 @@ type Step = 'creds' | 'mfa' | 'forgot' | 'forgotSent';
 // Zoho SSO button and "no account? sign up" block — a partner account only ever has email+
 // password+TOTP, no SSO option.
 const PartnerLogin = () => {
-  // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
-  useClusterFavicon();
   // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
   useClusterFavicon();
   const { t } = useTranslation();
@@ -162,6 +160,14 @@ const PartnerLogin = () => {
                   {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.logIn')}
                 </button>
               </form>
+              {/* La porte d entree de l inscription libre : sans ce lien, un partenaire a qui on
+                  a donne un code n a nulle part ou le saisir. */}
+              <p className="mt-6 text-center text-sm text-body">
+                {t('partnerPortal.signup.noAccount')}{' '}
+                <Link to="/partner-portal/signup" className="font-semibold text-primary hover:underline">
+                  {t('partnerPortal.signup.createOne')}
+                </Link>
+              </p>
             </>
           )}
 

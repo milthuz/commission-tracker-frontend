@@ -16,8 +16,6 @@ type Step = 'loading' | 'invalid' | 'password' | 'qr' | 'done';
 const PartnerAcceptInvite = () => {
   // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
   useClusterFavicon();
-  // Page PUBLIQUE : hors du gabarit partenaire, elle n'heritait pas de l'icone Cluster.
-  useClusterFavicon();
   const { t } = useTranslation();
   const { login } = usePartnerAuth();
   const navigate = useNavigate();
