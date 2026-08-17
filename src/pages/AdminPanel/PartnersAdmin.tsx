@@ -1676,18 +1676,25 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
                   <thead>
                     <tr className="border-b border-stroke dark:border-strokedark">
                       {cols.map((c) => (
-                        <th key={c} className={`px-3 py-2.5 align-bottom text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 ${
+                        // whitespace-nowrap : « Doublons Zoho » etait le SEUL libelle a passer sur deux
+                        // lignes, ce qui suffisait a faire paraitre toute la rangee d'en-tetes de
+                        // travers. Mesure : ca ne ramene PAS la barre de defilement horizontale (la
+                        // colonne « Soumis le » en w-full absorbe le supplement).
+                        <th key={c} className={`whitespace-nowrap px-3 py-2.5 align-bottom text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 ${
                           c === 'submitted' ? 'w-full text-right' : 'text-left'
                         }`}>
                           {c === 'submitted' ? (
                             <button type="button" onClick={() => setDateSort((d) => (d === 'desc' ? 'asc' : 'desc'))}
                               title={t('partnerPortal.sortByDate') as string}
                               className="inline-flex items-center gap-1 font-semibold uppercase hover:text-primary">
-                              {COL_LABEL[c]}
+                              {/* Le chevron AVANT le libelle, contrairement a l'usage. Colonne alignee a
+                                  droite : place apres, c'est LUI qui touchait le bord, et le mot finissait
+                                  16 px avant la date d'en dessous. L'oeil aligne des mots, pas des boites. */}
                               <svg className={`h-3 w-3 transition-transform ${dateSort === 'asc' ? 'rotate-180' : ''}`}
                                 fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                               </svg>
+                              {COL_LABEL[c]}
                             </button>
                           ) : COL_LABEL[c]}
                         </th>
