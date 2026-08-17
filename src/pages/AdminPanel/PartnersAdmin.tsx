@@ -647,8 +647,9 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
   // white-space:nowrap, donc son minimum est son plafond. La vue « approuvees » a une colonne de
   // plus que les autres ; avec des noms et des courriels plus longs que les plafonds, son plancher
   // montait a 969 px alors que la table annonce `min-w-[820px]` — barre de defilement horizontale
-  // sous 1307 px de fenetre, donc y compris sur un portable 1280. Plafonds reduits sous xl :
-  // plancher mesure a 829 px, seuil ramene a 1167 px.
+  // sous 1307 px de fenetre, donc y compris sur un portable 1280. Plafonds reduits sous xl,
+  // gouttieres a px-2 sous xl et `min-w` fantome retire : plancher mesure a 736 px, plus de barre
+  // des 1074 px de fenetre.
   //
   // ⚠️ Trois plafonds larges ont ete rabotes au passage (entreprise 185→160, reviseur 170→145,
   // etape du deal 150→140). Sans ca le plancher restait a 969 des xl, alors qu'une fenetre de
@@ -681,13 +682,13 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
                 partenaire : sans lui, deux lignes de noms cote a cote ne disent pas qui est qui —
                 c'est exactement l'erreur signalee par David. */}
             {repPartenaire && (
-              <div className="max-w-[110px] xl:max-w-[128px] truncate text-[11px] text-gray-400"
+              <div className="max-w-[100px] xl:max-w-[128px] truncate text-[11px] text-gray-400"
                 title={t('admin.partners.partnerRepHint', { partner: o.partnerName, name: repPartenaire }) as string}>
                 {o.partnerName} · {repPartenaire}
               </div>
             )}
             {o.crmOwnerName && (
-              <div className="max-w-[110px] xl:max-w-[128px] truncate text-[11px] text-primary"
+              <div className="max-w-[100px] xl:max-w-[128px] truncate text-[11px] text-primary"
                 title={t('admin.partners.clusterRepHint', { name: o.crmOwnerName }) as string}>
                 {t('admin.partners.clusterRepPrefix')} {o.crmOwnerName}
               </div>
@@ -700,10 +701,10 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
         const contact = [who, o.contactEmail].filter(Boolean).join(' · ');
         return (
           <div className="leading-tight">
-            <div className="max-w-[140px] xl:max-w-[160px] truncate font-medium text-black dark:text-white" title={o.businessName}>{o.businessName}</div>
-            {contact && <div className="max-w-[140px] xl:max-w-[160px] truncate text-[11px] text-gray-400" title={contact}>{contact}</div>}
+            <div className="max-w-[125px] xl:max-w-[160px] truncate font-medium text-black dark:text-white" title={o.businessName}>{o.businessName}</div>
+            {contact && <div className="max-w-[125px] xl:max-w-[160px] truncate text-[11px] text-gray-400" title={contact}>{contact}</div>}
             {o.submittedByEmail && (
-              <div className="max-w-[140px] xl:max-w-[160px] truncate text-[11px] text-gray-400"
+              <div className="max-w-[125px] xl:max-w-[160px] truncate text-[11px] text-gray-400"
                 title={`${t('admin.partners.colSubmittedBy')} : ${o.submittedByEmail}`}>↳ {o.submittedByEmail}</div>
             )}
           </div>
@@ -754,7 +755,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
             {/* Seule cellule du tableau sans plafond de largeur : « Deposit Information Received »
                 imposait 207 px a la colonne. Tronquee comme les autres, avec le libelle entier en
                 infobulle. */}
-            <div className="max-w-[120px] xl:max-w-[140px] truncate text-body" title={o.crmDealStage || undefined}>{o.crmDealStage || '—'}</div>
+            <div className="max-w-[110px] xl:max-w-[140px] truncate text-body" title={o.crmDealStage || undefined}>{o.crmDealStage || '—'}</div>
             {/* 19 chiffres bruts ne disaient rien : l'identifiant devient un lien vers la fiche. */}
             {o.crmLeadId && (
               <a href={`https://crm.zoho.com/crm/tab/Leads/${o.crmLeadId}`} target="_blank" rel="noreferrer"
@@ -783,7 +784,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
             )}
             {o.linkedCustomerName ? (
               <button onClick={() => openLinking(o)} title={`${o.linkedCustomerName} — ${t('admin.partners.payout.relink')}`}
-                className="inline-block max-w-[110px] xl:max-w-[140px] truncate text-[11px] text-gray-400 hover:text-primary hover:underline">
+                className="inline-block max-w-[100px] xl:max-w-[140px] truncate text-[11px] text-gray-400 hover:text-primary hover:underline">
                 🔗 {o.linkedCustomerName}
               </button>
             ) : (
@@ -817,7 +818,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
             </div>
             {/* Le reviseur sortait de la colonne « Actions », ou il n'etait pas une action. */}
             {o.status !== 'pending' && o.reviewedBy && (
-              <div className="ml-auto max-w-[130px] xl:max-w-[145px] truncate text-[11px] text-gray-400"
+              <div className="ml-auto max-w-[115px] xl:max-w-[145px] truncate text-[11px] text-gray-400"
                 title={`${t('admin.partners.queue.reviewedBy')} : ${o.reviewedBy}`}>{o.reviewedBy}</div>
             )}
           </div>
@@ -1688,7 +1689,13 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
               <div className="p-8 text-center text-sm text-body">{t('admin.partners.noOpportunities')}</div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[820px] text-sm">
+                {/* Pas de `min-w` : il y avait un `min-w-[820px]` et c'etait une butee FANTOME. Tant
+                    que le plancher du contenu etait a 969 px il ne servait a rien ; des qu'on est
+                    passe sous 820 il a avale silencieusement chaque gain (padding, plafonds : tout
+                    ramenait exactement 820). Ce sont les plafonds `truncate` qui garantissent qu'une
+                    colonne reste lisible — une largeur plancher en plus n'ajoute rien et masque le
+                    vrai chiffre. Plancher reel mesure : 736 px. */}
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-stroke dark:border-strokedark">
                       {cols.map((c) => (
@@ -1696,7 +1703,12 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
                         // lignes, ce qui suffisait a faire paraitre toute la rangee d'en-tetes de
                         // travers. Mesure : ca ne ramene PAS la barre de defilement horizontale (la
                         // colonne « Soumis le » en w-full absorbe le supplement).
-                        <th key={c} className={`whitespace-nowrap px-3 py-2.5 align-bottom text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 ${
+                        // px-2 sous xl : 8 px de gouttiere au lieu de 12, sur six colonnes ca rend
+                        // 48 px au tableau sans couper un seul caractere. Le px-3 revient des qu'il
+                        // y a la place. Les en-tetes gardent `nowrap` a TOUTES les largeurs : les
+                        // laisser passer sur deux lignes sous xl n'aurait rendu que 11 px de plus,
+                        // au prix de la rangee de travers qu'on vient justement de corriger.
+                        <th key={c} className={`whitespace-nowrap px-2 py-2.5 align-bottom text-xs font-semibold uppercase tracking-wide text-gray-500 xl:px-3 dark:text-gray-400 ${
                           c === 'submitted' ? 'w-full text-right' : 'text-left'
                         }`}>
                           {c === 'submitted' ? (
@@ -1715,20 +1727,21 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
                           ) : COL_LABEL[c]}
                         </th>
                       ))}
-                      {/* px-4 comme la CELLULE juste en dessous : avec px-3 ici et px-4 en bas, le libelle
-                          « Actions » depassait les boutons de 4 px vers la droite. Mesure. */}
-                      <th className="sticky right-0 bg-white px-4 py-2.5 text-right align-bottom text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-boxdark dark:text-gray-400">{t('common.actions')}</th>
+                      {/* Le MEME padding que la CELLULE juste en dessous, aux deux paliers : avec px-3
+                          ici et px-4 en bas, le libelle « Actions » depassait les boutons de 4 px vers
+                          la droite. Mesure. Toute retouche de padding doit rester en miroir. */}
+                      <th className="sticky right-0 bg-white px-3 py-2.5 text-right align-bottom text-xs font-semibold uppercase tracking-wide text-gray-500 xl:px-4 dark:bg-boxdark dark:text-gray-400">{t('common.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {opportunities.map((o) => (
                       <tr key={o.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
                         {cols.map((c) => (
-                          <td key={c} className={`px-3 py-2 align-top ${c === 'submitted' ? 'text-right' : ''}`}>
+                          <td key={c} className={`px-2 py-2 align-top xl:px-3 ${c === 'submitted' ? 'text-right' : ''}`}>
                             {renderQueueCell(o, c)}
                           </td>
                         ))}
-                        <td className="sticky right-0 bg-white px-4 py-3 text-right dark:bg-boxdark">
+                        <td className="sticky right-0 bg-white px-3 py-3 text-right xl:px-4 dark:bg-boxdark">
                           <div className="flex items-center justify-end gap-1.5">
                             {o.status === 'pending' ? (
                               <>
