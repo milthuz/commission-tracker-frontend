@@ -106,6 +106,38 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
     setSub(subFromParams());
   }, [searchParams]);
 
+  // Mon compte Zoho — pas celui de l'application.
+  //
+  // Zoho estampille « Créé par » avec le propriétaire du jeton OAuth qui écrit, et son API ne
+  // permet ni de le fixer à la création ni de le corriger après. Un lead approuvé porte donc le
+  // nom du compte système tant que l'approbateur n'a pas connecté le sien.
+  //
+  // Le bouton vit ICI et pas dans Intégrations (/admin/sync) parce que cette page-là est réservée
+  // aux admins : un gestionnaire de partenaires — précisément la personne qui approuve — s'y fait
+  // renvoyer à l'accueil. Il ne pouvait donc pas connecter son compte, ni même voir le problème.
+  const [monZoho, setMonZoho] = useState<{ connected: boolean; email: string } | null>(null);
+  const lireMonZoho = () => axios
+    .get(`${API_URL}/api/auth/crm-status/me`, { headers: authHeaders() })
+    .then((r) => setMonZoho(r.data))
+    .catch(() => setMonZoho(null));
+  useEffect(() => { lireMonZoho(); }, []);
+  // Retour du consentement Zoho : rafraîchir l'état et nettoyer l'URL, sinon un rechargement
+  // rejoue le paramètre et le bandeau clignote.
+  useEffect(() => {
+    if (searchParams.get('crm')) {
+      lireMonZoho();
+      navigate('/admin/partners' + (searchParams.get('view') ? `?view=${searchParams.get('view')}` : ''), { replace: true });
+    }
+  }, [searchParams]);
+  const connecterMonZoho = async () => {
+    try {
+      const r = await axios.get(`${API_URL}/api/auth/zoho-crm?back=partners`, { headers: authHeaders() });
+      window.location.href = r.data.authUrl;
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || t('admin.partners.zoho.connectFailed'));
+    }
+  };
+
   // Manage Partners
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loadingPartners, setLoadingPartners] = useState(true);
@@ -1609,6 +1641,20 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
 
       {sub === 'queue' && (
         <div className="flex flex-col gap-4">
+          {/* Ne s'affiche QUE tant que le compte n'est pas connecté : une fois branché, il n'y a
+              plus rien à décider et un bandeau permanent deviendrait du bruit. */}
+          {monZoho && !monZoho.connected && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/40 bg-warning/10 px-4 py-3">
+              <div className="text-xs leading-relaxed text-black dark:text-white">
+                <span className="font-semibold">{t('admin.partners.zoho.title')}</span>
+                <span className="ml-1 text-body">{t('admin.partners.zoho.body')}</span>
+              </div>
+              <button onClick={connecterMonZoho}
+                className="whitespace-nowrap rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-white hover:bg-opacity-90">
+                {t('admin.partners.zoho.connect')}
+              </button>
+            </div>
+          )}
           {/* Status tiles double as the filter — clicking one both shows its count and narrows
               the table, so the "dashboard" framing and the filter are the same control. */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

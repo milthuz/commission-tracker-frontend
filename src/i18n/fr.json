@@ -2039,7 +2039,13 @@
       },
       "remindBulk": "Relancer ({{count}})",
       "remindHint": "Renvoie un rappel sobre, sans bouton ni ton d’annonce — pour éviter le dossier Promotions. ⚠️ Un nouveau lien est généré : celui du premier courriel cessera de fonctionner.",
-      "remindBulkConfirm": "Envoyer un rappel à {{count}} personne(s) ? Un nouveau lien est généré, donc celui de l’invitation précédente cessera de fonctionner."
+      "remindBulkConfirm": "Envoyer un rappel à {{count}} personne(s) ? Un nouveau lien est généré, donc celui de l’invitation précédente cessera de fonctionner.",
+      "zoho": {
+        "title": "Vos approbations sont écrites dans Zoho sous le compte de l’application.",
+        "body": "Connectez votre compte Zoho pour que les pistes que vous approuvez portent votre nom dans « Créé par ». Rien d’autre ne change.",
+        "connect": "Connecter mon compte Zoho",
+        "connectFailed": "Impossible de démarrer la connexion à Zoho."
+      }
     },
     "resources": {
       "title": "Stockage des ressources",

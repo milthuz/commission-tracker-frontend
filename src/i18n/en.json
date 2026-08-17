@@ -2039,7 +2039,13 @@
       },
       "remindBulk": "Send reminder ({{count}})",
       "remindHint": "Sends a plain reminder — no button, no announcement tone — to stay out of the Promotions folder. ⚠️ A new link is generated: the one in the first email will stop working.",
-      "remindBulkConfirm": "Send a reminder to {{count}} people? A new link is generated, so the one in the previous invitation will stop working."
+      "remindBulkConfirm": "Send a reminder to {{count}} people? A new link is generated, so the one in the previous invitation will stop working.",
+      "zoho": {
+        "title": "Your approvals are written to Zoho under the application’s account.",
+        "body": "Connect your Zoho account so the leads you approve carry your name in “Created By”. Nothing else changes.",
+        "connect": "Connect my Zoho account",
+        "connectFailed": "Could not start the Zoho connection."
+      }
     },
     "resources": {
       "title": "Resources storage",
