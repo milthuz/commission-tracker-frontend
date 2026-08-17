@@ -3013,7 +3013,31 @@
       "topHint": "The 25 most recent sign-ins.",
       "topNone": "Nobody has signed in yet.",
       "userCounts": "{{logins}} sign-in(s) · {{submissions}} submission(s)",
-      "disclaimer": "Only server-side facts are counted: sign-ins, activations, submissions. Pages viewed, time spent and navigation paths are not measured. “Links opened” means the person clicked their invitation — the email open itself is not tracked."
+      "disclaimer": "Only server-side facts are counted: sign-ins, activations, submissions. Pages viewed, time spent and navigation paths are not measured. “Links opened” means the person clicked their invitation — the email open itself is not tracked.",
+      "pipelineTitle": "Deal pipeline",
+      "pipelineHint": "What partners bring in, and what becomes of it in Zoho. Distinct from portal usage, further down.",
+      "pipe": {
+        "submitted": "Submitted",
+        "withDeal": "With deal",
+        "open": "In progress",
+        "won": "Won",
+        "lost": "Lost",
+        "noStage": "No stage read"
+      },
+      "winRate": "win rate — {{won}} won out of {{decided}} decided",
+      "payoutsLine": "{{deposits}} deposit(s) received · {{paid}} payout(s) settled",
+      "coverage": "{{n}} records ({{pct}}%) have no stage read from Zoho — they count towards no rate",
+      "monthTitle": "Volume and outcome by month",
+      "monthHint": "By submission month: bar height is the volume received, its composition is what became of it.",
+      "stageTitle": "What is in progress",
+      "stageHint": "The {{n}} still-open records, by Zoho stage. Won and lost are excluded.",
+      "stageNone": "No open records.",
+      "byPartnerPipeline": "By partner",
+      "byPartnerPipelineHint": "Volume, conversion and payouts. Sorted by volume.",
+      "colWinRate": "Win rate",
+      "colPaid": "Paid",
+      "last30": "+{{n}} in 30d",
+      "usageSection": "Portal usage"
     }
   },
   "header": {

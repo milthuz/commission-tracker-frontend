@@ -3013,7 +3013,31 @@
       "topHint": "Les 25 dernières personnes connectées.",
       "topNone": "Personne ne s’est encore connecté.",
       "userCounts": "{{logins}} connexion(s) · {{submissions}} soumission(s)",
-      "disclaimer": "Seuls les faits enregistrés côté serveur sont comptés : connexions, activations, soumissions. Les pages consultées, le temps passé et les parcours ne sont pas mesurés. « Liens ouverts » signifie que la personne a cliqué sur son invitation — l’ouverture du courriel elle-même n’est pas suivie."
+      "disclaimer": "Seuls les faits enregistrés côté serveur sont comptés : connexions, activations, soumissions. Les pages consultées, le temps passé et les parcours ne sont pas mesurés. « Liens ouverts » signifie que la personne a cliqué sur son invitation — l’ouverture du courriel elle-même n’est pas suivie.",
+      "pipelineTitle": "Pipeline d’affaires",
+      "pipelineHint": "Ce que les partenaires rapportent, et ce que ça devient dans Zoho. À distinguer de l’usage du portail, plus bas.",
+      "pipe": {
+        "submitted": "Soumis",
+        "withDeal": "Avec opportunité",
+        "open": "En cours",
+        "won": "Gagnés",
+        "lost": "Perdus",
+        "noStage": "Sans étape lue"
+      },
+      "winRate": "de réussite — {{won}} gagnés sur {{decided}} dossiers tranchés",
+      "payoutsLine": "{{deposits}} dépôt(s) reçu(s) · {{paid}} versement(s) réglé(s)",
+      "coverage": "{{n}} dossiers ({{pct}} %) n’ont aucune étape lue dans Zoho — ils ne comptent dans aucun taux",
+      "monthTitle": "Volume et issue par mois",
+      "monthHint": "Par mois de soumission : la hauteur donne le volume reçu, la composition dit ce qu’il est devenu.",
+      "stageTitle": "Ce qui est en cours",
+      "stageHint": "Les {{n}} dossiers encore ouverts, par étape Zoho. Les dossiers gagnés et perdus sont exclus.",
+      "stageNone": "Aucun dossier ouvert.",
+      "byPartnerPipeline": "Par partenaire",
+      "byPartnerPipelineHint": "Volume, conversion et versements. Trié par volume.",
+      "colWinRate": "Réussite",
+      "colPaid": "Versés",
+      "last30": "+{{n}} sur 30 j",
+      "usageSection": "Usage du portail"
     }
   },
   "header": {
