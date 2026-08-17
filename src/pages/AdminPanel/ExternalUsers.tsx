@@ -174,26 +174,33 @@ const ExternalUsers: React.FC = () => {
           <p className="py-4 text-center text-sm text-body">{t('admin.externalUsers.empty')}</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-sm">
+            {/* Pas de `min-w` : le `min-w-[820px]` qui etait ici MORDAIT — le plancher reel du
+                contenu, courriels et noms au pire cas, n'est que de 765 px. Et cette table est la
+                seule des trois a vivre dans un `p-7`, donc elle dispose de 56 px de MOINS que la
+                carte : sur une fenetre de 1152 px elle debordait de 79 px, dont 55 venaient de la
+                butee elle-meme. Retire, plus 8 px de gouttiere rendus par colonne (px-3 sous xl,
+                px-4 des xl : -48 px, zero caractere perdu), le plancher tombe a 717 px et la barre
+                horizontale ne revient qu'en dessous de 1128 px. Meme diagnostic qu'en 2e3c6b8. */}
+            <table className="w-full text-sm">
               <thead className="bg-gray-2 text-left dark:bg-meta-4">
                 <tr>
-                  <th className="px-4 py-2.5 font-medium">{t('admin.externalUsers.email')}</th>
-                  <th className="px-4 py-2.5 font-medium">{t('admin.externalUsers.name')}</th>
-                  <th className="px-4 py-2.5 font-medium">{t('admin.externalUsers.status')}</th>
-                  <th className="px-4 py-2.5 font-medium">2FA</th>
-                  <th className="px-4 py-2.5 font-medium">{t('admin.externalUsers.lastLogin')}</th>
-                  <th className="px-4 py-2.5 text-right font-medium">{t('admin.externalUsers.actions')}</th>
+                  <th className="px-3 py-2.5 font-medium xl:px-4">{t('admin.externalUsers.email')}</th>
+                  <th className="px-3 py-2.5 font-medium xl:px-4">{t('admin.externalUsers.name')}</th>
+                  <th className="px-3 py-2.5 font-medium xl:px-4">{t('admin.externalUsers.status')}</th>
+                  <th className="px-3 py-2.5 font-medium xl:px-4">2FA</th>
+                  <th className="px-3 py-2.5 font-medium xl:px-4">{t('admin.externalUsers.lastLogin')}</th>
+                  <th className="px-3 py-2.5 text-right font-medium xl:px-4">{t('admin.externalUsers.actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((u) => (
                   <tr key={u.id} className="border-t border-stroke dark:border-strokedark">
-                    <td className="px-4 py-2.5 font-medium text-black dark:text-white">{u.email}</td>
-                    <td className="px-4 py-2.5 text-black dark:text-white">{u.display_name || '—'}</td>
-                    <td className="px-4 py-2.5">{statusBadge(u)}</td>
-                    <td className="px-4 py-2.5">{u.totp_enabled ? '✅' : '—'}</td>
-                    <td className="px-4 py-2.5 text-body">{fmtDate(u.last_login_at)}</td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-3 py-2.5 font-medium text-black xl:px-4 dark:text-white">{u.email}</td>
+                    <td className="px-3 py-2.5 text-black xl:px-4 dark:text-white">{u.display_name || '—'}</td>
+                    <td className="px-3 py-2.5 xl:px-4">{statusBadge(u)}</td>
+                    <td className="px-3 py-2.5 xl:px-4">{u.totp_enabled ? '✅' : '—'}</td>
+                    <td className="px-3 py-2.5 text-body xl:px-4">{fmtDate(u.last_login_at)}</td>
+                    <td className="px-3 py-2.5 xl:px-4">
                       <div className="flex justify-end gap-2 whitespace-nowrap">
                         {u.status === 'invited' && (
                           <button onClick={() => resend(u)} disabled={busy}

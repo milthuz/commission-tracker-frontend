@@ -139,7 +139,14 @@ const PassLibraryAdmin = () => {
 
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] table-auto">
+          {/* Pas de `min-w` : le `min-w-[820px]` qui etait ici MORDAIT — le plancher reel du
+              contenu, titres FR/EN et nom de fichier au pire cas, n'est que de 713 px. Les 107 px
+              d'ecart etaient du debordement horizontal pur, ajoute par la butee elle-meme : sur une
+              fenetre de 1152 px la table depassait de 23 px alors que son contenu tenait large.
+              Retire, la barre n'apparait plus qu'en dessous de 1068 px. Ce sont le plafond
+              `max-w-[26ch]` du nom de fichier et le retour a la ligne des titres qui gardent les
+              colonnes lisibles, pas une largeur plancher. Voir 2e3c6b8 pour le meme diagnostic. */}
+          <table className="w-full table-auto">
             <thead>
               <tr className="bg-gray-2 text-left dark:bg-meta-4">
                 <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('passOps.lib.titleFr')}</th>
