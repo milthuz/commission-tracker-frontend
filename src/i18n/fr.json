@@ -168,7 +168,8 @@
     "listening": "À l'écoute… parlez, puis relisez",
     "dictationError": "La dictée s'est arrêtée — vérifiez que le micro est autorisé.",
     "dictationBlocked": "Le micro est bloqué — autorisez-le pour ce site dans votre navigateur, puis réessayez.",
-    "dictationNetwork": "La dictée a besoin d'Internet pour transcrire — vérifiez votre connexion."
+    "dictationNetwork": "La dictée a besoin d'Internet pour transcrire — vérifiez votre connexion.",
+    "dictationLang": "Langue de dictée : {{lang}} — touchez pour changer"
   },
   "reseller": {
     "title": "Revendeurs",

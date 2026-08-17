@@ -95,12 +95,30 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
   const [listening, setListening] = useState(false);
   const recogRef = useRef<any>(null);
 
+  // Dictation language is its OWN setting, not the interface language.
+  // SpeechRecognition cannot detect a language — it transcribes according to the
+  // one it is given, so a mismatch produces gibberish rather than a wrong guess.
+  // The app language is only the starting point: reps here work in both, and the
+  // person dictating is the one who knows which they are about to speak.
+  const [dictLang, setDictLang] = useState<'fr-CA' | 'en-CA'>(() => {
+    const saved = localStorage.getItem('sofia:dictLang');
+    if (saved === 'fr-CA' || saved === 'en-CA') return saved;
+    return i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA';
+  });
+  const toggleDictLang = () => setDictLang((v) => {
+    const next = v === 'fr-CA' ? 'en-CA' : 'fr-CA';
+    localStorage.setItem('sofia:dictLang', next);
+    // Switching mid-dictation would keep transcribing in the old language.
+    if (recogRef.current && listening) recogRef.current.stop();
+    return next;
+  });
+
   const toggleDictation = () => {
     if (!SR) return;
     if (listening) { recogRef.current?.stop(); return; }
 
     const r = new SR();
-    r.lang = i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA';
+    r.lang = dictLang;
     r.interimResults = true;   // let the user watch it form, and catch mistakes early
     r.continuous = true;       // dictating a call summary takes more than one breath
     recogRef.current = r;
@@ -466,6 +484,16 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
             {/* Dictation. It fills the box and stops there — it never submits.
                 Speech recognition mishears, and Sofia writes to real customer
                 records; the user must get to read it back before it goes. */}
+            {/* Dictation language, right beside the mic so it is obvious which
+                language is about to be transcribed — and fixable in one tap when
+                it is the wrong one. */}
+            {SR && (
+              <button type="button" onClick={toggleDictLang} disabled={busy}
+                title={t(`${i18nPrefix}.dictationLang`, { lang: dictLang === 'fr-CA' ? 'Français' : 'English' }) as string}
+                className="flex h-10 w-9 shrink-0 items-center justify-center rounded-full border border-stroke text-[10px] font-bold text-body transition hover:border-primary hover:text-primary disabled:opacity-40 dark:border-strokedark dark:text-bodydark">
+                {dictLang === 'fr-CA' ? 'FR' : 'EN'}
+              </button>
+            )}
             {SR && (
               <button type="button" onClick={toggleDictation} disabled={busy}
                 title={t(`${i18nPrefix}.${listening ? 'stopDictation' : 'dictate'}`) as string}

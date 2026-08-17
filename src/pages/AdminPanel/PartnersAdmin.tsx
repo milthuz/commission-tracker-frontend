@@ -1692,7 +1692,9 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
                           ) : COL_LABEL[c]}
                         </th>
                       ))}
-                      <th className="sticky right-0 bg-white px-3 py-2.5 text-right align-bottom text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-boxdark dark:text-gray-400">{t('common.actions')}</th>
+                      {/* px-4 comme la CELLULE juste en dessous : avec px-3 ici et px-4 en bas, le libelle
+                          « Actions » depassait les boutons de 4 px vers la droite. Mesure. */}
+                      <th className="sticky right-0 bg-white px-4 py-2.5 text-right align-bottom text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-boxdark dark:text-gray-400">{t('common.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
