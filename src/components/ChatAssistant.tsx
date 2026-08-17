@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import SofiaAvatar from './SofiaAvatar';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -70,11 +71,15 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
   // Expanded is a real preference, not a per-open toggle: someone who works out
   // of Sofia wants the big panel every time, and re-clicking it on every visit
   // is the kind of small friction that makes people stop using a tool.
-  const [expanded, setExpanded] = useState(() => localStorage.getItem('sofia:expanded') === '1');
-  const toggleExpanded = () => setExpanded((v) => {
-    localStorage.setItem('sofia:expanded', v ? '0' : '1');
-    return !v;
-  });
+  //
+  // Via useLocalStorage, NOT localStorage directly: Safari THROWS on
+  // localStorage when storage is blocked (private mode, "block all cookies",
+  // aggressive ITP). Read during render, that exception takes down the whole
+  // component — and since this widget mounts on every authenticated page, it
+  // took down the entire app while the login page kept working. The hook already
+  // carries the try/catch this needed.
+  const [expanded, setExpanded] = useLocalStorage<boolean>('sofia:expanded', false);
+  const toggleExpanded = () => setExpanded((v: boolean) => !v);
   const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
@@ -100,18 +105,15 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
   // one it is given, so a mismatch produces gibberish rather than a wrong guess.
   // The app language is only the starting point: reps here work in both, and the
   // person dictating is the one who knows which they are about to speak.
-  const [dictLang, setDictLang] = useState<'fr-CA' | 'en-CA'>(() => {
-    const saved = localStorage.getItem('sofia:dictLang');
-    if (saved === 'fr-CA' || saved === 'en-CA') return saved;
-    return i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA';
-  });
-  const toggleDictLang = () => setDictLang((v) => {
-    const next = v === 'fr-CA' ? 'en-CA' : 'fr-CA';
-    localStorage.setItem('sofia:dictLang', next);
+  const [dictLang, setDictLang] = useLocalStorage<'fr-CA' | 'en-CA'>(
+    'sofia:dictLang',
+    i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA'
+  );
+  const toggleDictLang = () => {
     // Switching mid-dictation would keep transcribing in the old language.
     if (recogRef.current && listening) recogRef.current.stop();
-    return next;
-  });
+    setDictLang((v: 'fr-CA' | 'en-CA') => (v === 'fr-CA' ? 'en-CA' : 'fr-CA'));
+  };
 
   const toggleDictation = () => {
     if (!SR) return;
