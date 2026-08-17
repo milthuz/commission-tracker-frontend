@@ -239,10 +239,13 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
   });
 
   const CHUNK = 25;   // le serveur plafonne a 50 ; on reste en dessous pour des requetes courtes
-  const inviteSelected = async () => {
+  // Un seul chemin pour les deux gestes : la mecanique (tranches, cumul du rapport, rafraichissement)
+  // est identique, seul le gabarit change. Deux fonctions auraient fini par diverger.
+  const inviteSelected = async (rappel = false) => {
     const ids = invitableShown.filter((iv) => selectedUsers.has(iv.id)).map((iv) => iv.id);
     if (!ids.length) return;
-    if (!(await dialog.confirm(t('admin.partners.inviteBulkConfirm', { count: ids.length }) as string))) return;
+    if (!(await dialog.confirm(t(rappel ? 'admin.partners.remindBulkConfirm' : 'admin.partners.inviteBulkConfirm',
+      { count: ids.length }) as string))) return;
     const total = { sent: 0, skipped: 0, failed: [] as any[] };
     setInviteProgress({ done: 0, total: ids.length });
     try {
@@ -250,7 +253,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
       // rester lisible. Le rapport se cumule, donc on sait toujours ou on s'est arrete.
       for (let i = 0; i < ids.length; i += CHUNK) {
         const r = await axios.post(`${API_URL}/api/admin/partner-users/invite`,
-          { ids: ids.slice(i, i + CHUNK) }, { headers: authHeaders() });
+          { ids: ids.slice(i, i + CHUNK), reminder: rappel }, { headers: authHeaders() });
         total.sent += r.data.sent?.length || 0;
         total.skipped += r.data.skipped?.length || 0;
         total.failed.push(...(r.data.failed || []));
@@ -1217,12 +1220,25 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
               {/* Le bouton dit COMBIEN il enverra : « Inviter » seul, sur 177 lignes, est une
                   promesse trop vague pour un geste irreversible. */}
               {invitableShown.length > 0 && (
-                <button onClick={inviteSelected} disabled={!selectedUsers.size || !!inviteProgress}
-                  className="shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
-                  {inviteProgress
-                    ? t('admin.partners.inviteBulkSending', { done: inviteProgress.done, total: inviteProgress.total })
-                    : t('admin.partners.inviteBulk', { count: selectedUsers.size })}
-                </button>
+                <div className="flex shrink-0 items-center gap-2">
+                  {/* « Relancer » n'apparait que s'il y a des comptes DEJA invites dans la
+                      selection : relancer quelqu'un qui n'a jamais rien recu n'a pas de sens,
+                      et le gabarit sobre lui dirait « votre acces n'est pas encore active »
+                      alors qu'il n'a jamais ete prevenu qu'il en avait un. */}
+                  {shownInvites.some((iv) => selectedUsers.has(iv.id) && iv.status === 'invited') && (
+                    <button onClick={() => inviteSelected(true)} disabled={!selectedUsers.size || !!inviteProgress}
+                      title={t('admin.partners.remindHint') as string}
+                      className="rounded-lg border border-stroke px-4 py-2 text-sm font-semibold text-body hover:border-primary hover:text-primary disabled:opacity-40 dark:border-strokedark">
+                      {t('admin.partners.remindBulk', { count: selectedUsers.size })}
+                    </button>
+                  )}
+                  <button onClick={() => inviteSelected(false)} disabled={!selectedUsers.size || !!inviteProgress}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
+                    {inviteProgress
+                      ? t('admin.partners.inviteBulkSending', { done: inviteProgress.done, total: inviteProgress.total })
+                      : t('admin.partners.inviteBulk', { count: selectedUsers.size })}
+                  </button>
+                </div>
               )}
             </div>
           </div>

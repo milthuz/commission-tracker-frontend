@@ -2033,7 +2033,10 @@
         "copy": "Copy code",
         "copied": "Copied",
         "linkHint": "Ready-made link:"
-      }
+      },
+      "remindBulk": "Send reminder ({{count}})",
+      "remindHint": "Sends a plain reminder — no button, no announcement tone — to stay out of the Promotions folder. ⚠️ A new link is generated: the one in the first email will stop working.",
+      "remindBulkConfirm": "Send a reminder to {{count}} people? A new link is generated, so the one in the previous invitation will stop working."
     },
     "resources": {
       "title": "Resources storage",
@@ -2332,7 +2335,8 @@
         "pass_credit": "The Pass — credit and certificate",
         "partner_invite": "Partner portal — invitation",
         "partner_reset": "Partner portal — password reset",
-        "partner_invite_migration": "Partner portal — migration invitation (legacy portal)"
+        "partner_invite_migration": "Partner portal — migration invitation (legacy portal)",
+        "partner_reminder": "Partner portal — activation reminder"
       }
     },
     "recalculate": {

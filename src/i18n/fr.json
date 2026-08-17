@@ -2033,7 +2033,10 @@
         "copy": "Copier le code",
         "copied": "Copié",
         "linkHint": "Lien tout prêt :"
-      }
+      },
+      "remindBulk": "Relancer ({{count}})",
+      "remindHint": "Renvoie un rappel sobre, sans bouton ni ton d’annonce — pour éviter le dossier Promotions. ⚠️ Un nouveau lien est généré : celui du premier courriel cessera de fonctionner.",
+      "remindBulkConfirm": "Envoyer un rappel à {{count}} personne(s) ? Un nouveau lien est généré, donc celui de l’invitation précédente cessera de fonctionner."
     },
     "resources": {
       "title": "Stockage des ressources",
@@ -2332,7 +2335,8 @@
         "pass_credit": "La Passe — crédit et certificat",
         "partner_invite": "Portail partenaire — invitation",
         "partner_reset": "Portail partenaire — réinitialisation du mot de passe",
-        "partner_invite_migration": "Portail partenaire — invitation de reprise (ancien portail)"
+        "partner_invite_migration": "Portail partenaire — invitation de reprise (ancien portail)",
+        "partner_reminder": "Portail partenaire — rappel d’activation"
       }
     },
     "recalculate": {
