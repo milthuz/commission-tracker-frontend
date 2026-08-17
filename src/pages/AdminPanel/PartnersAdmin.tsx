@@ -641,6 +641,22 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
 
   // Une cellule par cle de colonne, ecrite UNE fois : les quatre vues partagent ce rendu, donc
   // corriger « Entreprise / contact » le corrige partout, au lieu de quatre tableaux a maintenir.
+  //
+  // Les plafonds de troncature sont RESPONSIVES (`max-w-[Npx] xl:max-w-[Mpx]`). Ce sont eux, et
+  // rien d'autre, qui fixaient la largeur minimale du tableau : une ligne `truncate` est en
+  // white-space:nowrap, donc son minimum est son plafond. La vue « approuvees » a une colonne de
+  // plus que les autres ; avec des noms et des courriels plus longs que les plafonds, son plancher
+  // montait a 969 px alors que la table annonce `min-w-[820px]` — barre de defilement horizontale
+  // sous 1307 px de fenetre, donc y compris sur un portable 1280. Plafonds reduits sous xl :
+  // plancher mesure a 829 px, seuil ramene a 1167 px.
+  //
+  // ⚠️ Trois plafonds larges ont ete rabotes au passage (entreprise 185→160, reviseur 170→145,
+  // etape du deal 150→140). Sans ca le plancher restait a 969 des xl, alors qu'une fenetre de
+  // 1280 n'offre que ~942 px de carte (fenetre moins la barre laterale ouverte et les marges,
+  // mesures : w-72.5 = 290 px et p-6 = 48 px) : le debordement
+  // reapparaissait entre 1280 et 1307. Ces largeurs sont des points de rupture de FENETRE, pas de
+  // conteneur — replier la barre laterale rend ~230 px de plus sans les declencher, ce qui va
+  // dans le bon sens. Tout est tronque avec le texte entier en infobulle, rien ne se perd.
   const dupFieldLabel = (f: string) => t(`admin.partners.queue.on.${f}`) as string;
   const renderQueueCell = (o: Opportunity, c: string) => {
     switch (c) {
@@ -665,13 +681,13 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
                 partenaire : sans lui, deux lignes de noms cote a cote ne disent pas qui est qui —
                 c'est exactement l'erreur signalee par David. */}
             {repPartenaire && (
-              <div className="max-w-[128px] truncate text-[11px] text-gray-400"
+              <div className="max-w-[110px] xl:max-w-[128px] truncate text-[11px] text-gray-400"
                 title={t('admin.partners.partnerRepHint', { partner: o.partnerName, name: repPartenaire }) as string}>
                 {o.partnerName} · {repPartenaire}
               </div>
             )}
             {o.crmOwnerName && (
-              <div className="max-w-[128px] truncate text-[11px] text-primary"
+              <div className="max-w-[110px] xl:max-w-[128px] truncate text-[11px] text-primary"
                 title={t('admin.partners.clusterRepHint', { name: o.crmOwnerName }) as string}>
                 {t('admin.partners.clusterRepPrefix')} {o.crmOwnerName}
               </div>
@@ -684,10 +700,10 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
         const contact = [who, o.contactEmail].filter(Boolean).join(' · ');
         return (
           <div className="leading-tight">
-            <div className="max-w-[185px] truncate font-medium text-black dark:text-white" title={o.businessName}>{o.businessName}</div>
-            {contact && <div className="max-w-[185px] truncate text-[11px] text-gray-400" title={contact}>{contact}</div>}
+            <div className="max-w-[140px] xl:max-w-[160px] truncate font-medium text-black dark:text-white" title={o.businessName}>{o.businessName}</div>
+            {contact && <div className="max-w-[140px] xl:max-w-[160px] truncate text-[11px] text-gray-400" title={contact}>{contact}</div>}
             {o.submittedByEmail && (
-              <div className="max-w-[185px] truncate text-[11px] text-gray-400"
+              <div className="max-w-[140px] xl:max-w-[160px] truncate text-[11px] text-gray-400"
                 title={`${t('admin.partners.colSubmittedBy')} : ${o.submittedByEmail}`}>↳ {o.submittedByEmail}</div>
             )}
           </div>
@@ -738,7 +754,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
             {/* Seule cellule du tableau sans plafond de largeur : « Deposit Information Received »
                 imposait 207 px a la colonne. Tronquee comme les autres, avec le libelle entier en
                 infobulle. */}
-            <div className="max-w-[150px] truncate text-body" title={o.crmDealStage || undefined}>{o.crmDealStage || '—'}</div>
+            <div className="max-w-[120px] xl:max-w-[140px] truncate text-body" title={o.crmDealStage || undefined}>{o.crmDealStage || '—'}</div>
             {/* 19 chiffres bruts ne disaient rien : l'identifiant devient un lien vers la fiche. */}
             {o.crmLeadId && (
               <a href={`https://crm.zoho.com/crm/tab/Leads/${o.crmLeadId}`} target="_blank" rel="noreferrer"
@@ -767,7 +783,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
             )}
             {o.linkedCustomerName ? (
               <button onClick={() => openLinking(o)} title={`${o.linkedCustomerName} — ${t('admin.partners.payout.relink')}`}
-                className="inline-block max-w-[140px] truncate text-[11px] text-gray-400 hover:text-primary hover:underline">
+                className="inline-block max-w-[110px] xl:max-w-[140px] truncate text-[11px] text-gray-400 hover:text-primary hover:underline">
                 🔗 {o.linkedCustomerName}
               </button>
             ) : (
@@ -801,7 +817,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
             </div>
             {/* Le reviseur sortait de la colonne « Actions », ou il n'etait pas une action. */}
             {o.status !== 'pending' && o.reviewedBy && (
-              <div className="ml-auto max-w-[170px] truncate text-[11px] text-gray-400"
+              <div className="ml-auto max-w-[130px] xl:max-w-[145px] truncate text-[11px] text-gray-400"
                 title={`${t('admin.partners.queue.reviewedBy')} : ${o.reviewedBy}`}>{o.reviewedBy}</div>
             )}
           </div>
