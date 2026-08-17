@@ -10,6 +10,7 @@ import { formatDateOnly } from '../utils/date';
 import PayStubModal, { PayStubData } from '../components/PayStubModal';
 import ProbationBadge from '../components/ProbationBadge';
 import { dialog } from '../lib/dialog';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -135,12 +136,16 @@ const CommissionReport = () => {
   // Restore the last viewed rep so the FIRST report fetch already targets them.
   // Without this, an admin's initial fetch returns their own (empty) report, the
   // banner/cards flash $0, then the rep auto-select triggers a second fetch.
-  const [selectedRep, setSelectedRep] = useState(() => localStorage.getItem('commissionReport.selectedRep') || '');
+  // Via useLocalStorage, not localStorage directly: read during render, a Safari
+  // SecurityError (storage blocked / private browsing) would take this whole page
+  // down. Same class of bug as the one that broke every authenticated page on
+  // 2026-08-17 — this was the other place carrying the pattern.
+  const [selectedRep, setSelectedRep] = useLocalStorage<string>('commissionReport.selectedRep', '');
   const [salespeople, setSalespeople] = useState<string[]>([]);
   const [canViewOthers, setCanViewOthers] = useState(false);
   // Privacy toggle for the salary / total-compensation figures (persisted per browser).
-  const [salaryHidden, setSalaryHidden] = useState(() => localStorage.getItem('commissionReport.salaryHidden') === '1');
-  const toggleSalaryHidden = () => setSalaryHidden(h => { localStorage.setItem('commissionReport.salaryHidden', h ? '0' : '1'); return !h; });
+  const [salaryHidden, setSalaryHidden] = useLocalStorage<boolean>('commissionReport.salaryHidden', false);
+  const toggleSalaryHidden = () => setSalaryHidden((h: boolean) => !h);
   // Years hidden by the admin (Admin → Import Commissions) — dropped from the year dropdown.
   const [disabledYears, setDisabledYears] = useState<number[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
