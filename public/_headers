@@ -10,5 +10,9 @@
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  # microphone=(self) — needed by Sofia's dictation (2026-08-13). An empty list,
+  # microphone=(), blocks the API for EVERY origin including this page, so the
+  # browser refuses before any of our code runs and the failure is silent.
+  # (self) opens it to this origin only; geolocation and camera stay closed.
+  Permissions-Policy: geolocation=(), microphone=(self), camera=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains

@@ -166,7 +166,9 @@
     "dictate": "Dictate",
     "stopDictation": "Stop dictating",
     "listening": "Listening… speak, then read it back",
-    "dictationError": "Dictation stopped — check that the microphone is allowed."
+    "dictationError": "Dictation stopped — check that the microphone is allowed.",
+    "dictationBlocked": "The microphone is blocked — allow it for this site in your browser, then try again.",
+    "dictationNetwork": "Dictation needs an internet connection to transcribe — check your network."
   },
   "reseller": {
     "title": "Resellers",

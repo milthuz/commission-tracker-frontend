@@ -115,14 +115,24 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
     r.onerror = (e: any) => {
       setListening(false);
       // "no-speech" and a user-cancelled permission are not worth an error
-      // banner; anything else the user should know about.
-      if (e?.error && !['no-speech', 'aborted'].includes(e.error)) {
-        setError(t(`${i18nPrefix}.dictationError`) as string);
-      }
+      // banner; anything else the user should know about — and it should say
+      // WHICH thing went wrong. A generic "dictation stopped" sent me looking at
+      // my own code when the real cause was a Permissions-Policy header
+      // blocking the microphone site-wide.
+      if (!e?.error || ['no-speech', 'aborted'].includes(e.error)) return;
+      const key = ['not-allowed', 'service-not-allowed'].includes(e.error)
+        ? 'dictationBlocked'
+        : e.error === 'network' ? 'dictationNetwork' : 'dictationError';
+      setError(t(`${i18nPrefix}.${key}`) as string);
     };
     r.onend = () => { setListening(false); inputRef.current?.focus(); };
     try { r.start(); setListening(true); setError(''); }
-    catch { setListening(false); }
+    catch {
+      // Never fail silently: a button that does nothing on click is the worst
+      // possible outcome — the user cannot tell it apart from a broken app.
+      setListening(false);
+      setError(t(`${i18nPrefix}.dictationError`) as string);
+    }
   };
 
   // Never leave the microphone open when the panel closes.
