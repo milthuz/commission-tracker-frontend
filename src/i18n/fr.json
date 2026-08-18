@@ -2356,7 +2356,10 @@
       "excludedBadge": "Exclu du tracker",
       "confirmExclude": "Exclure « {{deal}} » du Commission Tracker ? {{rep}} perdra {{points}} point(s). Le deal n'est pas supprimé et vous pourrez le réintégrer.",
       "confirmRestore": "Réintégrer « {{deal}} » dans le Commission Tracker ? {{rep}} récupérera {{points}} point(s).",
-      "currentlyExcluded": "Actuellement exclus du tracker ({{count}})"
+      "currentlyExcluded": "Actuellement exclus du tracker ({{count}})",
+      "excludeTitle": "Exclure cette transaction",
+      "reasonLabel": "Motif (facultatif, mais utile dans six mois)",
+      "reasonPlaceholder": "ex. doublon de la transaction #1234 · transaction de test · ne devait jamais compter"
     },
     "merchantLinks": {
       "title": "Liens Marchand ↔ SaaS",

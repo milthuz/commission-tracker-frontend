@@ -72,24 +72,32 @@ export default function DealsAdmin() {
   // Excluding does not delete the deal — it stops counting toward points (annual, monthly,
   // per-rep and the quota gate). Reversible, which is why the same button puts it back.
   const [togglingId, setTogglingId] = useState<string | null>(null);
-  const toggleExclude = async (d: Deal) => {
-    const next = !d.excluded;
-    const ok = await dialog.confirm(
-      t(next ? 'admin.deals.confirmExclude' : 'admin.deals.confirmRestore',
-        { deal: d.dealName, points: d.points, rep: d.ownerName || '—' }) as string
-    );
-    if (!ok) return;
+  // Excluding opens a small dedicated window because a REASON matters here: six months on,
+  // "who removed this deal and why" is the only thing that makes the decision reviewable.
+  // The app's shared dialog only does confirm/alert, hence the local modal.
+  // Restoring keeps the plain confirm — there is nothing to justify in giving points back.
+  const [excludeModal, setExcludeModal] = useState<{ deal: Deal; reason: string } | null>(null);
+
+  const applyExclusion = async (d: Deal, next: boolean, reason?: string) => {
     setTogglingId(d.dealId);
     try {
       await axios.post(`${API_URL}/api/crm/deals/${encodeURIComponent(d.dealId)}/exclude`,
-        { excluded: next }, { headers: headers() });
-      setDeals(ds => ds.map(x => x.dealId === d.dealId ? { ...x, excluded: next } : x));
+        { excluded: next, reason: reason || undefined }, { headers: headers() });
+      setDeals(ds => ds.map(x => x.dealId === d.dealId ? { ...x, excluded: next, exclusionReason: reason || null } : x));
+      setExcludeModal(null);
       loadExcluded();
     } catch (e: any) {
       dialog.alert(e?.response?.data?.error || (t('admin.deals.saveError') as string));
     } finally {
       setTogglingId(null);
     }
+  };
+
+  const toggleExclude = async (d: Deal) => {
+    if (!d.excluded) { setExcludeModal({ deal: d, reason: '' }); return; }
+    const ok = await dialog.confirm(
+      t('admin.deals.confirmRestore', { deal: d.dealName, points: d.points, rep: d.ownerName || '—' }) as string);
+    if (ok) await applyExclusion(d, false);
   };
 
   const save = async (dealId: string) => {
@@ -144,6 +152,7 @@ export default function DealsAdmin() {
                     <span className="font-medium text-black dark:text-white">{x.deal_name}</span>
                     {' · '}{x.owner_name || '—'}{' · '}{x.points ?? '?'} pt
                     {x.excluded_by ? ` · ${x.excluded_by}` : ''}
+                    {x.reason ? <span className="block text-xs italic text-body dark:text-bodydark">{x.reason}</span> : null}
                   </span>
                   <button
                     onClick={() => toggleExclude({
@@ -250,6 +259,53 @@ export default function DealsAdmin() {
           </div>
         )}
       </div>
+
+      {excludeModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4"
+          onClick={() => togglingId === null && setExcludeModal(null)}
+        >
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">
+              {t('admin.deals.excludeTitle')}
+            </h3>
+            <p className="mb-4 text-sm text-body">
+              {t('admin.deals.confirmExclude', {
+                deal: excludeModal.deal.dealName,
+                points: excludeModal.deal.points,
+                rep: excludeModal.deal.ownerName || '—',
+              })}
+            </p>
+
+            <label className="mb-1 block text-xs font-medium text-body">{t('admin.deals.reasonLabel')}</label>
+            <textarea
+              rows={3}
+              autoFocus
+              value={excludeModal.reason}
+              onChange={(e) => setExcludeModal(m => (m ? { ...m, reason: e.target.value } : m))}
+              placeholder={t('admin.deals.reasonPlaceholder') as string}
+              className="w-full resize-y rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
+            />
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                onClick={() => setExcludeModal(null)}
+                disabled={togglingId !== null}
+                className="rounded border border-stroke px-4 py-2 text-sm text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => applyExclusion(excludeModal.deal, true, excludeModal.reason.trim())}
+                disabled={togglingId !== null}
+                className="rounded bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+              >
+                {togglingId !== null ? t('common.saving') : t('admin.deals.exclude')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
