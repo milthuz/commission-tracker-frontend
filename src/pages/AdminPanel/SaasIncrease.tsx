@@ -424,7 +424,14 @@ const SaasIncrease: React.FC = () => {
   const todoGroupCount = groupedRows.length - doneGroupCount;
   const visibleGroups = groupView === 'all'
     ? groupedRows
-    : groupedRows.filter(([, rows]) => (groupView === 'done' ? isGroupDone(rows) : !isGroupDone(rows)));
+    : groupedRows.filter(([key, rows]) => {
+        // A group you've opened is a group you're working in — never yank it out from under the
+        // cursor. Without this, typing a value into the last un-set row of an expanded group makes
+        // the whole group satisfy "done" mid-keystroke, so it vanishes and the page jumps upward.
+        // It drops out of "To do" once you collapse it.
+        if (expandedGroups.has(key)) return true;
+        return groupView === 'done' ? isGroupDone(rows) : !isGroupDone(rows);
+      });
   const visibleRowCount = visibleGroups.reduce((n, [, rows]) => n + rows.length, 0);
 
   // Select-all now lives per-group (the column header only renders inside an expanded group) —
@@ -985,7 +992,7 @@ const SaasIncrease: React.FC = () => {
           <div className={`flex items-center px-3 ${chipInput} focus-within:border-primary`}>
             <span className={`mr-1.5 text-sm ${textTer}`}>CA$</span>
             <input
-              type="number" value={targetMrr} onChange={(e) => setTargetMrr(Number(e.target.value) || 0)}
+              type="number" value={targetMrr} onWheel={(e) => e.currentTarget.blur()} onChange={(e) => setTargetMrr(Number(e.target.value) || 0)}
               className="w-full border-0 bg-transparent py-2.5 text-sm text-gray-900 outline-none dark:text-white"
             />
           </div>
@@ -1092,7 +1099,7 @@ const SaasIncrease: React.FC = () => {
               <button type="button" onClick={() => setBulkType('flat')} className={segBtn(bulkType === 'flat')}>$</button>
             </div>
             <input
-              type="number" value={bulkValue} onChange={(e) => setBulkValue(Number(e.target.value) || 0)}
+              type="number" value={bulkValue} onWheel={(e) => e.currentTarget.blur()} onChange={(e) => setBulkValue(Number(e.target.value) || 0)}
               className={`w-14 rounded-md border px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:border-primary dark:text-white ${raised}`}
             />
             <button
@@ -1182,6 +1189,7 @@ const SaasIncrease: React.FC = () => {
                         </div>
                         <input
                           type="number" value={e?.increaseValue || ''} placeholder="0"
+                          onWheel={(ev) => ev.currentTarget.blur()}
                           onChange={(ev) => setEdit(s.subscriptionNumber, { increaseValue: Number(ev.target.value) || 0 })}
                           className={`w-[58px] rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary dark:bg-[#0A0A0A] dark:text-white ${included ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
                         />
