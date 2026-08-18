@@ -429,7 +429,7 @@
     "resourcesBody": "Tes documents de vente partagés — cherche, parcours et télécharge guides et modèles. Deux outils vedettes s'y trouvent aussi : le catalogue Aperçu du matériel et le Guide des services et prix (avec générateur de soumission intégré).",
     "kaizenBody": "Essaie la démo Kaizen POS — une caisse en direct à montrer à tes prospects.",
     "proposalsBody": "Crée et envoie une proposition de vente à partir d'une soumission Zoho Books.",
-    "partnersBody": "Gérez les entreprises partenaires et examinez les occasions d’affaires qu’elles soumettent.",
+    "partnersBody": "Gérez les entreprises partenaires et examinez les occasions d’affaires qu’elles soumettent. Approuver une occasion crée une piste dans Zoho, assignée au représentant Cluster de votre choix. L’onglet Statistiques montre le pipeline — volume reçu, ce qui est en cours, gagnés contre perdus, et la conversion par partenaire.",
     "adminBody": "Outils d'administration — vendeurs, imports, intégrations, utilisateurs et plus.",
     "profileBody": "Les réglages de ton compte, la langue et tes préférences.",
     "sectionGeneric": "Ouvre la section {{section}} ici.",

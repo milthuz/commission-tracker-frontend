@@ -429,7 +429,7 @@
     "resourcesBody": "Your shared sales documents — search, browse and download guides and templates. Two featured tools live here too: the Hardware Overview catalog and the Services & Pricing Guide (with a built-in quote builder).",
     "kaizenBody": "Try the Kaizen POS demo — a live, streamed point-of-sale you can show prospects.",
     "proposalsBody": "Build and send a branded sales proposal from a Zoho Books estimate.",
-    "partnersBody": "Manage partner companies and review the opportunities they submit.",
+    "partnersBody": "Manage partner companies and review the opportunities they submit. Approving one creates a Lead in Zoho, assigned to the Cluster rep you pick. The Statistics tab shows the pipeline — volume received, what is still open, won versus lost, and conversion per partner.",
     "adminBody": "Admin tools — salespeople, imports, integrations, users, and more.",
     "profileBody": "Your account settings, language and preferences.",
     "sectionGeneric": "Open the {{section}} section here.",
