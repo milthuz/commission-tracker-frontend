@@ -993,6 +993,29 @@
         "missing_commission": "Commission manquante",
         "missing_points": "Points manquants",
         "feature_request": "Demande de fonctionnalité"
+      },
+      "quickTitle": "Réponses rapides",
+      "quickReplies": {
+        "missing_points": [
+          "Le marchand était rattaché au mauvais vendeur dans Zentact. Corrigé — les points apparaissent maintenant.",
+          "Depuis le 1er août 2026, chaque succursale compte comme une vente. Ton unité manquante a été ajoutée.",
+          "Le marchand figure sous son nom commercial dans Zentact, pas sa raison sociale. Rien ne manquait — cherche sous l'autre nom.",
+          "Une synchronisation incomplète avait temporairement masqué des données. C'est rétabli.",
+          "L'activation n'est pas encore confirmée du côté Zentact. Les points arriveront dès la confirmation."
+        ],
+        "missing_commission": [
+          "La facture était gelée par un ancien règlement. Dégelée — la commission apparaît maintenant.",
+          "C'est un renouvellement : il ne génère pas de commission (0 %). C'est le fonctionnement prévu.",
+          "La commission se débloque quand le premier mois de SaaS est payé. Elle apparaîtra à ce moment-là.",
+          "La facture n'est pas encore payée dans Zoho. La commission se débloquera au paiement.",
+          "Cette vente précède le passage à la plateforme : elle a été payée via les anciens rapports.",
+          "Une synchronisation incomplète avait temporairement masqué des données. C'est rétabli."
+        ],
+        "feature_request": [
+          "Merci — c'est noté et ajouté au carnet de travail.",
+          "C'est déjà possible aujourd'hui. Je t'explique comment faire.",
+          "Bonne idée, mais ce n'est pas prévu pour l'instant. Merci de l'avoir proposée."
+        ]
       }
     },
     "invoiceList": {

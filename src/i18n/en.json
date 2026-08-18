@@ -993,6 +993,29 @@
         "missing_commission": "Missing commission",
         "missing_points": "Missing points",
         "feature_request": "Feature request"
+      },
+      "quickTitle": "Quick replies",
+      "quickReplies": {
+        "missing_points": [
+          "The merchant was attached to the wrong rep in Zentact. Fixed — the points now show up.",
+          "Since August 1st 2026, each location counts as its own sale. Your missing unit has been added.",
+          "The merchant appears under its trade name in Zentact, not its legal name. Nothing was missing — look under the other name.",
+          "An incomplete sync had temporarily hidden some data. It is back to normal.",
+          "The activation is not confirmed on the Zentact side yet. The points will land once it is."
+        ],
+        "missing_commission": [
+          "The invoice was frozen under an older rule. Unfrozen — the commission now shows up.",
+          "This one is a renewal: it earns no commission (0%). That is the intended behaviour.",
+          "The commission unlocks once the first SaaS month is paid. It will appear then.",
+          "The invoice is not paid in Zoho yet. The commission unlocks on payment.",
+          "This sale predates the move to the platform: it was paid through the old reports.",
+          "An incomplete sync had temporarily hidden some data. It is back to normal."
+        ],
+        "feature_request": [
+          "Thanks — noted and added to the backlog.",
+          "This is already possible today. Here is how to do it.",
+          "Good idea, but it is not planned for now. Thanks for suggesting it."
+        ]
       }
     },
     "invoiceList": {

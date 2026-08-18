@@ -58,7 +58,13 @@ const DataHealth: React.FC = () => {
   // Résoudre ouvre d'abord une fenêtre : le vendeur reçoit maintenant un courriel,
   // et « c'est corrigé » sans dire QUOI l'oblige à aller vérifier lui-même.
   // La note reste facultative — on ne bloque pas une résolution pour ça.
-  const [resolveModal, setResolveModal] = useState<{ id: number; who: string; note: string } | null>(null);
+  const [resolveModal, setResolveModal] = useState<{ id: number; who: string; note: string; type: string } | null>(null);
+
+  // Keyed by report_type, so a "missing points" report never offers a commission answer.
+  // A type with no list (or a new one added server-side) simply yields no suggestions.
+  const quickReplies: string[] = (resolveModal
+    ? (t(`dataHealth.reports.quickReplies.${resolveModal.type}`, { returnObjects: true, defaultValue: [] }) as unknown as string[])
+    : []) || [];
 
   const resolveReport = async (id: number, note: string) => {
     setResolving(id);
@@ -270,7 +276,7 @@ const DataHealth: React.FC = () => {
                       <p className="mt-1 text-[11px] text-gray-400">{new Date(rep.created_at).toLocaleString()}</p>
                     </div>
                     <button
-                      onClick={() => setResolveModal({ id: rep.id, who: rep.reporter_name || rep.reporter_email || '—', note: '' })}
+                      onClick={() => setResolveModal({ id: rep.id, who: rep.reporter_name || rep.reporter_email || '—', note: '', type: rep.report_type })}
                       disabled={resolving === rep.id}
                       className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
                     >
@@ -292,13 +298,37 @@ const DataHealth: React.FC = () => {
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4"
           onClick={() => resolving === null && setResolveModal(null)}
         >
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">
               {t('dataHealth.reports.resolveTitle')}
             </h3>
             <p className="mb-4 text-sm text-body">
               {t('dataHealth.reports.resolveSubtitle', { who: resolveModal.who })}
             </p>
+
+            {/* Canned answers for the causes that actually recur — wrong rep in Zentact, per-location
+                units, frozen commissions, renewals at 0%. Clicking one fills the box so the common
+                case is a two-click resolve; the text stays editable afterwards. Appends rather than
+                overwrites, so a half-typed note is never destroyed. */}
+            {quickReplies.length > 0 && (
+              <div className="mb-3">
+                <span className="mb-1 block text-xs font-medium text-body">
+                  {t('dataHealth.reports.quickTitle')}
+                </span>
+                <div className="flex max-h-36 flex-col gap-1 overflow-y-auto pr-1">
+                  {quickReplies.map((s, k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setResolveModal(m => (m ? { ...m, note: m.note.trim() ? `${m.note.trim()}\n${s}` : s } : m))}
+                      className="rounded border border-stroke px-2.5 py-1.5 text-left text-xs leading-snug text-body hover:border-primary hover:bg-gray-1 dark:border-strokedark dark:text-bodydark dark:hover:bg-meta-4"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <label className="mb-1 block text-xs font-medium text-body">
               {t('dataHealth.reports.noteLabel')}
