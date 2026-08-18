@@ -161,8 +161,12 @@ const SaasIncrease: React.FC = () => {
   const [orgFilter, setOrgFilter] = useState('');
   const [planFilter, setPlanFilter] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('name');
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [groupView, setGroupView] = useState<'todo' | 'done' | 'all'>('todo');
+  // Segment-first view: the page lists org x plan segments, and the individual subscription rows
+  // are a drill-down you open per segment. `editingSegment` keeps the segment you're typing in
+  // visible even once its value makes it "done", so it can't vanish mid-keystroke.
+  const [drilldownKey, setDrilldownKey] = useState<string | null>(null);
+  const [editingSegment, setEditingSegment] = useState<string | null>(null);
   const [refreshingInsights, setRefreshingInsights] = useState(false);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
@@ -371,14 +375,6 @@ const SaasIncrease: React.FC = () => {
     return Array.from(groups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
   }, [filtered, t]);
 
-  const toggleGroup = (key: string) => {
-    setExpandedGroups(prev => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
-      return next;
-    });
-  };
-
   const setEdit = (num: string, patch: Partial<RowEdit>) => {
     // Any direct row edit is a manual override — stop treating it as replaceable by a future
     // Suggest Scenario run, even if the value happens to match what a suggestion had set.
@@ -429,7 +425,7 @@ const SaasIncrease: React.FC = () => {
         // cursor. Without this, typing a value into the last un-set row of an expanded group makes
         // the whole group satisfy "done" mid-keystroke, so it vanishes and the page jumps upward.
         // It drops out of "To do" once you collapse it.
-        if (expandedGroups.has(key)) return true;
+        if (editingSegment === key || drilldownKey === key) return true;
         return groupView === 'done' ? isGroupDone(rows) : !isGroupDone(rows);
       });
   const visibleRowCount = visibleGroups.reduce((n, [, rows]) => n + rows.length, 0);
@@ -466,10 +462,24 @@ const SaasIncrease: React.FC = () => {
     });
   };
 
-  // Applies the toolbar's current bulk %/$ value to every subscription in one group at once —
-  // reuses the same bulkType/bulkValue as "Apply to selected" rather than adding a separate
-  // input per group header (would get noisy with dozens of groups).
-  const applyBulkToGroup = (rows: Subscription[]) => {
+  // Reads a segment's increase back off its own rows — the rows stay the single source of truth
+  // (every MRR figure on the page already sums from them), so there's no parallel segment-level
+  // state to keep in sync. `mixed` means drill-down edits left the rows disagreeing, so the
+  // segment input shows blank rather than silently implying one shared value.
+  const segmentValueFor = (rows: Subscription[]) => {
+    const first = edits[rows[0]?.subscriptionNumber];
+    const type = first?.increaseType || 'percent';
+    const value = first?.increaseValue ?? 0;
+    const uniform = rows.every(r => {
+      const e = edits[r.subscriptionNumber];
+      return (e?.increaseType || 'percent') === type && (e?.increaseValue ?? 0) === value;
+    });
+    return { type, value, mixed: !uniform };
+  };
+
+  // Writes one increase across every subscription in a segment. This is now the primary way
+  // values get set — per-row editing is reserved for deliberate exceptions in the drill-down.
+  const applyToSegment = (rows: Subscription[], patch: Partial<RowEdit>) => {
     setSuggestedNumbers(prev => {
       const next = new Set(prev);
       for (const s of rows) next.delete(s.subscriptionNumber);
@@ -478,7 +488,10 @@ const SaasIncrease: React.FC = () => {
     setEdits(prev => {
       const next = { ...prev };
       for (const s of rows) {
-        next[s.subscriptionNumber] = { selected: true, increaseType: bulkType, increaseValue: bulkValue };
+        const base: RowEdit = next[s.subscriptionNumber] || { selected: false, increaseType: 'percent', increaseValue: 0 };
+        const merged = { ...base, ...patch };
+        merged.selected = (Number(merged.increaseValue) || 0) > 0;
+        next[s.subscriptionNumber] = merged;
       }
       return next;
     });
@@ -1060,18 +1073,6 @@ const SaasIncrease: React.FC = () => {
               {t('saasIncrease.groupView.all')}
             </button>
           </div>
-          <button
-            onClick={() => setExpandedGroups(new Set(visibleGroups.map(([key]) => key)))}
-            className={`${raised} px-2.5 py-2 text-xs font-medium ${textSec} hover:text-gray-900 dark:hover:text-white`}
-          >
-            {t('saasIncrease.expandAll')}
-          </button>
-          <button
-            onClick={() => setExpandedGroups(new Set())}
-            className={`${raised} px-2.5 py-2 text-xs font-medium ${textSec} hover:text-gray-900 dark:hover:text-white`}
-          >
-            {t('saasIncrease.collapseAll')}
-          </button>
           <button onClick={() => loadSubs(true)} disabled={loading} title={t('saasIncrease.refresh') as string} className={`${raised} flex h-9 w-9 items-center justify-center ${textSec} hover:text-gray-900 dark:hover:text-white`}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -1120,9 +1121,9 @@ const SaasIncrease: React.FC = () => {
           </div>
         </div>
 
-        {/* rows — each group's own column header + rows appear only once expanded, in a
-            scroll region scoped to that group, instead of one page-wide header/scrollbar
-            sitting above the whole (mostly collapsed) list. */}
+        {/* Segment list — the default view. Individual subscriptions are behind a per-segment
+            drill-down, so the page opens on a few dozen decision-sized rows rather than
+            thousands of editable ones. */}
         <div>
           {(() => {
                 const columnHeader = (rows: Subscription[]) => (
@@ -1230,59 +1231,118 @@ const SaasIncrease: React.FC = () => {
                     </div>
                   );
                 };
-                return visibleGroups.flatMap(([key, rows]) => {
-                  const expanded = expandedGroups.has(key);
-                  const [orgLabel, planLabel] = key.split('||');
-                  const groupCurrentTotal = rows.reduce((sum, r) => sum + r.currentMonthly, 0);
-                  const groupIncludedCount = rows.filter(r => isIncluded(r.subscriptionNumber)).length;
-                  const header = (
-                    <div
-                      key={`group-${key}`}
-                      className={`flex w-full items-center gap-2.5 border-b border-gray-100 px-4.5 py-2.5 dark:border-[#1B1B1B] ${raised}`}
-                    >
-                      <button type="button" onClick={() => toggleGroup(key)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left hover:brightness-95 dark:hover:brightness-110">
-                        <ChevronRight className={`h-4 w-4 shrink-0 ${textQuat} transition-transform ${expanded ? 'rotate-90' : ''}`} />
-                        <span className={`truncate text-sm font-medium ${textPri}`}>{planLabel}</span>
-                        <span className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] ${textQuat}`}>
-                          <span className="h-[5px] w-[5px] shrink-0 rounded-full" style={{ background: posLabelFor(planLabel, orgLabel).color }} />
-                          {orgLabel}
-                        </span>
-                        <span className={`ml-auto shrink-0 text-xs ${textTer}`}>
-                          {t('saasIncrease.groupCount', { count: rows.length })}
-                          {groupIncludedCount > 0 && ` · ${t('saasIncrease.groupIncluded', { count: groupIncludedCount })}`}
-                          {' · '}{money(groupCurrentTotal)}
-                        </span>
-                      </button>
-                      <button
-                        type="button" onClick={() => applyBulkToGroup(rows)} disabled={bulkValue <= 0}
-                        title={t('saasIncrease.applyToGroupHint') as string}
-                        className={`ml-2 inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50 ${bulkValue > 0 ? 'bg-primary text-white hover:bg-opacity-90' : `${chipInput} ${textQuat}`}`}
-                      >
-                        <CheckCheck className="h-3.5 w-3.5" />
-                        {t('saasIncrease.applyToGroup', { value: bulkType === 'percent' ? `${bulkValue}%` : money(bulkValue) })}
-                      </button>
-                      {groupIncludedCount > 0 && (
-                        <button
-                          type="button" onClick={() => clearRows(rows)}
-                          title={t('saasIncrease.clearGroupHint') as string}
-                          className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium ${chipInput} ${textSec} hover:text-gray-900 dark:hover:text-white`}
-                        >
-                          <X className="h-3.5 w-3.5" /> {t('saasIncrease.clearGroup')}
-                        </button>
-                      )}
+                // One row per org x plan SEGMENT — the level pricing decisions actually get made
+                // at. Each carries its own increase control that writes through to every
+                // subscription underneath it, so a scenario is built in a few dozen keystrokes
+                // instead of thousands. Individual subscriptions live behind "View".
+                const segCols = 'grid-cols-[2.6fr_1.1fr_1.5fr_1.3fr_1.1fr_auto]';
+                const drilldown = drilldownKey ? groupedRows.find(([k]) => k === drilldownKey) : null;
+                return (
+                  <>
+                    <div className={`grid ${segCols} items-center gap-3 border-b border-gray-100 bg-gray-50 px-4.5 py-2 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]`}>
+                      <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.segment.colSegment')}</span>
+                      <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCurrent')}</span>
+                      <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colIncrease')}</span>
+                      <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colNew')}</span>
+                      <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.segment.colProgress')}</span>
+                      <span />
                     </div>
-                  );
-                  if (!expanded) return [header];
-                  return [
-                    header,
-                    <div key={`group-body-${key}`} className="overflow-x-auto">
-                      <div className="min-w-[880px]">
-                        {columnHeader(rows)}
-                        {rows.map(renderRow)}
+                    {visibleGroups.map(([key, rows]) => {
+                      const [orgLabel, planLabel] = key.split('||');
+                      const segCurrent = rows.reduce((sum, r) => sum + r.currentMonthly, 0);
+                      const segNew = rows.reduce((sum, r) => sum + newMonthlyFor(r, edits[r.subscriptionNumber]), 0);
+                      const segDelta = segNew - segCurrent;
+                      const setCount = rows.filter(r => isIncluded(r.subscriptionNumber)).length;
+                      const sv = segmentValueFor(rows);
+                      const highCount = rows.filter(r => {
+                        const nm = newMonthlyFor(r, edits[r.subscriptionNumber]);
+                        const pct = ((nm - r.currentMonthly) / (r.currentMonthly || 1)) * 100;
+                        return pct > 0 && riskFor(r, pct, calibration).tier === 'high';
+                      }).length;
+                      return (
+                        <div key={key} className={`grid ${segCols} items-center gap-3 border-b border-gray-100 px-4.5 py-3 hover:bg-gray-50 dark:border-[#161616] dark:hover:bg-[#141416] ${setCount > 0 ? 'bg-emerald-50/40 dark:bg-[rgba(87,209,147,0.03)]' : ''}`}>
+                          <div className="min-w-0">
+                            <div className={`truncate text-sm font-medium ${textPri}`}>{planLabel}</div>
+                            <div className={`mt-0.5 inline-flex items-center gap-1.5 text-[11px] ${textQuat}`}>
+                              <span className="h-[5px] w-[5px] shrink-0 rounded-full" style={{ background: posLabelFor(planLabel, orgLabel).color }} />
+                              <span className="truncate">{orgLabel} · {t('saasIncrease.groupCount', { count: rows.length })}</span>
+                            </div>
+                          </div>
+                          <div className={`justify-self-end text-right text-sm tabular-nums ${textPri}`}>{money(segCurrent)}</div>
+                          <div className="flex items-center gap-1.5">
+                            <div className={`inline-flex rounded-lg p-0.5 ${chipInput}`}>
+                              <button type="button" onClick={() => applyToSegment(rows, { increaseType: 'percent' })} className={segBtn(sv.type === 'percent')}>%</button>
+                              <button type="button" onClick={() => applyToSegment(rows, { increaseType: 'flat' })} className={segBtn(sv.type === 'flat')}>$</button>
+                            </div>
+                            <input
+                              type="number"
+                              placeholder={sv.mixed ? (t('saasIncrease.segment.mixed') as string) : '0'}
+                              value={sv.mixed ? '' : (sv.value || '')}
+                              onWheel={(ev) => ev.currentTarget.blur()}
+                              onFocus={() => setEditingSegment(key)}
+                              onBlur={() => setEditingSegment(null)}
+                              onChange={(ev) => applyToSegment(rows, { increaseValue: Number(ev.target.value) || 0 })}
+                              className={`w-[64px] rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary dark:bg-[#0A0A0A] dark:text-white ${setCount > 0 ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
+                            />
+                          </div>
+                          <div className="justify-self-end text-right">
+                            <div className={`text-sm font-medium tabular-nums ${setCount > 0 ? textPri : textSec}`}>{money(segNew)}</div>
+                            {segDelta > 0 && <div className="mt-0.5 text-[11px] text-emerald-600 dark:text-[#57D193]">+{money(segDelta)}</div>}
+                          </div>
+                          <div className="min-w-0">
+                            <div className={`whitespace-nowrap text-xs ${textTer}`}>{t('saasIncrease.segment.setCount', { set: setCount, total: rows.length })}</div>
+                            {highCount > 0 && (
+                              <div className="mt-0.5 whitespace-nowrap text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                                {t('saasIncrease.segment.highRisk', { count: highCount })}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex shrink-0 items-center gap-1.5 justify-self-end">
+                            {setCount > 0 && (
+                              <button
+                                type="button" onClick={() => clearRows(rows)} title={t('saasIncrease.clearGroupHint') as string}
+                                className={`flex h-8 w-8 items-center justify-center rounded-md ${chipInput} ${textSec} hover:text-red-500`}
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                            <button
+                              type="button" onClick={() => setDrilldownKey(key)}
+                              className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium ${chipInput} ${textSec} hover:text-gray-900 dark:hover:text-white`}
+                            >
+                              {t('saasIncrease.segment.view')} <ChevronRight className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {/* Drill-down — the full per-subscription table for ONE segment, for handling
+                        exceptions. Reuses the same row/column renderers the old flat table used. */}
+                    {drilldown && (
+                      <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setDrilldownKey(null)}>
+                        <div className={`flex h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(ev) => ev.stopPropagation()}>
+                          <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
+                            <div className="min-w-0">
+                              <p className={`truncate font-semibold ${textPri}`}>{drilldown[0].split('||')[1]}</p>
+                              <p className={`mt-0.5 truncate text-xs ${textTer}`}>
+                                {drilldown[0].split('||')[0]} · {t('saasIncrease.groupCount', { count: drilldown[1].length })} · {t('saasIncrease.segment.drilldownHint')}
+                              </p>
+                            </div>
+                            <button onClick={() => setDrilldownKey(null)} className={`${textSec} shrink-0 transition hover:text-red-500`}>
+                              <X className="h-5 w-5" />
+                            </button>
+                          </div>
+                          <div className="flex-1 overflow-auto">
+                            <div className="min-w-[880px]">
+                              {columnHeader(drilldown[1])}
+                              {drilldown[1].map(renderRow)}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>,
-                  ];
-                });
+                    )}
+                  </>
+                );
               })()}
           {!loading && filtered.length === 0 && (
             <div className={`px-4 py-12 text-center text-sm ${textTer}`}>{t('saasIncrease.none')}</div>

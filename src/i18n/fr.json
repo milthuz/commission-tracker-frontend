@@ -1204,6 +1204,15 @@
     "saving": "Enregistrement…",
     "exportCsv": "Exporter en CSV",
     "exporting": "Exportation…",
+    "segment": {
+      "colSegment": "Segment",
+      "colProgress": "Progression",
+      "mixed": "varié",
+      "setCount": "{{set}} sur {{total}} définis",
+      "highRisk": "⚠ {{count}} à risque élevé",
+      "view": "Voir",
+      "drilldownHint": "modifie ici les abonnements individuels pour les exceptions"
+    },
     "groupView": {
       "todo": "À faire ({{count}})",
       "done": "Terminés ({{count}})",

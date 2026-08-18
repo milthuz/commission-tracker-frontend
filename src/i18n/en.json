@@ -1204,6 +1204,15 @@
     "saving": "Saving…",
     "exportCsv": "Export CSV",
     "exporting": "Exporting…",
+    "segment": {
+      "colSegment": "Segment",
+      "colProgress": "Progress",
+      "mixed": "mixed",
+      "setCount": "{{set}} of {{total}} set",
+      "highRisk": "⚠ {{count}} high risk",
+      "view": "View",
+      "drilldownHint": "edit individual subscriptions here for exceptions"
+    },
     "groupView": {
       "todo": "To do ({{count}})",
       "done": "Done ({{count}})",
