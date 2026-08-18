@@ -140,6 +140,10 @@ export default function DealsAdmin() {
           </button>
         </div>
 
+        {excludedList.length === 0 && (
+          <p className="mb-5 text-xs text-gray-400">{t('admin.deals.noneExcluded')}</p>
+        )}
+
         {excludedList.length > 0 && (
           <div className="mb-5 rounded-md border border-danger/30 bg-danger/5 p-4">
             <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">

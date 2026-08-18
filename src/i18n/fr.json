@@ -2359,7 +2359,8 @@
       "currentlyExcluded": "Actuellement exclus du tracker ({{count}})",
       "excludeTitle": "Exclure cette transaction",
       "reasonLabel": "Motif (facultatif, mais utile dans six mois)",
-      "reasonPlaceholder": "ex. doublon de la transaction #1234 · transaction de test · ne devait jamais compter"
+      "reasonPlaceholder": "ex. doublon de la transaction #1234 · transaction de test · ne devait jamais compter",
+      "noneExcluded": "Aucune transaction exclue du tracker pour l'instant."
     },
     "merchantLinks": {
       "title": "Liens Marchand ↔ SaaS",

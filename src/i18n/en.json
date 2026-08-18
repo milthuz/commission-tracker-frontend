@@ -2359,7 +2359,8 @@
       "currentlyExcluded": "Currently excluded from the tracker ({{count}})",
       "excludeTitle": "Exclude this deal",
       "reasonLabel": "Reason (optional, but useful six months from now)",
-      "reasonPlaceholder": "e.g. duplicate of deal #1234 · test deal · should never have counted"
+      "reasonPlaceholder": "e.g. duplicate of deal #1234 · test deal · should never have counted",
+      "noneExcluded": "No deals excluded from the tracker yet."
     },
     "merchantLinks": {
       "title": "Merchant ↔ SaaS links",
