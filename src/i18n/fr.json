@@ -2336,7 +2336,7 @@
     },
     "deals": {
       "title": "Transactions",
-      "subtitle": "Déplacez une transaction (et ses points) vers un autre mois — ex. une transaction soumise le mois dernier mais synchronisée seulement maintenant à cause d'un délai interne.",
+      "subtitle": "Déplacez une transaction (et ses points) vers un autre mois — ex. soumise le mois dernier mais synchronisée seulement maintenant. Ou excluez-la du Commission Tracker : ses points cessent de compter, sans la supprimer, et vous pouvez la réintégrer.",
       "searchPlaceholder": "Rechercher par nom de transaction, compte ou vendeur…",
       "search": "Rechercher",
       "searching": "Recherche…",
