@@ -2355,7 +2355,8 @@
       "restore": "Réintégrer",
       "excludedBadge": "Exclu du tracker",
       "confirmExclude": "Exclure « {{deal}} » du Commission Tracker ? {{rep}} perdra {{points}} point(s). Le deal n'est pas supprimé et vous pourrez le réintégrer.",
-      "confirmRestore": "Réintégrer « {{deal}} » dans le Commission Tracker ? {{rep}} récupérera {{points}} point(s)."
+      "confirmRestore": "Réintégrer « {{deal}} » dans le Commission Tracker ? {{rep}} récupérera {{points}} point(s).",
+      "currentlyExcluded": "Actuellement exclus du tracker ({{count}})"
     },
     "merchantLinks": {
       "title": "Liens Marchand ↔ SaaS",

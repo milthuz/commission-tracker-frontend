@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
@@ -28,6 +28,18 @@ export default function DealsAdmin() {
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+
+  // The search box shows nothing until you type, so without this an exclusion becomes
+  // invisible the moment it is made — you would have to remember the deal's name to undo it.
+  // The standing list is what makes the feature reversible in practice, not just in theory.
+  const [excludedList, setExcludedList] = useState<any[]>([]);
+  const loadExcluded = async () => {
+    try {
+      const r = await axios.get(`${API_URL}/api/crm/excluded-deals`, { headers: headers() });
+      setExcludedList(r.data.deals || []);
+    } catch { /* the tab still works without it */ }
+  };
+  useEffect(() => { loadExcluded(); }, []);
 
   const search = async () => {
     if (q.trim().length < 2) return;
@@ -72,6 +84,7 @@ export default function DealsAdmin() {
       await axios.post(`${API_URL}/api/crm/deals/${encodeURIComponent(d.dealId)}/exclude`,
         { excluded: next }, { headers: headers() });
       setDeals(ds => ds.map(x => x.dealId === d.dealId ? { ...x, excluded: next } : x));
+      loadExcluded();
     } catch (e: any) {
       dialog.alert(e?.response?.data?.error || (t('admin.deals.saveError') as string));
     } finally {
@@ -118,6 +131,37 @@ export default function DealsAdmin() {
             {searching ? t('admin.deals.searching') : t('admin.deals.search')}
           </button>
         </div>
+
+        {excludedList.length > 0 && (
+          <div className="mb-5 rounded-md border border-danger/30 bg-danger/5 p-4">
+            <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">
+              {t('admin.deals.currentlyExcluded', { count: excludedList.length })}
+            </h4>
+            <ul className="flex flex-col gap-1.5">
+              {excludedList.map((x: any) => (
+                <li key={x.deal_id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span className="text-body dark:text-bodydark">
+                    <span className="font-medium text-black dark:text-white">{x.deal_name}</span>
+                    {' · '}{x.owner_name || '—'}{' · '}{x.points ?? '?'} pt
+                    {x.excluded_by ? ` · ${x.excluded_by}` : ''}
+                  </span>
+                  <button
+                    onClick={() => toggleExclude({
+                      dealId: x.deal_id, dealName: x.deal_name, accountName: '',
+                      ownerName: x.owner_name || '', leadSourceGroup: null,
+                      points: x.points ?? 0, soldDate: x.sold_date || '',
+                      excluded: true, exclusionReason: x.reason || null,
+                    })}
+                    disabled={togglingId === x.deal_id}
+                    className="whitespace-nowrap rounded-md border border-stroke px-3 py-1 text-xs font-medium text-body hover:border-primary hover:text-primary disabled:opacity-40 dark:border-strokedark"
+                  >
+                    {t('admin.deals.restore')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {searched && !searching && deals.length === 0 && (
           <p className="text-sm text-body">{t('admin.deals.noResults')}</p>
