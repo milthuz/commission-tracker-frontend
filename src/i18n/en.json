@@ -2350,7 +2350,12 @@
       "moveToPrevMonth": "Set the date to the same day, one month earlier",
       "moveToPrevMonthShort": "← Prev month",
       "saved": "Deal moved.",
-      "saveError": "Could not save."
+      "saveError": "Could not save.",
+      "exclude": "Exclude",
+      "restore": "Restore",
+      "excludedBadge": "Excluded from tracker",
+      "confirmExclude": "Exclude \"{{deal}}\" from the Commission Tracker? {{rep}} will lose {{points}} point(s). The deal is not deleted and you can restore it.",
+      "confirmRestore": "Restore \"{{deal}}\" to the Commission Tracker? {{rep}} will get {{points}} point(s) back."
     },
     "merchantLinks": {
       "title": "Merchant ↔ SaaS links",

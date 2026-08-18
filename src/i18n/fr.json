@@ -2350,7 +2350,12 @@
       "moveToPrevMonth": "Régler la date au même jour, un mois plus tôt",
       "moveToPrevMonthShort": "← Mois précédent",
       "saved": "Transaction déplacée.",
-      "saveError": "Impossible d'enregistrer."
+      "saveError": "Impossible d'enregistrer.",
+      "exclude": "Exclure",
+      "restore": "Réintégrer",
+      "excludedBadge": "Exclu du tracker",
+      "confirmExclude": "Exclure « {{deal}} » du Commission Tracker ? {{rep}} perdra {{points}} point(s). Le deal n'est pas supprimé et vous pourrez le réintégrer.",
+      "confirmRestore": "Réintégrer « {{deal}} » dans le Commission Tracker ? {{rep}} récupérera {{points}} point(s)."
     },
     "merchantLinks": {
       "title": "Liens Marchand ↔ SaaS",

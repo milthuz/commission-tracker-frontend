@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 type Deal = {
   dealId: string; dealName: string; accountName: string; ownerName: string;
   leadSourceGroup: string | null; points: number; soldDate: string;
+  excluded: boolean; exclusionReason: string | null;
 };
 
 const fmtDate = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString();
@@ -37,6 +38,7 @@ export default function DealsAdmin() {
       const rows: Deal[] = (r.data.deals || []).map((d: any) => ({
         dealId: d.deal_id, dealName: d.deal_name, accountName: d.account_name, ownerName: d.owner_name,
         leadSourceGroup: d.lead_source_group, points: d.points, soldDate: d.sold_date,
+        excluded: !!d.excluded, exclusionReason: d.exclusion_reason || null,
       }));
       setDeals(rows);
       const initEdit: Record<string, string> = {};
@@ -53,6 +55,28 @@ export default function DealsAdmin() {
     const d = new Date(current + 'T00:00:00');
     d.setMonth(d.getMonth() - 1);
     setEditing(e => ({ ...e, [dealId]: d.toISOString().slice(0, 10) }));
+  };
+
+  // Excluding does not delete the deal — it stops counting toward points (annual, monthly,
+  // per-rep and the quota gate). Reversible, which is why the same button puts it back.
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const toggleExclude = async (d: Deal) => {
+    const next = !d.excluded;
+    const ok = await dialog.confirm(
+      t(next ? 'admin.deals.confirmExclude' : 'admin.deals.confirmRestore',
+        { deal: d.dealName, points: d.points, rep: d.ownerName || '—' }) as string
+    );
+    if (!ok) return;
+    setTogglingId(d.dealId);
+    try {
+      await axios.post(`${API_URL}/api/crm/deals/${encodeURIComponent(d.dealId)}/exclude`,
+        { excluded: next }, { headers: headers() });
+      setDeals(ds => ds.map(x => x.dealId === d.dealId ? { ...x, excluded: next } : x));
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || (t('admin.deals.saveError') as string));
+    } finally {
+      setTogglingId(null);
+    }
   };
 
   const save = async (dealId: string) => {
@@ -117,9 +141,16 @@ export default function DealsAdmin() {
                   const draft = editing[d.dealId] ?? d.soldDate;
                   const changed = draft !== d.soldDate;
                   return (
-                    <tr key={d.dealId} className="border-t border-stroke dark:border-strokedark">
+                    <tr key={d.dealId} className={`border-t border-stroke dark:border-strokedark ${d.excluded ? 'opacity-60' : ''}`}>
                       <td className="px-4 py-3">
-                        <div className="font-medium text-black dark:text-white">{d.dealName}</div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`font-medium text-black dark:text-white ${d.excluded ? 'line-through' : ''}`}>{d.dealName}</span>
+                          {d.excluded && (
+                            <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[11px] font-medium text-danger">
+                              {t('admin.deals.excludedBadge')}
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xs text-body">{d.accountName}</div>
                       </td>
                       <td className="px-4 py-3 text-body">{d.ownerName || '—'}</td>
@@ -146,14 +177,26 @@ export default function DealsAdmin() {
                           </button>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => save(d.dealId)}
-                          disabled={!changed || savingId === d.dealId}
-                          className="whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-40"
-                        >
-                          {savingId === d.dealId ? t('common.saving') : t('common.save')}
-                        </button>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => save(d.dealId)}
+                            disabled={!changed || savingId === d.dealId}
+                            className="whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-40"
+                          >
+                            {savingId === d.dealId ? t('common.saving') : t('common.save')}
+                          </button>
+                          <button
+                            onClick={() => toggleExclude(d)}
+                            disabled={togglingId === d.dealId}
+                            className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium disabled:opacity-40 ${
+                              d.excluded
+                                ? 'border-stroke text-body hover:border-primary hover:text-primary dark:border-strokedark'
+                                : 'border-danger/40 text-danger hover:bg-danger/5'}`}
+                          >
+                            {t(d.excluded ? 'admin.deals.restore' : 'admin.deals.exclude')}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
