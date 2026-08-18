@@ -34,6 +34,12 @@ interface HealthData {
     repsNoRole: { count: number; names: string[] };
     unmappedResellerEmails: number;
     userReports: { count: number; items: UserReport[] };
+    staleActiveMerchants: {
+      count: number;
+      neverEarned: number;
+      items: { merchant_account_id: string; business_name: string; sales_rep_name: string;
+               activated_at: string; last_period: number | null; never_earned: boolean }[];
+    };
   };
 }
 
@@ -164,6 +170,11 @@ const DataHealth: React.FC = () => {
     { key: 'repsNoRole', count: i.repsNoRole.count, to: '/admin/users',
       detail: undefined, expandable: i.repsNoRole.count > 0 },
     { key: 'resellerEmails', count: i.unmappedResellerEmails, to: '/admin/resellers', detail: undefined, expandable: false },
+    { key: 'staleMerchants', count: i.staleActiveMerchants.count, to: undefined as string | undefined,
+      detail: i.staleActiveMerchants.neverEarned > 0
+        ? t('dataHealth.cards.staleMerchants.never', { count: i.staleActiveMerchants.neverEarned }) as string
+        : undefined,
+      expandable: i.staleActiveMerchants.items.length > 0 },
   ] : [];
 
   const reports = i?.userReports.items || [];
@@ -276,6 +287,35 @@ const DataHealth: React.FC = () => {
               </div>
             </div>
           )}
+          {expanded === 'staleMerchants' && i && (
+            <div className="mt-4 overflow-x-auto rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead className="border-b border-stroke dark:border-strokedark">
+                  <tr className="text-xs uppercase tracking-wide text-gray-400">
+                    <th className="px-4 py-2.5 font-medium">{t('dataHealth.cards.staleMerchants.colMerchant')}</th>
+                    <th className="px-4 py-2.5 font-medium">{t('dataHealth.cards.staleMerchants.colRep')}</th>
+                    <th className="px-4 py-2.5 font-medium">{t('dataHealth.cards.staleMerchants.colActivated')}</th>
+                    <th className="px-4 py-2.5 font-medium">{t('dataHealth.cards.staleMerchants.colLast')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {i.staleActiveMerchants.items.map((m) => (
+                    <tr key={m.merchant_account_id} className="border-b border-stroke last:border-0 dark:border-strokedark">
+                      <td className="px-4 py-2.5 text-black dark:text-white">{m.business_name}</td>
+                      <td className="px-4 py-2.5 text-body dark:text-bodydark">{m.sales_rep_name || '—'}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-body dark:text-bodydark">{String(m.activated_at).slice(0, 10)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5">
+                        {m.never_earned
+                          ? <span className="rounded-full bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger">{t('dataHealth.cards.staleMerchants.neverBadge')}</span>
+                          : <span className="text-body dark:text-bodydark">{String(m.last_period).slice(0, 4)}-{String(m.last_period).slice(4)}</span>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
           {expanded === 'repsNoRole' && i && (
             <div className="mt-4 rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
               <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('dataHealth.cards.repsNoRole.title')}</h4>

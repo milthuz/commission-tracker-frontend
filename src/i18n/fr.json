@@ -976,6 +976,16 @@
       "resellerEmails": {
         "title": "Emails revendeur non mappés",
         "desc": "Emails de revendeur vus dans des activations mais non liés à un revendeur géré. Associe-les dans Gérer les revendeurs."
+      },
+      "staleMerchants": {
+        "title": "Marchands actifs sans revenu",
+        "desc": "Marqués ACTIVE dans Zentact mais sans revenu de traitement depuis plus de 3 mois. Soit l'activation n'a jamais été complétée par le commerçant, soit le commerce a fermé ou changé de fournisseur.",
+        "never": "{{count}} n'ont jamais rien traité",
+        "neverBadge": "Jamais",
+        "colMerchant": "Marchand",
+        "colRep": "Vendeur",
+        "colActivated": "Activé le",
+        "colLast": "Dernier revenu"
       }
     },
     "reports": {

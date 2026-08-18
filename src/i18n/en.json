@@ -976,6 +976,16 @@
       "resellerEmails": {
         "title": "Unmapped reseller emails",
         "desc": "Reseller emails seen in activations but not linked to any managed reseller. Map them in Manage Resellers."
+      },
+      "staleMerchants": {
+        "title": "Active merchants with no revenue",
+        "desc": "Flagged ACTIVE in Zentact but no processing revenue for over 3 months. Either the merchant never finished activating, or the business closed or moved to another processor.",
+        "never": "{{count}} never processed anything",
+        "neverBadge": "Never",
+        "colMerchant": "Merchant",
+        "colRep": "Rep",
+        "colActivated": "Activated",
+        "colLast": "Last revenue"
       }
     },
     "reports": {
