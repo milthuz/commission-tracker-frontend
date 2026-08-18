@@ -1016,6 +1016,36 @@
           "This is already possible today. Here is how to do it.",
           "Good idea, but it is not planned for now. Thanks for suggesting it."
         ]
+      },
+      "investigation": "Automatic diagnosis",
+      "evidence": "Evidence",
+      "aiNote": "Lead (AI)",
+      "reinvestigate": "Re-run diagnosis",
+      "investigating": "…",
+      "pending": "Diagnosis pending",
+      "useReply": "Use this reply",
+      "verdict": {
+        "not_found": "Nothing found for this reference",
+        "inconclusive": "No automatic conclusion",
+        "points_present": "The points are already there",
+        "points_arrived_since": "Arrived since the report — the points are there",
+        "deal_wrong_rep": "Deal is under another rep",
+        "merchant_wrong_rep": "Merchant attached to another rep",
+        "merchant_trade_name": "Found under its trade name",
+        "merchant_not_active": "Merchant not active in Zentact yet",
+        "per_store_unit_owed": "Locations not credited (before the Aug 1st switch)",
+        "commission_present": "The commission is already there",
+        "reference_is_estimate": "The reference is an estimate, not an invoice",
+        "invoice_not_found": "Invoice not found",
+        "invoice_wrong_rep": "Invoice is under another rep",
+        "invoice_void": "Invoice voided or deleted",
+        "invoice_frozen": "Commission frozen under an older rule",
+        "invoice_renewal": "Renewal — 0% by design",
+        "awaiting_first_saas": "Waiting on the first paid SaaS month",
+        "invoice_not_paid": "Invoice not paid yet",
+        "pre_platform_sale": "Sale predates the move to the platform",
+        "quota_gate": "Quota gate applied",
+        "rep_inactive": "Rep is inactive"
       }
     },
     "invoiceList": {

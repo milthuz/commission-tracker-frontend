@@ -1016,6 +1016,36 @@
           "C'est déjà possible aujourd'hui. Je t'explique comment faire.",
           "Bonne idée, mais ce n'est pas prévu pour l'instant. Merci de l'avoir proposée."
         ]
+      },
+      "investigation": "Diagnostic automatique",
+      "evidence": "Preuves",
+      "aiNote": "Piste (IA)",
+      "reinvestigate": "Relancer le diagnostic",
+      "investigating": "…",
+      "pending": "Diagnostic en attente",
+      "useReply": "Utiliser cette réponse",
+      "verdict": {
+        "not_found": "Rien trouvé pour cette référence",
+        "inconclusive": "Pas de conclusion automatique",
+        "points_present": "Les points sont déjà là",
+        "points_arrived_since": "Arrivé depuis le signalement — les points sont là",
+        "deal_wrong_rep": "Opportunité au nom d'un autre vendeur",
+        "merchant_wrong_rep": "Marchand rattaché à un autre vendeur",
+        "merchant_trade_name": "Trouvé sous son nom commercial",
+        "merchant_not_active": "Marchand pas encore actif dans Zentact",
+        "per_store_unit_owed": "Succursales non créditées (avant la bascule du 1er août)",
+        "commission_present": "La commission est déjà là",
+        "reference_is_estimate": "La référence est une soumission, pas une facture",
+        "invoice_not_found": "Facture introuvable",
+        "invoice_wrong_rep": "Facture au nom d'un autre vendeur",
+        "invoice_void": "Facture annulée ou supprimée",
+        "invoice_frozen": "Commission gelée par un ancien règlement",
+        "invoice_renewal": "Renouvellement — 0 % par conception",
+        "awaiting_first_saas": "En attente du premier mois de SaaS payé",
+        "invoice_not_paid": "Facture pas encore payée",
+        "pre_platform_sale": "Vente antérieure au passage à la plateforme",
+        "quota_gate": "Barrière de quota appliquée",
+        "rep_inactive": "Vendeur inactif"
       }
     },
     "invoiceList": {

@@ -16,6 +16,14 @@ interface UserReport {
   period: string | null;
   message: string;
   created_at: string;
+  // Filled by the automatic diagnosis (runs on arrival, re-runnable). Null while it has
+  // not run yet — an older report, or the very first seconds after it was filed.
+  verdict: string | null;
+  evidence: Record<string, unknown> | null;
+  ai_note: string | null;
+  reply_index: number | null;
+  likely_resolved: boolean | null;
+  investigated_at: string | null;
 }
 interface HealthData {
   totalIssues: number;
@@ -65,6 +73,29 @@ const DataHealth: React.FC = () => {
   const quickReplies: string[] = (resolveModal
     ? (t(`dataHealth.reports.quickReplies.${resolveModal.type}`, { returnObjects: true, defaultValue: [] }) as unknown as string[])
     : []) || [];
+
+  // The diagnosis picks which canned reply fits; opening the modal starts from it rather
+  // than a blank box. The AI note is deliberately NOT used here — it is a lead for the
+  // admin, not something to send to the rep.
+  const suggestedNote = (rep: UserReport): string => {
+    if (rep.reply_index == null) return '';
+    const list = t(`dataHealth.reports.quickReplies.${rep.report_type}`, { returnObjects: true, defaultValue: [] }) as unknown as string[];
+    return (Array.isArray(list) && list[rep.reply_index]) || '';
+  };
+
+  const [investigating, setInvestigating] = useState<number | null>(null);
+  const reinvestigate = async (id: number) => {
+    setInvestigating(id);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/user-reports/${id}/investigate`, {
+        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      await load(true);
+    } catch {
+      dialog.alert(t('dataHealth.error') as string);
+    } finally { setInvestigating(null); }
+  };
 
   const resolveReport = async (id: number, note: string) => {
     setResolving(id);
@@ -273,10 +304,49 @@ const DataHealth: React.FC = () => {
                         {rep.reference && <span className="text-xs text-gray-500">· {rep.reference}</span>}
                       </div>
                       <p className="whitespace-pre-wrap text-sm text-body dark:text-bodydark">{rep.message}</p>
-                      <p className="mt-1 text-[11px] text-gray-400">{new Date(rep.created_at).toLocaleString()}</p>
+
+                      {/* The automatic diagnosis. Green when it believes nothing is actually
+                          missing, amber when something needs doing. Evidence is shown raw and
+                          on purpose — the point is that an admin can VERIFY the verdict rather
+                          than trust it. */}
+                      {rep.verdict ? (
+                        <div className={`mt-2 rounded-md border-l-2 py-1.5 pl-2.5 ${rep.likely_resolved ? 'border-[#10B981] bg-[#10B981]/5' : 'border-warning bg-warning/5'}`}>
+                          <div className="flex flex-wrap items-center gap-x-2">
+                            <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                              {t('dataHealth.reports.investigation')}
+                            </span>
+                            <span className="text-xs font-medium text-black dark:text-white">
+                              {t(`dataHealth.reports.verdict.${rep.verdict}`, { defaultValue: rep.verdict })}
+                            </span>
+                          </div>
+                          {rep.evidence && Object.keys(rep.evidence).length > 0 && (
+                            <p className="mt-0.5 break-words text-[11px] leading-snug text-body dark:text-bodydark">
+                              {Object.entries(rep.evidence).map(([k, v]) => `${k}: ${String(v)}`).join(' · ')}
+                            </p>
+                          )}
+                          {rep.ai_note && (
+                            <p className="mt-1 break-words text-[11px] italic leading-snug text-body dark:text-bodydark">
+                              {t('dataHealth.reports.aiNote')} — {rep.ai_note}
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="mt-2 text-[11px] italic text-gray-400">{t('dataHealth.reports.pending')}</p>
+                      )}
+
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="text-[11px] text-gray-400">{new Date(rep.created_at).toLocaleString()}</span>
+                        <button
+                          onClick={() => reinvestigate(rep.id)}
+                          disabled={investigating === rep.id}
+                          className="text-[11px] text-primary hover:underline disabled:opacity-50"
+                        >
+                          {investigating === rep.id ? t('dataHealth.reports.investigating') : t('dataHealth.reports.reinvestigate')}
+                        </button>
+                      </div>
                     </div>
                     <button
-                      onClick={() => setResolveModal({ id: rep.id, who: rep.reporter_name || rep.reporter_email || '—', note: '', type: rep.report_type })}
+                      onClick={() => setResolveModal({ id: rep.id, who: rep.reporter_name || rep.reporter_email || '—', note: suggestedNote(rep), type: rep.report_type })}
                       disabled={resolving === rep.id}
                       className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
                     >
