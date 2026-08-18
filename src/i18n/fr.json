@@ -1045,7 +1045,76 @@
         "invoice_not_paid": "Facture pas encore payée",
         "pre_platform_sale": "Vente antérieure au passage à la plateforme",
         "quota_gate": "Barrière de quota appliquée",
-        "rep_inactive": "Vendeur inactif"
+        "rep_inactive": "Vendeur inactif",
+        "estimate_no_sale_yet": "Soumission trouvée, mais aucune vente ne l'a suivie"
+      },
+      "verdictReplies": {
+        "points_arrived_since": [
+          "C'est arrivé depuis ton signalement : l'opportunité est entrée et tes points sont crédités. Merci d'avoir levé la main."
+        ],
+        "points_present": [
+          "Vérification faite : les points sont bien à ton nom, tu devrais les voir dans ton rapport."
+        ],
+        "deal_wrong_rep": [
+          "L'opportunité était au nom d'un autre vendeur dans le CRM. Corrigé — les points sont maintenant à toi."
+        ],
+        "merchant_wrong_rep": [
+          "Le marchand était rattaché au mauvais vendeur dans Zentact. Corrigé — les points apparaissent maintenant."
+        ],
+        "merchant_trade_name": [
+          "Le marchand figure sous son nom commercial, pas sa raison sociale. Rien ne manquait — cherche sous l'autre nom."
+        ],
+        "merchant_not_active": [
+          "L'activation n'est pas encore confirmée du côté Zentact. Les points arriveront dès qu'elle le sera."
+        ],
+        "per_store_unit_owed": [
+          "Depuis le 1er août 2026, chaque succursale compte comme une vente. Ton unité manquante a été ajoutée."
+        ],
+        "reference_is_estimate": [
+          "La référence que tu as donnée est une soumission, pas une vente conclue. Les points suivent l'opportunité ou l'activation Zentact."
+        ],
+        "estimate_no_sale_yet": [
+          "La soumission existe, mais rien ne l'a encore suivie — ni opportunité, ni activation. Les points arriveront à la conclusion de la vente."
+        ],
+        "not_found": [
+          "Je n'ai rien trouvé avec cette référence. Peux-tu me donner le nom exact du marchand ou le numéro de facture ?"
+        ],
+        "inconclusive": [
+          "Je regarde ça de plus près et je reviens vers toi."
+        ],
+        "commission_present": [
+          "Vérification faite : la commission est bien là, tu devrais la voir dans ton rapport de commissions."
+        ],
+        "invoice_not_found": [
+          "Je ne trouve pas cette facture. Peux-tu vérifier le numéro ?"
+        ],
+        "invoice_wrong_rep": [
+          "La facture était au nom d'un autre vendeur. Corrigé — elle est maintenant à toi."
+        ],
+        "invoice_void": [
+          "Cette facture a été annulée dans Zoho, elle ne génère donc pas de commission."
+        ],
+        "invoice_frozen": [
+          "La commission était gelée par un ancien règlement. Dégelée — elle apparaît maintenant."
+        ],
+        "invoice_renewal": [
+          "C'est un renouvellement : il ne génère pas de commission (0 %). C'est le fonctionnement prévu."
+        ],
+        "awaiting_first_saas": [
+          "La commission se débloque quand le premier mois de SaaS est payé. Elle apparaîtra à ce moment-là."
+        ],
+        "invoice_not_paid": [
+          "La facture n'est pas encore payée dans Zoho. La commission se débloquera au paiement."
+        ],
+        "pre_platform_sale": [
+          "Cette vente précède le passage à la plateforme : elle a été payée via les anciens rapports."
+        ],
+        "quota_gate": [
+          "Le quota du mois n'était pas atteint, donc la commission de cette vente n'a pas été versée."
+        ],
+        "rep_inactive": [
+          "Ton profil était marqué inactif dans la configuration, ce qui bloquait le calcul. C'est corrigé."
+        ]
       }
     },
     "invoiceList": {

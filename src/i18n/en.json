@@ -1045,7 +1045,76 @@
         "invoice_not_paid": "Invoice not paid yet",
         "pre_platform_sale": "Sale predates the move to the platform",
         "quota_gate": "Quota gate applied",
-        "rep_inactive": "Rep is inactive"
+        "rep_inactive": "Rep is inactive",
+        "estimate_no_sale_yet": "Estimate found, but no sale followed it"
+      },
+      "verdictReplies": {
+        "points_arrived_since": [
+          "It came through since you flagged it — the deal landed and your points are credited. Thanks for raising it."
+        ],
+        "points_present": [
+          "Checked: the points are under your name, you should see them in your report."
+        ],
+        "deal_wrong_rep": [
+          "The deal was under another rep in the CRM. Fixed — the points are yours now."
+        ],
+        "merchant_wrong_rep": [
+          "The merchant was attached to the wrong rep in Zentact. Fixed — the points now show up."
+        ],
+        "merchant_trade_name": [
+          "The merchant is listed under its trade name, not its legal name. Nothing was missing — look under the other name."
+        ],
+        "merchant_not_active": [
+          "The activation is not confirmed on the Zentact side yet. The points will land once it is."
+        ],
+        "per_store_unit_owed": [
+          "Since August 1st 2026, each location counts as its own sale. Your missing unit has been added."
+        ],
+        "reference_is_estimate": [
+          "The reference you gave is an estimate, not a closed sale. Points follow the deal or the Zentact activation."
+        ],
+        "estimate_no_sale_yet": [
+          "The estimate exists, but nothing has followed it yet — no deal, no activation. The points will come when the sale closes."
+        ],
+        "not_found": [
+          "I could not find anything with that reference. Could you give me the exact merchant name or the invoice number?"
+        ],
+        "inconclusive": [
+          "I am looking into this more closely and will get back to you."
+        ],
+        "commission_present": [
+          "Checked: the commission is there, you should see it in your commission report."
+        ],
+        "invoice_not_found": [
+          "I cannot find that invoice. Could you double-check the number?"
+        ],
+        "invoice_wrong_rep": [
+          "The invoice was under another rep. Fixed — it is yours now."
+        ],
+        "invoice_void": [
+          "That invoice was voided in Zoho, so it earns no commission."
+        ],
+        "invoice_frozen": [
+          "The commission was frozen under an older rule. Unfrozen — it shows up now."
+        ],
+        "invoice_renewal": [
+          "This one is a renewal: it earns no commission (0%). That is the intended behaviour."
+        ],
+        "awaiting_first_saas": [
+          "The commission unlocks once the first SaaS month is paid. It will appear then."
+        ],
+        "invoice_not_paid": [
+          "The invoice is not paid in Zoho yet. The commission unlocks on payment."
+        ],
+        "pre_platform_sale": [
+          "This sale predates the move to the platform: it was paid through the old reports."
+        ],
+        "quota_gate": [
+          "The month's quota was not met, so this sale's commission was not paid out."
+        ],
+        "rep_inactive": [
+          "Your profile was marked inactive in the config, which blocked the calculation. That is fixed."
+        ]
       }
     },
     "invoiceList": {

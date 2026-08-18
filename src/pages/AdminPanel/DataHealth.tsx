@@ -21,7 +21,6 @@ interface UserReport {
   verdict: string | null;
   evidence: Record<string, unknown> | null;
   ai_note: string | null;
-  reply_index: number | null;
   likely_resolved: boolean | null;
   investigated_at: string | null;
 }
@@ -66,22 +65,27 @@ const DataHealth: React.FC = () => {
   // Résoudre ouvre d'abord une fenêtre : le vendeur reçoit maintenant un courriel,
   // et « c'est corrigé » sans dire QUOI l'oblige à aller vérifier lui-même.
   // La note reste facultative — on ne bloque pas une résolution pour ça.
-  const [resolveModal, setResolveModal] = useState<{ id: number; who: string; note: string; type: string } | null>(null);
+  const [resolveModal, setResolveModal] = useState<{ id: number; who: string; note: string; type: string; verdict: string | null } | null>(null);
 
-  // Keyed by report_type, so a "missing points" report never offers a commission answer.
-  // A type with no list (or a new one added server-side) simply yields no suggestions.
-  const quickReplies: string[] = (resolveModal
-    ? (t(`dataHealth.reports.quickReplies.${resolveModal.type}`, { returnObjects: true, defaultValue: [] }) as unknown as string[])
-    : []) || [];
+  // Replies are keyed by the DIAGNOSED CASE first: once we know it is a renewal, offering
+  // five generic answers is noise. The report-type list is only the fallback for reports the
+  // diagnosis has not covered — older ones, or a verdict with no phrasing written yet.
+  const repliesFor = (reportType: string, verdict: string | null): string[] => {
+    const byVerdict = verdict
+      ? (t(`dataHealth.reports.verdictReplies.${verdict}`, { returnObjects: true, defaultValue: [] }) as unknown as string[])
+      : [];
+    if (Array.isArray(byVerdict) && byVerdict.length) return byVerdict;
+    const byType = t(`dataHealth.reports.quickReplies.${reportType}`, { returnObjects: true, defaultValue: [] }) as unknown as string[];
+    return Array.isArray(byType) ? byType : [];
+  };
+
+  const quickReplies: string[] = resolveModal ? repliesFor(resolveModal.type, resolveModal.verdict) : [];
 
   // The diagnosis picks which canned reply fits; opening the modal starts from it rather
   // than a blank box. The AI note is deliberately NOT used here — it is a lead for the
   // admin, not something to send to the rep.
-  const suggestedNote = (rep: UserReport): string => {
-    if (rep.reply_index == null) return '';
-    const list = t(`dataHealth.reports.quickReplies.${rep.report_type}`, { returnObjects: true, defaultValue: [] }) as unknown as string[];
-    return (Array.isArray(list) && list[rep.reply_index]) || '';
-  };
+  const suggestedNote = (rep: UserReport): string =>
+    rep.verdict ? (repliesFor(rep.report_type, rep.verdict)[0] || '') : '';
 
   const [investigating, setInvestigating] = useState<number | null>(null);
   const reinvestigate = async (id: number) => {
@@ -346,7 +350,7 @@ const DataHealth: React.FC = () => {
                       </div>
                     </div>
                     <button
-                      onClick={() => setResolveModal({ id: rep.id, who: rep.reporter_name || rep.reporter_email || '—', note: suggestedNote(rep), type: rep.report_type })}
+                      onClick={() => setResolveModal({ id: rep.id, who: rep.reporter_name || rep.reporter_email || '—', note: suggestedNote(rep), type: rep.report_type, verdict: rep.verdict })}
                       disabled={resolving === rep.id}
                       className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
                     >
