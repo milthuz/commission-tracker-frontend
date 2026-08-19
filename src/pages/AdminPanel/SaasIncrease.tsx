@@ -180,7 +180,7 @@ const SaasIncrease: React.FC = () => {
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
   // while active — otherwise the only way to know whether anything is happening is the server log.
-  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean } | null>(null);
+  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; topErrors?: { error: string; count: number }[] } | null>(null);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
   const [bulkType, setBulkType] = useState<'percent' | 'flat'>('percent');
@@ -968,6 +968,13 @@ const SaasIncrease: React.FC = () => {
               {!insightsStatus.active && insightsStatus.verified < insightsStatus.total && ` · ${t('saasIncrease.insights.stalled')}`}
               {insightsStatus.errors > 0 && ` · ${t('saasIncrease.insights.errors', { count: insightsStatus.errors })}`}
             </span>
+            {/* The failure itself, not just its count — otherwise a scan failing on every row is
+                indistinguishable from one that never started. */}
+            {insightsStatus.topErrors?.[0] && (
+              <span className="max-w-[520px] truncate font-mono text-[11px] text-red-600 dark:text-red-400" title={insightsStatus.topErrors.map(e => `${e.count}x  ${e.error}`).join('\n')}>
+                {insightsStatus.topErrors[0].error}
+              </span>
+            )}
           </div>
         )}
         <button onClick={refreshInsights} disabled={refreshingInsights} className={btnSecondary}>
