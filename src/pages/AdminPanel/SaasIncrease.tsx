@@ -26,15 +26,25 @@ interface Subscription {
   lastPriceAfter: number | null;
   pricePointsChecked: number | null;
   insightsCheckedAt: string | null;
+  // currentMonthly is the BASE PLAN price (what an increase applies to and what gets pushed).
+  // totalMonthly is what the customer actually pays, plan + addons. They differ whenever the
+  // subscription carries addons, and baseVerified is false until the insights scan has split them.
+  totalMonthly: number;
+  addonsMonthly: number | null;
+  baseVerified: boolean;
 }
 type SortBy = 'name' | 'oldest' | 'newest' | 'mrr';
+// How an increase is expressed. 'target' sets an absolute price ("everyone to $169") rather than
+// a delta — the only mode that actually normalizes legacy price drift, since a % increase
+// preserves the spread forever and a flat $ shifts every price point by the same amount.
+type IncreaseMode = 'percent' | 'flat' | 'target';
 interface ScenarioSummary {
   id: number; name: string; targetMrr: number; status: string; itemCount: number; mrrDelta: number;
 }
 interface ScenarioItem {
   id: number; orgId: string;
   subscriptionNumber: string; customerName: string; planName: string; currentMonthly: number;
-  increaseType: 'percent' | 'flat'; increaseValue: number;
+  increaseType: IncreaseMode; increaseValue: number;
   newMonthly: number; status: string; pushError: string | null;
   notifyTo: string | null; notifySubject: string | null; notifyBody: string | null;
   notifyStatus: string; notifyError: string | null;
@@ -46,7 +56,7 @@ interface Calibration { buckets: CalibrationBucket[]; baseline: CalibrationBucke
 // deliberately independent from "included" (derived as increaseValue > 0) — matches the design
 // handoff's model, where you can select a batch of rows first, then bulk-apply a rule to them,
 // without needing to type a value into each one first.
-interface RowEdit { selected: boolean; increaseType: 'percent' | 'flat'; increaseValue: number }
+interface RowEdit { selected: boolean; increaseType: IncreaseMode; increaseValue: number }
 interface NotifyDraft { to: string; subject: string; body: string }
 
 const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n || 0);
@@ -505,7 +515,11 @@ const SaasIncrease: React.FC = () => {
 
   const newMonthlyFor = (s: Subscription, e?: RowEdit) => {
     if (!e) return s.currentMonthly;
-    return e.increaseType === 'flat' ? s.currentMonthly + (Number(e.increaseValue) || 0) : s.currentMonthly * (1 + (Number(e.increaseValue) || 0) / 100);
+    const v = Number(e.increaseValue) || 0;
+    // 'target' is an absolute price, not a delta — a 0 means "not set yet", so fall back to the
+    // current price rather than dropping the subscription to zero.
+    if (e.increaseType === 'target') return v > 0 ? v : s.currentMonthly;
+    return e.increaseType === 'flat' ? s.currentMonthly + v : s.currentMonthly * (1 + v / 100);
   };
 
   const includedCount = subs.filter(s => isIncluded(s.subscriptionNumber)).length;
@@ -852,8 +866,11 @@ const SaasIncrease: React.FC = () => {
         return sum + ((nm - s.currentMonthly) / (s.currentMonthly || 1)) * 100;
       }, 0) / includedSubs.length
     : 0;
-  const currentTotal = subs.reduce((sum, s) => sum + s.currentMonthly, 0);
-  const newTotal = subs.reduce((sum, s) => sum + newMonthlyFor(s, edits[s.subscriptionNumber]), 0);
+  // The MRR tiles report what customers actually pay (plan + addons), so they stay comparable to
+  // the board's official MRR. Only the PLAN line moves, so the new total is simply that plus the
+  // delta — summing newMonthlyFor here would silently drop every addon from the total.
+  const currentTotal = subs.reduce((sum, s) => sum + (s.totalMonthly ?? s.currentMonthly), 0);
+  const newTotal = currentTotal + mrrDelta;
   const remaining = Math.max(0, targetMrr - mrrDelta);
   const selectedRows = subs.filter(s => edits[s.subscriptionNumber]?.selected);
   const selectedDelta = selectedRows.reduce((sum, s) => sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly), 0);
@@ -1205,11 +1222,23 @@ const SaasIncrease: React.FC = () => {
                           {pos.label}
                         </div>
                       </div>
-                      <div className={`justify-self-end text-right text-sm tabular-nums ${textPri}`}>{money(s.currentMonthly)}</div>
+                      <div className="justify-self-end text-right">
+                        <div className={`text-sm tabular-nums ${textPri}`}>{money(s.currentMonthly)}</div>
+                        {!s.baseVerified ? (
+                          <div className="mt-0.5 whitespace-nowrap text-[11px] font-medium text-amber-600 dark:text-amber-400" title={t('saasIncrease.baseUnverifiedHint') as string}>
+                            {t('saasIncrease.baseUnverified')}
+                          </div>
+                        ) : (s.addonsMonthly ?? 0) > 0 && (
+                          <div className={`mt-0.5 whitespace-nowrap text-[11px] ${textQuat}`} title={t('saasIncrease.addonsHint', { total: money(s.totalMonthly) }) as string}>
+                            {t('saasIncrease.addons', { amount: money(s.addonsMonthly || 0) })}
+                          </div>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1.5">
                         <div className={`inline-flex rounded-lg p-0.5 ${chipInput}`}>
                           <button type="button" onClick={() => setEdit(s.subscriptionNumber, { increaseType: 'percent' })} className={segBtn((e?.increaseType || 'percent') === 'percent')}>%</button>
                           <button type="button" onClick={() => setEdit(s.subscriptionNumber, { increaseType: 'flat' })} className={segBtn(e?.increaseType === 'flat')}>$</button>
+                          <button type="button" onClick={() => setEdit(s.subscriptionNumber, { increaseType: 'target' })} className={segBtn(e?.increaseType === 'target')} title={t('saasIncrease.setToHint') as string}>=</button>
                         </div>
                         <input
                           type="number" value={e?.increaseValue || ''} placeholder="0"
@@ -1220,7 +1249,13 @@ const SaasIncrease: React.FC = () => {
                       </div>
                       <div className="justify-self-end text-right">
                         <div className={`text-sm font-medium tabular-nums ${included ? textPri : textSec}`}>{money(nm)}</div>
-                        {included && <div className="mt-0.5 text-[11px] text-emerald-600 dark:text-[#57D193]">+{money(delta)}</div>}
+                        {/* A 'set to' price below the current one is a DECREASE — show it as such
+                            instead of printing "+-$20". */}
+                        {included && delta !== 0 && (
+                          <div className={`mt-0.5 text-[11px] ${delta > 0 ? 'text-emerald-600 dark:text-[#57D193]' : 'text-amber-600 dark:text-amber-400'}`}>
+                            {delta > 0 ? '+' : '−'}{money(Math.abs(delta))}
+                          </div>
+                        )}
                       </div>
                       <div className="justify-self-end">
                         <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium ${RISK_BADGE_CLS[risk.tier]}`} title={riskTitle}>
@@ -1296,6 +1331,7 @@ const SaasIncrease: React.FC = () => {
                             <div className={`inline-flex rounded-lg p-0.5 ${chipInput}`}>
                               <button type="button" onClick={() => applyToSegment(rows, { increaseType: 'percent' })} className={segBtn(sv.type === 'percent')}>%</button>
                               <button type="button" onClick={() => applyToSegment(rows, { increaseType: 'flat' })} className={segBtn(sv.type === 'flat')}>$</button>
+                              <button type="button" onClick={() => applyToSegment(rows, { increaseType: 'target' })} className={segBtn(sv.type === 'target')} title={t('saasIncrease.setToHint') as string}>=</button>
                             </div>
                             <input
                               type="number"
