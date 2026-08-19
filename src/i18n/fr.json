@@ -1308,6 +1308,10 @@
       "none": "Aucune donnée de calibration pour l'instant — lance un rafraîchissement pour construire le jeu de données historique."
     },
     "insights": {
+      "progress": "Prix de base : {{verified}} / {{total}} vérifiés",
+      "running": "scan en cours",
+      "stalled": "scan arrêté — clique sur Actualiser l'historique de prix",
+      "errors": "{{count}} erreur(s)",
       "refresh": "Actualiser l'historique de prix",
       "refreshing": "Actualisation…",
       "refreshStarted": "L'analyse de l'historique de prix a démarré en arrière-plan — elle interroge Zoho abonnement par abonnement, donc les résultats apparaîtront graduellement plutôt qu'instantanément."

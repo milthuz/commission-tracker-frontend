@@ -178,6 +178,9 @@ const SaasIncrease: React.FC = () => {
   const [drilldownKey, setDrilldownKey] = useState<string | null>(null);
   const [editingSegment, setEditingSegment] = useState<string | null>(null);
   const [refreshingInsights, setRefreshingInsights] = useState(false);
+  // Progress of the price-history scan. It can run for the better part of an hour, so it polls
+  // while active — otherwise the only way to know whether anything is happening is the server log.
+  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean } | null>(null);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
   const [bulkType, setBulkType] = useState<'percent' | 'flat'>('percent');
@@ -280,6 +283,14 @@ const SaasIncrease: React.FC = () => {
   };
 
   useEffect(() => { loadSubs(false); loadScenarios(); loadTemplates(); loadCalibration(); }, []);
+
+  // Poll the scan's progress — tightly while it's actually writing rows, lazily otherwise so an
+  // idle page isn't hitting the server every few seconds for an hour.
+  useEffect(() => {
+    loadInsightsStatus();
+    const id = setInterval(loadInsightsStatus, insightsStatus?.active ? 15000 : 120000);
+    return () => clearInterval(id);
+  }, [insightsStatus?.active]);
 
   useEffect(() => {
     if (!canExecute) return;
@@ -672,12 +683,21 @@ const SaasIncrease: React.FC = () => {
     finally { setExporting(false); }
   };
 
+  const loadInsightsStatus = async () => {
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/insights/status`, { headers: authHeaders() });
+      if (!r.ok) return;
+      setInsightsStatus(await r.json());
+    } catch { /* non-fatal — the progress line just doesn't render */ }
+  };
+
   const refreshInsights = async () => {
     setRefreshingInsights(true);
     try {
       const r = await fetch(`${API_URL}/api/admin/saas-increase/insights/refresh`, { method: 'POST', headers: authHeaders() });
       if (!r.ok) throw new Error(String(r.status));
       dialog.alert(t('saasIncrease.insights.refreshStarted') as string);
+      loadInsightsStatus();
     } catch { dialog.alert(t('saasIncrease.error') as string); }
     finally { setRefreshingInsights(false); }
   };
@@ -936,7 +956,20 @@ const SaasIncrease: React.FC = () => {
       </div>
 
       {/* Header actions — Refresh price history / Export CSV */}
-      <div className="mb-4 flex items-center justify-end gap-2">
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+        {/* Scan progress. Base prices must be separated from addons before anything can be pushed,
+            and the scan takes a while, so its state belongs on screen rather than in server logs. */}
+        {insightsStatus && insightsStatus.total > 0 && (
+          <div className={`mr-auto flex items-center gap-2 text-xs ${insightsStatus.verified < insightsStatus.total ? 'text-amber-600 dark:text-amber-400' : textTer}`}>
+            {insightsStatus.active && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
+            <span>
+              {t('saasIncrease.insights.progress', { verified: insightsStatus.verified, total: insightsStatus.total })}
+              {insightsStatus.active && ` · ${t('saasIncrease.insights.running')}`}
+              {!insightsStatus.active && insightsStatus.verified < insightsStatus.total && ` · ${t('saasIncrease.insights.stalled')}`}
+              {insightsStatus.errors > 0 && ` · ${t('saasIncrease.insights.errors', { count: insightsStatus.errors })}`}
+            </span>
+          </div>
+        )}
         <button onClick={refreshInsights} disabled={refreshingInsights} className={btnSecondary}>
           <RefreshCw className={`h-4 w-4 ${refreshingInsights ? 'animate-spin' : ''}`} />
           {refreshingInsights ? t('saasIncrease.insights.refreshing') : t('saasIncrease.insights.refresh')}

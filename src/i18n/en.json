@@ -1308,6 +1308,10 @@
       "none": "No calibration data yet — run a refresh to build the historical dataset."
     },
     "insights": {
+      "progress": "Base prices: {{verified}} / {{total}} verified",
+      "running": "scan running",
+      "stalled": "scan not running — click Refresh price history",
+      "errors": "{{count}} error(s)",
       "refresh": "Refresh price history",
       "refreshing": "Refreshing…",
       "refreshStarted": "Price-history scan started in the background — this runs per subscription against Zoho, so results will appear gradually rather than instantly."
