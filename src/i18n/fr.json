@@ -1208,6 +1208,7 @@
       "colSegment": "Segment",
       "colProgress": "Progression",
       "mixed": "varié",
+      "mixedHint": "Les abonnements de ce segment ont des augmentations différentes, de {{min}} à {{max}} — normalement parce que Suggérer a donné à chacun son propre taux ajusté au risque, ou parce que seulement certains sont définis. Tape une valeur ici pour tous les mettre à la même.",
       "setCount": "{{set}} sur {{total}} définis",
       "highRisk": "⚠ {{count}} à risque élevé",
       "view": "Voir",
@@ -1217,6 +1218,7 @@
       "todo": "À faire ({{count}})",
       "done": "Terminés ({{count}})",
       "all": "Tous",
+      "allCount": "Tous ({{count}})",
       "allDone": "Chaque groupe a une augmentation définie — il ne reste rien à faire.",
       "noneDone": "Aucun groupe entièrement appliqué pour l'instant.",
       "showAll": "Afficher tous les groupes"

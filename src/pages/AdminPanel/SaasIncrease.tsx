@@ -464,17 +464,23 @@ const SaasIncrease: React.FC = () => {
 
   // Reads a segment's increase back off its own rows — the rows stay the single source of truth
   // (every MRR figure on the page already sums from them), so there's no parallel segment-level
-  // state to keep in sync. `mixed` means drill-down edits left the rows disagreeing, so the
-  // segment input shows blank rather than silently implying one shared value.
+  // state to keep in sync. `mixed` means the rows disagree, which is the NORMAL state after a
+  // Suggest run (it assigns each subscription its own risk-adjusted rate) or when a saved
+  // scenario only covers part of the segment. Rather than a bare "mixed", the min/max are
+  // reported so the box still says something useful about what's underneath it.
   const segmentValueFor = (rows: Subscription[]) => {
     const first = edits[rows[0]?.subscriptionNumber];
     const type = first?.increaseType || 'percent';
     const value = first?.increaseValue ?? 0;
-    const uniform = rows.every(r => {
+    let min = Infinity, max = -Infinity, uniform = true;
+    for (const r of rows) {
       const e = edits[r.subscriptionNumber];
-      return (e?.increaseType || 'percent') === type && (e?.increaseValue ?? 0) === value;
-    });
-    return { type, value, mixed: !uniform };
+      const v = e?.increaseValue ?? 0;
+      if ((e?.increaseType || 'percent') !== type || v !== value) uniform = false;
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+    return { type, value, mixed: !uniform, min: min === Infinity ? 0 : min, max: max === -Infinity ? 0 : max };
   };
 
   // Writes one increase across every subscription in a segment. This is now the primary way
@@ -1041,6 +1047,29 @@ const SaasIncrease: React.FC = () => {
 
       {/* TABLE CARD */}
       <div className={`${card} overflow-hidden`}>
+        {/* Segment view tabs — applying an increase to a segment completes it, which moves it out
+            of "To do" and into "Done". Deliberately a full-width tab strip rather than one more
+            control in the toolbar: this is a change of view, and it needs to read that way. */}
+        <div className="flex items-center gap-1 border-b border-gray-100 px-3 dark:border-[#1B1B1B]">
+          {([
+            ['todo', t('saasIncrease.groupView.todo', { count: todoGroupCount })],
+            ['done', t('saasIncrease.groupView.done', { count: doneGroupCount })],
+            ['all', t('saasIncrease.groupView.allCount', { count: groupedRows.length })],
+          ] as const).map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setGroupView(id as 'todo' | 'done' | 'all')}
+              className={`border-b-2 px-4 py-3 text-sm font-medium transition ${
+                groupView === id
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-body hover:text-black dark:hover:text-white'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         {/* toolbar */}
         <div className="flex flex-wrap items-center gap-2.5 border-b border-gray-100 p-3.5 dark:border-[#1B1B1B]">
           <div className={`flex min-w-[240px] max-w-[360px] flex-1 items-center gap-2 px-3 ${chipInput} focus-within:border-primary`}>
@@ -1059,19 +1088,6 @@ const SaasIncrease: React.FC = () => {
           </div>
           <div className="relative">
             <Select value={sortBy} onChange={(v) => setSortBy(v as SortBy)} options={[{ value: "name", label: t('saasIncrease.sortName') as string }, { value: "oldest", label: t('saasIncrease.sortOldest') as string }, { value: "newest", label: t('saasIncrease.sortNewest') as string }, { value: "mrr", label: t('saasIncrease.sortMrr') as string }]} buttonClassName={`${chipInput} py-2.5 pl-3 pr-8 text-sm`} />
-          </div>
-          {/* Group view — hides groups you've already fully applied an increase to, so the list
-              shrinks as you work instead of growing into a long scroll. */}
-          <div className={`inline-flex rounded-lg p-0.5 ${raised}`}>
-            <button type="button" onClick={() => setGroupView('todo')} className={segBtn(groupView === 'todo')}>
-              {t('saasIncrease.groupView.todo', { count: todoGroupCount })}
-            </button>
-            <button type="button" onClick={() => setGroupView('done')} className={segBtn(groupView === 'done')}>
-              {t('saasIncrease.groupView.done', { count: doneGroupCount })}
-            </button>
-            <button type="button" onClick={() => setGroupView('all')} className={segBtn(groupView === 'all')}>
-              {t('saasIncrease.groupView.all')}
-            </button>
           </div>
           <button onClick={() => loadSubs(true)} disabled={loading} title={t('saasIncrease.refresh') as string} className={`${raised} flex h-9 w-9 items-center justify-center ${textSec} hover:text-gray-900 dark:hover:text-white`}>
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -1276,13 +1292,14 @@ const SaasIncrease: React.FC = () => {
                             </div>
                             <input
                               type="number"
-                              placeholder={sv.mixed ? (t('saasIncrease.segment.mixed') as string) : '0'}
+                              placeholder={sv.mixed ? `${sv.min}–${sv.max}` : '0'}
+                              title={sv.mixed ? (t('saasIncrease.segment.mixedHint', { min: sv.min, max: sv.max }) as string) : ''}
                               value={sv.mixed ? '' : (sv.value || '')}
                               onWheel={(ev) => ev.currentTarget.blur()}
                               onFocus={() => setEditingSegment(key)}
                               onBlur={() => setEditingSegment(null)}
                               onChange={(ev) => applyToSegment(rows, { increaseValue: Number(ev.target.value) || 0 })}
-                              className={`w-[64px] rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary dark:bg-[#0A0A0A] dark:text-white ${setCount > 0 ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
+                              className={`w-[78px] rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary dark:bg-[#0A0A0A] dark:text-white ${setCount > 0 ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
                             />
                           </div>
                           <div className="justify-self-end text-right">

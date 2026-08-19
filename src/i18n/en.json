@@ -1208,6 +1208,7 @@
       "colSegment": "Segment",
       "colProgress": "Progress",
       "mixed": "mixed",
+      "mixedHint": "Subscriptions in this segment have different increases, ranging from {{min}} to {{max}} — normally because Suggest gave each one its own risk-adjusted rate, or because only some are set. Type a value here to set them all to the same one.",
       "setCount": "{{set}} of {{total}} set",
       "highRisk": "⚠ {{count}} high risk",
       "view": "View",
@@ -1217,6 +1218,7 @@
       "todo": "To do ({{count}})",
       "done": "Done ({{count}})",
       "all": "All",
+      "allCount": "All ({{count}})",
       "allDone": "Every group has an increase set — nothing left to do.",
       "noneDone": "No fully-applied groups yet.",
       "showAll": "Show all groups"
