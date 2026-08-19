@@ -620,7 +620,14 @@ const SaasIncrease: React.FC = () => {
           currentMonthly: s.currentMonthly, increaseType: e.increaseType, increaseValue: e.increaseValue,
         };
       });
-    if (!items.length) { dialog.alert(t('saasIncrease.noRowsSelected') as string); return; }
+    // Saving with nothing included is legitimate — it's how you empty a scenario after clearing
+    // every segment. Only block it when there's genuinely nothing to do (nothing set AND nothing
+    // saved); otherwise confirm first, since it wipes the scenario's saved increases.
+    if (!items.length) {
+      const savedCount = Object.keys(savedItems).length;
+      if (!savedCount) { dialog.alert(t('saasIncrease.noRowsSelected') as string); return; }
+      if (!(await dialog.confirm(t('saasIncrease.confirmClearAll', { count: savedCount }) as string))) return;
+    }
     setSaving(true);
     try {
       const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/items`, {

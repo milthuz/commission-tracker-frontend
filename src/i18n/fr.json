@@ -1196,6 +1196,7 @@
     "none": "Aucun abonnement ne correspond à ces filtres.",
     "noPlan": "Aucun forfait",
     "noRowsSelected": "Sélectionne au moins un abonnement avant d'enregistrer.",
+    "confirmClearAll": "Tu as effacé toutes les augmentations. Enregistrer maintenant vide ce scénario et retire ses {{count}} élément(s) enregistrés. Les abonnements déjà poussés vers Zoho ou déjà notifiés sont conservés. Continuer?",
     "saveDraft": "Enregistrer le scénario",
     "saveDraftWithCount": "Enregistrer le scénario · {{count}} en attente",
     "stepSetIncreases": "Définir les augmentations",

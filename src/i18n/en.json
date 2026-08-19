@@ -1196,6 +1196,7 @@
     "none": "No subscriptions match these filters.",
     "noPlan": "No plan",
     "noRowsSelected": "Select at least one subscription to save.",
+    "confirmClearAll": "You've cleared every increase. Saving now empties this scenario, removing its {{count}} saved item(s). Subscriptions already pushed to Zoho or already notified are kept. Continue?",
     "saveDraft": "Save scenario",
     "saveDraftWithCount": "Save scenario · {{count}} pending",
     "stepSetIncreases": "Set increases on rows",
