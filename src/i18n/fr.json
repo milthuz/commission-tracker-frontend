@@ -2198,7 +2198,11 @@
         "body": "Connectez votre compte Zoho pour que les pistes que vous approuvez portent votre nom dans « Créé par ». Rien d’autre ne change.",
         "connect": "Connecter mon compte Zoho",
         "connectFailed": "Impossible de démarrer la connexion à Zoho."
-      }
+      },
+      "exportUsers": "Exporter",
+      "exporting": "Export…",
+      "exportHint": "Télécharge en Excel les comptes à qui une invitation a été envoyée, avec les dates d’envoi, d’ouverture du lien et d’activation. Le fichier suit le partenaire et la recherche affichés.",
+      "exportFailed": "L’export a échoué."
     },
     "resources": {
       "title": "Stockage des ressources",

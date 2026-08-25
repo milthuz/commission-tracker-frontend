@@ -82,7 +82,7 @@ const PAYOUT_BADGE: Record<string, string> = {
   paid: 'bg-primary text-white',
 };
 
-const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canStats?: boolean }> = ({ canDelete, canMigrate, canStats }) => {
+const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canStats?: boolean; canExportUsers?: boolean }> = ({ canDelete, canMigrate, canStats, canExportUsers }) => {
   const { t, i18n } = useTranslation();
   // Landing on this page is the Opportunity Queue "dashboard" (user request 2026-07-2x) — Manage
   // Partners is reached either via the in-page tab or the Sidebar's "Manage Partners" submenu
@@ -586,6 +586,37 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
   // Nom -> fiche partenaire, pour afficher le logo quand il y en a un (convention du projet :
   // le logo seul s'il existe, le nom sinon).
   const partnerByName = new Map(partners.map((p) => [p.name, p]));
+
+  // Export Excel de l'annuaire. Il part du SERVEUR et non du tableau deja en memoire : le garde
+  // du mode demo bloque les routes GET dont le chemin contient « export », ce qu'un fichier
+  // fabrique dans le navigateur contournerait. Les filtres de l'ecran (partenaire, recherche)
+  // sont transmis pour que le fichier rende exactement ce qui est affiche.
+  const [exporting, setExporting] = useState(false);
+  const exportUsers = async () => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams({ lang: i18n.language.startsWith('en') ? 'en' : 'fr' });
+      if (userDirFilter) params.set('partner', userDirFilter);
+      if (userSearch.trim()) params.set('q', userSearch.trim());
+      const r = await axios.get(`${API_URL}/api/admin/partner-invites/export?${params}`,
+        { headers: authHeaders(), responseType: 'blob' });
+      // Le nom du fichier vient du Content-Disposition du serveur : une seule source, donc le
+      // fichier telecharge porte le nom que le serveur lui a donne.
+      const cd = String(r.headers['content-disposition'] || '');
+      const nom = /filename="?([^"]+)"?/.exec(cd)?.[1] || 'partenaires-comptes-invites.xlsx';
+      const url = URL.createObjectURL(r.data);
+      const a = document.createElement('a');
+      a.href = url; a.download = nom;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (e: any) {
+      // responseType blob : le corps d'une erreur arrive en Blob et doit etre relu en texte,
+      // sinon le message du serveur (permission, mode demo) se perd derriere « [object Blob] ».
+      let msg = '';
+      try { msg = JSON.parse(await (e?.response?.data as Blob).text())?.error || ''; } catch { /* pas du JSON */ }
+      dialog.alert(msg || t('admin.partners.exportFailed'));
+    } finally { setExporting(false); }
+  };
 
   // Partenaires reellement presents dans la liste des usagers, et lignes affichees.
   const invitePartnerNames = [...new Set(invites.map((i) => i.partnerName).filter(Boolean))].sort((a, b) => a.localeCompare(b));
@@ -1268,6 +1299,18 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
               </div>
               {/* Le bouton dit COMBIEN il enverra : « Inviter » seul, sur 177 lignes, est une
                   promesse trop vague pour un geste irreversible. */}
+              {/* Toujours visible (avec la permission), independamment de la selection : on
+                  exporte ce qui est AFFICHE, pas ce qui est coche. */}
+              {canExportUsers && (
+                <button onClick={exportUsers} disabled={exporting || invites.length === 0}
+                  title={t('admin.partners.exportHint') as string}
+                  className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-stroke px-3.5 py-2 text-sm font-semibold text-body hover:border-primary hover:text-primary disabled:opacity-40 dark:border-strokedark">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                  </svg>
+                  {exporting ? t('admin.partners.exporting') : t('admin.partners.exportUsers')}
+                </button>
+              )}
               {invitableShown.length > 0 && (
                 <div className="flex shrink-0 items-center gap-2">
                   {/* « Relancer » n'apparait que s'il y a des comptes DEJA invites dans la

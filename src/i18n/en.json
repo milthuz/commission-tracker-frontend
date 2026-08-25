@@ -2198,7 +2198,11 @@
         "body": "Connect your Zoho account so the leads you approve carry your name in “Created By”. Nothing else changes.",
         "connect": "Connect my Zoho account",
         "connectFailed": "Could not start the Zoho connection."
-      }
+      },
+      "exportUsers": "Export",
+      "exporting": "Exporting…",
+      "exportHint": "Downloads to Excel the accounts an invitation was sent to, with the dates it was sent, the link opened and the account activated. The file follows the partner and search currently shown.",
+      "exportFailed": "The export failed."
     },
     "resources": {
       "title": "Resources storage",

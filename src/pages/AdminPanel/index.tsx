@@ -3504,7 +3504,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'resources' && <ResourcesAdmin />}
           {activeTab === 'hardware' && <HardwareAdmin />}
           {activeTab === 'pricing' && <PricingAdmin />}
-          {activeTab === 'partners' && <PartnersAdmin canDelete={isAdmin || can('partners:delete')} canMigrate={isAdmin || can('partners:migrate')} canStats={isAdmin || can('partners:stats')} />}
+          {activeTab === 'partners' && <PartnersAdmin canDelete={isAdmin || can('partners:delete')} canMigrate={isAdmin || can('partners:migrate')} canStats={isAdmin || can('partners:stats')} canExportUsers={isAdmin || can('partners:export_users')} />}
           {activeTab === 'merchant-links' && <MerchantSaasLinks />}
           {activeTab === 'notifications' && <NotificationsAdmin />}
 
