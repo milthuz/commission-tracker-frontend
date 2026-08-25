@@ -3706,14 +3706,20 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {/* ==================== USER ROLES EDIT MODAL ==================== */}
           {editingUserRoles && (
             <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[99999] p-4" onClick={() => setEditingUserRoles(null)}>
-              <div className="bg-white dark:bg-boxdark rounded-lg shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-                <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+              {/* max-h + flex-col : sans eux le panneau grandit avec le nombre de roles et,
+                  etant centre verticalement, il se fait couper EN HAUT ET EN BAS des que la
+                  liste depasse la fenetre — « Enregistrer » devient alors inatteignable.
+                  Meme motif que le panneau d'edition de role juste au-dessus. */}
+              <div className="bg-white dark:bg-boxdark rounded-lg shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                <div className="shrink-0 border-b border-stroke px-6 py-4 dark:border-strokedark">
                   <h3 className="text-lg font-semibold text-black dark:text-white">
                     {t('admin.admins.assignRoles')}
                   </h3>
                   <p className="text-sm text-body mt-1">{editingUserRoles}</p>
                 </div>
-                <div className="p-6">
+                {/* min-h-0 : sans lui un enfant flex refuse de descendre sous la hauteur de son
+                    contenu, et overflow-y-auto ne se declenche jamais. */}
+                <div className="min-h-0 flex-1 overflow-y-auto p-6">
                   <p className="mb-3 rounded-md bg-primary/5 px-3 py-2 text-xs text-body dark:bg-meta-4">
                     {t('admin.admins.rolesVsAdminHint')}
                   </p>
@@ -3773,7 +3779,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     );
                   })()}
                 </div>
-                <div className="border-t border-stroke px-6 py-3 dark:border-strokedark flex justify-end gap-3">
+                <div className="shrink-0 border-t border-stroke px-6 py-3 dark:border-strokedark flex justify-end gap-3">
                   <button
                     onClick={() => setEditingUserRoles(null)}
                     className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
