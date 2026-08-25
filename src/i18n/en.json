@@ -913,6 +913,8 @@
     "notConfigured": "The demo isn't configured yet. An administrator needs to finish the AWS AppStream setup.",
     "fleetStopped": "The demo is available from 7:00 AM to 9:00 PM (Montreal time). It's currently off to save costs — please try again during those hours (allow a few minutes after 7:00 AM for it to start).",
     "error": "Couldn't start the demo. Please try again in a moment.",
+    "versionBadge": "POS {{version}}",
+    "versionHint": "POS version installed on the demo machine.",
     "maintenanceTitle": "Demo temporarily offline",
     "maintenanceDefault": "We're updating the Kaizen POS demo. It'll be back shortly — thanks for your patience.",
     "sessions": {
@@ -931,6 +933,8 @@
       "colSince": "Connected for",
       "you": "you",
       "anonUser": "In use",
+      "image": "Image",
+      "imageBuilt": "built",
       "notConnected": "not connected",
       "hintStopped": "The fleet is stopped — no one can stream until it starts. An admin can start it in the AWS AppStream console (or wait for the scheduled start).",
       "hintFull": "All instances are in use — that's why \"No streaming resources are available\" appears. Wait for a session below to free up, or increase the fleet's capacity in AWS.",
@@ -1292,7 +1296,7 @@
       "subtitle": "Observed churn rates from Cluster's own cancelled-subscription history — used to override the risk heuristic where there's enough real data.",
       "hint": "See how much real history backs the churn-risk score, and refresh it.",
       "refresh": "Refresh history",
-      "refreshing": "Refreshing…",
+      "refreshing": "Starting…",
       "refreshStarted": "Historical churn scan started in the background — this runs per cancelled subscription against Zoho, so it can take a while. Reopen this panel later to see updated numbers.",
       "loading": "Loading…",
       "computedAt": "Computed {{date}}",
@@ -1312,9 +1316,9 @@
       "running": "scan running",
       "stalled": "scan not running — click Refresh price history",
       "errors": "{{count}} error(s)",
-      "refresh": "Refresh price history",
+      "refresh": "Verify base prices",
       "refreshing": "Refreshing…",
-      "refreshStarted": "Price-history scan started in the background — this runs per subscription against Zoho, so results will appear gradually rather than instantly."
+      "refreshStarted": "Verifying base plan prices in the background — one Zoho call per subscription, so expect several minutes rather than hours. The counter above updates as it goes; you can leave this page."
     },
     "status": {
       "pending": "Pending",
@@ -2431,7 +2435,10 @@
       "messageLabel": "Maintenance message",
       "messageHint": "Shown to reps instead of the demo while it's turned off.",
       "messagePlaceholder": "We're updating the Kaizen POS demo. It'll be back shortly.",
-      "saveMessage": "Save message"
+      "versionLabel": "POS version",
+      "versionHint": "Shown next to the title on the demo page. Update it whenever you rebuild the AppStream image.",
+      "versionPlaceholder": "e.g. 3.4.1",
+      "save": "Save"
     },
     "audit": {
       "title": "Audit",

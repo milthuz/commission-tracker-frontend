@@ -913,6 +913,8 @@
     "notConfigured": "La démo n'est pas encore configurée. Un administrateur doit terminer la configuration AWS AppStream.",
     "fleetStopped": "La démo est disponible de 7h00 à 21h00 (heure de Montréal). Elle est actuellement éteinte pour réduire les coûts — réessaie pendant ces heures (laisse quelques minutes après 7h00 pour le démarrage).",
     "error": "Impossible de démarrer la démo. Réessaie dans un instant.",
+    "versionBadge": "POS {{version}}",
+    "versionHint": "Version du POS installée sur la machine de démo.",
     "maintenanceTitle": "Démo temporairement hors ligne",
     "maintenanceDefault": "Nous mettons à jour la démo du POS Kaizen. Elle sera de retour bientôt — merci de ta patience.",
     "sessions": {
@@ -931,6 +933,8 @@
       "colSince": "Connecté depuis",
       "you": "toi",
       "anonUser": "Occupée",
+      "image": "Image",
+      "imageBuilt": "créée le",
       "notConnected": "non connecté",
       "hintStopped": "La flotte est arrêtée — personne ne peut diffuser tant qu'elle n'est pas démarrée. Un admin peut la démarrer dans la console AWS AppStream (ou attendre le démarrage planifié).",
       "hintFull": "Toutes les instances sont utilisées — c'est pourquoi « No streaming resources are available » s'affiche. Attends qu'une session ci-dessous se libère, ou augmente la capacité de la flotte dans AWS.",
@@ -1312,9 +1316,9 @@
       "running": "scan en cours",
       "stalled": "scan arrêté — clique sur Actualiser l'historique de prix",
       "errors": "{{count}} erreur(s)",
-      "refresh": "Actualiser l'historique de prix",
-      "refreshing": "Actualisation…",
-      "refreshStarted": "L'analyse de l'historique de prix a démarré en arrière-plan — elle interroge Zoho abonnement par abonnement, donc les résultats apparaîtront graduellement plutôt qu'instantanément."
+      "refresh": "Vérifier les prix de base",
+      "refreshing": "Démarrage…",
+      "refreshStarted": "Vérification des prix de base en arrière-plan — un seul appel Zoho par abonnement, donc compte quelques minutes et non des heures. Le compteur ci-dessus avance au fur et à mesure; tu peux quitter la page."
     },
     "status": {
       "pending": "En attente",
@@ -2431,7 +2435,10 @@
       "messageLabel": "Message de maintenance",
       "messageHint": "Affiché aux représentants à la place de la démo pendant qu'elle est désactivée.",
       "messagePlaceholder": "Nous mettons à jour la démo du POS Kaizen. Elle sera de retour bientôt.",
-      "saveMessage": "Enregistrer le message"
+      "versionLabel": "Version du POS",
+      "versionHint": "Affichée à côté du titre sur la page de démo. À mettre à jour chaque fois que l'image AppStream est reconstruite.",
+      "versionPlaceholder": "ex. 3.4.1",
+      "save": "Enregistrer"
     },
     "audit": {
       "title": "Audit",

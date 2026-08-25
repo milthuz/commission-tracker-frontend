@@ -694,7 +694,7 @@ const SaasIncrease: React.FC = () => {
   const refreshInsights = async () => {
     setRefreshingInsights(true);
     try {
-      const r = await fetch(`${API_URL}/api/admin/saas-increase/insights/refresh`, { method: 'POST', headers: authHeaders() });
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/insights/refresh-base`, { method: 'POST', headers: authHeaders() });
       if (!r.ok) throw new Error(String(r.status));
       dialog.alert(t('saasIncrease.insights.refreshStarted') as string);
       loadInsightsStatus();
