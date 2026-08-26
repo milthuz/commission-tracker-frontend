@@ -1396,7 +1396,12 @@
       "noPinSet": "Tu n'as pas encore défini de NIP de confirmation. Définis-en un dans ton profil d'abord.",
       "invalidPin": "NIP incorrect.",
       "pushing": "Application en cours…",
-      "confirmSubmit": "Confirmer et appliquer"
+      "confirmSubmit": "Confirmer et appliquer",
+      "checkScheduled": "Vérifier dans Zoho",
+      "checking": "Vérification…",
+      "noneScheduled": "Zoho ne rapporte aucun changement planifié pour cet abonnement.",
+      "scheduledOk": "Zoho a {{price}} planifié pour le {{date}}.",
+      "scheduledMismatch": "Zoho a {{price}} planifié pour le {{date}} — on attendait {{expected}}. Ne pousse rien d'autre avant d'avoir compris."
     }
   },
   "resources": {

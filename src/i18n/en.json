@@ -1396,7 +1396,12 @@
       "noPinSet": "You haven't set a confirmation PIN yet. Set one in your Profile first.",
       "invalidPin": "Incorrect PIN.",
       "pushing": "Pushing…",
-      "confirmSubmit": "Confirm & push"
+      "confirmSubmit": "Confirm & push",
+      "checkScheduled": "Check in Zoho",
+      "checking": "Checking…",
+      "noneScheduled": "Zoho reports no scheduled change for this subscription.",
+      "scheduledOk": "Zoho has {{price}} scheduled for {{date}}.",
+      "scheduledMismatch": "Zoho has {{price}} scheduled for {{date}} — expected {{expected}}. Do not push more until this is understood."
     }
   },
   "resources": {

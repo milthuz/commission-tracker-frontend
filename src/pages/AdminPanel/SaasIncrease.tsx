@@ -183,6 +183,8 @@ const SaasIncrease: React.FC = () => {
   // visible even once its value makes it "done", so it can't vanish mid-keystroke.
   const [drilldownKey, setDrilldownKey] = useState<string | null>(null);
   const [openOrgInfo, setOpenOrgInfo] = useState<string | null>(null);
+  // What Zoho actually has scheduled for a pushed item, per item id.
+  const [scheduledInfo, setScheduledInfo] = useState<Record<number, { loading?: boolean; error?: string; text?: string; matches?: boolean }>>({});
   const [editingSegment, setEditingSegment] = useState<string | null>(null);
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
@@ -802,6 +804,37 @@ const SaasIncrease: React.FC = () => {
       setEdits(prev => ({ ...prev, [rowKey(item)]: { selected: false, increaseType: 'percent', increaseValue: 0 } }));
       await loadScenarioDetail(activeScenarioId);
     } catch { dialog.alert(t('saasIncrease.error') as string); }
+  };
+
+  // Reads back what Zoho has pending for a pushed item and compares it to what we asked for.
+  // Reporting "pushed" from an HTTP 200 alone would hide a change recorded at the wrong price or
+  // the wrong date, which is precisely the failure that would reach a customer's invoice.
+  const checkScheduled = async (item: ScenarioItem) => {
+    if (!activeScenarioId) return;
+    setScheduledInfo(prev => ({ ...prev, [item.id]: { loading: true } }));
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/items/${item.id}/scheduled`, { headers: authHeaders() });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setScheduledInfo(prev => ({ ...prev, [item.id]: { error: d.error || t('saasIncrease.error') as string } }));
+        return;
+      }
+      if (!d.scheduled) {
+        setScheduledInfo(prev => ({ ...prev, [item.id]: { text: t('saasIncrease.push.noneScheduled') as string, matches: false } }));
+        return;
+      }
+      const when = d.effectiveAt ? new Date(d.effectiveAt).toLocaleDateString() : '—';
+      const matches = d.price != null && Math.abs(d.price - item.newMonthly) < 0.01;
+      setScheduledInfo(prev => ({
+        ...prev,
+        [item.id]: {
+          matches,
+          text: matches
+            ? t('saasIncrease.push.scheduledOk', { price: money(d.price), date: when }) as string
+            : t('saasIncrease.push.scheduledMismatch', { price: d.price != null ? money(d.price) : '—', expected: money(item.newMonthly), date: when }) as string,
+        },
+      }));
+    } catch { setScheduledInfo(prev => ({ ...prev, [item.id]: { error: t('saasIncrease.error') as string } })); }
   };
 
   const testSendNotification = async (itemId: number) => {
@@ -1789,7 +1822,28 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                                         {t('saasIncrease.push.pushOne')}
                                       </button>
                                     )}
+                                    {/* Independent confirmation of what Zoho actually recorded —
+                                        its own UI shows that a change is pending but never the
+                                        amount, so "pushed" would otherwise be unverifiable. */}
+                                    {item.status === 'pushed' && (
+                                      <button onClick={() => checkScheduled(item)} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
+                                        {t('saasIncrease.push.checkScheduled')}
+                                      </button>
+                                    )}
                                   </div>
+                                  {scheduledInfo[item.id] && (
+                                    <div className={`mt-2 rounded-lg px-3 py-2 text-xs ${raised}`}>
+                                      {scheduledInfo[item.id].loading
+                                        ? t('saasIncrease.push.checking')
+                                        : scheduledInfo[item.id].error
+                                          ? <span className="text-red-600 dark:text-red-400">{scheduledInfo[item.id].error}</span>
+                                          : (
+                                            <span className={scheduledInfo[item.id].matches ? 'text-emerald-600 dark:text-[#57D193]' : 'text-amber-600 dark:text-amber-400'}>
+                                              {scheduledInfo[item.id].text}
+                                            </span>
+                                          )}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
