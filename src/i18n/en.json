@@ -1218,6 +1218,7 @@
     "exportCsv": "Export CSV",
     "exporting": "Exporting…",
     "segment": {
+      "orgSummary": "{{segments}} segments · {{subs}} subscriptions",
       "colSegment": "Segment",
       "colProgress": "Progress",
       "mixed": "mixed",

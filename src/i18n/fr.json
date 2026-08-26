@@ -1218,6 +1218,7 @@
     "exportCsv": "Exporter en CSV",
     "exporting": "Exportation…",
     "segment": {
+      "orgSummary": "{{segments}} segments · {{subs}} abonnements",
       "colSegment": "Segment",
       "colProgress": "Progression",
       "mixed": "varié",

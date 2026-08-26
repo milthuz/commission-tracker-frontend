@@ -1407,8 +1407,32 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                       <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.segment.colProgress')}</span>
                       <span />
                     </div>
-                    {visibleGroups.map(([key, rows]) => {
-                      const [orgLabel, planLabel] = key.split('||');
+                    {(() => {
+                      // Group the segments under an organisation heading. They were already sorted
+                      // by org (the key is org||plan), but nothing said so — the org was repeated
+                      // in small text on every row instead, which read as noise rather than
+                      // structure.
+                      const byOrg = new Map<string, typeof visibleGroups>();
+                      for (const g of visibleGroups) {
+                        const org = g[0].split('||')[0];
+                        if (!byOrg.has(org)) byOrg.set(org, []);
+                        byOrg.get(org)!.push(g);
+                      }
+                      return Array.from(byOrg.entries()).map(([orgName, orgGroups]) => {
+                        const orgCurrent = orgGroups.reduce((sum, [, rs]) => sum + rs.reduce((a, r) => a + r.currentMonthly, 0), 0);
+                        const orgSubs = orgGroups.reduce((sum, [, rs]) => sum + rs.length, 0);
+                        return (
+                          <div key={`org-${orgName}`}>
+                            <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-gray-200 px-4.5 py-2.5 dark:border-[#242424] ${raised}`}>
+                              <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: posLabelFor('', orgName).color }} />
+                              <span className={`text-sm font-semibold ${textPri}`}>{orgName}</span>
+                              <span className={`text-xs ${textTer}`}>
+                                {t('saasIncrease.segment.orgSummary', { segments: orgGroups.length, subs: orgSubs })}
+                              </span>
+                              <span className={`ml-auto text-xs tabular-nums ${textTer}`}>{money(orgCurrent)}/mo</span>
+                            </div>
+                            {orgGroups.map(([key, rows]) => {
+                      const [, planLabel] = key.split('||');
                       const segCurrent = rows.reduce((sum, r) => sum + r.currentMonthly, 0);
                       const segNew = rows.reduce((sum, r) => sum + newMonthlyFor(r, edits[rowKey(r)]), 0);
                       const segDelta = segNew - segCurrent;
@@ -1424,8 +1448,8 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                           <div className="min-w-0">
                             <div className={`truncate text-sm font-medium ${textPri}`}>{planLabel}</div>
                             <div className={`mt-0.5 inline-flex items-center gap-1.5 text-[11px] ${textQuat}`}>
-                              <span className="h-[5px] w-[5px] shrink-0 rounded-full" style={{ background: posLabelFor(planLabel, orgLabel).color }} />
-                              <span className="truncate">{orgLabel} · {t('saasIncrease.groupCount', { count: rows.length })}</span>
+                              <span className="h-[5px] w-[5px] shrink-0 rounded-full" style={{ background: posLabelFor(planLabel, orgName).color }} />
+                              <span className="truncate">{t('saasIncrease.groupCount', { count: rows.length })}</span>
                             </div>
                           </div>
                           <div className={`justify-self-end text-right text-sm tabular-nums ${textPri}`}>{money(segCurrent)}</div>
@@ -1477,7 +1501,11 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                           </div>
                         </div>
                       );
-                    })}
+                            })}
+                          </div>
+                        );
+                      });
+                    })()}
                     {/* Drill-down — the full per-subscription table for ONE segment, for handling
                         exceptions. Reuses the same row/column renderers the old flat table used. */}
                     {drilldown && (
