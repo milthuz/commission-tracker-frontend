@@ -1352,8 +1352,12 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                   const pos = posLabelFor(s.planName, s.orgName);
                   const priceChangeLabel = s.lastPriceChangeAt
                     ? fmtDate(s.lastPriceChangeAt)
-                    : !s.insightsCheckedAt ? t('saasIncrease.notYetChecked')
-                    : (s.pricePointsChecked != null && s.pricePointsChecked < 2) ? t('saasIncrease.notEnoughHistory')
+                    // Keyed on pricePointsChecked, NOT on checked_at: the fast base-price pass
+                    // stamps checked_at without analysing any invoice history, so keying on it
+                    // reported "no recent change" for subscriptions nothing had ever looked at.
+                    // Claiming no change when we never checked is worse than saying nothing.
+                    : s.pricePointsChecked == null ? t('saasIncrease.notYetChecked')
+                    : s.pricePointsChecked < 2 ? t('saasIncrease.notEnoughHistory')
                     : t('saasIncrease.noRecentChange');
                   const activatedLabel = fmtDate(s.activatedAt);
                   // Combined into one tooltip rather than a second always-visible line — a
