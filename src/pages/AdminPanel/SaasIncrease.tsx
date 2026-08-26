@@ -59,6 +59,12 @@ interface Calibration { buckets: CalibrationBucket[]; baseline: CalibrationBucke
 interface RowEdit { selected: boolean; increaseType: IncreaseMode; increaseValue: number }
 interface NotifyDraft { to: string; subject: string; body: string }
 
+// Local state (edits, saved items, suggestion tracking) is keyed by ORG + number, never the
+// number alone: Zoho subscription numbers are unique per organisation, so two different
+// customers can share one. Keying on the number alone made them share a single edit — typing
+// an increase on one silently moved the other's price too.
+const rowKey = (s?: { orgId: string; subscriptionNumber: string } | null) =>
+  s ? `${s.orgId}||${s.subscriptionNumber}` : '';
 const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n || 0);
 
 // i18next's own interpolation syntax is also {{token}} — the placeholderHint string below
@@ -308,8 +314,8 @@ const SaasIncrease: React.FC = () => {
       const nextEdits: Record<string, RowEdit> = {};
       const nextNotify: Record<number, NotifyDraft> = {};
       for (const it of data.items as ScenarioItem[]) {
-        byNum[it.subscriptionNumber] = it;
-        nextEdits[it.subscriptionNumber] = { selected: true, increaseType: it.increaseType, increaseValue: it.increaseValue };
+        byNum[rowKey(it)] = it;
+        nextEdits[rowKey(it)] = { selected: true, increaseType: it.increaseType, increaseValue: it.increaseValue };
         nextNotify[it.id] = { to: it.notifyTo || '', subject: it.notifySubject || '', body: it.notifyBody || '' };
       }
       setSavedItems(byNum);
@@ -419,12 +425,12 @@ const SaasIncrease: React.FC = () => {
   const clearRows = (rows: Subscription[]) => {
     setSuggestedNumbers(prev => {
       const next = new Set(prev);
-      for (const s of rows) next.delete(s.subscriptionNumber);
+      for (const s of rows) next.delete(rowKey(s));
       return next;
     });
     setEdits(prev => {
       const next = { ...prev };
-      for (const s of rows) next[s.subscriptionNumber] = { selected: false, increaseType: 'percent', increaseValue: 0 };
+      for (const s of rows) next[rowKey(s)] = { selected: false, increaseType: 'percent', increaseValue: 0 };
       return next;
     });
   };
@@ -436,7 +442,7 @@ const SaasIncrease: React.FC = () => {
   // only when EVERY row in it has an increase (a partially-applied group still has work, so it
   // stays under "To do"). Defaults to "todo" so applied groups drop out of view as you go, with
   // one click to review the finished ones.
-  const isGroupDone = (rows: Subscription[]) => rows.length > 0 && rows.every(r => isIncluded(r.subscriptionNumber));
+  const isGroupDone = (rows: Subscription[]) => rows.length > 0 && rows.every(r => isIncluded(rowKey(r)));
   const doneGroupCount = groupedRows.reduce((n, [, rows]) => n + (isGroupDone(rows) ? 1 : 0), 0);
   const todoGroupCount = groupedRows.length - doneGroupCount;
   const visibleGroups = groupView === 'all'
@@ -453,14 +459,14 @@ const SaasIncrease: React.FC = () => {
 
   // Select-all now lives per-group (the column header only renders inside an expanded group) —
   // "select everything in this group" rather than one global toggle for the whole filtered list.
-  const isGroupAllSelected = (rows: Subscription[]) => rows.length > 0 && rows.every(r => edits[r.subscriptionNumber]?.selected);
+  const isGroupAllSelected = (rows: Subscription[]) => rows.length > 0 && rows.every(r => edits[rowKey(r)]?.selected);
   const toggleGroupSelectAll = (rows: Subscription[]) => {
     const target = !isGroupAllSelected(rows);
     setEdits(prev => {
       const next = { ...prev };
       for (const s of rows) {
-        const base = next[s.subscriptionNumber] || { selected: false, increaseType: 'percent' as const, increaseValue: 0 };
-        next[s.subscriptionNumber] = { ...base, selected: target };
+        const base = next[rowKey(s)] || { selected: false, increaseType: 'percent' as const, increaseValue: 0 };
+        next[rowKey(s)] = { ...base, selected: target };
       }
       return next;
     });
@@ -469,14 +475,14 @@ const SaasIncrease: React.FC = () => {
   const applyBulkToSelected = () => {
     setSuggestedNumbers(prev => {
       const next = new Set(prev);
-      for (const s of filtered) if (edits[s.subscriptionNumber]?.selected) next.delete(s.subscriptionNumber);
+      for (const s of filtered) if (edits[rowKey(s)]?.selected) next.delete(rowKey(s));
       return next;
     });
     setEdits(prev => {
       const next = { ...prev };
       for (const s of filtered) {
-        if (next[s.subscriptionNumber]?.selected) {
-          next[s.subscriptionNumber] = { selected: true, increaseType: bulkType, increaseValue: bulkValue };
+        if (next[rowKey(s)]?.selected) {
+          next[rowKey(s)] = { selected: true, increaseType: bulkType, increaseValue: bulkValue };
         }
       }
       return next;
@@ -490,12 +496,12 @@ const SaasIncrease: React.FC = () => {
   // scenario only covers part of the segment. Rather than a bare "mixed", the min/max are
   // reported so the box still says something useful about what's underneath it.
   const segmentValueFor = (rows: Subscription[]) => {
-    const first = edits[rows[0]?.subscriptionNumber];
+    const first = edits[rowKey(rows[0])];
     const type = first?.increaseType || 'percent';
     const value = first?.increaseValue ?? 0;
     let min = Infinity, max = -Infinity, uniform = true;
     for (const r of rows) {
-      const e = edits[r.subscriptionNumber];
+      const e = edits[rowKey(r)];
       const v = e?.increaseValue ?? 0;
       if ((e?.increaseType || 'percent') !== type || v !== value) uniform = false;
       if (v < min) min = v;
@@ -509,16 +515,16 @@ const SaasIncrease: React.FC = () => {
   const applyToSegment = (rows: Subscription[], patch: Partial<RowEdit>) => {
     setSuggestedNumbers(prev => {
       const next = new Set(prev);
-      for (const s of rows) next.delete(s.subscriptionNumber);
+      for (const s of rows) next.delete(rowKey(s));
       return next;
     });
     setEdits(prev => {
       const next = { ...prev };
       for (const s of rows) {
-        const base: RowEdit = next[s.subscriptionNumber] || { selected: false, increaseType: 'percent', increaseValue: 0 };
+        const base: RowEdit = next[rowKey(s)] || { selected: false, increaseType: 'percent', increaseValue: 0 };
         const merged = { ...base, ...patch };
         merged.selected = (Number(merged.increaseValue) || 0) > 0;
-        next[s.subscriptionNumber] = merged;
+        next[rowKey(s)] = merged;
       }
       return next;
     });
@@ -533,10 +539,10 @@ const SaasIncrease: React.FC = () => {
     return e.increaseType === 'flat' ? s.currentMonthly + v : s.currentMonthly * (1 + v / 100);
   };
 
-  const includedCount = subs.filter(s => isIncluded(s.subscriptionNumber)).length;
+  const includedCount = subs.filter(s => isIncluded(rowKey(s))).length;
   const mrrDelta = subs.reduce((sum, s) => {
-    if (!isIncluded(s.subscriptionNumber)) return sum;
-    return sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly);
+    if (!isIncluded(rowKey(s))) return sum;
+    return sum + (newMonthlyFor(s, edits[rowKey(s)]) - s.currentMonthly);
   }, 0);
 
   // "Suggest scenario" — ranks not-yet-included live subscriptions by churn risk (using the
@@ -557,8 +563,8 @@ const SaasIncrease: React.FC = () => {
     // about to be cleared and recomputed fresh below, so counting their old contribution would
     // make the target look more covered than it actually will be after this run replaces them.
     const mrrDeltaExcludingSuggested = subs.reduce((sum, s) => {
-      if (!isIncluded(s.subscriptionNumber) || suggestedNumbers.has(s.subscriptionNumber)) return sum;
-      return sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly);
+      if (!isIncluded(rowKey(s)) || suggestedNumbers.has(rowKey(s))) return sum;
+      return sum + (newMonthlyFor(s, edits[rowKey(s)]) - s.currentMonthly);
     }, 0);
     const remainingToTarget = Math.max(0, targetMrr - mrrDeltaExcludingSuggested);
     const acceptTiers = SUGGEST_PROFILE_TIERS[profile];
@@ -577,7 +583,7 @@ const SaasIncrease: React.FC = () => {
     // suggestion run put it there (still replaceable) — never a row the user picked/edited
     // themselves (see setEdit/clearRows/applyBulkTo* stripping it from suggestedNumbers).
     const candidates = subs
-      .filter(s => s.status === 'live' && (!edits[s.subscriptionNumber]?.selected || suggestedNumbers.has(s.subscriptionNumber)))
+      .filter(s => s.status === 'live' && (!edits[rowKey(s)]?.selected || suggestedNumbers.has(rowKey(s))))
       .map(s => {
         for (const rate of steps) {
           const r = evalRate(s, rate);
@@ -609,8 +615,8 @@ const SaasIncrease: React.FC = () => {
 
   const openSuggestModal = () => {
     const mrrDeltaExcludingSuggested = subs.reduce((sum, s) => {
-      if (!isIncluded(s.subscriptionNumber) || suggestedNumbers.has(s.subscriptionNumber)) return sum;
-      return sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly);
+      if (!isIncluded(rowKey(s)) || suggestedNumbers.has(rowKey(s))) return sum;
+      return sum + (newMonthlyFor(s, edits[rowKey(s)]) - s.currentMonthly);
     }, 0);
     if (targetMrr - mrrDeltaExcludingSuggested <= 0) { dialog.alert(t('saasIncrease.targetReached') as string); return; }
     setSuggestModalOpen(true);
@@ -625,10 +631,10 @@ const SaasIncrease: React.FC = () => {
       // profile and re-applying replaces the old suggestion instead of being blocked by it (a
       // row the user edited by hand was already removed from suggestedNumbers, so it's untouched).
       for (const num of suggestedNumbers) next[num] = { selected: false, increaseType: 'percent', increaseValue: 0 };
-      for (const c of chosen) next[c.s.subscriptionNumber] = { selected: true, increaseType: bulkType, increaseValue: c.rate };
+      for (const c of chosen) next[rowKey(c.s)] = { selected: true, increaseType: bulkType, increaseValue: c.rate };
       return next;
     });
-    setSuggestedNumbers(new Set(chosen.map(c => c.s.subscriptionNumber)));
+    setSuggestedNumbers(new Set(chosen.map(c => rowKey(c.s))));
     setSuggestModalOpen(false);
   };
   const pct = targetMrr > 0 ? Math.min(100, (mrrDelta / targetMrr) * 100) : 0;
@@ -636,9 +642,9 @@ const SaasIncrease: React.FC = () => {
   const saveScenario = async () => {
     if (!activeScenarioId) return;
     const items = subs
-      .filter(s => isIncluded(s.subscriptionNumber))
+      .filter(s => isIncluded(rowKey(s)))
       .map(s => {
-        const e = edits[s.subscriptionNumber];
+        const e = edits[rowKey(s)];
         return {
           orgId: s.orgId, subscriptionNumber: s.subscriptionNumber, customerId: s.customerId, customerName: s.customerName,
           merchantAccountId: s.merchantAccountId, planCode: s.planCode, planName: s.planName,
@@ -731,7 +737,7 @@ const SaasIncrease: React.FC = () => {
       const items = data.items as ScenarioItem[];
       setSavedItems(prev => {
         const next = { ...prev };
-        for (const it of items) next[it.subscriptionNumber] = it;
+        for (const it of items) next[rowKey(it)] = it;
         return next;
       });
       setNotifyEdits(prev => {
@@ -782,7 +788,7 @@ const SaasIncrease: React.FC = () => {
       });
       if (!r.ok) throw new Error(String(r.status));
       // Drop the local edit too, or the row would simply be re-created by the next Save.
-      setEdits(prev => ({ ...prev, [item.subscriptionNumber]: { selected: false, increaseType: 'percent', increaseValue: 0 } }));
+      setEdits(prev => ({ ...prev, [rowKey(item)]: { selected: false, increaseType: 'percent', increaseValue: 0 } }));
       await loadScenarioDetail(activeScenarioId);
     } catch { dialog.alert(t('saasIncrease.error') as string); }
   };
@@ -900,10 +906,10 @@ const SaasIncrease: React.FC = () => {
 
   // Hero stat-tile math — derived from the same subs/edits state the table already uses, no new
   // endpoints. mrrDelta/includedCount above already cover "projected add" and "subs included."
-  const includedSubs = subs.filter(s => isIncluded(s.subscriptionNumber));
+  const includedSubs = subs.filter(s => isIncluded(rowKey(s)));
   const avgIncreasePct = includedSubs.length
     ? includedSubs.reduce((sum, s) => {
-        const nm = newMonthlyFor(s, edits[s.subscriptionNumber]);
+        const nm = newMonthlyFor(s, edits[rowKey(s)]);
         return sum + ((nm - s.currentMonthly) / (s.currentMonthly || 1)) * 100;
       }, 0) / includedSubs.length
     : 0;
@@ -913,17 +919,17 @@ const SaasIncrease: React.FC = () => {
   const currentTotal = subs.reduce((sum, s) => sum + (s.totalMonthly ?? s.currentMonthly), 0);
   const newTotal = currentTotal + mrrDelta;
   const remaining = Math.max(0, targetMrr - mrrDelta);
-  const selectedRows = subs.filter(s => edits[s.subscriptionNumber]?.selected);
-  const selectedDelta = selectedRows.reduce((sum, s) => sum + (newMonthlyFor(s, edits[s.subscriptionNumber]) - s.currentMonthly), 0);
+  const selectedRows = subs.filter(s => edits[rowKey(s)]?.selected);
+  const selectedDelta = selectedRows.reduce((sum, s) => sum + (newMonthlyFor(s, edits[rowKey(s)]) - s.currentMonthly), 0);
 
   // "Churn we would lose" — how much of the scenario's projected MRR add rides on accounts
   // riskFor() flags as high-risk, and exactly which ones — shown as a clickable caption under
   // the progress bar so the tradeoff (and the accounts behind it) is visible right next to the
   // number it's weighing against.
   const highRiskIncludedRows = subs
-    .filter(s => isIncluded(s.subscriptionNumber))
+    .filter(s => isIncluded(rowKey(s)))
     .map(s => {
-      const nm = newMonthlyFor(s, edits[s.subscriptionNumber]);
+      const nm = newMonthlyFor(s, edits[rowKey(s)]);
       const delta = nm - s.currentMonthly;
       const proposedPct = (delta / (s.currentMonthly || 1)) * 100;
       return { s, nm, delta, risk: riskFor(s, proposedPct, calibration) };
@@ -935,9 +941,9 @@ const SaasIncrease: React.FC = () => {
   // Rows with an increase set that aren't (yet) reflected in the saved scenario — drives the
   // "N pending" hint on the Save button, since nothing before that click is actually persisted.
   const unsavedCount = subs.filter(s => {
-    if (!isIncluded(s.subscriptionNumber)) return false;
-    const e = edits[s.subscriptionNumber];
-    const saved = savedItems[s.subscriptionNumber];
+    if (!isIncluded(rowKey(s))) return false;
+    const e = edits[rowKey(s)];
+    const saved = savedItems[rowKey(s)];
     if (!saved) return true;
     return saved.increaseType !== e.increaseType || saved.increaseValue !== e.increaseValue;
   }).length;
@@ -1266,8 +1272,8 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                   </div>
                 );
                 const renderRow = (s: Subscription) => {
-                  const e = edits[s.subscriptionNumber];
-                  const included = isIncluded(s.subscriptionNumber);
+                  const e = edits[rowKey(s)];
+                  const included = isIncluded(rowKey(s));
                   const selected = !!e?.selected;
                   const nm = newMonthlyFor(s, e);
                   const delta = included ? nm - s.currentMonthly : 0;
@@ -1293,10 +1299,10 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                   // Once a row is saved to the scenario, the Status column shows the real push
                   // status (pending/pushed/push_failed) instead of the purely local "increase
                   // set / not set" badge — the real signal only exists after Save.
-                  const savedForRow = savedItems[s.subscriptionNumber];
+                  const savedForRow = savedItems[rowKey(s)];
                   return (
-                    <div key={s.subscriptionNumber} className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 px-4.5 py-3 hover:bg-gray-50 dark:border-[#161616] dark:hover:bg-[#141416] ${rowBg}`}>
-                      <label className="flex items-center"><input type="checkbox" checked={selected} onChange={(ev) => setEdit(s.subscriptionNumber, { selected: ev.target.checked })} className="h-4 w-4 accent-primary" /></label>
+                    <div key={rowKey(s)} className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 px-4.5 py-3 hover:bg-gray-50 dark:border-[#161616] dark:hover:bg-[#141416] ${rowBg}`}>
+                      <label className="flex items-center"><input type="checkbox" checked={selected} onChange={(ev) => setEdit(rowKey(s), { selected: ev.target.checked })} className="h-4 w-4 accent-primary" /></label>
                       <div className="min-w-0">
                         <div className={`truncate text-sm font-medium ${textPri}`}>{s.customerName}</div>
                         <div className={`mt-0.5 font-mono text-[11px] ${textQuat}`}>{s.subscriptionNumber}{s.merchantAccountId ? ` · ${s.merchantAccountId}` : ''}</div>
@@ -1322,14 +1328,14 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                       </div>
                       <div className="flex items-center gap-1.5">
                         <div className={`inline-flex rounded-lg p-0.5 ${chipInput}`}>
-                          <button type="button" onClick={() => setEdit(s.subscriptionNumber, { increaseType: 'percent' })} className={segBtn((e?.increaseType || 'percent') === 'percent')}>%</button>
-                          <button type="button" onClick={() => setEdit(s.subscriptionNumber, { increaseType: 'flat' })} className={segBtn(e?.increaseType === 'flat')}>$</button>
-                          <button type="button" onClick={() => setEdit(s.subscriptionNumber, { increaseType: 'target' })} className={segBtn(e?.increaseType === 'target')} title={t('saasIncrease.setToHint') as string}>=</button>
+                          <button type="button" onClick={() => setEdit(rowKey(s), { increaseType: 'percent' })} className={segBtn((e?.increaseType || 'percent') === 'percent')}>%</button>
+                          <button type="button" onClick={() => setEdit(rowKey(s), { increaseType: 'flat' })} className={segBtn(e?.increaseType === 'flat')}>$</button>
+                          <button type="button" onClick={() => setEdit(rowKey(s), { increaseType: 'target' })} className={segBtn(e?.increaseType === 'target')} title={t('saasIncrease.setToHint') as string}>=</button>
                         </div>
                         <input
                           type="number" value={e?.increaseValue || ''} placeholder="0"
                           onWheel={(ev) => ev.currentTarget.blur()}
-                          onChange={(ev) => setEdit(s.subscriptionNumber, { increaseValue: Number(ev.target.value) || 0 })}
+                          onChange={(ev) => setEdit(rowKey(s), { increaseValue: Number(ev.target.value) || 0 })}
                           className={`w-[58px] rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary dark:bg-[#0A0A0A] dark:text-white ${included ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
                         />
                       </div>
@@ -1394,12 +1400,12 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                     {visibleGroups.map(([key, rows]) => {
                       const [orgLabel, planLabel] = key.split('||');
                       const segCurrent = rows.reduce((sum, r) => sum + r.currentMonthly, 0);
-                      const segNew = rows.reduce((sum, r) => sum + newMonthlyFor(r, edits[r.subscriptionNumber]), 0);
+                      const segNew = rows.reduce((sum, r) => sum + newMonthlyFor(r, edits[rowKey(r)]), 0);
                       const segDelta = segNew - segCurrent;
-                      const setCount = rows.filter(r => isIncluded(r.subscriptionNumber)).length;
+                      const setCount = rows.filter(r => isIncluded(rowKey(r))).length;
                       const sv = segmentValueFor(rows);
                       const highCount = rows.filter(r => {
-                        const nm = newMonthlyFor(r, edits[r.subscriptionNumber]);
+                        const nm = newMonthlyFor(r, edits[rowKey(r)]);
                         const pct = ((nm - r.currentMonthly) / (r.currentMonthly || 1)) * 100;
                         return pct > 0 && riskFor(r, pct, calibration).tier === 'high';
                       }).length;
@@ -1740,7 +1746,7 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
             </div>
             <div className={`flex-1 divide-y overflow-y-auto ${divider}`}>
               {highRiskIncludedRows.map(r => (
-                <div key={r.s.subscriptionNumber} className="px-5 py-3">
+                <div key={rowKey(r.s)} className="px-5 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className={`truncate text-sm font-medium ${textPri}`}>{r.s.customerName}</div>
