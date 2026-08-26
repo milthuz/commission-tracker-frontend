@@ -766,6 +766,27 @@ const SaasIncrease: React.FC = () => {
   // never touches notify_status. Works with fully fake/typed text too, so this is the safe way
   // to try a new template or the {{effectiveDate}} placeholder before it ever reaches a real
   // merchant — no real subscription required.
+  // Explicit single-item removal. Saving deliberately refuses to auto-delete items already pushed
+  // to Zoho or already notified, to protect the audit trail — which left those items with no way
+  // out at all. Removing one by hand is a deliberate act, so it's allowed here.
+  const deleteScenarioItem = async (item: ScenarioItem) => {
+    if (!activeScenarioId) return;
+    const protectedItem = item.status === 'pushed' || item.notifyStatus === 'sent';
+    const msg = protectedItem
+      ? t('saasIncrease.confirmRemoveItemProtected', { name: item.customerName }) as string
+      : t('saasIncrease.confirmRemoveItem', { name: item.customerName }) as string;
+    if (!(await dialog.confirm(msg))) return;
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/items/${item.id}`, {
+        method: 'DELETE', headers: authHeaders(),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      // Drop the local edit too, or the row would simply be re-created by the next Save.
+      setEdits(prev => ({ ...prev, [item.subscriptionNumber]: { selected: false, increaseType: 'percent', increaseValue: 0 } }));
+      await loadScenarioDetail(activeScenarioId);
+    } catch { dialog.alert(t('saasIncrease.error') as string); }
+  };
+
   const testSendNotification = async (itemId: number) => {
     if (!activeScenarioId) return;
     const draft = notifyEdits[itemId];
@@ -1605,6 +1626,13 @@ const SaasIncrease: React.FC = () => {
                                     )}
                                     <ChevronDown className={`h-4 w-4 ${textQuat} transition-transform ${expanded ? 'rotate-180' : ''}`} />
                                   </div>
+                                </button>
+                                <button
+                                  type="button" onClick={() => deleteScenarioItem(item)}
+                                  title={t('saasIncrease.removeItem') as string}
+                                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${chipInput} ${textSec} hover:border-red-300 hover:text-red-500`}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                               </div>
                               {expanded && (
