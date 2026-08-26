@@ -1409,7 +1409,9 @@
       "cancelScheduled": "Annuler le changement planifié",
       "confirmCancel": "Annuler le changement de prix en attente pour {{name}} dans Zoho? Son prix reste celui d'aujourd'hui.",
       "cancelled": "Changement planifié annulé dans Zoho."
-    }
+    },
+    "startedOn": "Débuté le {{date}}",
+    "startUnknown": "Date de début inconnue"
   },
   "resources": {
     "title": "Ressources",

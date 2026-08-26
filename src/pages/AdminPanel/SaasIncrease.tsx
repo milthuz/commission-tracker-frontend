@@ -1400,6 +1400,11 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                       <div className="min-w-0">
                         <div className={`truncate text-sm font-medium ${textPri}`}>{s.customerName}</div>
                         <div className={`mt-0.5 font-mono text-[11px] ${textQuat}`}>{s.subscriptionNumber}{s.merchantAccountId ? ` · ${s.merchantAccountId}` : ''}</div>
+                        {/* Start date on the row itself: tenure drives the churn-risk score, so it
+                            belongs where the decision is made rather than behind a tooltip. */}
+                        <div className={`mt-0.5 text-[11px] ${textQuat}`}>
+                          {s.activatedAt ? t('saasIncrease.startedOn', { date: fmtDate(s.activatedAt) }) : t('saasIncrease.startUnknown')}
+                        </div>
                       </div>
                       <div className="min-w-0">
                         <div className={`truncate text-[13px] ${textSec}`}>{s.planName}</div>

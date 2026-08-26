@@ -1409,7 +1409,9 @@
       "cancelScheduled": "Cancel scheduled change",
       "confirmCancel": "Cancel the pending price change for {{name}} in Zoho? Their price stays as it is today.",
       "cancelled": "Scheduled change cancelled in Zoho."
-    }
+    },
+    "startedOn": "Started {{date}}",
+    "startUnknown": "Start date unknown"
   },
   "resources": {
     "title": "Resources",
