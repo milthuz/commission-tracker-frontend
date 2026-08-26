@@ -4,12 +4,15 @@ import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban } from 'lucide-react';
+import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban, Presentation } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
+import SaasIncreaseBoard, { type BoardRow } from './SaasIncreaseBoard';
+
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface Subscription {
+  nextBillingAt?: string | null;
   orgId: string;
   orgName: string;
   subscriptionNumber: string;
@@ -231,6 +234,7 @@ const SaasIncrease: React.FC = () => {
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   const [showScanDetails, setShowScanDetails] = useState(false);
   const [stoppingScan, setStoppingScan] = useState(false);
+  const [boardOpen, setBoardOpen] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
   // while active — otherwise the only way to know whether anything is happening is the server log.
   const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number; byStatus?: Record<string, { count: number; mrr: number; numbers?: string[] }> }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; runningScan?: { label: string; startedAt: string; stopRequested: boolean; beatAge?: number } | null; topErrors?: { error: string; count: number }[] } | null>(null);
@@ -757,6 +761,23 @@ const SaasIncrease: React.FC = () => {
   };
   const pct = targetMrr > 0 ? Math.min(100, (mrrDelta / targetMrr) * 100) : 0;
 
+  // The board view is a projection of exactly what the table shows — same period amounts, same
+  // risk call — so it is assembled here rather than recomputed there.
+  const boardRows = (): BoardRow[] => subs.filter(s => s.status === 'live').map(s => {
+    const e = edits[rowKey(s)];
+    const cp = currentPeriodFor(s);
+    const np = newPeriodFor(s, e);
+    const proposedPct = ((np - cp) / (cp || 1)) * 100;
+    return {
+      orgName: s.orgName, planName: s.planName, customerName: s.customerName,
+      subscriptionNumber: s.subscriptionNumber,
+      currentPeriod: cp, newPeriod: np, periodMonths: periodMonths(s),
+      riskTier: riskFor(s, proposedPct, calibration).tier,
+      nextBillingAt: s.nextBillingAt ?? null,
+      raised: isIncluded(rowKey(s)), skipped: isSkipped(rowKey(s)),
+    };
+  });
+
   const saveScenario = async () => {
     if (!activeScenarioId) return;
     const items = subs
@@ -1182,6 +1203,14 @@ const SaasIncrease: React.FC = () => {
 
   return (
     <div className="font-satoshi">
+      {boardOpen && activeScenarioId && (
+        <SaasIncreaseBoard
+          scenarioName={scenarios.find(sc => sc.id === activeScenarioId)?.name || ''}
+          targetMrr={targetMrr}
+          rows={boardRows()}
+          onClose={() => setBoardOpen(false)}
+        />
+      )}
       {/* Page title — self-contained now that this page has its own route (moved out of
           AdminPanel, whose shared header used to supply this for free). */}
       <div className="mb-6">
@@ -1236,6 +1265,12 @@ const SaasIncrease: React.FC = () => {
         <button onClick={refreshFullHistory} disabled={refreshingInsights} title={t('saasIncrease.insights.fullHint') as string} className={btnSecondary}>
           {t('saasIncrease.insights.full')}
         </button>
+        {activeScenarioId && (
+          <button onClick={() => setBoardOpen(true)} className={btnSecondary}>
+            <Presentation className="h-4 w-4" />
+            {t('saasIncrease.board.open')}
+          </button>
+        )}
         {activeScenarioId && (
           <button onClick={exportScenario} disabled={exporting} className={btnSecondary}>
             <Download className="h-4 w-4" />
