@@ -1060,7 +1060,11 @@
         "pre_platform_sale": "Vente antérieure au passage à la plateforme",
         "quota_gate": "Barrière de quota appliquée",
         "rep_inactive": "Vendeur inactif",
-        "estimate_no_sale_yet": "Soumission trouvée, mais aucune vente ne l'a suivie"
+        "estimate_no_sale_yet": "Soumission trouvée, mais aucune vente ne l'a suivie",
+        "deal_missing": "Aucune opportunité POS — seulement le compte de paiement",
+        "deal_zero_points": "L'opportunité existe mais vaut 0 point",
+        "payments_missing": "Opportunité présente, aucun compte de paiement",
+        "both_sides_present": "Les deux sources sont complètes — à creuser"
       },
       "verdictReplies": {
         "points_arrived_since": [
@@ -1128,6 +1132,18 @@
         ],
         "rep_inactive": [
           "Ton profil était marqué inactif dans la configuration, ce qui bloquait le calcul. C'est corrigé."
+        ],
+        "deal_missing": [
+          "Je ne trouve aucune opportunité POS à ce nom dans le CRM — seulement le compte de paiement. Si la vente incluait un POS, l'opportunité manque côté Zoho ; si c'était une vente de paiement seulement, c'est normal."
+        ],
+        "deal_zero_points": [
+          "L'opportunité est bien à ton nom, mais elle est configurée à 0 point pour sa source. Je vérifie si c'est voulu."
+        ],
+        "payments_missing": [
+          "L'opportunité est bien à ton nom, mais aucun compte de paiement n'y est rattaché. Si tu as aussi vendu les paiements, l'activation n'est pas encore passée."
+        ],
+        "both_sides_present": [
+          "J'ai vérifié les deux côtés : l'opportunité POS et le compte de paiement sont tous les deux à ton nom et complets. Peux-tu me préciser de quel point tu parles ?"
         ]
       }
     },

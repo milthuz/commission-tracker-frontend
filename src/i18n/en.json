@@ -1060,7 +1060,11 @@
         "pre_platform_sale": "Sale predates the move to the platform",
         "quota_gate": "Quota gate applied",
         "rep_inactive": "Rep is inactive",
-        "estimate_no_sale_yet": "Estimate found, but no sale followed it"
+        "estimate_no_sale_yet": "Estimate found, but no sale followed it",
+        "deal_missing": "No POS deal — payments account only",
+        "deal_zero_points": "Deal exists but carries 0 points",
+        "payments_missing": "Deal present, no payment account",
+        "both_sides_present": "Both sources complete — needs a closer look"
       },
       "verdictReplies": {
         "points_arrived_since": [
@@ -1128,6 +1132,18 @@
         ],
         "rep_inactive": [
           "Your profile was marked inactive in the config, which blocked the calculation. That is fixed."
+        ],
+        "deal_missing": [
+          "I cannot find a POS deal under that name in the CRM — only the payments account. If the sale included a POS, the deal is missing on the Zoho side; if it was payments-only, this is expected."
+        ],
+        "deal_zero_points": [
+          "The deal is under your name, but its source is configured at 0 points. I am checking whether that is intended."
+        ],
+        "payments_missing": [
+          "The deal is under your name, but no payment account is attached to it. If you also sold payments, the activation has not come through yet."
+        ],
+        "both_sides_present": [
+          "I checked both sides: the POS deal and the payment account are both under your name and complete. Can you tell me which point you mean?"
         ]
       }
     },
