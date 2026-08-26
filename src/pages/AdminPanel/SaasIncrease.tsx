@@ -186,7 +186,7 @@ const SaasIncrease: React.FC = () => {
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
   // while active — otherwise the only way to know whether anything is happening is the server log.
-  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; topErrors?: { error: string; count: number }[] } | null>(null);
+  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number; byStatus?: Record<string, { count: number; mrr: number }> }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; topErrors?: { error: string; count: number }[] } | null>(null);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
   const [bulkType, setBulkType] = useState<'percent' | 'flat'>('percent');
@@ -1426,6 +1426,15 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                         // ~19% short of Zoho.
                         const orgCurrent = orgGroups.reduce((sum, [, rs]) => sum + rs.reduce((a, r) => a + r.currentMonthly, 0), 0);
                         const orgTotal = orgGroups.reduce((sum, [, rs]) => sum + rs.reduce((a, r) => a + (r.totalMonthly ?? r.currentMonthly), 0), 0);
+                        // Per-status breakdown in the tooltip. When this total disagrees with
+                        // Zoho's dashboard the difference is usually one status bucket, so it's
+                        // worth being able to see them without going to the database.
+                        const orgStat = insightsStatus?.byOrg?.find(o => o.orgName === orgName);
+                        const statusBreakdown = orgStat?.byStatus
+                          ? Object.entries(orgStat.byStatus).sort((a, b) => b[1].mrr - a[1].mrr)
+                              .map(([st, v]) => `${st}: ${v.count} subs · ${money(v.mrr)}/mo`).join('
+')
+                          : '';
                         const orgSubs = orgGroups.reduce((sum, [, rs]) => sum + rs.length, 0);
                         return (
                           <div key={`org-${orgName}`}>
@@ -1435,7 +1444,9 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                               <span className={`text-xs ${textTer}`}>
                                 {t('saasIncrease.segment.orgSummary', { segments: orgGroups.length, subs: orgSubs })}
                               </span>
-                              <span className={`ml-auto whitespace-nowrap text-xs tabular-nums ${textTer}`} title={t('saasIncrease.segment.orgTotalsHint') as string}>
+                              <span className={`ml-auto whitespace-nowrap text-xs tabular-nums ${textTer}`} title={`${t('saasIncrease.segment.orgTotalsHint')}${statusBreakdown ? `
+
+${statusBreakdown}` : ''}`}>
                                 {t('saasIncrease.segment.orgBase', { amount: money(orgCurrent) })}
                                 {orgTotal > orgCurrent && <span className={textQuat}> · {t('saasIncrease.segment.orgTotal', { amount: money(orgTotal) })}</span>}
                               </span>
