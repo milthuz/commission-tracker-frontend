@@ -2249,6 +2249,8 @@
       }
     },
     "zohoSync": {
+      "reconnect": "Reconnect Zoho Books",
+      "reconnectHint": "Re-runs Zoho's consent screen for Books/Billing. Needed after new permissions are added — the app keeps working meanwhile, so nothing else prompts you to do it.",
       "title": "Zoho Books Sync",
       "subtitle": "Import and sync invoices from Zoho Books",
       "status": "Status",

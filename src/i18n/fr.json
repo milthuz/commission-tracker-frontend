@@ -2249,6 +2249,8 @@
       }
     },
     "zohoSync": {
+      "reconnect": "Reconnecter Zoho Books",
+      "reconnectHint": "Relance l'écran de consentement Zoho pour Books/Billing. Nécessaire après l'ajout de nouvelles permissions — l'app continue de fonctionner entre-temps, donc rien d'autre ne te le signale.",
       "title": "Synchronisation Zoho Books",
       "subtitle": "Importer et synchroniser les factures depuis Zoho Books",
       "status": "Statut",

@@ -1125,6 +1125,23 @@ const AdminPanel = () => {
   };
 
   // Initiate CRM OAuth
+  // Zoho Books/Billing re-consent. The banner already offers this, but only once the connection
+  // is BROKEN — there was no way to re-consent while everything worked, which is exactly what
+  // adding an OAuth scope requires (the subscription-write scope for SaaS Increase needed a
+  // hand-pasted URL). ?reconsent=1 forces Zoho's consent screen; the endpoint is public and
+  // returns the URL as JSON rather than redirecting, so the redirect happens here.
+  const [booksConnecting, setBooksConnecting] = useState(false);
+  const reconnectBooks = async () => {
+    try {
+      setBooksConnecting(true);
+      const res = await axios.get(`${API_URL}/api/auth/zoho?reconsent=1`);
+      window.location.href = res.data.authUrl;
+    } catch (e) {
+      console.error('Failed to initiate Books re-consent:', e);
+      setBooksConnecting(false);
+    }
+  };
+
   const connectCRM = async () => {
     try {
       setCrmConnecting(true);
@@ -1655,6 +1672,14 @@ const AdminPanel = () => {
 
                 {/* Sync Buttons */}
                 <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={reconnectBooks}
+                    disabled={booksConnecting}
+                    title={t('admin.zohoSync.reconnectHint') as string}
+                    className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-4 py-2.5 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4"
+                  >
+                    {t('admin.zohoSync.reconnect')}
+                  </button>
                   <button
                     onClick={triggerBulkImport}
                     disabled={syncStatus === 'bulk_importing' || syncStatus === 'bulk_started' || syncStatus === 'syncing'}
