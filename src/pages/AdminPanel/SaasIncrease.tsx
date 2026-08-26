@@ -65,6 +65,15 @@ interface NotifyDraft { to: string; subject: string; body: string }
 // an increase on one silently moved the other's price too.
 const rowKey = (s?: { orgId: string; subscriptionNumber: string } | null) =>
   s ? `${s.orgId}||${s.subscriptionNumber}` : '';
+// A calendar date must be built from its own parts. `new Date('2026-09-17')` is parsed as
+// midnight UTC, so it renders as September 16 in any timezone west of Greenwich — which is
+// how a change scheduled for the 17th displayed as the 16th.
+const fmtDate = (raw?: string | null) => {
+  if (!raw) return '—';
+  const ymd = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(raw));
+  const d = ymd ? new Date(Number(ymd[1]), Number(ymd[2]) - 1, Number(ymd[3])) : new Date(raw);
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
+};
 const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n || 0);
 
 // i18next's own interpolation syntax is also {{token}} — the placeholderHint string below
@@ -823,7 +832,7 @@ const SaasIncrease: React.FC = () => {
         setScheduledInfo(prev => ({ ...prev, [item.id]: { text: t('saasIncrease.push.noneScheduled') as string, matches: false } }));
         return;
       }
-      const when = d.effectiveAt ? new Date(d.effectiveAt).toLocaleDateString() : '—';
+      const when = fmtDate(d.effectiveAt);
       const matches = d.price != null && Math.abs(d.price - item.newMonthly) < 0.01;
       setScheduledInfo(prev => ({
         ...prev,
@@ -1323,11 +1332,11 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                   const delta = included ? nm - s.currentMonthly : 0;
                   const pos = posLabelFor(s.planName, s.orgName);
                   const priceChangeLabel = s.lastPriceChangeAt
-                    ? new Date(s.lastPriceChangeAt).toLocaleDateString()
+                    ? fmtDate(s.lastPriceChangeAt)
                     : !s.insightsCheckedAt ? t('saasIncrease.notYetChecked')
                     : (s.pricePointsChecked != null && s.pricePointsChecked < 2) ? t('saasIncrease.notEnoughHistory')
                     : t('saasIncrease.noRecentChange');
-                  const activatedLabel = s.activatedAt ? new Date(s.activatedAt).toLocaleDateString() : '—';
+                  const activatedLabel = fmtDate(s.activatedAt);
                   // Combined into one tooltip rather than a second always-visible line — a
                   // stacked two-line cell here read as cramped next to the rest of the row's
                   // single-line cells (David's feedback), and the activation date is more useful
