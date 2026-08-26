@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { X, Printer } from 'lucide-react';
 
@@ -130,8 +131,12 @@ export default function SaasIncreaseBoard({ scenarioName, targetMrr, rows, onClo
   const sectionTitle = 'text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400';
   const card = 'rounded-2xl border border-gray-200 bg-white';
 
-  return (
-    <div className="fixed inset-0 z-[60] overflow-y-auto bg-gray-100 print:static print:overflow-visible print:bg-white">
+  // Rendered through a portal onto <body>. The app header is sticky at z-999 and painted straight
+  // over the top of this overlay, hiding its toolbar — the Print and Close buttons were on screen
+  // but underneath the header. A portal also escapes any ancestor that establishes a stacking
+  // context, where no z-index on this element would have been enough.
+  return createPortal(
+    <div className="fixed inset-0 z-[100000] overflow-y-auto bg-gray-100 print:static print:overflow-visible print:bg-white">
       {/* Print rules live with the only view that needs them. The app chrome is fixed-position and
           would otherwise stamp a sidebar across every printed page. */}
       <style>{`
@@ -385,6 +390,7 @@ export default function SaasIncreaseBoard({ scenarioName, targetMrr, rows, onClo
           </footer>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
