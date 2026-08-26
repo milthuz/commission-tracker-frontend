@@ -193,7 +193,7 @@ const SaasIncrease: React.FC = () => {
   const [drilldownKey, setDrilldownKey] = useState<string | null>(null);
   const [openOrgInfo, setOpenOrgInfo] = useState<string | null>(null);
   // What Zoho actually has scheduled for a pushed item, per item id.
-  const [scheduledInfo, setScheduledInfo] = useState<Record<number, { loading?: boolean; error?: string; text?: string; matches?: boolean }>>({});
+  const [scheduledInfo, setScheduledInfo] = useState<Record<number, { loading?: boolean; error?: string; text?: string; matches?: boolean; found?: boolean }>>({});
   const [editingSegment, setEditingSegment] = useState<string | null>(null);
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
@@ -829,7 +829,7 @@ const SaasIncrease: React.FC = () => {
         return;
       }
       if (!d.scheduled) {
-        setScheduledInfo(prev => ({ ...prev, [item.id]: { text: t('saasIncrease.push.noneScheduled') as string, matches: false } }));
+        setScheduledInfo(prev => ({ ...prev, [item.id]: { text: t('saasIncrease.push.noneScheduled') as string, matches: false, found: false } }));
         return;
       }
       const when = fmtDate(d.effectiveAt);
@@ -838,6 +838,7 @@ const SaasIncrease: React.FC = () => {
         ...prev,
         [item.id]: {
           matches,
+          found: true,
           text: matches
             ? t('saasIncrease.push.scheduledOk', { price: money(d.price), date: when }) as string
             : t('saasIncrease.push.scheduledMismatch', { price: d.price != null ? money(d.price) : '—', expected: money(item.newMonthly), date: when }) as string,
@@ -1852,12 +1853,10 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                                     {/* Independent confirmation of what Zoho actually recorded —
                                         its own UI shows that a change is pending but never the
                                         amount, so "pushed" would otherwise be unverifiable. */}
-                                    {item.status === 'pushed' && (
-                                      <button onClick={() => checkScheduled(item)} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
-                                        {t('saasIncrease.push.checkScheduled')}
-                                      </button>
-                                    )}
-                                    {item.status === 'pushed' && canExecute && (
+                                    <button onClick={() => checkScheduled(item)} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
+                                      {t('saasIncrease.push.checkScheduled')}
+                                    </button>
+                                    {(item.status === 'pushed' || scheduledInfo[item.id]?.found) && canExecute && (
                                       <button onClick={() => cancelScheduled(item)} className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-500/40 dark:text-red-400 dark:hover:bg-red-500/10">
                                         {t('saasIncrease.push.cancelScheduled')}
                                       </button>
