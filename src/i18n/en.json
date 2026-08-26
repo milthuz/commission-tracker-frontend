@@ -1340,7 +1340,9 @@
       "confirmStop": "Stop the running scan? Everything already checked is kept — restarting later picks up where it left off.",
       "scan_base": "Running: base price verification.",
       "scan_insights": "Running: price-history analysis.",
-      "busy": "Nothing started — another scan is already using the Zoho connection. {{scan}} Stop it first, or wait for it to finish."
+      "busy": "Nothing started — another scan is already using the Zoho connection. {{scan}} Stop it first, or wait for it to finish.",
+      "lastBeat": "(last heartbeat {{seconds}}s ago)",
+      "unowned": "Rows are being written, but no scan holds the lock — most likely a process started before this build, which cannot be stopped from here. It will end on its own."
     },
     "status": {
       "pending": "Pending",

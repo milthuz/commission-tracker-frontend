@@ -1340,7 +1340,9 @@
       "confirmStop": "Arrêter le scan en cours? Tout ce qui est déjà vérifié est conservé — un relancement reprend là où il s'est arrêté.",
       "scan_base": "En cours : vérification des prix de base.",
       "scan_insights": "En cours : analyse de l'historique de prix.",
-      "busy": "Rien n'a démarré — un autre scan utilise déjà la connexion Zoho. {{scan}} Arrête-le d'abord, ou attends qu'il finisse."
+      "busy": "Rien n'a démarré — un autre scan utilise déjà la connexion Zoho. {{scan}} Arrête-le d'abord, ou attends qu'il finisse.",
+      "lastBeat": "(dernier battement il y a {{seconds}} s)",
+      "unowned": "Des lignes sont écrites, mais aucun scan ne détient le verrou — probablement un processus démarré avant cette version, qu'on ne peut pas arrêter d'ici. Il finira de lui-même."
     },
     "status": {
       "pending": "En attente",

@@ -229,7 +229,7 @@ const SaasIncrease: React.FC = () => {
   const [stoppingScan, setStoppingScan] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
   // while active — otherwise the only way to know whether anything is happening is the server log.
-  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number; byStatus?: Record<string, { count: number; mrr: number; numbers?: string[] }> }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; runningScan?: { label: string; startedAt: string; stopRequested: boolean } | null; topErrors?: { error: string; count: number }[] } | null>(null);
+  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number; byStatus?: Record<string, { count: number; mrr: number; numbers?: string[] }> }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; runningScan?: { label: string; startedAt: string; stopRequested: boolean; beatAge?: number } | null; topErrors?: { error: string; count: number }[] } | null>(null);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
   const [bulkType, setBulkType] = useState<'percent' | 'flat'>('percent');
@@ -1220,8 +1220,17 @@ const SaasIncrease: React.FC = () => {
           </div>
           {insightsStatus.runningScan && (
             <div className={`mt-3 ${textSec}`}>
-              {t(`saasIncrease.insights.scan_${insightsStatus.runningScan.label}`)}
+              {t(`saasIncrease.insights.scan_${insightsStatus.runningScan.label}`)}{' '}
+              <span className={textQuat}>
+                {t('saasIncrease.insights.lastBeat', { seconds: insightsStatus.runningScan.beatAge ?? 0 })}
+              </span>
             </div>
+          )}
+          {/* A scan can be writing rows without holding the lock — an older build, or a process
+              this page cannot address. Saying so beats leaving "scan running" unexplained next to
+              a Stop button that isn't there. */}
+          {insightsStatus.active && !insightsStatus.runningScan && (
+            <div className="mt-3 text-amber-600 dark:text-amber-400">{t('saasIncrease.insights.unowned')}</div>
           )}
           {!insightsStatus.active && insightsStatus.verified < insightsStatus.total && (
             <div className="mt-3 text-amber-600 dark:text-amber-400">{t('saasIncrease.insights.stalled')}</div>
