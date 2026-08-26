@@ -1430,7 +1430,7 @@
     "board": {
       "open": "Board view",
       "title": "Scenario — board view",
-      "print": "Print / PDF",
+      "print": "Download PDF",
       "close": "Close",
       "eyebrow": "SaaS price increase — proposal",
       "mrrAdded": "Monthly recurring revenue added",
@@ -1474,7 +1474,9 @@
         "reversible": "A scheduled increase can be cancelled from this tool at any point before it takes effect."
       },
       "footer": "Total monthly increase: {{total}}. Figures reflect the scenario as saved at the time of printing.",
-      "perMonth": "/mo"
+      "perMonth": "/mo",
+      "fileSuffix": "Board",
+      "printHint": "Choose \"Save as PDF\" as the destination."
     }
   },
   "resources": {

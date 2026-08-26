@@ -113,6 +113,20 @@ export default function SaasIncreaseBoard({ scenarioName, targetMrr, rows, onClo
   };
   const today = new Date().toLocaleDateString(i18n.language, { year: 'numeric', month: 'long', day: 'numeric' });
 
+  // The browser's own print-to-PDF is the export: it produces real vector text at the exact
+  // layout above, with no second implementation of this document to keep in sync. Chrome takes
+  // the file name from document.title, so it is swapped for the scenario's name and restored
+  // afterwards — otherwise every export lands in Downloads as "Sales Hub.pdf".
+  const downloadPdf = () => {
+    const previous = document.title;
+    document.title = `${scenarioName} — ${t('saasIncrease.board.fileSuffix')}`;
+    const restore = () => { document.title = previous; window.removeEventListener('afterprint', restore); };
+    window.addEventListener('afterprint', restore);
+    window.print();
+    // Safari never fires afterprint reliably; a timer guarantees the title goes back.
+    setTimeout(restore, 60000);
+  };
+
   const sectionTitle = 'text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400';
   const card = 'rounded-2xl border border-gray-200 bg-white';
 
@@ -122,11 +136,29 @@ export default function SaasIncreaseBoard({ scenarioName, targetMrr, rows, onClo
           would otherwise stamp a sidebar across every printed page. */}
       <style>{`
         @media print {
-          body > *:not(.saas-board-root) { display: none !important; }
-          .saas-board-root { position: static !important; }
+          /* Hide by VISIBILITY, not by hiding body's direct children: this overlay is mounted
+             deep inside the React root, so "body > *:not(.board)" matched #root and blanked the
+             whole page — printing produced empty sheets. Visibility walks the tree instead. */
+          body * { visibility: hidden !important; }
+          .saas-board-root, .saas-board-root * { visibility: visible !important; }
+          .saas-board-root {
+            position: absolute !important;
+            left: 0; top: 0; width: 100%;
+          }
+          /* Chrome drops background colours when printing unless told otherwise. Every bar in the
+             realisation chart, the target progress bar, the table header and the risk dots ARE
+             backgrounds — without this the document prints as a skeleton of empty outlines. */
+          .saas-board-root, .saas-board-root * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           .saas-board-page { break-inside: avoid; page-break-inside: avoid; }
           .saas-board-break { break-before: page; page-break-before: always; }
-          @page { margin: 14mm; }
+          /* Headings must not be orphaned at the foot of a page from their own table or card. */
+          .saas-board-root h1, .saas-board-root h2 { break-after: avoid; page-break-after: avoid; }
+          .saas-board-root thead { display: table-header-group; }
+          .saas-board-root tr { break-inside: avoid; page-break-inside: avoid; }
+          @page { size: A4 portrait; margin: 14mm; }
         }
       `}</style>
 
@@ -134,14 +166,15 @@ export default function SaasIncreaseBoard({ scenarioName, targetMrr, rows, onClo
         {/* Screen-only toolbar. */}
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-gray-200 bg-white/90 px-6 py-3 backdrop-blur print:hidden">
           <div className="text-sm font-medium text-gray-900">{t('saasIncrease.board.title')}</div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <button
-              type="button" onClick={() => window.print()}
+              type="button" onClick={downloadPdf}
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90"
             >
               <Printer className="h-4 w-4" />
               {t('saasIncrease.board.print')}
             </button>
+            <span className="hidden text-xs text-gray-400 sm:inline">{t('saasIncrease.board.printHint')}</span>
             <button
               type="button" onClick={onClose}
               className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
