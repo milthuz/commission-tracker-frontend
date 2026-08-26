@@ -825,7 +825,7 @@ const SaasIncrease: React.FC = () => {
       const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/items/${item.id}/scheduled`, { headers: authHeaders() });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setScheduledInfo(prev => ({ ...prev, [item.id]: { error: d.error || t('saasIncrease.error') as string } }));
+        setScheduledInfo(prev => ({ ...prev, [item.id]: { error: [d.error, d.raw].filter(Boolean).join(' — ') || t('saasIncrease.error') as string } }));
         return;
       }
       if (!d.scheduled) {
@@ -856,7 +856,7 @@ const SaasIncrease: React.FC = () => {
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setScheduledInfo(prev => ({ ...prev, [item.id]: { error: d.error || t('saasIncrease.error') as string } }));
+        setScheduledInfo(prev => ({ ...prev, [item.id]: { error: [d.error, d.raw].filter(Boolean).join(' — ') || t('saasIncrease.error') as string } }));
         return;
       }
       setScheduledInfo(prev => ({ ...prev, [item.id]: { text: t('saasIncrease.push.cancelled') as string, matches: true } }));
