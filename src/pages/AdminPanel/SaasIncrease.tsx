@@ -1869,7 +1869,11 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                                         : scheduledInfo[item.id].error
                                           ? <span className="text-red-600 dark:text-red-400">{scheduledInfo[item.id].error}</span>
                                           : (
-                                            <span className={scheduledInfo[item.id].matches ? 'text-emerald-600 dark:text-[#57D193]' : 'text-amber-600 dark:text-amber-400'}>
+                                            <span className={
+                                              scheduledInfo[item.id].found === false ? textSec
+                                                : scheduledInfo[item.id].matches ? 'text-emerald-600 dark:text-[#57D193]'
+                                                : 'text-amber-600 dark:text-amber-400'
+                                            }>
                                               {scheduledInfo[item.id].text}
                                             </span>
                                           )}
