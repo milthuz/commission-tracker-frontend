@@ -1329,7 +1329,11 @@
       "errors": "{{count}} error(s)",
       "refresh": "Verify base prices",
       "refreshing": "Refreshing…",
-      "refreshStarted": "Verifying base plan prices in the background — one Zoho call per subscription, so expect several minutes rather than hours. The counter above updates as it goes; you can leave this page."
+      "refreshStarted": "Verifying base plan prices in the background — one Zoho call per subscription, so expect several minutes rather than hours. The counter above updates as it goes; you can leave this page.",
+      "full": "Analyze price history",
+      "fullHint": "Walks each customer's invoice history to date their last price change. Costs about 25 Zoho calls per subscription, so it runs for hours — it is informational only and never blocks a push.",
+      "confirmFull": "Start the full price-history analysis? It makes roughly 25 Zoho calls per subscription, so expect it to run for hours in the background. Base prices are not affected.",
+      "fullStarted": "Price-history analysis started in the background. It will fill the Price history column gradually over the next few hours."
     },
     "status": {
       "pending": "Pending",

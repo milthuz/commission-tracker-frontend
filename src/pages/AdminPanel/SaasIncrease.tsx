@@ -719,6 +719,21 @@ const SaasIncrease: React.FC = () => {
     } catch { /* non-fatal — the progress line just doesn't render */ }
   };
 
+  // The FULL scan: invoice-history analysis on top of the base price. Separate button because it
+  // costs ~25 Zoho calls per subscription against the base pass's one, so it must be a deliberate
+  // choice rather than something triggered by the button people click to unblock pushes.
+  const refreshFullHistory = async () => {
+    if (!(await dialog.confirm(t('saasIncrease.insights.confirmFull') as string))) return;
+    setRefreshingInsights(true);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/insights/refresh`, { method: 'POST', headers: authHeaders() });
+      if (!r.ok) throw new Error(String(r.status));
+      dialog.alert(t('saasIncrease.insights.fullStarted') as string);
+      loadInsightsStatus();
+    } catch { dialog.alert(t('saasIncrease.error') as string); }
+    finally { setRefreshingInsights(false); }
+  };
+
   const refreshInsights = async () => {
     setRefreshingInsights(true);
     try {
@@ -1104,6 +1119,9 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
         <button onClick={refreshInsights} disabled={refreshingInsights} className={btnSecondary}>
           <RefreshCw className={`h-4 w-4 ${refreshingInsights ? 'animate-spin' : ''}`} />
           {refreshingInsights ? t('saasIncrease.insights.refreshing') : t('saasIncrease.insights.refresh')}
+        </button>
+        <button onClick={refreshFullHistory} disabled={refreshingInsights} title={t('saasIncrease.insights.fullHint') as string} className={btnSecondary}>
+          {t('saasIncrease.insights.full')}
         </button>
         {activeScenarioId && (
           <button onClick={exportScenario} disabled={exporting} className={btnSecondary}>

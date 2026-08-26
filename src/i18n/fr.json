@@ -1329,7 +1329,11 @@
       "errors": "{{count}} erreur(s)",
       "refresh": "Vérifier les prix de base",
       "refreshing": "Démarrage…",
-      "refreshStarted": "Vérification des prix de base en arrière-plan — un seul appel Zoho par abonnement, donc compte quelques minutes et non des heures. Le compteur ci-dessus avance au fur et à mesure; tu peux quitter la page."
+      "refreshStarted": "Vérification des prix de base en arrière-plan — un seul appel Zoho par abonnement, donc compte quelques minutes et non des heures. Le compteur ci-dessus avance au fur et à mesure; tu peux quitter la page.",
+      "full": "Analyser l'historique de prix",
+      "fullHint": "Parcourt l'historique de factures de chaque client pour dater son dernier changement de prix. Coûte environ 25 appels Zoho par abonnement, donc plusieurs heures — c'est informatif seulement, ça ne bloque jamais un push.",
+      "confirmFull": "Lancer l'analyse complète de l'historique de prix? Elle fait environ 25 appels Zoho par abonnement, donc compte plusieurs heures en arrière-plan. Les prix de base ne sont pas touchés.",
+      "fullStarted": "Analyse de l'historique de prix lancée en arrière-plan. La colonne Historique de prix se remplira progressivement dans les prochaines heures."
     },
     "status": {
       "pending": "En attente",
