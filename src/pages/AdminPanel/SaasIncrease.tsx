@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PasswordInput from '../../components/PasswordInput';
 import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
@@ -289,6 +289,16 @@ const SaasIncrease: React.FC = () => {
   };
 
   useEffect(() => { loadSubs(false); loadScenarios(); loadTemplates(); loadCalibration(); }, []);
+
+  // When the scan finishes, re-fetch the subscriptions too. The counter polls itself but the table
+  // rows are only loaded once, so a completed scan otherwise left rows still showing the amber
+  // "incl. addons" warning while the counter read 100% — which reads as a bug.
+  const scanWasActive = useRef(false);
+  useEffect(() => {
+    const wasActive = scanWasActive.current;
+    scanWasActive.current = !!insightsStatus?.active;
+    if (wasActive && !insightsStatus?.active) loadSubs(false);
+  }, [insightsStatus?.active]);
 
   // Poll the scan's progress — tightly while it's actually writing rows, lazily otherwise so an
   // idle page isn't hitting the server every few seconds for an hour.
