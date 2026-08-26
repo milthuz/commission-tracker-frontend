@@ -1207,7 +1207,7 @@
     "noRowsSelected": "Select at least one subscription to save.",
     "removeItem": "Remove from scenario",
     "confirmRemoveItem": "Remove {{name}} from this scenario?",
-    "confirmRemoveItemProtected": "{{name}} has already been pushed to Zoho or notified, so Save deliberately keeps it as an audit record. Remove it from this scenario anyway? The price change already made in Zoho is NOT reverted.",
+    "confirmRemoveItemProtected": "{{name}} has already been pushed to Zoho or notified, so Save deliberately keeps it as an audit record. Removing it does NOT revert the price change in Zoho — and afterwards there is no way to cancel it from here, because the row is gone. If you want to undo the change, click \"Cancel scheduled change\" FIRST, then remove. Remove it anyway?",
     "confirmClearAll": "You've cleared every increase. Saving now empties this scenario, removing its {{count}} saved item(s). Subscriptions already pushed to Zoho or already notified are kept. Continue?",
     "saveDraft": "Save scenario",
     "saveDraftWithCount": "Save scenario · {{count}} pending",

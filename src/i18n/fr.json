@@ -1207,7 +1207,7 @@
     "noRowsSelected": "Sélectionne au moins un abonnement avant d'enregistrer.",
     "removeItem": "Retirer du scénario",
     "confirmRemoveItem": "Retirer {{name}} de ce scénario?",
-    "confirmRemoveItemProtected": "{{name}} a déjà été poussé vers Zoho ou notifié, donc la sauvegarde le conserve volontairement comme trace d'audit. Le retirer quand même de ce scénario? Le changement de prix déjà effectué dans Zoho n'est PAS annulé.",
+    "confirmRemoveItemProtected": "{{name}} a déjà été poussé vers Zoho ou notifié, donc la sauvegarde le conserve volontairement comme trace d'audit. Le retirer n'annule PAS le changement de prix dans Zoho — et ensuite tu ne pourras plus l'annuler d'ici, la ligne ayant disparu. Si tu veux annuler le changement, clique D'ABORD sur « Annuler le changement planifié », puis retire-le. Le retirer quand même?",
     "confirmClearAll": "Tu as effacé toutes les augmentations. Enregistrer maintenant vide ce scénario et retire ses {{count}} élément(s) enregistrés. Les abonnements déjà poussés vers Zoho ou déjà notifiés sont conservés. Continuer?",
     "saveDraft": "Enregistrer le scénario",
     "saveDraftWithCount": "Enregistrer le scénario · {{count}} en attente",
