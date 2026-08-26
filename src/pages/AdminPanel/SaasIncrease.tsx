@@ -206,6 +206,10 @@ const SaasIncrease: React.FC = () => {
   const [savedItems, setSavedItems] = useState<Record<string, ScenarioItem>>({});
   const [scenarioName, setScenarioName] = useState('');
   const [targetMrr, setTargetMrr] = useState(100000);
+  // The target is a decision that gets revised as a campaign takes shape, so it must be editable
+  // in place — recreating a scenario to change it would throw away every increase already set.
+  const [editingTarget, setEditingTarget] = useState(false);
+  const [targetDraft, setTargetDraft] = useState('');
 
   const [search, setSearch] = useState('');
   const [orgFilter, setOrgFilter] = useState('');
@@ -375,6 +379,21 @@ const SaasIncrease: React.FC = () => {
   };
 
   useEffect(() => { if (activeScenarioId) loadScenarioDetail(activeScenarioId); }, [activeScenarioId]);
+
+  const saveTarget = async () => {
+    setEditingTarget(false);
+    const v = Number(targetDraft);
+    if (!activeScenarioId || !Number.isFinite(v) || v <= 0 || v === targetMrr) return;
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}`, {
+        method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetMrr: v }),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      setTargetMrr(v);
+      await loadScenarios();
+    } catch { dialog.alert(t('saasIncrease.error') as string); }
+  };
 
   const createScenario = async () => {
     const name = scenarioName.trim();
@@ -1191,7 +1210,25 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
             <div className="my-4">
               <div className="flex flex-wrap items-baseline gap-2.5">
                 <span className="break-words text-[44px] font-semibold leading-none tracking-tight text-primary dark:text-[#F79C6A]">{money(mrrDelta)}</span>
-                <span className={`text-[15px] ${textTer}`}>/ {money(targetMrr)} {t('saasIncrease.mrrTarget')}</span>
+                {editingTarget ? (
+                  <input
+                    type="number" autoFocus value={targetDraft}
+                    onChange={(e) => setTargetDraft(e.target.value)}
+                    onWheel={(e) => e.currentTarget.blur()}
+                    onBlur={saveTarget}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveTarget(); if (e.key === 'Escape') setEditingTarget(false); }}
+                    className={`w-[130px] rounded-lg border border-orange-300 bg-white px-2 py-1 text-[15px] tabular-nums outline-none focus:border-primary dark:border-[#D16630] dark:bg-[#0A0A0A] dark:text-white`}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setTargetDraft(String(targetMrr)); setEditingTarget(true); }}
+                    title={t('saasIncrease.editTargetHint') as string}
+                    className={`text-[15px] ${textTer} underline decoration-dotted underline-offset-4 hover:text-primary`}
+                  >
+                    / {money(targetMrr)} {t('saasIncrease.mrrTarget')}
+                  </button>
+                )}
               </div>
               <div className={`mt-1.5 text-sm ${textSec}`}>{t('saasIncrease.projectedAdd')} · <span className={textPri + ' font-medium'}>{pct.toFixed(1)}%</span> {t('saasIncrease.ofTarget')}</div>
             </div>

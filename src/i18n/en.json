@@ -1411,7 +1411,8 @@
       "cancelled": "Scheduled change cancelled in Zoho."
     },
     "startedOn": "Started {{date}}",
-    "startUnknown": "Start date unknown"
+    "startUnknown": "Start date unknown",
+    "editTargetHint": "Click to change this scenario's target MRR. Your increases are kept."
   },
   "resources": {
     "title": "Resources",

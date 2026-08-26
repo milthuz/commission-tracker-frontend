@@ -1411,7 +1411,8 @@
       "cancelled": "Changement planifié annulé dans Zoho."
     },
     "startedOn": "Débuté le {{date}}",
-    "startUnknown": "Date de début inconnue"
+    "startUnknown": "Date de début inconnue",
+    "editTargetHint": "Clique pour modifier la cible MRR de ce scénario. Tes augmentations sont conservées."
   },
   "resources": {
     "title": "Ressources",
