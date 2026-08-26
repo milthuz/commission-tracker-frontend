@@ -1196,8 +1196,8 @@
     "setToHint": "Fixer à ce prix : la valeur devient directement le nouveau prix du plan de base, au lieu de s'ajouter au prix actuel. Sert à ramener les clients legacy sur un prix unique.",
     "addons": "+ {{amount}} d'addons",
     "addonsHint": "Prix du plan de base affiché. Ce client paie aussi des addons, pour {{total}} au total par mois. L'augmentation s'applique au plan seulement — les addons ne sont pas touchés.",
-    "baseUnverified": "⚠ addons inclus",
-    "baseUnverifiedHint": "Le prix du plan de cet abonnement n'a pas encore été séparé de ses addons, donc le montant affiché peut les inclure. Lance « Actualiser l'historique de prix ». D'ici là cette ligne ne peut pas être poussée vers Zoho, pour éviter d'inscrire un montant plan+addons comme prix du plan.",
+    "baseUnverified": "⚠ pas encore séparé",
+    "baseUnverifiedHint": "Le prix du plan de cet abonnement n'a pas encore été séparé de ses addons, donc le montant affiché est le total du client et inclut les addons. Lance « Vérifier les prix de base » ci-dessus. D'ici là cette ligne ne peut pas être poussée vers Zoho, pour éviter d'inscrire un montant plan+addons comme prix du plan.",
     "colHistory": "Historique de prix",
     "colActivated": "Activé",
     "colLastPriceChange": "Dernier changement de prix",
@@ -1332,7 +1332,7 @@
       "refreshStarted": "Vérification des prix de base en arrière-plan — un seul appel Zoho par abonnement, donc compte quelques minutes et non des heures. Le compteur ci-dessus avance au fur et à mesure; tu peux quitter la page.",
       "full": "Analyser l'historique de prix",
       "fullHint": "Parcourt l'historique de factures de chaque client pour dater son dernier changement de prix. Coûte environ 25 appels Zoho par abonnement, donc plusieurs heures — c'est informatif seulement, ça ne bloque jamais un push.",
-      "confirmFull": "Lancer l'analyse complète de l'historique de prix? Elle fait environ 25 appels Zoho par abonnement, donc compte plusieurs heures en arrière-plan. Les prix de base ne sont pas touchés.",
+      "confirmFull": "Lancer l'analyse complète de l'historique de prix? Elle fait environ 25 appels Zoho par abonnement, donc compte plusieurs heures en arrière-plan. Elle complète aussi au passage les prix de base encore manquants.",
       "fullStarted": "Analyse de l'historique de prix lancée en arrière-plan. La colonne Historique de prix se remplira progressivement dans les prochaines heures."
     },
     "status": {

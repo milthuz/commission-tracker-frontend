@@ -1196,8 +1196,8 @@
     "setToHint": "Set to this price: the value becomes the new base plan price directly, instead of being added to the current one. Use this to bring legacy customers onto a single price.",
     "addons": "+ {{amount}} addons",
     "addonsHint": "Base plan price shown. This customer also pays addons, for {{total}} total per month. An increase applies to the plan only — addons are untouched.",
-    "baseUnverified": "⚠ incl. addons",
-    "baseUnverifiedHint": "This subscription's plan price hasn't been separated from its addons yet, so the amount shown may include addons. Run \"Refresh price history\" — until then this row cannot be pushed to Zoho, to avoid setting the plan price to a plan+addons figure.",
+    "baseUnverified": "⚠ not yet split",
+    "baseUnverifiedHint": "The plan price of this subscription has not been separated from its addons yet, so the amount shown is the customer total and includes addons. Run \"Verify base prices\" above. Until then this row cannot be pushed to Zoho, to avoid setting the plan price to a plan+addons figure.",
     "colHistory": "Price history",
     "colActivated": "Activated",
     "colLastPriceChange": "Last price change",
@@ -1332,7 +1332,7 @@
       "refreshStarted": "Verifying base plan prices in the background — one Zoho call per subscription, so expect several minutes rather than hours. The counter above updates as it goes; you can leave this page.",
       "full": "Analyze price history",
       "fullHint": "Walks each customer's invoice history to date their last price change. Costs about 25 Zoho calls per subscription, so it runs for hours — it is informational only and never blocks a push.",
-      "confirmFull": "Start the full price-history analysis? It makes roughly 25 Zoho calls per subscription, so expect it to run for hours in the background. Base prices are not affected.",
+      "confirmFull": "Start the full price-history analysis? It makes roughly 25 Zoho calls per subscription, so expect it to run for hours in the background. It also fills in any base price that is still missing as it goes.",
       "fullStarted": "Price-history analysis started in the background. It will fill the Price history column gradually over the next few hours."
     },
     "status": {
