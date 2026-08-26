@@ -111,7 +111,7 @@ const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const [syncInfo, setSyncInfo] = useState<any>(null);
-  const [kaizenSettings, setKaizenSettings] = useState<{ enabled: boolean; message: string } | null>(null);
+  const [kaizenSettings, setKaizenSettings] = useState<{ enabled: boolean; message: string; version: string } | null>(null);
   const [kaizenSaving, setKaizenSaving] = useState(false);
   const location = useLocation();
   const pathParts = location.pathname.split('/');
@@ -142,11 +142,11 @@ const AdminPanel = () => {
     if (!isAdmin) return;
     const token = localStorage.getItem('token');
     axios.get(`${API_URL}/api/demo/kaizen-status`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => setKaizenSettings(r.data))
+      .then(r => setKaizenSettings({ enabled: r.data.enabled !== false, message: r.data.message || '', version: r.data.version || '' }))
       .catch(() => {});
   }, [isAdmin]);
 
-  const saveKaizenSettings = async (next: { enabled: boolean; message: string }) => {
+  const saveKaizenSettings = async (next: { enabled: boolean; message: string; version: string }) => {
     setKaizenSaving(true);
     try {
       const token = localStorage.getItem('token');
@@ -2058,6 +2058,19 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     <span className={`h-2 w-2 rounded-full ${kaizenSettings.enabled ? 'bg-success' : 'bg-warning'}`}></span>
                     {kaizenSettings.enabled ? t('admin.kaizenDemo.statusOn') : t('admin.kaizenDemo.statusOff')}
                   </span>
+                  {/* POS build baked into the AppStream image — AWS carries no such field, so it's
+                      set here whenever the image is rebuilt, and shown on the rep-facing demo page. */}
+                  <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('admin.kaizenDemo.versionLabel')}</label>
+                  <p className="mb-2 text-xs text-body">{t('admin.kaizenDemo.versionHint')}</p>
+                  <input
+                    type="text"
+                    maxLength={60}
+                    value={kaizenSettings.version}
+                    onChange={(e) => setKaizenSettings({ ...kaizenSettings, version: e.target.value })}
+                    placeholder={t('admin.kaizenDemo.versionPlaceholder') as string}
+                    className="mb-5 w-full max-w-xs rounded-md border border-stroke bg-transparent px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                  />
+
                   <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('admin.kaizenDemo.messageLabel')}</label>
                   <p className="mb-2 text-xs text-body">{t('admin.kaizenDemo.messageHint')}</p>
                   <textarea
@@ -2073,7 +2086,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     disabled={kaizenSaving}
                     className="mt-3 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
                   >
-                    {kaizenSaving ? t('common.saving') : t('admin.kaizenDemo.saveMessage')}
+                    {kaizenSaving ? t('common.saving') : t('admin.kaizenDemo.save')}
                   </button>
                 </div>
               )}

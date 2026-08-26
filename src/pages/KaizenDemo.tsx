@@ -10,7 +10,7 @@ const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('toke
 // enabled with this app's domain allow-listed.
 type Session = { userId: string | null; mine: boolean; state: string; connectionState: string; startTime: string | null };
 type Capacity = {
-  fleet: { state: string; type: string | null; maxUserDurationSec: number | null; idleDisconnectSec: number | null };
+  fleet: { state: string; type: string | null; maxUserDurationSec: number | null; idleDisconnectSec: number | null; imageName: string | null; imageBuiltAt: string | null };
   capacity: { desired: number | null; running: number | null; inUse: number | null; available: number | null };
   sessions: Session[];
   isAdmin: boolean;
@@ -28,7 +28,7 @@ const sinceLabel = (iso: string | null) => {
 };
 
 const CapacityPanel: React.FC<{ cap: Capacity | null; loading: boolean; err: string | null; onRefresh: () => void }> = ({ cap, loading, err, onRefresh }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const fleetState = cap?.fleet.state || 'UNKNOWN';
   const stateColor =
     fleetState === 'RUNNING' ? 'bg-success/15 text-success'
@@ -70,6 +70,14 @@ const CapacityPanel: React.FC<{ cap: Capacity | null; loading: boolean; err: str
             {stat(t('kaizenDemo.sessions.running'), c!.running)}
             {stat(t('kaizenDemo.sessions.desired'), c!.desired)}
           </div>
+
+          {cap.fleet.imageName && (
+            <p className="mt-3 text-xs text-body">
+              {t('kaizenDemo.sessions.image')}:{' '}
+              <span className="font-medium text-black dark:text-white">{cap.fleet.imageName}</span>
+              {cap.fleet.imageBuiltAt && ` · ${t('kaizenDemo.sessions.imageBuilt')} ${new Date(cap.fleet.imageBuiltAt).toLocaleDateString(i18n.language)}`}
+            </p>
+          )}
 
           {fleetState === 'STOPPED' && (
             <p className="mt-4 rounded-lg bg-warning/10 px-4 py-2 text-sm text-[#9D5425] dark:text-warning">{t('kaizenDemo.sessions.hintStopped')}</p>
@@ -125,11 +133,11 @@ const KaizenDemo: React.FC = () => {
 
   // Admin maintenance switch — checked upfront so a rep sees a friendly card instead of hitting
   // "Launch" and getting an AWS error while the image/fleet is being updated (see kaizen-status).
-  const [maintenance, setMaintenance] = useState<{ enabled: boolean; message: string } | null>(null);
+  const [maintenance, setMaintenance] = useState<{ enabled: boolean; message: string; version?: string } | null>(null);
   useEffect(() => {
     axios.get(`${API_URL}/api/demo/kaizen-status`, { headers: authHeaders() })
       .then(r => setMaintenance(r.data))
-      .catch(() => setMaintenance({ enabled: true, message: '' })); // fail open — don't block on a status-check error
+      .catch(() => setMaintenance({ enabled: true, message: '', version: '' })); // fail open — don't block on a status-check error
   }, []);
 
   // Fleet capacity + active-sessions panel (diagnose "no streaming resources").
@@ -181,7 +189,18 @@ const KaizenDemo: React.FC = () => {
     <div className="mx-auto max-w-screen-2xl">
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-black dark:text-white">{t('kaizenDemo.title')}</h2>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h2 className="text-2xl font-bold text-black dark:text-white">{t('kaizenDemo.title')}</h2>
+            {/* Which POS build is baked into the AppStream image (Admin → Integrations → Kaizen Demo). */}
+            {maintenance?.version && (
+              <span
+                title={t('kaizenDemo.versionHint') as string}
+                className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary"
+              >
+                {t('kaizenDemo.versionBadge', { version: maintenance.version })}
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('kaizenDemo.subtitle')}</p>
         </div>
         {maintenance?.enabled !== false && (
