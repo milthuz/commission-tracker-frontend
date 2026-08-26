@@ -1218,6 +1218,9 @@
     "exportCsv": "Exporter en CSV",
     "exporting": "Exportation…",
     "segment": {
+      "orgBase": "{{amount}}/mois de plans de base",
+      "orgTotal": "{{amount}}/mois avec addons",
+      "orgTotalsHint": "Les plans de base sont ce sur quoi porte l'augmentation. Avec addons, c'est ce que les clients paient réellement — c'est ce chiffre qui est comparable au MRR de Zoho. Les abonnements en pause sont exclus des deux; Zoho les compte comme actifs mais ils rapportent 0 $.",
       "orgSummary": "{{segments}} segments · {{subs}} abonnements",
       "colSegment": "Segment",
       "colProgress": "Progression",

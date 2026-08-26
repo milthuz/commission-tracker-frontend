@@ -1419,7 +1419,13 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                         byOrg.get(org)!.push(g);
                       }
                       return Array.from(byOrg.entries()).map(([orgName, orgGroups]) => {
+                        // Two different numbers, and conflating them is misleading: currentMonthly
+                        // is the BASE PLAN price (what an increase acts on), while what the customer
+                        // actually pays — and what Zoho's MRR reports — includes addons. Showing
+                        // only the former under an org heading read as "this org's MRR" and looked
+                        // ~19% short of Zoho.
                         const orgCurrent = orgGroups.reduce((sum, [, rs]) => sum + rs.reduce((a, r) => a + r.currentMonthly, 0), 0);
+                        const orgTotal = orgGroups.reduce((sum, [, rs]) => sum + rs.reduce((a, r) => a + (r.totalMonthly ?? r.currentMonthly), 0), 0);
                         const orgSubs = orgGroups.reduce((sum, [, rs]) => sum + rs.length, 0);
                         return (
                           <div key={`org-${orgName}`}>
@@ -1429,7 +1435,10 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                               <span className={`text-xs ${textTer}`}>
                                 {t('saasIncrease.segment.orgSummary', { segments: orgGroups.length, subs: orgSubs })}
                               </span>
-                              <span className={`ml-auto text-xs tabular-nums ${textTer}`}>{money(orgCurrent)}/mo</span>
+                              <span className={`ml-auto whitespace-nowrap text-xs tabular-nums ${textTer}`} title={t('saasIncrease.segment.orgTotalsHint') as string}>
+                                {t('saasIncrease.segment.orgBase', { amount: money(orgCurrent) })}
+                                {orgTotal > orgCurrent && <span className={textQuat}> · {t('saasIncrease.segment.orgTotal', { amount: money(orgTotal) })}</span>}
+                              </span>
                             </div>
                             {orgGroups.map(([key, rows]) => {
                       const [, planLabel] = key.split('||');
