@@ -1454,7 +1454,7 @@
       "againstTarget": "Par rapport à la cible",
       "ofTarget": "de la cible de {{amount}}/mois",
       "subsRaised": "Abonnements augmentés",
-      "ofScope": "sur {{count}} actifs",
+      "ofScope": "sur {{count}} au total",
       "avgIncrease": "Hausse moyenne",
       "revenueWeighted": "Pondérée par le revenu",
       "baseAffected": "Revenu visé",

@@ -1454,7 +1454,7 @@
       "againstTarget": "Against target",
       "ofTarget": "of the {{amount}}/mo target",
       "subsRaised": "Subscriptions raised",
-      "ofScope": "of {{count}} active",
+      "ofScope": "of {{count}} in scope",
       "avgIncrease": "Average increase",
       "revenueWeighted": "Weighted by revenue",
       "baseAffected": "Revenue affected",

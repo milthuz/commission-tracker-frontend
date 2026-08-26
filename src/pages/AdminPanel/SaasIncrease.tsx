@@ -763,7 +763,11 @@ const SaasIncrease: React.FC = () => {
 
   // The board view is a projection of exactly what the table shows — same period amounts, same
   // risk call — so it is assembled here rather than recomputed there.
-  const boardRows = (): BoardRow[] => subs.filter(s => s.status === 'live').map(s => {
+  // Every subscription in scope, NOT just status 'live'. Filtering here made the board report
+  // $47,818 while the page's own hero said $48,705 for the same scenario — two different answers
+  // to the same question, in the same product. The scenario can and does include non-live
+  // subscriptions, they get pushed like any other, so they belong in the total.
+  const boardRows = (): BoardRow[] => subs.map(s => {
     const e = edits[rowKey(s)];
     const cp = currentPeriodFor(s);
     const np = newPeriodFor(s, e);
