@@ -1315,6 +1315,8 @@
       "none": "No calibration data yet — run a refresh to build the historical dataset."
     },
     "insights": {
+      "duplicates": "⚠ {{count}} duplicate subscription number(s)",
+      "duplicatesHint": "Some subscription numbers appear more than once across the billing orgs. The insights table is keyed by subscription number alone, so those share one row — one org's base price can overwrite another's. Worth investigating before pushing.",
       "progress": "Base prices: {{verified}} / {{total}} verified",
       "running": "scan running",
       "stalled": "scan not running — click Verify base prices",

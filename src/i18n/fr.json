@@ -1315,6 +1315,8 @@
       "none": "Aucune donnée de calibration pour l'instant — lance un rafraîchissement pour construire le jeu de données historique."
     },
     "insights": {
+      "duplicates": "⚠ {{count}} numéro(s) d'abonnement en doublon",
+      "duplicatesHint": "Certains numéros d'abonnement apparaissent plus d'une fois entre les organisations de facturation. La table d'insights est indexée sur le seul numéro d'abonnement, donc ces doublons partagent une ligne — le prix de base d'une organisation peut écraser celui d'une autre. À investiguer avant de pousser.",
       "progress": "Prix de base : {{verified}} / {{total}} vérifiés",
       "running": "scan en cours",
       "stalled": "scan arrêté — clique sur Vérifier les prix de base",

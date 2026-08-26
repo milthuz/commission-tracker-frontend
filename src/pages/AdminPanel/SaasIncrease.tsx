@@ -180,7 +180,7 @@ const SaasIncrease: React.FC = () => {
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
   // while active — otherwise the only way to know whether anything is happening is the server log.
-  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; lastScanError?: string | null; topErrors?: { error: string; count: number }[] } | null>(null);
+  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; lastScanError?: string | null; topErrors?: { error: string; count: number }[] } | null>(null);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
   const [bulkType, setBulkType] = useState<'percent' | 'flat'>('percent');
@@ -991,6 +991,11 @@ const SaasIncrease: React.FC = () => {
             </span>
             {/* The failure itself, not just its count — otherwise a scan failing on every row is
                 indistinguishable from one that never started. */}
+            {(insightsStatus.duplicates ?? 0) > 0 && (
+              <span className="whitespace-nowrap text-[11px] font-medium text-red-600 dark:text-red-400" title={t('saasIncrease.insights.duplicatesHint') as string}>
+                {t('saasIncrease.insights.duplicates', { count: insightsStatus.duplicates })}
+              </span>
+            )}
             {insightsStatus.lastScanError && (
               <span className="max-w-[520px] truncate font-mono text-[11px] text-red-600 dark:text-red-400" title={insightsStatus.lastScanError}>
                 {insightsStatus.lastScanError}
