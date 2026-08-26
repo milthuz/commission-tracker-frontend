@@ -1317,7 +1317,7 @@
     "insights": {
       "progress": "Prix de base : {{verified}} / {{total}} vérifiés",
       "running": "scan en cours",
-      "stalled": "scan arrêté — clique sur Actualiser l'historique de prix",
+      "stalled": "scan arrêté — clique sur Vérifier les prix de base",
       "errors": "{{count}} erreur(s)",
       "refresh": "Vérifier les prix de base",
       "refreshing": "Démarrage…",
