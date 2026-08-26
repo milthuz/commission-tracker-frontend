@@ -1229,7 +1229,8 @@
       "setCount": "{{set}} of {{total}} set",
       "highRisk": "⚠ {{count}} high risk",
       "view": "View",
-      "drilldownHint": "edit individual subscriptions here for exceptions"
+      "drilldownHint": "edit individual subscriptions here for exceptions",
+      "orgNoBreakdown": "Breakdown not loaded yet."
     },
     "groupView": {
       "todo": "To do ({{count}})",

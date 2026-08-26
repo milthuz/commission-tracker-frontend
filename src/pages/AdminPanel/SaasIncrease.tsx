@@ -4,7 +4,7 @@ import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge } from 'lucide-react';
+import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -182,6 +182,7 @@ const SaasIncrease: React.FC = () => {
   // are a drill-down you open per segment. `editingSegment` keeps the segment you're typing in
   // visible even once its value makes it "done", so it can't vanish mid-keystroke.
   const [drilldownKey, setDrilldownKey] = useState<string | null>(null);
+  const [openOrgInfo, setOpenOrgInfo] = useState<string | null>(null);
   const [editingSegment, setEditingSegment] = useState<string | null>(null);
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
@@ -1443,11 +1444,33 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                               <span className={`text-xs ${textTer}`}>
                                 {t('saasIncrease.segment.orgSummary', { segments: orgGroups.length, subs: orgSubs })}
                               </span>
-                              <span className={`ml-auto whitespace-nowrap text-xs tabular-nums ${textTer}`} title={`${t('saasIncrease.segment.orgTotalsHint')}${statusBreakdown ? `\n\n${statusBreakdown}` : ''}`}>
+                              <span className={`ml-auto whitespace-nowrap text-xs tabular-nums ${textTer}`}>
                                 {t('saasIncrease.segment.orgBase', { amount: money(orgCurrent) })}
                                 {orgTotal > orgCurrent && <span className={textQuat}> · {t('saasIncrease.segment.orgTotal', { amount: money(orgTotal) })}</span>}
                               </span>
+                              {/* Explicit toggle rather than a bare title attribute — a tooltip on
+                                  an unmarked number is undiscoverable. */}
+                              <button
+                                type="button"
+                                onClick={() => setOpenOrgInfo(openOrgInfo === orgName ? null : orgName)}
+                                title={t('saasIncrease.segment.orgTotalsHint') as string}
+                                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${chipInput} ${textSec} hover:text-primary`}
+                              >
+                                <Info className="h-3.5 w-3.5" />
+                              </button>
                             </div>
+                            {openOrgInfo === orgName && (
+                              <div className={`border-b border-gray-200 px-4.5 py-3 text-xs dark:border-[#242424] ${raised}`}>
+                                <p className={`mb-2 ${textSec}`}>{t('saasIncrease.segment.orgTotalsHint')}</p>
+                                {statusBreakdown ? (
+                                  <div className={`space-y-1 font-mono ${textTer}`}>
+                                    {statusBreakdown.split('\n').map(line => <div key={line}>{line}</div>)}
+                                  </div>
+                                ) : (
+                                  <p className={textQuat}>{t('saasIncrease.segment.orgNoBreakdown')}</p>
+                                )}
+                              </div>
+                            )}
                             {orgGroups.map(([key, rows]) => {
                       const [, planLabel] = key.split('||');
                       const segCurrent = rows.reduce((sum, r) => sum + r.currentMonthly, 0);
