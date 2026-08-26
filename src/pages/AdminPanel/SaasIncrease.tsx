@@ -1432,8 +1432,7 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                         const orgStat = insightsStatus?.byOrg?.find(o => o.orgName === orgName);
                         const statusBreakdown = orgStat?.byStatus
                           ? Object.entries(orgStat.byStatus).sort((a, b) => b[1].mrr - a[1].mrr)
-                              .map(([st, v]) => `${st}: ${v.count} subs · ${money(v.mrr)}/mo`).join('
-')
+                              .map(([st, v]) => `${st}: ${v.count} subs · ${money(v.mrr)}/mo`).join('\n')
                           : '';
                         const orgSubs = orgGroups.reduce((sum, [, rs]) => sum + rs.length, 0);
                         return (
@@ -1444,9 +1443,7 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                               <span className={`text-xs ${textTer}`}>
                                 {t('saasIncrease.segment.orgSummary', { segments: orgGroups.length, subs: orgSubs })}
                               </span>
-                              <span className={`ml-auto whitespace-nowrap text-xs tabular-nums ${textTer}`} title={`${t('saasIncrease.segment.orgTotalsHint')}${statusBreakdown ? `
-
-${statusBreakdown}` : ''}`}>
+                              <span className={`ml-auto whitespace-nowrap text-xs tabular-nums ${textTer}`} title={`${t('saasIncrease.segment.orgTotalsHint')}${statusBreakdown ? `\n\n${statusBreakdown}` : ''}`}>
                                 {t('saasIncrease.segment.orgBase', { amount: money(orgCurrent) })}
                                 {orgTotal > orgCurrent && <span className={textQuat}> · {t('saasIncrease.segment.orgTotal', { amount: money(orgTotal) })}</span>}
                               </span>
