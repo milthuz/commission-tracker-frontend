@@ -187,7 +187,7 @@ const SaasIncrease: React.FC = () => {
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
   // while active — otherwise the only way to know whether anything is happening is the server log.
-  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number; byStatus?: Record<string, { count: number; mrr: number }> }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; topErrors?: { error: string; count: number }[] } | null>(null);
+  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number; byStatus?: Record<string, { count: number; mrr: number; numbers?: string[] }> }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; topErrors?: { error: string; count: number }[] } | null>(null);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
   const [bulkType, setBulkType] = useState<'percent' | 'flat'>('percent');
@@ -1433,7 +1433,7 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                         const orgStat = insightsStatus?.byOrg?.find(o => o.orgName === orgName);
                         const statusBreakdown = orgStat?.byStatus
                           ? Object.entries(orgStat.byStatus).sort((a, b) => b[1].mrr - a[1].mrr)
-                              .map(([st, v]) => `${st}: ${v.count} subs · ${money(v.mrr)}/mo`).join('\n')
+                              .map(([st, v]) => `${st}: ${v.count} subs · ${money(v.mrr)}/mo${v.numbers?.length ? `  (${v.numbers.join(', ')})` : ''}`).join('\n')
                           : '';
                         const orgSubs = orgGroups.reduce((sum, [, rs]) => sum + rs.length, 0);
                         return (
