@@ -1230,7 +1230,12 @@
       "highRisk": "⚠ {{count}} à risque élevé",
       "view": "Voir",
       "drilldownHint": "modifie ici les abonnements individuels pour les exceptions",
-      "orgNoBreakdown": "Répartition pas encore chargée."
+      "orgNoBreakdown": "Répartition pas encore chargée.",
+      "skipCount": "{{count}} épargné(s)",
+      "skipHint": "Ne pas augmenter ce segment — le marque comme décidé, il quitte la liste À faire. Reclique pour annuler.",
+      "unskipHint": "Annuler — le remettre dans la liste À faire.",
+      "skipRowHint": "Épargner ce client — le reste du segment n'est pas touché.",
+      "skippedLabel": "Pas d'augmentation"
     },
     "groupView": {
       "todo": "À faire ({{count}})",

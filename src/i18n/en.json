@@ -1230,7 +1230,12 @@
       "highRisk": "⚠ {{count}} high risk",
       "view": "View",
       "drilldownHint": "edit individual subscriptions here for exceptions",
-      "orgNoBreakdown": "Breakdown not loaded yet."
+      "orgNoBreakdown": "Breakdown not loaded yet.",
+      "skipCount": "{{count}} left alone",
+      "skipHint": "Not raising this segment — marks it decided so it leaves the To do list. Click again to undo.",
+      "unskipHint": "Undo — put this back in the To do list.",
+      "skipRowHint": "Spare this customer — the rest of the segment is unaffected.",
+      "skippedLabel": "Not raising"
     },
     "groupView": {
       "todo": "To do ({{count}})",

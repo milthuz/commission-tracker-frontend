@@ -4,7 +4,7 @@ import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info } from 'lucide-react';
+import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -52,7 +52,7 @@ interface ScenarioItem {
   id: number; orgId: string;
   subscriptionNumber: string; customerName: string; planName: string; currentMonthly: number;
   increaseType: IncreaseMode; increaseValue: number;
-  newMonthly: number; status: string; pushError: string | null;
+  newMonthly: number; status: string; pushError: string | null; skipped?: boolean;
   notifyTo: string | null; notifySubject: string | null; notifyBody: string | null;
   notifyStatus: string; notifyError: string | null;
 }
@@ -63,7 +63,10 @@ interface Calibration { buckets: CalibrationBucket[]; baseline: CalibrationBucke
 // deliberately independent from "included" (derived as increaseValue > 0) — matches the design
 // handoff's model, where you can select a batch of rows first, then bulk-apply a rule to them,
 // without needing to type a value into each one first.
-interface RowEdit { selected: boolean; increaseType: IncreaseMode; increaseValue: number }
+// `skipped` is a decision — "we looked at this one and chose not to raise it" — as opposed to an
+// increaseValue of 0, which just means nobody has got to it yet. Only the decision lets a segment
+// leave the To-do list, and a skipped row can never be pushed or emailed.
+interface RowEdit { selected: boolean; increaseType: IncreaseMode; increaseValue: number; skipped?: boolean }
 interface NotifyDraft { to: string; subject: string; body: string }
 
 // Local state (edits, saved items, suggestion tracking) is keyed by ORG + number, never the
@@ -369,7 +372,7 @@ const SaasIncrease: React.FC = () => {
       const nextNotify: Record<number, NotifyDraft> = {};
       for (const it of data.items as ScenarioItem[]) {
         byNum[rowKey(it)] = it;
-        nextEdits[rowKey(it)] = { selected: true, increaseType: it.increaseType, increaseValue: it.increaseValue };
+        nextEdits[rowKey(it)] = { selected: true, increaseType: it.increaseType, increaseValue: it.increaseValue, skipped: it.skipped === true };
         nextNotify[it.id] = { to: it.notifyTo || '', subject: it.notifySubject || '', body: it.notifyBody || '' };
       }
       setSavedItems(byNum);
@@ -481,7 +484,7 @@ const SaasIncrease: React.FC = () => {
       // Typing a real increase value implicitly means "this row is part of my plan" — auto-check
       // it too, so a single-row edit doesn't also require a separate checkbox click to be
       // reflected in the "N selected" footer/bulk count.
-      if (patch.increaseValue !== undefined && patch.increaseValue > 0) merged.selected = true;
+      if (patch.increaseValue !== undefined && patch.increaseValue > 0) { merged.selected = true; merged.skipped = false; }
       // ...and the reverse: unchecking a row is how you undo an applied increase — it wouldn't
       // otherwise clear the typed value, so the row would silently stay "included."
       if (patch.selected === false) merged.increaseValue = 0;
@@ -504,14 +507,33 @@ const SaasIncrease: React.FC = () => {
     });
   };
 
+  // Marking a segment (or one row) as "not raising this". Toggles, so an over-eager skip is one
+  // click to undo. Setting an increase on a skipped row clears the skip automatically — the two
+  // states are mutually exclusive and silently keeping both would be a trap.
+  const setSkipped = (rows: Subscription[], skipped: boolean) => {
+    setEdits(prev => {
+      const next = { ...prev };
+      for (const r of rows) {
+        const k = rowKey(r);
+        const e = next[k] || { selected: false, increaseType: 'percent' as IncreaseMode, increaseValue: 0 };
+        next[k] = { ...e, skipped, increaseValue: skipped ? 0 : e.increaseValue, selected: false };
+      }
+      return next;
+    });
+  };
+
   const isIncluded = (num: string) => (edits[num]?.increaseValue ?? 0) > 0;
+  const isSkipped = (num: string) => edits[num]?.skipped === true;
+  // "Decided" — raised OR deliberately left alone. This is what clears a segment off the To-do
+  // list; an increase alone would strand every subscription you looked at and chose to spare.
+  const isDecided = (num: string) => isIncluded(num) || isSkipped(num);
 
   // Group-level "done" filter — with dozens of org×plan groups, once an increase has been applied
   // to a group it's just scroll-noise between you and the work that's left. A group counts as done
   // only when EVERY row in it has an increase (a partially-applied group still has work, so it
   // stays under "To do"). Defaults to "todo" so applied groups drop out of view as you go, with
   // one click to review the finished ones.
-  const isGroupDone = (rows: Subscription[]) => rows.length > 0 && rows.every(r => isIncluded(rowKey(r)));
+  const isGroupDone = (rows: Subscription[]) => rows.length > 0 && rows.every(r => isDecided(rowKey(r)));
   const doneGroupCount = groupedRows.reduce((n, [, rows]) => n + (isGroupDone(rows) ? 1 : 0), 0);
   const todoGroupCount = groupedRows.length - doneGroupCount;
   const visibleGroups = groupView === 'all'
@@ -550,7 +572,7 @@ const SaasIncrease: React.FC = () => {
     setEdits(prev => {
       const next = { ...prev };
       for (const s of filtered) {
-        if (next[rowKey(s)]?.selected) {
+        if (next[rowKey(s)]?.selected && !next[rowKey(s)]?.skipped) {
           next[rowKey(s)] = { selected: true, increaseType: bulkType, increaseValue: bulkValue };
         }
       }
@@ -591,6 +613,10 @@ const SaasIncrease: React.FC = () => {
       const next = { ...prev };
       for (const s of rows) {
         const base: RowEdit = next[rowKey(s)] || { selected: false, increaseType: 'percent', increaseValue: 0 };
+        // Typing a rate on the segment applies to the segment MINUS whatever you spared. Sparing
+        // a customer and then setting a segment rate is a completely ordinary sequence, and it
+        // must not undo the sparing.
+        if (base.skipped) continue;
         const merged = { ...base, ...patch };
         merged.selected = (Number(merged.increaseValue) || 0) > 0;
         next[rowKey(s)] = merged;
@@ -672,7 +698,10 @@ const SaasIncrease: React.FC = () => {
     // suggestion run put it there (still replaceable) — never a row the user picked/edited
     // themselves (see setEdit/clearRows/applyBulkTo* stripping it from suggestedNumbers).
     const candidates = subs
-      .filter(s => s.status === 'live' && (!edits[rowKey(s)]?.selected || suggestedNumbers.has(rowKey(s))))
+      // ...and never a row deliberately skipped: that decision outranks any suggestion, and
+      // quietly reviving a customer the user chose to spare is the kind of thing nobody notices
+      // until the price change reaches them.
+      .filter(s => s.status === 'live' && !isSkipped(rowKey(s)) && (!edits[rowKey(s)]?.selected || suggestedNumbers.has(rowKey(s))))
       .map(s => {
         for (const rate of steps) {
           const r = evalRate(s, rate);
@@ -719,7 +748,7 @@ const SaasIncrease: React.FC = () => {
       // Clear every row the LAST suggestion run picked before writing the new one, so switching
       // profile and re-applying replaces the old suggestion instead of being blocked by it (a
       // row the user edited by hand was already removed from suggestedNumbers, so it's untouched).
-      for (const num of suggestedNumbers) next[num] = { selected: false, increaseType: 'percent', increaseValue: 0 };
+      for (const num of suggestedNumbers) next[num] = { ...next[num], selected: false, increaseType: 'percent', increaseValue: 0 };
       for (const c of chosen) next[rowKey(c.s)] = { selected: true, increaseType: bulkType, increaseValue: c.rate };
       return next;
     });
@@ -731,13 +760,16 @@ const SaasIncrease: React.FC = () => {
   const saveScenario = async () => {
     if (!activeScenarioId) return;
     const items = subs
-      .filter(s => isIncluded(rowKey(s)))
+      // Skipped rows are saved as well: the decision has to survive a reload, and the save wipes
+      // anything it does not send.
+      .filter(s => isDecided(rowKey(s)))
       .map(s => {
         const e = edits[rowKey(s)];
         return {
           orgId: s.orgId, subscriptionNumber: s.subscriptionNumber, customerId: s.customerId, customerName: s.customerName,
           merchantAccountId: s.merchantAccountId, planCode: s.planCode, planName: s.planName,
           currentMonthly: s.currentMonthly, increaseType: e.increaseType, increaseValue: e.increaseValue,
+          skipped: e.skipped === true,
         };
       });
     // Saving with nothing included is legitimate — it's how you empty a scenario after clearing
@@ -1540,7 +1572,9 @@ const SaasIncrease: React.FC = () => {
                     `${t('saasIncrease.colActivated')}: ${activatedLabel}`,
                     (s.lastPriceBefore != null && s.lastPriceAfter != null) ? `${money(s.lastPriceBefore)} → ${money(s.lastPriceAfter)}` : null,
                   ].filter(Boolean).join(' · ');
-                  const rowBg = selected ? 'bg-orange-50/60 dark:bg-[rgba(245,131,69,0.06)]' : included ? 'bg-emerald-50/40 dark:bg-[rgba(87,209,147,0.03)]' : '';
+                  const rowBg = isSkipped(rowKey(s)) ? 'bg-gray-50 dark:bg-[#0C0C0C]'
+                    : selected ? 'bg-orange-50/60 dark:bg-[rgba(245,131,69,0.06)]'
+                    : included ? 'bg-emerald-50/40 dark:bg-[rgba(87,209,147,0.03)]' : '';
                   const proposedPct = ((nm - cp) / (cp || 1)) * 100;
                   const risk = riskFor(s, proposedPct, calibration);
                   const riskTitle = risk.reasons.map(r => t(`saasIncrease.risk.reasons.${r}`)).join(' · ');
@@ -1548,6 +1582,7 @@ const SaasIncrease: React.FC = () => {
                   // status (pending/pushed/push_failed) instead of the purely local "increase
                   // set / not set" badge — the real signal only exists after Save.
                   const savedForRow = savedItems[rowKey(s)];
+                  const skipped = isSkipped(rowKey(s));
                   return (
                     <div key={rowKey(s)} className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 px-4.5 py-3 hover:bg-gray-50 dark:border-[#161616] dark:hover:bg-[#141416] ${rowBg}`}>
                       <label className="flex items-center"><input type="checkbox" checked={selected} onChange={(ev) => setEdit(rowKey(s), { selected: ev.target.checked })} className="h-4 w-4 accent-primary" /></label>
@@ -1587,14 +1622,27 @@ const SaasIncrease: React.FC = () => {
                           <button type="button" onClick={() => setEdit(rowKey(s), { increaseType: 'target' })} className={segBtn(e?.increaseType === 'target')} title={t('saasIncrease.setToHint') as string}>=</button>
                         </div>
                         <input
-                          type="number" value={e?.increaseValue || ''} placeholder="0"
+                          type="number" value={e?.increaseValue || ''} placeholder="0" disabled={skipped}
                           onWheel={(ev) => ev.currentTarget.blur()}
                           onChange={(ev) => setEdit(rowKey(s), { increaseValue: Number(ev.target.value) || 0 })}
-                          className={`w-[58px] rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary dark:bg-[#0A0A0A] dark:text-white ${included ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
+                          className={`w-[58px] rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary disabled:opacity-40 dark:bg-[#0A0A0A] dark:text-white ${included ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
                         />
+                        {/* Spare this one customer while still raising the rest of the segment. */}
+                        <button
+                          type="button"
+                          onClick={() => setSkipped([s], !skipped)}
+                          title={t(skipped ? 'saasIncrease.segment.unskipHint' : 'saasIncrease.segment.skipRowHint') as string}
+                          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${skipped ? 'text-primary' : `${textQuat} hover:text-gray-700 dark:hover:text-white`}`}
+                        >
+                          <Ban className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                       <div className="justify-self-end text-right">
-                        <div className={`text-sm font-medium tabular-nums ${included ? textPri : textSec}`}>{money(nm)}<span className={`ml-0.5 text-[10px] ${textQuat}`}>{periodSuffix(s)}</span></div>
+                        {skipped ? (
+                          <div className={`text-[11px] font-medium ${textQuat}`}>{t('saasIncrease.segment.skippedLabel')}</div>
+                        ) : (
+                          <div className={`text-sm font-medium tabular-nums ${included ? textPri : textSec}`}>{money(nm)}<span className={`ml-0.5 text-[10px] ${textQuat}`}>{periodSuffix(s)}</span></div>
+                        )}
                         {/* A 'set to' price below the current one is a DECREASE — show it as such
                             instead of printing "+-$20". */}
                         {included && delta !== 0 && (
@@ -1720,6 +1768,8 @@ const SaasIncrease: React.FC = () => {
                       const segNew = rows.reduce((sum, r) => sum + newPeriodFor(r, edits[rowKey(r)]), 0);
                       const segDelta = segNew - segCurrent;
                       const setCount = rows.filter(r => isIncluded(rowKey(r))).length;
+                      const skipCount = rows.filter(r => isSkipped(rowKey(r))).length;
+                      const allSkipped = skipCount === rows.length && rows.length > 0;
                       const sv = segmentValueFor(rows);
                       const highCount = rows.filter(r => {
                         const nm = newPeriodFor(r, edits[rowKey(r)]);
@@ -1760,6 +1810,11 @@ const SaasIncrease: React.FC = () => {
                           </div>
                           <div className="min-w-0">
                             <div className={`whitespace-nowrap text-xs ${textTer}`}>{t('saasIncrease.segment.setCount', { set: setCount, total: rows.length })}</div>
+                            {skipCount > 0 && (
+                              <div className={`mt-0.5 whitespace-nowrap text-[11px] ${textQuat}`}>
+                                {t('saasIncrease.segment.skipCount', { count: skipCount })}
+                              </div>
+                            )}
                             {highCount > 0 && (
                               <div className="mt-0.5 whitespace-nowrap text-[11px] font-medium text-amber-600 dark:text-amber-400">
                                 {t('saasIncrease.segment.highRisk', { count: highCount })}
@@ -1775,6 +1830,17 @@ const SaasIncrease: React.FC = () => {
                                 <X className="h-3.5 w-3.5" />
                               </button>
                             )}
+                            {/* "Not raising this one." Without it, a segment you have consciously
+                                decided to leave alone is indistinguishable from one nobody has
+                                reached yet, so it sits in To do forever. */}
+                            <button
+                              type="button"
+                              onClick={() => setSkipped(rows, !allSkipped)}
+                              title={t(allSkipped ? 'saasIncrease.segment.unskipHint' : 'saasIncrease.segment.skipHint') as string}
+                              className={`flex h-8 w-8 items-center justify-center rounded-md ${chipInput} ${allSkipped ? 'text-primary' : `${textSec} hover:text-gray-900 dark:hover:text-white`}`}
+                            >
+                              <Ban className="h-3.5 w-3.5" />
+                            </button>
                             <button
                               type="button" onClick={() => setDrilldownKey(key)}
                               className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium ${chipInput} ${textSec} hover:text-gray-900 dark:hover:text-white`}
