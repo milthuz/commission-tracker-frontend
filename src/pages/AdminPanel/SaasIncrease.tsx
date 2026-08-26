@@ -226,9 +226,10 @@ const SaasIncrease: React.FC = () => {
   const [editingSegment, setEditingSegment] = useState<string | null>(null);
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   const [showScanDetails, setShowScanDetails] = useState(false);
+  const [stoppingScan, setStoppingScan] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
   // while active — otherwise the only way to know whether anything is happening is the server log.
-  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number; byStatus?: Record<string, { count: number; mrr: number; numbers?: string[] }> }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; topErrors?: { error: string; count: number }[] } | null>(null);
+  const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number; byStatus?: Record<string, { count: number; mrr: number; numbers?: string[] }> }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; runningScan?: { label: string; startedAt: string; stopRequested: boolean } | null; topErrors?: { error: string; count: number }[] } | null>(null);
 
   const [edits, setEdits] = useState<Record<string, RowEdit>>({});
   const [bulkType, setBulkType] = useState<'percent' | 'flat'>('percent');
@@ -785,10 +786,27 @@ const SaasIncrease: React.FC = () => {
     try {
       const r = await fetch(`${API_URL}/api/admin/saas-increase/insights/refresh`, { method: 'POST', headers: authHeaders() });
       if (!r.ok) throw new Error(String(r.status));
-      dialog.alert(t('saasIncrease.insights.fullStarted') as string);
+      // started:false means the lock refused it — announcing success would be a lie.
+      const d = await r.json();
+      dialog.alert(d.started === false
+        ? (t('saasIncrease.insights.busy', { scan: t(`saasIncrease.insights.scan_${d.busy}`) }) as string)
+        : (t('saasIncrease.insights.fullStarted') as string));
       loadInsightsStatus();
     } catch { dialog.alert(t('saasIncrease.error') as string); }
     finally { setRefreshingInsights(false); }
+  };
+
+  // Until this existed the only way to halt a scan was restarting the dyno. It does not kill the
+  // loop outright — it asks, and the scan bails at its next heartbeat, so work already done stays.
+  const stopScan = async () => {
+    if (!(await dialog.confirm(t('saasIncrease.insights.confirmStop') as string))) return;
+    setStoppingScan(true);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/insights/stop`, { method: 'POST', headers: authHeaders() });
+      if (!r.ok) throw new Error(String(r.status));
+      loadInsightsStatus();
+    } catch { dialog.alert(t('saasIncrease.error') as string); }
+    finally { setStoppingScan(false); }
   };
 
   const refreshInsights = async () => {
@@ -796,7 +814,11 @@ const SaasIncrease: React.FC = () => {
     try {
       const r = await fetch(`${API_URL}/api/admin/saas-increase/insights/refresh-base`, { method: 'POST', headers: authHeaders() });
       if (!r.ok) throw new Error(String(r.status));
-      dialog.alert(t('saasIncrease.insights.refreshStarted') as string);
+      // started:false means the lock refused it — announcing success would be a lie.
+      const d = await r.json();
+      dialog.alert(d.started === false
+        ? (t('saasIncrease.insights.busy', { scan: t(`saasIncrease.insights.scan_${d.busy}`) }) as string)
+        : (t('saasIncrease.insights.refreshStarted') as string));
       loadInsightsStatus();
     } catch { dialog.alert(t('saasIncrease.error') as string); }
     finally { setRefreshingInsights(false); }
@@ -1152,6 +1174,17 @@ const SaasIncrease: React.FC = () => {
               {t('saasIncrease.insights.details')}
               <ChevronDown className={`h-3 w-3 transition-transform ${showScanDetails ? 'rotate-180' : ''}`} />
             </button>
+            {insightsStatus.runningScan && (
+              <button
+                type="button"
+                onClick={stopScan}
+                disabled={stoppingScan || insightsStatus.runningScan.stopRequested}
+                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30"
+              >
+                <X className="h-3 w-3" />
+                {insightsStatus.runningScan.stopRequested ? t('saasIncrease.insights.stopping') : t('saasIncrease.insights.stop')}
+              </button>
+            )}
           </div>
         )}
         <button onClick={refreshInsights} disabled={refreshingInsights} className={btnSecondary}>
@@ -1185,6 +1218,11 @@ const SaasIncrease: React.FC = () => {
               </div>
             ))}
           </div>
+          {insightsStatus.runningScan && (
+            <div className={`mt-3 ${textSec}`}>
+              {t(`saasIncrease.insights.scan_${insightsStatus.runningScan.label}`)}
+            </div>
+          )}
           {!insightsStatus.active && insightsStatus.verified < insightsStatus.total && (
             <div className="mt-3 text-amber-600 dark:text-amber-400">{t('saasIncrease.insights.stalled')}</div>
           )}
