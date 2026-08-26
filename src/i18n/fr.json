@@ -1401,7 +1401,10 @@
       "checking": "Vérification…",
       "noneScheduled": "Zoho ne rapporte aucun changement planifié pour cet abonnement.",
       "scheduledOk": "Zoho a {{price}} planifié pour le {{date}}.",
-      "scheduledMismatch": "Zoho a {{price}} planifié pour le {{date}} — on attendait {{expected}}. Ne pousse rien d'autre avant d'avoir compris."
+      "scheduledMismatch": "Zoho a {{price}} planifié pour le {{date}} — on attendait {{expected}}. Ne pousse rien d'autre avant d'avoir compris.",
+      "cancelScheduled": "Annuler le changement planifié",
+      "confirmCancel": "Annuler le changement de prix en attente pour {{name}} dans Zoho? Son prix reste celui d'aujourd'hui.",
+      "cancelled": "Changement planifié annulé dans Zoho."
     }
   },
   "resources": {

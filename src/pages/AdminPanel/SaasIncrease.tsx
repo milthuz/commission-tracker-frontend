@@ -846,6 +846,24 @@ const SaasIncrease: React.FC = () => {
     } catch { setScheduledInfo(prev => ({ ...prev, [item.id]: { error: t('saasIncrease.error') as string } })); }
   };
 
+  const cancelScheduled = async (item: ScenarioItem) => {
+    if (!activeScenarioId) return;
+    if (!(await dialog.confirm(t('saasIncrease.push.confirmCancel', { name: item.customerName }) as string))) return;
+    setScheduledInfo(prev => ({ ...prev, [item.id]: { loading: true } }));
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/items/${item.id}/scheduled`, {
+        method: 'DELETE', headers: authHeaders(),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setScheduledInfo(prev => ({ ...prev, [item.id]: { error: d.error || t('saasIncrease.error') as string } }));
+        return;
+      }
+      setScheduledInfo(prev => ({ ...prev, [item.id]: { text: t('saasIncrease.push.cancelled') as string, matches: true } }));
+      await loadScenarioDetail(activeScenarioId);
+    } catch { setScheduledInfo(prev => ({ ...prev, [item.id]: { error: t('saasIncrease.error') as string } })); }
+  };
+
   const testSendNotification = async (itemId: number) => {
     if (!activeScenarioId) return;
     const draft = notifyEdits[itemId];
@@ -1837,6 +1855,11 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                                     {item.status === 'pushed' && (
                                       <button onClick={() => checkScheduled(item)} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
                                         {t('saasIncrease.push.checkScheduled')}
+                                      </button>
+                                    )}
+                                    {item.status === 'pushed' && canExecute && (
+                                      <button onClick={() => cancelScheduled(item)} className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-500/40 dark:text-red-400 dark:hover:bg-red-500/10">
+                                        {t('saasIncrease.push.cancelScheduled')}
                                       </button>
                                     )}
                                   </div>

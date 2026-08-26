@@ -1401,7 +1401,10 @@
       "checking": "Checking…",
       "noneScheduled": "Zoho reports no scheduled change for this subscription.",
       "scheduledOk": "Zoho has {{price}} scheduled for {{date}}.",
-      "scheduledMismatch": "Zoho has {{price}} scheduled for {{date}} — expected {{expected}}. Do not push more until this is understood."
+      "scheduledMismatch": "Zoho has {{price}} scheduled for {{date}} — expected {{expected}}. Do not push more until this is understood.",
+      "cancelScheduled": "Cancel scheduled change",
+      "confirmCancel": "Cancel the pending price change for {{name}} in Zoho? Their price stays as it is today.",
+      "cancelled": "Scheduled change cancelled in Zoho."
     }
   },
   "resources": {
