@@ -36,6 +36,7 @@ interface Subscription {
   // monthly one. This is the figure shown, edited and pushed; currentMonthly exists only so MRR
   // figures can be summed across subscriptions billed on different cadences.
   planPeriod: number | null;
+  addonsPeriod: number | null;
   interval: number | null;
   intervalUnit: string | null;
 }
@@ -603,6 +604,14 @@ const SaasIncrease: React.FC = () => {
   const currentPeriodFor = (s: Subscription) =>
     s.planPeriod != null ? s.planPeriod : s.currentMonthly * periodMonths(s);
 
+  // Addons in the SAME cadence as the price they sit under. Showing a monthly addon figure below
+  // a yearly plan price invites the reader to add the two together and get a number that is not
+  // what anyone is billed. The fallback multiplies the monthly figure back up, which can be a cent
+  // off on annual plans — acceptable only because addons are display-only and never pushed.
+  const addonsPeriodFor = (s: Subscription) =>
+    s.addonsPeriod != null ? s.addonsPeriod : (s.addonsMonthly ?? 0) * periodMonths(s);
+  const totalPeriodFor = (s: Subscription) => currentPeriodFor(s) + addonsPeriodFor(s);
+
   const newPeriodFor = (s: Subscription, e?: RowEdit) => {
     const c = currentPeriodFor(s);
     if (!e) return c;
@@ -1148,45 +1157,46 @@ const SaasIncrease: React.FC = () => {
         <p className="mt-1 text-sm text-body">{t('saasIncrease.subtitle')}</p>
       </div>
 
-      {/* Header actions — Refresh price history / Export CSV */}
-      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
-        {/* Scan progress, condensed. This line used to render the per-org breakdown, the
-            collision count and a truncated error string inline: it wrapped onto two lines, shoved
-            the buttons around, and cut off the error text — the one part that actually matters —
-            mid-word. Headline figure stays inline, everything diagnostic moves into the panel. */}
-        {insightsStatus && insightsStatus.total > 0 && (
-          <div className={`mr-auto flex items-center gap-2 text-xs ${insightsStatus.verified < insightsStatus.total ? 'text-amber-600 dark:text-amber-400' : textTer}`}>
-            {insightsStatus.active && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
-            <span className="whitespace-nowrap">
-              {t('saasIncrease.insights.progress', { verified: insightsStatus.verified, total: insightsStatus.total })}
-              {insightsStatus.active && ` · ${t('saasIncrease.insights.running')}`}
+      {/* Scan status, on its own row. It shared a row with the action buttons, so a longer
+          message — "scan running · Stopping…" — pushed Export CSV onto a second line. Giving it
+          its own row makes that impossible by construction rather than by hoping the text fits;
+          the diagnostic detail already lives in the panel below. */}
+      {insightsStatus && insightsStatus.total > 0 && (
+        <div className={`mb-2 flex flex-wrap items-center gap-2 text-xs ${insightsStatus.verified < insightsStatus.total ? 'text-amber-600 dark:text-amber-400' : textTer}`}>
+          {insightsStatus.active && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
+          <span className="whitespace-nowrap">
+            {t('saasIncrease.insights.progress', { verified: insightsStatus.verified, total: insightsStatus.total })}
+            {insightsStatus.active && ` · ${t('saasIncrease.insights.running')}`}
+          </span>
+          {insightsStatus.errors > 0 && (
+            <span className="whitespace-nowrap font-medium text-red-600 dark:text-red-400">
+              {t('saasIncrease.insights.errors', { count: insightsStatus.errors })}
             </span>
-            {insightsStatus.errors > 0 && (
-              <span className="whitespace-nowrap font-medium text-red-600 dark:text-red-400">
-                {t('saasIncrease.insights.errors', { count: insightsStatus.errors })}
-              </span>
-            )}
+          )}
+          <button
+            type="button"
+            onClick={() => setShowScanDetails((v) => !v)}
+            className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 ${textQuat} hover:bg-black/5 dark:hover:bg-white/5`}
+          >
+            {t('saasIncrease.insights.details')}
+            <ChevronDown className={`h-3 w-3 transition-transform ${showScanDetails ? 'rotate-180' : ''}`} />
+          </button>
+          {insightsStatus.runningScan && (
             <button
               type="button"
-              onClick={() => setShowScanDetails((v) => !v)}
-              className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 ${textQuat} hover:bg-black/5 dark:hover:bg-white/5`}
+              onClick={stopScan}
+              disabled={stoppingScan || insightsStatus.runningScan.stopRequested}
+              className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30"
             >
-              {t('saasIncrease.insights.details')}
-              <ChevronDown className={`h-3 w-3 transition-transform ${showScanDetails ? 'rotate-180' : ''}`} />
+              <X className="h-3 w-3" />
+              {insightsStatus.runningScan.stopRequested ? t('saasIncrease.insights.stopping') : t('saasIncrease.insights.stop')}
             </button>
-            {insightsStatus.runningScan && (
-              <button
-                type="button"
-                onClick={stopScan}
-                disabled={stoppingScan || insightsStatus.runningScan.stopRequested}
-                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30"
-              >
-                <X className="h-3 w-3" />
-                {insightsStatus.runningScan.stopRequested ? t('saasIncrease.insights.stopping') : t('saasIncrease.insights.stop')}
-              </button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
+      )}
+
+      {/* Header actions */}
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
         <button onClick={refreshInsights} disabled={refreshingInsights} className={btnSecondary}>
           <RefreshCw className={`h-4 w-4 ${refreshingInsights ? 'animate-spin' : ''}`} />
           {refreshingInsights ? t('saasIncrease.insights.refreshing') : t('saasIncrease.insights.refresh')}
@@ -1564,8 +1574,9 @@ const SaasIncrease: React.FC = () => {
                             {t('saasIncrease.baseUnverified')}
                           </div>
                         ) : (s.addonsMonthly ?? 0) > 0 && (
-                          <div className={`mt-0.5 whitespace-nowrap text-[11px] ${textQuat}`} title={t('saasIncrease.addonsHint', { total: money(s.totalMonthly) }) as string}>
-                            {t('saasIncrease.addons', { amount: money(s.addonsMonthly || 0) })}
+                          <div className={`mt-0.5 whitespace-nowrap text-[11px] ${textQuat}`} title={t('saasIncrease.addonsHint', { total: `${money(totalPeriodFor(s))} ${periodSuffix(s)}` }) as string}>
+                            {t('saasIncrease.addons', { amount: money(addonsPeriodFor(s)) })}
+                            <span className="ml-0.5">{periodSuffix(s)}</span>
                           </div>
                         )}
                       </div>

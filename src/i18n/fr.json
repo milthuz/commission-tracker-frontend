@@ -1195,7 +1195,7 @@
     "colRisk": "Risque",
     "setToHint": "Fixer à ce prix : la valeur devient directement le nouveau prix du plan de base, au lieu de s'ajouter au prix actuel. Sert à ramener les clients legacy sur un prix unique.",
     "addons": "+ {{amount}} d'addons",
-    "addonsHint": "Prix du plan de base affiché. Ce client paie aussi des addons, pour {{total}} au total par mois. L'augmentation s'applique au plan seulement — les addons ne sont pas touchés.",
+    "addonsHint": "Prix du plan de base affiché. Ce client paie aussi des addons, pour {{total}} au total. L'augmentation s'applique au plan seulement — les addons ne sont pas touchés.",
     "baseUnverified": "⚠ pas encore séparé",
     "baseUnverifiedHint": "Le prix du plan de cet abonnement n'a pas encore été séparé de ses addons, donc le montant affiché est le total du client et inclut les addons. Lance « Vérifier les prix de base » ci-dessus. D'ici là cette ligne ne peut pas être poussée vers Zoho, pour éviter d'inscrire un montant plan+addons comme prix du plan.",
     "colHistory": "Historique de prix",

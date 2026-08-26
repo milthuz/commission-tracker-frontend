@@ -1195,7 +1195,7 @@
     "colRisk": "Risk",
     "setToHint": "Set to this price: the value becomes the new base plan price directly, instead of being added to the current one. Use this to bring legacy customers onto a single price.",
     "addons": "+ {{amount}} addons",
-    "addonsHint": "Base plan price shown. This customer also pays addons, for {{total}} total per month. An increase applies to the plan only — addons are untouched.",
+    "addonsHint": "Base plan price shown. This customer also pays addons, for {{total}} in total. An increase applies to the plan only — addons are untouched.",
     "baseUnverified": "⚠ not yet split",
     "baseUnverifiedHint": "The plan price of this subscription has not been separated from its addons yet, so the amount shown is the customer total and includes addons. Run \"Verify base prices\" above. Until then this row cannot be pushed to Zoho, to avoid setting the plan price to a plan+addons figure.",
     "colHistory": "Price history",
