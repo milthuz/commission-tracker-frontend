@@ -1004,7 +1004,7 @@ const SaasIncrease: React.FC = () => {
             )}
             {(insightsStatus.crossOrgCollisions ?? 0) > 0 && (
               <span
-                className="whitespace-nowrap text-[11px] font-medium text-red-600 dark:text-red-400"
+                className={`whitespace-nowrap text-[11px] ${textQuat}`}
                 title={`${t('saasIncrease.insights.duplicatesHint')}
 
 ${(insightsStatus.collisionSample || []).join(', ')}`}

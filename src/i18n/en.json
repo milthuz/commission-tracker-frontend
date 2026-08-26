@@ -1315,9 +1315,9 @@
       "none": "No calibration data yet — run a refresh to build the historical dataset."
     },
     "insights": {
-      "collisions": "⚠ {{count}} number(s) shared across orgs",
+      "collisions": "{{count}} number(s) exist in more than one org",
       "duplicates": "⚠ {{count}} duplicate subscription number(s)",
-      "duplicatesHint": "Some subscription numbers appear more than once across the billing orgs. The insights table is keyed by subscription number alone, so those share one row — one org's base price can overwrite another's. Worth investigating before pushing.",
+      "duplicatesHint": "Zoho numbers subscriptions per organisation, so the same number can belong to different customers in different orgs. Each org is stored and priced separately — this is informational, not a problem.",
       "progress": "Base prices: {{verified}} / {{total}} verified",
       "running": "scan running",
       "stalled": "scan not running — click Verify base prices",
