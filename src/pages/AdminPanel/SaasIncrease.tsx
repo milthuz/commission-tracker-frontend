@@ -32,6 +32,12 @@ interface Subscription {
   totalMonthly: number;
   addonsMonthly: number | null;
   baseVerified: boolean;
+  // The plan price EXACTLY as Zoho bills it, undivided — 799.95 for a yearly plan, 119 for a
+  // monthly one. This is the figure shown, edited and pushed; currentMonthly exists only so MRR
+  // figures can be summed across subscriptions billed on different cadences.
+  planPeriod: number | null;
+  interval: number | null;
+  intervalUnit: string | null;
 }
 type SortBy = 'name' | 'oldest' | 'newest' | 'mrr';
 // How an increase is expressed. 'target' sets an absolute price ("everyone to $169") rather than
@@ -73,6 +79,25 @@ const fmtDate = (raw?: string | null) => {
   const ymd = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(raw));
   const d = ymd ? new Date(Number(ymd[1]), Number(ymd[2]) - 1, Number(ymd[3])) : new Date(raw);
   return isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
+};
+// How many months one billing period spans. Used ONLY to turn a per-period delta into a monthly
+// one for the MRR totals — never to compute a price.
+const periodMonths = (s: { interval?: number | null; intervalUnit?: string | null }) => {
+  const iv = Math.max(1, Number(s.interval) || 1);
+  const u = String(s.intervalUnit || 'months').toLowerCase();
+  if (u.startsWith('year')) return iv * 12;
+  if (u.startsWith('week')) return (iv * 12) / 52;
+  if (u.startsWith('day')) return (iv * 12) / 365;
+  return iv;
+};
+// Short label for the cadence, so an amount is never ambiguous about what it buys.
+const periodSuffix = (s: { interval?: number | null; intervalUnit?: string | null }) => {
+  const iv = Math.max(1, Number(s.interval) || 1);
+  const u = String(s.intervalUnit || 'months').toLowerCase();
+  if (u.startsWith('year')) return iv === 1 ? '/yr' : `/${iv}yr`;
+  if (u.startsWith('week')) return iv === 1 ? '/wk' : `/${iv}wk`;
+  if (u.startsWith('day')) return iv === 1 ? '/day' : `/${iv}d`;
+  return iv === 1 ? '/mo' : `/${iv}mo`;
 };
 const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n || 0);
 
@@ -552,19 +577,30 @@ const SaasIncrease: React.FC = () => {
     });
   };
 
-  const newMonthlyFor = (s: Subscription, e?: RowEdit) => {
-    if (!e) return s.currentMonthly;
+  // The price Zoho actually bills, undivided. Everything the user sees and edits works on this
+  // figure, so an annual plan reads 799.95 rather than 66.66 and nothing is lost to rounding.
+  const currentPeriodFor = (s: Subscription) =>
+    s.planPeriod != null ? s.planPeriod : s.currentMonthly * periodMonths(s);
+
+  const newPeriodFor = (s: Subscription, e?: RowEdit) => {
+    const c = currentPeriodFor(s);
+    if (!e) return c;
     const v = Number(e.increaseValue) || 0;
     // 'target' is an absolute price, not a delta — a 0 means "not set yet", so fall back to the
     // current price rather than dropping the subscription to zero.
-    if (e.increaseType === 'target') return v > 0 ? v : s.currentMonthly;
-    return e.increaseType === 'flat' ? s.currentMonthly + v : s.currentMonthly * (1 + v / 100);
+    if (e.increaseType === 'target') return v > 0 ? v : c;
+    // 'flat' is per period, matching the amount displayed: +20 on a yearly plan adds $20 a year.
+    return e.increaseType === 'flat' ? c + v : c * (1 + v / 100);
   };
+
+  // Monthly equivalent — used ONLY where amounts from different cadences must be summed (the MRR
+  // tiles, the target progress). Never as a price.
+  const newMonthlyFor = (s: Subscription, e?: RowEdit) => newPeriodFor(s, e) / periodMonths(s);
 
   const includedCount = subs.filter(s => isIncluded(rowKey(s))).length;
   const mrrDelta = subs.reduce((sum, s) => {
     if (!isIncluded(rowKey(s))) return sum;
-    return sum + (newMonthlyFor(s, edits[rowKey(s)]) - s.currentMonthly);
+    return sum + (newPeriodFor(s, edits[rowKey(s)]) - currentPeriodFor(s)) / periodMonths(s);
   }, 0);
 
   // "Suggest scenario" — ranks not-yet-included live subscriptions by churn risk (using the
@@ -586,7 +622,7 @@ const SaasIncrease: React.FC = () => {
     // make the target look more covered than it actually will be after this run replaces them.
     const mrrDeltaExcludingSuggested = subs.reduce((sum, s) => {
       if (!isIncluded(rowKey(s)) || suggestedNumbers.has(rowKey(s))) return sum;
-      return sum + (newMonthlyFor(s, edits[rowKey(s)]) - s.currentMonthly);
+      return sum + (newPeriodFor(s, edits[rowKey(s)]) - currentPeriodFor(s)) / periodMonths(s);
     }, 0);
     const remainingToTarget = Math.max(0, targetMrr - mrrDeltaExcludingSuggested);
     const acceptTiers = SUGGEST_PROFILE_TIERS[profile];
@@ -596,8 +632,9 @@ const SaasIncrease: React.FC = () => {
     })();
     const evalRate = (s: Subscription, rate: number) => {
       const hypothetical: RowEdit = { selected: true, increaseType: bulkType, increaseValue: rate };
-      const delta = newMonthlyFor(s, hypothetical) - s.currentMonthly;
-      const proposedPct = (delta / (s.currentMonthly || 1)) * 100;
+      const periodDelta = newPeriodFor(s, hypothetical) - currentPeriodFor(s);
+      const delta = periodDelta / periodMonths(s); // MRR contribution, for the target
+      const proposedPct = (periodDelta / (currentPeriodFor(s) || 1)) * 100;
       return { rate, delta, risk: riskFor(s, proposedPct, calibration) };
     };
 
@@ -617,7 +654,7 @@ const SaasIncrease: React.FC = () => {
       .sort((a, b) => {
         const rank = (tier: RiskTier) => (tier === 'low' ? 0 : tier === 'medium' ? 1 : 2);
         const diff = rank(a.risk.tier) - rank(b.risk.tier);
-        return diff !== 0 ? diff : b.s.currentMonthly - a.s.currentMonthly;
+        return diff !== 0 ? diff : currentPeriodFor(b.s) - currentPeriodFor(a.s);
       });
 
     const chosen: typeof candidates = [];
@@ -638,7 +675,7 @@ const SaasIncrease: React.FC = () => {
   const openSuggestModal = () => {
     const mrrDeltaExcludingSuggested = subs.reduce((sum, s) => {
       if (!isIncluded(rowKey(s)) || suggestedNumbers.has(rowKey(s))) return sum;
-      return sum + (newMonthlyFor(s, edits[rowKey(s)]) - s.currentMonthly);
+      return sum + (newPeriodFor(s, edits[rowKey(s)]) - currentPeriodFor(s)) / periodMonths(s);
     }, 0);
     if (targetMrr - mrrDeltaExcludingSuggested <= 0) { dialog.alert(t('saasIncrease.targetReached') as string); return; }
     setSuggestModalOpen(true);
@@ -996,8 +1033,7 @@ const SaasIncrease: React.FC = () => {
   const includedSubs = subs.filter(s => isIncluded(rowKey(s)));
   const avgIncreasePct = includedSubs.length
     ? includedSubs.reduce((sum, s) => {
-        const nm = newMonthlyFor(s, edits[rowKey(s)]);
-        return sum + ((nm - s.currentMonthly) / (s.currentMonthly || 1)) * 100;
+        return sum + ((newPeriodFor(s, edits[rowKey(s)]) - currentPeriodFor(s)) / (currentPeriodFor(s) || 1)) * 100;
       }, 0) / includedSubs.length
     : 0;
   // The MRR tiles report what customers actually pay (plan + addons), so they stay comparable to
@@ -1007,7 +1043,7 @@ const SaasIncrease: React.FC = () => {
   const newTotal = currentTotal + mrrDelta;
   const remaining = Math.max(0, targetMrr - mrrDelta);
   const selectedRows = subs.filter(s => edits[rowKey(s)]?.selected);
-  const selectedDelta = selectedRows.reduce((sum, s) => sum + (newMonthlyFor(s, edits[rowKey(s)]) - s.currentMonthly), 0);
+  const selectedDelta = selectedRows.reduce((sum, s) => sum + (newPeriodFor(s, edits[rowKey(s)]) - currentPeriodFor(s)) / periodMonths(s), 0);
 
   // "Churn we would lose" — how much of the scenario's projected MRR add rides on accounts
   // riskFor() flags as high-risk, and exactly which ones — shown as a clickable caption under
@@ -1017,8 +1053,9 @@ const SaasIncrease: React.FC = () => {
     .filter(s => isIncluded(rowKey(s)))
     .map(s => {
       const nm = newMonthlyFor(s, edits[rowKey(s)]);
-      const delta = nm - s.currentMonthly;
-      const proposedPct = (delta / (s.currentMonthly || 1)) * 100;
+      const periodDelta = newPeriodFor(s, edits[rowKey(s)]) - currentPeriodFor(s);
+      const delta = periodDelta / periodMonths(s);
+      const proposedPct = (periodDelta / (currentPeriodFor(s) || 1)) * 100;
       return { s, nm, delta, risk: riskFor(s, proposedPct, calibration) };
     })
     .filter(r => r.risk.tier === 'high')
@@ -1365,8 +1402,9 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                   const e = edits[rowKey(s)];
                   const included = isIncluded(rowKey(s));
                   const selected = !!e?.selected;
-                  const nm = newMonthlyFor(s, e);
-                  const delta = included ? nm - s.currentMonthly : 0;
+                  const nm = newPeriodFor(s, e);
+                  const cp = currentPeriodFor(s);
+                  const delta = included ? nm - cp : 0;
                   const pos = posLabelFor(s.planName, s.orgName);
                   const priceChangeLabel = s.lastPriceChangeAt
                     ? fmtDate(s.lastPriceChangeAt)
@@ -1387,7 +1425,7 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                     (s.lastPriceBefore != null && s.lastPriceAfter != null) ? `${money(s.lastPriceBefore)} → ${money(s.lastPriceAfter)}` : null,
                   ].filter(Boolean).join(' · ');
                   const rowBg = selected ? 'bg-orange-50/60 dark:bg-[rgba(245,131,69,0.06)]' : included ? 'bg-emerald-50/40 dark:bg-[rgba(87,209,147,0.03)]' : '';
-                  const proposedPct = ((nm - s.currentMonthly) / (s.currentMonthly || 1)) * 100;
+                  const proposedPct = ((nm - cp) / (cp || 1)) * 100;
                   const risk = riskFor(s, proposedPct, calibration);
                   const riskTitle = risk.reasons.map(r => t(`saasIncrease.risk.reasons.${r}`)).join(' · ');
                   // Once a row is saved to the scenario, the Status column shows the real push
@@ -1414,7 +1452,7 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                         </div>
                       </div>
                       <div className="justify-self-end text-right">
-                        <div className={`text-sm tabular-nums ${textPri}`}>{money(s.currentMonthly)}</div>
+                        <div className={`text-sm tabular-nums ${textPri}`}>{money(cp)}<span className={`ml-0.5 text-[10px] ${textQuat}`}>{periodSuffix(s)}</span></div>
                         {!s.baseVerified ? (
                           <div className="mt-0.5 whitespace-nowrap text-[11px] font-medium text-amber-600 dark:text-amber-400" title={t('saasIncrease.baseUnverifiedHint') as string}>
                             {t('saasIncrease.baseUnverified')}
@@ -1439,7 +1477,7 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                         />
                       </div>
                       <div className="justify-self-end text-right">
-                        <div className={`text-sm font-medium tabular-nums ${included ? textPri : textSec}`}>{money(nm)}</div>
+                        <div className={`text-sm font-medium tabular-nums ${included ? textPri : textSec}`}>{money(nm)}<span className={`ml-0.5 text-[10px] ${textQuat}`}>{periodSuffix(s)}</span></div>
                         {/* A 'set to' price below the current one is a DECREASE — show it as such
                             instead of printing "+-$20". */}
                         {included && delta !== 0 && (
@@ -1561,14 +1599,14 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                             )}
                             {orgGroups.map(([key, rows]) => {
                       const [, planLabel] = key.split('||');
-                      const segCurrent = rows.reduce((sum, r) => sum + r.currentMonthly, 0);
-                      const segNew = rows.reduce((sum, r) => sum + newMonthlyFor(r, edits[rowKey(r)]), 0);
+                      const segCurrent = rows.reduce((sum, r) => sum + currentPeriodFor(r), 0);
+                      const segNew = rows.reduce((sum, r) => sum + newPeriodFor(r, edits[rowKey(r)]), 0);
                       const segDelta = segNew - segCurrent;
                       const setCount = rows.filter(r => isIncluded(rowKey(r))).length;
                       const sv = segmentValueFor(rows);
                       const highCount = rows.filter(r => {
-                        const nm = newMonthlyFor(r, edits[rowKey(r)]);
-                        const pct = ((nm - r.currentMonthly) / (r.currentMonthly || 1)) * 100;
+                        const nm = newPeriodFor(r, edits[rowKey(r)]);
+                        const pct = ((nm - currentPeriodFor(r)) / (currentPeriodFor(r) || 1)) * 100;
                         return pct > 0 && riskFor(r, pct, calibration).tier === 'high';
                       }).length;
                       return (
@@ -1947,7 +1985,7 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
                       <div className={`mt-0.5 font-mono text-[11px] ${textQuat}`}>{r.s.subscriptionNumber}</div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <div className={`text-sm font-medium tabular-nums ${textPri}`}>{money(r.s.currentMonthly)} → {money(r.nm)}</div>
+                      <div className={`text-sm font-medium tabular-nums ${textPri}`}>{money(currentPeriodFor(r.s))} → {money(r.nm)}<span className={`ml-0.5 text-[10px] ${textQuat}`}>{periodSuffix(r.s)}</span></div>
                       <div className="mt-0.5 text-[11px] text-emerald-600 dark:text-[#57D193]">+{money(r.delta)}/mo</div>
                     </div>
                   </div>
