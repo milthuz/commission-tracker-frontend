@@ -1333,7 +1333,8 @@
       "full": "Analyze price history",
       "fullHint": "Walks each customer's invoice history to date their last price change. Costs about 25 Zoho calls per subscription, so it runs for hours — it is informational only and never blocks a push.",
       "confirmFull": "Start the full price-history analysis? It makes roughly 25 Zoho calls per subscription, so expect it to run for hours in the background. It also fills in any base price that is still missing as it goes.",
-      "fullStarted": "Price-history analysis started in the background. It will fill the Price history column gradually over the next few hours."
+      "fullStarted": "Price-history analysis started in the background. It will fill the Price history column gradually over the next few hours.",
+      "details": "Details"
     },
     "status": {
       "pending": "Pending",

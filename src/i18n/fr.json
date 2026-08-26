@@ -1333,7 +1333,8 @@
       "full": "Analyser l'historique de prix",
       "fullHint": "Parcourt l'historique de factures de chaque client pour dater son dernier changement de prix. Coûte environ 25 appels Zoho par abonnement, donc plusieurs heures — c'est informatif seulement, ça ne bloque jamais un push.",
       "confirmFull": "Lancer l'analyse complète de l'historique de prix? Elle fait environ 25 appels Zoho par abonnement, donc compte plusieurs heures en arrière-plan. Elle complète aussi au passage les prix de base encore manquants.",
-      "fullStarted": "Analyse de l'historique de prix lancée en arrière-plan. La colonne Historique de prix se remplira progressivement dans les prochaines heures."
+      "fullStarted": "Analyse de l'historique de prix lancée en arrière-plan. La colonne Historique de prix se remplira progressivement dans les prochaines heures.",
+      "details": "Détails"
     },
     "status": {
       "pending": "En attente",

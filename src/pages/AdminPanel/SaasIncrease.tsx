@@ -225,6 +225,7 @@ const SaasIncrease: React.FC = () => {
   const [scheduledInfo, setScheduledInfo] = useState<Record<number, { loading?: boolean; error?: string; text?: string; matches?: boolean; found?: boolean }>>({});
   const [editingSegment, setEditingSegment] = useState<string | null>(null);
   const [refreshingInsights, setRefreshingInsights] = useState(false);
+  const [showScanDetails, setShowScanDetails] = useState(false);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
   // while active — otherwise the only way to know whether anything is happening is the server log.
   const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number; byStatus?: Record<string, { count: number; mrr: number; numbers?: string[] }> }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; topErrors?: { error: string; count: number }[] } | null>(null);
@@ -1127,49 +1128,30 @@ const SaasIncrease: React.FC = () => {
 
       {/* Header actions — Refresh price history / Export CSV */}
       <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
-        {/* Scan progress. Base prices must be separated from addons before anything can be pushed,
-            and the scan takes a while, so its state belongs on screen rather than in server logs. */}
+        {/* Scan progress, condensed. This line used to render the per-org breakdown, the
+            collision count and a truncated error string inline: it wrapped onto two lines, shoved
+            the buttons around, and cut off the error text — the one part that actually matters —
+            mid-word. Headline figure stays inline, everything diagnostic moves into the panel. */}
         {insightsStatus && insightsStatus.total > 0 && (
           <div className={`mr-auto flex items-center gap-2 text-xs ${insightsStatus.verified < insightsStatus.total ? 'text-amber-600 dark:text-amber-400' : textTer}`}>
             {insightsStatus.active && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
-            <span>
+            <span className="whitespace-nowrap">
               {t('saasIncrease.insights.progress', { verified: insightsStatus.verified, total: insightsStatus.total })}
               {insightsStatus.active && ` · ${t('saasIncrease.insights.running')}`}
-              {!insightsStatus.active && insightsStatus.verified < insightsStatus.total && ` · ${t('saasIncrease.insights.stalled')}`}
-              {insightsStatus.errors > 0 && ` · ${t('saasIncrease.insights.errors', { count: insightsStatus.errors })}`}
             </span>
-            {/* The failure itself, not just its count — otherwise a scan failing on every row is
-                indistinguishable from one that never started. */}
-            {insightsStatus.byOrg && insightsStatus.byOrg.length > 1 && (
-              <span className={`whitespace-nowrap text-[11px] ${textQuat}`}>
-                {insightsStatus.byOrg.map(o => `${o.orgName} ${o.verified}/${o.total}`).join(' · ')}
+            {insightsStatus.errors > 0 && (
+              <span className="whitespace-nowrap font-medium text-red-600 dark:text-red-400">
+                {t('saasIncrease.insights.errors', { count: insightsStatus.errors })}
               </span>
             )}
-            {(insightsStatus.crossOrgCollisions ?? 0) > 0 && (
-              <span
-                className={`whitespace-nowrap text-[11px] ${textQuat}`}
-                title={`${t('saasIncrease.insights.duplicatesHint')}
-
-${(insightsStatus.collisionSample || []).join(', ')}`}
-              >
-                {t('saasIncrease.insights.collisions', { count: insightsStatus.crossOrgCollisions })}
-              </span>
-            )}
-            {(insightsStatus.duplicates ?? 0) > 0 && (
-              <span className="whitespace-nowrap text-[11px] font-medium text-red-600 dark:text-red-400" title={t('saasIncrease.insights.duplicatesHint') as string}>
-                {t('saasIncrease.insights.duplicates', { count: insightsStatus.duplicates })}
-              </span>
-            )}
-            {insightsStatus.lastScanError && (
-              <span className="max-w-[520px] truncate font-mono text-[11px] text-red-600 dark:text-red-400" title={insightsStatus.lastScanError}>
-                {insightsStatus.lastScanError}
-              </span>
-            )}
-            {insightsStatus.topErrors?.[0] && (
-              <span className="max-w-[520px] truncate font-mono text-[11px] text-red-600 dark:text-red-400" title={insightsStatus.topErrors.map(e => `${e.count}x  ${e.error}`).join('\n')}>
-                {insightsStatus.topErrors[0].error}
-              </span>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowScanDetails((v) => !v)}
+              className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 ${textQuat} hover:bg-black/5 dark:hover:bg-white/5`}
+            >
+              {t('saasIncrease.insights.details')}
+              <ChevronDown className={`h-3 w-3 transition-transform ${showScanDetails ? 'rotate-180' : ''}`} />
+            </button>
           </div>
         )}
         <button onClick={refreshInsights} disabled={refreshingInsights} className={btnSecondary}>
@@ -1186,6 +1168,46 @@ ${(insightsStatus.collisionSample || []).join(', ')}`}
           </button>
         )}
       </div>
+
+      {/* Scan diagnostics, on demand. The per-org split is the load-bearing part: "2776/2776 ·
+          0/164 · 0/522" says the failure is scoped to two organisations, which a single global
+          "3462 verified" actively hid. Error text is shown in full — truncating it to one line
+          made a rate-limit response and a genuinely plan-less subscription look identical. */}
+      {showScanDetails && insightsStatus && (
+        <div className={`mb-4 p-4 text-xs ${card}`}>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {(insightsStatus.byOrg || []).map((o) => (
+              <div key={o.orgId} className="flex items-center gap-2">
+                <span className={textSec}>{o.orgName}</span>
+                <span className={`font-medium tabular-nums ${o.verified < o.total ? 'text-red-600 dark:text-red-400' : textTer}`}>
+                  {o.verified} / {o.total}
+                </span>
+              </div>
+            ))}
+          </div>
+          {!insightsStatus.active && insightsStatus.verified < insightsStatus.total && (
+            <div className="mt-3 text-amber-600 dark:text-amber-400">{t('saasIncrease.insights.stalled')}</div>
+          )}
+          {(insightsStatus.crossOrgCollisions ?? 0) > 0 && (
+            <div className={`mt-3 ${textQuat}`} title={(insightsStatus.collisionSample || []).join(', ')}>
+              {t('saasIncrease.insights.collisions', { count: insightsStatus.crossOrgCollisions })}
+            </div>
+          )}
+          {(insightsStatus.duplicates ?? 0) > 0 && (
+            <div className="mt-1 font-medium text-red-600 dark:text-red-400" title={t('saasIncrease.insights.duplicatesHint') as string}>
+              {t('saasIncrease.insights.duplicates', { count: insightsStatus.duplicates })}
+            </div>
+          )}
+          {insightsStatus.lastScanError && (
+            <div className="mt-3 break-words font-mono text-[11px] text-red-600 dark:text-red-400">{insightsStatus.lastScanError}</div>
+          )}
+          {(insightsStatus.topErrors || []).map((e, idx) => (
+            <div key={idx} className="mt-2 break-words font-mono text-[11px] text-red-600 dark:text-red-400">
+              <span className="tabular-nums">{e.count}×</span> {e.error}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* HERO: scenario progress + stat tiles */}
       {activeScenarioId && (
