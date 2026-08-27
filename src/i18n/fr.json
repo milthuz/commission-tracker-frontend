@@ -1409,7 +1409,8 @@
       "delete": "Supprimer le modèle",
       "none": "Aucun modèle pour l'instant — crées-en un pour commencer.",
       "incomplete": "Le nom et le sujet/message dans les deux langues sont requis.",
-      "confirmDelete": "Supprimer ce modèle? Cette action est irréversible."
+      "confirmDelete": "Supprimer ce modèle? Cette action est irréversible.",
+      "heading": "Titre affiché en haut du courriel"
     },
     "push": {
       "subtitle": "Avise les marchands et applique les augmentations approuvées dans les abonnements Zoho en direct.",

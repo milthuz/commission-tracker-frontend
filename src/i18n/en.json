@@ -1409,7 +1409,8 @@
       "delete": "Delete template",
       "none": "No templates yet — create one to get started.",
       "incomplete": "Name and both languages' subject/body are required.",
-      "confirmDelete": "Delete this template? This can't be undone."
+      "confirmDelete": "Delete this template? This can't be undone.",
+      "heading": "Headline shown at the top of the email"
     },
     "push": {
       "subtitle": "Notify merchants and push approved increases into live Zoho subscriptions.",

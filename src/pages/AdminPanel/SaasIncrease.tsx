@@ -59,7 +59,7 @@ interface ScenarioItem {
   notifyTo: string | null; notifySubject: string | null; notifyBody: string | null;
   notifyStatus: string; notifyError: string | null;
 }
-interface EmailTemplate { id: number; name: string; subjectEn: string; bodyEn: string; subjectFr: string; bodyFr: string; isDefault: boolean }
+interface EmailTemplate { id: number; name: string; subjectEn: string; bodyEn: string; subjectFr: string; bodyFr: string; headingEn?: string | null; headingFr?: string | null; isDefault: boolean }
 interface CalibrationBucket { sizeBucket: string; tenureBucket: string; n: number; churned: number; stillLive: number; observedRate: number | null; insufficientData: boolean }
 interface Calibration { buckets: CalibrationBucket[]; baseline: CalibrationBucket; minSample: number; computedAt: string }
 // `selected` (checkbox — drives bulk-apply targeting + the footer's "N selected" count) is
@@ -261,7 +261,7 @@ const SaasIncrease: React.FC = () => {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [templateManagerOpen, setTemplateManagerOpen] = useState(false);
   const [expandedTemplateId, setExpandedTemplateId] = useState<number | 'new' | null>(null);
-  const [templateDraft, setTemplateDraft] = useState<{ name: string; subjectEn: string; bodyEn: string; subjectFr: string; bodyFr: string }>({ name: '', subjectEn: '', bodyEn: '', subjectFr: '', bodyFr: '' });
+  const [templateDraft, setTemplateDraft] = useState<{ name: string; subjectEn: string; bodyEn: string; subjectFr: string; bodyFr: string; headingEn: string; headingFr: string }>({ name: '', subjectEn: '', bodyEn: '', subjectFr: '', bodyFr: '', headingEn: '', headingFr: '' });
   const [savingTemplate, setSavingTemplate] = useState(false);
 
   // Push to Zoho — the one action that changes live customer billing, gated on
@@ -1092,12 +1092,12 @@ const SaasIncrease: React.FC = () => {
   };
 
   const startNewTemplate = () => {
-    setTemplateDraft({ name: '', subjectEn: '', bodyEn: '', subjectFr: '', bodyFr: '' });
+    setTemplateDraft({ name: '', subjectEn: '', bodyEn: '', subjectFr: '', bodyFr: '', headingEn: '', headingFr: '' });
     setExpandedTemplateId('new');
   };
 
   const startEditTemplate = (tpl: EmailTemplate) => {
-    setTemplateDraft({ name: tpl.name, subjectEn: tpl.subjectEn, bodyEn: tpl.bodyEn, subjectFr: tpl.subjectFr, bodyFr: tpl.bodyFr });
+    setTemplateDraft({ name: tpl.name, subjectEn: tpl.subjectEn, bodyEn: tpl.bodyEn, subjectFr: tpl.subjectFr, bodyFr: tpl.bodyFr, headingEn: tpl.headingEn || '', headingFr: tpl.headingFr || '' });
     setExpandedTemplateId(tpl.id);
   };
 
@@ -2420,11 +2420,13 @@ const SaasIncrease: React.FC = () => {
                     <div className="space-y-2">
                       <p className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>English</p>
                       <input value={templateDraft.subjectEn} onChange={(e) => setTemplateDraft(d => ({ ...d, subjectEn: e.target.value }))} placeholder={t('saasIncrease.notify.subject') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
+                      <input value={templateDraft.headingEn} onChange={(e) => setTemplateDraft(d => ({ ...d, headingEn: e.target.value }))} placeholder={t('saasIncrease.templates.heading') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
                       <textarea value={templateDraft.bodyEn} onChange={(e) => setTemplateDraft(d => ({ ...d, bodyEn: e.target.value }))} rows={6} placeholder={t('saasIncrease.notify.body') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
                     </div>
                     <div className="space-y-2">
                       <p className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>Français</p>
                       <input value={templateDraft.subjectFr} onChange={(e) => setTemplateDraft(d => ({ ...d, subjectFr: e.target.value }))} placeholder={t('saasIncrease.notify.subject') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
+                      <input value={templateDraft.headingFr} onChange={(e) => setTemplateDraft(d => ({ ...d, headingFr: e.target.value }))} placeholder={t('saasIncrease.templates.heading') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
                       <textarea value={templateDraft.bodyFr} onChange={(e) => setTemplateDraft(d => ({ ...d, bodyFr: e.target.value }))} rows={6} placeholder={t('saasIncrease.notify.body') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
                     </div>
                   </div>
