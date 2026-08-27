@@ -190,7 +190,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
   type Invite = {
     id: number; email: string; name: string | null; role: string; status: string;
     partnerName: string; invitedBy: string | null;
-    invitedAt: string | null; openedAt: string | null; activatedAt: string | null;
+    invitedAt: string | null; firstInvitedAt: string | null; openedAt: string | null; activatedAt: string | null;
     expiresAt: string | null;
   };
   const [invites, setInvites] = useState<Invite[]>([]);
@@ -343,6 +343,39 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
   useEffect(() => { if (sub === 'imports' && canMigrate) fetchDataImports(); }, [sub, canMigrate]);
 
   const [revokingId, setRevokingId] = useState<number | null>(null);
+  // Relance UNE ligne. Passe par le meme endpoint que l'envoi en lot, avec un seul identifiant :
+  // le serveur choisit deja le gabarit « rappel » et gere le jeton, en dupliquer la logique ici
+  // ferait diverger les deux chemins a la premiere retouche.
+  //
+  // ⚠️ Un renvoi ECRASE `invited_at` et remet `invite_opened_at` et `activated_at` a NULL cote
+  // serveur. La confirmation nomme donc la personne plutot que d'annoncer un compte : c'est un
+  // courriel reel qui part, et la date d'invitation d'origine est perdue au passage.
+  const resendInvite = async (iv: Invite) => {
+    if (!(await dialog.confirm(t('admin.partners.resendConfirm', { email: iv.email }) as string))) return;
+    setBusyUserId(iv.id);
+    try {
+      const r = await axios.post(`${API_URL}/api/admin/partner-users/invite`,
+        { ids: [iv.id], reminder: true }, { headers: authHeaders() });
+      const echec = (r.data.failed || [])[0];
+      const ignore = (r.data.skipped || [])[0];
+      // On dit ce qui s'est REELLEMENT passe. Un « envoye » affiche alors que le serveur a saute
+      // la ligne (compte deja actif, adresse invalide) est pire que pas de message du tout.
+      // Le serveur renvoie des CODES (`already_active`, `disabled`). Les afficher tels quels
+      // remettrait sous les yeux de l'usager le genre de message brut deja signale ailleurs.
+      const raison = (code: string) => {
+        const cle = `admin.partners.resendWhy.${code}`;
+        const lu = t(cle);
+        return lu === cle ? code : lu;   // code inconnu : on montre le code plutot que rien
+      };
+      if (echec) dialog.alert(t('admin.partners.resendFailedOne', { email: iv.email, why: raison(echec.why || '') }) as string);
+      else if (ignore) dialog.alert(t('admin.partners.resendSkipped', { email: iv.email, why: raison(ignore.why || '') }) as string);
+      else dialog.alert(t('admin.partners.resendDone', { email: iv.email }) as string);
+      await refreshUsers();
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || e?.message || t('admin.partners.resendFailed'));
+    } finally { setBusyUserId(null); }
+  };
+
   const revokeInvite = async (iv: Invite) => {
     if (!(await dialog.confirm(t('admin.partners.revokeConfirm', { email: iv.email }) as string))) return;
     setRevokingId(iv.id);
@@ -375,6 +408,13 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
     const atteinte = etapes.reduce((acc, e, i) => (e.at ? i : acc), -1);
     if (atteinte < 0) return <span className="text-gray-400">—</span>;
     const infobulle = etapes.map((e) => `${e.label} : ${e.at ? fmtDate(e.at) : '—'}`).join('\n')
+      // La premiere invitation n'apparait QUE si elle differe de la derniere : sinon elle
+      // repeterait la ligne du dessus. Elle ne se montre donc qu'apres une relance, exactement
+      // quand elle devient l'information qu'on ne peut plus lire ailleurs.
+      + (iv.firstInvitedAt && iv.invitedAt
+         && new Date(iv.firstInvitedAt).getTime() !== new Date(iv.invitedAt).getTime()
+           ? `
+${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       + (iv.invitedBy ? `\n${t('admin.partners.inviteBy')} : ${iv.invitedBy}` : '');
     return (
       <div className="flex items-center gap-2 whitespace-nowrap" title={infobulle}>
@@ -1412,6 +1452,19 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
                               <button onClick={() => revokeInvite(iv)} disabled={revokingId === iv.id}
                                 className="rounded-lg border border-stroke px-2 py-1 text-[11px] font-medium text-danger hover:border-danger disabled:opacity-50 dark:border-strokedark">
                                 {t('admin.partners.revokeInvite')}
+                              </button>
+                            )}
+                            {/* Uniquement pour un compte encore INVITE : relancer quelqu'un qui
+                                s'est deja connecte lui enverrait « votre acces n'est pas encore
+                                active », ce qui est faux et inquietant. Meme regle que le bouton
+                                en lot juste au-dessus, et que l'ecran des usagers externes. */}
+                            {iv.status === 'invited' && (
+                              <button onClick={() => resendInvite(iv)} disabled={busyUserId === iv.id}
+                                title={t('admin.partners.resendHint') as string}
+                                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-stroke text-body hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark">
+                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
                               </button>
                             )}
                             <button

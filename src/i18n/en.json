@@ -2314,7 +2314,18 @@
       "exportUsers": "Export",
       "exporting": "Exporting…",
       "exportHint": "Downloads to Excel the accounts an invitation was sent to, with the dates it was sent, the link opened and the account activated. The file follows the partner and search currently shown.",
-      "exportFailed": "The export failed."
+      "exportFailed": "The export failed.",
+      "resendHint": "Resend the invitation",
+      "resendConfirm": "Resend the invitation to {{email}}?\n\nA new email goes out immediately and the previous link stops working. The first invitation date is kept.",
+      "resendDone": "Invitation resent to {{email}}.",
+      "resendSkipped": "Nothing was sent to {{email}}: {{why}}",
+      "resendFailedOne": "Sending to {{email}} failed: {{why}}",
+      "resendFailed": "The resend failed.",
+      "resendWhy": {
+        "already_active": "this account is already active and has access.",
+        "disabled": "this account is disabled. Re-enable it first."
+      },
+      "firstInviteSent": "First invitation"
     },
     "resources": {
       "title": "Resources storage",

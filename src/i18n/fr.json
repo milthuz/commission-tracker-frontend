@@ -2314,7 +2314,18 @@
       "exportUsers": "Exporter",
       "exporting": "Export…",
       "exportHint": "Télécharge en Excel les comptes à qui une invitation a été envoyée, avec les dates d’envoi, d’ouverture du lien et d’activation. Le fichier suit le partenaire et la recherche affichés.",
-      "exportFailed": "L’export a échoué."
+      "exportFailed": "L’export a échoué.",
+      "resendHint": "Renvoyer l’invitation",
+      "resendConfirm": "Renvoyer l’invitation à {{email}} ?\n\nUn nouveau courriel part immédiatement et le lien précédent cesse de fonctionner. La date de la première invitation est conservée.",
+      "resendDone": "Invitation renvoyée à {{email}}.",
+      "resendSkipped": "Rien n’a été envoyé à {{email}} : {{why}}",
+      "resendFailedOne": "L’envoi à {{email}} a échoué : {{why}}",
+      "resendFailed": "Le renvoi a échoué.",
+      "resendWhy": {
+        "already_active": "ce compte est déjà actif, il a son accès.",
+        "disabled": "ce compte est désactivé. Réactivez-le d’abord."
+      },
+      "firstInviteSent": "Première invitation"
     },
     "resources": {
       "title": "Stockage des ressources",
