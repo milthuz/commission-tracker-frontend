@@ -305,6 +305,26 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               )}
               {/* <!-- Menu Item Commission Report --> */}
 
+              {/* <!-- Menu Item Leads (SH-20) — le DÉBUT de l'entonnoir, donc placé avant
+                   les écrans qui suivent la vente. Quatre permissions y donnent accès :
+                   la voir (own/all), l'examiner, ou simplement saisir un appel. --> */}
+              {(can('leads:view_own') || can('leads:view_all') || can('leads:review') || can('leads:intake')) && (
+                <li>
+                  <NavLink
+                    to="/leads"
+                    className={navLinkCls(pathname.startsWith('/leads'))}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <path d="M16 3v5h5" />
+                      <path d="M8 12h6M8 16h4" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.leads')}</span>
+                    <NewBadge path="/leads" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.leads') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Reseller (perm: reseller:view) --> */}
               {can('reseller:view') && (
                 <li>
@@ -662,6 +682,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         {t('sidebar.notifications')}<NewBadge path="/admin/notifications" />
                       </NavLink>
                     </li>
+                    {/* Réglages des pistes (SH-20) : règles d'attribution, tour de rôle,
+                        automatisations. La FILE elle-même vit dans le menu principal — ici on ne
+                        configure que le comportement. */}
+                    {can('leads:manage_rules') && (
+                      <li>
+                        <NavLink
+                          to="/admin/leads"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname === '/admin/leads' ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('sidebar.leadsAdmin')}<NewBadge path="/admin/leads" />
+                        </NavLink>
+                      </li>
+                    )}
                     <li>
                       <NavLink
                         to="/admin/sync"

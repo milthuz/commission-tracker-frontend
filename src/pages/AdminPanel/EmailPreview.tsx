@@ -16,6 +16,10 @@ const TEMPLATE_TYPES = [
   // Portail partenaire : marque Cluster et domaine partenaire, pas ceux de Sales Hub. Comme
   // pour La Passe, l'apercu vient du VRAI constructeur, donc ce qu'on voit est ce qui part.
   'partner_invite', 'partner_reset', 'partner_invite_migration', 'partner_reminder',
+  // Pistes (SH-20). `lead_welcome` est le seul des trois qui sorte de l'entreprise : il part
+  // UNILINGUE, dans la langue de la piste, et porte la marque Cluster — un prospect n'a jamais
+  // entendu parler de Sales Hub.
+  'lead_review', 'lead_assigned', 'lead_welcome',
 ] as const;
 type TemplateType = (typeof TEMPLATE_TYPES)[number];
 

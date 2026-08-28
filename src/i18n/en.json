@@ -364,7 +364,8 @@
     "retry": "Retry",
     "refreshStatus": "Refresh Status",
     "managedByZoho": "Managed by Zoho",
-    "TOTAL": "TOTAL"
+    "TOTAL": "TOTAL",
+    "done": "Done"
   },
   "probation": {
     "badge": "Probation",
@@ -407,7 +408,9 @@
     "profile": "Profile",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar",
-    "passOps": "The Pass"
+    "passOps": "The Pass",
+    "leads": "Leads",
+    "leadsAdmin": "Leads"
   },
   "tour": {
     "skip": "Skip",
@@ -2482,7 +2485,9 @@
       "partnerInvoiceHint": "These people are emailed (with the invoice attached) when a Partner Admin uploads their invoice for a finalized payout run. If empty, nobody is notified — check Admin → Partners manually.",
       "moreSoon": "More notification types will appear here as they are added.",
       "passCreditTitle": "The Pass — credit to apply",
-      "passCreditHint": "Emailed when a referral credit is applied, so accounting can post it to the merchant’s Zoho Books account. An empty list sends NOTHING — the credit is recorded but nobody is told, and the merchant never gets paid."
+      "passCreditHint": "Emailed when a referral credit is applied, so accounting can post it to the merchant’s Zoho Books account. An empty list sends NOTHING — the credit is recorded but nobody is told, and the merchant never gets paid.",
+      "leadReviewTitle": "Lead waiting for review",
+      "leadReviewHint": "Sent when a lead arrives, and again if it is still waiting after the delay set in Admin → Leads. Leave empty and nobody is emailed — the queue becomes the only signal."
     },
     "deals": {
       "title": "Deals",
@@ -2640,7 +2645,10 @@
         "partner_invite": "Partner portal — invitation",
         "partner_reset": "Partner portal — password reset",
         "partner_invite_migration": "Partner portal — migration invitation (legacy portal)",
-        "partner_reminder": "Partner portal — activation reminder"
+        "partner_reminder": "Partner portal — activation reminder",
+        "lead_review": "Lead — waiting for review",
+        "lead_assigned": "Lead — assigned to a rep",
+        "lead_welcome": "Lead — merchant welcome"
       }
     },
     "recalculate": {
@@ -3333,6 +3341,94 @@
       "colPaid": "Paid",
       "last30": "+{{n}} in 30d",
       "usageSection": "Portal usage"
+    },
+    "leads": {
+      "title": "Leads",
+      "subtitle": "Assignment rules, round-robin pool and the automations that fire when a lead is accepted.",
+      "tabs": {
+        "rules": "Assignment rules",
+        "rotation": "Round-robin",
+        "automation": "Automations"
+      },
+      "saved": "Saved.",
+      "saveError": "Could not save.",
+      "rules": {
+        "title": "Assignment rules",
+        "hint": "Evaluated in order — the FIRST rule that matches wins. Anything matching no rule falls through to the round-robin pool.",
+        "add": "Add a rule",
+        "edit": "Edit the rule",
+        "name": "Name",
+        "nameRequired": "A name is required.",
+        "criteria": "Criteria",
+        "criteriaHint": "Comma-separated. A field left empty matches everything.",
+        "targets": "Assign to",
+        "targetsHint": "Pick several people and the round-robin runs inside the rule.",
+        "postalPrefix": "Postal code starts with",
+        "catchAll": "no criteria — catches everything",
+        "noTarget": "no rep — rule is skipped",
+        "active": "Rule is active",
+        "inactive": "inactive",
+        "empty": "No rule yet — every lead goes to the round-robin pool.",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "confirmDelete": "Delete the rule “{{name}}”?",
+        "fallbackNote": "A rep named by a rule receives leads from that rule even if they are not in the round-robin pool."
+      },
+      "simulate": {
+        "title": "Try a lead",
+        "hint": "Shows who would get it, and which rules matched — without writing anything or advancing the round-robin.",
+        "run": "Try it",
+        "result": "Would go to",
+        "noRep": "Nobody — no rule matched and the pool is empty."
+      },
+      "rotation": {
+        "title": "Round-robin pool",
+        "hint": "The safety net: any lead no rule catches goes to whoever in this pool was served longest ago.",
+        "inPool": "In the pool",
+        "awayUntil": "Away until",
+        "lastAssigned": "Last assigned",
+        "count": "Total",
+        "empty": "No active salesperson.",
+        "fairnessNote": "The next lead goes to whoever was served longest ago — adding, removing or benching someone never breaks the ordering."
+      },
+      "automation": {
+        "title": "On acceptance",
+        "hint": "What fires the moment a lead is accepted. The Zoho record is always created; everything below is optional.",
+        "callback": "Schedule a callback in Zoho",
+        "callbackHint": "Owned by the assigned rep, so it lands in their own list.",
+        "callbackType": "As a",
+        "typeCall": "Call",
+        "typeTask": "Task",
+        "delay": "Delay (hours)",
+        "hours": "Business hours",
+        "example": "A lead accepted right now would be called back on {{when}}.",
+        "notifyRep": "Email the assigned rep",
+        "notifyRepHint": "Full context, the callback time, and a link to the Zoho record.",
+        "notifyMerchant": "Email the merchant",
+        "notifyMerchantHint": "Thanks for reaching out, their rep's name, and when to expect the call. Sent in the lead's own language, Cluster-branded.",
+        "merchantFrom": "Send from",
+        "merchantFromPlaceholder": "Leave empty for the default sender",
+        "merchantSite": "Website shown in the footer",
+        "reminder": "Remind after (hours)",
+        "reminderHint": "One reminder per lead, during business hours only. 0 turns it off."
+      },
+      "zoho": {
+        "title": "Zoho field values",
+        "hint": "What gets written on the Zoho record depending on where the lead came from.",
+        "sourceWebsite": "Lead_Source — website",
+        "sourcePhone": "Lead_Source — phone",
+        "methodWebsite": "Lead_Contact_Method — website",
+        "methodPhone": "Lead_Contact_Method — phone",
+        "leaveEmpty": "empty = don't write this field",
+        "picklistWarning": "These are picklists in Zoho: a value that is not in the list makes Zoho reject the WHOLE record, not just the field. Leave them empty unless you have copied the exact value from your Zoho setup. If a record is refused, Sales Hub retries once without these two fields rather than losing the lead."
+      },
+      "webhook": {
+        "title": "Website form → Sales Hub",
+        "hint": "Point the public site's contact form at this endpoint. Leads arrive in the queue; nothing reaches Zoho unattended.",
+        "tolerant": "Field names are forgiving: businessName / business_name / company all work, and contactName is split into first and last name. A submission with no business name falls back to the contact name.",
+        "secretSet": "Shared secret is set ({{name}}).",
+        "secretMissing": "No shared secret is set — the endpoint will refuse every submission. Set LEAD_WEBHOOK_SECRET on the backend."
+      }
     }
   },
   "header": {
@@ -4191,5 +4287,202 @@
     "creditOutOfRange": "The amount must be above 0 and no more than {{amount}}.",
     "creditConfirm": "Confirm and notify accounting",
     "cancel": "Cancel"
+  },
+  "leads": {
+    "title": "Leads",
+    "subtitle": "Every inbound request lands here first. Nothing reaches Zoho CRM until someone accepts it.",
+    "newLead": "New lead",
+    "empty": "No lead matches these filters.",
+    "emptyTab": {
+      "queue": "Nothing waiting — the queue is clear.",
+      "accepted": "No accepted lead yet.",
+      "closed": "No rejected lead.",
+      "all": "No lead yet."
+    },
+    "tabs": {
+      "queue": "To review",
+      "accepted": "Accepted",
+      "closed": "Rejected",
+      "all": "All",
+      "stats": "Report"
+    },
+    "status": {
+      "new": "New",
+      "in_review": "In review",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "duplicate": "Duplicate"
+    },
+    "source": {
+      "website": "Website form",
+      "phone": "Phone",
+      "walk_in": "Walk-in",
+      "referral": "Referral",
+      "event": "Event",
+      "other": "Other"
+    },
+    "interest": {
+      "pos": "POS",
+      "payments": "Payments",
+      "both": "POS + Payments",
+      "hardware": "Hardware",
+      "other": "Other"
+    },
+    "matchedOn": {
+      "name": "business name",
+      "email": "email",
+      "phone": "phone"
+    },
+    "columns": {
+      "business": "Business",
+      "contact": "Contact",
+      "source": "Source",
+      "received": "Received",
+      "rep": "Rep",
+      "status": "Status"
+    },
+    "filters": {
+      "allSources": "All sources",
+      "allReps": "All reps",
+      "search": "Search a business, contact, phone or reference..."
+    },
+    "badge": {
+      "duplicate": "Possible duplicate",
+      "crmFailed": "Zoho refused",
+      "waiting": "{{n}} h waiting"
+    },
+    "actions": {
+      "review": "Review",
+      "open": "Open"
+    },
+    "suggestedShort": "Suggested: {{rep}}",
+    "viaRule": "rule “{{rule}}”",
+    "viaRotation": "round-robin",
+    "duplicateFound": "Zoho already has {{n}} matching record(s)",
+    "field": {
+      "businessName": "Business name",
+      "businessType": "Business type",
+      "businessTypePlaceholder": "Restaurant, retail, salon...",
+      "website": "Website",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "title": "Job title",
+      "email": "Email",
+      "phone": "Phone",
+      "contact": "Contact",
+      "language": "Correspondence language",
+      "city": "City",
+      "province": "Province",
+      "postalCode": "Postal code",
+      "location": "Location",
+      "locationsCount": "Locations",
+      "currentPos": "Current POS",
+      "timeline": "Timeline",
+      "timelinePlaceholder": "Within 2 months",
+      "interest": "Interested in",
+      "notes": "Notes",
+      "notesPlaceholder": "What did they ask for? What did they say?",
+      "source": "Source",
+      "sourceDetail": "Source detail",
+      "sourceDetailPlaceholder": "Campaign, referrer, form name...",
+      "createdBy": "Entered by",
+      "fromWebsite": "Website form",
+      "rep": "Assigned rep"
+    },
+    "intake": {
+      "title": "New lead",
+      "subtitle": "Fill this in while you have them on the line. Nothing is sent to Zoho yet.",
+      "sectionBusiness": "Business",
+      "sectionContact": "Contact",
+      "sectionLocation": "Location",
+      "sectionQualification": "Qualification",
+      "sectionSource": "Source",
+      "businessRequired": "A business name is required.",
+      "submit": "Create the lead",
+      "checking": "Checking Zoho...",
+      "failed": "The lead could not be created.",
+      "created": "Lead created — reference {{ref}}",
+      "suggestedRep": "Suggested rep",
+      "noRep": "No rep available — the round-robin pool is empty.",
+      "notYetInZoho": "Nothing has been sent to Zoho yet. The lead has to be accepted from the queue first.",
+      "another": "Enter another"
+    },
+    "detail": {
+      "loadFailed": "This lead could not be loaded.",
+      "decision": "Decision",
+      "assignTo": "Assign to",
+      "pickRep": "Choose a rep",
+      "away": "away",
+      "notInRotation": "not in the pool",
+      "suggestion": "Suggested",
+      "willHappen": "Accepting will:",
+      "willCrm": "create the lead in Zoho CRM, owned by the rep",
+      "willCallback": "schedule a callback in their Zoho list",
+      "willRepEmail": "email {{rep}} with the full context",
+      "willMerchantEmail": "email {{email}} — thanks, and their rep's name",
+      "noMerchantEmail": "no merchant email on file — nothing will be sent to them",
+      "accept": "Accept and send to Zoho",
+      "accepting": "Sending...",
+      "acceptedOk": "Accepted. Zoho record created and everything was sent.",
+      "acceptedPartial": "Accepted, but {{n}} automated step(s) failed — see the detail below.",
+      "acceptFailed": "The lead could not be accepted.",
+      "noRepChosen": "Choose a rep before accepting.",
+      "crmFailed": "Zoho refused the record: {{detail}}",
+      "reject": "Reject",
+      "confirmReject": "Confirm rejection",
+      "markDuplicate": "It's a duplicate",
+      "rejectReason": "Reason",
+      "rejectReasonPlaceholder": "Spam, out of territory, not a fit...",
+      "rejectFailed": "The lead could not be rejected.",
+      "assignFailed": "The rep could not be assigned.",
+      "recheck": "Check again",
+      "recheckFailed": "The duplicate check failed.",
+      "automation": "What happened",
+      "stepCrm": "Lead created in Zoho CRM",
+      "stepCallback": "Callback scheduled ({{kind}})",
+      "call": "call",
+      "task": "task",
+      "stepRepEmail": "Rep notified by email",
+      "stepMerchantEmail": "Welcome email sent to the merchant",
+      "retriedPicklists": "retried without Lead_Source / Lead_Contact_Method",
+      "disabled": "turned off in the settings",
+      "skip": {
+        "disabled": "turned off in the settings",
+        "no_rep_email": "this rep has no email on file",
+        "no_contact_email": "no merchant email on file"
+      },
+      "zohoLead": "Zoho record",
+      "dealStage": "Deal stage",
+      "notConvertedYet": "not converted yet",
+      "depositDate": "Deposit date",
+      "reviewedBy": "Reviewed by",
+      "history": "History"
+    },
+    "kpi": {
+      "waiting": "Waiting for review",
+      "over24h": "Waiting over 24 h",
+      "medianReview": "Median time to review",
+      "hours": "{{n}} h",
+      "won": "Won / received"
+    },
+    "stats": {
+      "funnel": "Funnel",
+      "funnelNote": "“Converted” and “won” come from the Zoho deal, refreshed hourly.",
+      "step": {
+        "received": "Received",
+        "accepted": "Accepted",
+        "converted": "Converted to a deal",
+        "won": "Won (deposit received)"
+      },
+      "bySource": "By source",
+      "byRep": "By rep",
+      "received": "Received",
+      "accepted": "Accepted",
+      "assigned": "Assigned",
+      "converted": "Converted",
+      "won": "Won",
+      "winRate": "Win rate",
+      "noData": "No data yet."
+    }
   }
 }

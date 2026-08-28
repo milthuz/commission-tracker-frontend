@@ -70,6 +70,7 @@ const CommissionTracker = lazyRoute(() => import('./pages/CommissionTracker'));
 const CommissionReport = lazyRoute(() => import('./pages/CommissionReport'));
 const AdminPanel = lazyRoute(() => import('./pages/AdminPanel'));
 const Reseller = lazyRoute(() => import('./pages/Reseller'));
+const Leads = lazyRoute(() => import('./pages/Leads'));
 const Revenue = lazyRoute(() => import('./pages/Revenue'));
 const Resources = lazyRoute(() => import('./pages/Resources'));
 const KaizenDemo = lazyRoute(() => import('./pages/KaizenDemo'));
@@ -393,6 +394,17 @@ function AppContent() {
               <>
                 <PageTitle title="Reseller | Sales Hub" />
                 <Reseller />
+              </>
+            }
+          />
+          {/* Gestion des pistes (SH-20) — la couche d'accueil AVANT Zoho CRM. La portée est
+              filtrée côté serveur : un représentant n'y voit que ses propres pistes. */}
+          <Route
+            path="/leads"
+            element={
+              <>
+                <PageTitle title="Leads | Sales Hub" />
+                <Leads />
               </>
             }
           />

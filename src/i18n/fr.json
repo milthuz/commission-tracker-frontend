@@ -364,7 +364,8 @@
     "retry": "Réessayer",
     "refreshStatus": "Actualiser le statut",
     "managedByZoho": "Géré par Zoho",
-    "TOTAL": "TOTAL"
+    "TOTAL": "TOTAL",
+    "done": "Terminé"
   },
   "probation": {
     "badge": "Probation",
@@ -407,7 +408,9 @@
     "profile": "Profil",
     "collapse": "Réduire la barre latérale",
     "expand": "Agrandir la barre latérale",
-    "passOps": "La Passe"
+    "passOps": "La Passe",
+    "leads": "Pistes",
+    "leadsAdmin": "Pistes"
   },
   "tour": {
     "skip": "Passer",
@@ -2482,7 +2485,9 @@
       "partnerInvoiceHint": "Ces personnes reçoivent un courriel (facture en pièce jointe) quand un Partner Admin téléverse sa facture pour un run de paiement finalisé. Si vide, personne n'est notifié — il faut vérifier Admin → Partenaires manuellement.",
       "moreSoon": "D'autres types de notifications apparaîtront ici au fur et à mesure.",
       "passCreditTitle": "La Passe — crédit à appliquer",
-      "passCreditHint": "Envoyé quand un crédit de recommandation est appliqué, pour que la comptabilité le porte au compte Zoho Books du marchand. Une liste vide n’envoie RIEN — le crédit est enregistré mais personne n’est prévenu, et le marchand n’est jamais payé."
+      "passCreditHint": "Envoyé quand un crédit de recommandation est appliqué, pour que la comptabilité le porte au compte Zoho Books du marchand. Une liste vide n’envoie RIEN — le crédit est enregistré mais personne n’est prévenu, et le marchand n’est jamais payé.",
+      "leadReviewTitle": "Piste en attente d'examen",
+      "leadReviewHint": "Envoyé à l'arrivée d'une piste, puis en relance si elle attend toujours après le délai fixé dans Admin → Pistes. Liste vide = aucun courriel, la file devient le seul signal."
     },
     "deals": {
       "title": "Transactions",
@@ -2640,7 +2645,10 @@
         "partner_invite": "Portail partenaire — invitation",
         "partner_reset": "Portail partenaire — réinitialisation du mot de passe",
         "partner_invite_migration": "Portail partenaire — invitation de reprise (ancien portail)",
-        "partner_reminder": "Portail partenaire — rappel d’activation"
+        "partner_reminder": "Portail partenaire — rappel d’activation",
+        "lead_review": "Piste — en attente d'examen",
+        "lead_assigned": "Piste — attribuée à un représentant",
+        "lead_welcome": "Piste — bienvenue au marchand"
       }
     },
     "recalculate": {
@@ -3333,6 +3341,94 @@
       "colPaid": "Versés",
       "last30": "+{{n}} sur 30 j",
       "usageSection": "Usage du portail"
+    },
+    "leads": {
+      "title": "Pistes",
+      "subtitle": "Règles d'attribution, tour de rôle et automatisations déclenchées à l'acceptation.",
+      "tabs": {
+        "rules": "Règles d'attribution",
+        "rotation": "Tour de rôle",
+        "automation": "Automatisations"
+      },
+      "saved": "Enregistré.",
+      "saveError": "Enregistrement impossible.",
+      "rules": {
+        "title": "Règles d'attribution",
+        "hint": "Évaluées dans l'ordre — la PREMIÈRE règle qui correspond gagne. Ce qui ne correspond à aucune règle tombe dans le tour de rôle.",
+        "add": "Ajouter une règle",
+        "edit": "Modifier la règle",
+        "name": "Nom",
+        "nameRequired": "Le nom est obligatoire.",
+        "criteria": "Critères",
+        "criteriaHint": "Séparés par des virgules. Un champ laissé vide ne filtre rien.",
+        "targets": "Attribuer à",
+        "targetsHint": "Choisissez plusieurs personnes et le tour de rôle joue à l'intérieur de la règle.",
+        "postalPrefix": "Code postal commençant par",
+        "catchAll": "aucun critère — attrape tout",
+        "noTarget": "aucun représentant — règle ignorée",
+        "active": "Règle active",
+        "inactive": "inactive",
+        "empty": "Aucune règle — toutes les pistes passent par le tour de rôle.",
+        "moveUp": "Monter",
+        "moveDown": "Descendre",
+        "confirmDelete": "Supprimer la règle « {{name}} » ?",
+        "fallbackNote": "Un représentant nommé par une règle reçoit les pistes de cette règle même s'il n'est pas dans le tour de rôle."
+      },
+      "simulate": {
+        "title": "Essayer une piste",
+        "hint": "Montre qui la recevrait et quelles règles correspondent — sans rien écrire ni faire avancer le tour de rôle.",
+        "run": "Essayer",
+        "result": "Irait à",
+        "noRep": "Personne — aucune règle ne correspond et le tour de rôle est vide."
+      },
+      "rotation": {
+        "title": "Tour de rôle",
+        "hint": "Le filet : toute piste qu'aucune règle n'attrape va à la personne servie le plus anciennement.",
+        "inPool": "Dans le tour",
+        "awayUntil": "En congé jusqu'au",
+        "lastAssigned": "Dernière attribution",
+        "count": "Total",
+        "empty": "Aucun représentant actif.",
+        "fairnessNote": "La prochaine piste va à la personne servie le plus anciennement — ajouter, retirer ou mettre en congé quelqu'un ne dérègle jamais l'ordre."
+      },
+      "automation": {
+        "title": "À l'acceptation",
+        "hint": "Ce qui se déclenche au moment où une piste est acceptée. La fiche Zoho est toujours créée ; tout le reste est facultatif.",
+        "callback": "Planifier un rappel dans Zoho",
+        "callbackHint": "Au nom du représentant attribué, pour que ça tombe dans SA liste.",
+        "callbackType": "Sous forme de",
+        "typeCall": "Appel",
+        "typeTask": "Tâche",
+        "delay": "Délai (heures)",
+        "hours": "Heures ouvrables",
+        "example": "Une piste acceptée maintenant serait rappelée le {{when}}.",
+        "notifyRep": "Écrire au représentant attribué",
+        "notifyRepHint": "Tout le contexte, l'heure du rappel et un lien vers la fiche Zoho.",
+        "notifyMerchant": "Écrire au marchand",
+        "notifyMerchantHint": "Remerciement, nom de son représentant et moment du rappel. Envoyé dans la langue de la piste, aux couleurs de Cluster.",
+        "merchantFrom": "Expéditeur",
+        "merchantFromPlaceholder": "Vide = expéditeur par défaut",
+        "merchantSite": "Site affiché dans le pied de page",
+        "reminder": "Relancer après (heures)",
+        "reminderHint": "Une seule relance par piste, pendant les heures ouvrables. 0 désactive."
+      },
+      "zoho": {
+        "title": "Valeurs écrites dans Zoho",
+        "hint": "Ce qui est inscrit sur la fiche Zoho selon la provenance de la piste.",
+        "sourceWebsite": "Lead_Source — site web",
+        "sourcePhone": "Lead_Source — téléphone",
+        "methodWebsite": "Lead_Contact_Method — site web",
+        "methodPhone": "Lead_Contact_Method — téléphone",
+        "leaveEmpty": "vide = ne pas écrire ce champ",
+        "picklistWarning": "Ce sont des listes de choix chez Zoho : une valeur absente de la liste fait rejeter TOUTE la fiche, pas seulement le champ. Laissez-les vides tant que vous n'avez pas copié la valeur exacte depuis votre configuration Zoho. Si une fiche est refusée, Sales Hub réessaie une fois sans ces deux champs plutôt que de perdre la piste."
+      },
+      "webhook": {
+        "title": "Formulaire du site → Sales Hub",
+        "hint": "Pointez le formulaire de contact du site public vers cette adresse. Les pistes arrivent dans la file ; rien n'atteint Zoho sans examen.",
+        "tolerant": "Les noms de champs sont tolérants : businessName / business_name / company fonctionnent tous, et contactName est découpé en prénom et nom. Une soumission sans nom d'entreprise retombe sur le nom du contact.",
+        "secretSet": "Le secret partagé est configuré ({{name}}).",
+        "secretMissing": "Aucun secret partagé n'est configuré — l'adresse refusera toutes les soumissions. Définissez LEAD_WEBHOOK_SECRET côté serveur."
+      }
     }
   },
   "header": {
@@ -4191,5 +4287,202 @@
     "creditOutOfRange": "Le montant doit être supérieur à 0 et ne pas dépasser {{amount}}.",
     "creditConfirm": "Confirmer et aviser la comptabilité",
     "cancel": "Annuler"
+  },
+  "leads": {
+    "title": "Pistes",
+    "subtitle": "Toute demande entrante arrive ici d'abord. Rien n'entre dans Zoho CRM avant qu'une personne l'ait acceptée.",
+    "newLead": "Nouvelle piste",
+    "empty": "Aucune piste ne correspond à ces filtres.",
+    "emptyTab": {
+      "queue": "Rien en attente — la file est vide.",
+      "accepted": "Aucune piste acceptée pour l'instant.",
+      "closed": "Aucune piste rejetée.",
+      "all": "Aucune piste pour l'instant."
+    },
+    "tabs": {
+      "queue": "À examiner",
+      "accepted": "Acceptées",
+      "closed": "Rejetées",
+      "all": "Toutes",
+      "stats": "Rapport"
+    },
+    "status": {
+      "new": "Nouvelle",
+      "in_review": "En examen",
+      "accepted": "Acceptée",
+      "rejected": "Rejetée",
+      "duplicate": "Doublon"
+    },
+    "source": {
+      "website": "Formulaire du site",
+      "phone": "Téléphone",
+      "walk_in": "Sur place",
+      "referral": "Référence",
+      "event": "Événement",
+      "other": "Autre"
+    },
+    "interest": {
+      "pos": "Point de vente",
+      "payments": "Paiements",
+      "both": "PDV + paiements",
+      "hardware": "Matériel",
+      "other": "Autre"
+    },
+    "matchedOn": {
+      "name": "nom d'entreprise",
+      "email": "courriel",
+      "phone": "téléphone"
+    },
+    "columns": {
+      "business": "Entreprise",
+      "contact": "Contact",
+      "source": "Source",
+      "received": "Reçue",
+      "rep": "Représentant",
+      "status": "Statut"
+    },
+    "filters": {
+      "allSources": "Toutes les sources",
+      "allReps": "Tous les représentants",
+      "search": "Chercher une entreprise, un contact, un téléphone ou une référence..."
+    },
+    "badge": {
+      "duplicate": "Doublon possible",
+      "crmFailed": "Zoho a refusé",
+      "waiting": "{{n}} h d'attente"
+    },
+    "actions": {
+      "review": "Examiner",
+      "open": "Ouvrir"
+    },
+    "suggestedShort": "Suggéré : {{rep}}",
+    "viaRule": "règle « {{rule}} »",
+    "viaRotation": "tour de rôle",
+    "duplicateFound": "Zoho a déjà {{n}} fiche(s) qui correspondent",
+    "field": {
+      "businessName": "Nom de l'entreprise",
+      "businessType": "Type de commerce",
+      "businessTypePlaceholder": "Restaurant, détail, salon...",
+      "website": "Site web",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "title": "Fonction",
+      "email": "Courriel",
+      "phone": "Téléphone",
+      "contact": "Contact",
+      "language": "Langue de correspondance",
+      "city": "Ville",
+      "province": "Province",
+      "postalCode": "Code postal",
+      "location": "Lieu",
+      "locationsCount": "Succursales",
+      "currentPos": "Système actuel",
+      "timeline": "Échéance",
+      "timelinePlaceholder": "D'ici 2 mois",
+      "interest": "Intéressé par",
+      "notes": "Notes",
+      "notesPlaceholder": "Qu'est-ce qu'on lui a demandé ? Qu'a-t-il dit ?",
+      "source": "Source",
+      "sourceDetail": "Précision sur la source",
+      "sourceDetailPlaceholder": "Campagne, référent, nom du formulaire...",
+      "createdBy": "Saisie par",
+      "fromWebsite": "Formulaire du site",
+      "rep": "Représentant attribué"
+    },
+    "intake": {
+      "title": "Nouvelle piste",
+      "subtitle": "À remplir pendant l'appel. Rien n'est encore envoyé à Zoho.",
+      "sectionBusiness": "Entreprise",
+      "sectionContact": "Contact",
+      "sectionLocation": "Lieu",
+      "sectionQualification": "Qualification",
+      "sectionSource": "Source",
+      "businessRequired": "Le nom de l'entreprise est obligatoire.",
+      "submit": "Créer la piste",
+      "checking": "Vérification dans Zoho...",
+      "failed": "La piste n'a pas pu être créée.",
+      "created": "Piste créée — référence {{ref}}",
+      "suggestedRep": "Représentant suggéré",
+      "noRep": "Aucun représentant disponible — le tour de rôle est vide.",
+      "notYetInZoho": "Rien n'a été envoyé à Zoho. La piste doit d'abord être acceptée depuis la file.",
+      "another": "Saisir une autre"
+    },
+    "detail": {
+      "loadFailed": "Cette piste n'a pas pu être chargée.",
+      "decision": "Décision",
+      "assignTo": "Attribuer à",
+      "pickRep": "Choisir un représentant",
+      "away": "en congé",
+      "notInRotation": "hors tour de rôle",
+      "suggestion": "Suggéré",
+      "willHappen": "Accepter va :",
+      "willCrm": "créer la fiche dans Zoho CRM, au nom du représentant",
+      "willCallback": "planifier un rappel dans sa liste Zoho",
+      "willRepEmail": "écrire à {{rep}} avec tout le contexte",
+      "willMerchantEmail": "écrire à {{email}} — remerciement et nom de son représentant",
+      "noMerchantEmail": "aucun courriel du marchand — rien ne lui sera envoyé",
+      "accept": "Accepter et envoyer à Zoho",
+      "accepting": "Envoi...",
+      "acceptedOk": "Acceptée. Fiche Zoho créée et tout est parti.",
+      "acceptedPartial": "Acceptée, mais {{n}} étape(s) automatique(s) ont échoué — voir le détail ci-dessous.",
+      "acceptFailed": "La piste n'a pas pu être acceptée.",
+      "noRepChosen": "Choisissez un représentant avant d'accepter.",
+      "crmFailed": "Zoho a refusé la fiche : {{detail}}",
+      "reject": "Rejeter",
+      "confirmReject": "Confirmer le rejet",
+      "markDuplicate": "C'est un doublon",
+      "rejectReason": "Motif",
+      "rejectReasonPlaceholder": "Pourriel, hors territoire, ne correspond pas...",
+      "rejectFailed": "La piste n'a pas pu être rejetée.",
+      "assignFailed": "Le représentant n'a pas pu être attribué.",
+      "recheck": "Vérifier de nouveau",
+      "recheckFailed": "La vérification a échoué.",
+      "automation": "Ce qui s'est produit",
+      "stepCrm": "Fiche créée dans Zoho CRM",
+      "stepCallback": "Rappel planifié ({{kind}})",
+      "call": "appel",
+      "task": "tâche",
+      "stepRepEmail": "Représentant prévenu par courriel",
+      "stepMerchantEmail": "Courriel de bienvenue envoyé au marchand",
+      "retriedPicklists": "réessayé sans Lead_Source / Lead_Contact_Method",
+      "disabled": "désactivé dans les réglages",
+      "skip": {
+        "disabled": "désactivé dans les réglages",
+        "no_rep_email": "ce représentant n'a pas de courriel",
+        "no_contact_email": "aucun courriel du marchand"
+      },
+      "zohoLead": "Fiche Zoho",
+      "dealStage": "Étape du deal",
+      "notConvertedYet": "pas encore convertie",
+      "depositDate": "Date de dépôt",
+      "reviewedBy": "Examinée par",
+      "history": "Historique"
+    },
+    "kpi": {
+      "waiting": "En attente d'examen",
+      "over24h": "En attente depuis 24 h+",
+      "medianReview": "Délai médian d'examen",
+      "hours": "{{n}} h",
+      "won": "Gagnées / reçues"
+    },
+    "stats": {
+      "funnel": "Entonnoir",
+      "funnelNote": "« Convertie » et « gagnée » viennent du deal Zoho, rafraîchi chaque heure.",
+      "step": {
+        "received": "Reçues",
+        "accepted": "Acceptées",
+        "converted": "Converties en deal",
+        "won": "Gagnées (dépôt reçu)"
+      },
+      "bySource": "Par source",
+      "byRep": "Par représentant",
+      "received": "Reçues",
+      "accepted": "Acceptées",
+      "assigned": "Attribuées",
+      "converted": "Converties",
+      "won": "Gagnées",
+      "winRate": "Taux de réussite",
+      "noData": "Aucune donnée."
+    }
   }
 }

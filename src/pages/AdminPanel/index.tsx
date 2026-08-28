@@ -20,6 +20,7 @@ import Audit from './Audit';
 import HardwareAdmin from './HardwareAdmin';
 import PricingAdmin from './PricingAdmin';
 import PartnersAdmin from './PartnersAdmin';
+import LeadsAdmin from './LeadsAdmin';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -125,7 +126,9 @@ const AdminPanel = () => {
   // permission (partners:manage), so a partners-only user hitting /admin/users (or any other
   // section) directly still gets bounced, same as before.
   const can = (p: string) => permissions.includes('*') || permissions.includes(p) || permissions.includes(`${p.split(':')[0]}:*`);
-  const canAccessTab = (tab: string) => isAdmin || (tab === 'partners' && can('partners:manage'));
+  const canAccessTab = (tab: string) => isAdmin
+    || (tab === 'partners' && can('partners:manage'))
+    || (tab === 'leads' && can('leads:manage_rules'));
 
   // Handle redirect back from CRM OAuth
   useEffect(() => {
@@ -1583,6 +1586,7 @@ const AdminPanel = () => {
              activeTab === 'hardware' ? t('admin.hardware.title') :
              activeTab === 'pricing' ? t('admin.pricing.title') :
              activeTab === 'partners' ? t('admin.partners.title') :
+             activeTab === 'leads' ? t('admin.leads.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1602,6 +1606,7 @@ const AdminPanel = () => {
              activeTab === 'hardware' ? t('admin.hardware.subtitle') :
              activeTab === 'pricing' ? t('admin.pricing.subtitle') :
              activeTab === 'partners' ? t('admin.partners.subtitle') :
+             activeTab === 'leads' ? t('admin.leads.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -3542,6 +3547,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'resources' && <ResourcesAdmin />}
           {activeTab === 'hardware' && <HardwareAdmin />}
           {activeTab === 'pricing' && <PricingAdmin />}
+          {activeTab === 'leads' && <LeadsAdmin />}
           {activeTab === 'partners' && <PartnersAdmin canDelete={isAdmin || can('partners:delete')} canMigrate={isAdmin || can('partners:migrate')} canStats={isAdmin || can('partners:stats')} canExportUsers={isAdmin || can('partners:export_users')} />}
           {activeTab === 'merchant-links' && <MerchantSaasLinks />}
           {activeTab === 'notifications' && <NotificationsAdmin />}

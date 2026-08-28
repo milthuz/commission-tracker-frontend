@@ -200,6 +200,15 @@ export default function NotificationsAdmin() {
         endpoint={`${API_URL}/api/admin/new-user-recipients`}
         users={users} />
 
+      {/* Une piste attend dans la file d'examen (SH-20). Liste VIDE = aucun courriel : la file
+          reste alors la seule source, et une piste peut y dormir sans que personne le sache.
+          C'est aussi cette liste qui reçoit la relance « en attente depuis plus de N heures ». */}
+      <RecipientListCard icon="🎯"
+        title={t('admin.notifications.leadReviewTitle')}
+        hint={t('admin.notifications.leadReviewHint')}
+        endpoint={`${API_URL}/api/admin/lead-review-recipients`}
+        users={users} />
+
       {/* A partner submitted a new opportunity through the Partner Portal */}
       <RecipientListCard icon="🤝"
         title={t('admin.notifications.partnerOpportunityTitle')}
