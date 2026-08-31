@@ -376,6 +376,27 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
     } finally { setBusyUserId(null); }
   };
 
+  // Refaire la creation du Lead Zoho pour une opportunite deja approuvee dont le lead a echoue.
+  // Sans ca, un refus de Zoho laissait le dossier approuve SANS lead et sans aucun recours dans
+  // l'ecran : les boutons Approuver/Rejeter disparaissent des que l'opportunite est approuvee.
+  const [retryingLead, setRetryingLead] = useState<number | null>(null);
+  const retryLead = async (o: Opportunity) => {
+    setRetryingLead(o.id);
+    try {
+      const r = await axios.post(`${API_URL}/api/admin/partner-opportunities/${o.id}/retry-lead`,
+        {}, { headers: authHeaders() });
+      if (r.data.success) dialog.alert(t('admin.partners.crm.retryDone', { id: r.data.leadId }) as string);
+      else dialog.alert(t('admin.partners.crm.retryFailed', { why: r.data.error || '' }) as string);
+      await fetchQueue();
+    } catch (e: any) {
+      const code = e?.response?.data?.error;
+      dialog.alert(code === 'lead_already_exists' ? t('admin.partners.crm.retryAlready') as string
+        : code === 'not_approved' ? t('admin.partners.crm.retryNotApproved') as string
+        : code || e?.message || 'Retry failed');
+      await fetchQueue();
+    } finally { setRetryingLead(null); }
+  };
+
   const revokeInvite = async (iv: Invite) => {
     if (!(await dialog.confirm(t('admin.partners.revokeConfirm', { email: iv.email }) as string))) return;
     setRevokingId(iv.id);
@@ -866,7 +887,15 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 className="whitespace-nowrap text-[11px] text-primary hover:underline">{t('admin.partners.queue.viewInZoho')}</a>
             )}
             {o.crmLeadError && (
-              <div className="whitespace-nowrap text-[11px] text-danger" title={o.crmLeadError}>⚠ {t('admin.partners.crm.leadFailed')}</div>
+              <>
+                <div className="whitespace-nowrap text-[11px] text-danger" title={o.crmLeadError}>⚠ {t('admin.partners.crm.leadFailed')}</div>
+                {/* L'action est ICI, collee au probleme, et pas dans la colonne Actions : c'est la
+                    que l'usager lit l'echec. Elle disparait des que le lead existe. */}
+                <button onClick={() => retryLead(o)} disabled={retryingLead === o.id}
+                  className="whitespace-nowrap text-[11px] font-medium text-primary hover:underline disabled:opacity-50">
+                  {retryingLead === o.id ? t('admin.partners.crm.retrying') : t('admin.partners.crm.retry')}
+                </button>
+              </>
             )}
           </div>
         );

@@ -2109,7 +2109,13 @@
         "leadFailed": "Couldn't create the Lead — hover for details",
         "leadFailedAlert": "The opportunity was approved, but creating the Zoho CRM Lead failed: {{error}}. You'll need to create it manually.",
         "viewInCrm": "View in Zoho CRM",
-        "deleteFailedAlert": "The opportunity was deleted, but deleting its Zoho CRM Lead failed: {{error}}. You'll need to delete it manually."
+        "deleteFailedAlert": "The opportunity was deleted, but deleting its Zoho CRM Lead failed: {{error}}. You'll need to delete it manually.",
+        "retry": "Retry",
+        "retrying": "Sending…",
+        "retryDone": "The Zoho lead was created (id {{id}}).",
+        "retryFailed": "Zoho still refuses it: {{why}}",
+        "retryAlready": "A lead already exists for this record — nothing was created twice.",
+        "retryNotApproved": "This record is not approved, there is no lead to create."
       },
       "payout": {
         "linkButton": "Link to customer",
