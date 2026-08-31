@@ -65,8 +65,8 @@ const parseHwPrice = (price: string | null): number | null => {
 };
 
 // Category icons for BOTH catalogs merged into one switch — hardware and pricing category ids
-// never collide (hardware: pos/tab/kp/rp/pay/disp/net/periph/cash; pricing: saas/rental/menu/
-// install/support/olo/shipping/xperio), so one shared icon set is safe.
+// never collide (hardware: pos/tab/kp/rp/pay/disp/net/periph/cash; pricing: saas/integrations/
+// rental/menu/install/support/olo/shipping/xperio), so one shared icon set is safe.
 const catIconPaths = (id: string): React.ReactNode => {
   switch (id) {
     case 'pos': return <><rect x="4" y="3" width="16" height="12" rx="2" /><path d="M9 21h6M12 15v6" /></>;
@@ -79,6 +79,7 @@ const catIconPaths = (id: string): React.ReactNode => {
     case 'periph': return <><path d="M4 8V5a1 1 0 0 1 1-1h3M4 16v3a1 1 0 0 0 1 1h3M20 8V5a1 1 0 0 0-1-1h-3M20 16v3a1 1 0 0 1-1 1h-3" /><path d="M4 12h16" /></>;
     case 'cash': return <><rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="12" cy="12" r="3" /><path d="M6 9v.01M18 15v.01" /></>;
     case 'saas': return <><circle cx="8" cy="15" r="4" /><path d="M10.8 12.2 20 3M17 6l3 3M15 8l2 2" /></>;
+    case 'integrations': return <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /><path d="M10 6.5h4a3.5 3.5 0 0 1 3.5 3.5v4" /></>;
     case 'rental': return <><path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></>;
     case 'menu': return <path d="M4 3v7a2 2 0 0 0 2 2 2 2 0 0 0 2-2V3M6 3v18M16 3c-2 0-3 2-3 5s1 4 3 4v9" />;
     case 'install': return <path d="M14 7a4 4 0 0 0-5.5 5.2l-6 6 2 2 6-6A4 4 0 0 0 17 9l-2.5 2.5L12 9l2.5-2.5z" />;
