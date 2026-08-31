@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +15,7 @@ interface PricingPackage {
   includesEn: string[]; includesFr: string[];
   internalEn: Record<string, string> | null; internalFr: Record<string, string> | null;
   status: string[]; groupName: string | null; tier: string | null; mode: string | null;
-  rates: Record<string, number> | null; visible: boolean;
+  rates: Record<string, number> | null; hasImage: boolean; visible: boolean;
 }
 type PkgEdit = Partial<Omit<PricingPackage, 'id'>>;
 
@@ -65,8 +65,10 @@ const PricingAdmin: React.FC = () => {
   const [removed, setRemoved] = useState<Record<string, boolean>>({});
   const [publishing, setPublishing] = useState(false);
 
-  const [form, setForm] = useState<{ editingId: string | null; nameEn: string; nameFr: string; catId: string; compat: string[]; status: string[]; sku: string; monthly: string; yearly: string; flat: string; includesEn: string; includesFr: string } | null>(null);
+  const [form, setForm] = useState<{ editingId: string | null; nameEn: string; nameFr: string; catId: string; compat: string[]; status: string[]; sku: string; monthly: string; yearly: string; flat: string; includesEn: string; includesFr: string; hasImage: boolean } | null>(null);
   const [newTag, setNewTag] = useState('');
+  const logoRef = useRef<HTMLInputElement>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -157,14 +159,39 @@ const PricingAdmin: React.FC = () => {
     finally { setPublishing(false); }
   };
 
-  const openAddForm = () => { setNewTag(''); setForm({ editingId: null, nameEn: '', nameFr: '', catId: cat, compat: ['V1'], status: [], sku: '', monthly: '', yearly: '', flat: '', includesEn: '', includesFr: '' }); };
+  const openAddForm = () => { setNewTag(''); setForm({ editingId: null, nameEn: '', nameFr: '', catId: cat, compat: ['V1'], status: [], sku: '', monthly: '', yearly: '', flat: '', includesEn: '', includesFr: '', hasImage: false }); };
   const openEditForm = (p: PricingPackage) => { setNewTag(''); setForm({
     editingId: p.id, nameEn: p.nameEn, nameFr: p.nameFr || '', catId: p.catId, compat: [...(p.compat || [])], status: [...(p.status || [])], sku: p.sku || '',
     monthly: p.priceMonthly == null ? '' : String(p.priceMonthly),
     yearly: p.priceYearly == null ? '' : String(p.priceYearly),
     flat: p.priceFlat == null ? '' : String(p.priceFlat),
-    includesEn: p.includesEn.join('\n'), includesFr: p.includesFr.join('\n'),
+    includesEn: p.includesEn.join('\n'), includesFr: p.includesFr.join('\n'), hasImage: p.hasImage,
   }); };
+
+  // The logo is NOT part of the stage/publish flow — it writes straight to the row, like hardware
+  // photos do. So it needs a row that already exists server-side: a package staged for creation
+  // has no id in the DB yet, hence the "publish first" hint instead of an upload button.
+  const uploadLogo = async (file: File) => {
+    const id = form?.editingId;
+    if (!id) return;
+    setUploadingLogo(true);
+    try {
+      const fd = new FormData(); fd.append('file', file);
+      await axios.post(`${API_URL}/api/pricing/${id}/image`, fd, { headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' } });
+      setForm((f) => (f ? { ...f, hasImage: true } : f));
+      setPackages((ps) => ps.map((x) => (x.id === id ? { ...x, hasImage: true } : x)));
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Upload failed'); }
+    finally { setUploadingLogo(false); }
+  };
+  const removeLogo = async () => {
+    const id = form?.editingId;
+    if (!id) return;
+    try {
+      await axios.delete(`${API_URL}/api/pricing/${id}/image`, { headers: authHeaders() });
+      setForm((f) => (f ? { ...f, hasImage: false } : f));
+      setPackages((ps) => ps.map((x) => (x.id === id ? { ...x, hasImage: false } : x)));
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to remove logo'); }
+  };
   const toggleFormArr = (k: 'compat' | 'status', val: string) => setForm((f) => {
     if (!f) return f;
     const arr = f[k].includes(val) ? f[k].filter((x) => x !== val) : [...f[k], val];
@@ -199,7 +226,7 @@ const PricingAdmin: React.FC = () => {
         priceMonthly: num(form.monthly), priceYearly: num(form.yearly), priceFlat: num(form.flat),
         unit: null, activation: null,
         includesEn, includesFr,
-        internalEn: null, internalFr: null, status: form.status, groupName: null, tier: null, mode: null, rates: null, visible: true,
+        internalEn: null, internalFr: null, status: form.status, groupName: null, tier: null, mode: null, rates: null, hasImage: false, visible: true,
       };
       setAdded((a) => [...a, rec]);
     }
@@ -284,8 +311,12 @@ const PricingAdmin: React.FC = () => {
                         <td className="px-3 py-2">
                           <div className="flex flex-col gap-1">
                             <span className="font-medium text-black dark:text-white">{pick(p.nameEn, p.nameFr)}</span>
-                            {(p.compat.length > 0 || p.status.length > 0 || isNewRow || rowHidden) && (
+                            {(p.hasImage || p.compat.length > 0 || p.status.length > 0 || isNewRow || rowHidden) && (
                               <div className="flex flex-wrap items-center gap-1">
+                                {/* Rides in the existing chip row rather than a new column: it
+                                    shows at a glance which rows still have no logo, without
+                                    touching this table's column widths. */}
+                                {p.hasImage && <img src={`${API_URL}/api/pricing/${p.id}/image`} alt="" className="h-4 w-auto max-w-[56px] object-contain" />}
                                 {p.compat.map((c) => (
                                   <span key={`c-${c}`} className="whitespace-nowrap rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">
                                     {c === 'V2' ? t('hardware.kaizen') : c}
@@ -355,6 +386,24 @@ const PricingAdmin: React.FC = () => {
             </div>
             <div className="flex-1 overflow-y-auto p-5">
               <div className="flex flex-col gap-3.5">
+                <div className="flex items-center gap-3.5">
+                  <div className="flex h-20 w-28 flex-none items-center justify-center overflow-hidden rounded-xl bg-gray-2 dark:bg-meta-4">
+                    {form.hasImage
+                      ? <img src={`${API_URL}/api/pricing/${form.editingId}/image?v=${Date.now()}`} alt="" className="h-full w-full object-contain p-2" />
+                      : <span className="text-xs text-gray-400">{t('pricingGuide.noLogo')}</span>}
+                  </div>
+                  {form.editingId ? (
+                    <div className="flex flex-col items-start gap-2">
+                      <input ref={logoRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadLogo(f); e.target.value = ''; }} />
+                      <button onClick={() => logoRef.current?.click()} disabled={uploadingLogo} className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary disabled:opacity-50 dark:border-strokedark">
+                        {uploadingLogo ? t('common.loading') : t('admin.pricing.uploadLogo')}
+                      </button>
+                      {form.hasImage && <button onClick={removeLogo} className="text-xs text-danger hover:underline">{t('common.remove')}</button>}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400">{t('admin.pricing.logoAfterPublish')}</p>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <label className="flex flex-col gap-1"><span className="text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fName')} (EN)</span><input value={form.nameEn} onChange={(e) => setForm({ ...form, nameEn: e.target.value })} className={inputCls} /></label>
                   <label className="flex flex-col gap-1"><span className="text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fName')} (FR)</span><input value={form.nameFr} onChange={(e) => setForm({ ...form, nameFr: e.target.value })} className={inputCls} /></label>

@@ -38,7 +38,7 @@ interface PricingPackage {
   internalEn: { effort?: string; requirements?: string; margin?: string; notes?: string } | null;
   internalFr: { effort?: string; requirements?: string; margin?: string; notes?: string } | null;
   status: string[]; groupName: string | null; tier: string | null; mode: string | null;
-  rates: Record<string, number> | null; visible: boolean;
+  rates: Record<string, number> | null; hasImage: boolean; visible: boolean;
 }
 interface PricingGuideRef { id: string; titleEn: string; titleFr: string | null; bodyEn: string; bodyFr: string | null; }
 interface PricingData { categories: PricingCategory[]; packages: PricingPackage[]; guides: PricingGuideRef[]; }
@@ -500,7 +500,17 @@ const PricingGuide: React.FC = () => {
                     return (
                       <div key={p.id} className={`flex flex-col gap-2.5 rounded-2xl border bg-white p-4 dark:bg-boxdark ${inQuote ? 'border-primary' : 'border-stroke dark:border-strokedark'}`}>
                         <div className="flex items-start justify-between gap-2.5">
-                          <div className="min-w-0">
+                          {p.hasImage && (
+                            <div className="flex h-12 w-16 flex-none items-center justify-center overflow-hidden rounded-lg bg-gray-2 dark:bg-meta-4">
+                              {/* w-16/h-12 rather than a square: vendor logos are as often a wide
+                                  wordmark as a square mark, and object-contain fits both. */}
+                              <img src={`${API_URL}/api/pricing/${p.id}/image`} alt={pick(p.nameEn, p.nameFr)} className="h-full w-full object-contain p-1" />
+                            </div>
+                          )}
+                          {/* flex-1 so the text block absorbs the slack instead of justify-between
+                              opening a gap between the logo and the name on logo-bearing cards.
+                              On cards without a logo this renders identically to before. */}
+                          <div className="min-w-0 flex-1">
                             <div className="mb-1.5 flex flex-wrap gap-1.5">
                               {p.compat.includes('V2') && <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase text-primary">{t('pricingGuide.kaizenTag')}</span>}
                               {p.compat.includes('V1') && <span className="rounded-full border border-stroke bg-gray-2 px-2 py-0.5 text-[10px] font-bold uppercase text-gray-500 dark:border-strokedark dark:bg-meta-4">V1</span>}

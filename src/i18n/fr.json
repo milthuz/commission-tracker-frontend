@@ -665,7 +665,8 @@
         "title": "Frais sur place et XPERIO",
         "desc": "Tarifs de service sur place, charges revendeur et déplacements par région."
       }
-    }
+    },
+    "noLogo": "Aucun logo"
   },
   "partnerPortal": {
     "title": "Portail partenaire",
@@ -2042,7 +2043,9 @@
       "editCategory": "Modifier la catégorie",
       "fHourly": "Taux horaire ($, optionnel)",
       "fCatNote": "Note",
-      "catNameRequired": "Un nom (EN) est requis"
+      "catNameRequired": "Un nom (EN) est requis",
+      "uploadLogo": "Téléverser un logo",
+      "logoAfterPublish": "Publiez d'abord le forfait, puis réouvrez-le pour ajouter un logo."
     },
     "partners": {
       "title": "Partenaires",

@@ -665,7 +665,8 @@
         "title": "On-Site & XPERIO Fees",
         "desc": "On-site service rates, reseller charges and travel by region."
       }
-    }
+    },
+    "noLogo": "No logo"
   },
   "partnerPortal": {
     "title": "Partner Portal",
@@ -2042,7 +2043,9 @@
       "editCategory": "Edit category",
       "fHourly": "Hourly rate ($, optional)",
       "fCatNote": "Note",
-      "catNameRequired": "A name (EN) is required"
+      "catNameRequired": "A name (EN) is required",
+      "uploadLogo": "Upload logo",
+      "logoAfterPublish": "Publish the package first, then reopen it to add a logo."
     },
     "partners": {
       "title": "Partners",
