@@ -316,7 +316,7 @@ const PricingAdmin: React.FC = () => {
                                 {/* Rides in the existing chip row rather than a new column: it
                                     shows at a glance which rows still have no logo, without
                                     touching this table's column widths. */}
-                                {p.hasImage && <img src={`${API_URL}/api/pricing/${p.id}/image`} alt="" className="h-4 w-auto max-w-[56px] object-contain" />}
+                                {p.hasImage && <img src={`${API_URL}/api/pricing/${p.id}/image`} alt="" className="h-4 w-auto max-w-[56px] rounded bg-white object-contain" />}
                                 {p.compat.map((c) => (
                                   <span key={`c-${c}`} className="whitespace-nowrap rounded-full bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary">
                                     {c === 'V2' ? t('hardware.kaizen') : c}
@@ -387,7 +387,7 @@ const PricingAdmin: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-5">
               <div className="flex flex-col gap-3.5">
                 <div className="flex items-center gap-3.5">
-                  <div className="flex h-20 w-28 flex-none items-center justify-center overflow-hidden rounded-xl bg-gray-2 dark:bg-meta-4">
+                  <div className="flex h-20 w-28 flex-none items-center justify-center overflow-hidden rounded-xl bg-gray-2 dark:bg-white">
                     {form.hasImage
                       ? <img src={`${API_URL}/api/pricing/${form.editingId}/image?v=${Date.now()}`} alt="" className="h-full w-full object-contain p-2" />
                       : <span className="text-xs text-gray-400">{t('pricingGuide.noLogo')}</span>}

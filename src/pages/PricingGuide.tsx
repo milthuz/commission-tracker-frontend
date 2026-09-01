@@ -501,7 +501,7 @@ const PricingGuide: React.FC = () => {
                       <div key={p.id} className={`flex flex-col gap-2.5 rounded-2xl border bg-white p-4 dark:bg-boxdark ${inQuote ? 'border-primary' : 'border-stroke dark:border-strokedark'}`}>
                         <div className="flex items-start justify-between gap-2.5">
                           {p.hasImage && (
-                            <div className="flex h-12 w-16 flex-none items-center justify-center overflow-hidden rounded-lg bg-gray-2 dark:bg-meta-4">
+                            <div className="flex h-12 w-16 flex-none items-center justify-center overflow-hidden rounded-lg bg-gray-2 dark:bg-white">
                               {/* w-16/h-12 rather than a square: vendor logos are as often a wide
                                   wordmark as a square mark, and object-contain fits both. */}
                               <img src={`${API_URL}/api/pricing/${p.id}/image`} alt={pick(p.nameEn, p.nameFr)} className="h-full w-full object-contain p-1" />
