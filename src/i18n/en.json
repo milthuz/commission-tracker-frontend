@@ -2045,7 +2045,10 @@
       "fCatNote": "Note",
       "catNameRequired": "A name (EN) is required",
       "uploadLogo": "Upload logo",
-      "logoAfterPublish": "Publish the package first, then reopen it to add a logo."
+      "logoAfterPublish": "Publish the package first, then reopen it to add a logo.",
+      "applyStaged": "Apply",
+      "stagedHint": "Staged only — click Publish at the bottom of the page to make it live.",
+      "discard": "Discard changes"
     },
     "partners": {
       "title": "Partners",

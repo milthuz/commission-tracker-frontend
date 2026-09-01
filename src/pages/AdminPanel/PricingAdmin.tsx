@@ -370,7 +370,7 @@ const PricingAdmin: React.FC = () => {
         <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center gap-3.5 border-t border-stroke bg-white/95 px-6 py-3.5 backdrop-blur dark:border-strokedark dark:bg-boxdark/95 md:left-[290px]">
           <span className="text-[13px] font-bold text-black dark:text-white">{t('admin.pricing.unsaved', { count: editedCount })}</span>
           <div className="flex-1" />
-          <button onClick={revertAll} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('common.cancel')}</button>
+          <button onClick={revertAll} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('admin.pricing.discard')}</button>
           <button onClick={publish} disabled={publishing} className="rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
             {publishing ? t('admin.pricing.publishing') : t('admin.pricing.publish')}
           </button>
@@ -450,9 +450,13 @@ const PricingAdmin: React.FC = () => {
                 <label className="flex flex-col gap-1"><span className="text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fIncludes')} (FR)</span><textarea value={form.includesFr} onChange={(e) => setForm({ ...form, includesFr: e.target.value })} rows={3} className={inputCls} /></label>
               </div>
             </div>
-            <div className="flex flex-none items-center justify-end gap-2.5 border-t border-stroke p-4 dark:border-strokedark">
-              <button onClick={() => setForm(null)} className="rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
-              <button onClick={saveForm} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{form.editingId ? t('common.save') : t('admin.pricing.addPackage')}</button>
+            <div className="flex flex-none items-center gap-2.5 border-t border-stroke p-4 dark:border-strokedark">
+              {/* This dialog only STAGES a change — the write happens on the publish bar. It used
+                  to label that "Save", which cost a real edit: tags looked applied, then vanished
+                  on reload because nothing had been published. */}
+              <span className="min-w-0 flex-1 text-xs leading-snug text-gray-400">{t('admin.pricing.stagedHint')}</span>
+              <button onClick={() => setForm(null)} className="flex-none rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
+              <button onClick={saveForm} className="flex-none rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{form.editingId ? t('admin.pricing.applyStaged') : t('admin.pricing.addPackage')}</button>
             </div>
           </div>
         </div>

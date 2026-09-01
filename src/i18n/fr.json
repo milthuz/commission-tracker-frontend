@@ -2045,7 +2045,10 @@
       "fCatNote": "Note",
       "catNameRequired": "Un nom (EN) est requis",
       "uploadLogo": "Téléverser un logo",
-      "logoAfterPublish": "Publiez d'abord le forfait, puis réouvrez-le pour ajouter un logo."
+      "logoAfterPublish": "Publiez d'abord le forfait, puis réouvrez-le pour ajouter un logo.",
+      "applyStaged": "Appliquer",
+      "stagedHint": "En attente seulement — cliquez sur Publier au bas de la page pour rendre le changement effectif.",
+      "discard": "Abandonner les modifications"
     },
     "partners": {
       "title": "Partenaires",
