@@ -299,7 +299,7 @@ const HardwareAdmin: React.FC = () => {
         <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center gap-3.5 border-t border-stroke bg-white/95 px-6 py-3.5 backdrop-blur dark:border-strokedark dark:bg-boxdark/95 md:left-[290px]">
           <span className="text-[13px] font-bold text-black dark:text-white">{t('admin.hardware.unsaved', { count: editedCount })}</span>
           <div className="flex-1" />
-          <button onClick={revertAll} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('common.cancel')}</button>
+          <button onClick={revertAll} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('admin.hardware.discard')}</button>
           <button onClick={publish} disabled={publishing} className="rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
             {publishing ? t('admin.hardware.publishing') : t('admin.hardware.publish')}
           </button>
@@ -392,9 +392,9 @@ const HardwareAdmin: React.FC = () => {
             </div>
             <div className="flex flex-none items-center gap-2.5 border-t border-stroke p-4 dark:border-strokedark">
               {!form.isNew && formId && <button onClick={() => removeProduct(formId)} className="rounded-lg border border-danger/40 px-3.5 py-2.5 text-sm font-semibold text-danger hover:bg-danger hover:text-white">{t('common.delete')}</button>}
-              <div className="flex-1" />
-              <button onClick={closeForm} className="rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
-              <button onClick={saveForm} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{form.isNew ? t('admin.hardware.add') : t('common.save')}</button>
+              <span className="min-w-0 flex-1 px-2 text-xs leading-snug text-gray-400">{t('admin.hardware.stagedHint')}</span>
+              <button onClick={closeForm} className="flex-none rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
+              <button onClick={saveForm} className="flex-none rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{form.isNew ? t('admin.hardware.add') : t('admin.hardware.applyStaged')}</button>
             </div>
           </div>
         </div>

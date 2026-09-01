@@ -2011,7 +2011,10 @@
       "fWarranty": "Warranty",
       "fNote": "Note",
       "uploadImage": "Upload photo",
-      "imageAfterSave": "Save the product first, then come back to add a photo."
+      "imageAfterSave": "Save the product first, then come back to add a photo.",
+      "applyStaged": "Apply",
+      "stagedHint": "Staged only — click Publish at the bottom of the page to make it live.",
+      "discard": "Discard changes"
     },
     "pricing": {
       "title": "Pricing Manager",

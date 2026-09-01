@@ -2011,7 +2011,10 @@
       "fWarranty": "Garantie",
       "fNote": "Note",
       "uploadImage": "Téléverser une photo",
-      "imageAfterSave": "Enregistrez d'abord le produit, puis revenez pour ajouter une photo."
+      "imageAfterSave": "Enregistrez d'abord le produit, puis revenez pour ajouter une photo.",
+      "applyStaged": "Appliquer",
+      "stagedHint": "En attente seulement — cliquez sur Publier au bas de la page pour rendre le changement effectif.",
+      "discard": "Abandonner les modifications"
     },
     "pricing": {
       "title": "Gestion des prix",
