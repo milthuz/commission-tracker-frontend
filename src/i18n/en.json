@@ -410,7 +410,8 @@
     "expand": "Expand sidebar",
     "passOps": "The Pass",
     "leads": "Leads",
-    "leadsAdmin": "Leads"
+    "leadsAdmin": "Leads",
+    "saasIncreaseLookup": "SaaS increase reference"
   },
   "tour": {
     "skip": "Skip",
@@ -1255,7 +1256,9 @@
       "skipHint": "Not raising this segment — marks it decided so it leaves the To do list. Click again to undo.",
       "unskipHint": "Undo — put this back in the To do list.",
       "skipRowHint": "Spare this customer — the rest of the segment is unaffected.",
-      "skippedLabel": "Not raising"
+      "skippedLabel": "Not raising",
+      "newCount": "{{count}} new since this scenario",
+      "newBadge": "· NEW"
     },
     "groupView": {
       "todo": "To do ({{count}})",
@@ -1498,6 +1501,12 @@
       "perMonth": "/mo",
       "fileSuffix": "Board",
       "printHint": "Choose \"Save as PDF\" as the destination."
+    },
+    "recent": {
+      "button": "Exclude under 1 year",
+      "hint": "Marks every subscription signed in the last 12 months as not raising. A merchant who has barely finished onboarding should not meet a price increase as their first billing surprise.",
+      "confirm": "Mark {{count}} subscription(s) signed in the last 12 months as not raising? {{withIncrease}} of them currently have an increase set, which will be cleared. Nothing is sent or pushed by this.",
+      "none": "No subscription signed in the last 12 months is left to exclude."
     }
   },
   "resources": {
@@ -4498,6 +4507,68 @@
       "won": "Won",
       "winRate": "Win rate",
       "noData": "No data yet."
+    }
+  },
+  "csLookup": {
+    "title": "SaaS increase — customer service reference",
+    "subtitle": "A merchant calling about their price? Look up their account and you have their exact figures.",
+    "placeholder": "Merchant name, subscription number or merchant ID…",
+    "searchHint": "Type at least 2 characters. Whatever the caller gives you works — a name, SUB-00123, or their merchant ID.",
+    "searching": "Searching…",
+    "error": "The search failed. Try again.",
+    "noResults": "No price change matches that search.",
+    "noResultsHint": "The most common reason is not a typo: this merchant simply had no increase. Do not apologise for an increase that does not exist — confirm their price is unchanged. If you believe they should be here, escalate rather than guess.",
+    "plan": "Plan",
+    "currentPrice": "Current price",
+    "newPrice": "New price",
+    "effective": "Takes effect",
+    "zohoStatus": "Applied in Zoho",
+    "sentTo": "Notice sent to",
+    "campaign": "Campaign",
+    "noticeSent": "Notified {{date}}",
+    "noticeNotSent": "Not yet notified",
+    "noticeFailed": "Notice failed to send",
+    "showEmail": "Show the exact email this merchant received",
+    "push": {
+      "pending": "Not applied",
+      "pushed": "Applied",
+      "push_failed": "Failed"
+    },
+    "faqTitle": "What to say",
+    "faqSubtitle": "Read this before your first call. When in doubt, escalate — never improvise a price.",
+    "faq": {
+      "why": {
+        "q": "Why is my price going up?",
+        "a": "Cluster invests continuously in the platform: the software, the integrations and the support behind them. The increase sustains that work. For most accounts this is their first increase since they joined — worth mentioning, it defuses a lot of frustration."
+      },
+      "howMuch": {
+        "q": "How much exactly?",
+        "a": "It varies by plan. Look up their account above and read them the New price shown: that is exactly what will be billed, before tax. Never do the math in your head and never guess a percentage."
+      },
+      "when": {
+        "q": "Starting when?",
+        "a": "At their own subscription's renewal — not a single date for everyone. The exact date is on the record under Takes effect. Nothing is charged before then, and their current invoice is unchanged until it."
+      },
+      "notice": {
+        "q": "Were they notified?",
+        "a": "The badge at the top of the record says so, with the date. If a notice went out, the address used is shown right below it — that is often the explanation for \"I never got anything\": a billing address that has gone stale."
+      },
+      "refuse": {
+        "q": "The customer refuses or threatens to leave",
+        "a": "Do not grant a discount, an exception or a reversal. You do not have that authority, and a promise made on the phone is very hard to take back. Listen, log the request, confirm the facts, and escalate. Only a manager can approve an exception."
+      },
+      "cancel": {
+        "q": "Can they cancel?",
+        "a": "Under the terms of their existing agreement, which vary by account. Do not play lawyer and do not quote a clause from memory: escalate anything contractual or about termination."
+      },
+      "noNotice": {
+        "q": "They say they received nothing",
+        "a": "Check the address on the record. If it is out of date, confirm the new price and the date verbally, take down the correct address and ask an admin to resend. Do not forward the email yourself from your own mailbox."
+      },
+      "escalate": {
+        "q": "Who do I escalate to?",
+        "a": "Any request for a discount or exception, anything contractual, and any case where the figures on the record look wrong to you. Never commit Cluster to a price. (Name and contact to be filled in by management.)"
+      }
     }
   }
 }

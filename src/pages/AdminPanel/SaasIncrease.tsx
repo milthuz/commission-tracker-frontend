@@ -235,6 +235,10 @@ const SaasIncrease: React.FC = () => {
   const [showScanDetails, setShowScanDetails] = useState(false);
   const [stoppingScan, setStoppingScan] = useState(false);
   const [boardOpen, setBoardOpen] = useState(false);
+  // When the scenario was created, so subscriptions that appeared in Zoho AFTER it can be
+  // surfaced: they carry no increase through no decision of anyone's, and would otherwise sit
+  // unnoticed at the bottom of a segment that already looks finished.
+  const [scenarioCreatedAt, setScenarioCreatedAt] = useState<string | null>(null);
   // Progress of the price-history scan. It can run for the better part of an hour, so it polls
   // while active — otherwise the only way to know whether anything is happening is the server log.
   const [insightsStatus, setInsightsStatus] = useState<{ total: number; verified: number; errors: number; active: boolean; duplicates?: number; byOrg?: { orgId: string; orgName: string; total: number; verified: number; byStatus?: Record<string, { count: number; mrr: number; numbers?: string[] }> }[]; crossOrgCollisions?: number; collisionSample?: string[]; lastScanError?: string | null; runningScan?: { label: string; startedAt: string; stopRequested: boolean; beatAge?: number } | null; topErrors?: { error: string; count: number }[] } | null>(null);
@@ -371,6 +375,7 @@ const SaasIncrease: React.FC = () => {
       if (!r.ok) throw new Error(String(r.status));
       const data = await r.json();
       setTargetMrr(Number(data.scenario.targetMrr) || 100000);
+      setScenarioCreatedAt(data.scenario.createdAt || null);
       const byNum: Record<string, ScenarioItem> = {};
       const nextEdits: Record<string, RowEdit> = {};
       const nextNotify: Record<number, NotifyDraft> = {};
@@ -453,6 +458,11 @@ const SaasIncrease: React.FC = () => {
     );
     const time = (d: string | null) => d ? new Date(d).getTime() : null;
     return [...list].sort((a, b) => {
+      // Subscriptions that appeared after the scenario was built come FIRST, whatever the chosen
+      // sort. They have no increase because nobody has seen them yet — not because anyone decided
+      // against one — and a segment that already reads as finished is exactly where they hide.
+      const na = isNewSinceScenario(a) ? 0 : 1, nb = isNewSinceScenario(b) ? 0 : 1;
+      if (na !== nb) return na - nb;
       if (sortBy === 'oldest' || sortBy === 'newest') {
         const ta = time(a.activatedAt), tb = time(b.activatedAt);
         if (ta == null && tb == null) return 0;
@@ -463,7 +473,7 @@ const SaasIncrease: React.FC = () => {
       if (sortBy === 'mrr') return b.currentMonthly - a.currentMonthly;
       return a.customerName.localeCompare(b.customerName);
     });
-  }, [subs, search, orgFilter, planFilter, sortBy]);
+  }, [subs, search, orgFilter, planFilter, sortBy, scenarioCreatedAt]);
 
 // Org → plan groups (collapsed by default) — with 3500+ subscriptions, a flat list wasn't
   // scannable. Each group key is "org||plan" so same-named plans on different orgs (e.g. two
@@ -514,6 +524,15 @@ const SaasIncrease: React.FC = () => {
   // Marking a segment (or one row) as "not raising this". Toggles, so an over-eager skip is one
   // click to undo. Setting an increase on a skipped row clears the skip automatically — the two
   // states are mutually exclusive and silently keeping both would be a trap.
+  const skipRecentlySigned = async () => {
+    const targets = subs.filter(sb => isRecentlySigned(sb) && !isSkipped(rowKey(sb)));
+    if (!targets.length) { dialog.alert(t('saasIncrease.recent.none') as string); return; }
+    const withIncrease = targets.filter(sb => isIncluded(rowKey(sb))).length;
+    const ok = await dialog.confirm(t('saasIncrease.recent.confirm', { count: targets.length, withIncrease }) as string);
+    if (!ok) return;
+    setSkipped(targets, true);
+  };
+
   const setSkipped = (rows: Subscription[], skipped: boolean) => {
     setEdits(prev => {
       const next = { ...prev };
@@ -531,6 +550,23 @@ const SaasIncrease: React.FC = () => {
   // "Decided" — raised OR deliberately left alone. This is what clears a segment off the To-do
   // list; an increase alone would strand every subscription you looked at and chose to spare.
   const isDecided = (num: string) => isIncluded(num) || isSkipped(num);
+
+  // Added to Zoho after this scenario was built. Compared on calendar days, not timestamps: a
+  // subscription that started the same day the scenario was created is not "new", and comparing
+  // raw ISO strings would call it new for the rest of that day.
+  const isNewSinceScenario = (sub: Subscription) => {
+    if (!scenarioCreatedAt || !sub.activatedAt) return false;
+    return String(sub.activatedAt).slice(0, 10) > String(scenarioCreatedAt).slice(0, 10);
+  };
+
+  // Signed within the last 12 months. A merchant who has barely finished onboarding should not
+  // meet a price increase as their first billing surprise.
+  const isRecentlySigned = (sub: Subscription) => {
+    if (!sub.activatedAt) return false;
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - 1);
+    return String(sub.activatedAt).slice(0, 10) > cutoff.toISOString().slice(0, 10);
+  };
 
   // Group-level "done" filter — with dozens of org×plan groups, once an increase has been applied
   // to a group it's just scroll-noise between you and the work that's left. A group counts as done
@@ -1531,6 +1567,19 @@ const SaasIncrease: React.FC = () => {
               <Sparkles className="h-3.5 w-3.5" /> {t('saasIncrease.suggestScenario')}
             </button>
           )}
+          {/* Mass exclusion of the newly-signed. Sitting beside Suggest Scenario on purpose: it
+              belongs to the same "shape the campaign in one gesture" step, and it should be done
+              BEFORE suggesting, so the suggestion never proposes an account you were going to
+              spare anyway. */}
+          {activeScenarioId && (
+            <button
+              onClick={skipRecentlySigned}
+              title={t('saasIncrease.recent.hint') as string}
+              className={`${raised} whitespace-nowrap px-2.5 py-2 text-xs font-medium ${textSec} hover:text-gray-900 dark:hover:text-white`}
+            >
+              <Ban className="mr-1.5 inline h-3.5 w-3.5" /> {t('saasIncrease.recent.button')}
+            </button>
+          )}
           <button
             onClick={() => { loadCalibration(); setCalibrationOpen(true); }}
             title={t('saasIncrease.calibration.hint') as string}
@@ -1632,6 +1681,9 @@ const SaasIncrease: React.FC = () => {
                             belongs where the decision is made rather than behind a tooltip. */}
                         <div className={`mt-0.5 text-[11px] ${textQuat}`}>
                           {s.activatedAt ? t('saasIncrease.startedOn', { date: fmtDate(s.activatedAt) }) : t('saasIncrease.startUnknown')}
+                          {isNewSinceScenario(s) && (
+                            <span className="ml-1.5 font-medium text-primary dark:text-[#F79C6A]">{t('saasIncrease.segment.newBadge')}</span>
+                          )}
                         </div>
                       </div>
                       <div className="min-w-0">
@@ -1808,6 +1860,7 @@ const SaasIncrease: React.FC = () => {
                       const segDelta = segNew - segCurrent;
                       const setCount = rows.filter(r => isIncluded(rowKey(r))).length;
                       const skipCount = rows.filter(r => isSkipped(rowKey(r))).length;
+                      const newCount = rows.filter(r => isNewSinceScenario(r)).length;
                       const allSkipped = skipCount === rows.length && rows.length > 0;
                       const sv = segmentValueFor(rows);
                       const highCount = rows.filter(r => {
@@ -1852,6 +1905,11 @@ const SaasIncrease: React.FC = () => {
                             {skipCount > 0 && (
                               <div className={`mt-0.5 whitespace-nowrap text-[11px] ${textQuat}`}>
                                 {t('saasIncrease.segment.skipCount', { count: skipCount })}
+                              </div>
+                            )}
+                            {newCount > 0 && (
+                              <div className="mt-0.5 whitespace-nowrap text-[11px] font-medium text-primary dark:text-[#F79C6A]">
+                                {t('saasIncrease.segment.newCount', { count: newCount })}
                               </div>
                             )}
                             {highCount > 0 && (

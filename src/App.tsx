@@ -77,6 +77,7 @@ const KaizenDemo = lazyRoute(() => import('./pages/KaizenDemo'));
 const Proposals = lazyRoute(() => import('./pages/Proposals'));
 const PricingGuide = lazyRoute(() => import('./pages/PricingGuide'));
 const SaasIncrease = lazyRoute(() => import('./pages/AdminPanel/SaasIncrease'));
+const SaasIncreaseLookup = lazyRoute(() => import('./pages/SaasIncreaseLookup'));
 const PartnerPortal = lazyRoute(() => import('./pages/PartnerPortal'));
 const PartnerProfile = lazyRoute(() => import('./pages/PartnerPortal/Profile'));
 const PartnerTeam = lazyRoute(() => import('./pages/PartnerPortal/Team'));
@@ -472,6 +473,15 @@ function AppContent() {
               <>
                 <PageTitle title="SaaS Increase | Sales Hub" />
                 <SaasIncrease />
+              </>
+            }
+          />
+          <Route
+            path="/saas-increase/lookup"
+            element={
+              <>
+                <PageTitle title="Référence hausse SaaS | Sales Hub" />
+                <SaasIncreaseLookup />
               </>
             }
           />

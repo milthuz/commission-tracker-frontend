@@ -410,7 +410,8 @@
     "expand": "Agrandir la barre latérale",
     "passOps": "La Passe",
     "leads": "Pistes",
-    "leadsAdmin": "Pistes"
+    "leadsAdmin": "Pistes",
+    "saasIncreaseLookup": "Référence hausse SaaS"
   },
   "tour": {
     "skip": "Passer",
@@ -1255,7 +1256,9 @@
       "skipHint": "Ne pas augmenter ce segment — le marque comme décidé, il quitte la liste À faire. Reclique pour annuler.",
       "unskipHint": "Annuler — le remettre dans la liste À faire.",
       "skipRowHint": "Épargner ce client — le reste du segment n'est pas touché.",
-      "skippedLabel": "Pas d'augmentation"
+      "skippedLabel": "Pas d'augmentation",
+      "newCount": "{{count}} nouveau(x) depuis ce scénario",
+      "newBadge": "· NOUVEAU"
     },
     "groupView": {
       "todo": "À faire ({{count}})",
@@ -1498,6 +1501,12 @@
       "perMonth": "/mois",
       "fileSuffix": "Board",
       "printHint": "Choisis « Enregistrer au format PDF » comme destination."
+    },
+    "recent": {
+      "button": "Exclure moins d'1 an",
+      "hint": "Marque « pas d'augmentation » tout abonnement signé dans les 12 derniers mois. Un marchand qui vient à peine de finir son implantation ne devrait pas découvrir une hausse comme première surprise de facturation.",
+      "confirm": "Marquer {{count}} abonnement(s) signé(s) dans les 12 derniers mois comme « pas d'augmentation »? {{withIncrease}} d'entre eux ont présentement une hausse réglée, elle sera effacée. Rien n'est envoyé ni appliqué par cette action.",
+      "none": "Aucun abonnement signé dans les 12 derniers mois ne reste à exclure."
     }
   },
   "resources": {
@@ -4498,6 +4507,68 @@
       "won": "Gagnées",
       "winRate": "Taux de réussite",
       "noData": "Aucune donnée."
+    }
+  },
+  "csLookup": {
+    "title": "Hausse SaaS — référence du service à la clientèle",
+    "subtitle": "Un marchand appelle au sujet de son prix? Cherche son compte et tu as ses chiffres exacts.",
+    "placeholder": "Nom du marchand, numéro d'abonnement ou ID marchand…",
+    "searchHint": "Tape au moins 2 caractères. Peu importe ce que le client te donne — nom, SUB-00123, ou son ID marchand.",
+    "searching": "Recherche…",
+    "error": "La recherche a échoué. Réessaie.",
+    "noResults": "Aucun changement de prix pour cette recherche.",
+    "noResultsHint": "La raison la plus fréquente n'est pas une faute de frappe : ce marchand n'a simplement pas eu de hausse. Ne t'excuse pas pour une augmentation qui n'existe pas — confirme-lui que son prix est inchangé. Si tu crois qu'il devrait y être, escalade au lieu de deviner.",
+    "plan": "Forfait",
+    "currentPrice": "Prix actuel",
+    "newPrice": "Nouveau prix",
+    "effective": "En vigueur le",
+    "zohoStatus": "Appliqué dans Zoho",
+    "sentTo": "Avis envoyé à",
+    "campaign": "Campagne",
+    "noticeSent": "Avisé le {{date}}",
+    "noticeNotSent": "Pas encore avisé",
+    "noticeFailed": "Échec de l'envoi de l'avis",
+    "showEmail": "Voir le courriel exact reçu par le marchand",
+    "push": {
+      "pending": "Non appliqué",
+      "pushed": "Appliqué",
+      "push_failed": "Échec"
+    },
+    "faqTitle": "Quoi répondre",
+    "faqSubtitle": "À lire avant le premier appel. En cas de doute, escalade — n'improvise jamais un prix.",
+    "faq": {
+      "why": {
+        "q": "Pourquoi mon prix augmente-t-il?",
+        "a": "Cluster investit continuellement dans la plateforme : le logiciel, les intégrations et le soutien. La hausse sert à soutenir ces investissements. Pour la plupart des comptes, c'est la première augmentation depuis leur adhésion — ça vaut la peine de le mentionner, ça désamorce beaucoup de frustration."
+      },
+      "howMuch": {
+        "q": "De combien au juste?",
+        "a": "Ça varie selon le forfait. Cherche son compte ci-dessus et lis-lui le « Nouveau prix » affiché : c'est exactement le montant qui sera facturé, taxes en sus. Ne calcule jamais de tête et ne devine jamais un pourcentage."
+      },
+      "when": {
+        "q": "À partir de quand?",
+        "a": "Au prochain renouvellement de SON abonnement — pas à une date commune à tout le monde. La date exacte est sur la fiche, sous « En vigueur le ». Rien n'est prélevé avant cette date, et sa facture actuelle reste inchangée d'ici là."
+      },
+      "notice": {
+        "q": "Est-ce qu'on l'a avisé?",
+        "a": "La pastille en haut de la fiche le dit, avec la date. Si un avis a été envoyé, l'adresse utilisée est affichée juste en dessous — c'est souvent là que se trouve l'explication d'un « je n'ai rien reçu » : une adresse de facturation devenue obsolète."
+      },
+      "refuse": {
+        "q": "Le client refuse ou menace de partir",
+        "a": "N'accorde aucun rabais, aucune exception, aucune annulation de la hausse. Tu n'as pas ce pouvoir, et une promesse faite au téléphone devient très difficile à reprendre. Écoute, note la demande, confirme les faits, et escalade. Une exception ne peut venir que d'un gestionnaire."
+      },
+      "cancel": {
+        "q": "Peut-il annuler son abonnement?",
+        "a": "Selon les modalités de son entente existante, qui varient d'un compte à l'autre. Ne t'improvise pas juriste et ne cite aucune clause de mémoire : escalade toute question contractuelle ou de résiliation."
+      },
+      "noNotice": {
+        "q": "Il dit n'avoir rien reçu",
+        "a": "Vérifie l'adresse affichée sur la fiche. Si elle est périmée, confirme-lui de vive voix le nouveau prix et la date, note la bonne adresse et demande un renvoi à un administrateur. Ne lui transfère pas le courriel toi-même depuis ta boîte personnelle."
+      },
+      "escalate": {
+        "q": "À qui escalader?",
+        "a": "Toute demande de rabais ou d'exception, toute question contractuelle, et tout cas où les chiffres de la fiche te semblent faux. N'engage jamais Cluster sur un prix. (Nom et coordonnées à compléter par la direction.)"
+      }
     }
   }
 }

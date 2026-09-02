@@ -595,6 +595,26 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Menu Item SaaS increase support reference (perm: saas_increase:lookup) —
+                   read-only lookup for the customer-service desk, deliberately reachable without
+                   saas_increase:manage so an agent can answer a call without being able to build,
+                   notify or push anything. --> */}
+              {(isAdmin || can('saas_increase:lookup')) && (
+                <li>
+                  <NavLink
+                    to="/saas-increase/lookup"
+                    className={navLinkCls(pathname === '/saas-increase/lookup')}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="7" />
+                      <path d="m20 20-3.5-3.5" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.saasIncreaseLookup')}</span>
+                    <NewBadge path="/saas-increase/lookup" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.saasIncreaseLookup') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Admin Panel (Admin Only) --> */}
               {isAdmin && (
                 <li>
