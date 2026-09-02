@@ -1855,10 +1855,28 @@ const SaasIncrease: React.FC = () => {
             thousands of editable ones. */}
         <div>
           {(() => {
-                const columnHeader = (rows: Subscription[]) => (
+                // The select-all checkbox lives here, so the action you take on a selection belongs
+                // here too. The CUSTOMER label gives way to it rather than sitting beside it: at
+                // 2.2fr the column has room for one or the other, not both, and a label is worth
+                // less than the action while a selection is live.
+                const columnHeader = (rows: Subscription[]) => {
+                  const picked = rows.filter(r => edits[rowKey(r)]?.selected);
+                  return (
                   <div className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 bg-gray-50 px-4.5 py-2 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]`}>
                     <label className="flex items-center"><input type="checkbox" checked={isGroupAllSelected(rows)} onChange={() => toggleGroupSelectAll(rows)} className="h-4 w-4 accent-primary" /></label>
-                    <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCustomer')}</span>
+                    {picked.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setSkipped(picked, true)}
+                        title={t('saasIncrease.segment.spareSelectedHint') as string}
+                        className="inline-flex items-center gap-1.5 justify-self-start whitespace-nowrap rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-white hover:bg-opacity-90"
+                      >
+                        <Ban className="h-3.5 w-3.5" />
+                        {t('saasIncrease.segment.spareSelected', { count: picked.length })}
+                      </button>
+                    ) : (
+                      <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCustomer')}</span>
+                    )}
                     <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colPlan')}</span>
                     <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCurrent')}</span>
                     <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colIncrease')}</span>
@@ -1867,7 +1885,8 @@ const SaasIncrease: React.FC = () => {
                     <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colHistory')}</span>
                     <span className={`justify-self-end text-right text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colStatus')}</span>
                   </div>
-                );
+                  );
+                };
                 const renderRow = (s: Subscription) => {
                   const e = edits[rowKey(s)];
                   const included = isIncluded(rowKey(s));

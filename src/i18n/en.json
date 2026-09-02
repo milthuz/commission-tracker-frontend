@@ -1266,7 +1266,9 @@
       "todoCount": "{{count}} to decide",
       "newCountHint": "Subscriptions that appeared in Zoho after this scenario was created. They sort first inside the segment.",
       "searchPlaceholder": "Search this segment — name, SUB number, merchant ID",
-      "showingCount": "{{shown}} of {{total}} shown"
+      "showingCount": "{{shown}} of {{total}} shown",
+      "spareSelected": "Spare {{count}} selected",
+      "spareSelectedHint": "Marks the {{count}} checked subscriptions as \"not raising\". Clears any increase set on them. Nothing is sent or pushed."
     },
     "groupView": {
       "todo": "To do ({{count}})",

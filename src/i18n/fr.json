@@ -1266,7 +1266,9 @@
       "todoCount": "{{count}} à décider",
       "newCountHint": "Abonnements apparus dans Zoho après la création de ce scénario. Ils sont triés en premier dans le segment.",
       "searchPlaceholder": "Chercher dans ce segment — nom, n° SUB, ID marchand",
-      "showingCount": "{{shown}} sur {{total}} affichés"
+      "showingCount": "{{shown}} sur {{total}} affichés",
+      "spareSelected": "Épargner les {{count}}",
+      "spareSelectedHint": "Marque les abonnements cochés comme « pas d'augmentation ». Efface toute hausse réglée sur eux. Rien n'est envoyé ni appliqué."
     },
     "groupView": {
       "todo": "À faire ({{count}})",
