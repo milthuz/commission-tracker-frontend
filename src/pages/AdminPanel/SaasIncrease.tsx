@@ -2077,7 +2077,7 @@ const SaasIncrease: React.FC = () => {
                 // at. Each carries its own increase control that writes through to every
                 // subscription underneath it, so a scenario is built in a few dozen keystrokes
                 // instead of thousands. Individual subscriptions live behind "View".
-                const segCols = 'grid-cols-[2.4fr_1.1fr_1.4fr_1.2fr_1.5fr_auto]';
+                const segCols = 'grid-cols-[2fr_1.1fr_1.9fr_1.2fr_1.4fr_auto]';
                 const drilldown = drilldownKey ? groupedRows.find(([k]) => k === drilldownKey) : null;
                 return (
                   <>
@@ -2178,15 +2178,16 @@ const SaasIncrease: React.FC = () => {
                             </div>
                           </div>
                           <div className={`justify-self-end text-right text-sm tabular-nums ${textPri}`}>{money(segCurrent)}</div>
-                          <div className="flex items-center gap-1.5">
-                            <div className={`inline-flex rounded-lg p-0.5 ${chipInput}`}>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                            <div className={`inline-flex shrink-0 rounded-lg p-0.5 ${chipInput}`}>
                               <button type="button" onClick={() => applyToSegment(rows, { increaseType: 'percent' })} className={segBtn(sv.type === 'percent')}>%</button>
                               <button type="button" onClick={() => applyToSegment(rows, { increaseType: 'flat' })} className={segBtn(sv.type === 'flat')}>$</button>
                               <button type="button" onClick={() => applyToSegment(rows, { increaseType: 'target' })} className={segBtn(sv.type === 'target')} title={t('saasIncrease.setToHint') as string}>=</button>
                             </div>
                             <input
                               type="number"
-                              placeholder={sv.mixed && sv.min !== sv.max ? `${sv.min}–${sv.max}` : '0'}
+                              placeholder={sv.mixed ? '—' : '0'}
                               title={sv.mixed ? (t('saasIncrease.segment.mixedHint', { min: sv.min, max: sv.max }) as string) : ''}
                               value={segmentDraft?.key === key ? segmentDraft.raw : (sv.mixed ? '' : (sv.value || ''))}
                               onWheel={(ev) => ev.currentTarget.blur()}
@@ -2196,8 +2197,16 @@ const SaasIncrease: React.FC = () => {
                                 setSegmentDraft({ key, raw: ev.target.value });
                                 applyToSegment(rows, { increaseValue: Number(ev.target.value) || 0 });
                               }}
-                              className={`w-[78px] rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary dark:bg-[#0A0A0A] dark:text-white ${setCount > 0 ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
+                              className={`w-[78px] shrink-0 rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary dark:bg-[#0A0A0A] dark:text-white ${setCount > 0 ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
                             />
+                          </div>
+                          {sv.mixed && (
+                            <div className={`mt-1 text-[11px] tabular-nums ${textQuat}`}>
+                              {sv.min === sv.max
+                                ? t('saasIncrease.segment.mixedTypes')
+                                : t('saasIncrease.segment.rangeLabel', { min: sv.min, max: sv.max })}
+                            </div>
+                          )}
                           </div>
                           <div className="justify-self-end text-right">
                             <div className={`text-sm font-medium tabular-nums ${setCount > 0 ? textPri : textSec}`}>{money(segNew)}</div>

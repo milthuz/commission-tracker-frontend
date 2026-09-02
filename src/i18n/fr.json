@@ -1272,7 +1272,9 @@
       "spareShown": "Épargner ces {{count}}",
       "spareShownConfirm": "Marquer les {{count}} abonnements affichés comme « pas d'augmentation »? {{withIncrease}} d'entre eux ont une hausse réglée, elle sera effacée. Rien n'est envoyé ni appliqué. Coche des lignes précises d'abord si tu n'en veux qu'une partie.",
       "unspareCount": "Réintégrer les {{count}}",
-      "unspareHint": "Remet ces abonnements dans la liste À faire. Leur hausse reste effacée, donc ils redeviennent à décider."
+      "unspareHint": "Remet ces abonnements dans la liste À faire. Leur hausse reste effacée, donc ils redeviennent à décider.",
+      "rangeLabel": "{{min}} – {{max}}",
+      "mixedTypes": "types mélangés dans ce segment"
     },
     "groupView": {
       "todo": "À faire ({{count}})",
