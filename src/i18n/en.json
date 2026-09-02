@@ -1268,7 +1268,9 @@
       "searchPlaceholder": "Search this segment — name, SUB number, merchant ID",
       "showingCount": "{{shown}} of {{total}} shown",
       "spareSelected": "Spare {{count}} selected",
-      "spareSelectedHint": "Marks the {{count}} checked subscriptions as \"not raising\". Clears any increase set on them. Nothing is sent or pushed."
+      "spareSelectedHint": "Marks the {{count}} checked subscriptions as \"not raising\". Clears any increase set on them. Nothing is sent or pushed.",
+      "spareShown": "Spare these {{count}}",
+      "spareShownConfirm": "Mark all {{count}} subscriptions shown as \"not raising\"? {{withIncrease}} of them have an increase set, which will be cleared. Nothing is sent or pushed. Tick specific rows first if you only mean some of them."
     },
     "groupView": {
       "todo": "To do ({{count}})",

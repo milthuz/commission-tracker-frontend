@@ -1856,23 +1856,41 @@ const SaasIncrease: React.FC = () => {
         <div>
           {(() => {
                 // The select-all checkbox lives here, so the action you take on a selection belongs
-                // here too. The CUSTOMER label gives way to it rather than sitting beside it: at
-                // 2.2fr the column has room for one or the other, not both, and a label is worth
-                // less than the action while a selection is live.
+                // here too. ALWAYS visible: gating it on a live selection made it undiscoverable —
+                // you had to already know it existed to make it appear. With nothing checked it
+                // acts on the rows currently shown, which is what "spare this list" means, and
+                // says so in its own label rather than leaving you to guess its scope.
                 const columnHeader = (rows: Subscription[]) => {
                   const picked = rows.filter(r => edits[rowKey(r)]?.selected);
+                  const targets = picked.length > 0 ? picked : rows.filter(r => !isSkipped(rowKey(r)));
+                  const spareHeader = async () => {
+                    if (!targets.length) return;
+                    // An explicit tick-list needs no confirmation; acting on everything shown does.
+                    if (picked.length === 0) {
+                      const withIncrease = targets.filter(r => isIncluded(rowKey(r))).length;
+                      const ok = await dialog.confirm(
+                        t('saasIncrease.segment.spareShownConfirm', { count: targets.length, withIncrease }) as string);
+                      if (!ok) return;
+                    }
+                    setSkipped(targets, true);
+                  };
                   return (
                   <div className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 bg-gray-50 px-4.5 py-2 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]`}>
                     <label className="flex items-center"><input type="checkbox" checked={isGroupAllSelected(rows)} onChange={() => toggleGroupSelectAll(rows)} className="h-4 w-4 accent-primary" /></label>
-                    {picked.length > 0 ? (
+                    {targets.length > 0 ? (
                       <button
                         type="button"
-                        onClick={() => setSkipped(picked, true)}
+                        onClick={spareHeader}
                         title={t('saasIncrease.segment.spareSelectedHint') as string}
-                        className="inline-flex items-center gap-1.5 justify-self-start whitespace-nowrap rounded-md bg-primary px-2 py-1 text-[11px] font-semibold text-white hover:bg-opacity-90"
+                        className={`inline-flex items-center gap-1.5 justify-self-start whitespace-nowrap rounded-md px-2 py-1 text-[11px] font-semibold ${
+                          picked.length > 0
+                            ? 'bg-primary text-white hover:bg-opacity-90'
+                            : `${chipInput} ${textSec} hover:text-gray-900 dark:hover:text-white`}`}
                       >
                         <Ban className="h-3.5 w-3.5" />
-                        {t('saasIncrease.segment.spareSelected', { count: picked.length })}
+                        {picked.length > 0
+                          ? t('saasIncrease.segment.spareSelected', { count: picked.length })
+                          : t('saasIncrease.segment.spareShown', { count: targets.length })}
                       </button>
                     ) : (
                       <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCustomer')}</span>
