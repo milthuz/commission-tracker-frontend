@@ -1400,7 +1400,9 @@
         "drafted": "Rédigé",
         "sent": "Envoyé",
         "send_failed": "Échec"
-      }
+      },
+      "internalNoRecipients": "Avis envoyés aux marchands. Aucun avis interne n'est parti — personne n'est configuré pour le recevoir. Ajoute des destinataires dans Admin → Notifications pour que le service à la clientèle soit prévenu avant les appels.",
+      "internalSent": "Avis envoyés. Avis interne livré à {{count}} collègue(s)."
     },
     "templates": {
       "manage": "Gérer les modèles",
@@ -2511,7 +2513,9 @@
       "passCreditTitle": "La Passe — crédit à appliquer",
       "passCreditHint": "Envoyé quand un crédit de recommandation est appliqué, pour que la comptabilité le porte au compte Zoho Books du marchand. Une liste vide n’envoie RIEN — le crédit est enregistré mais personne n’est prévenu, et le marchand n’est jamais payé.",
       "leadReviewTitle": "Piste en attente d'examen",
-      "leadReviewHint": "Envoyé à l'arrivée d'une piste, puis en relance si elle attend toujours après le délai fixé dans Admin → Pistes. Liste vide = aucun courriel, la file devient le seul signal."
+      "leadReviewHint": "Envoyé à l'arrivée d'une piste, puis en relance si elle attend toujours après le délai fixé dans Admin → Pistes. Liste vide = aucun courriel, la file devient le seul signal.",
+      "saasIncreaseInternalTitle": "Hausse de prix SaaS — avis interne de lancement",
+      "saasIncreaseInternalHint": "Envoyé une fois par lot quand des avis partent aux marchands : combien de marchands, quels forfaits, les dates d'effet, et le lien vers la référence du service à la clientèle. Liste vide = personne n'est avisé, et le premier à apprendre la hausse sera celui qui répond au téléphone."
     },
     "deals": {
       "title": "Transactions",

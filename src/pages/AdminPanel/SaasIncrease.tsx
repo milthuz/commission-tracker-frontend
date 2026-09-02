@@ -1089,7 +1089,16 @@ const SaasIncrease: React.FC = () => {
         body: JSON.stringify({ items }),
       });
       if (!r.ok) throw new Error(String(r.status));
+      const d = await r.json();
       await loadScenarioDetail(activeScenarioId);
+      // Say what happened to the internal notice. A recipient list nobody filled in means the
+      // support desk was not warned, and that has to be visible at the moment of sending — not
+      // discovered when the first merchant calls someone who knows nothing about it.
+      if (d.internal?.reason === 'no_recipients') {
+        dialog.alert(t('saasIncrease.notify.internalNoRecipients') as string);
+      } else if (d.internal?.sent) {
+        dialog.alert(t('saasIncrease.notify.internalSent', { count: d.internal.delivered }) as string);
+      }
     } catch { dialog.alert(t('saasIncrease.error') as string); }
     finally { markNotifyBusy(itemIds, false); }
   };

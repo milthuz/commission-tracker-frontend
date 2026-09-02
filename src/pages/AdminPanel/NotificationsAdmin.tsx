@@ -209,6 +209,15 @@ export default function NotificationsAdmin() {
         endpoint={`${API_URL}/api/admin/lead-review-recipients`}
         users={users} />
 
+      {/* A batch of SaaS price-increase notices just went out to merchants. EMPTY LIST = nobody is
+          told, and the first person to hear about the increase is whoever picks up the phone.
+          The send response says so out loud rather than reporting a silent success. */}
+      <RecipientListCard icon="📈"
+        title={t('admin.notifications.saasIncreaseInternalTitle')}
+        hint={t('admin.notifications.saasIncreaseInternalHint')}
+        endpoint={`${API_URL}/api/admin/saas-increase/internal-recipients`}
+        users={users} />
+
       {/* A partner submitted a new opportunity through the Partner Portal */}
       <RecipientListCard icon="🤝"
         title={t('admin.notifications.partnerOpportunityTitle')}

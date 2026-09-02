@@ -1400,7 +1400,9 @@
         "drafted": "Drafted",
         "sent": "Sent",
         "send_failed": "Failed"
-      }
+      },
+      "internalNoRecipients": "Notices sent. No internal launch notice went out — nobody is configured to receive it. Add recipients under Admin → Notifications so the support desk is warned before the calls start.",
+      "internalSent": "Notices sent. Internal launch notice delivered to {{count}} colleague(s)."
     },
     "templates": {
       "manage": "Manage templates",
@@ -2511,7 +2513,9 @@
       "passCreditTitle": "The Pass — credit to apply",
       "passCreditHint": "Emailed when a referral credit is applied, so accounting can post it to the merchant’s Zoho Books account. An empty list sends NOTHING — the credit is recorded but nobody is told, and the merchant never gets paid.",
       "leadReviewTitle": "Lead waiting for review",
-      "leadReviewHint": "Sent when a lead arrives, and again if it is still waiting after the delay set in Admin → Leads. Leave empty and nobody is emailed — the queue becomes the only signal."
+      "leadReviewHint": "Sent when a lead arrives, and again if it is still waiting after the delay set in Admin → Leads. Leave empty and nobody is emailed — the queue becomes the only signal.",
+      "saasIncreaseInternalTitle": "SaaS price increase — internal launch notice",
+      "saasIncreaseInternalHint": "Emailed once per batch when merchant notices go out: how many merchants, which plans, the effective dates, and a link to the support reference. Empty list = nobody is told, and the first to hear about the increase is whoever picks up the phone."
     },
     "deals": {
       "title": "Deals",
