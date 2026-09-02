@@ -1517,6 +1517,37 @@
       "hint": "Marks every subscription signed in the last 12 months as not raising. A merchant who has barely finished onboarding should not meet a price increase as their first billing surprise.",
       "confirm": "Mark {{count}} subscription(s) signed in the last 12 months as not raising? {{withIncrease}} of them currently have an increase set, which will be cleared. Nothing is sent or pushed by this.",
       "none": "No subscription signed in the last 12 months is left to exclude."
+    },
+    "audit": {
+      "button": "Check for anomalies",
+      "buttonCount": "{{count}} to review",
+      "hint": "Looks for increases that are misconfigured or out of step with the rest of their segment, before any of it reaches billing.",
+      "title": "Anomaly check",
+      "subtitle": "Nothing here is automatically wrong — each one is a number worth a second look. Click a line to jump to it.",
+      "clean": "Nothing to flag.",
+      "cleanHint": "No decreases, no-ops, extreme percentages, annual flat amounts or segment outliers among the increases currently set. This checks configuration, not whether the campaign is a good idea.",
+      "andMore": "and {{count}} more",
+      "kind": {
+        "unverified": "Cannot be pushed — base price not separated",
+        "decrease": "Price goes DOWN",
+        "extreme": "Extreme increase",
+        "noop": "Increase changes nothing",
+        "annualFlat": "Flat amount on an annual plan",
+        "outlier": "Out of step with its segment"
+      },
+      "why": {
+        "unverified": "The plan price has not been separated from its addons for these subscriptions, so pushing would set the plan price to a plan+addons figure. The push refuses them — run \"Verify base prices\" first.",
+        "decrease": "The new price is lower than what the customer pays today. Almost always a \"set to\" price typed below the current one. This one costs money.",
+        "extreme": "More than 50% above the current price. Far likelier a typed digit than a decision — check the amount and the mode (% versus $).",
+        "noop": "An increase is set but the new price equals the current one. The merchant would receive a notice about a change that never happens.",
+        "annualFlat": "A flat amount on an annual plan is per YEAR, not per month. \"+$10\" on a $1,285/yr plan is very likely $10 a month intended.",
+        "outlier": "More than 15 points away from the median of its own segment. Exceptions are legitimate — this only asks whether this one is deliberate."
+      },
+      "detail": {
+        "unverified": "base price unknown",
+        "annualFlat": "{{amount}} per year (+{{pct}}%)",
+        "outlier": "+{{pct}}% vs {{median}}% median"
+      }
     }
   },
   "resources": {

@@ -1517,6 +1517,37 @@
       "hint": "Marque « pas d'augmentation » tout abonnement signé dans les 12 derniers mois. Un marchand qui vient à peine de finir son implantation ne devrait pas découvrir une hausse comme première surprise de facturation.",
       "confirm": "Marquer {{count}} abonnement(s) signé(s) dans les 12 derniers mois comme « pas d'augmentation »? {{withIncrease}} d'entre eux ont présentement une hausse réglée, elle sera effacée. Rien n'est envoyé ni appliqué par cette action.",
       "none": "Aucun abonnement signé dans les 12 derniers mois ne reste à exclure."
+    },
+    "audit": {
+      "button": "Vérifier les anomalies",
+      "buttonCount": "{{count}} à revoir",
+      "hint": "Cherche les hausses mal configurées ou différentes du reste de leur segment, avant que quoi que ce soit touche la facturation.",
+      "title": "Vérification des anomalies",
+      "subtitle": "Rien ici n’est automatiquement une erreur — chaque ligne est un chiffre qui mérite un second regard. Clique une ligne pour y aller.",
+      "clean": "Rien à signaler.",
+      "cleanHint": "Aucune baisse, aucune hausse sans effet, aucun pourcentage extrême, aucun montant fixe sur un forfait annuel et aucune valeur aberrante parmi les hausses réglées. Ça vérifie la configuration, pas si la campagne est une bonne idée.",
+      "andMore": "et {{count}} autres",
+      "kind": {
+        "unverified": "Impossible à appliquer — prix de base non séparé",
+        "decrease": "Le prix BAISSE",
+        "extreme": "Hausse extrême",
+        "noop": "La hausse ne change rien",
+        "annualFlat": "Montant fixe sur un forfait annuel",
+        "outlier": "Différent de son segment"
+      },
+      "why": {
+        "unverified": "Le prix du plan n’a pas été séparé de ses addons pour ces abonnements : les appliquer inscrirait un montant plan+addons comme prix du plan. Le push les refuse — lance « Vérifier les prix de base » d’abord.",
+        "decrease": "Le nouveau prix est plus bas que ce que le client paie aujourd’hui. Presque toujours un prix « fixé à » tapé sous le prix actuel. Celle-là coûte de l’argent.",
+        "extreme": "Plus de 50 % au-dessus du prix actuel. Bien plus probablement un chiffre de trop qu’une décision — vérifie le montant et le mode (% ou $).",
+        "noop": "Une hausse est réglée mais le nouveau prix égale l’actuel. Le marchand recevrait un avis pour un changement qui n’arrive jamais.",
+        "annualFlat": "Un montant fixe sur un forfait annuel s’applique par ANNÉE, pas par mois. « +10 $ » sur un forfait à 1 285 $/an, c’est très probablement 10 $ par mois qui était voulu.",
+        "outlier": "À plus de 15 points de la médiane de son propre segment. Les exceptions sont légitimes — la question est seulement de savoir si celle-ci est voulue."
+      },
+      "detail": {
+        "unverified": "prix de base inconnu",
+        "annualFlat": "{{amount}} par année (+{{pct}} %)",
+        "outlier": "+{{pct}} % vs médiane {{median}} %"
+      }
     }
   },
   "resources": {

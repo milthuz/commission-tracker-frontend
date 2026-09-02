@@ -4,7 +4,7 @@ import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban, Presentation } from 'lucide-react';
+import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban, Presentation, AlertTriangle } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 import SaasIncreaseBoard, { type BoardRow } from './SaasIncreaseBoard';
@@ -237,6 +237,7 @@ const SaasIncrease: React.FC = () => {
   // removed it from the filtered list mid-keystroke and took the focused input with it — you
   // could never type a second digit. A row you just decided stays put until you reopen.
   const [todoSnapshot, setTodoSnapshot] = useState<Set<string>>(new Set());
+  const [auditOpen, setAuditOpen] = useState(false);
   const [openOrgInfo, setOpenOrgInfo] = useState<string | null>(null);
   // What Zoho actually has scheduled for a pushed item, per item id.
   const [scheduledInfo, setScheduledInfo] = useState<Record<number, { loading?: boolean; error?: string; text?: string; matches?: boolean; found?: boolean }>>({});
@@ -711,6 +712,96 @@ const SaasIncrease: React.FC = () => {
   // Monthly equivalent — used ONLY where amounts from different cadences must be summed (the MRR
   // tiles, the target progress). Never as a price.
   const newMonthlyFor = (s: Subscription, e?: RowEdit) => newPeriodFor(s, e) / periodMonths(s);
+
+  // ---------------------------------------------------------------------------------------------
+  // Anomaly audit. The last net before a scenario touches real billing. Every check below is
+  // something that has either already happened in this tool or is one keystroke away, and each
+  // one is stated as a fact about numbers rather than a guess about intent.
+  // Runs entirely on what is on screen — same rows, same helpers — so it can never disagree with
+  // the table it audits.
+  // ---------------------------------------------------------------------------------------------
+  const EXTREME_PCT = 50;      // above this, a percentage is far likelier a typo than a decision
+  const OUTLIER_GAP_PCT = 15;  // points away from its own segment before a row is worth a look
+  const OUTLIER_MIN_ROWS = 5;  // a segment needs a real cohort before "outlier" means anything
+
+  type Anomaly = {
+    sub: Subscription;
+    segKey: string;
+    kind: 'unverified' | 'decrease' | 'noop' | 'extreme' | 'annualFlat' | 'outlier';
+    severity: 'high' | 'medium';
+    detail: string;
+  };
+
+  const anomalies = useMemo<Anomaly[]>(() => {
+    const out: Anomaly[] = [];
+    const pctOf = (sub: Subscription) => {
+      const c = currentPeriodFor(sub);
+      return c > 0 ? ((newPeriodFor(sub, edits[rowKey(sub)]) - c) / c) * 100 : 0;
+    };
+
+    for (const [segKey, rows] of groupedRows) {
+      const raised = rows.filter(r => isIncluded(rowKey(r)));
+      if (!raised.length) continue;
+
+      // Median, not mean: one fat-fingered 1000% would drag a mean far enough to make itself
+      // look normal and everything else look like the outlier.
+      const pcts = raised.map(pctOf).sort((a, b) => a - b);
+      const median = pcts[Math.floor(pcts.length / 2)];
+
+      for (const sub of raised) {
+        const key = rowKey(sub);
+        const e = edits[key];
+        const cur = currentPeriodFor(sub);
+        const next = newPeriodFor(sub, e);
+        const pct = pctOf(sub);
+        const per = periodSuffix(sub);
+
+        // Cannot be pushed at all — the plan price has not been separated from its addons, so
+        // writing it to Zoho would set the plan price to a plan+addons figure.
+        if (!sub.baseVerified) {
+          out.push({ sub, segKey, kind: 'unverified', severity: 'high',
+            detail: t('saasIncrease.audit.detail.unverified') as string });
+        }
+        // A 'target' price below what they pay today is a price CUT dressed as an increase.
+        if (next < cur - 0.005) {
+          out.push({ sub, segKey, kind: 'decrease', severity: 'high',
+            detail: `${money(cur)} → ${money(next)} ${per} (${pct.toFixed(1)}%)` });
+        } else if (Math.abs(next - cur) < 0.005) {
+          // An increase is set, and it changes nothing. Usually a target typed equal to the
+          // current price — the merchant gets a notice about a change that never happens.
+          out.push({ sub, segKey, kind: 'noop', severity: 'medium',
+            detail: `${money(cur)} → ${money(next)} ${per}` });
+        } else if (pct > EXTREME_PCT) {
+          out.push({ sub, segKey, kind: 'extreme', severity: 'high',
+            detail: `+${pct.toFixed(1)}% · ${money(cur)} → ${money(next)} ${per}` });
+        }
+        // A flat amount on an annual plan is per YEAR. "+$10" on a $1,285/yr plan is almost
+        // certainly $10 a month intended — the mistake the per-period model made possible.
+        if (e?.increaseType === 'flat' && periodMonths(sub) >= 12 && (e.increaseValue || 0) < cur * 0.02) {
+          out.push({ sub, segKey, kind: 'annualFlat', severity: 'medium',
+            detail: t('saasIncrease.audit.detail.annualFlat', { amount: money(e.increaseValue || 0), pct: pct.toFixed(1) }) as string });
+        }
+        // Different from the rest of its own segment. Not wrong by itself — exceptions are
+        // legitimate — but worth a second look before thousands of them go out.
+        if (raised.length >= OUTLIER_MIN_ROWS && Math.abs(pct - median) > OUTLIER_GAP_PCT && next > cur) {
+          out.push({ sub, segKey, kind: 'outlier', severity: 'medium',
+            detail: t('saasIncrease.audit.detail.outlier', { pct: pct.toFixed(1), median: median.toFixed(1) }) as string });
+        }
+      }
+    }
+    return out.sort((a, b) => (a.severity === b.severity ? 0 : a.severity === 'high' ? -1 : 1));
+  }, [groupedRows, edits, calibration, t]);
+
+  const highAnomalies = anomalies.filter(a => a.severity === 'high').length;
+
+  // Jump straight to the offending row: open its segment and search for its number.
+  const inspectAnomaly = (a: Anomaly) => {
+    setAuditOpen(false);
+    openDrilldown(a.segKey);
+    setDrilldownOnlyTodo(false);
+    setDrilldownSearch(a.sub.subscriptionNumber);
+  };
+
 
   const includedCount = subs.filter(s => isIncluded(rowKey(s))).length;
   const mrrDelta = subs.reduce((sum, s) => {
@@ -1401,6 +1492,68 @@ const SaasIncrease: React.FC = () => {
         </div>
       )}
 
+      {auditOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setAuditOpen(false)}>
+          <div className={`flex h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(ev) => ev.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
+              <div>
+                <p className={`font-semibold ${textPri}`}>{t('saasIncrease.audit.title')}</p>
+                <p className={`mt-0.5 text-xs ${textTer}`}>{t('saasIncrease.audit.subtitle')}</p>
+              </div>
+              <button onClick={() => setAuditOpen(false)} className={`${textSec} shrink-0 hover:text-red-500`}>
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto px-5 py-4">
+              {anomalies.length === 0 ? (
+                <div className="py-10 text-center">
+                  <p className="text-sm font-medium text-emerald-600 dark:text-[#57D193]">{t('saasIncrease.audit.clean')}</p>
+                  <p className={`mx-auto mt-1.5 max-w-[60ch] text-xs ${textQuat}`}>{t('saasIncrease.audit.cleanHint')}</p>
+                </div>
+              ) : (
+                (['unverified', 'decrease', 'extreme', 'noop', 'annualFlat', 'outlier'] as const).map(kind => {
+                  const group = anomalies.filter(a => a.kind === kind);
+                  if (!group.length) return null;
+                  const high = group[0].severity === 'high';
+                  return (
+                    <div key={kind} className="mb-5">
+                      <div className="flex items-baseline gap-2">
+                        <span className={`text-sm font-semibold ${high ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                          {t(`saasIncrease.audit.kind.${kind}`)}
+                        </span>
+                        <span className={`text-xs ${textQuat}`}>{group.length}</span>
+                      </div>
+                      <p className={`mt-0.5 max-w-[80ch] text-xs ${textTer}`}>{t(`saasIncrease.audit.why.${kind}`)}</p>
+                      <div className={`mt-2 divide-y ${divider} ${raised}`}>
+                        {group.slice(0, 40).map(a => (
+                          <button
+                            key={`${kind}-${rowKey(a.sub)}`}
+                            type="button"
+                            onClick={() => inspectAnomaly(a)}
+                            className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-black/5 dark:hover:bg-white/5"
+                          >
+                            <span className="min-w-0">
+                              <span className={`block truncate text-[13px] font-medium ${textPri}`}>{a.sub.customerName}</span>
+                              <span className={`block truncate font-mono text-[11px] ${textQuat}`}>
+                                {a.sub.subscriptionNumber} · {a.segKey.split('||')[1]}
+                              </span>
+                            </span>
+                            <span className={`shrink-0 whitespace-nowrap text-right text-[11px] tabular-nums ${textSec}`}>{a.detail}</span>
+                          </button>
+                        ))}
+                      </div>
+                      {group.length > 40 && (
+                        <p className={`mt-1.5 text-[11px] ${textQuat}`}>{t('saasIncrease.audit.andMore', { count: group.length - 40 })}</p>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* HERO: scenario progress + stat tiles */}
       {activeScenarioId && (
         <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[1.35fr_1fr]">
@@ -1593,6 +1746,21 @@ const SaasIncrease: React.FC = () => {
               className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md bg-primary px-3 py-2 text-xs font-medium text-white hover:bg-opacity-90"
             >
               <Sparkles className="h-3.5 w-3.5" /> {t('saasIncrease.suggestScenario')}
+            </button>
+          )}
+          {activeScenarioId && (
+            <button
+              onClick={() => setAuditOpen(true)}
+              title={t('saasIncrease.audit.hint') as string}
+              className={`${raised} whitespace-nowrap px-2.5 py-2 text-xs font-medium ${
+                highAnomalies > 0 ? 'text-red-600 dark:text-red-400'
+                : anomalies.length > 0 ? 'text-amber-600 dark:text-amber-400'
+                : textSec} hover:text-gray-900 dark:hover:text-white`}
+            >
+              <AlertTriangle className="mr-1.5 inline h-3.5 w-3.5" />
+              {anomalies.length > 0
+                ? t('saasIncrease.audit.buttonCount', { count: anomalies.length })
+                : t('saasIncrease.audit.button')}
             </button>
           )}
           {/* Mass exclusion of the newly-signed. Sitting beside Suggest Scenario on purpose: it
