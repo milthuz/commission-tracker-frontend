@@ -242,6 +242,10 @@ const SaasIncrease: React.FC = () => {
   // What Zoho actually has scheduled for a pushed item, per item id.
   const [scheduledInfo, setScheduledInfo] = useState<Record<number, { loading?: boolean; error?: string; text?: string; matches?: boolean; found?: boolean }>>({});
   const [editingSegment, setEditingSegment] = useState<string | null>(null);
+  // What is literally in the segment box while it has focus. Deriving the displayed value from
+  // the rows on every keystroke also made decimals impossible: Number("0.") is NaN, fell back to
+  // 0, and erased the "0." you were halfway through typing.
+  const [segmentDraft, setSegmentDraft] = useState<{ key: string; raw: string } | null>(null);
   const [refreshingInsights, setRefreshingInsights] = useState(false);
   const [showScanDetails, setShowScanDetails] = useState(false);
   const [stoppingScan, setStoppingScan] = useState(false);
@@ -672,12 +676,19 @@ const SaasIncrease: React.FC = () => {
   // Suggest run (it assigns each subscription its own risk-adjusted rate) or when a saved
   // scenario only covers part of the segment. Rather than a bare "mixed", the min/max are
   // reported so the box still says something useful about what's underneath it.
+  // Reads exactly the rows applyToSegment WRITES — the spared ones are excluded from both.
+  // They disagreed before, and that mismatch is what made the segment box unusable: typing into a
+  // segment containing any spared row applied the value to the others, then read the segment back
+  // as "mixed" (the spared rows still sat at 0), which blanked the controlled input on every
+  // keystroke. You could never type a second digit, and the placeholder read "0–0".
   const segmentValueFor = (rows: Subscription[]) => {
-    const first = edits[rowKey(rows[0])];
+    const live = rows.filter(r => !isSkipped(rowKey(r)));
+    if (!live.length) return { type: 'percent' as IncreaseMode, value: 0, mixed: false, min: 0, max: 0 };
+    const first = edits[rowKey(live[0])];
     const type = first?.increaseType || 'percent';
     const value = first?.increaseValue ?? 0;
     let min = Infinity, max = -Infinity, uniform = true;
-    for (const r of rows) {
+    for (const r of live) {
       const e = edits[rowKey(r)];
       const v = e?.increaseValue ?? 0;
       if ((e?.increaseType || 'percent') !== type || v !== value) uniform = false;
@@ -2175,13 +2186,16 @@ const SaasIncrease: React.FC = () => {
                             </div>
                             <input
                               type="number"
-                              placeholder={sv.mixed ? `${sv.min}–${sv.max}` : '0'}
+                              placeholder={sv.mixed && sv.min !== sv.max ? `${sv.min}–${sv.max}` : '0'}
                               title={sv.mixed ? (t('saasIncrease.segment.mixedHint', { min: sv.min, max: sv.max }) as string) : ''}
-                              value={sv.mixed ? '' : (sv.value || '')}
+                              value={segmentDraft?.key === key ? segmentDraft.raw : (sv.mixed ? '' : (sv.value || ''))}
                               onWheel={(ev) => ev.currentTarget.blur()}
-                              onFocus={() => setEditingSegment(key)}
-                              onBlur={() => setEditingSegment(null)}
-                              onChange={(ev) => applyToSegment(rows, { increaseValue: Number(ev.target.value) || 0 })}
+                              onFocus={() => { setEditingSegment(key); setSegmentDraft({ key, raw: sv.mixed ? '' : String(sv.value || '') }); }}
+                              onBlur={() => { setEditingSegment(null); setSegmentDraft(null); }}
+                              onChange={(ev) => {
+                                setSegmentDraft({ key, raw: ev.target.value });
+                                applyToSegment(rows, { increaseValue: Number(ev.target.value) || 0 });
+                              }}
                               className={`w-[78px] rounded-lg border bg-white px-2 py-1.5 text-right text-[13px] tabular-nums outline-none focus:border-primary dark:bg-[#0A0A0A] dark:text-white ${setCount > 0 ? 'border-orange-300 dark:border-[#D16630]' : 'border-gray-300 dark:border-[#242424]'}`}
                             />
                           </div>
