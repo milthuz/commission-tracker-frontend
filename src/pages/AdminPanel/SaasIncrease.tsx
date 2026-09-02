@@ -4,7 +4,7 @@ import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban, Presentation, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban, Presentation, AlertTriangle, RotateCcw } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 import SaasIncreaseBoard, { type BoardRow } from './SaasIncreaseBoard';
@@ -598,7 +598,11 @@ const SaasIncrease: React.FC = () => {
       for (const r of rows) {
         const k = rowKey(r);
         const e = next[k] || { selected: false, increaseType: 'percent' as IncreaseMode, increaseValue: 0 };
-        next[k] = { ...e, skipped, increaseValue: skipped ? 0 : e.increaseValue, selected: false };
+        // The tick is DELIBERATELY kept. Clearing it meant sparing a selection destroyed the
+        // selection, so there was nothing left to act on and the button could not undo itself —
+        // re-clicking did nothing. Bulk apply already ignores spared rows explicitly, so a
+        // spared row being ticked is harmless.
+        next[k] = { ...e, skipped, increaseValue: skipped ? 0 : e.increaseValue };
       }
       return next;
     });
@@ -1862,17 +1866,22 @@ const SaasIncrease: React.FC = () => {
                 // says so in its own label rather than leaving you to guess its scope.
                 const columnHeader = (rows: Subscription[]) => {
                   const picked = rows.filter(r => edits[rowKey(r)]?.selected);
-                  const targets = picked.length > 0 ? picked : rows.filter(r => !isSkipped(rowKey(r)));
+                  // A toggle, not a one-way door. When everything in scope is already spared the
+                  // button offers to put it back; otherwise it spares what is not spared yet.
+                  const scope = picked.length > 0 ? picked : rows;
+                  const unspare = scope.length > 0 && scope.every(r => isSkipped(rowKey(r)));
+                  const targets = unspare ? scope : scope.filter(r => !isSkipped(rowKey(r)));
                   const spareHeader = async () => {
                     if (!targets.length) return;
-                    // An explicit tick-list needs no confirmation; acting on everything shown does.
-                    if (picked.length === 0) {
+                    // An explicit tick-list is its own confirmation; acting on everything shown
+                    // is not. Putting rows BACK is harmless either way, so it never asks.
+                    if (picked.length === 0 && !unspare) {
                       const withIncrease = targets.filter(r => isIncluded(rowKey(r))).length;
                       const ok = await dialog.confirm(
                         t('saasIncrease.segment.spareShownConfirm', { count: targets.length, withIncrease }) as string);
                       if (!ok) return;
                     }
-                    setSkipped(targets, true);
+                    setSkipped(targets, !unspare);
                   };
                   return (
                   <div className={`grid ${gridCols} items-center gap-3 border-b border-gray-100 bg-gray-50 px-4.5 py-2 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]`}>
@@ -1881,16 +1890,20 @@ const SaasIncrease: React.FC = () => {
                       <button
                         type="button"
                         onClick={spareHeader}
-                        title={t('saasIncrease.segment.spareSelectedHint') as string}
+                        title={t(unspare ? 'saasIncrease.segment.unspareHint' : 'saasIncrease.segment.spareSelectedHint') as string}
                         className={`inline-flex items-center gap-1.5 justify-self-start whitespace-nowrap rounded-md px-2 py-1 text-[11px] font-semibold ${
-                          picked.length > 0
-                            ? 'bg-primary text-white hover:bg-opacity-90'
-                            : `${chipInput} ${textSec} hover:text-gray-900 dark:hover:text-white`}`}
+                          unspare
+                            ? 'border border-primary text-primary hover:bg-primary/10 dark:text-[#F79C6A]'
+                            : picked.length > 0
+                              ? 'bg-primary text-white hover:bg-opacity-90'
+                              : `${chipInput} ${textSec} hover:text-gray-900 dark:hover:text-white`}`}
                       >
-                        <Ban className="h-3.5 w-3.5" />
-                        {picked.length > 0
-                          ? t('saasIncrease.segment.spareSelected', { count: picked.length })
-                          : t('saasIncrease.segment.spareShown', { count: targets.length })}
+                        {unspare ? <RotateCcw className="h-3.5 w-3.5" /> : <Ban className="h-3.5 w-3.5" />}
+                        {unspare
+                          ? t('saasIncrease.segment.unspareCount', { count: targets.length })
+                          : picked.length > 0
+                            ? t('saasIncrease.segment.spareSelected', { count: targets.length })
+                            : t('saasIncrease.segment.spareShown', { count: targets.length })}
                       </button>
                     ) : (
                       <span className={`text-[11px] font-semibold uppercase tracking-wider ${textTer}`}>{t('saasIncrease.colCustomer')}</span>

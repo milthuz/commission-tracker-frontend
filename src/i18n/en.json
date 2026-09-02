@@ -1270,7 +1270,9 @@
       "spareSelected": "Spare {{count}} selected",
       "spareSelectedHint": "Marks the {{count}} checked subscriptions as \"not raising\". Clears any increase set on them. Nothing is sent or pushed.",
       "spareShown": "Spare these {{count}}",
-      "spareShownConfirm": "Mark all {{count}} subscriptions shown as \"not raising\"? {{withIncrease}} of them have an increase set, which will be cleared. Nothing is sent or pushed. Tick specific rows first if you only mean some of them."
+      "spareShownConfirm": "Mark all {{count}} subscriptions shown as \"not raising\"? {{withIncrease}} of them have an increase set, which will be cleared. Nothing is sent or pushed. Tick specific rows first if you only mean some of them.",
+      "unspareCount": "Un-spare {{count}}",
+      "unspareHint": "Puts these subscriptions back in the To do list. Their increase stays cleared, so they count as undecided again."
     },
     "groupView": {
       "todo": "To do ({{count}})",

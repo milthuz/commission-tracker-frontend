@@ -1270,7 +1270,9 @@
       "spareSelected": "Épargner les {{count}}",
       "spareSelectedHint": "Marque les abonnements cochés comme « pas d'augmentation ». Efface toute hausse réglée sur eux. Rien n'est envoyé ni appliqué.",
       "spareShown": "Épargner ces {{count}}",
-      "spareShownConfirm": "Marquer les {{count}} abonnements affichés comme « pas d'augmentation »? {{withIncrease}} d'entre eux ont une hausse réglée, elle sera effacée. Rien n'est envoyé ni appliqué. Coche des lignes précises d'abord si tu n'en veux qu'une partie."
+      "spareShownConfirm": "Marquer les {{count}} abonnements affichés comme « pas d'augmentation »? {{withIncrease}} d'entre eux ont une hausse réglée, elle sera effacée. Rien n'est envoyé ni appliqué. Coche des lignes précises d'abord si tu n'en veux qu'une partie.",
+      "unspareCount": "Réintégrer les {{count}}",
+      "unspareHint": "Remet ces abonnements dans la liste À faire. Leur hausse reste effacée, donc ils redeviennent à décider."
     },
     "groupView": {
       "todo": "À faire ({{count}})",
