@@ -1548,6 +1548,14 @@
         "annualFlat": "{{amount}} par année (+{{pct}} %)",
         "outlier": "+{{pct}} % vs médiane {{median}} %"
       }
+    },
+    "bulkSpare": {
+      "button": "Épargner ces {{count}}",
+      "buttonUndo": "Réintégrer ces {{count}}",
+      "hint": "Marque « pas d’augmentation » tout abonnement de la liste filtrée actuelle, pour qu’ils quittent la liste À faire. Rien n’est envoyé ni appliqué, et le ⃠ d’un segment ou d’une ligne annule.",
+      "hintUndo": "Tous les abonnements de cette liste filtrée sont présentement épargnés. Ceci les remet dans la liste À faire.",
+      "confirm": "Marquer {{count}} abonnement(s) de la liste actuelle comme « pas d’augmentation »? {{withIncrease}} d’entre eux ont une hausse réglée, elle sera effacée. Rien n’est envoyé ni appliqué.",
+      "confirmUndo": "Remettre {{count}} abonnement(s) épargné(s) dans la liste À faire?"
     }
   },
   "resources": {

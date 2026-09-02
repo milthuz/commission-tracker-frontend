@@ -552,6 +552,28 @@ const SaasIncrease: React.FC = () => {
   // Marking a segment (or one row) as "not raising this". Toggles, so an over-eager skip is one
   // click to undo. Setting an increase on a skipped row clears the skip automatically — the two
   // states are mutually exclusive and silently keeping both would be a trap.
+  // Spare (or un-spare) the whole list the filters currently describe. Deliberately keyed on
+  // `filtered` rather than on everything: the button only appears once a search or an org/plan
+  // filter is narrowing the view, so "the list" is always something the user assembled on
+  // purpose. Without that gate this would read "spare all 3507", one click from wiping a
+  // campaign.
+  const skipFilteredList = async () => {
+    const already = filtered.filter(sb => isSkipped(rowKey(sb)));
+    const undo = already.length === filtered.length && filtered.length > 0;
+    if (undo) {
+      const ok = await dialog.confirm(t('saasIncrease.bulkSpare.confirmUndo', { count: filtered.length }) as string);
+      if (!ok) return;
+      setSkipped(filtered, false);
+      return;
+    }
+    const targets = filtered.filter(sb => !isSkipped(rowKey(sb)));
+    if (!targets.length) return;
+    const withIncrease = targets.filter(sb => isIncluded(rowKey(sb))).length;
+    const ok = await dialog.confirm(t('saasIncrease.bulkSpare.confirm', { count: targets.length, withIncrease }) as string);
+    if (!ok) return;
+    setSkipped(targets, true);
+  };
+
   const skipRecentlySigned = async () => {
     const targets = subs.filter(sb => isRecentlySigned(sb) && !isSkipped(rowKey(sb)));
     if (!targets.length) { dialog.alert(t('saasIncrease.recent.none') as string); return; }
@@ -1763,6 +1785,22 @@ const SaasIncrease: React.FC = () => {
                 : t('saasIncrease.audit.button')}
             </button>
           )}
+          {/* Spare the whole filtered list. Only offered once a filter or a search is actually
+              narrowing things down — see skipFilteredList for why. */}
+          {activeScenarioId && (search.trim() || orgFilter || planFilter) && filtered.length > 0 && (() => {
+            const allSpared = filtered.every(sb => isSkipped(rowKey(sb)));
+            return (
+              <button
+                onClick={skipFilteredList}
+                title={t(allSpared ? 'saasIncrease.bulkSpare.hintUndo' : 'saasIncrease.bulkSpare.hint') as string}
+                className={`${raised} whitespace-nowrap px-2.5 py-2 text-xs font-medium ${
+                  allSpared ? 'text-primary' : textSec} hover:text-gray-900 dark:hover:text-white`}
+              >
+                <Ban className="mr-1.5 inline h-3.5 w-3.5" />
+                {t(allSpared ? 'saasIncrease.bulkSpare.buttonUndo' : 'saasIncrease.bulkSpare.button', { count: filtered.length })}
+              </button>
+            );
+          })()}
           {/* Mass exclusion of the newly-signed. Sitting beside Suggest Scenario on purpose: it
               belongs to the same "shape the campaign in one gesture" step, and it should be done
               BEFORE suggesting, so the suggestion never proposes an account you were going to

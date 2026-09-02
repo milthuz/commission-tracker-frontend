@@ -1548,6 +1548,14 @@
         "annualFlat": "{{amount}} per year (+{{pct}}%)",
         "outlier": "+{{pct}}% vs {{median}}% median"
       }
+    },
+    "bulkSpare": {
+      "button": "Spare these {{count}}",
+      "buttonUndo": "Un-spare these {{count}}",
+      "hint": "Marks every subscription in the current filtered list as \"not raising\", so they leave the To do list. Nothing is sent or pushed by this, and the ⃠ on a segment or a row undoes it.",
+      "hintUndo": "Every subscription in this filtered list is currently spared. This puts them back in the To do list.",
+      "confirm": "Mark {{count}} subscription(s) in the current list as \"not raising\"? {{withIncrease}} of them have an increase set, which will be cleared. Nothing is sent or pushed by this.",
+      "confirmUndo": "Put {{count}} spared subscription(s) back in the To do list?"
     }
   },
   "resources": {
