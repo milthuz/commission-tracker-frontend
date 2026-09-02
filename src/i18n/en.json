@@ -1258,7 +1258,12 @@
       "skipRowHint": "Spare this customer — the rest of the segment is unaffected.",
       "skippedLabel": "Not raising",
       "newCount": "{{count}} new since this scenario",
-      "newBadge": "· NEW"
+      "newBadge": "· NEW",
+      "onlyTodo": "Show only the {{count}} still to decide",
+      "spareRest": "Spare the remaining {{count}}",
+      "spareRestHint": "Marks every subscription in this segment that has no increase as \"not raising\", so the segment leaves the To do list. Nothing is sent or pushed.",
+      "allDecided": "Every subscription in this segment is decided.",
+      "todoCount": "{{count}} still to decide"
     },
     "groupView": {
       "todo": "To do ({{count}})",

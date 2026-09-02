@@ -227,6 +227,10 @@ const SaasIncrease: React.FC = () => {
   // are a drill-down you open per segment. `editingSegment` keeps the segment you're typing in
   // visible even once its value makes it "done", so it can't vanish mid-keystroke.
   const [drilldownKey, setDrilldownKey] = useState<string | null>(null);
+  // Inside a segment, rows already decided — raised or deliberately spared — are finished work.
+  // Leaving them in the list is what made a segment with ONE undecided row out of 751 impossible
+  // to close: the row that needed attention was indistinguishable from the 750 that did not.
+  const [drilldownOnlyTodo, setDrilldownOnlyTodo] = useState(true);
   const [openOrgInfo, setOpenOrgInfo] = useState<string | null>(null);
   // What Zoho actually has scheduled for a pushed item, per item id.
   const [scheduledInfo, setScheduledInfo] = useState<Record<number, { loading?: boolean; error?: string; text?: string; matches?: boolean; found?: boolean }>>({});
@@ -1669,9 +1673,13 @@ const SaasIncrease: React.FC = () => {
                     `${t('saasIncrease.colActivated')}: ${activatedLabel}`,
                     (s.lastPriceBefore != null && s.lastPriceAfter != null) ? `${money(s.lastPriceBefore)} → ${money(s.lastPriceAfter)}` : null,
                   ].filter(Boolean).join(' · ');
+                  // An undecided row is the only thing in a segment that still needs a human, so
+                  // it gets the one strong visual cue: a left rule. Raised and spared rows keep
+                  // their quiet tints.
                   const rowBg = isSkipped(rowKey(s)) ? 'bg-gray-50 dark:bg-[#0C0C0C]'
                     : selected ? 'bg-orange-50/60 dark:bg-[rgba(245,131,69,0.06)]'
-                    : included ? 'bg-emerald-50/40 dark:bg-[rgba(87,209,147,0.03)]' : '';
+                    : included ? 'bg-emerald-50/40 dark:bg-[rgba(87,209,147,0.03)]'
+                    : 'border-l-[3px] border-l-amber-400 bg-amber-50/40 dark:bg-[rgba(251,191,36,0.05)]';
                   const proposedPct = ((nm - cp) / (cp || 1)) * 100;
                   const risk = riskFor(s, proposedPct, calibration);
                   const riskTitle = risk.reasons.map(r => t(`saasIncrease.risk.reasons.${r}`)).join(' · ');
@@ -1870,6 +1878,7 @@ const SaasIncrease: React.FC = () => {
                       const setCount = rows.filter(r => isIncluded(rowKey(r))).length;
                       const skipCount = rows.filter(r => isSkipped(rowKey(r))).length;
                       const newCount = rows.filter(r => isNewSinceScenario(r)).length;
+                      const todoCount = rows.filter(r => !isDecided(rowKey(r))).length;
                       const allSkipped = skipCount === rows.length && rows.length > 0;
                       const sv = segmentValueFor(rows);
                       const highCount = rows.filter(r => {
@@ -1921,6 +1930,11 @@ const SaasIncrease: React.FC = () => {
                                 {t('saasIncrease.segment.newCount', { count: newCount })}
                               </div>
                             )}
+                            {todoCount > 0 && (
+                              <div className="mt-0.5 whitespace-nowrap text-[11px] font-semibold text-amber-600 dark:text-amber-400">
+                                {t('saasIncrease.segment.todoCount', { count: todoCount })}
+                              </div>
+                            )}
                             {highCount > 0 && (
                               <div className="mt-0.5 whitespace-nowrap text-[11px] font-medium text-amber-600 dark:text-amber-400">
                                 {t('saasIncrease.segment.highRisk', { count: highCount })}
@@ -1939,6 +1953,20 @@ const SaasIncrease: React.FC = () => {
                             {/* "Not raising this one." Without it, a segment you have consciously
                                 decided to leave alone is indistinguishable from one nobody has
                                 reached yet, so it sits in To do forever. */}
+                            {/* Close out the handful nobody decided on, without opening the
+                                drawer to hunt for 1 row in 751. Hidden until work has started on
+                                the segment, so a completely untouched segment can never be
+                                spared wholesale by a misclick. */}
+                            {todoCount > 0 && (setCount + skipCount) > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setSkipped(rows.filter(r => !isDecided(rowKey(r))), true)}
+                                title={t('saasIncrease.segment.spareRestHint') as string}
+                                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-amber-100 px-2 py-1.5 text-[11px] font-semibold text-amber-800 hover:bg-amber-200 dark:bg-amber-950/50 dark:text-amber-300"
+                              >
+                                {t('saasIncrease.segment.spareRest', { count: todoCount })}
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={() => setSkipped(rows, !allSkipped)}
@@ -1977,12 +2005,43 @@ const SaasIncrease: React.FC = () => {
                               <X className="h-5 w-5" />
                             </button>
                           </div>
-                          <div className="flex-1 overflow-auto">
-                            <div className="min-w-[880px]">
-                              {columnHeader(drilldown[1])}
-                              {drilldown[1].map(renderRow)}
-                            </div>
-                          </div>
+                          {(() => {
+                            const todo = drilldown[1].filter(r => !isDecided(rowKey(r)));
+                            const shown = drilldownOnlyTodo && todo.length > 0 ? todo : drilldown[1];
+                            return (
+                              <>
+                                <div className="flex flex-wrap items-center gap-3 border-b border-gray-100 px-5 py-2.5 dark:border-[#1B1B1B]">
+                                  <label className={`inline-flex cursor-pointer items-center gap-2 text-xs ${textSec}`}>
+                                    <input
+                                      type="checkbox" checked={drilldownOnlyTodo}
+                                      onChange={(ev) => setDrilldownOnlyTodo(ev.target.checked)}
+                                      className="h-3.5 w-3.5 accent-primary"
+                                    />
+                                    {t('saasIncrease.segment.onlyTodo', { count: todo.length })}
+                                  </label>
+                                  {todo.length > 0 ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => setSkipped(todo, true)}
+                                      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-white hover:bg-opacity-90"
+                                    >
+                                      <Ban className="h-3.5 w-3.5" /> {t('saasIncrease.segment.spareRest', { count: todo.length })}
+                                    </button>
+                                  ) : (
+                                    <span className="text-xs font-medium text-emerald-600 dark:text-[#57D193]">
+                                      {t('saasIncrease.segment.allDecided')}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex-1 overflow-auto">
+                                  <div className="min-w-[880px]">
+                                    {columnHeader(shown)}
+                                    {shown.map(renderRow)}
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                     )}
