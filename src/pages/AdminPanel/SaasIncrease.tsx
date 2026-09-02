@@ -449,6 +449,23 @@ const SaasIncrease: React.FC = () => {
 
   const plans = useMemo(() => Array.from(new Set(subs.map(s => s.planName).filter(Boolean))).sort(), [subs]);
 
+  // Added to Zoho after this scenario was built. Compared on calendar days, not timestamps: a
+  // subscription that started the same day the scenario was created is not "new", and comparing
+  // raw ISO strings would call it new for the rest of that day.
+  const isNewSinceScenario = (sub: Subscription) => {
+    if (!scenarioCreatedAt || !sub.activatedAt) return false;
+    return String(sub.activatedAt).slice(0, 10) > String(scenarioCreatedAt).slice(0, 10);
+  };
+
+  // Signed within the last 12 months. A merchant who has barely finished onboarding should not
+  // meet a price increase as their first billing surprise.
+  const isRecentlySigned = (sub: Subscription) => {
+    if (!sub.activatedAt) return false;
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - 1);
+    return String(sub.activatedAt).slice(0, 10) > cutoff.toISOString().slice(0, 10);
+  };
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = subs.filter(s =>
@@ -550,23 +567,6 @@ const SaasIncrease: React.FC = () => {
   // "Decided" — raised OR deliberately left alone. This is what clears a segment off the To-do
   // list; an increase alone would strand every subscription you looked at and chose to spare.
   const isDecided = (num: string) => isIncluded(num) || isSkipped(num);
-
-  // Added to Zoho after this scenario was built. Compared on calendar days, not timestamps: a
-  // subscription that started the same day the scenario was created is not "new", and comparing
-  // raw ISO strings would call it new for the rest of that day.
-  const isNewSinceScenario = (sub: Subscription) => {
-    if (!scenarioCreatedAt || !sub.activatedAt) return false;
-    return String(sub.activatedAt).slice(0, 10) > String(scenarioCreatedAt).slice(0, 10);
-  };
-
-  // Signed within the last 12 months. A merchant who has barely finished onboarding should not
-  // meet a price increase as their first billing surprise.
-  const isRecentlySigned = (sub: Subscription) => {
-    if (!sub.activatedAt) return false;
-    const cutoff = new Date();
-    cutoff.setFullYear(cutoff.getFullYear() - 1);
-    return String(sub.activatedAt).slice(0, 10) > cutoff.toISOString().slice(0, 10);
-  };
 
   // Group-level "done" filter — with dozens of org×plan groups, once an increase has been applied
   // to a group it's just scroll-noise between you and the work that's left. A group counts as done
