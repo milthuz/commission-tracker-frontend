@@ -1264,7 +1264,9 @@
       "spareRestHint": "Marks every subscription in this segment that has no increase as \"not raising\", so the segment leaves the To do list. Nothing is sent or pushed.",
       "allDecided": "Every subscription in this segment is decided.",
       "todoCount": "{{count}} to decide",
-      "newCountHint": "Subscriptions that appeared in Zoho after this scenario was created. They sort first inside the segment."
+      "newCountHint": "Subscriptions that appeared in Zoho after this scenario was created. They sort first inside the segment.",
+      "searchPlaceholder": "Search this segment — name, SUB number, merchant ID",
+      "showingCount": "{{shown}} of {{total}} shown"
     },
     "groupView": {
       "todo": "To do ({{count}})",

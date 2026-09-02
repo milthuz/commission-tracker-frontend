@@ -1264,7 +1264,9 @@
       "spareRestHint": "Marque « pas d’augmentation » tout abonnement de ce segment qui n’a pas de hausse, pour que le segment quitte la liste À faire. Rien n’est envoyé ni appliqué.",
       "allDecided": "Tous les abonnements de ce segment sont décidés.",
       "todoCount": "{{count}} à décider",
-      "newCountHint": "Abonnements apparus dans Zoho après la création de ce scénario. Ils sont triés en premier dans le segment."
+      "newCountHint": "Abonnements apparus dans Zoho après la création de ce scénario. Ils sont triés en premier dans le segment.",
+      "searchPlaceholder": "Chercher dans ce segment — nom, n° SUB, ID marchand",
+      "showingCount": "{{shown}} sur {{total}} affichés"
     },
     "groupView": {
       "todo": "À faire ({{count}})",

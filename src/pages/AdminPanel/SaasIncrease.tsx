@@ -231,6 +231,12 @@ const SaasIncrease: React.FC = () => {
   // Leaving them in the list is what made a segment with ONE undecided row out of 751 impossible
   // to close: the row that needed attention was indistinguishable from the 750 that did not.
   const [drilldownOnlyTodo, setDrilldownOnlyTodo] = useState(true);
+  const [drilldownSearch, setDrilldownSearch] = useState('');
+  // The set of rows that were undecided when the drawer opened. The filter has to work off this
+  // SNAPSHOT, not off live state: typing the first digit of "15" makes a row decided, which
+  // removed it from the filtered list mid-keystroke and took the focused input with it — you
+  // could never type a second digit. A row you just decided stays put until you reopen.
+  const [todoSnapshot, setTodoSnapshot] = useState<Set<string>>(new Set());
   const [openOrgInfo, setOpenOrgInfo] = useState<string | null>(null);
   // What Zoho actually has scheduled for a pushed item, per item id.
   const [scheduledInfo, setScheduledInfo] = useState<Record<number, { loading?: boolean; error?: string; text?: string; matches?: boolean; found?: boolean }>>({});
@@ -552,6 +558,15 @@ const SaasIncrease: React.FC = () => {
     const ok = await dialog.confirm(t('saasIncrease.recent.confirm', { count: targets.length, withIncrease }) as string);
     if (!ok) return;
     setSkipped(targets, true);
+  };
+
+  // Re-snapshot on open (and when the filter is re-enabled), never on every render.
+  const openDrilldown = (key: string) => {
+    const rows = groupedRows.find(([k]) => k === key)?.[1] || [];
+    setTodoSnapshot(new Set(rows.filter(r => !isDecided(rowKey(r))).map(r => rowKey(r))));
+    setDrilldownSearch('');
+    setDrilldownOnlyTodo(true);
+    setDrilldownKey(key);
   };
 
   const setSkipped = (rows: Subscription[], skipped: boolean) => {
@@ -1980,7 +1995,7 @@ const SaasIncrease: React.FC = () => {
                               <Ban className="h-3.5 w-3.5" />
                             </button>
                             <button
-                              type="button" onClick={() => setDrilldownKey(key)}
+                              type="button" onClick={() => openDrilldown(key)}
                               className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium ${chipInput} ${textSec} hover:text-gray-900 dark:hover:text-white`}
                             >
                               {t('saasIncrease.segment.view')} <ChevronRight className="h-3.5 w-3.5" />
@@ -2011,18 +2026,49 @@ const SaasIncrease: React.FC = () => {
                           </div>
                           {(() => {
                             const todo = drilldown[1].filter(r => !isDecided(rowKey(r)));
-                            const shown = drilldownOnlyTodo && todo.length > 0 ? todo : drilldown[1];
+                            // Snapshot OR currently-undecided: a row decided a second ago stays
+                            // visible, a row that just became undecided still shows up.
+                            const inTodoView = (r: Subscription) =>
+                              todoSnapshot.has(rowKey(r)) || !isDecided(rowKey(r));
+                            const base = drilldownOnlyTodo && drilldown[1].some(inTodoView)
+                              ? drilldown[1].filter(inTodoView)
+                              : drilldown[1];
+                            const dq = drilldownSearch.trim().toLowerCase();
+                            const shown = dq
+                              ? base.filter(r =>
+                                  r.customerName.toLowerCase().includes(dq) ||
+                                  r.subscriptionNumber.toLowerCase().includes(dq) ||
+                                  (r.merchantAccountId || '').toLowerCase().includes(dq))
+                              : base;
                             return (
                               <>
                                 <div className="flex flex-wrap items-center gap-3 border-b border-gray-100 px-5 py-2.5 dark:border-[#1B1B1B]">
-                                  <label className={`inline-flex cursor-pointer items-center gap-2 text-xs ${textSec}`}>
+                                  {/* 547 subscriptions is not a list you scroll to find one client. */}
+                                  <div className="relative min-w-[220px] flex-1">
+                                    <Search className={`pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textQuat}`} />
+                                    <input
+                                      value={drilldownSearch}
+                                      onChange={(ev) => setDrilldownSearch(ev.target.value)}
+                                      placeholder={t('saasIncrease.segment.searchPlaceholder') as string}
+                                      className={`w-full rounded-lg border py-1.5 pl-8 pr-2 text-xs outline-none focus:border-primary ${chipInput}`}
+                                    />
+                                  </div>
+                                  <label className={`inline-flex cursor-pointer items-center gap-2 whitespace-nowrap text-xs ${textSec}`}>
                                     <input
                                       type="checkbox" checked={drilldownOnlyTodo}
-                                      onChange={(ev) => setDrilldownOnlyTodo(ev.target.checked)}
+                                      onChange={(ev) => {
+                                        if (ev.target.checked) {
+                                          setTodoSnapshot(new Set(drilldown[1].filter(r => !isDecided(rowKey(r))).map(r => rowKey(r))));
+                                        }
+                                        setDrilldownOnlyTodo(ev.target.checked);
+                                      }}
                                       className="h-3.5 w-3.5 accent-primary"
                                     />
                                     {t('saasIncrease.segment.onlyTodo', { count: todo.length })}
                                   </label>
+                                  <span className={`whitespace-nowrap text-xs ${textQuat}`}>
+                                    {t('saasIncrease.segment.showingCount', { shown: shown.length, total: drilldown[1].length })}
+                                  </span>
                                   {todo.length > 0 ? (
                                     <button
                                       type="button"
