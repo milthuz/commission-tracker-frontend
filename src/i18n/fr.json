@@ -1257,13 +1257,14 @@
       "unskipHint": "Annuler — le remettre dans la liste À faire.",
       "skipRowHint": "Épargner ce client — le reste du segment n'est pas touché.",
       "skippedLabel": "Pas d'augmentation",
-      "newCount": "{{count}} nouveau(x) depuis ce scénario",
+      "newCount": "{{count}} nouveau(x)",
       "newBadge": "· NOUVEAU",
       "onlyTodo": "Afficher seulement les {{count}} à décider",
       "spareRest": "Épargner les {{count}} restants",
       "spareRestHint": "Marque « pas d’augmentation » tout abonnement de ce segment qui n’a pas de hausse, pour que le segment quitte la liste À faire. Rien n’est envoyé ni appliqué.",
       "allDecided": "Tous les abonnements de ce segment sont décidés.",
-      "todoCount": "{{count}} à décider"
+      "todoCount": "{{count}} à décider",
+      "newCountHint": "Abonnements apparus dans Zoho après la création de ce scénario. Ils sont triés en premier dans le segment."
     },
     "groupView": {
       "todo": "À faire ({{count}})",

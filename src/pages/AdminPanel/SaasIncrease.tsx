@@ -1795,7 +1795,7 @@ const SaasIncrease: React.FC = () => {
                 // at. Each carries its own increase control that writes through to every
                 // subscription underneath it, so a scenario is built in a few dozen keystrokes
                 // instead of thousands. Individual subscriptions live behind "View".
-                const segCols = 'grid-cols-[2.6fr_1.1fr_1.5fr_1.3fr_1.1fr_auto]';
+                const segCols = 'grid-cols-[2.4fr_1.1fr_1.4fr_1.2fr_1.5fr_auto]';
                 const drilldown = drilldownKey ? groupedRows.find(([k]) => k === drilldownKey) : null;
                 return (
                   <>
@@ -1921,19 +1921,37 @@ const SaasIncrease: React.FC = () => {
                           <div className="min-w-0">
                             <div className={`whitespace-nowrap text-xs ${textTer}`}>{t('saasIncrease.segment.setCount', { set: setCount, total: rows.length })}</div>
                             {skipCount > 0 && (
-                              <div className={`mt-0.5 whitespace-nowrap text-[11px] ${textQuat}`}>
+                              <div className={`mt-0.5 text-[11px] leading-snug ${textQuat}`}>
                                 {t('saasIncrease.segment.skipCount', { count: skipCount })}
                               </div>
                             )}
                             {newCount > 0 && (
-                              <div className="mt-0.5 whitespace-nowrap text-[11px] font-medium text-primary dark:text-[#F79C6A]">
+                              <div className="mt-0.5 text-[11px] font-medium leading-snug text-primary dark:text-[#F79C6A]" title={t('saasIncrease.segment.newCountHint') as string}>
                                 {t('saasIncrease.segment.newCount', { count: newCount })}
                               </div>
                             )}
                             {todoCount > 0 && (
-                              <div className="mt-0.5 whitespace-nowrap text-[11px] font-semibold text-amber-600 dark:text-amber-400">
-                                {t('saasIncrease.segment.todoCount', { count: todoCount })}
-                              </div>
+                              <>
+                                <div className="mt-0.5 text-[11px] font-semibold leading-snug text-amber-600 dark:text-amber-400">
+                                  {t('saasIncrease.segment.todoCount', { count: todoCount })}
+                                </div>
+                                {/* Lives with the count it acts on, not in the actions column. That
+                                    column holds three fixed controls; adding a fourth, variable-width
+                                    one is what pushed it over the neighbouring cell. Shown only once
+                                    something has actually been RAISED here — 5 spared out of 122 is
+                                    not "work started", and offering to spare the other 117 on a
+                                    segment nobody has touched is an accident one click away. */}
+                                {setCount > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setSkipped(rows.filter(r => !isDecided(rowKey(r))), true)}
+                                    title={t('saasIncrease.segment.spareRestHint') as string}
+                                    className="mt-1 text-left text-[11px] font-semibold text-amber-700 underline decoration-dotted underline-offset-2 hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-200"
+                                  >
+                                    {t('saasIncrease.segment.spareRest', { count: todoCount })}
+                                  </button>
+                                )}
+                              </>
                             )}
                             {highCount > 0 && (
                               <div className="mt-0.5 whitespace-nowrap text-[11px] font-medium text-amber-600 dark:text-amber-400">
@@ -1953,20 +1971,6 @@ const SaasIncrease: React.FC = () => {
                             {/* "Not raising this one." Without it, a segment you have consciously
                                 decided to leave alone is indistinguishable from one nobody has
                                 reached yet, so it sits in To do forever. */}
-                            {/* Close out the handful nobody decided on, without opening the
-                                drawer to hunt for 1 row in 751. Hidden until work has started on
-                                the segment, so a completely untouched segment can never be
-                                spared wholesale by a misclick. */}
-                            {todoCount > 0 && (setCount + skipCount) > 0 && (
-                              <button
-                                type="button"
-                                onClick={() => setSkipped(rows.filter(r => !isDecided(rowKey(r))), true)}
-                                title={t('saasIncrease.segment.spareRestHint') as string}
-                                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-amber-100 px-2 py-1.5 text-[11px] font-semibold text-amber-800 hover:bg-amber-200 dark:bg-amber-950/50 dark:text-amber-300"
-                              >
-                                {t('saasIncrease.segment.spareRest', { count: todoCount })}
-                              </button>
-                            )}
                             <button
                               type="button"
                               onClick={() => setSkipped(rows, !allSkipped)}
