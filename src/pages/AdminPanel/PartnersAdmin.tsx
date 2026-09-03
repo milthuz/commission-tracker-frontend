@@ -35,6 +35,9 @@ interface Opportunity {
   notes: string | null; status: 'pending' | 'approved' | 'rejected';
   reviewedBy: string | null; reviewedAt: string | null; rejectionReason: string | null; createdAt: string;
   partnerName: string; submittedByEmail: string | null;
+  // Saisie manuelle depuis le panneau d'admin : `submittedByEmail` est alors null, puisque
+  // aucun compte partenaire n'existe. C'est ce champ qui dit d'où vient la ligne.
+  createdByAdmin: string | null;
   // SH-28/SH-30 — set by the backend, never sent to partners (see mapOpportunityRow's comment).
   crmMatchStatus: 'no_match' | 'match_found' | 'check_failed' | null;
   crmMatchSummary: string | null;
@@ -82,7 +85,7 @@ const PAYOUT_BADGE: Record<string, string> = {
   paid: 'bg-primary text-white',
 };
 
-const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canStats?: boolean; canExportUsers?: boolean }> = ({ canDelete, canMigrate, canStats, canExportUsers }) => {
+const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canStats?: boolean; canExportUsers?: boolean; canCreateOpportunity?: boolean }> = ({ canDelete, canMigrate, canStats, canExportUsers, canCreateOpportunity }) => {
   const { t, i18n } = useTranslation();
   // Landing on this page is the Opportunity Queue "dashboard" (user request 2026-07-2x) — Manage
   // Partners is reached either via the in-page tab or the Sidebar's "Manage Partners" submenu
@@ -827,6 +830,15 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
           <div className="leading-tight">
             <div className="max-w-[125px] xl:max-w-[160px] truncate font-medium text-black dark:text-white" title={o.businessName}>{o.businessName}</div>
             {contact && <div className="max-w-[125px] xl:max-w-[160px] truncate text-[11px] text-gray-400" title={contact}>{contact}</div>}
+            {/* Une ligne saisie a la main n'a pas de soumissionnaire : on met a la place QUI l'a
+                saisie. Meme emplacement, donc aucun coût de largeur, et la file ne laisse jamais
+                croire qu'un partenaire a soumis ce qu'un admin a inscrit. */}
+            {!o.submittedByEmail && o.createdByAdmin && (
+              <div className="max-w-[125px] xl:max-w-[160px] truncate text-[11px] text-primary"
+                title={t('admin.partners.manual.enteredBy', { who: o.createdByAdmin }) as string}>
+                {t('admin.partners.manual.tag')}
+              </div>
+            )}
             {o.submittedByEmail && (
               <div className="max-w-[125px] xl:max-w-[160px] truncate text-[11px] text-gray-400"
                 title={`${t('admin.partners.colSubmittedBy')} : ${o.submittedByEmail}`}>↳ {o.submittedByEmail}</div>
@@ -961,6 +973,31 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
   };
 
   useEffect(() => { if (sub === 'queue') fetchQueue(); }, [sub]);
+
+  // Saisie MANUELLE d'une opportunite, pour un partenaire qui n'est pas encore sur le portail.
+  // Elle part en `pending` et rejoint la file : c'est a l'approbation qu'on choisit le rep
+  // Cluster et que le Lead Zoho est cree. La creer deja approuvee sauterait cette decision.
+  const MANUEL_VIDE = { partnerId: '', businessName: '', contactFirstName: '', contactLastName: '', contactPhone: '', contactEmail: '', repFirstName: '', repLastName: '', repPhone: '', repEmail: '', notes: '' };
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manual, setManual] = useState(MANUEL_VIDE);
+  const [manualBusy, setManualBusy] = useState(false);
+  const majManuel = (k: keyof typeof MANUEL_VIDE, v: string) => setManual((m) => ({ ...m, [k]: v }));
+  const creerManuel = async () => {
+    if (!manual.partnerId || !manual.businessName.trim()) return;
+    setManualBusy(true);
+    try {
+      await axios.post(`${API_URL}/api/admin/partner-opportunities`, manual, { headers: authHeaders() });
+      setManualOpen(false); setManual(MANUEL_VIDE);
+      setStatusFilter('pending');   // la nouvelle ligne est en attente : on l'amene sous les yeux
+      await fetchQueue();
+    } catch (e: any) {
+      const code = e?.response?.data?.error;
+      dialog.alert(
+        code === 'partner_inactive' ? t('admin.partners.manual.partnerInactive') as string
+        : code === 'partner_not_found' ? t('admin.partners.manual.partnerMissing') as string
+        : code || e?.message || 'Failed');
+    } finally { setManualBusy(false); }
+  };
 
   const [rejecting, setRejecting] = useState<Opportunity | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -1845,6 +1882,16 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 <span className="whitespace-nowrap text-xs text-body">
                   {t('admin.partners.queue.shown', { shown: queueTotal, total: queueInView.length })}
                 </span>
+                {canCreateOpportunity && (
+                  <button type="button" onClick={() => setManualOpen(true)}
+                    title={t('admin.partners.manual.hint') as string}
+                    className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-white hover:bg-opacity-90">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+                    </svg>
+                    {t('admin.partners.manual.newButton')}
+                  </button>
+                )}
                 <button type="button"
                   onClick={() => { setPartnerFilter(''); setClusterRepFilter(''); setPayoutFilter(''); setQueueSearch(''); }}
                   className="whitespace-nowrap rounded-lg border border-stroke px-3 py-2 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
@@ -2405,6 +2452,106 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
               className="w-full rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
               {t('admin.partners.approve')}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Fenetre de saisie manuelle. Meme hauteur bornee et meme corps defilant que les autres
+          panneaux de cet ecran : la liste des champs depasse une fenetre de portable. */}
+      {manualOpen && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-60 p-4"
+          onClick={() => !manualBusy && setManualOpen(false)}>
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-2xl dark:bg-boxdark"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="shrink-0 border-b border-stroke px-6 py-4 dark:border-strokedark">
+              <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.partners.manual.title')}</h3>
+              <p className="mt-1 text-sm text-body">{t('admin.partners.manual.subtitle')}</p>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
+              <div className="mb-4">
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.partner')} *</label>
+                {/* Seuls les partenaires ACTIFS : le serveur refuse les autres (409), autant ne pas
+                    les proposer. */}
+                <Select value={manual.partnerId} onChange={(v) => majManuel('partnerId', v)}
+                  options={[{ value: '', label: t('admin.partners.manual.pickPartner') as string },
+                    ...partners.filter((p) => p.active).map((p) => ({ value: String(p.id), label: p.name }))]}
+                  buttonClassName="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-left text-sm dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+              <div className="mb-4">
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.business')} *</label>
+                <input value={manual.businessName} onChange={(e) => majManuel('businessName', e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.manual.contactSection')}</p>
+              <div className="mb-4 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.contactFirst')}</label>
+                <input value={manual.contactFirstName} onChange={(e) => majManuel('contactFirstName', e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.contactLast')}</label>
+                <input value={manual.contactLastName} onChange={(e) => majManuel('contactLastName', e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.contactPhone')}</label>
+                <input value={manual.contactPhone} onChange={(e) => majManuel('contactPhone', e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.contactEmail')}</label>
+                <input value={manual.contactEmail} onChange={(e) => majManuel('contactEmail', e.target.value)} type="email"
+                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+              </div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.manual.repSection')}</p>
+              <p className="mb-2 text-xs text-body">{t('admin.partners.manual.repHint')}</p>
+              <div className="mb-4 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.repFirst')}</label>
+                <input value={manual.repFirstName} onChange={(e) => majManuel('repFirstName', e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.repLast')}</label>
+                <input value={manual.repLastName} onChange={(e) => majManuel('repLastName', e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.repPhone')}</label>
+                <input value={manual.repPhone} onChange={(e) => majManuel('repPhone', e.target.value)}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.repEmail')}</label>
+                <input value={manual.repEmail} onChange={(e) => majManuel('repEmail', e.target.value)} type="email"
+                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.notes')}</label>
+                <textarea value={manual.notes} onChange={(e) => majManuel('notes', e.target.value)} rows={3}
+                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              </div>
+            </div>
+            <div className="shrink-0 border-t border-stroke px-6 py-3 dark:border-strokedark">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-body">{t('admin.partners.manual.footNote')}</p>
+                <div className="flex shrink-0 gap-3">
+                  <button onClick={() => setManualOpen(false)} disabled={manualBusy}
+                    className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body disabled:opacity-50 dark:border-strokedark">
+                    {t('common.cancel')}
+                  </button>
+                  {/* Desactive tant que partenaire ET entreprise ne sont pas remplis : le serveur
+                      les exige, autant ne pas laisser cliquer pour rien. */}
+                  <button onClick={creerManuel} disabled={manualBusy || !manual.partnerId || !manual.businessName.trim()}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
+                    {manualBusy ? t('common.saving') : t('admin.partners.manual.submit')}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

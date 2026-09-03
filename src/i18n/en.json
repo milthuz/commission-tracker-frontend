@@ -2409,7 +2409,34 @@
         "already_active": "this account is already active and has access.",
         "disabled": "this account is disabled. Re-enable it first."
       },
-      "firstInviteSent": "First invitation"
+      "firstInviteSent": "First invitation",
+      "manual": {
+        "newButton": "New opportunity",
+        "hint": "Record a deal for a partner who is not on the portal yet.",
+        "title": "New opportunity",
+        "subtitle": "For a partner not yet on the portal. It joins the review queue and follows the same path as a normal submission.",
+        "partner": "Partner",
+        "pickPartner": "Pick a partner…",
+        "business": "Business name",
+        "contactSection": "Contact at the merchant",
+        "contactFirst": "First name",
+        "contactLast": "Last name",
+        "contactPhone": "Phone",
+        "contactEmail": "Email",
+        "repSection": "Partner’s rep",
+        "repHint": "The person at the partner who brought the deal in. Optional.",
+        "repFirst": "First name",
+        "repLast": "Last name",
+        "repPhone": "Phone",
+        "repEmail": "Email",
+        "notes": "Notes",
+        "submit": "Create",
+        "footNote": "It will count towards the partner’s payouts as normal.",
+        "tag": "↳ entered by hand",
+        "enteredBy": "Entered by hand by {{who}}",
+        "partnerInactive": "This partner is disabled. Re-enable it first — otherwise we would create a debt towards someone whose access is closed.",
+        "partnerMissing": "This partner no longer exists."
+      }
     },
     "resources": {
       "title": "Resources storage",

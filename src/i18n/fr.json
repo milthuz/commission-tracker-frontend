@@ -2409,7 +2409,34 @@
         "already_active": "ce compte est déjà actif, il a son accès.",
         "disabled": "ce compte est désactivé. Réactivez-le d’abord."
       },
-      "firstInviteSent": "Première invitation"
+      "firstInviteSent": "Première invitation",
+      "manual": {
+        "newButton": "Nouvelle opportunité",
+        "hint": "Inscrire une affaire pour un partenaire qui n’utilise pas encore le portail.",
+        "title": "Nouvelle opportunité",
+        "subtitle": "Pour un partenaire qui n’utilise pas encore le portail. Elle rejoint la file d’attente et suit le même chemin qu’une soumission normale.",
+        "partner": "Partenaire",
+        "pickPartner": "Choisir un partenaire…",
+        "business": "Nom de l’entreprise",
+        "contactSection": "Contact chez le marchand",
+        "contactFirst": "Prénom",
+        "contactLast": "Nom",
+        "contactPhone": "Téléphone",
+        "contactEmail": "Courriel",
+        "repSection": "Représentant du partenaire",
+        "repHint": "La personne, chez le partenaire, qui a apporté l’affaire. Facultatif.",
+        "repFirst": "Prénom",
+        "repLast": "Nom",
+        "repPhone": "Téléphone",
+        "repEmail": "Courriel",
+        "notes": "Notes",
+        "submit": "Créer",
+        "footNote": "Elle comptera normalement dans les versements du partenaire.",
+        "tag": "↳ saisie manuelle",
+        "enteredBy": "Saisie manuellement par {{who}}",
+        "partnerInactive": "Ce partenaire est désactivé. Réactivez-le d’abord — sinon on créerait une dette envers quelqu’un dont l’accès est fermé.",
+        "partnerMissing": "Ce partenaire n’existe plus."
+      }
     },
     "resources": {
       "title": "Stockage des ressources",
