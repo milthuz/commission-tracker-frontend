@@ -387,6 +387,7 @@
     "roles": "Roles & Permissions",
     "importPayments": "Commissions",
     "reseller": "Reseller Activation",
+    "support": "Support",
     "revenue": "Processing Revenue",
     "resources": "Resources",
     "hardware": "Hardware Overview",
@@ -4670,6 +4671,103 @@
         "q": "Who do I escalate to?",
         "a": "Any request for a discount or exception, anything contractual, and any case where the figures on the record look wrong to you. Never commit Cluster to a price. (Name and contact to be filled in by management.)"
       }
+    }
+  },
+  "support": {
+    "title": "Support",
+    "subtitle": "Volume, delays and recurring topics from Zoho Desk tickets.",
+    "jours": "d",
+    "billets": "Tickets",
+    "resolus": "Resolved",
+    "ouverts": "Open",
+    "medianeCourt": "Median",
+    "aucun": "No data for this period.",
+    "tousDept": "All departments",
+    "langues": "Language",
+    "vide": "No tickets for this period.",
+    "videAide": "Widen the period, or wait for the first sync to finish.",
+    "rattrapage": "Resync history",
+    "synchroEnCours": "Syncing —",
+    "synchroEnCoursCourt": "Syncing…",
+    "billetsCopies": "tickets copied",
+    "periodes": {
+      "m3": "Last 3 months",
+      "m6": "Last 6 months",
+      "m12": "Last 12 months",
+      "m24": "Last 24 months",
+      "tout": "All history"
+    },
+    "onglets": {
+      "apercu": "Overview",
+      "problemes": "Issues",
+      "equipe": "Team",
+      "marchands": "Merchants"
+    },
+    "kpi": {
+      "total": "Tickets",
+      "parMois": "per month on average",
+      "resolus": "Resolved",
+      "ouverts": "Still open",
+      "mediane": "Median time",
+      "medianeNote": "created → closed",
+      "p90": "90th percentile",
+      "p90Note": "1 ticket in 10 exceeds",
+      "marchands": "Merchants affected"
+    },
+    "volume": {
+      "titre": "Volume by month",
+      "sous": "Tickets created and tickets closed, by month of creation.",
+      "crees": "Created",
+      "resolus": "Resolved"
+    },
+    "delais": {
+      "titre": "Resolution time",
+      "sous": "Distribution of closed tickets, from creation to closure.",
+      "serie": "Tickets",
+      "t1": "< 1 h",
+      "t2": "1–4 h",
+      "t3": "4–24 h",
+      "t4": "1–3 d",
+      "t5": "> 3 d"
+    },
+    "canaux": {
+      "titre": "Channels",
+      "sous": "How tickets come in."
+    },
+    "types": {
+      "titre": "Issue types",
+      "sous": "Zoho Desk “Ticket Type” field",
+      "couverture": "of tickets are categorized",
+      "type": "Type"
+    },
+    "sousTypes": {
+      "titre": "Sub-categories",
+      "sous": "Breakdown of the “POS Software” and “CS Category” fields."
+    },
+    "mots": {
+      "titre": "Recurring words in subjects",
+      "sous": "What comes up when no category was filled in. Words that make up a merchant name are excluded."
+    },
+    "dept": {
+      "titre": "Departments",
+      "sous": "Load and delay per queue.",
+      "nom": "Department"
+    },
+    "agents": {
+      "titre": "Agents",
+      "sous": "40 busiest agents over the period.",
+      "nom": "Agent"
+    },
+    "marchands": {
+      "titre": "Merchants",
+      "sous": "40 merchants opening the most tickets.",
+      "nom": "Merchant",
+      "dernier": "Last ticket"
+    },
+    "note": {
+      "copie": "Local copy: {{n}} tickets, from {{de}} to {{a}}. Last sync: {{synchro}}.",
+      "exclu": "Not covered: the “Integration Emails” department (disabled, fed by automations) is not accessible to the Desk reader account — Zoho refuses to read it.",
+      "delai": "The measured delay runs from creation to closure. FIRST RESPONSE time is not included: Zoho only exposes it one ticket at a time."
     }
   }
 }

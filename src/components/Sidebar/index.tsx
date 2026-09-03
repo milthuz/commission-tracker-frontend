@@ -325,6 +325,24 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Menu Item Soutien technique (perm: support:view_reports) --> */}
+              {can('support:view_reports') && (
+                <li>
+                  <NavLink
+                    to="/support"
+                    className={navLinkCls(pathname.includes('support'))}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9" />
+                      <circle cx="12" cy="12" r="3.5" />
+                      <path d="M14.5 9.5 18 6M9.5 9.5 6 6M14.5 14.5 18 18M9.5 14.5 6 18" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.support')}</span>
+                    <NewBadge path="/support" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.support') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Reseller (perm: reseller:view) --> */}
               {can('reseller:view') && (
                 <li>

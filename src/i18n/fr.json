@@ -387,6 +387,7 @@
     "roles": "Rôles et permissions",
     "importPayments": "Commissions",
     "reseller": "Activations revendeur",
+    "support": "Soutien",
     "revenue": "Revenus de paiements",
     "resources": "Ressources",
     "hardware": "Aperçu du matériel",
@@ -4670,6 +4671,103 @@
         "q": "À qui escalader?",
         "a": "Toute demande de rabais ou d'exception, toute question contractuelle, et tout cas où les chiffres de la fiche te semblent faux. N'engage jamais Cluster sur un prix. (Nom et coordonnées à compléter par la direction.)"
       }
+    }
+  },
+  "support": {
+    "title": "Soutien technique",
+    "subtitle": "Volume, délais et sujets récurrents des billets Zoho Desk.",
+    "jours": "j",
+    "billets": "Billets",
+    "resolus": "Résolus",
+    "ouverts": "Ouverts",
+    "medianeCourt": "Médiane",
+    "aucun": "Aucune donnée pour cette période.",
+    "tousDept": "Tous les départements",
+    "langues": "Langue",
+    "vide": "Aucun billet pour cette période.",
+    "videAide": "Élargissez la période, ou attendez la fin de la première synchronisation.",
+    "rattrapage": "Resynchroniser l'historique",
+    "synchroEnCours": "Synchronisation en cours —",
+    "synchroEnCoursCourt": "Synchronisation…",
+    "billetsCopies": "billets copiés",
+    "periodes": {
+      "m3": "3 derniers mois",
+      "m6": "6 derniers mois",
+      "m12": "12 derniers mois",
+      "m24": "24 derniers mois",
+      "tout": "Tout l'historique"
+    },
+    "onglets": {
+      "apercu": "Aperçu",
+      "problemes": "Problèmes",
+      "equipe": "Équipe",
+      "marchands": "Marchands"
+    },
+    "kpi": {
+      "total": "Billets",
+      "parMois": "par mois en moyenne",
+      "resolus": "Résolus",
+      "ouverts": "Encore ouverts",
+      "mediane": "Délai médian",
+      "medianeNote": "création → fermeture",
+      "p90": "Délai 90ᵉ centile",
+      "p90Note": "1 billet sur 10 dépasse",
+      "marchands": "Marchands touchés"
+    },
+    "volume": {
+      "titre": "Volume par mois",
+      "sous": "Billets créés et billets fermés, par mois de création.",
+      "crees": "Créés",
+      "resolus": "Résolus"
+    },
+    "delais": {
+      "titre": "Délai de résolution",
+      "sous": "Répartition des billets fermés, de la création à la fermeture.",
+      "serie": "Billets",
+      "t1": "< 1 h",
+      "t2": "1–4 h",
+      "t3": "4–24 h",
+      "t4": "1–3 j",
+      "t5": "> 3 j"
+    },
+    "canaux": {
+      "titre": "Canaux",
+      "sous": "Par où les billets arrivent."
+    },
+    "types": {
+      "titre": "Types de problème",
+      "sous": "Champ « Ticket Type » de Zoho Desk",
+      "couverture": "des billets sont catégorisés",
+      "type": "Type"
+    },
+    "sousTypes": {
+      "titre": "Sous-catégories",
+      "sous": "Détail des champs « POS Software » et « CS Category »."
+    },
+    "mots": {
+      "titre": "Mots récurrents dans les sujets",
+      "sous": "Ce qui revient quand aucune catégorie n'a été saisie. Les mots composant un nom de marchand sont écartés."
+    },
+    "dept": {
+      "titre": "Départements",
+      "sous": "Charge et délai par file d'attente.",
+      "nom": "Département"
+    },
+    "agents": {
+      "titre": "Agents",
+      "sous": "40 agents les plus sollicités sur la période.",
+      "nom": "Agent"
+    },
+    "marchands": {
+      "titre": "Marchands",
+      "sous": "40 marchands qui ouvrent le plus de billets.",
+      "nom": "Marchand",
+      "dernier": "Dernier billet"
+    },
+    "note": {
+      "copie": "Copie locale : {{n}} billets, du {{de}} au {{a}}. Dernière synchronisation : {{synchro}}.",
+      "exclu": "Non couvert : le département « Integration Emails » (désactivé, alimenté par des automatismes) n'est pas accessible au compte lecteur Desk — Zoho en refuse la lecture.",
+      "delai": "Le délai mesuré va de la création à la fermeture. Le délai de PREMIÈRE RÉPONSE n'est pas repris : Zoho ne l'expose que billet par billet."
     }
   }
 }

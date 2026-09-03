@@ -70,6 +70,7 @@ const CommissionTracker = lazyRoute(() => import('./pages/CommissionTracker'));
 const CommissionReport = lazyRoute(() => import('./pages/CommissionReport'));
 const AdminPanel = lazyRoute(() => import('./pages/AdminPanel'));
 const Reseller = lazyRoute(() => import('./pages/Reseller'));
+const Support = lazyRoute(() => import('./pages/Support'));
 const Leads = lazyRoute(() => import('./pages/Leads'));
 const Revenue = lazyRoute(() => import('./pages/Revenue'));
 const Resources = lazyRoute(() => import('./pages/Resources'));
@@ -386,6 +387,17 @@ function AppContent() {
               <>
                 <PageTitle title="Versions | Sales Hub" />
                 <Versions />
+              </>
+            }
+          />
+          {/* Rapports de soutien technique (Zoho Desk). Portee par sa propre permission
+              support:view_reports — audience visee : la direction. */}
+          <Route
+            path="/support"
+            element={
+              <>
+                <PageTitle title="Support | Sales Hub" />
+                <Support />
               </>
             }
           />
