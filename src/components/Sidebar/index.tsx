@@ -326,7 +326,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 </li>
               )}
               {/* <!-- Menu Item Soutien technique (perm: support:view_reports) --> */}
-              {can('support:view_reports') && (
+              {(isAdmin || can('support:view_reports')) && (
                 <li>
                   <NavLink
                     to="/support"
