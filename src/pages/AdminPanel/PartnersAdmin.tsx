@@ -1875,6 +1875,19 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
             <input value={queueSearch} onChange={(e) => setQueueSearch(e.target.value)}
               placeholder={t('admin.partners.searchPh') as string}
               className="min-w-[200px] flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+            {/* TOUJOURS visible avec la permission. Il etait a l'interieur du bloc « un filtre est
+                actif », donc invisible en arrivant sur la page — signale par Gabriella, qui ne le
+                voyait pas du tout. Une action de creation ne depend pas de l'etat des filtres. */}
+            {canCreateOpportunity && (
+              <button type="button" onClick={() => setManualOpen(true)}
+                title={t('admin.partners.manual.hint') as string}
+                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-white hover:bg-opacity-90">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
+                </svg>
+                {t('admin.partners.manual.newButton')}
+              </button>
+            )}
             {/* Combien on voit sur combien, et de quoi tout relacher d'un geste : une liste courte
                 doit dire si c'est un filtre qui mord ou s'il n'y a vraiment rien. */}
             {(partnerFilter || clusterRepFilter || payoutFilter || searchLower) && (
@@ -1882,16 +1895,6 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 <span className="whitespace-nowrap text-xs text-body">
                   {t('admin.partners.queue.shown', { shown: queueTotal, total: queueInView.length })}
                 </span>
-                {canCreateOpportunity && (
-                  <button type="button" onClick={() => setManualOpen(true)}
-                    title={t('admin.partners.manual.hint') as string}
-                    className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-white hover:bg-opacity-90">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
-                    </svg>
-                    {t('admin.partners.manual.newButton')}
-                  </button>
-                )}
                 <button type="button"
                   onClick={() => { setPartnerFilter(''); setClusterRepFilter(''); setPayoutFilter(''); setQueueSearch(''); }}
                   className="whitespace-nowrap rounded-lg border border-stroke px-3 py-2 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
