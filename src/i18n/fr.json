@@ -2508,6 +2508,21 @@
       "syncNow": "Synchroniser les ventes",
       "syncing": "Synchronisation..."
     },
+    "desk": {
+      "title": "Connexion Zoho Desk",
+      "subtitle": "Connectez Zoho Desk pour alimenter les rapports de soutien technique.",
+      "connected": "Connecté",
+      "connectedMsg": "Zoho Desk est connecté et les lectures fonctionnent.",
+      "connectedDesc": "Les billets de soutien peuvent être lus pour produire les rapports.",
+      "orgLine": "Organisation Desk : {{org}}",
+      "notConnected": "Zoho Desk n'est pas encore connecté.",
+      "brokenMsg": "Zoho Desk est connecté, mais la lecture échoue.",
+      "notConnectedDesc": "Connectez un compte Zoho ayant accès à Desk. Le compte utilisé devient celui qui lit les billets pour tous les rapports.",
+      "checking": "Vérification du statut de connexion...",
+      "connect": "Connecter Zoho Desk",
+      "reconnect": "Reconnecter Desk",
+      "redirecting": "Redirection vers Zoho..."
+    },
     "zentact": {
       "title": "Intégration paiement Zentact",
       "subtitle": "Synchroniser les activations marchands depuis Zentact — chaque marchand actif rapporte 1 point + 100 $ de prime au représentant",

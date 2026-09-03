@@ -138,6 +138,10 @@ const AdminPanel = () => {
       // Clean up the URL
       window.history.replaceState({}, '', '/admin/sync');
     }
+    if (params.get('desk') === 'connected') {
+      fetchDeskStatus();
+      window.history.replaceState({}, '', '/admin/sync');
+    }
   }, [location.search]);
 
   // Kaizen demo maintenance switch (Integrations → Connections). Fetched once isAdmin resolves.
@@ -1145,6 +1149,28 @@ const AdminPanel = () => {
     }
   };
 
+  // ── ZOHO DESK ────────────────────────────────────────────────────────────────────────────
+  // Le statut vient d'une VRAIE lecture cote serveur (organisations + un billet), pas de la
+  // seule presence d'un jeton : c'est ainsi qu'un profil Zoho sans acces API est passe
+  // inapercu cote CRM. `error` est donc affiche tel quel quand il y en a une.
+  type DeskStatus = { connected: boolean; account?: string; org?: { id: string; name: string } | null;
+                      tickets?: string | null; error?: string | null };
+  const [deskStatus, setDeskStatus] = useState<DeskStatus | null>(null);
+  const [deskConnecting, setDeskConnecting] = useState(false);
+  const fetchDeskStatus = async () => {
+    try {
+      const r = await axios.get(`${API_URL}/api/auth/desk-status`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      setDeskStatus(r.data);
+    } catch (e) { setDeskStatus({ connected: false }); }
+  };
+  const connectDesk = async () => {
+    try {
+      setDeskConnecting(true);
+      const r = await axios.get(`${API_URL}/api/auth/zoho-desk`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      window.location.href = r.data.authUrl;
+    } catch (e) { console.error('Failed to initiate Desk OAuth:', e); setDeskConnecting(false); }
+  };
+
   const connectCRM = async () => {
     try {
       setCrmConnecting(true);
@@ -1388,6 +1414,7 @@ const AdminPanel = () => {
   // Check enrich + recalc-v2 status on mount (and resume polling if a job is already running)
   useEffect(() => {
     if (isAdmin && activeTab === 'sync') {
+      fetchDeskStatus();
       const check = async () => {
         try {
           const token = localStorage.getItem('token');
@@ -1830,6 +1857,80 @@ const AdminPanel = () => {
               </div>
             </div>
 
+
+            {/* ==================== ZOHO DESK CONNECTION ==================== */}
+            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.desk.title')}</h3>
+                  <p className="text-sm text-body mt-1">{t('admin.desk.subtitle')}</p>
+                </div>
+                {deskStatus?.connected && !deskStatus?.error && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-success bg-opacity-10 px-3 py-1 text-xs font-semibold text-success">
+                    <span className="h-2 w-2 rounded-full bg-success"></span>
+                    {t('admin.desk.connected')}
+                  </span>
+                )}
+              </div>
+              <div className="p-7">
+                <div className="flex items-start gap-6">
+                  <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-[#E8542A] bg-opacity-10">
+                    <svg className="h-7 w-7 text-[#E8542A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    {deskStatus === null ? (
+                      <p className="text-sm text-body">{t('admin.desk.checking')}</p>
+                    ) : deskStatus.connected && !deskStatus.error ? (
+                      <div>
+                        <p className="text-sm font-medium text-black dark:text-white mb-1">{t('admin.desk.connectedMsg')}</p>
+                        <p className="text-sm text-body mb-4">
+                          {deskStatus.org?.name ? t('admin.desk.orgLine', { org: deskStatus.org.name }) : t('admin.desk.connectedDesc')}
+                          {deskStatus.account ? ` — ${deskStatus.account}` : ''}
+                        </p>
+                        <button
+                          onClick={connectDesk}
+                          disabled={deskConnecting}
+                          className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 disabled:opacity-50"
+                        >
+                          {t('admin.desk.reconnect')}
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm font-medium text-black dark:text-white mb-1">
+                          {deskStatus?.connected ? t('admin.desk.brokenMsg') : t('admin.desk.notConnected')}
+                        </p>
+                        <p className="text-sm text-body mb-4">{t('admin.desk.notConnectedDesc')}</p>
+                        {deskStatus?.error && (
+                          <p className="mb-4 rounded-md bg-danger bg-opacity-10 px-3 py-2 text-sm text-danger">{deskStatus.error}</p>
+                        )}
+                        <button
+                          onClick={connectDesk}
+                          disabled={deskConnecting}
+                          className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                        >
+                          {deskConnecting ? (
+                            <>
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                              {t('admin.desk.redirecting')}
+                            </>
+                          ) : (
+                            <>
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                              </svg>
+                              {t('admin.desk.connect')}
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
             {/* ==================== ZENTACT CONNECTION ==================== */}
             <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">

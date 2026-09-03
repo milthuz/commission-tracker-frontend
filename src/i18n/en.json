@@ -2508,6 +2508,21 @@
       "syncNow": "Sync Deals Now",
       "syncing": "Syncing..."
     },
+    "desk": {
+      "title": "Zoho Desk Connection",
+      "subtitle": "Connect Zoho Desk to feed the support reports.",
+      "connected": "Connected",
+      "connectedMsg": "Zoho Desk is connected and reads are working.",
+      "connectedDesc": "Support tickets can be read to build the reports.",
+      "orgLine": "Desk organization: {{org}}",
+      "notConnected": "Zoho Desk is not connected yet.",
+      "brokenMsg": "Zoho Desk is connected, but reads are failing.",
+      "notConnectedDesc": "Connect a Zoho account that has Desk access. That account becomes the one reading tickets for every report.",
+      "checking": "Checking connection status...",
+      "connect": "Connect Zoho Desk",
+      "reconnect": "Reconnect Desk",
+      "redirecting": "Redirecting to Zoho..."
+    },
     "zentact": {
       "title": "Zentact Payment Integration",
       "subtitle": "Sync merchant activations from Zentact — each active merchant earns 1 point + $100 bonus for the rep",
