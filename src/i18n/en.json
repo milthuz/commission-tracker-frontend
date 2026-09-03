@@ -4766,7 +4766,7 @@
     },
     "note": {
       "copie": "Local copy: {{n}} tickets, from {{de}} to {{a}}. Last sync: {{synchro}}.",
-      "exclu": "Not covered: the “Integration Emails” department (disabled, fed by automations) is not accessible to the Desk reader account — Zoho refuses to read it.",
+      "exclu": "Not covered: the “Integration Emails” department (28,431 entries). It is not support — it is a disabled automation inbox that turns Five9 emails into leads. Zoho gives its count but refuses to serve its content over the API. Excluding it is intended, not a loss.",
       "delai": "The measured delay runs from creation to closure. FIRST RESPONSE time is not included: Zoho only exposes it one ticket at a time."
     }
   }

@@ -4766,7 +4766,7 @@
     },
     "note": {
       "copie": "Copie locale : {{n}} billets, du {{de}} au {{a}}. Dernière synchronisation : {{synchro}}.",
-      "exclu": "Non couvert : le département « Integration Emails » (désactivé, alimenté par des automatismes) n'est pas accessible au compte lecteur Desk — Zoho en refuse la lecture.",
+      "exclu": "Non couvert : le département « Integration Emails » (28 431 entrées). Ce n'est pas du soutien — c'est une boîte automatisée qui transforme des courriels Five9 en pistes, désactivée depuis. Zoho en donne le compte mais refuse d'en servir le contenu par l'API. Son exclusion est donc voulue, pas une perte.",
       "delai": "Le délai mesuré va de la création à la fermeture. Le délai de PREMIÈRE RÉPONSE n'est pas repris : Zoho ne l'expose que billet par billet."
     }
   }
