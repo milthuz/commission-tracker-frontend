@@ -4781,7 +4781,8 @@
       "rep": "Représentant",
       "lents": "Billets > 72 h",
       "lentsCourt": "> 72 h",
-      "lentsNote": "le signal qui compte"
+      "lentsNote": "le signal qui compte",
+      "orgNote": "Le revenu vient des factures Zoho Books de l'organisation principale UNIQUEMENT (46 469 factures, org 697704869). Les marchands facturés par les deux autres organisations apparaissent donc avec leurs billets mais sans revenu — ce n'est pas un revenu nul, c'est un revenu inconnu."
     },
     "churn": {
       "titre": "Le soutien fait-il partir des clients ?",

@@ -239,6 +239,12 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
         </div>
       </Carte>
 
+      {/* Le revenu ne couvre qu'UNE des trois organisations de facturation. Un lecteur qui
+          l'ignore prend un revenu inconnu pour un revenu nul. */}
+      <div className="rounded-sm border border-stroke bg-white px-5 py-4 text-xs text-body shadow-default dark:border-strokedark dark:bg-boxdark">
+        {t('support.rev.orgNote')}
+      </div>
+
       <Carte titre={t('support.exclus.titre') as string} sous={t('support.exclus.sous') as string}>
         <div className="flex flex-wrap gap-2">
           {data.exclus.map((n) => (

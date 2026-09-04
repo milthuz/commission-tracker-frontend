@@ -4781,7 +4781,8 @@
       "rep": "Sales rep",
       "lents": "Tickets > 72 h",
       "lentsCourt": "> 72 h",
-      "lentsNote": "the signal that matters"
+      "lentsNote": "the signal that matters",
+      "orgNote": "Revenue comes from the MAIN Zoho Books organization only (46,469 invoices, org 697704869). Merchants billed through the other two organizations therefore appear with their tickets but no revenue — that is unknown revenue, not zero revenue."
     },
     "churn": {
       "titre": "Does support drive customers away?",
