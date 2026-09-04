@@ -4701,7 +4701,8 @@
       "apercu": "Aperçu",
       "problemes": "Problèmes",
       "equipe": "Équipe",
-      "marchands": "Marchands"
+      "marchands": "Marchands",
+      "revenus": "Revenus et churn"
     },
     "kpi": {
       "total": "Billets",
@@ -4768,6 +4769,39 @@
       "copie": "Copie locale : {{n}} billets, du {{de}} au {{a}}. Dernière synchronisation : {{synchro}}.",
       "exclu": "Non couvert : le département « Integration Emails » (28 431 entrées). Ce n'est pas du soutien — c'est une boîte automatisée qui transforme des courriels Five9 en pistes, désactivée depuis. Zoho en donne le compte mais refuse d'en servir le contenu par l'API. Son exclusion est donc voulue, pas une perte.",
       "delai": "Le délai mesuré va de la création à la fermeture. Le délai de PREMIÈRE RÉPONSE n'est pas repris : Zoho ne l'expose que billet par billet."
+    },
+    "rev": {
+      "titre": "Marchands : revenu et friction",
+      "sous": "Trié par billets qui ont traîné plus de 72 h — pas par nombre de billets, qui distingue mal.",
+      "tous": "Tous les revenus",
+      "min": "Revenu ≥ {{n}} $",
+      "apparies": "Clients appariés",
+      "surClients": "sur {{n}} clients facturés",
+      "revenu": "Revenu",
+      "rep": "Représentant",
+      "lents": "Billets > 72 h",
+      "lentsCourt": "> 72 h",
+      "lentsNote": "le signal qui compte"
+    },
+    "churn": {
+      "titre": "Le soutien fait-il partir des clients ?",
+      "sous": "Friction mesurée avant le départ, comparée aux clients encore actifs.",
+      "motif": "Motif de résiliation",
+      "marchands": "Marchands",
+      "moy12": "Billets / 12 mois",
+      "moy3": "Dont 3 derniers mois",
+      "lents": "Billets > 72 h",
+      "temoin": "Clients actifs (témoin)",
+      "lecture": "Comment lire : le nombre de billets ne sépare presque pas les partants des restants. Ce sont les billets qui TRAÎNENT qui les séparent — plus du double chez ceux qui sont partis chez un concurrent. Et la majorité des résiliations sont une fermeture de commerce ou un changement de propriétaire, sur quoi le service n'a aucune prise."
+    },
+    "exclus": {
+      "titre": "Comptes non marchands, exclus du classement",
+      "sous": "Processeurs, partenaires et entités internes. Sans cette liste, le classement par revenu est dominé par des comptes à zéro billet.",
+      "gerer": "Modifier la liste",
+      "ajouter": "Ajouter",
+      "retirer": "Retirer",
+      "termine": "Terminé",
+      "nom": "Nom exact du compte"
     }
   }
 }

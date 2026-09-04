@@ -4,6 +4,7 @@ import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import axios from 'axios';
 import Select from '../../components/Select';
+import SupportMerchants from './SupportMerchants';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -35,7 +36,7 @@ type Rapport = {
   motsSujets: { mot: string; n: number }[];
 };
 
-type Onglet = 'apercu' | 'problemes' | 'equipe' | 'marchands';
+type Onglet = 'apercu' | 'problemes' | 'equipe' | 'marchands' | 'revenus';
 
 // ---------------------------------------------------------------------------
 // Petits éléments de présentation
@@ -99,6 +100,7 @@ export default function Support() {
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState('');
   const [estAdmin, setEstAdmin] = useState(false);
+  const [peutGererExclus, setPeutGererExclus] = useState(false);
   const [synchro, setSynchro] = useState<any>(null);
   const [lance, setLance] = useState(false);
 
@@ -120,8 +122,13 @@ export default function Support() {
   // un échec ici n'est pas une erreur, juste « pas admin ».
   useEffect(() => {
     axios.get(`${API_URL}/api/auth/verify`, jeton())
-      .then((r) => setEstAdmin(r.data?.isAdmin === true))
-      .catch(() => setEstAdmin(false));
+      .then((r) => {
+        setEstAdmin(r.data?.isAdmin === true);
+        const perms: string[] = r.data?.permissions || [];
+        setPeutGererExclus(r.data?.isAdmin === true || perms.includes('*')
+          || perms.includes('support:manage_exclusions') || perms.includes('support:*'));
+      })
+      .catch(() => { setEstAdmin(false); setPeutGererExclus(false); });
   }, []);
   useEffect(() => {
     if (!estAdmin) return;
@@ -264,6 +271,7 @@ export default function Support() {
               {ongletBtn('problemes', t('support.onglets.problemes') as string)}
               {ongletBtn('equipe', t('support.onglets.equipe') as string)}
               {ongletBtn('marchands', t('support.onglets.marchands') as string)}
+              {ongletBtn('revenus', t('support.onglets.revenus') as string)}
             </div>
 
             <div className="flex flex-col gap-4 p-4 md:p-6">
@@ -459,6 +467,8 @@ export default function Support() {
                   </div>
                 </Carte>
               )}
+
+              {onglet === 'revenus' && <SupportMerchants canManageExclusions={peutGererExclus} />}
             </div>
           </div>
 

@@ -4701,7 +4701,8 @@
       "apercu": "Overview",
       "problemes": "Issues",
       "equipe": "Team",
-      "marchands": "Merchants"
+      "marchands": "Merchants",
+      "revenus": "Revenue & churn"
     },
     "kpi": {
       "total": "Tickets",
@@ -4768,6 +4769,39 @@
       "copie": "Local copy: {{n}} tickets, from {{de}} to {{a}}. Last sync: {{synchro}}.",
       "exclu": "Not covered: the “Integration Emails” department (28,431 entries). It is not support — it is a disabled automation inbox that turns Five9 emails into leads. Zoho gives its count but refuses to serve its content over the API. Excluding it is intended, not a loss.",
       "delai": "The measured delay runs from creation to closure. FIRST RESPONSE time is not included: Zoho only exposes it one ticket at a time."
+    },
+    "rev": {
+      "titre": "Merchants: revenue and friction",
+      "sous": "Sorted by tickets that dragged past 72 h — not by ticket count, which barely separates anything.",
+      "tous": "All revenues",
+      "min": "Revenue ≥ ${{n}}",
+      "apparies": "Matched clients",
+      "surClients": "of {{n}} invoiced clients",
+      "revenu": "Revenue",
+      "rep": "Sales rep",
+      "lents": "Tickets > 72 h",
+      "lentsCourt": "> 72 h",
+      "lentsNote": "the signal that matters"
+    },
+    "churn": {
+      "titre": "Does support drive customers away?",
+      "sous": "Friction measured before they left, compared with customers still active.",
+      "motif": "Cancellation reason",
+      "marchands": "Merchants",
+      "moy12": "Tickets / 12 months",
+      "moy3": "Of which last 3 months",
+      "lents": "Tickets > 72 h",
+      "temoin": "Active customers (control)",
+      "lecture": "How to read this: ticket count barely separates those who left from those who stayed. What separates them is tickets that DRAGGED — more than double among those who left for a competitor. And most cancellations are a business closure or a change of owner, which service cannot influence."
+    },
+    "exclus": {
+      "titre": "Non-merchant accounts, excluded from the ranking",
+      "sous": "Processors, partners and internal entities. Without this list, a revenue ranking is dominated by accounts with zero tickets.",
+      "gerer": "Edit the list",
+      "ajouter": "Add",
+      "retirer": "Remove",
+      "termine": "Done",
+      "nom": "Exact account name"
     }
   }
 }
