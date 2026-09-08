@@ -365,7 +365,7 @@ const GoogleReviewsAdmin: React.FC = () => {
                   <tr>
                     <th className="px-4 py-2 text-left font-medium">{tr('date')}</th>
                     <th className="px-4 py-2 text-left font-medium">{tr('reviewer')}</th>
-                    <th className="px-4 py-2 text-left font-medium">{tr('merchant')}</th>
+                    <th className="px-4 py-2 text-left font-medium">{tr('merchantOrText')}</th>
                     {/* La note vit dans la cellule de l'auteur, et le statut ne s'affiche que
                         sur « Tous » : a 8 colonnes la table debordait de 142 px a la largeur
                         reelle (sidebar ouvert), et la colonne d'actions se retrouvait coupee. */}
@@ -390,13 +390,17 @@ const GoogleReviewsAdmin: React.FC = () => {
                             <span className="whitespace-nowrap rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary" title={tr('fromGoogle')}>G</span>
                           )}
                         </span>
-                        {r.review_text && (
-                          <span className="mt-0.5 block max-w-[220px] truncate text-xs font-normal text-body" title={r.review_text}>
-                            {r.review_text}
-                          </span>
-                        )}
                       </td>
-                      <td className="max-w-[150px] truncate px-4 py-2 text-body" title={r.merchant_name || undefined}>{r.merchant_name || '—'}</td>
+                      {/* Marchand OU texte de l'avis : un avis venu de Google n'a jamais de
+                          marchand (l'API ne le dit pas), la colonne serait vide pour lui.
+                          Le plafond est responsive — un plafond fixe FIXE le plancher de
+                          toute la table, et c'est ce qui la faisait deborder. */}
+                      <td className="max-w-[130px] truncate px-4 py-2 text-body 2xl:max-w-[240px]"
+                          title={r.merchant_name || r.review_text || undefined}>
+                        {r.merchant_name || (r.review_text
+                          ? <span className="text-xs italic">{r.review_text}</span>
+                          : '—')}
+                      </td>
                       {status === 'all' && <td className="px-4 py-2 text-center">{pill(r.status)}</td>}
                       <td className="px-4 py-2">
                         {r.status === 'approved'
@@ -408,8 +412,19 @@ const GoogleReviewsAdmin: React.FC = () => {
                             </span>
                           )
                           : (
-                            <Select value={assign[r.id] || ''} onChange={v => setAssign(a => ({ ...a, [r.id]: v }))} className="w-36"
-                              options={[{ value: '', label: tr('choose') }, ...openers.map(o => ({ value: o.name, label: `${o.name} — ${fmt(o.amount)}` }))]} />
+                            <div className="w-36">
+                              {/* Le montant vit SOUS le menu, pas dedans : « Hao Minh Phung — 25,00 $ »
+                                  depassait la largeur et se cassait sur trois lignes. Le nom seul tient,
+                                  et le tarif reste visible au moment ou l'on engage l'argent. */}
+                              <Select value={assign[r.id] || ''} onChange={v => setAssign(a => ({ ...a, [r.id]: v }))}
+                                buttonClassName="w-full rounded border border-stroke bg-transparent px-2.5 py-2 text-sm text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                                options={[{ value: '', label: tr('choose') }, ...openers.map(o => ({ value: o.name, label: o.name }))]} />
+                              {assign[r.id] && (
+                                <span className="mt-0.5 block whitespace-nowrap text-xs text-body">
+                                  {fmt(openers.find(o => o.name === assign[r.id])?.amount ?? 0)} {tr('perReviewShort')}
+                                </span>
+                              )}
+                            </div>
                           )}
                       </td>
                       <td className="sticky right-0 whitespace-nowrap bg-white px-4 py-2 text-right dark:bg-boxdark">
