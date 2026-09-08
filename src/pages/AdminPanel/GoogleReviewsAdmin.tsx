@@ -357,7 +357,12 @@ const GoogleReviewsAdmin: React.FC = () => {
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-body">{tr('filterMonth')}</label>
-              <Select value={monthFilter} onChange={setMonthFilter} className="w-40"
+              {/* Filtrer un mois cale AUSSI la paie cible dessus. Sans ce lien, 7 avis d'aout
+                  ont ete approuves sur la paie de septembre parce que le second selecteur etait
+                  reste sur le mois courant — l'erreur est invisible tant qu'on ne cherche pas
+                  le montant sur le mauvais bulletin. */}
+              <Select value={monthFilter} className="w-40"
+                onChange={(v) => { setMonthFilter(v); if (v !== 'all') setPeriod(v); }}
                 options={[{ value: 'all', label: tr('allMonths') },
                           ...monthsPresent.map(m => ({ value: m, label: m }))]} />
             </div>
@@ -449,6 +454,12 @@ const GoogleReviewsAdmin: React.FC = () => {
                           )}
                       </td>
                       <td className="sticky right-0 whitespace-nowrap bg-white px-4 py-2 text-right dark:bg-boxdark">
+                        {r.status !== 'approved' && r.review_date && !r.review_date.startsWith(period) && (
+                          <span className="mr-1 inline-flex whitespace-nowrap rounded bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold text-warning"
+                                title={tr('monthMismatchHint', { month: period }) as string}>
+                            ≠ {period}
+                          </span>
+                        )}
                         {r.status !== 'approved' && (
                           <button disabled={busy === r.id || !assign[r.id]}
                             onClick={() => patch(r.id, { status: 'approved', repName: assign[r.id], period })}

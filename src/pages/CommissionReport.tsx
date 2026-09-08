@@ -105,6 +105,7 @@ interface ReportData {
   repName: string;
   commissionRate: number;
   baseSalary?: number | null;
+  hireDate?: string | null;
   canViewSalary?: boolean;
   probation?: { inProbation: boolean; endDate: string | null; daysLeft: number | null } | null;
   year: string;
@@ -987,18 +988,27 @@ const CommissionReport = () => {
         onAdjusted={canMarkPaid ? refreshReport : undefined}
       />
 
-      {/* Total Compensation — EARNED TO DATE: base salary accrued by pay period (26 bi-weekly
-          periods/year, completed 14-day periods since Jan 1) + YTD commission + bonuses.
-          The salary card shows both the earned amount and the full annual reference. */}
+      {/* Total Compensation — GAGNE A CE JOUR : salaire de base accumule par periode de paie
+          (26 periodes de 14 jours par an) + commissions de l'annee + bonus.
+          L'accumulation part de la DATE D'EMBAUCHE quand elle tombe apres le 1er janvier :
+          compter depuis le 1er janvier creditait un nouvel employe d'un salaire jamais gagne
+          — 29 423 $ affiches pour quelqu'un arrive depuis un mois. */}
       {report.canViewSalary !== false && (() => {
         const PAY_PERIODS = 26;
         const annualSalary = report.baseSalary || 0;
         const now = new Date();
         const yearNum = parseInt(selectedYear);
-        const daysElapsed = Math.floor((now.getTime() - new Date(yearNum, 0, 1).getTime()) / 86400000);
-        const periodsElapsed = yearNum < now.getFullYear() ? PAY_PERIODS
-          : yearNum > now.getFullYear() ? 0
-          : Math.min(PAY_PERIODS, Math.max(0, Math.floor(daysElapsed / 14)));
+        const yearStart = new Date(yearNum, 0, 1);
+        const yearEnd = new Date(yearNum, 11, 31, 23, 59, 59);
+        const hire = report.hireDate ? new Date(`${report.hireDate}T00:00:00`) : null;
+        // Depart de l'accumulation : l'embauche si elle tombe APRES le 1er janvier de l'annee
+        // affichee, sinon le 1er janvier. Vaut aussi pour les annees passees — un vendeur
+        // embauche en juillet 2025 n'a pas gagne 26 periodes en 2025.
+        const hiredMidYear = !!hire && hire > yearStart;
+        const accrualStart = hiredMidYear ? hire : yearStart;
+        const accrualEnd = now < yearEnd ? now : yearEnd;
+        const daysElapsed = Math.floor((accrualEnd.getTime() - accrualStart.getTime()) / 86400000);
+        const periodsElapsed = Math.min(PAY_PERIODS, Math.max(0, Math.floor(daysElapsed / 14)));
         const pct = Math.round((periodsElapsed / PAY_PERIODS) * 100);
         const baseSalaryEarned = annualSalary * (periodsElapsed / PAY_PERIODS);
         const ytdComm = report.summary.ytd.commission || 0;
@@ -1049,6 +1059,15 @@ const CommissionReport = () => {
                     {t('commissionReport.payPeriodsProgress', { done: periodsElapsed, total: PAY_PERIODS, pct })}
                   </p>
                   <p className="whitespace-nowrap text-[11px] text-body">{t('commissionReport.compBaseOf', { amount: money(annualSalary) })}</p>
+                  {/* Sans cette ligne, « 2/26 » ressemble a une erreur pour un nouvel employe.
+                      Elle dit d'ou part le compte. */}
+                  {hiredMidYear && (
+                    <p className="whitespace-nowrap text-[11px] italic text-body">
+                      {t('commissionReport.compSinceHire', {
+                        date: hire!.toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA',
+                          { year: 'numeric', month: 'long', day: 'numeric' }) })}
+                    </p>
+                  )}
                 </div>
                 {/* Each '+' is welded to its card so wrapping keeps "+ <card>" together */}
                 <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compCommission'), ytdComm)}</div>
