@@ -3324,6 +3324,7 @@
       "placeTitle": "Fiche Google",
       "placeSubtitle": "Les avis sont relus automatiquement toutes les 6 heures et atterrissent dans la file d'attribution ci-dessous.",
       "placeId": "Identifiant de la fiche (Place ID)",
+      "placeReveal": "Cliquer pour modifier",
       "placeHint": "L'API ne rend que les 5 avis les PLUS RÉCENTS et ne pagine pas : c'est la fréquence des passages qui garantit qu'aucun n'est manqué. L'historique antérieur se saisit à la main.",
       "fetchNow": "Récupérer maintenant",
       "fetched": "{{seen}} avis lus, {{inserted}} nouveau(x).",

@@ -3324,6 +3324,7 @@
       "placeTitle": "Google listing",
       "placeSubtitle": "Reviews are re-read automatically every 6 hours and land in the assignment queue below.",
       "placeId": "Listing ID (Place ID)",
+      "placeReveal": "Click to edit",
       "placeHint": "The API returns only the 5 MOST RECENT reviews and does not paginate: polling frequency is what guarantees none is missed. Older history is entered by hand.",
       "fetchNow": "Fetch now",
       "fetched": "{{seen}} reviews read, {{inserted}} new.",

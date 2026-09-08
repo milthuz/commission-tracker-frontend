@@ -59,6 +59,9 @@ const GoogleReviewsAdmin: React.FC = () => {
   const [form, setForm] = useState({ reviewerName: '', merchantName: '', reviewDate: '', rating: '', reviewUrl: '', note: '' });
   const [place, setPlace] = useState<PlaceCfg | null>(null);
   const [placeDraft, setPlaceDraft] = useState('');
+  // L'identifiant de fiche reste MASQUE au repos, comme les autres champs de configuration
+  // sensibles : on le pose une fois, on ne le relit jamais.
+  const [placeOpen, setPlaceOpen] = useState(false);
   const [fetching, setFetching] = useState(false);
 
   const fmt = (v: number | null) =>
@@ -192,13 +195,28 @@ const GoogleReviewsAdmin: React.FC = () => {
           <div className="flex flex-wrap items-end gap-3">
             <div className="min-w-[280px] flex-1">
               <label className="mb-1 block text-xs font-medium text-body">{tr('placeId')}</label>
-              <input value={placeDraft} onChange={e => setPlaceDraft(e.target.value)} placeholder="ChIJ…"
-                className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              {placeOpen || !place?.placeId ? (
+                <input value={placeDraft} onChange={e => setPlaceDraft(e.target.value)} placeholder="ChIJ…" autoFocus={placeOpen}
+                  className="w-full rounded border border-primary bg-transparent px-3 py-2 text-sm text-black outline-none dark:bg-form-input dark:text-white" />
+              ) : (
+                <button onClick={() => { setPlaceDraft(place.placeId); setPlaceOpen(true); }}
+                  title={tr('placeReveal') as string}
+                  className="group flex w-full items-center justify-between gap-2 rounded border border-stroke px-3 py-2 text-left text-sm transition hover:border-primary dark:border-strokedark">
+                  <span className="font-mono text-black dark:text-white">
+                    {place.placeId.slice(0, 4)}{'•'.repeat(Math.max(4, place.placeId.length - 7))}{place.placeId.slice(-3)}
+                  </span>
+                  <svg className="h-4 w-4 shrink-0 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </button>
+              )}
             </div>
-            <button onClick={savePlace} disabled={placeDraft.trim() === (place?.placeId || '')}
-              className="rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-white disabled:opacity-40">
-              {tr('save')}
-            </button>
+            {(placeOpen || !place?.placeId) && (
+              <button onClick={() => { savePlace(); setPlaceOpen(false); }} disabled={placeDraft.trim() === (place?.placeId || '')}
+                className="rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-white disabled:opacity-40">
+                {tr('save')}
+              </button>
+            )}
             <button onClick={fetchNow} disabled={fetching || !place?.placeId || !place?.hasKey}
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-40">
               {fetching ? '…' : tr('fetchNow')}
