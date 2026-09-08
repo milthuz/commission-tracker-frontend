@@ -45,6 +45,9 @@ const GoogleReviewsAdmin: React.FC = () => {
   // Brouillon local du montant par avis, pour ne pas envoyer une requete a chaque frappe.
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [status, setStatus] = useState('pending');
+  // Filtre sur le MOIS DE L'AVIS. A ne pas confondre avec le mois de paie ci-dessous, qui est
+  // la cible de l'approbation : deux « mois » a l'ecran, deux roles opposes.
+  const [monthFilter, setMonthFilter] = useState('all');
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState<number | null>(null);
 
@@ -181,7 +184,13 @@ const GoogleReviewsAdmin: React.FC = () => {
     return { value: v, label: v };
   });
 
-  const total = rows.filter(r => r.status === 'approved').reduce((s, r) => s + (r.amount || 0), 0);
+  // Filtrage cote client : la liste est plafonnee a 500 lignes, inutile d'aller au serveur.
+  const shown = monthFilter === 'all'
+    ? rows
+    : rows.filter(r => (r.review_date || '').startsWith(monthFilter));
+  // Les mois REELLEMENT presents, pas une liste figee : proposer un mois vide n'aide personne.
+  const monthsPresent = [...new Set(rows.map(r => (r.review_date || '').slice(0, 7)).filter(Boolean))].sort().reverse();
+  const total = shown.filter(r => r.status === 'approved').reduce((s, r) => s + (r.amount || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -347,7 +356,13 @@ const GoogleReviewsAdmin: React.FC = () => {
                 options={['pending', 'approved', 'rejected', 'all'].map(v => ({ value: v, label: tr(`status_${v}`) }))} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">{tr('payPeriod')}</label>
+              <label className="mb-1 block text-xs font-medium text-body">{tr('filterMonth')}</label>
+              <Select value={monthFilter} onChange={setMonthFilter} className="w-40"
+                options={[{ value: 'all', label: tr('allMonths') },
+                          ...monthsPresent.map(m => ({ value: m, label: m }))]} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-body">{tr('approveOn')}</label>
               <Select value={period} onChange={setPeriod} className="w-40" options={monthOptions} />
             </div>
             {status === 'approved' && (
@@ -358,7 +373,7 @@ const GoogleReviewsAdmin: React.FC = () => {
           </div>
 
           {loading ? <p className="py-6 text-center text-sm text-body">…</p>
-            : rows.length === 0 ? <p className="py-6 text-center text-sm text-body">{tr('none')}</p> : (
+            : shown.length === 0 ? <p className="py-6 text-center text-sm text-body">{tr('none')}</p> : (
             <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
               <table className="w-full text-sm">
                 <thead className="bg-gray-2 dark:bg-meta-4">
@@ -375,7 +390,7 @@ const GoogleReviewsAdmin: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map(r => (
+                  {shown.map(r => (
                     <tr key={r.id} className="border-t border-stroke dark:border-strokedark">
                       <td className="whitespace-nowrap px-4 py-2 text-body">{r.review_date || '—'}</td>
                       <td className="px-4 py-2 font-medium text-black dark:text-white">
