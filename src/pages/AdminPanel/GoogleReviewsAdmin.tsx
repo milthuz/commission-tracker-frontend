@@ -28,8 +28,10 @@ interface Review {
   status: 'pending' | 'approved' | 'rejected';
   period: string | null;
   note: string | null;
+  review_text: string | null;
   approved_by: string | null;
 }
+interface PlaceCfg { placeId: string; hasKey: boolean; lastSync: { at: string; seen: number; inserted: number } | null }
 interface Opener { name: string; amount: number }
 interface RepCfg { name: string; enabled: boolean; amount: number }
 
@@ -55,6 +57,9 @@ const GoogleReviewsAdmin: React.FC = () => {
   const [assign, setAssign] = useState<Record<number, string>>({});
 
   const [form, setForm] = useState({ reviewerName: '', merchantName: '', reviewDate: '', rating: '', reviewUrl: '', note: '' });
+  const [place, setPlace] = useState<PlaceCfg | null>(null);
+  const [placeDraft, setPlaceDraft] = useState('');
+  const [fetching, setFetching] = useState(false);
 
   const fmt = (v: number | null) =>
     (v ?? 0).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' });
@@ -75,6 +80,36 @@ const GoogleReviewsAdmin: React.FC = () => {
     } finally { setLoading(false); }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [status]);
+
+  const loadPlace = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/reviews/place`, { headers: { Authorization: `Bearer ${token}` } });
+      setPlace(res.data); setPlaceDraft(res.data.placeId || '');
+    } catch { /* la carte reste muette si l'appel echoue — ce n'est pas bloquant */ }
+  };
+  useEffect(() => { loadPlace(); }, []);
+
+  const savePlace = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/reviews/place`, { placeId: placeDraft.trim() },
+        { headers: { Authorization: `Bearer ${token}` } });
+      loadPlace();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save'); }
+  };
+
+  const fetchNow = async () => {
+    setFetching(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post(`${API_URL}/api/reviews/fetch`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      dialog.alert(tr('fetched', { seen: res.data.seen, inserted: res.data.inserted }));
+      loadPlace(); load();
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || 'Failed to fetch');
+    } finally { setFetching(false); }
+  };
 
   const add = async (allowDuplicate = false) => {
     if (!form.reviewerName.trim() || !form.reviewDate) { dialog.alert(tr('needFields')); return; }
@@ -147,6 +182,41 @@ const GoogleReviewsAdmin: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* La fiche Google d'ou viennent les avis */}
+      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <h3 className="text-lg font-semibold text-black dark:text-white">{tr('placeTitle')}</h3>
+          <p className="text-sm text-body">{tr('placeSubtitle')}</p>
+        </div>
+        <div className="px-6 py-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[280px] flex-1">
+              <label className="mb-1 block text-xs font-medium text-body">{tr('placeId')}</label>
+              <input value={placeDraft} onChange={e => setPlaceDraft(e.target.value)} placeholder="ChIJ…"
+                className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+            </div>
+            <button onClick={savePlace} disabled={placeDraft.trim() === (place?.placeId || '')}
+              className="rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-white disabled:opacity-40">
+              {tr('save')}
+            </button>
+            <button onClick={fetchNow} disabled={fetching || !place?.placeId || !place?.hasKey}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-40">
+              {fetching ? '…' : tr('fetchNow')}
+            </button>
+          </div>
+          <div className="mt-3 space-y-1 text-sm">
+            {place && !place.hasKey && <p className="text-danger">{tr('noKey')}</p>}
+            {place?.lastSync && (
+              <p className="text-body">
+                {tr('lastSync')}: {new Date(place.lastSync.at).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA')}
+                {' — '}{tr('lastSyncCounts', { seen: place.lastSync.seen, inserted: place.lastSync.inserted })}
+              </p>
+            )}
+            <p className="text-xs text-body">{tr('placeHint')}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Qui est un opener, et a combien l'avis */}
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
@@ -298,7 +368,15 @@ const GoogleReviewsAdmin: React.FC = () => {
                           {r.rating != null && (
                             <span className="whitespace-nowrap text-xs font-semibold text-warning" title={`${r.rating}/5`}>★{r.rating}</span>
                           )}
+                          {r.source === 'google' && (
+                            <span className="whitespace-nowrap rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary" title={tr('fromGoogle')}>G</span>
+                          )}
                         </span>
+                        {r.review_text && (
+                          <span className="mt-0.5 block max-w-[220px] truncate text-xs font-normal text-body" title={r.review_text}>
+                            {r.review_text}
+                          </span>
+                        )}
                       </td>
                       <td className="max-w-[150px] truncate px-4 py-2 text-body" title={r.merchant_name || undefined}>{r.merchant_name || '—'}</td>
                       {status === 'all' && <td className="px-4 py-2 text-center">{pill(r.status)}</td>}

@@ -3321,6 +3321,16 @@
       "importedAt": "Imported"
     },
     "reviews": {
+      "placeTitle": "Google listing",
+      "placeSubtitle": "Reviews are re-read automatically every 6 hours and land in the assignment queue below.",
+      "placeId": "Listing ID (Place ID)",
+      "placeHint": "The API returns only the 5 MOST RECENT reviews and does not paginate: polling frequency is what guarantees none is missed. Older history is entered by hand.",
+      "fetchNow": "Fetch now",
+      "fetched": "{{seen}} reviews read, {{inserted}} new.",
+      "lastSync": "Last run",
+      "lastSyncCounts": "{{seen}} read, {{inserted}} new",
+      "noKey": "The Google Maps key is not configured on the server: automatic fetching is off.",
+      "fromGoogle": "Imported from Google",
       "openersTitle": "Openers and per-review rate",
       "openersSubtitle": "Tick a rep to make them an opener, then set what one review is worth to them. The amount is frozen onto the review at approval — changing it here never alters an already-approved review.",
       "rep": "Rep",
