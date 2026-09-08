@@ -6,6 +6,7 @@ import PayStubModal, { PayStubData } from '../../components/PayStubModal';
 import ProcessingBonusStatementModal, { BonusStatementData } from '../../components/ProcessingBonusStatementModal';
 import SendConfirmModal from '../../components/SendConfirmModal';
 import DealsAdmin from './DealsAdmin';
+import GoogleReviewsAdmin from './GoogleReviewsAdmin';
 import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
 
@@ -128,7 +129,7 @@ const toPayStub = (d: StubDetail): PayStubData => ({
   linesStored: d.lines.length > 0,
 });
 
-const SUBTABS = ['import', 'coverage', 'payroll', 'bonus', 'adjustments', 'reconciliation', 'deals', 'settings'] as const;
+const SUBTABS = ['import', 'coverage', 'payroll', 'bonus', 'reviews', 'adjustments', 'reconciliation', 'deals', 'settings'] as const;
 type SubTab = typeof SUBTABS[number];
 
 const CommissionImport: React.FC = () => {
@@ -2847,6 +2848,8 @@ const CommissionImport: React.FC = () => {
       )}
 
       </>)}
+
+      {subTab === 'reviews' && <GoogleReviewsAdmin />}
 
       {subTab === 'deals' && <DealsAdmin />}
 

@@ -99,6 +99,7 @@ const PayStubModal: React.FC<{
       case 'monthly_performance': return tp('monthlyPerformance');
       case 'processing':          return tp('processingBonus');
       case 'manual':              return tp('manualBonus');
+      case 'review':              return tp('reviewBonus');
       case 'adjustment':          return tp('adjustment');
       default:                    return type;
     }
