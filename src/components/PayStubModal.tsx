@@ -41,6 +41,10 @@ export interface PayStubData {
   linesStored: boolean;      // false → invoice breakdown is reconstructed (old import)
   missed?: PayStubMissed[];  // earned this period per the app but NOT paid (imported stubs)
   missedTotal?: number;
+  // SUR QUELLE PAIE ce mois est versé (date de dépôt, figée à l'envoi à la paye). Null tant que
+  // rien n'a été envoyé — on n'affiche alors rien plutôt qu'une date devinée.
+  payDate?: string | null;   // 'YYYY-MM-DD'
+  paySentAt?: string | null; // horodatage de l'envoi à la paye
   // Quota-gate context (generated stubs, payroll admins only) — plan v7.7 §2
   quota?: { points: number; required: number; met: boolean; ramp: boolean; waived: boolean; probation?: { inProbation: boolean; endDate: string | null; daysLeft: number | null } | null } | null;
 }
@@ -129,6 +133,7 @@ const PayStubModal: React.FC<{
     const esc = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const rows: string[] = [];
     rows.push(`<tr><th colspan="3" style="text-align:left">${esc(tp('title'))} — ${esc(data.repName)} · ${esc(data.period)}</th></tr>`);
+    if (data.payDate) rows.push(`<tr><td colspan="3">${esc(tp('payRun'))}: ${esc(payDateLabel(data.payDate))}</td></tr>`);
     rows.push(`<tr><th>${esc(tp('invoice'))}</th><th>${esc(tp('customer'))}</th><th>${esc(tp('amount'))}</th></tr>`);
     data.lines.forEach(l => rows.push(`<tr><td>${esc(l.invoice_number)}</td><td>${esc(l.customer)}</td><td>${l.paid_amount}</td></tr>`));
     bonusRows.forEach(b => rows.push(`<tr><td>${esc(bonusLabel(b.bonus_type))}</td><td>${esc(b.merchant_name)}</td><td>${b.amount}</td></tr>`));
@@ -172,6 +177,12 @@ const PayStubModal: React.FC<{
     const total = paid + (forfeited || 0);
     return total > 0 ? Math.round((paid / total) * 100) : 0;
   };
+  // « vendredi 11 septembre 2026 ». Formaté en UTC : la date arrive en 'YYYY-MM-DD' et un
+  // fuseau à l'ouest de Greenwich la ferait reculer d'un jour à l'affichage.
+  const payDateLabel = (d?: string | null) => d
+    ? new Date(`${d}T00:00:00Z`).toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA',
+        { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
+    : '';
 
   // Branded, print-optimized pay-stub document (opens in a new window, auto-prints).
   const printStub = () => {
@@ -264,6 +275,7 @@ const PayStubModal: React.FC<{
   <div class="meta">
     <div><span>${tp('repLabel')}</span><b>${esc(data.repName)}</b></div>
     <div><span>${tp('period')}</span><b>${esc(data.period)}</b></div>
+    ${data.payDate ? `<div><span>${tp('payRun')}</span><b>${esc(payDateLabel(data.payDate))}</b></div>` : ''}
     <div><span>${tp('sourceLabel')}</span><b>${sourceLabel}</b></div>
     <div><span>${tp('issuedOn')}</span><b>${issued}</b></div>
   </div>
@@ -339,6 +351,15 @@ const PayStubModal: React.FC<{
               }`}>
                 {!data.appGenerated && data.source === 'imported' ? tp('sourceImported') : tp('sourceGenerated')}
               </span>
+              {/* SUR QUELLE PAIE le montant tombe — la première question du vendeur devant un
+                  bulletin marqué « 2026-08 ». Absente tant que rien n'a été envoyé à la paye. */}
+              {data.payDate && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-primary"
+                      title={data.paySentAt ? `${tp('paySentOn')} ${new Date(data.paySentAt).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA')}` : undefined}>
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  {tp('payRun')}: {payDateLabel(data.payDate)}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">

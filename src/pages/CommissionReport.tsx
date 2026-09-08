@@ -464,6 +464,8 @@ const CommissionReport = () => {
         linesStored: d.linesStored,
         missed:      d.missed || [],
         missedTotal: d.missedTotal || 0,
+        payDate:     d.payDate || null,
+        paySentAt:   d.paySentAt || null,
         quota:       d.quota || null,
       });
     } catch (e) {

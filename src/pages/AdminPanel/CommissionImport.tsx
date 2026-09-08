@@ -100,9 +100,12 @@ interface ProcAccount { merchant_account_id: string; business_name: string; wind
 interface ProcRep { rep: string; total: number; accounts: ProcAccount[]; }
 interface ProcData { year: number; month: number; grandTotal: number; reps: ProcRep[]; committed?: { count: number; total: number }; }
 
-interface PayrollRep { rep: string; source: string; total: number; lineCount: number; bonusCount: number; sentAt?: string | null; }
-interface PayrollData { year: number; month: number; dueBy: string | null; recipients: string[]; grandTotal: number; reps: PayrollRep[]; }
-interface PayrollSend { period: string; year: number; month: number; sentAt: string; sentBy: string; recipients: string[]; repCount: number; total: number; reps: string[]; ids: number[]; }
+interface PayrollRep { rep: string; source: string; total: number; lineCount: number; bonusCount: number; sentAt?: string | null; payDate?: string | null; }
+// Une paie du calendrier bi-hebdomadaire : payDate = la date de DÉPÔT, dueBy = la date limite
+// pour envoyer les commissions à la paye.
+interface PayRun { payDate: string; start: string; end: string; dueBy: string; }
+interface PayrollData { year: number; month: number; dueBy: string | null; payDate: string | null; payRuns: PayRun[]; recipients: string[]; grandTotal: number; reps: PayrollRep[]; }
+interface PayrollSend { period: string; year: number; month: number; sentAt: string; sentBy: string; payDate?: string | null; recipients: string[]; repCount: number; total: number; reps: string[]; ids: number[]; }
 
 // Bi-annual processing-bonus send — mirrors PayrollRep/PayrollSend but kept as its own types
 // since the two flows are deliberately never merged.
@@ -152,6 +155,9 @@ const CommissionImport: React.FC = () => {
   const [payYear, setPayYear] = useState(now.getFullYear());
   const [payMonth, setPayMonth] = useState(now.getMonth() + 1);
   const [payData, setPayData] = useState<PayrollData | null>(null);
+  // La paie sur laquelle l'envoi tombera. Pré-remplie par l'aperçu (prochaine paie du
+  // calendrier, ou celle déjà utilisée pour ce mois), modifiable pour un envoi en retard.
+  const [payRunDate, setPayRunDate] = useState<string>('');
   const [payLoading, setPayLoading] = useState(false);
   const [paySending, setPaySending] = useState(false);
   const [payRecipients, setPayRecipients] = useState<string[]>([]);   // canonical recipient list
@@ -194,6 +200,7 @@ const CommissionImport: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }, params: { year: payYear, month: payMonth },
       });
       setPayData(res.data);
+      setPayRunDate(res.data.payDate || '');
       setPayRecipients(res.data.recipients || []);
       setSelectedReps(new Set((res.data.reps || []).map((r: { rep: string }) => r.rep))); // default: all
     } catch (e: any) {
@@ -242,7 +249,7 @@ const CommissionImport: React.FC = () => {
     setPaySending(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(`${API_URL}/api/commissions/payroll/send`, { year: payYear, month: payMonth, reps, lang: i18n.language }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.post(`${API_URL}/api/commissions/payroll/send`, { year: payYear, month: payMonth, reps, lang: i18n.language, payDate: payRunDate || undefined }, { headers: { Authorization: `Bearer ${token}` } });
       setShowPayConfirm(false);
       dialog.alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
       await fetchPayroll();   // refresh so the sent reps show the "Sent" badge
@@ -761,6 +768,7 @@ const CommissionImport: React.FC = () => {
         lines: d.lines || [], bonuses: d.bonuses || [], total: d.total || 0,
         source: d.source, appGenerated: d.appGenerated, linesStored: d.linesStored,
         missed: d.missed || [], missedTotal: d.missedTotal || 0,
+        payDate: d.payDate || null, paySentAt: d.paySentAt || null,
         quota: d.quota || null,
       });
     } catch (_e) { /* ignore */ }
@@ -1098,6 +1106,15 @@ const CommissionImport: React.FC = () => {
   const fmtDate = (iso: string) => {
     try { return new Date(iso).toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA'); }
     catch { return iso; }
+  };
+  // « vendredi 11 septembre 2026 » — une date de paie ('YYYY-MM-DD') formatée en UTC, sinon un
+  // fuseau à l'ouest de Greenwich la recule d'un jour.
+  const fmtPayRun = (d?: string | null, weekday = true) => {
+    if (!d) return '';
+    try {
+      return new Date(`${d}T00:00:00Z`).toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA',
+        { ...(weekday ? { weekday: 'long' as const } : {}), year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+    } catch { return d; }
   };
   const fmtDateTime = (iso: string) => {
     try {
@@ -1727,6 +1744,16 @@ const CommissionImport: React.FC = () => {
               className="rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-white disabled:opacity-50">
               {payLoading ? t('admin.commissionImport.processing.loading') : t('admin.commissionImport.payroll.preview')}
             </button>
+            {/* SUR QUELLE PAIE le montant tombe. Pré-remplie sur la prochaine paie du calendrier ;
+                modifiable, car un envoi fait en retard tombe sur une paie déjà passée. La valeur
+                choisie est imprimée sur chaque bulletin — voir PayStubModal. */}
+            {payData && payData.payRuns.length > 0 && (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.payRun')}</label>
+                <Select value={payRunDate} onChange={setPayRunDate} className="w-64"
+                  options={payData.payRuns.map(p => ({ value: p.payDate, label: fmtPayRun(p.payDate) }))} />
+              </div>
+            )}
             {payData?.dueBy && (
               <span className="text-sm text-body">{t('admin.commissionImport.payroll.dueBy')}: <span className="font-semibold text-warning">{payData.dueBy}</span></span>
             )}
@@ -1769,7 +1796,7 @@ const CommissionImport: React.FC = () => {
                             <td className="px-4 py-2 text-center">
                               {r.sentAt ? (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
-                                  title={`${t('admin.commissionImport.payroll.sentOn')} ${fmtDate(r.sentAt)}`}>
+                                  title={`${t('admin.commissionImport.payroll.sentOn')} ${fmtDate(r.sentAt)}${r.payDate ? ` · ${t('admin.commissionImport.payroll.payRun')}: ${fmtPayRun(r.payDate)}` : ''}`}>
                                   <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                                   {t('admin.commissionImport.payroll.statusSent')}
                                 </span>
@@ -1815,6 +1842,7 @@ const CommissionImport: React.FC = () => {
                   <tr>
                     <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histDate')}</th>
                     <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histPeriod')}</th>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.payRun')}</th>
                     <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.histReps')}</th>
                     <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.payroll.histTotal')}</th>
                     <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histRecipients')}</th>
@@ -1835,15 +1863,21 @@ const CommissionImport: React.FC = () => {
                               {fmtDateTime(s.sentAt)}
                             </span>
                           </td>
-                          <td className="px-4 py-2 text-black dark:text-white">{monthName(s.month)} {s.year}</td>
+                          {/* nowrap sur les cellules COURTES seulement : la colonne « paie » ajoutée
+                              ici serrait assez le tableau pour casser « Août 2026 » et « 12 480,25 $ »
+                              en deux lignes. */}
+                          <td className="whitespace-nowrap px-4 py-2 text-black dark:text-white">{monthName(s.month)} {s.year}</td>
+                          {/* Les envois faits avant l'ajout de la colonne n'ont pas de paie enregistrée : « — »
+                              plutôt qu'une date recalculée, qui serait une invention rétroactive. */}
+                          <td className="whitespace-nowrap px-4 py-2 text-body">{s.payDate ? fmtPayRun(s.payDate, false) : '—'}</td>
                           <td className="px-4 py-2 text-center">{s.repCount}</td>
-                          <td className="px-4 py-2 text-right font-semibold text-primary">{fmt(s.total)}</td>
+                          <td className="whitespace-nowrap px-4 py-2 text-right font-semibold text-primary">{fmt(s.total)}</td>
                           <td className="px-4 py-2 text-body">{s.recipients.length}</td>
                           <td className="px-4 py-2 text-body">{s.sentBy}</td>
                         </tr>
                         {open && (
                           <tr className="border-t border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4/20">
-                            <td colSpan={6} className="px-6 py-3">
+                            <td colSpan={7} className="px-6 py-3">
                               <div className="mb-2">
                                 <span className="text-xs font-semibold uppercase text-body">{t('admin.commissionImport.payroll.histReps')} ({s.repCount})</span>
                                 <div className="mt-1 flex flex-wrap gap-1.5">
@@ -2829,7 +2863,7 @@ const CommissionImport: React.FC = () => {
         onConfirm={confirmSendPayroll}
         confirming={paySending}
         title={t('admin.commissionImport.payroll.title') as string}
-        subtitle={`${monthName(payMonth)} ${payYear} — ${t('admin.commissionImport.sendConfirm.subtitle')}`}
+        subtitle={`${monthName(payMonth)} ${payYear} — ${t('admin.commissionImport.sendConfirm.subtitle')}${payRunDate ? ` · ${t('admin.commissionImport.payroll.payRun')}: ${fmtPayRun(payRunDate)}` : ''}`}
         rows={(payData?.reps || []).filter(r => selectedReps.has(r.rep)).map(r => ({ rep: r.rep, total: r.total }))}
         grandTotal={(payData?.reps || []).filter(r => selectedReps.has(r.rep)).reduce((s, r) => s + r.total, 0)}
         recipients={payRecipients}
