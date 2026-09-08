@@ -380,9 +380,12 @@ const GoogleReviewsAdmin: React.FC = () => {
                       <td className="whitespace-nowrap px-4 py-2 text-body">{r.review_date || '—'}</td>
                       <td className="px-4 py-2 font-medium text-black dark:text-white">
                         <span className="inline-flex items-center gap-1.5">
+                          {/* Une ligne venue de la feuille de prospection n'a pas d'auteur :
+                              Google seul le connait. On l'assume plutot que de laisser une
+                              cellule vide, qui se lit comme une donnee perdue. */}
                           {r.review_url
                             ? <a href={r.review_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">{r.reviewer_name}</a>
-                            : r.reviewer_name}
+                            : (r.reviewer_name || <span className="font-normal text-body">—</span>)}
                           {r.rating != null && (
                             <span className="whitespace-nowrap text-xs font-semibold text-warning" title={`${r.rating}/5`}>★{r.rating}</span>
                           )}
@@ -412,12 +415,15 @@ const GoogleReviewsAdmin: React.FC = () => {
                             </span>
                           )
                           : (
-                            <div className="w-36">
+                            // FLUIDE, pas fixe. Une largeur figee gardait le menu serre meme
+                            // quand la colonne Statut est masquee — la vue par defaut — alors
+                            // que 106 px y dorment. Le menu prend ce que la colonne lui donne,
+                            // avec un plancher pour le pire cas.
+                            <div className="w-full min-w-[150px]">
                               {/* Le montant vit SOUS le menu, pas dedans : « Hao Minh Phung — 25,00 $ »
                                   depassait la largeur et se cassait sur trois lignes. Le nom seul tient,
                                   et le tarif reste visible au moment ou l'on engage l'argent. */}
                               <Select value={assign[r.id] || ''} onChange={v => setAssign(a => ({ ...a, [r.id]: v }))}
-                                buttonClassName="w-full rounded border border-stroke bg-transparent px-2.5 py-2 text-sm text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
                                 options={[{ value: '', label: tr('choose') }, ...openers.map(o => ({ value: o.name, label: o.name }))]} />
                               {assign[r.id] && (
                                 <span className="mt-0.5 block whitespace-nowrap text-xs text-body">
