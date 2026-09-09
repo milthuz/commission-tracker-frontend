@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { formatDateOnly } from '../../utils/date';
 import ProbationBadge from '../../components/ProbationBadge';
 import InvoiceLink from '../../components/InvoiceLink';
+import { ContentLoader } from '../../common/Loader';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const QUOTA = 15;
@@ -114,11 +115,7 @@ const RepDashboard: React.FC = () => {
     fetchAll();
   }, []);
 
-  if (loading) return (
-    <div className="flex h-[60vh] items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-    </div>
-  );
+  if (loading) return <ContentLoader />;
   if (error) return (
     <div className="flex h-[60vh] items-center justify-center">
       <p className="text-danger">{error}</p>

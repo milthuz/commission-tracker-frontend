@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { formatDateOnly } from '../utils/date';
 import { dialog } from '../lib/dialog';
 import ProbationBadge from '../components/ProbationBadge';
+import { ContentLoader } from '../common/Loader';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -211,14 +212,7 @@ const CommissionTracker: React.FC = () => {
   };
 
 
-  if (loading) return (
-    <div className="flex h-[60vh] items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-        <p className="text-sm text-gray-500">{t('commissionTracker.loadingPoints')}</p>
-      </div>
-    </div>
-  );
+  if (loading) return <ContentLoader label={t('commissionTracker.loadingPoints') as string} />;
 
   if (error) return (
     <div className="flex h-[60vh] items-center justify-center">

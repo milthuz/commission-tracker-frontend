@@ -11,6 +11,7 @@ import PayStubModal, { PayStubData } from '../components/PayStubModal';
 import ProbationBadge from '../components/ProbationBadge';
 import { dialog } from '../lib/dialog';
 import useLocalStorage from '../hooks/useLocalStorage';
+import { ContentLoader } from '../common/Loader';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -756,13 +757,7 @@ const CommissionReport = () => {
   const getMonthPoints = (month: number): MonthPoints | null =>
     pointsData?.months.find(m => m.month === month) || null;
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-t-transparent"></div>
-      </div>
-    );
-  }
+  if (loading) return <ContentLoader />;
 
   if (!report) return null;
 

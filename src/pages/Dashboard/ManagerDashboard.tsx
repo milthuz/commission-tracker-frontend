@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { ContentLoader } from '../../common/Loader';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const QUOTA = 15;
@@ -47,11 +48,7 @@ const ManagerDashboard: React.FC = () => {
     run();
   }, []);
 
-  if (loading) return (
-    <div className="flex h-[60vh] items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-    </div>
-  );
+  if (loading) return <ContentLoader />;
   if (error) return <div className="flex h-[60vh] items-center justify-center"><p className="text-danger">{error}</p></div>;
 
   const reps = [...(points?.reps || [])].sort((a, b) => b.totalPoints - a.totalPoints);

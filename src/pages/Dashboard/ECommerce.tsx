@@ -5,6 +5,7 @@ import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useTranslation } from 'react-i18next';
 import AdminActionItems from './AdminActionItems';
+import { ContentLoader } from '../../common/Loader';
 const API_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 interface DashboardData {
@@ -117,16 +118,7 @@ const ECommerce: React.FC = () => {
     { name: t('dashboard.commissionSeries'), data: data?.monthlyTrend.map(m => m.commission) || [] },
   ];
 
-  if (loading) {
-    return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.loadingDashboard')}</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <ContentLoader label={t('dashboard.loadingDashboard') as string} />;
 
   if (error) {
     return (
