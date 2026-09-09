@@ -1568,6 +1568,7 @@
       "confirm": "Mark {{count}} subscription(s) in the current list as \"not raising\"? {{withIncrease}} of them have an increase set, which will be cleared. Nothing is sent or pushed by this.",
       "confirmUndo": "Put {{count}} spared subscription(s) back in the To do list?"
     },
+    "bulkRemaining": "About {{min}} min remaining",
     "bulkKeepOpen": "Do not close this page while the bar advances — the operation runs in batches."
   },
   "resources": {
