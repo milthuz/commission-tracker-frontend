@@ -1393,6 +1393,7 @@
       "pending": "Pending",
       "pushed": "Pushed",
       "push_failed": "Failed",
+      "deferred": "Deferred",
       "skipped": "Skipped"
     },
     "notify": {
@@ -1446,7 +1447,8 @@
       "status": {
         "pending": "Not pushed",
         "pushed": "Pushed",
-        "push_failed": "Failed"
+        "push_failed": "Failed",
+        "deferred": "Deferred"
       },
       "confirmTitle": "Push to Zoho",
       "confirmBody": "This will schedule a price change for {{count}} subscription(s), adding {{delta}}/mo, effective at each one's next renewal. This changes live customer billing and can't be undone from here.",
@@ -4703,7 +4705,8 @@
     "push": {
       "pending": "Not applied",
       "pushed": "Applied",
-      "push_failed": "Failed"
+      "push_failed": "Failed",
+      "deferred": "Deferred"
     },
     "faqTitle": "What to say",
     "faqSubtitle": "Read this before your first call. When in doubt, escalate — never improvise a price.",

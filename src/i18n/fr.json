@@ -1393,6 +1393,7 @@
       "pending": "En attente",
       "pushed": "Poussé",
       "push_failed": "Échec",
+      "deferred": "Reporté",
       "skipped": "Ignoré"
     },
     "notify": {
@@ -1446,7 +1447,8 @@
       "status": {
         "pending": "Non appliqué",
         "pushed": "Appliqué",
-        "push_failed": "Échoué"
+        "push_failed": "Échoué",
+        "deferred": "Reporté"
       },
       "confirmTitle": "Appliquer vers Zoho",
       "confirmBody": "Ceci planifiera un changement de prix pour {{count}} abonnement(s), ajoutant {{delta}}/mois, effectif au prochain renouvellement de chacun. Ceci modifie la facturation réelle des clients et ne peut pas être annulé d'ici.",
@@ -4703,7 +4705,8 @@
     "push": {
       "pending": "Non appliqué",
       "pushed": "Appliqué",
-      "push_failed": "Échec"
+      "push_failed": "Échec",
+      "deferred": "Reporté"
     },
     "faqTitle": "Quoi répondre",
     "faqSubtitle": "À lire avant le premier appel. En cas de doute, escalade — n'improvise jamais un prix.",
