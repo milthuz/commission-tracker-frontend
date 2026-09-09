@@ -107,6 +107,10 @@ function HomeRoute() {
   else if (canRepDash) body = <RepDashboard />;
   // No dashboard permission → send them to a page they can use.
   else if (perms.includes('report:view_own') || perms.includes('report:view_others')) body = <Navigate to="/commission-report" replace />;
+  // Le service a la clientele n'a ni commissions ni tableau de bord : sans cette ligne il
+  // arrivait sur son PROFIL, et devait chercher dans le menu l'outil pour lequel on lui a
+  // ouvert un compte. Il atterrit maintenant dessus.
+  else if (perms.includes('saas_increase:lookup')) body = <Navigate to="/saas-increase/lookup" replace />;
   else body = <Navigate to="/profile" replace />;
   return (
     <>
