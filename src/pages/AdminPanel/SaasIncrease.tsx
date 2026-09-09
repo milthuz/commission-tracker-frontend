@@ -739,15 +739,18 @@ const SaasIncrease: React.FC = () => {
     s.addonsPeriod != null ? s.addonsPeriod : (s.addonsMonthly ?? 0) * periodMonths(s);
   const totalPeriodFor = (s: Subscription) => currentPeriodFor(s) + addonsPeriodFor(s);
 
+  // Arrondi au DOLLAR, comme saasNewPeriodPrice côté serveur. Les deux DOIVENT s'accorder : cet
+  // écran est ce que David regarde pour décider, le serveur est ce que Zoho facture. Un arrondi
+  // posé d'un seul côté ferait diverger le total affiché et le prix réel.
   const newPeriodFor = (s: Subscription, e?: RowEdit) => {
     const c = currentPeriodFor(s);
     if (!e) return c;
     const v = Number(e.increaseValue) || 0;
     // 'target' is an absolute price, not a delta — a 0 means "not set yet", so fall back to the
     // current price rather than dropping the subscription to zero.
-    if (e.increaseType === 'target') return v > 0 ? v : c;
+    if (e.increaseType === 'target') return Math.round(v > 0 ? v : c);
     // 'flat' is per period, matching the amount displayed: +20 on a yearly plan adds $20 a year.
-    return e.increaseType === 'flat' ? c + v : c * (1 + v / 100);
+    return Math.round(e.increaseType === 'flat' ? c + v : c * (1 + v / 100));
   };
 
   // Monthly equivalent — used ONLY where amounts from different cadences must be summed (the MRR
