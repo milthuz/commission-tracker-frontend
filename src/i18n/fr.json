@@ -1409,7 +1409,7 @@
       "testSendHint": "Envoie exactement ce sujet/message à ta propre boîte courriel, préfixé [TEST] — sécuritaire avec du texte réel ou totalement inventé, aucun vrai abonnement requis.",
       "testSent": "Courriel test envoyé à {{to}}.",
       "send": "Envoyer",
-      "sending": "Envoi…",
+      "sending": "Envoi des avis…",
       "confirmSend": "Envoyer cette notification à {{count}} marchand(s)? Cette action est irréversible.",
       "previewTitle": "Aperçu du courriel",
       "status": {
@@ -1456,7 +1456,7 @@
       "noPinSetInline": "Tu n'as pas encore défini de NIP de confirmation. Va dans ton profil pour en définir un avant d'appliquer.",
       "noPinSet": "Tu n'as pas encore défini de NIP de confirmation. Définis-en un dans ton profil d'abord.",
       "invalidPin": "NIP incorrect.",
-      "pushing": "Application en cours…",
+      "pushing": "Planification chez Zoho…",
       "confirmSubmit": "Confirmer et appliquer",
       "checkScheduled": "Vérifier dans Zoho",
       "checking": "Vérification…",
@@ -1565,7 +1565,8 @@
       "hintUndo": "Tous les abonnements de cette liste filtrée sont présentement épargnés. Ceci les remet dans la liste À faire.",
       "confirm": "Marquer {{count}} abonnement(s) de la liste actuelle comme « pas d’augmentation »? {{withIncrease}} d’entre eux ont une hausse réglée, elle sera effacée. Rien n’est envoyé ni appliqué.",
       "confirmUndo": "Remettre {{count}} abonnement(s) épargné(s) dans la liste À faire?"
-    }
+    },
+    "bulkKeepOpen": "Ne ferme pas cette page tant que la barre avance — l'opération se poursuit par tranches."
   },
   "resources": {
     "title": "Ressources",

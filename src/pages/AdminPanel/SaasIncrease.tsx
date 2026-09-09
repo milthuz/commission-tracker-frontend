@@ -293,6 +293,10 @@ const SaasIncrease: React.FC = () => {
   const canExecute = can('saas_increase:execute');
   const [hasPushPin, setHasPushPin] = useState<boolean | null>(null);
   const [pushModal, setPushModal] = useState<{ itemIds: number[]; pin: string; busy: boolean; results: Record<number, { ok: boolean; error?: string }> | null } | null>(null);
+  // Progression d'une operation DECOUPEE (poussee Zoho, envoi des avis). Sans elle, une
+  // operation de vingt minutes ressemble a un ecran fige, et on est tente de recharger la page
+  // au milieu — ce qui laisse le reste des marchands sans avis.
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number; label: string } | null>(null);
 
   // Churn-risk calibration — observed rates from real history (see the churn-history backfill),
   // used by riskFor() to override its hand-picked weights where there's enough real data.
@@ -1225,18 +1229,34 @@ const SaasIncrease: React.FC = () => {
     finally { markNotifyBusy([itemId], false); }
   };
 
+  // Un envoi de masse part par TRANCHES. Une seule requete pour 2 740 courriels expire a la
+  // passerelle bien avant la fin, en laissant un nombre inconnu de marchands avises et aucun
+  // rapport a l'ecran. Chaque tranche est courte, et la progression est visible.
+  const SEND_CHUNK = 50;
   const sendNotifications = async (itemIds: number[]) => {
     if (!activeScenarioId || !itemIds.length) return;
     if (!(await dialog.confirm(t('saasIncrease.notify.confirmSend', { count: itemIds.length }) as string))) return;
     markNotifyBusy(itemIds, true);
     try {
-      const items = itemIds.map(id => ({ itemId: id, ...(notifyEdits[id] || { to: '', subject: '', body: '' }) }));
-      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/notifications/send`, {
-        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
-      });
-      if (!r.ok) throw new Error(String(r.status));
-      const d = await r.json();
+      const tranches: number[][] = [];
+      for (let i = 0; i < itemIds.length; i += SEND_CHUNK) tranches.push(itemIds.slice(i, i + SEND_CHUNK));
+      let d: any = { results: [], internal: { sent: false, reason: 'not_attempted', recipients: 0 } };
+      for (let k = 0; k < tranches.length; k++) {
+        const derniere = k === tranches.length - 1;
+        setBulkProgress(tranches.length > 1
+          ? { done: k * SEND_CHUNK, total: itemIds.length, label: t('saasIncrease.notify.sending') as string }
+          : null);
+        const items = tranches[k].map(id => ({ itemId: id, ...(notifyEdits[id] || { to: '', subject: '', body: '' }) }));
+        const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/notifications/send`, {
+          method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          // L'avis interne ne part qu'a la fin, et il resume TOUT l'envoi, pas la derniere tranche.
+          body: JSON.stringify({ items, sendInternal: derniere, internalScope: 'scenario' }),
+        });
+        if (!r.ok) throw new Error(String(r.status));
+        const part = await r.json();
+        d = { results: [...d.results, ...(part.results || [])], internal: part.internal || d.internal };
+      }
+      setBulkProgress(null);
       await loadScenarioDetail(activeScenarioId);
       // Say what happened to the internal notice. A recipient list nobody filled in means the
       // support desk was not warned, and that has to be visible at the moment of sending — not
@@ -1257,24 +1277,41 @@ const SaasIncrease: React.FC = () => {
     setPushModal({ itemIds, pin: '', busy: false, results: null });
   };
 
+  // Chaque poussee coute DEUX appels Zoho (retrouver l'abonnement, puis planifier le prix).
+  // Sur des milliers de lignes, une seule requete tourne des dizaines de minutes et expire —
+  // et un abonnement deja modifie chez Zoho ne se devine pas depuis un ecran qui a laché.
+  // Tranche plus petite que pour les courriels, l'appel distant etant plus lent.
+  const PUSH_CHUNK = 25;
   const confirmPush = async () => {
     if (!activeScenarioId || !pushModal) return;
     setPushModal(m => m ? { ...m, busy: true } : m);
     try {
-      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/push`, {
-        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemIds: pushModal.itemIds, pin: pushModal.pin }),
-      });
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        setPushModal(m => m ? { ...m, busy: false } : m);
-        if (data.error === 'invalid_pin') dialog.alert(t('saasIncrease.push.invalidPin') as string);
-        else if (data.error === 'no_pin_set') dialog.alert(t('saasIncrease.push.noPinSet') as string);
-        else dialog.alert(t('saasIncrease.error') as string);
-        return;
-      }
+      const ids = pushModal.itemIds;
+      const tranches: number[][] = [];
+      for (let i = 0; i < ids.length; i += PUSH_CHUNK) tranches.push(ids.slice(i, i + PUSH_CHUNK));
       const results: Record<number, { ok: boolean; error?: string }> = {};
-      for (const res of data.results || []) results[res.itemId] = { ok: res.ok, error: res.error };
+      for (let k = 0; k < tranches.length; k++) {
+        if (tranches.length > 1) setBulkProgress({ done: k * PUSH_CHUNK, total: ids.length, label: t('saasIncrease.push.pushing') as string });
+        const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/push`, {
+          method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itemIds: tranches[k], pin: pushModal.pin }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          setBulkProgress(null);
+          setPushModal(m => m ? { ...m, busy: false, results } : m);
+          if (data.error === 'invalid_pin') dialog.alert(t('saasIncrease.push.invalidPin') as string);
+          else if (data.error === 'no_pin_set') dialog.alert(t('saasIncrease.push.noPinSet') as string);
+          // Une tranche qui echoue apres d'autres reussies n'annule PAS ce qui est deja chez
+          // Zoho : on garde les resultats obtenus et on le dit, plutot que de laisser croire
+          // que rien n'est parti.
+          else dialog.alert(`${t('saasIncrease.error')} (${Object.keys(results).length}/${ids.length})`);
+          await loadScenarioDetail(activeScenarioId);
+          return;
+        }
+        for (const res of data.results || []) results[res.itemId] = { ok: res.ok, error: res.error };
+      }
+      setBulkProgress(null);
       setPushModal(m => m ? { ...m, busy: false, results } : m);
       await loadScenarioDetail(activeScenarioId);
     } catch {
@@ -3015,6 +3052,22 @@ const SaasIncrease: React.FC = () => {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Bandeau de progression — fixe, donc visible meme si la page a defile. Il porte aussi
+          l'avertissement de ne pas fermer : c'est la seule chose qui protege un envoi en cours. */}
+      {bulkProgress && (
+        <div className="fixed bottom-4 left-1/2 z-[999] w-[min(92vw,420px)] -translate-x-1/2 rounded-lg border border-stroke bg-white p-4 shadow-xl dark:border-strokedark dark:bg-boxdark">
+          <div className="mb-2 flex items-center justify-between text-sm">
+            <span className="font-medium text-black dark:text-white">{bulkProgress.label}</span>
+            <span className="text-body">{bulkProgress.done} / {bulkProgress.total}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
+            <div className="h-full rounded-full bg-primary transition-all"
+                 style={{ width: `${Math.round((bulkProgress.done / Math.max(1, bulkProgress.total)) * 100)}%` }} />
+          </div>
+          <p className="mt-2 text-xs text-body">{t('saasIncrease.bulkKeepOpen')}</p>
         </div>
       )}
     </div>

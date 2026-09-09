@@ -1409,7 +1409,7 @@
       "testSendHint": "Sends this exact subject/body to your own inbox, prefixed [TEST] — safe with real or fully made-up placeholder text, no real subscription needed.",
       "testSent": "Test email sent to {{to}}.",
       "send": "Send",
-      "sending": "Sending…",
+      "sending": "Sending notices…",
       "confirmSend": "Send this notification to {{count}} merchant(s)? This can't be unsent.",
       "previewTitle": "Email preview",
       "status": {
@@ -1456,7 +1456,7 @@
       "noPinSetInline": "You haven't set a confirmation PIN yet. Go to your Profile to set one before pushing.",
       "noPinSet": "You haven't set a confirmation PIN yet. Set one in your Profile first.",
       "invalidPin": "Incorrect PIN.",
-      "pushing": "Pushing…",
+      "pushing": "Scheduling in Zoho…",
       "confirmSubmit": "Confirm & push",
       "checkScheduled": "Check in Zoho",
       "checking": "Checking…",
@@ -1565,7 +1565,8 @@
       "hintUndo": "Every subscription in this filtered list is currently spared. This puts them back in the To do list.",
       "confirm": "Mark {{count}} subscription(s) in the current list as \"not raising\"? {{withIncrease}} of them have an increase set, which will be cleared. Nothing is sent or pushed by this.",
       "confirmUndo": "Put {{count}} spared subscription(s) back in the To do list?"
-    }
+    },
+    "bulkKeepOpen": "Do not close this page while the bar advances — the operation runs in batches."
   },
   "resources": {
     "title": "Resources",
