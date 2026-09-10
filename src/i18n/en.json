@@ -1419,6 +1419,8 @@
         "sent": "Sent",
         "send_failed": "Failed"
       },
+      "partialSend": "Send interrupted: {{sent}} of {{total}} merchants have already received their notice. Their effective date is locked in. Run the send again — merchants already notified are skipped automatically.",
+      "alreadySent": "{{count}} row(s) were skipped: those merchants had already received their notice.",
       "internalNoRecipients": "Notices sent. No internal launch notice went out — nobody is configured to receive it. Add recipients under Admin → Notifications so the support desk is warned before the calls start.",
       "internalSent": "Notices sent. Internal launch notice delivered to {{count}} colleague(s)."
     },

@@ -1259,7 +1259,14 @@ const SaasIncrease: React.FC = () => {
           // L'avis interne ne part qu'a la fin, et il resume TOUT l'envoi, pas la derniere tranche.
           body: JSON.stringify({ items, sendInternal: derniere, internalScope: 'scenario' }),
         });
-        if (!r.ok) throw new Error(String(r.status));
+        if (!r.ok) {
+          // On s'arrete, mais on DIT ce qui est parti. Poursuivre apres une tranche echouee
+          // risquerait d'empiler les echecs sur une panne qui dure.
+          const partis = d.results.filter((x: any) => x.sent).length;
+          await loadScenarioDetail(activeScenarioId);
+          dialog.alert(t('saasIncrease.notify.partialSend', { sent: partis, total: itemIds.length }) as string);
+          return;
+        }
         const part = await r.json();
         d = { results: [...d.results, ...(part.results || [])], internal: part.internal || d.internal };
         if (suivi) setBulkProgress({ done: Math.min(itemIds.length, (k + 1) * SEND_CHUNK), total: itemIds.length, label: t('saasIncrease.notify.sending') as string, startedAt: depart });
@@ -1269,13 +1276,15 @@ const SaasIncrease: React.FC = () => {
       // Say what happened to the internal notice. A recipient list nobody filled in means the
       // support desk was not warned, and that has to be visible at the moment of sending — not
       // discovered when the first merchant calls someone who knows nothing about it.
+      const deja = d.results.filter((x: any) => x.alreadySent).length;
+      if (deja) dialog.alert(t('saasIncrease.notify.alreadySent', { count: deja }) as string);
       if (d.internal?.reason === 'no_recipients') {
         dialog.alert(t('saasIncrease.notify.internalNoRecipients') as string);
       } else if (d.internal?.sent) {
         dialog.alert(t('saasIncrease.notify.internalSent', { count: d.internal.delivered }) as string);
       }
     } catch { dialog.alert(t('saasIncrease.error') as string); }
-    finally { markNotifyBusy(itemIds, false); }
+    finally { setBulkProgress(null); markNotifyBusy(itemIds, false); }
   };
 
   // Opens the confirmation modal for the given saved items — the actual Zoho call only
