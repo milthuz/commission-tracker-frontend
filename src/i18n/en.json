@@ -3938,6 +3938,12 @@
       "teaserCta1": "Join The Pass",
       "teaserCta2": "Already a member? Refer now",
       "pay": {
+        "checkFees": "Check integration fees",
+        "checkingFees": "reading from Zoho…",
+        "feesError": "fees unavailable",
+        "noFees": "no payment integration fee on this subscription",
+        "saving": "Saving by switching to our payments: {{month}}/month — {{year}}/year",
+        "otherAddons": "These integrations would still be billed: {{list}}",
         "has": "Already processing with us",
         "since": "since {{date}}",
         "byName": "matched on the business name",

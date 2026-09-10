@@ -3938,6 +3938,12 @@
       "teaserCta1": "Joindre La Passe",
       "teaserCta2": "Déjà membre? Recommander",
       "pay": {
+        "checkFees": "Voir les frais d'intégration",
+        "checkingFees": "lecture chez Zoho…",
+        "feesError": "frais indisponibles",
+        "noFees": "aucun frais d'intégration de paiement sur cet abonnement",
+        "saving": "Économie en passant à notre paiement : {{month}}/mois — {{year}}/an",
+        "otherAddons": "Ces intégrations resteraient facturées : {{list}}",
         "has": "Déjà au paiement avec nous",
         "since": "depuis le {{date}}",
         "byName": "rapproché par le nom du commerce",

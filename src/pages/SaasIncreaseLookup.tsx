@@ -18,6 +18,7 @@ interface Hit {
   customerName: string;
   subscriptionNumber: string;
   merchantAccountId: string | null;
+  orgId: string;
   orgName: string;
   planName: string;
   currentPrice: number | null;
@@ -42,6 +43,15 @@ interface Hit {
   } | null;
 }
 
+// Les options facturees a ce marchand. Pas en base : un appel Zoho par abonnement.
+type Fees = {
+  cadenceMonths: number;
+  addons: { code: string; name: string; quantity: number; pricePeriod: number; monthly: number; isPayment: boolean }[];
+  paymentFees: { code: string; name: string; monthly: number }[];
+  monthlySaving: number;
+  yearlySaving: number;
+};
+
 const money = (n: number | null) =>
   n == null ? '—' : new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n);
 
@@ -65,6 +75,21 @@ export default function SaasIncreaseLookup() {
   const [error, setError] = useState<string | null>(null);
   const [openEmail, setOpenEmail] = useState<number | null>(null);
   const [openFaq, setOpenFaq] = useState<string | null>(null);
+  // Les frais d'integration demandent un appel Zoho par abonnement, donc on ne les charge que
+  // sur demande et une seule fois. L'etat 'loading' evite le double appel au re-rendu.
+  const [fees, setFees] = useState<Record<string, Fees | 'loading' | 'error'>>({});
+
+  const chargerFrais = async (h: Hit) => {
+    if (fees[h.subscriptionNumber]) return;
+    setFees(f => ({ ...f, [h.subscriptionNumber]: 'loading' }));
+    try {
+      const r = await fetch(
+        `${API_URL}/api/saas-increase/lookup/fees?org=${encodeURIComponent(h.orgId)}`
+        + `&sub=${encodeURIComponent(h.subscriptionNumber)}`, { headers: authHeaders() });
+      const data = r.ok ? ((await r.json()) as Fees) : 'error';
+      setFees(f => ({ ...f, [h.subscriptionNumber]: data }));
+    } catch { setFees(f => ({ ...f, [h.subscriptionNumber]: 'error' })); }
+  };
 
   const search = async (term: string) => {
     setQ(term);
@@ -208,6 +233,53 @@ export default function SaasIncreaseLookup() {
                 {t('csLookup.pay.opportunity')}
               </span>
               <span className={`text-[11px] ${textQuat}`}>{t('csLookup.pay.notFoundHint')}</span>
+
+              {/* L'argument concret. Un marchand qui appelle pour se plaindre d'une hausse de
+                  20 $ entend mal « c'est ainsi » ; il entend tres bien « et vous economisez
+                  45 $ par mois en passant chez nous ». Les frais viennent de Zoho en direct,
+                  donc on les charge a la demande plutot qu'a chaque recherche. */}
+              <span className="basis-full" />
+              {!fees[h.subscriptionNumber] && (
+                <button onClick={() => chargerFrais(h)}
+                  className="rounded border border-[#fe6523]/40 px-2 py-0.5 text-xs font-medium text-[#c44d18] hover:bg-[#fe6523]/10 dark:text-[#fe8f5c]">
+                  {t('csLookup.pay.checkFees')}
+                </button>
+              )}
+              {fees[h.subscriptionNumber] === 'loading' && (
+                <span className={`text-xs ${textQuat}`}>{t('csLookup.pay.checkingFees')}</span>
+              )}
+              {fees[h.subscriptionNumber] === 'error' && (
+                <span className="text-xs text-red-600 dark:text-red-400">{t('csLookup.pay.feesError')}</span>
+              )}
+              {typeof fees[h.subscriptionNumber] === 'object' && (() => {
+                const f = fees[h.subscriptionNumber] as Fees;
+                if (!f.paymentFees.length) {
+                  return <span className={`text-xs ${textQuat}`}>{t('csLookup.pay.noFees')}</span>;
+                }
+                return (
+                  <div className="w-full">
+                    <div className="text-sm font-semibold text-[#c44d18] dark:text-[#fe8f5c]">
+                      {t('csLookup.pay.saving', {
+                        month: money(f.monthlySaving), year: money(f.yearlySaving),
+                      })}
+                    </div>
+                    <ul className={`mt-1 space-y-0.5 text-xs ${textQuat}`}>
+                      {f.paymentFees.map(l => (
+                        <li key={l.code}>{l.name} — {money(l.monthly)}/mois</li>
+                      ))}
+                    </ul>
+                    {/* Les autres integrations NE disparaissent PAS : le dire evite qu'un agent
+                        les compte dans l'economie annoncee au client. */}
+                    {f.addons.some(a => !a.isPayment) && (
+                      <p className={`mt-1.5 text-[11px] ${textQuat}`}>
+                        {t('csLookup.pay.otherAddons', {
+                          list: f.addons.filter(a => !a.isPayment).map(a => a.name).join(', '),
+                        })}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
