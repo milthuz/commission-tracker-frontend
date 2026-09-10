@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle } from 'lucide-react';
+import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard } from 'lucide-react';
 
 // The support desk's page. A merchant calls, an agent types whatever the caller gave them — a
 // name, a subscription number, a merchant id — and gets that one account's facts. Read-only by
@@ -31,6 +31,15 @@ interface Hit {
   notifySubject: string | null;
   notifyBody: string | null;
   scenarioName: string;
+  // null = aucun compte de paiement TROUVE. Ce n'est pas la meme chose que « ce marchand n'a
+  // pas le paiement » : le rapprochement se fait surtout par nom.
+  payments: {
+    merchantAccountId: string | null;
+    businessName: string | null;
+    status: string;
+    since: string | null;
+    matchedBy: 'link' | 'name';
+  } | null;
 }
 
 const money = (n: number | null) =>
@@ -163,6 +172,44 @@ export default function SaasIncreaseLookup() {
               </div>
             ))}
           </div>
+
+          {/* Le paiement. Un marchand qui appelle pour contester sa hausse est deja au
+              telephone : c'est le seul moment ou lui proposer le paiement ne le derange pas.
+              Et s'il l'a deja, il ne faut SURTOUT PAS le lui vendre — d'ou une pastille verte
+              aussi visible que l'orange. */}
+          {h.payments && h.payments.status === 'ACTIVE' ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm dark:border-emerald-500/25 dark:bg-emerald-500/10">
+              <CreditCard className="h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" />
+              <span className="font-semibold text-emerald-800 dark:text-emerald-300">
+                {t('csLookup.pay.has')}
+              </span>
+              <span className="text-emerald-700/80 dark:text-emerald-400/80">
+                {h.payments.since ? t('csLookup.pay.since', { date: fmtDate(h.payments.since, i18n.language) }) : ''}
+              </span>
+              {/* Reconnu par le NOM et non par un lien : on le dit, discretement. */}
+              {h.payments.matchedBy === 'name' && (
+                <span className={`text-[11px] ${textQuat}`}>{t('csLookup.pay.byName')}</span>
+              )}
+            </div>
+          ) : h.payments ? (
+            // Un compte existe mais il est ferme ou revoque : le marchand a DEJA quitte le
+            // paiement. Ce n'est pas un prospect neuf, et l'agent doit le savoir avant d'ouvrir
+            // la bouche.
+            <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm dark:border-amber-500/25 dark:bg-amber-500/10">
+              <CreditCard className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" />
+              <span className="font-semibold text-amber-800 dark:text-amber-300">
+                {t('csLookup.pay.former', { status: h.payments.status })}
+              </span>
+            </div>
+          ) : (
+            <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-[#fe6523]/30 bg-[#fe6523]/[0.07] px-3 py-2 text-sm">
+              <CreditCard className="h-4 w-4 shrink-0 text-[#fe6523]" />
+              <span className="font-semibold text-[#c44d18] dark:text-[#fe8f5c]">
+                {t('csLookup.pay.opportunity')}
+              </span>
+              <span className={`text-[11px] ${textQuat}`}>{t('csLookup.pay.notFoundHint')}</span>
+            </div>
+          )}
 
           <div className={`mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-gray-100 pt-3 text-xs ${textQuat} dark:border-[#161616]`}>
             <span>{t('csLookup.zohoStatus')}: <span className={textSec}>{t(`csLookup.push.${h.pushStatus}`)}</span></span>

@@ -3937,6 +3937,14 @@
       "teaserSub": "Your tier, credit earned and pending, and the status of every referral — one place, in English or French.",
       "teaserCta1": "Join The Pass",
       "teaserCta2": "Already a member? Refer now",
+      "pay": {
+        "has": "Already processing with us",
+        "since": "since {{date}}",
+        "byName": "matched on the business name",
+        "former": "Former payments client — account {{status}}",
+        "opportunity": "Sales opportunity: no payments account found",
+        "notFoundHint": "matched by name, confirm before pitching"
+      },
       "faqTitle": "Frequently asked questions",
       "faq": [
         {

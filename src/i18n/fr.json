@@ -3937,6 +3937,14 @@
       "teaserSub": "Votre palier, vos crédits obtenus et en attente, le statut de chaque recommandation — au même endroit, en français ou en anglais.",
       "teaserCta1": "Joindre La Passe",
       "teaserCta2": "Déjà membre? Recommander",
+      "pay": {
+        "has": "Déjà au paiement avec nous",
+        "since": "depuis le {{date}}",
+        "byName": "rapproché par le nom du commerce",
+        "former": "Ancien client du paiement — compte {{status}}",
+        "opportunity": "Occasion de vente : aucun compte de paiement trouvé",
+        "notFoundHint": "rapprochement par nom, à confirmer avant de proposer"
+      },
       "faqTitle": "Questions fréquentes",
       "faq": [
         {
