@@ -1417,8 +1417,10 @@
         "not_sent": "Non envoyé",
         "drafted": "Rédigé",
         "sent": "Envoyé",
-        "send_failed": "Échec"
+        "send_failed": "Échec",
+        "scheduled": "Planifié"
       },
+      "scheduledAnnual": "{{count}} abonnement(s) annuel(s) ne sont pas avisés aujourd'hui : ils le seront 30 jours avant leur propre renouvellement. Le premier avis part le {{first}}.",
       "partialSend": "Envoi interrompu : {{sent}} marchand(s) sur {{total}} ont déjà reçu leur avis. Leur date d'effet est figée. Relance l'envoi — les marchands déjà avisés seront automatiquement ignorés.",
       "alreadySent": "{{count}} ligne(s) ont été ignorées : ces marchands avaient déjà reçu leur avis.",
       "internalNoRecipients": "Avis envoyés aux marchands. Aucun avis interne n'est parti — personne n'est configuré pour le recevoir. Ajoute des destinataires dans Admin → Notifications pour que le service à la clientèle soit prévenu avant les appels.",

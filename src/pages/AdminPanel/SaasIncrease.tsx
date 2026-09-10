@@ -1278,6 +1278,14 @@ const SaasIncrease: React.FC = () => {
       // discovered when the first merchant calls someone who knows nothing about it.
       const deja = d.results.filter((x: any) => x.alreadySent).length;
       if (deja) dialog.alert(t('saasIncrease.notify.alreadySent', { count: deja }) as string);
+      // Les annuels reportes ne sont NI un echec NI un oubli : ils attendent leur fenetre de
+      // 30 jours. Il faut le dire, sinon un envoi qui expedie 2 128 lignes sur 2 794 se lit
+      // comme une panne.
+      const plusTard = d.results.filter((x: any) => x.scheduled);
+      if (plusTard.length) {
+        const premier = plusTard.map((x: any) => x.notifyOn).filter(Boolean).sort()[0] || '';
+        dialog.alert(t('saasIncrease.notify.scheduledAnnual', { count: plusTard.length, first: premier }) as string);
+      }
       if (d.internal?.reason === 'no_recipients') {
         dialog.alert(t('saasIncrease.notify.internalNoRecipients') as string);
       } else if (d.internal?.sent) {
