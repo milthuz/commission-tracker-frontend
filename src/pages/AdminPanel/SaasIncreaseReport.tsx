@@ -34,7 +34,8 @@ type Chain = {
   firstEffective: string | null; lastEffective: string | null;
   members: { id: number; sub: string; name: string; org: string; plan: string; currentPeriod: number | null; newPeriod: number | null; pct: number | null; cadence: number; mrrAdd: number; effectiveDate: string | null }[];
 };
-type Billed = { month: string; billings: number; amount: number; cumulative: number; monthlyPart: number; annualPart: number };
+type Billed = { month: string; billings: number; amount: number; cumulative: number;
+  amountNet: number; cumulativeNet: number; survivalPct: number; monthlyPart: number; annualPart: number };
 type Reseller = {
   name: string; merchants: number; byAttribute: number; byName: number;
   currentPeriodTotal: number; mrrAdd: number; rates: string[]; orgs: string[];
@@ -46,7 +47,8 @@ type Report = {
   totals: { items: number; mrrAdd: number; firstYearCash: number; withoutEffectiveDate: number; notified: number; pushed: number };
   ramp: { month: string; count: number; mrrAdded: number; cumulativeMrr: number }[];
   billedByMonth: Billed[];
-  billedByYear: { year: string; amount: number; partial: boolean; from: string; to: string }[];
+  billedByYear: { year: string; amount: number; amountNet: number; partial: boolean; from: string; to: string }[];
+  churn: { monthlyRate: number; annualRate: number; source: string; cancellations12m: number; activeBase: number };
   resellers: Reseller[];
   resellerCoverage: { declared: number; attributedRows: number; withoutMerchantLink: number; resellersWithNoMatch: string[] };
   chains: Chain[];
@@ -79,9 +81,14 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
   const [coches, setCoches] = useState<Record<string, Set<number>>>({});
   const [enCours, setEnCours] = useState(false);
   const [taux, setTaux] = useState<{ code: string; type: 'percent' | 'flat' | 'target'; valeur: string } | null>(null);
+  // Taux de resiliation applique. Vide = celui mesure par le serveur sur les vrais evenements.
+  const [churnPct, setChurnPct] = useState<string>('');
 
-  const recharger = () => fetch(`${API_URL}/api/admin/saas-increase/scenarios/${scenarioId}/report`, { headers: authH() })
-    .then(r => r.ok ? r.json() : Promise.reject()).then(setD).catch(() => setErr(true));
+  const recharger = (churn?: string) => {
+    const q = churn != null && churn !== '' ? `?churn=${Number(churn) / 100}` : '';
+    return fetch(`${API_URL}/api/admin/saas-increase/scenarios/${scenarioId}/report${q}`, { headers: authH() })
+      .then(r => r.ok ? r.json() : Promise.reject()).then(setD).catch(() => setErr(true));
+  };
 
   const basculer = (code: string, id: number) => setCoches(c => {
     const s = new Set(c[code] || []);
@@ -186,19 +193,46 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
               <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 {d.billedByYear.map(y => (
                   <Tuile key={y.year} libelle={y.year + (y.partial ? ' *' : '')}
-                    valeur={money0(y.amount)}
-                    note={y.partial ? `${t('saasIncrease.report.partialYear')} (${y.from} → ${y.to})` : t('saasIncrease.report.fullYear') as string} />
+                    valeur={money0(y.amountNet)}
+                    note={`${t('saasIncrease.report.grossWas', { v: money0(y.amount) })} · `
+                      + (y.partial ? `${t('saasIncrease.report.partialYear')} (${y.from} → ${y.to})` : t('saasIncrease.report.fullYear'))} />
                 ))}
               </div>
+              {/* Le taux est AFFICHE et modifiable : un chiffre net dont on ne voit pas
+                  l'hypothese est un chiffre qu'on ne peut pas defendre en reunion. */}
+              <div className="no-print mb-5 flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+                <span className="font-medium text-[#1c2434]">{t('saasIncrease.report.churnLabel')}</span>
+                <input type="number" step="0.01" min="0" max="20"
+                  value={churnPct !== '' ? churnPct : (d.churn.monthlyRate * 100).toFixed(2)}
+                  onChange={e => setChurnPct(e.target.value)}
+                  onBlur={() => recharger(churnPct)}
+                  onKeyDown={e => { if (e.key === 'Enter') recharger(churnPct); }}
+                  className="w-20 rounded border border-slate-300 px-2 py-1 text-sm" />
+                <span className="text-slate-500">% /mois</span>
+                {churnPct !== '' && (
+                  <button onClick={() => { setChurnPct(''); recharger(''); }}
+                    className="text-xs text-[#fe6523] hover:underline">{t('saasIncrease.report.churnReset')}</button>
+                )}
+                <span className="flex-1" />
+                <span className="text-xs text-slate-500">
+                  {d.churn.source === 'override'
+                    ? t('saasIncrease.report.churnOverride')
+                    : t('saasIncrease.report.churnMeasured', {
+                        n: d.churn.cancellations12m, base: d.churn.activeBase, annual: d.churn.annualRate })}
+                </span>
+              </div>
+              <p className="mb-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+                {t('saasIncrease.report.churnCaveat')}
+              </p>
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b-2 border-slate-300 text-left text-xs uppercase tracking-wide text-slate-500">
                     <th className="py-2">{t('saasIncrease.report.month')}</th>
                     <th className="py-2 text-right">{t('saasIncrease.report.billings')}</th>
-                    <th className="py-2 text-right">{t('saasIncrease.report.extraBilled')}</th>
-                    <th className="py-2 text-right">{t('saasIncrease.report.fromMonthly')}</th>
-                    <th className="py-2 text-right">{t('saasIncrease.report.fromAnnual')}</th>
-                    <th className="py-2 text-right">{t('saasIncrease.report.cumulative')}</th>
+                    <th className="py-2 text-right">{t('saasIncrease.report.extraBilledGross')}</th>
+                    <th className="py-2 text-right">{t('saasIncrease.report.stillActive')}</th>
+                    <th className="py-2 text-right">{t('saasIncrease.report.extraBilledNet')}</th>
+                    <th className="py-2 text-right">{t('saasIncrease.report.cumulativeNet')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -206,12 +240,10 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                     <tr key={b.month} className="border-b border-slate-100">
                       <td className="py-1.5 font-medium text-[#1c2434]">{moisLong(b.month)}</td>
                       <td className="py-1.5 text-right text-slate-500">{b.billings || '—'}</td>
-                      <td className="py-1.5 text-right font-semibold text-[#1c2434]">{money2(b.amount)}</td>
-                      <td className="py-1.5 text-right text-slate-500">{money2(b.monthlyPart)}</td>
-                      <td className="py-1.5 text-right text-slate-500">
-                        {b.annualPart ? <span className="font-medium text-[#fe6523]">{money2(b.annualPart)}</span> : '—'}
-                      </td>
-                      <td className="py-1.5 text-right text-slate-600">{money2(b.cumulative)}</td>
+                      <td className="py-1.5 text-right text-slate-400">{money2(b.amount)}</td>
+                      <td className="py-1.5 text-right text-slate-400">{b.survivalPct} %</td>
+                      <td className="py-1.5 text-right font-semibold text-[#1c2434]">{money2(b.amountNet)}</td>
+                      <td className="py-1.5 text-right text-slate-600">{money2(b.cumulativeNet)}</td>
                     </tr>
                   ))}
                 </tbody>
