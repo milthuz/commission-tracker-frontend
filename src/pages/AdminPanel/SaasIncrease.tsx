@@ -4,10 +4,11 @@ import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban, Presentation, AlertTriangle, RotateCcw } from 'lucide-react';
+import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban, Presentation, AlertTriangle, RotateCcw, FileBarChart } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 import SaasIncreaseBoard, { type BoardRow } from './SaasIncreaseBoard';
+import SaasIncreaseReport from './SaasIncreaseReport';
 
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
@@ -250,6 +251,7 @@ const SaasIncrease: React.FC = () => {
   const [showScanDetails, setShowScanDetails] = useState(false);
   const [stoppingScan, setStoppingScan] = useState(false);
   const [boardOpen, setBoardOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   // When the scenario was created, so subscriptions that appeared in Zoho AFTER it can be
   // surfaced: they carry no increase through no decision of anyone's, and would otherwise sit
   // unnoticed at the bottom of a segment that already looks finished.
@@ -1464,6 +1466,9 @@ const SaasIncrease: React.FC = () => {
 
   return (
     <div className="font-satoshi">
+      {reportOpen && activeScenarioId && (
+        <SaasIncreaseReport scenarioId={activeScenarioId} onClose={() => setReportOpen(false)} />
+      )}
       {boardOpen && activeScenarioId && (
         <SaasIncreaseBoard
           scenarioName={scenarios.find(sc => sc.id === activeScenarioId)?.name || ''}
@@ -1530,6 +1535,12 @@ const SaasIncrease: React.FC = () => {
           <button onClick={() => setBoardOpen(true)} className={btnSecondary}>
             <Presentation className="h-4 w-4" />
             {t('saasIncrease.board.open')}
+          </button>
+        )}
+        {activeScenarioId && (
+          <button onClick={() => setReportOpen(true)} className={btnSecondary}>
+            <FileBarChart className="h-4 w-4" />
+            {t('saasIncrease.report.open')}
           </button>
         )}
         {activeScenarioId && (
