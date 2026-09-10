@@ -1239,11 +1239,29 @@
     "saving": "Saving…",
     "report": {
       "open": "Reports",
+      "billedIntro": "Additional amount ACTUALLY billed each month, over 24 months. This is not MRR: MRR smooths a $322 annual increase into $26.83 a month, whereas the annual merchant pays nothing extra for eleven months then $322 at once. This is the column a budget uses.",
+      "billings": "Invoices affected",
+      "extraBilled": "Extra billed",
+      "fromMonthly": "of which monthly",
+      "fromAnnual": "of which annual",
+      "partialYear": "partial year",
+      "fullYear": "full year",
+      "resellersIntro": "Merchants sold through a reseller. They are not a chain — they do not talk to each other — but the reseller sees their whole portfolio at once and will be your first call.",
+      "resellerCoverage": "Attribution: {{attributed}} of {{total}} rows. The Zentact attribute is authoritative but {{missing}} subscriptions have no merchant link; the rest is recognised from the business name, which is a heuristic.",
+      "resellerNoMatch": "No merchants found for: {{names}}.",
+      "merchants": "merchants",
+      "source": "Matched by",
+      "matchBreakdown": "{{attr}} by Zentact attribute, {{name}} by name",
+      "match": {
+        "attribute": "Zentact attribute",
+        "name": "business name"
+      },
+      "isReseller": "{{name}} portfolio",
       "print": "Print / PDF",
       "loading": "Loading report…",
       "title": "SaaS price increase — campaign report",
       "subscriptions": "subscriptions",
-      "tab": {
+      "tab": { "billed": "Billed cash", "resellers": "Resellers", 
         "ramp": "MRR ramp",
         "chains": "Chain accounts",
         "checks": "Checks"

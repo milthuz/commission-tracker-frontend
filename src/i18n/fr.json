@@ -1239,11 +1239,29 @@
     "saving": "Enregistrement…",
     "report": {
       "open": "Rapports",
+      "billedIntro": "Montant supplémentaire RÉELLEMENT facturé chaque mois, sur 24 mois. Ce n'est pas le MRR : le MRR lisse une hausse annuelle de 322 $ en 26,83 $ par mois, alors que le marchand annuel ne paie rien de plus pendant onze mois puis 322 $ d'un coup. C'est cette colonne-ci qu'un budget utilise.",
+      "billings": "Factures touchées",
+      "extraBilled": "Supplément facturé",
+      "fromMonthly": "dont mensuels",
+      "fromAnnual": "dont annuels",
+      "partialYear": "année partielle",
+      "fullYear": "année complète",
+      "resellersIntro": "Les marchands vendus par un revendeur. Ils ne forment pas une chaîne — ils ne se parlent pas — mais le revendeur, lui, voit tout son portefeuille d'un coup et sera votre premier appel.",
+      "resellerCoverage": "Attribution : {{attributed}} lignes sur {{total}}. L'attribut Zentact fait foi mais {{missing}} abonnements n'ont aucun lien marchand ; le reste est reconnu par le nom du commerce, ce qui est une heuristique.",
+      "resellerNoMatch": "Aucun marchand retrouvé pour : {{names}}.",
+      "merchants": "marchands",
+      "source": "Reconnu par",
+      "matchBreakdown": "{{attr}} par attribut Zentact, {{name}} par le nom",
+      "match": {
+        "attribute": "attribut Zentact",
+        "name": "nom du commerce"
+      },
+      "isReseller": "Portefeuille {{name}}",
       "print": "Imprimer / PDF",
       "loading": "Chargement du rapport…",
       "title": "Hausse de prix SaaS — rapport de campagne",
       "subscriptions": "abonnements",
-      "tab": {
+      "tab": { "billed": "Argent facturé", "resellers": "Revendeurs", 
         "ramp": "Montée du MRR",
         "chains": "Comptes de chaînes",
         "checks": "Vérifications"

@@ -29,15 +29,25 @@ type Check = { code: string; severity: 'critical' | 'warning' | 'info'; label: s
 type Chain = {
   key: string; label: string; locations: number; orgs: string[];
   currentPeriodTotal: number; mrrAdd: number; rates: string[];
-  consistent: boolean; consistentWithinPlan: boolean;
+  consistent: boolean; consistentWithinPlan: boolean; resellerPortfolio: string | null;
   firstEffective: string | null; lastEffective: string | null;
   members: { sub: string; name: string; org: string; plan: string; currentPeriod: number | null; newPeriod: number | null; pct: number | null; cadence: number; mrrAdd: number; effectiveDate: string | null }[];
+};
+type Billed = { month: string; billings: number; amount: number; cumulative: number; monthlyPart: number; annualPart: number };
+type Reseller = {
+  name: string; merchants: number; byAttribute: number; byName: number;
+  currentPeriodTotal: number; mrrAdd: number; rates: string[]; orgs: string[];
+  members: { sub: string; name: string; org: string; plan: string; currentPeriod: number | null; newPeriod: number | null; pct: number | null; cadence: number; mrrAdd: number; effectiveDate: string | null; match: string }[];
 };
 type Report = {
   scenario: { id: number; name: string; targetMrr: number };
   generatedAt: string;
   totals: { items: number; mrrAdd: number; firstYearCash: number; withoutEffectiveDate: number; notified: number; pushed: number };
   ramp: { month: string; count: number; mrrAdded: number; cumulativeMrr: number }[];
+  billedByMonth: Billed[];
+  billedByYear: { year: string; amount: number; partial: boolean; from: string; to: string }[];
+  resellers: Reseller[];
+  resellerCoverage: { declared: number; attributedRows: number; withoutMerchantLink: number; resellersWithNoMatch: string[] };
   chains: Chain[];
   checks: Check[];
 };
@@ -61,7 +71,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
   const { t } = useTranslation();
   const [d, setD] = useState<Report | null>(null);
   const [err, setErr] = useState(false);
-  const [onglet, setOnglet] = useState<'ramp' | 'chains' | 'checks'>('ramp');
+  const [onglet, setOnglet] = useState<'billed' | 'ramp' | 'resellers' | 'chains' | 'checks'>('billed');
   const [ouvert, setOuvert] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -92,7 +102,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
 
       <div className="no-print sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
         <div className="flex gap-1">
-          {(['ramp', 'chains', 'checks'] as const).map(o => (
+          {(['billed', 'ramp', 'resellers', 'chains', 'checks'] as const).map(o => (
             <button key={o} onClick={() => setOnglet(o)}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium ${onglet === o ? 'bg-[#1c2434] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               {t(`saasIncrease.report.tab.${o}`)}
@@ -124,6 +134,50 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
           </header>
 
           {/* ─────────────────────────────── 1. La montée ─────────────────────────────── */}
+          {/* ── 0. L'argent reellement facture, mois par mois. L'onglet de la CFO, donc en
+                 premier. Le MRR lisse une hausse annuelle de 322 $ en 26,83 $ par mois ; un
+                 budget se construit sur ce qui est REELLEMENT facture, avec ses pics. ── */}
+          {onglet === 'billed' && (
+            <section>
+              <p className="mb-5 rounded-lg border border-[#1c2434] bg-slate-50 px-4 py-3 text-sm text-[#1c2434]">
+                {t('saasIncrease.report.billedIntro')}
+              </p>
+              <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {d.billedByYear.map(y => (
+                  <Tuile key={y.year} libelle={y.year + (y.partial ? ' *' : '')}
+                    valeur={money0(y.amount)}
+                    note={y.partial ? `${t('saasIncrease.report.partialYear')} (${y.from} → ${y.to})` : t('saasIncrease.report.fullYear') as string} />
+                ))}
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b-2 border-slate-300 text-left text-xs uppercase tracking-wide text-slate-500">
+                    <th className="py-2">{t('saasIncrease.report.month')}</th>
+                    <th className="py-2 text-right">{t('saasIncrease.report.billings')}</th>
+                    <th className="py-2 text-right">{t('saasIncrease.report.extraBilled')}</th>
+                    <th className="py-2 text-right">{t('saasIncrease.report.fromMonthly')}</th>
+                    <th className="py-2 text-right">{t('saasIncrease.report.fromAnnual')}</th>
+                    <th className="py-2 text-right">{t('saasIncrease.report.cumulative')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {d.billedByMonth.map(b => (
+                    <tr key={b.month} className="border-b border-slate-100">
+                      <td className="py-1.5 font-medium text-[#1c2434]">{moisLong(b.month)}</td>
+                      <td className="py-1.5 text-right text-slate-500">{b.billings || '—'}</td>
+                      <td className="py-1.5 text-right font-semibold text-[#1c2434]">{money2(b.amount)}</td>
+                      <td className="py-1.5 text-right text-slate-500">{money2(b.monthlyPart)}</td>
+                      <td className="py-1.5 text-right text-slate-500">
+                        {b.annualPart ? <span className="font-medium text-[#fe6523]">{money2(b.annualPart)}</span> : '—'}
+                      </td>
+                      <td className="py-1.5 text-right text-slate-600">{money2(b.cumulative)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          )}
+
           {onglet === 'ramp' && (
             <section>
               <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -178,6 +232,73 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
           )}
 
           {/* ─────────────────────────────── 2. Les chaînes ─────────────────────────────── */}
+          {/* ── 1b. Les revendeurs. Leurs marchands ne sont PAS une chaine : ils ne se
+                 parlent pas et ne comparent pas leurs factures. Mais le revendeur, lui, voit
+                 tout son portefeuille d'un coup. ── */}
+          {onglet === 'resellers' && (
+            <section>
+              <p className="mb-4 text-sm text-slate-600">{t('saasIncrease.report.resellersIntro')}</p>
+              <p className="mb-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+                {t('saasIncrease.report.resellerCoverage', {
+                  attributed: d.resellerCoverage.attributedRows,
+                  total: d.totals.items,
+                  missing: d.resellerCoverage.withoutMerchantLink,
+                })}
+                {d.resellerCoverage.resellersWithNoMatch.length > 0 &&
+                  ' ' + t('saasIncrease.report.resellerNoMatch', { names: d.resellerCoverage.resellersWithNoMatch.join(', ') })}
+              </p>
+              {d.resellers.map(r => (
+                <div key={r.name} className="mb-3 rounded-lg border border-slate-200">
+                  <button onClick={() => setOuvert(o => ({ ...o, ['r-' + r.name]: !o['r-' + r.name] }))}
+                    className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-slate-50">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-[#1c2434]">{r.name}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {r.merchants} {t('saasIncrease.report.merchants')} · {r.orgs.join(', ')} ·{' '}
+                        {t('saasIncrease.report.matchBreakdown', { attr: r.byAttribute, name: r.byName })}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-right text-sm font-semibold text-[#1c2434]">
+                      {money2(r.mrrAdd)}<span className="text-xs font-normal text-slate-400">/mois</span>
+                    </span>
+                  </button>
+                  {ouvert['r-' + r.name] && (
+                    <table className="w-full border-t border-slate-200 text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 text-left text-slate-500">
+                          <th className="px-4 py-1.5">{t('saasIncrease.report.merchant')}</th>
+                          <th className="px-2 py-1.5">{t('saasIncrease.report.plan')}</th>
+                          <th className="px-2 py-1.5 text-right">{t('saasIncrease.report.current')}</th>
+                          <th className="px-2 py-1.5 text-right">{t('saasIncrease.report.new')}</th>
+                          <th className="px-2 py-1.5 text-right">%</th>
+                          <th className="px-2 py-1.5 text-right">{t('saasIncrease.report.effective')}</th>
+                          <th className="px-4 py-1.5">{t('saasIncrease.report.source')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {r.members.map(m => (
+                          <tr key={m.sub} className="border-t border-slate-100">
+                            <td className="px-4 py-1.5">{m.name} <span className="text-slate-400">{m.sub}</span></td>
+                            <td className="px-2 py-1.5 text-slate-500">{m.plan}</td>
+                            <td className="px-2 py-1.5 text-right">{m.currentPeriod != null ? money2(m.currentPeriod) : '—'}</td>
+                            <td className="px-2 py-1.5 text-right font-medium">{m.newPeriod != null ? money2(m.newPeriod) : '—'}</td>
+                            <td className="px-2 py-1.5 text-right">{m.pct != null ? m.pct + ' %' : '—'}</td>
+                            <td className="px-2 py-1.5 text-right text-slate-500">{m.effectiveDate || '—'}</td>
+                            <td className="px-4 py-1.5">
+                              <span className={m.match === 'attribute' ? 'text-emerald-700' : 'text-slate-400'}>
+                                {t('saasIncrease.report.match.' + m.match)}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              ))}
+            </section>
+          )}
+
           {onglet === 'chains' && (
             <section>
               <p className="mb-5 text-sm text-slate-600">{t('saasIncrease.report.chainsIntro', { count: d.chains.length })}</p>
@@ -192,6 +313,11 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
+                      {c.resellerPortfolio && (
+                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                          {t('saasIncrease.report.isReseller', { name: c.resellerPortfolio })}
+                        </span>
+                      )}
                       {!c.consistentWithinPlan && (
                         <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
                           {t('saasIncrease.report.samePlanConflict')}
