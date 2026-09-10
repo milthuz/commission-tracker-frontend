@@ -20,6 +20,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 const authH = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 type Row = {
+  id: number | null;
   sub: string; name: string; org: string; plan: string;
   currentPeriod: number | null; newPeriod: number | null; cadence: number;
   pct: number | null; mrrAdd: number; status: string | null;
@@ -31,7 +32,7 @@ type Chain = {
   currentPeriodTotal: number; mrrAdd: number; rates: string[];
   consistent: boolean; consistentWithinPlan: boolean; resellerPortfolio: string | null;
   firstEffective: string | null; lastEffective: string | null;
-  members: { sub: string; name: string; org: string; plan: string; currentPeriod: number | null; newPeriod: number | null; pct: number | null; cadence: number; mrrAdd: number; effectiveDate: string | null }[];
+  members: { id: number; sub: string; name: string; org: string; plan: string; currentPeriod: number | null; newPeriod: number | null; pct: number | null; cadence: number; mrrAdd: number; effectiveDate: string | null }[];
 };
 type Billed = { month: string; billings: number; amount: number; cumulative: number; monthlyPart: number; annualPart: number };
 type Reseller = {
@@ -73,12 +74,52 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
   const [err, setErr] = useState(false);
   const [onglet, setOnglet] = useState<'billed' | 'ramp' | 'resellers' | 'chains' | 'checks'>('billed');
   const [ouvert, setOuvert] = useState<Record<string, boolean>>({});
+  // Selection PAR CONTROLE : cocher trois lignes dans « prix minuscule » ne doit rien
+  // selectionner dans « deja augmente », ou on agirait sur des lignes qu'on ne regarde pas.
+  const [coches, setCoches] = useState<Record<string, Set<number>>>({});
+  const [enCours, setEnCours] = useState(false);
+  const [taux, setTaux] = useState<{ code: string; type: 'percent' | 'flat' | 'target'; valeur: string } | null>(null);
 
-  useEffect(() => {
-    fetch(`${API_URL}/api/admin/saas-increase/scenarios/${scenarioId}/report`, { headers: authH() })
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(setD).catch(() => setErr(true));
-  }, [scenarioId]);
+  const recharger = () => fetch(`${API_URL}/api/admin/saas-increase/scenarios/${scenarioId}/report`, { headers: authH() })
+    .then(r => r.ok ? r.json() : Promise.reject()).then(setD).catch(() => setErr(true));
+
+  const basculer = (code: string, id: number) => setCoches(c => {
+    const s = new Set(c[code] || []);
+    if (s.has(id)) s.delete(id); else s.add(id);
+    return { ...c, [code]: s };
+  });
+  const toutCocher = (code: string, ids: number[]) => setCoches(c => {
+    const dejaTout = ids.length > 0 && ids.every(i => (c[code] || new Set()).has(i));
+    return { ...c, [code]: dejaTout ? new Set<number>() : new Set(ids) };
+  });
+
+  // Une seule voie vers le serveur, pour les deux actions.
+  const ajuster = async (code: string, corps: Record<string, unknown>) => {
+    const ids = Array.from(coches[code] || []);
+    if (!ids.length || enCours) return;
+    setEnCours(true);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${scenarioId}/items/adjust`, {
+        method: 'POST', headers: { ...authH(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds: ids, ...corps }),
+      });
+      if (!r.ok) { setEnCours(false); window.alert(t('saasIncrease.error') as string); return; }
+      const out = await r.json();
+      // Une ligne deja poussee ou deja avisee n'est PAS modifiee : le dire, sinon on croit
+      // avoir corrige un marchand qui a deja recu son avis.
+      if (out.protected?.length) {
+        window.alert(t('saasIncrease.report.protectedRows', {
+          count: out.protected.length,
+          names: out.protected.slice(0, 5).map((x: { name: string }) => x.name).join(', '),
+        }) as string);
+      }
+      setCoches(c => ({ ...c, [code]: new Set<number>() }));
+      setTaux(null);
+      await recharger();
+    } finally { setEnCours(false); }
+  };
+
+  useEffect(() => { recharger(); }, [scenarioId]);
 
   const critiques = d ? d.checks.filter(c => c.severity === 'critical').reduce((a, c) => a + c.count, 0) : 0;
 
@@ -376,9 +417,57 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                     </button>
                     {ouvert[c.code] && (
                       <div className="overflow-x-auto border-t border-current/20 bg-white">
+                        {/* Les actions ne s'affichent que s'il y a des lignes VISABLES : le
+                            controle « chaine, taux mixtes » liste des groupes, pas des
+                            abonnements, et n'a donc rien a cocher. */}
+                        {c.rows.some(r => r.id != null) && (
+                          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-slate-50 px-4 py-2">
+                            <button onClick={() => toutCocher(c.code, c.rows.filter(r => r.id != null).map(r => r.id as number))}
+                              className="rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-600 hover:bg-slate-100">
+                              {t('saasIncrease.report.selectAll')}
+                            </button>
+                            <span className="text-xs text-slate-500">
+                              {t('saasIncrease.report.selected', { count: (coches[c.code] || new Set()).size })}
+                            </span>
+                            <span className="flex-1" />
+                            <button disabled={!(coches[c.code] || new Set()).size || enCours}
+                              onClick={() => ajuster(c.code, { skipped: true })}
+                              className="rounded bg-[#1c2434] px-3 py-1 text-xs font-semibold text-white disabled:opacity-40">
+                              {t('saasIncrease.report.actionSkip')}
+                            </button>
+                            <button disabled={!(coches[c.code] || new Set()).size || enCours}
+                              onClick={() => setTaux({ code: c.code, type: 'percent', valeur: '' })}
+                              className="rounded border border-[#fe6523] px-3 py-1 text-xs font-semibold text-[#fe6523] disabled:opacity-40">
+                              {t('saasIncrease.report.actionRate')}
+                            </button>
+                          </div>
+                        )}
+                        {taux?.code === c.code && (
+                          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-orange-50 px-4 py-2">
+                            <span className="text-xs text-slate-600">{t('saasIncrease.report.applyTo', { count: (coches[c.code] || new Set()).size })}</span>
+                            <select value={taux.type} onChange={e => setTaux({ ...taux, type: e.target.value as 'percent' | 'flat' | 'target' })}
+                              className="rounded border border-slate-300 px-2 py-1 text-xs">
+                              <option value="percent">%</option>
+                              <option value="flat">$ {t('saasIncrease.report.perPeriod')}</option>
+                              <option value="target">$ {t('saasIncrease.report.targetPrice')}</option>
+                            </select>
+                            <input type="number" step="0.01" value={taux.valeur} autoFocus
+                              onChange={e => setTaux({ ...taux, valeur: e.target.value })}
+                              className="w-24 rounded border border-slate-300 px-2 py-1 text-xs" />
+                            <button disabled={enCours || taux.valeur === '' || !isFinite(Number(taux.valeur))}
+                              onClick={() => ajuster(c.code, { increaseType: taux.type, increaseValue: Number(taux.valeur) })}
+                              className="rounded bg-[#fe6523] px-3 py-1 text-xs font-semibold text-white disabled:opacity-40">
+                              {t('saasIncrease.report.apply')}
+                            </button>
+                            <button onClick={() => setTaux(null)} className="text-xs text-slate-500 hover:underline">
+                              {t('saasIncrease.report.cancel')}
+                            </button>
+                          </div>
+                        )}
                         <table className="w-full text-xs">
                           <thead>
                             <tr className="bg-slate-50 text-left text-slate-500">
+                              <th className="w-8 px-2 py-1.5">&nbsp;</th>
                               <th className="px-4 py-1.5">{t('saasIncrease.report.merchant')}</th>
                               <th className="px-2 py-1.5">{t('saasIncrease.report.plan')}</th>
                               <th className="px-2 py-1.5 text-right">{t('saasIncrease.report.current')}</th>
@@ -389,7 +478,14 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                           </thead>
                           <tbody>
                             {c.rows.map((r, i) => (
-                              <tr key={`${r.sub}-${i}`} className="border-t border-slate-100">
+                              <tr key={`${r.sub}-${i}`} className={`border-t border-slate-100 ${r.id != null && (coches[c.code] || new Set()).has(r.id) ? 'bg-orange-50' : ''}`}>
+                                <td className="px-2 py-1.5">
+                                  {r.id != null && (
+                                    <input type="checkbox" checked={(coches[c.code] || new Set()).has(r.id)}
+                                      onChange={() => basculer(c.code, r.id as number)}
+                                      className="h-3.5 w-3.5 cursor-pointer accent-[#fe6523]" />
+                                  )}
+                                </td>
                                 <td className="px-4 py-1.5 text-slate-700">{r.name} <span className="text-slate-400">{r.sub}</span></td>
                                 <td className="px-2 py-1.5 text-slate-500">{r.plan}</td>
                                 <td className="px-2 py-1.5 text-right">{r.currentPeriod != null ? money2(r.currentPeriod) : '—'}</td>
