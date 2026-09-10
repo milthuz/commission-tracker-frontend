@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard } from 'lucide-react';
 
@@ -113,6 +113,18 @@ export default function SaasIncreaseLookup() {
     }
   };
 
+  // Les frais s'affichent sans qu'on les demande : un agent au telephone n'a pas a deviner
+  // qu'un bouton cache l'argument dont il a besoin. Deux bornes, parce que chaque fiche coute
+  // un appel Zoho : seulement les marchands SANS paiement chez nous — les autres n'ont rien a
+  // economiser — et seulement quand la recherche a converge sur peu de resultats. Au-dela, le
+  // bouton reste disponible fiche par fiche.
+  const AUTO_MAX = 5;
+  useEffect(() => {
+    if (!hits || hits.length === 0 || hits.length > AUTO_MAX) return;
+    hits.filter(h => !h.payments).forEach(h => { void chargerFrais(h); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hits]);
+
   const chargerFrais = async (h: Hit) => {
     if (fees[h.subscriptionNumber]) return;
     setFees(f => ({ ...f, [h.subscriptionNumber]: 'loading' }));
@@ -125,8 +137,19 @@ export default function SaasIncreaseLookup() {
     } catch { setFees(f => ({ ...f, [h.subscriptionNumber]: 'error' })); }
   };
 
-  const search = async (term: string) => {
+  // La recherche partait a CHAQUE FRAPPE. Tolerable tant qu'elle ne touchait que Postgres ;
+  // plus du tout maintenant que l'affichage des frais appelle Zoho par resultat. On attend que
+  // l'agent ait fini de taper.
+  const minuterie = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saisir = (term: string) => {
     setQ(term);
+    if (minuterie.current) clearTimeout(minuterie.current);
+    if (term.trim().length < 2) { setHits(null); setError(null); setLoading(false); return; }
+    setLoading(true);
+    minuterie.current = setTimeout(() => search(term), 350);
+  };
+
+  const search = async (term: string) => {
     if (term.trim().length < 2) { setHits(null); setError(null); return; }
     setLoading(true);
     setError(null);
@@ -185,7 +208,7 @@ export default function SaasIncreaseLookup() {
           <input
             autoFocus
             value={q}
-            onChange={(e) => search(e.target.value)}
+            onChange={(e) => saisir(e.target.value)}
             placeholder={t('csLookup.placeholder') as string}
             className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:border-primary dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white"
           />
@@ -273,6 +296,8 @@ export default function SaasIncreaseLookup() {
                   45 $ par mois en passant chez nous ». Les frais viennent de Zoho en direct,
                   donc on les charge a la demande plutot qu'a chaque recherche. */}
               <span className="basis-full" />
+              {/* Repli : quand la recherche rend beaucoup de resultats, le chargement
+                  automatique se retire et l'agent demande la fiche qui l'interesse. */}
               {!fees[h.subscriptionNumber] && (
                 <button onClick={() => chargerFrais(h)}
                   className="rounded border border-[#fe6523]/40 px-2 py-0.5 text-xs font-medium text-[#c44d18] hover:bg-[#fe6523]/10 dark:text-[#fe8f5c]">
