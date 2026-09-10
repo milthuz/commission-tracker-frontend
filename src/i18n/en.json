@@ -2624,6 +2624,9 @@
       "passCreditHint": "Emailed when a referral credit is applied, so accounting can post it to the merchant’s Zoho Books account. An empty list sends NOTHING — the credit is recorded but nobody is told, and the merchant never gets paid.",
       "leadReviewTitle": "Lead waiting for review",
       "leadReviewHint": "Sent when a lead arrives, and again if it is still waiting after the delay set in Admin → Leads. Leave empty and nobody is emailed — the queue becomes the only signal.",
+      "saasAutoTitle": "SaaS increase autopilot",
+      "saasAutoHint": "Each day, sends the annual notices that have come due (30 days before the merchant's renewal), then applies to Zoho the increases that have become possible. It cannot start a campaign: it only touches rows already set in motion from the screen. A summary goes to the recipients above on days when something happens.",
+      "saasAutoOff": "Stopped. Annual notices will not go out and increases will not be applied until this is switched back on.",
       "saasIncreaseInternalTitle": "SaaS price increase — internal launch notice",
       "saasIncreaseInternalHint": "Emailed once per batch when merchant notices go out: how many merchants, which plans, the effective dates, and a link to the support reference. Empty list = nobody is told, and the first to hear about the increase is whoever picks up the phone."
     },

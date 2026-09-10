@@ -161,6 +161,52 @@ function RecipientListCard({
 
 // Admin → Notifications: central place to configure who receives each automated
 // email notification. Pre-populated user list + manual emails + visible recipients.
+const authH = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+
+// Interrupteur du pilote automatique de la hausse SaaS.
+const SaasAutoCard = () => {
+  const { t } = useTranslation();
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    axios.get(`${API_URL}/api/admin/saas-increase/auto`, { headers: authH() })
+      .then(r => setEnabled(r.data?.enabled !== false))
+      .catch(() => setEnabled(null));
+  }, []);
+  const toggle = async () => {
+    if (enabled === null || saving) return;
+    setSaving(true);
+    try {
+      const r = await axios.put(`${API_URL}/api/admin/saas-increase/auto`, { enabled: !enabled }, { headers: authH() });
+      setEnabled(r.data?.enabled !== false);
+    } finally { setSaving(false); }
+  };
+  return (
+    <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-semibold text-black dark:text-white">
+            🤖 {t('admin.notifications.saasAutoTitle')}
+          </h3>
+          <p className="mt-1 max-w-2xl text-sm text-body">{t('admin.notifications.saasAutoHint')}</p>
+        </div>
+        <button type="button" onClick={toggle} disabled={enabled === null || saving}
+          aria-pressed={enabled === true}
+          className={`relative mt-1 h-7 w-14 shrink-0 rounded-full transition disabled:opacity-50 ${
+            enabled ? 'bg-primary' : 'bg-gray-300 dark:bg-meta-4'}`}>
+          <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
+            enabled ? 'left-8' : 'left-1'}`} />
+        </button>
+      </div>
+      {enabled === false && (
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 dark:bg-red-500/10 dark:text-red-400">
+          {t('admin.notifications.saasAutoOff')}
+        </p>
+      )}
+    </div>
+  );
+};
+
 export default function NotificationsAdmin() {
   const { t } = useTranslation();
   const [users, setUsers] = useState<KnownUser[]>([]);
@@ -217,6 +263,11 @@ export default function NotificationsAdmin() {
         hint={t('admin.notifications.saasIncreaseInternalHint')}
         endpoint={`${API_URL}/api/admin/saas-increase/internal-recipients`}
         users={users} />
+
+      {/* Le pilote automatique envoie des avis a des CLIENTS sans que personne clique. Son
+          interrupteur vit ici, a cote des destinataires du compte rendu, et non enfoui dans une
+          variable d'environnement : celui qui recoit le rapport doit pouvoir couper le robinet. */}
+      <SaasAutoCard />
 
       {/* A partner submitted a new opportunity through the Partner Portal */}
       <RecipientListCard icon="🤝"

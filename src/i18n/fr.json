@@ -2624,6 +2624,9 @@
       "passCreditHint": "Envoyé quand un crédit de recommandation est appliqué, pour que la comptabilité le porte au compte Zoho Books du marchand. Une liste vide n’envoie RIEN — le crédit est enregistré mais personne n’est prévenu, et le marchand n’est jamais payé.",
       "leadReviewTitle": "Piste en attente d'examen",
       "leadReviewHint": "Envoyé à l'arrivée d'une piste, puis en relance si elle attend toujours après le délai fixé dans Admin → Pistes. Liste vide = aucun courriel, la file devient le seul signal.",
+      "saasAutoTitle": "Pilote automatique de la hausse SaaS",
+      "saasAutoHint": "Chaque jour, envoie les avis annuels arrivés à échéance (30 jours avant le renouvellement du marchand) puis applique chez Zoho les hausses devenues possibles. Il ne peut pas démarrer une campagne : il ne touche qu'aux lignes déjà mises en mouvement depuis l'écran. Un compte rendu part aux destinataires ci-dessus les jours où quelque chose se passe.",
+      "saasAutoOff": "Arrêté. Les avis annuels ne partiront plus et les hausses ne seront plus appliquées tant que ce n'est pas rallumé.",
       "saasIncreaseInternalTitle": "Hausse de prix SaaS — avis interne de lancement",
       "saasIncreaseInternalHint": "Envoyé une fois par lot quand des avis partent aux marchands : combien de marchands, quels forfaits, les dates d'effet, et le lien vers la référence du service à la clientèle. Liste vide = personne n'est avisé, et le premier à apprendre la hausse sera celui qui répond au téléphone."
     },
