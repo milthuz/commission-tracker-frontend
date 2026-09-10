@@ -78,6 +78,40 @@ export default function SaasIncreaseLookup() {
   // Les frais d'integration demandent un appel Zoho par abonnement, donc on ne les charge que
   // sur demande et une seule fois. L'etat 'loading' evite le double appel au re-rendu.
   const [fees, setFees] = useState<Record<string, Fees | 'loading' | 'error'>>({});
+  // Une opportunite creee ne se cree pas deux fois : on garde le resultat par abonnement.
+  const [deal, setDeal] = useState<Record<string,
+    { state: 'loading' } | { state: 'done'; id: string; name: string; stage: string }
+    | { state: 'dup'; existing: { module: string; company: string; id: string }[] }
+    | { state: 'error'; msg: string }>>({});
+
+  const creerOpportunite = async (h: Hit, force = false) => {
+    const cle = h.subscriptionNumber;
+    if (deal[cle]?.state === 'loading' || deal[cle]?.state === 'done') return;
+    setDeal(d => ({ ...d, [cle]: { state: 'loading' } }));
+    const f = fees[cle];
+    try {
+      const r = await fetch(`${API_URL}/api/saas-increase/lookup/deal`, {
+        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orgId: h.orgId, subscriptionNumber: h.subscriptionNumber, createAnyway: force,
+          // Les chiffres deja affiches a l'agent partent avec l'opportunite : le vendeur qui
+          // rappelle dans trois jours n'aura pas cet ecran sous les yeux.
+          ...(typeof f === 'object'
+            ? { paymentFees: f.paymentFees, monthlySaving: f.monthlySaving } : {}),
+        }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok && data.duplicate) {
+        setDeal(d => ({ ...d, [cle]: { state: 'dup', existing: data.existing || [] } }));
+      } else if (r.ok && data.ok) {
+        setDeal(d => ({ ...d, [cle]: { state: 'done', id: data.dealId, name: data.dealName, stage: data.stage } }));
+      } else {
+        setDeal(d => ({ ...d, [cle]: { state: 'error', msg: data.error || `HTTP ${r.status}` } }));
+      }
+    } catch (e) {
+      setDeal(d => ({ ...d, [cle]: { state: 'error', msg: String(e) } }));
+    }
+  };
 
   const chargerFrais = async (h: Hit) => {
     if (fees[h.subscriptionNumber]) return;
@@ -251,6 +285,42 @@ export default function SaasIncreaseLookup() {
               {fees[h.subscriptionNumber] === 'error' && (
                 <span className="text-xs text-red-600 dark:text-red-400">{t('csLookup.pay.feesError')}</span>
               )}
+              {/* Le geste utile. L'agent est au telephone : l'occasion meurt avec l'appel
+                  si personne n'ouvre rien. Un clic, et un vendeur rappellera. */}
+              <span className="basis-full" />
+              {(() => {
+                const d = deal[h.subscriptionNumber];
+                if (!d) return (
+                  <button onClick={() => creerOpportunite(h)}
+                    className="rounded-lg bg-[#fe6523] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#e2571c]">
+                    {t('csLookup.pay.createDeal')}
+                  </button>
+                );
+                if (d.state === 'loading') return <span className={`text-xs ${textQuat}`}>{t('csLookup.pay.creating')}</span>;
+                if (d.state === 'done') return (
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                    <Check className="h-3.5 w-3.5" />
+                    {t('csLookup.pay.dealCreated', { stage: d.stage })}
+                  </span>
+                );
+                // Zoho a deja une fiche pour ce marchand. En creer une deuxieme coupe
+                // l'historique en deux et fausse l'attribution : on montre ce qui existe et on
+                // laisse l'agent decider, plutot que de dupliquer en silence.
+                if (d.state === 'dup') return (
+                  <div className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
+                    <div className="font-semibold">{t('csLookup.pay.dupTitle')}</div>
+                    <ul className="mt-1 space-y-0.5">
+                      {d.existing.map(x => <li key={x.id}>{x.module} — {x.company}</li>)}
+                    </ul>
+                    <button onClick={() => { setDeal(z => { const c = { ...z }; delete c[h.subscriptionNumber]; return c; }); creerOpportunite(h, true); }}
+                      className="mt-1.5 rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100 dark:hover:bg-amber-500/20">
+                      {t('csLookup.pay.dupCreateAnyway')}
+                    </button>
+                  </div>
+                );
+                return <span className="text-xs text-red-600 dark:text-red-400">{d.msg}</span>;
+              })()}
+
               {typeof fees[h.subscriptionNumber] === 'object' && (() => {
                 const f = fees[h.subscriptionNumber] as Fees;
                 if (!f.paymentFees.length) {
