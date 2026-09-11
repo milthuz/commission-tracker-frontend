@@ -2620,6 +2620,7 @@
       "svcBooks": "Zoho Books / Facturation",
       "crmWhat": "Signe chaque opportunité, note et piste que l'application crée.",
       "booksWhat": "Lit les factures et les abonnements, et pousse les hausses de prix SaaS.",
+      "subs": "abonnements",
       "probeBooksOk": "Fonctionne — les trois organisations sont visibles : {{list}}.",
       "addHelpBooks": "Books n'a pas de bouton de branchement séparé : son flux EST la connexion à Sales Hub, donc l'autorisation se range sous le compte Zoho qui signe. Ouvrez Sales Hub dans une fenêtre privée, connectez-vous avec le compte de service, puis revenez ici l'épingler.",
       "connectAs": "Brancher ce compte",

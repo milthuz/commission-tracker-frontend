@@ -24,7 +24,8 @@ type Sonde = {
   email: string; ok: boolean; error?: string;
   zohoUser?: { name: string | null; profile: string | null };
   modules?: number;
-  orgs?: { id: string; name: string }[];
+  orgs?: { id: string; name: string; ok: boolean; status: number; subscriptions: number | null; message: string | null }[];
+  invoicesOk?: boolean;
   missing?: string[];
 };
 
@@ -181,20 +182,29 @@ export default function ZohoSystemAccount() {
             ? 'bg-success bg-opacity-10 text-success'
             : 'bg-danger bg-opacity-10 text-danger'}`}>
             <div className="font-semibold">{sonde.email}</div>
-            {sonde.ok ? (
+            {sonde.ok && service === 'crm' && (
               <div className="mt-0.5">
-                {service === 'crm'
-                  ? t('admin.crmSystem.probeOk', {
-                      name: sonde.zohoUser?.name || '?',
-                      profile: sonde.zohoUser?.profile || '?',
-                      modules: sonde.modules ?? 0,
-                    })
-                  : t('admin.crmSystem.probeBooksOk', {
-                      list: (sonde.orgs || []).map(o => o.name).join(', '),
-                    })}
+                {t('admin.crmSystem.probeOk', {
+                  name: sonde.zohoUser?.name || '?',
+                  profile: sonde.zohoUser?.profile || '?',
+                  modules: sonde.modules ?? 0,
+                })}
               </div>
-            ) : (
-              <div className="mt-0.5">{sonde.error}</div>
+            )}
+            {!sonde.ok && <div className="mt-0.5">{sonde.error}</div>}
+            {/* Une organisation a la fois : savoir QU'IL en manque une ne suffit pas, il faut
+                savoir LAQUELLE pour aller y ajouter le compte. */}
+            {service === 'books' && sonde.orgs && (
+              <ul className="mt-1.5 space-y-0.5">
+                {sonde.orgs.map(o => (
+                  <li key={o.id}>
+                    {o.ok ? '✓' : '✕'} {o.name}
+                    {o.ok
+                      ? (o.subscriptions != null ? ` — ${o.subscriptions} ${t('admin.crmSystem.subs')}` : '')
+                      : ` — ${o.message || o.status}`}
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         )}

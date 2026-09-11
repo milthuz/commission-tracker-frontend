@@ -2620,6 +2620,7 @@
       "svcBooks": "Zoho Books / Billing",
       "crmWhat": "Signs every opportunity, note and lead the application creates.",
       "booksWhat": "Reads invoices and subscriptions, and pushes the SaaS price increases.",
+      "subs": "subscriptions",
       "probeBooksOk": "Works — all three organizations visible: {{list}}.",
       "addHelpBooks": "Books has no separate connect button: its flow IS the Sales Hub sign-in, so the authorization files itself under whichever Zoho account signs in. Open Sales Hub in a private window, sign in with the service account, then come back here and pin it.",
       "connectAs": "Connect this account",
