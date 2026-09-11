@@ -7,6 +7,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import packageJson from '../../../package.json';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import { formatDateOnly } from '../../utils/date';
+import CrmSystemAccount from './CrmSystemAccount';
 import CommissionImport from './CommissionImport';
 import ExternalUsers from './ExternalUsers';
 import SofiaGovernance from './SofiaGovernance';
@@ -1881,6 +1882,12 @@ const AdminPanel = () => {
               </div>
             </div>
 
+
+            {/* Le compte sous lequel l'application ECRIT dans Zoho. Separe de la carte
+                ci-dessus : « est-ce connecte » et « au nom de qui » sont deux questions, et
+                les confondre est ce qui a laisse toutes les ecritures de Sales Hub porter le
+                nom d'une personne sans que personne l'ait decide. */}
+            <CrmSystemAccount />
 
             {/* ==================== ZOHO DESK CONNECTION ==================== */}
             <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
