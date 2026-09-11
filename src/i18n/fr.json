@@ -2616,6 +2616,12 @@
       "probeOk": "Fonctionne — {{name}}, profil « {{profile}} », {{modules}} modules lisibles.",
       "addTitle": "Brancher un compte de service",
       "addHelp": "Un compte de service n'a pas de session Sales Hub, il ne peut donc pas venir cliquer ici. Indiquez l'adresse sous laquelle ranger l'autorisation, puis signez chez Zoho EN TANT QUE ce compte sur l'écran de consentement.",
+      "svcCrm": "Zoho CRM",
+      "svcBooks": "Zoho Books / Facturation",
+      "crmWhat": "Signe chaque opportunité, note et piste que l'application crée.",
+      "booksWhat": "Lit les factures et les abonnements, et pousse les hausses de prix SaaS.",
+      "probeBooksOk": "Fonctionne — les trois organisations sont visibles : {{list}}.",
+      "addHelpBooks": "Books n'a pas de bouton de branchement séparé : son flux EST la connexion à Sales Hub, donc l'autorisation se range sous le compte Zoho qui signe. Ouvrez Sales Hub dans une fenêtre privée, connectez-vous avec le compte de service, puis revenez ici l'épingler.",
       "connectAs": "Brancher ce compte",
       "redirecting": "redirection…"
     },
