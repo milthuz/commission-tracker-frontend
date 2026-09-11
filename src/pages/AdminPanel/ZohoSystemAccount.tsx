@@ -19,7 +19,7 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 type Service = 'crm' | 'books';
-type Compte = { email: string; isAdmin: boolean; hasRefresh: boolean; updatedAt: string };
+type Compte = { email: string; isAdmin: boolean; hasRole: boolean; hasRefresh: boolean; updatedAt: string };
 type Sonde = {
   email: string; ok: boolean; error?: string;
   zohoUser?: { name: string | null; profile: string | null };
@@ -38,6 +38,7 @@ export default function ZohoSystemAccount() {
   const [occupe, setOccupe] = useState<string | null>(null);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [nouveau, setNouveau] = useState('');
+  const [tout, setTout] = useState(false);
 
   const charger = async (svc: Service, probe?: string) => {
     try {
@@ -51,7 +52,20 @@ export default function ZohoSystemAccount() {
     } catch { /* l'écran reste utilisable sans la liste */ }
   };
 
-  useEffect(() => { setSonde(null); setMsg(null); void charger(service); }, [service]);
+  useEffect(() => { setSonde(null); setMsg(null); setTout(false); void charger(service); }, [service]);
+
+  // Côté Books, l'autorisation EST la connexion à Sales Hub : tout le monde en a une, et la
+  // liste brute montrait les vingt-cinq comptes PERSONNELS des vendeurs, chacun avec un bouton
+  // « écrire sous ce compte ». Épingler l'identité de l'application sur le jeton personnel d'un
+  // rep est un geste qu'on ne devrait même pas pouvoir faire par accident.
+  //
+  // Le tri qui sépare vraiment : un compte qui porte un RÔLE Sales Hub est une PERSONNE. Un
+  // compte de service n'en a aucun — c'est un compte Zoho, pas un utilisateur. On garde aussi
+  // les administrateurs et l'épinglé, et tout le reste est à un clic.
+  const estCandidat = (c: Compte) =>
+    (!!pinned && c.email.toLowerCase() === pinned.toLowerCase()) || c.isAdmin || !c.hasRole;
+  const visibles = tout ? comptes : comptes.filter(estCandidat);
+  const caches = comptes.length - comptes.filter(estCandidat).length;
 
   // Brancher un compte qui n'a PAS de session Sales Hub : `as` dit sous quelle adresse ranger
   // la subvention, et c'est sur l'écran de Zoho qu'on signe en tant que compte de service.
@@ -137,7 +151,7 @@ export default function ZohoSystemAccount() {
               </tr>
             </thead>
             <tbody>
-              {comptes.map(c => {
+              {visibles.map(c => {
                 const estEpingle = !!pinned && c.email.toLowerCase() === pinned.toLowerCase();
                 return (
                   <tr key={c.email} className="border-b border-stroke last:border-0 dark:border-strokedark">
@@ -173,6 +187,16 @@ export default function ZohoSystemAccount() {
             </tbody>
           </table>
         </div>
+
+        {caches > 0 && (
+          <p className="mt-3 text-sm text-body">{t('admin.crmSystem.peopleNote')}</p>
+        )}
+        {caches > 0 && (
+          <button onClick={() => setTout(t2 => !t2)}
+            className="mt-3 text-sm font-medium text-primary hover:underline">
+            {tout ? t('admin.crmSystem.showCandidates') : t('admin.crmSystem.showAll', { count: caches })}
+          </button>
+        )}
 
         {/* Le résultat de la sonde, en clair. C'est le seul endroit où l'on voit si un jeton
             peut réellement faire quelque chose, et — pour Books — s'il voit bien les trois
