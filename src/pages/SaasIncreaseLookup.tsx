@@ -80,11 +80,15 @@ export default function SaasIncreaseLookup() {
   const [fees, setFees] = useState<Record<string, Fees | 'loading' | 'error'>>({});
   // Une opportunite creee ne se cree pas deux fois : on garde le resultat par abonnement.
   const [deal, setDeal] = useState<Record<string,
-    { state: 'loading' } | { state: 'done'; id: string; name: string; stage: string }
-    | { state: 'dup'; existing: { module: string; company: string; id: string }[] }
+    { state: 'loading' }
+    | { state: 'done'; id: string; name: string; stage: string; owner: string; noteOk: boolean }
+    | { state: 'dup'; existing: { module: string; company: string; id: string; stage?: string; owner?: string }[] }
+    // Aucun compte Zoho sur ce nom. On ne cree rien — une opportunite orpheline ne remonte
+    // sur la fiche d'aucun marchand — et on rend la main avec les candidats trouves.
+    | { state: 'noAccount'; searched: string; candidates: { id: string; name: string; city?: string | null }[] }
     | { state: 'error'; msg: string }>>({});
 
-  const creerOpportunite = async (h: Hit, force = false) => {
+  const creerOpportunite = async (h: Hit, force = false, accountId?: string) => {
     const cle = h.subscriptionNumber;
     if (deal[cle]?.state === 'loading' || deal[cle]?.state === 'done') return;
     setDeal(d => ({ ...d, [cle]: { state: 'loading' } }));
@@ -94,6 +98,7 @@ export default function SaasIncreaseLookup() {
         method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orgId: h.orgId, subscriptionNumber: h.subscriptionNumber, createAnyway: force,
+          ...(accountId ? { accountId } : {}),
           // Les chiffres deja affiches a l'agent partent avec l'opportunite : le vendeur qui
           // rappelle dans trois jours n'aura pas cet ecran sous les yeux.
           ...(typeof f === 'object'
@@ -103,8 +108,14 @@ export default function SaasIncreaseLookup() {
       const data = await r.json().catch(() => ({}));
       if (r.ok && data.duplicate) {
         setDeal(d => ({ ...d, [cle]: { state: 'dup', existing: data.existing || [] } }));
+      } else if (r.ok && data.noAccount) {
+        setDeal(d => ({ ...d, [cle]: {
+          state: 'noAccount', searched: data.searched || h.customerName || '',
+          candidates: data.candidates || [] } }));
       } else if (r.ok && data.ok) {
-        setDeal(d => ({ ...d, [cle]: { state: 'done', id: data.dealId, name: data.dealName, stage: data.stage } }));
+        setDeal(d => ({ ...d, [cle]: { state: 'done', id: data.dealId, name: data.dealName,
+                                       stage: data.stage, owner: data.owner || '',
+                                       noteOk: data.noteOk !== false } }));
       } else {
         setDeal(d => ({ ...d, [cle]: { state: 'error', msg: data.error || `HTTP ${r.status}` } }));
       }
@@ -323,10 +334,43 @@ export default function SaasIncreaseLookup() {
                 );
                 if (d.state === 'loading') return <span className={`text-xs ${textQuat}`}>{t('csLookup.pay.creating')}</span>;
                 if (d.state === 'done') return (
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                  <span className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
                     <Check className="h-3.5 w-3.5" />
-                    {t('csLookup.pay.dealCreated', { stage: d.stage })}
+                    {t('csLookup.pay.dealCreated', { stage: d.stage, owner: d.owner })}
+                    {/* Les chiffres de l'appel partent en note : le module Deals n'a pas de
+                        champ Description. Si la note a echoue, la fiche existe mais elle est
+                        muette — l'agent doit le savoir plutot que de le supposer ecrit. */}
+                    {!d.noteOk && (
+                      <span className="text-amber-700 dark:text-amber-400">
+                        — {t('csLookup.pay.dealNoNote')}
+                      </span>
+                    )}
                   </span>
+                );
+                // Le marchand vient de la facturation, pas du CRM : son nom ne trouve pas
+                // toujours un compte Zoho. Rattacher au MAUVAIS compte enverrait un vendeur
+                // rappeler quelqu'un d'autre, alors on s'arrete et on laisse l'agent trancher.
+                if (d.state === 'noAccount') return (
+                  <div className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
+                    <div className="font-semibold">{t('csLookup.pay.noAccountTitle', { name: d.searched })}</div>
+                    <div className="mt-0.5 opacity-80">{t('csLookup.pay.noAccountHint')}</div>
+                    {d.candidates.length > 0 && (
+                      <>
+                        <div className="mt-1.5 font-medium">{t('csLookup.pay.noAccountPick')}</div>
+                        <ul className="mt-1 space-y-1">
+                          {d.candidates.map(c => (
+                            <li key={c.id} className="flex flex-wrap items-center gap-2">
+                              <span>{c.name}{c.city ? ` — ${c.city}` : ''}</span>
+                              <button onClick={() => { setDeal(z => { const n = { ...z }; delete n[h.subscriptionNumber]; return n; }); creerOpportunite(h, false, c.id); }}
+                                className="rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100 dark:hover:bg-amber-500/20">
+                                {t('csLookup.pay.noAccountUse')}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
                 );
                 // Zoho a deja une fiche pour ce marchand. En creer une deuxieme coupe
                 // l'historique en deux et fausse l'attribution : on montre ce qui existe et on
@@ -335,7 +379,13 @@ export default function SaasIncreaseLookup() {
                   <div className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
                     <div className="font-semibold">{t('csLookup.pay.dupTitle')}</div>
                     <ul className="mt-1 space-y-0.5">
-                      {d.existing.map(x => <li key={x.id}>{x.module} — {x.company}</li>)}
+                      {d.existing.map(x => (
+                        <li key={x.id}>
+                          {x.company}
+                          {x.stage ? ` — ${x.stage}` : ''}
+                          {x.owner ? ` (${x.owner})` : ''}
+                        </li>
+                      ))}
                     </ul>
                     <button onClick={() => { setDeal(z => { const c = { ...z }; delete c[h.subscriptionNumber]; return c; }); creerOpportunite(h, true); }}
                       className="mt-1.5 rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100 dark:hover:bg-amber-500/20">
