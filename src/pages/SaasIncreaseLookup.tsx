@@ -50,6 +50,12 @@ type Fees = {
   paymentFees: { code: string; name: string; monthly: number }[];
   monthlySaving: number;
   yearlySaving: number;
+  // Le prix a annoncer si le marchand passe au paiement Cluster : le nouveau prix moins les
+  // frais d'integration qu'il paie aujourd'hui. null quand il n'en paie aucun.
+  withPayments: {
+    periodPrice: number; monthlyPrice: number; belowZero: boolean;
+    newPrice: number; currentPrice: number; feesPeriod: number;
+  } | null;
 };
 
 const money = (n: number | null) =>
@@ -102,7 +108,8 @@ export default function SaasIncreaseLookup() {
           // Les chiffres deja affiches a l'agent partent avec l'opportunite : le vendeur qui
           // rappelle dans trois jours n'aura pas cet ecran sous les yeux.
           ...(typeof f === 'object'
-            ? { paymentFees: f.paymentFees, monthlySaving: f.monthlySaving } : {}),
+            ? { paymentFees: f.paymentFees, monthlySaving: f.monthlySaving,
+                withPayments: f.withPayments } : {}),
         }),
       });
       const data = await r.json().catch(() => ({}));
@@ -408,6 +415,34 @@ export default function SaasIncreaseLookup() {
                         month: money(f.monthlySaving), year: money(f.yearlySaving),
                       })}
                     </div>
+                    {/* Le prix a annoncer. C'est la phrase que l'agent dit au telephone, donc
+                        elle est ecrite en entier plutot que laissee a calculer de tete. */}
+                    {f.withPayments && !f.withPayments.belowZero && (
+                      <div className="mt-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 dark:border-emerald-500/25 dark:bg-emerald-500/10">
+                        <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+                          {t('csLookup.pay.withPrice', {
+                            price: money(f.withPayments.periodPrice),
+                            instead: money(f.withPayments.newPrice),
+                          })}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400/70">
+                          {t('csLookup.pay.withPriceHow', {
+                            fees: money(f.withPayments.feesPeriod),
+                            current: money(f.withPayments.currentPrice),
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {/* Frais superieurs au forfait : la soustraction ne veut plus rien dire, et
+                        afficher « 0 $ » ferait annoncer la gratuite. On le dit, sans chiffre. */}
+                    {f.withPayments && f.withPayments.belowZero && (
+                      <div className="mt-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
+                        {t('csLookup.pay.withPriceBelow', {
+                          fees: money(f.withPayments.feesPeriod),
+                          price: money(f.withPayments.newPrice),
+                        })}
+                      </div>
+                    )}
                     <ul className={`mt-1 space-y-0.5 text-xs ${textQuat}`}>
                       {f.paymentFees.map(l => (
                         <li key={l.code}>{l.name} — {money(l.monthly)}/mois</li>
