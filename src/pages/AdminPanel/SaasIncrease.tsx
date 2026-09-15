@@ -2513,7 +2513,8 @@ const SaasIncrease: React.FC = () => {
         // Tout ce qui reste a rediger, tous segments confondus. On relit l'etat SAUVEGARDE :
         // une ligne redigee a la tranche precedente ne doit pas repartir dans la suivante.
         const aRediger = sortedGroups.flatMap(([, items]) => items)
-          .filter(it => (savedItems[rowKey(it)]?.notifyStatus || it.notifyStatus) === 'not_sent')
+          .filter(it => it.skipped !== true
+            && (savedItems[rowKey(it)]?.notifyStatus || it.notifyStatus) === 'not_sent')
           .map(it => it.id);
         return (
           <div className={`${card} mt-6 overflow-hidden`}>
@@ -2574,7 +2575,10 @@ const SaasIncrease: React.FC = () => {
                 // l'état « occupé » des lignes ne se voyait nulle part : David a conclu que le
                 // bouton ne faisait rien, alors qu'il travaillait.
                 const groupBusy = items.some(it => notifyBusyIds.has(it.id));
-                const groupDrafted = items.filter(it =>
+                // Les lignes ECARTEES ne comptent pas : le serveur refuse de les rediger, donc
+                // les mettre au denominateur ferait croire a un groupe inachève pour toujours.
+                const groupActifs = items.filter(it => it.skipped !== true);
+                const groupDrafted = groupActifs.filter(it =>
                   (savedItems[rowKey(it)]?.notifyStatus || it.notifyStatus) !== 'not_sent').length;
                 return (
                   <div key={key} className={`border-b ${divider}`}>
@@ -2587,11 +2591,11 @@ const SaasIncrease: React.FC = () => {
                         <ChevronRight className={`h-4 w-4 shrink-0 ${textQuat} transition-transform ${groupExpanded ? 'rotate-90' : ''}`} />
                         <span className={`truncate text-sm font-medium ${textPri}`}>{planLabel}</span>
                         <span className={`shrink-0 text-[11px] ${textQuat}`}>{orgLabel}</span>
-                        <span className={`ml-auto shrink-0 text-xs ${textTer}`}>{t('saasIncrease.groupCount', { count: items.length })}</span>
+                        <span className={`ml-auto shrink-0 text-xs ${textTer}`}>{t('saasIncrease.groupCount', { count: groupActifs.length })}</span>
                       </button>
                       {groupDrafted > 0 && (
                         <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-                          {t('saasIncrease.notify.draftedCount', { done: groupDrafted, total: items.length })}
+                          {t('saasIncrease.notify.draftedCount', { done: groupDrafted, total: groupActifs.length })}
                         </span>
                       )}
                       {templates.length > 0 && (
