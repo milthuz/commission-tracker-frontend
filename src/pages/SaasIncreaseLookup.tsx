@@ -275,13 +275,17 @@ export default function SaasIncreaseLookup() {
               ...(avecPrix ? [{
                 label: t('csLookup.pay.withPriceLabel'),
                 value: money(wp!.periodPrice), pay: true,
+                // D'ou sort le chiffre : en infobulle plutot qu'en ligne de texte sous le bloc.
+                hint: t('csLookup.pay.withPriceHow', {
+                  fees: money(wp!.feesPeriod), current: money(wp!.currentPrice),
+                }),
               }] : []),
               { label: t('csLookup.effective'), value: fmtDate(h.effectiveDate, i18n.language) },
             ];
             return (
               <div className={`mt-4 grid grid-cols-2 gap-4 ${avecPrix ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
                 {cases.map((f: any) => (
-                  <div key={String(f.label)}>
+                  <div key={String(f.label)} title={f.hint || undefined}>
                     <div className={`text-[11px] font-semibold uppercase tracking-wider ${
                       f.pay ? 'text-emerald-700 dark:text-emerald-400' : textQuat}`}>{f.label}</div>
                     <div className={`mt-1 text-sm ${
@@ -321,162 +325,161 @@ export default function SaasIncreaseLookup() {
                 {t('csLookup.pay.former', { status: h.payments.status })}
               </span>
             </div>
-          ) : (
-            <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-[#fe6523]/30 bg-[#fe6523]/[0.07] px-3 py-2 text-sm">
-              <CreditCard className="h-4 w-4 shrink-0 text-[#fe6523]" />
-              <span className="font-semibold text-[#c44d18] dark:text-[#fe8f5c]">
-                {t('csLookup.pay.opportunity')}
-              </span>
-              <span className={`text-[11px] ${textQuat}`}>{t('csLookup.pay.notFoundHint')}</span>
+          ) : (() => {
+            // ⚠️ Ce bloc disait la meme chose trois fois : « economie 5 $/mois », « nouveau prix
+            // moins les 5 $ de frais », « Payment Processing Integration — 5 $/mois ». Cinq
+            // lignes de texte pour deux chiffres, avec le prix desormais affiche en haut de la
+            // fiche. Un agent au telephone lit une ligne, pas un paragraphe.
+            //
+            // Trois etages, dans l'ordre ou l'agent s'en sert : l'ETAT et le GESTE sur une
+            // meme ligne, puis les CHIFFRES en etiquette→valeur, puis seulement les panneaux
+            // qui demandent une decision.
+            const fr = fees[h.subscriptionNumber];
+            const f = typeof fr === 'object' ? fr : null;
+            const d = deal[h.subscriptionNumber];
+            const retirer = () => setDeal(z => { const n = { ...z }; delete n[h.subscriptionNumber]; return n; });
+            return (
+            <div className="mt-4 rounded-lg border border-[#fe6523]/30 bg-[#fe6523]/[0.07] px-3 py-2.5 text-sm">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                  <CreditCard className="h-4 w-4 shrink-0 text-[#fe6523]" />
+                  <span className="font-semibold text-[#c44d18] dark:text-[#fe8f5c]">
+                    {t('csLookup.pay.opportunity')}
+                  </span>
+                  <span className={`text-[11px] ${textQuat}`}>{t('csLookup.pay.notFoundHint')}</span>
+                </div>
+                {/* Le geste utile, a droite de son propre etat. L'occasion meurt avec l'appel
+                    si personne n'ouvre rien. */}
+                <div className="shrink-0">
+                  {!d && (
+                    <button onClick={() => creerOpportunite(h)}
+                      className="rounded-lg bg-[#fe6523] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#e2571c]">
+                      {t('csLookup.pay.createDeal')}
+                    </button>
+                  )}
+                  {d?.state === 'loading' && (
+                    <span className={`text-xs ${textQuat}`}>{t('csLookup.pay.creating')}</span>
+                  )}
+                  {d?.state === 'done' && (
+                    <span className="flex flex-wrap items-center justify-end gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                      <Check className="h-3.5 w-3.5" />
+                      {t('csLookup.pay.dealCreated', { stage: d.stage, owner: d.owner })}
+                      {/* Les chiffres partent en note : le module Deals n'a pas de champ
+                          Description. Si la note a echoue, la fiche existe mais elle est
+                          muette — l'agent doit le savoir plutot que de le supposer ecrit. */}
+                      {!d.noteOk && (
+                        <span className="text-amber-700 dark:text-amber-400">
+                          — {t('csLookup.pay.dealNoNote')}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </div>
+              </div>
 
-              {/* L'argument concret. Un marchand qui appelle pour se plaindre d'une hausse de
-                  20 $ entend mal « c'est ainsi » ; il entend tres bien « et vous economisez
-                  45 $ par mois en passant chez nous ». Les frais viennent de Zoho en direct,
-                  donc on les charge a la demande plutot qu'a chaque recherche. */}
-              <span className="basis-full" />
-              {/* Repli : quand la recherche rend beaucoup de resultats, le chargement
-                  automatique se retire et l'agent demande la fiche qui l'interesse. */}
-              {!fees[h.subscriptionNumber] && (
+              {/* Les frais viennent de Zoho en direct : ils se chargent seuls quand la recherche
+                  a converge, et restent a la demande au-dela. */}
+              {!fr && (
                 <button onClick={() => chargerFrais(h)}
-                  className="rounded border border-[#fe6523]/40 px-2 py-0.5 text-xs font-medium text-[#c44d18] hover:bg-[#fe6523]/10 dark:text-[#fe8f5c]">
+                  className="mt-2 rounded border border-[#fe6523]/40 px-2 py-0.5 text-xs font-medium text-[#c44d18] hover:bg-[#fe6523]/10 dark:text-[#fe8f5c]">
                   {t('csLookup.pay.checkFees')}
                 </button>
               )}
-              {fees[h.subscriptionNumber] === 'loading' && (
-                <span className={`text-xs ${textQuat}`}>{t('csLookup.pay.checkingFees')}</span>
+              {fr === 'loading' && <div className={`mt-2 text-xs ${textQuat}`}>{t('csLookup.pay.checkingFees')}</div>}
+              {fr === 'error' && <div className="mt-2 text-xs text-red-600 dark:text-red-400">{t('csLookup.pay.feesError')}</div>}
+              {f && !f.paymentFees.length && (
+                <div className={`mt-2 text-xs ${textQuat}`}>{t('csLookup.pay.noFees')}</div>
               )}
-              {fees[h.subscriptionNumber] === 'error' && (
-                <span className="text-xs text-red-600 dark:text-red-400">{t('csLookup.pay.feesError')}</span>
-              )}
-              {/* Le geste utile. L'agent est au telephone : l'occasion meurt avec l'appel
-                  si personne n'ouvre rien. Un clic, et un vendeur rappellera. */}
-              <span className="basis-full" />
-              {(() => {
-                const d = deal[h.subscriptionNumber];
-                if (!d) return (
-                  <button onClick={() => creerOpportunite(h)}
-                    className="rounded-lg bg-[#fe6523] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#e2571c]">
-                    {t('csLookup.pay.createDeal')}
-                  </button>
-                );
-                if (d.state === 'loading') return <span className={`text-xs ${textQuat}`}>{t('csLookup.pay.creating')}</span>;
-                if (d.state === 'done') return (
-                  <span className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                    <Check className="h-3.5 w-3.5" />
-                    {t('csLookup.pay.dealCreated', { stage: d.stage, owner: d.owner })}
-                    {/* Les chiffres de l'appel partent en note : le module Deals n'a pas de
-                        champ Description. Si la note a echoue, la fiche existe mais elle est
-                        muette — l'agent doit le savoir plutot que de le supposer ecrit. */}
-                    {!d.noteOk && (
-                      <span className="text-amber-700 dark:text-amber-400">
-                        — {t('csLookup.pay.dealNoNote')}
-                      </span>
-                    )}
-                  </span>
-                );
-                // Le marchand vient de la facturation, pas du CRM : son nom ne trouve pas
-                // toujours un compte Zoho. Rattacher au MAUVAIS compte enverrait un vendeur
-                // rappeler quelqu'un d'autre, alors on s'arrete et on laisse l'agent trancher.
-                if (d.state === 'noAccount') return (
-                  <div className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
-                    <div className="font-semibold">{t('csLookup.pay.noAccountTitle', { name: d.searched })}</div>
-                    <div className="mt-0.5 opacity-80">{t('csLookup.pay.noAccountHint')}</div>
-                    {d.candidates.length > 0 && (
-                      <>
-                        <div className="mt-1.5 font-medium">{t('csLookup.pay.noAccountPick')}</div>
-                        <ul className="mt-1 space-y-1">
-                          {d.candidates.map(c => (
-                            <li key={c.id} className="flex flex-wrap items-center gap-2">
-                              <span>{c.name}{c.city ? ` — ${c.city}` : ''}</span>
-                              <button onClick={() => { setDeal(z => { const n = { ...z }; delete n[h.subscriptionNumber]; return n; }); creerOpportunite(h, false, c.id); }}
-                                className="rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100 dark:hover:bg-amber-500/20">
-                                {t('csLookup.pay.noAccountUse')}
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
-                  </div>
-                );
-                // Zoho a deja une fiche pour ce marchand. En creer une deuxieme coupe
-                // l'historique en deux et fausse l'attribution : on montre ce qui existe et on
-                // laisse l'agent decider, plutot que de dupliquer en silence.
-                if (d.state === 'dup') return (
-                  <div className="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
-                    <div className="font-semibold">{t('csLookup.pay.dupTitle')}</div>
-                    <ul className="mt-1 space-y-0.5">
-                      {d.existing.map(x => (
-                        <li key={x.id}>
-                          {x.company}
-                          {x.stage ? ` — ${x.stage}` : ''}
-                          {x.owner ? ` (${x.owner})` : ''}
-                        </li>
-                      ))}
-                    </ul>
-                    <button onClick={() => { setDeal(z => { const c = { ...z }; delete c[h.subscriptionNumber]; return c; }); creerOpportunite(h, true); }}
-                      className="mt-1.5 rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100 dark:hover:bg-amber-500/20">
-                      {t('csLookup.pay.dupCreateAnyway')}
-                    </button>
-                  </div>
-                );
-                return <span className="text-xs text-red-600 dark:text-red-400">{d.msg}</span>;
-              })()}
 
-              {typeof fees[h.subscriptionNumber] === 'object' && (() => {
-                const f = fees[h.subscriptionNumber] as Fees;
-                if (!f.paymentFees.length) {
-                  return <span className={`text-xs ${textQuat}`}>{t('csLookup.pay.noFees')}</span>;
-                }
-                return (
-                  <div className="w-full">
-                    <div className="text-sm font-semibold text-[#c44d18] dark:text-[#fe8f5c]">
-                      {t('csLookup.pay.saving', {
-                        month: money(f.monthlySaving), year: money(f.yearlySaving),
-                      })}
-                    </div>
-                    {/* Le prix a annoncer. C'est la phrase que l'agent dit au telephone, donc
-                        elle est ecrite en entier plutot que laissee a calculer de tete. */}
-                    {/* Le PRIX est monte dans la ligne des prix, en haut de la fiche. Il ne
-                        reste ici que d'ou il sort — le repeter en gras deux fois sur le meme
-                        ecran ferait hesiter sur lequel des deux est le bon. */}
-                    {f.withPayments && !f.withPayments.belowZero && (
-                      <div className="mt-1 text-[11px] text-emerald-700/90 dark:text-emerald-400/80">
-                        {t('csLookup.pay.withPriceHow', {
-                          fees: money(f.withPayments.feesPeriod),
-                          current: money(f.withPayments.currentPrice),
-                        })}
-                      </div>
-                    )}
-                    {/* Frais superieurs au forfait : la soustraction ne veut plus rien dire, et
-                        afficher « 0 $ » ferait annoncer la gratuite. On le dit, sans chiffre. */}
-                    {f.withPayments && f.withPayments.belowZero && (
-                      <div className="mt-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
-                        {t('csLookup.pay.withPriceBelow', {
-                          fees: money(f.withPayments.feesPeriod),
-                          price: money(f.withPayments.newPrice),
-                        })}
-                      </div>
-                    )}
-                    <ul className={`mt-1 space-y-0.5 text-xs ${textQuat}`}>
-                      {f.paymentFees.map(l => (
-                        <li key={l.code}>{l.name} — {money(l.monthly)}/mois</li>
-                      ))}
-                    </ul>
-                    {/* Les autres integrations NE disparaissent PAS : le dire evite qu'un agent
-                        les compte dans l'economie annoncee au client. */}
-                    {f.addons.some(a => !a.isPayment) && (
-                      <p className={`mt-1.5 text-[11px] ${textQuat}`}>
-                        {t('csLookup.pay.otherAddons', {
-                          list: f.addons.filter(a => !a.isPayment).map(a => a.name).join(', '),
-                        })}
-                      </p>
-                    )}
-                  </div>
-                );
-              })()}
+              {f && f.paymentFees.length > 0 && (
+                <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+                  <dt className={textQuat}>{t('csLookup.pay.savingLabel')}</dt>
+                  <dd className="font-semibold text-[#c44d18] dark:text-[#fe8f5c]">
+                    {t('csLookup.pay.savingValue', {
+                      month: money(f.monthlySaving), year: money(f.yearlySaving),
+                    })}
+                  </dd>
+                  <dt className={textQuat}>{t('csLookup.pay.feesLabel')}</dt>
+                  <dd className={textSec}>
+                    {f.paymentFees.map(l => `${l.name} — ${money(l.monthly)}`).join(' · ')}
+                  </dd>
+                  {/* Les autres integrations NE disparaissent PAS : le dire evite qu'un agent
+                      les compte dans l'economie annoncee au client. */}
+                  {f.addons.some(a => !a.isPayment) && (
+                    <>
+                      <dt className={textQuat}>{t('csLookup.pay.keptLabel')}</dt>
+                      <dd className={textQuat}>
+                        {f.addons.filter(a => !a.isPayment).map(a => a.name).join(', ')}
+                      </dd>
+                    </>
+                  )}
+                </dl>
+              )}
+
+              {/* Frais superieurs au forfait : la soustraction ne veut plus rien dire, et
+                  afficher « 0 $ » ferait annoncer la gratuite. On le dit, sans chiffre. */}
+              {f?.withPayments?.belowZero && (
+                <div className="mt-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
+                  {t('csLookup.pay.withPriceBelow', {
+                    fees: money(f.withPayments.feesPeriod), price: money(f.withPayments.newPrice),
+                  })}
+                </div>
+              )}
+
+              {/* Le marchand vient de la facturation, pas du CRM : son nom ne trouve pas
+                  toujours un compte Zoho. Rattacher au MAUVAIS compte enverrait un vendeur
+                  rappeler quelqu'un d'autre, alors on s'arrete et on laisse l'agent trancher. */}
+              {d?.state === 'noAccount' && (
+                <div className="mt-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
+                  <div className="font-semibold">{t('csLookup.pay.noAccountTitle', { name: d.searched })}</div>
+                  <div className="mt-0.5 opacity-80">{t('csLookup.pay.noAccountHint')}</div>
+                  {d.candidates.length > 0 && (
+                    <>
+                      <div className="mt-1.5 font-medium">{t('csLookup.pay.noAccountPick')}</div>
+                      <ul className="mt-1 space-y-1">
+                        {d.candidates.map(c => (
+                          <li key={c.id} className="flex flex-wrap items-center gap-2">
+                            <span>{c.name}{c.city ? ` — ${c.city}` : ''}</span>
+                            <button onClick={() => { retirer(); creerOpportunite(h, false, c.id); }}
+                              className="rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100 dark:hover:bg-amber-500/20">
+                              {t('csLookup.pay.noAccountUse')}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Zoho a deja une opportunite ouverte. En creer une deuxieme coupe l'historique
+                  en deux et fausse l'attribution : on montre ce qui existe et on laisse
+                  l'agent decider, plutot que de dupliquer en silence. */}
+              {d?.state === 'dup' && (
+                <div className="mt-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
+                  <div className="font-semibold">{t('csLookup.pay.dupTitle')}</div>
+                  <ul className="mt-1 space-y-0.5">
+                    {d.existing.map(x => (
+                      <li key={x.id}>
+                        {x.company}
+                        {x.stage ? ` — ${x.stage}` : ''}
+                        {x.owner ? ` (${x.owner})` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                  <button onClick={() => { retirer(); creerOpportunite(h, true); }}
+                    className="mt-1.5 rounded border border-amber-400 px-2 py-0.5 font-medium hover:bg-amber-100 dark:hover:bg-amber-500/20">
+                    {t('csLookup.pay.dupCreateAnyway')}
+                  </button>
+                </div>
+              )}
+
+              {d?.state === 'error' && (
+                <div className="mt-2 text-xs text-red-600 dark:text-red-400">{d.msg}</div>
+              )}
             </div>
-          )}
+            );
+          })()}
 
           <div className={`mt-4 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-gray-100 pt-3 text-xs ${textQuat} dark:border-[#161616]`}>
             <span>{t('csLookup.zohoStatus')}: <span className={textSec}>{t(`csLookup.push.${h.pushStatus}`)}</span></span>
