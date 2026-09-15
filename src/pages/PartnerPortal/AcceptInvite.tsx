@@ -9,7 +9,7 @@ import { useClusterFavicon } from '../../hooks/useClusterFavicon';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
-type Step = 'loading' | 'invalid' | 'password' | 'qr' | 'done';
+type Step = 'loading' | 'invalid' | 'password' | 'done';
 
 // Modeled on Authentication/AcceptInvite.tsx's loading/invalid/password/qr/done step machine,
 // pointed at /api/partner-auth/invite* instead of /api/auth/invite*.
@@ -28,10 +28,6 @@ const PartnerAcceptInvite = () => {
   const [invalidMsg, setInvalidMsg] = useState('');
   const [pw1, setPw1] = useState('');
   const [pw2, setPw2] = useState('');
-  const [qr, setQr] = useState('');
-  const [secret, setSecret] = useState('');
-  const [setupToken, setSetupToken] = useState('');
-  const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -70,23 +66,8 @@ const PartnerAcceptInvite = () => {
       });
       const d = await r.json();
       if (!r.ok) { setError(portalError(d.error, t, 'Failed')); return; }
-      setQr(d.qrDataUrl); setSecret(d.secret); setSetupToken(d.setupToken);
-      setStep('qr');
-    } catch {
-      setError(t('auth.networkError') as string);
-    } finally { setBusy(false); }
-  };
-
-  const submitCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(''); setBusy(true);
-    try {
-      const r = await fetch(`${API_URL}/api/partner-auth/invite/verify-2fa`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ setupToken, code }),
-      });
-      const d = await r.json();
-      if (!r.ok) { setError(portalError(d.error, t, 'Invalid code')); return; }
+      // Le compte est ouvert des le mot de passe pose : la double authentification n'est
+      // plus imposee ici, elle s'active depuis le profil si la personne le souhaite.
       const v = await fetch(`${API_URL}/api/partner-auth/verify`, { headers: { Authorization: `Bearer ${d.token}` } });
       const vd = await v.json();
       login(vd.user, d.token);
@@ -141,31 +122,6 @@ const PartnerAcceptInvite = () => {
                 <button type="submit" disabled={busy}
                   className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
                   {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.invite.continue')}
-                </button>
-              </form>
-            </>
-          )}
-
-          {step === 'qr' && (
-            <>
-              <h2 className="mb-2 text-center text-2xl font-bold text-black dark:text-white">{t('auth.invite.mfaTitle')}</h2>
-              <p className="mb-6 text-center text-sm text-body">{t('auth.invite.mfaSubtitle')}</p>
-              <div className="mb-4 flex justify-center">
-                <img src={qr} alt="QR code" className="rounded-lg border border-stroke dark:border-strokedark" />
-              </div>
-              <p className="mb-6 text-center text-xs text-body">
-                {t('auth.invite.manualKey')}<br />
-                <code className="mt-1 inline-block rounded bg-gray-100 px-2 py-1 font-mono text-[11px] text-black dark:bg-meta-4 dark:text-white">{secret}</code>
-              </p>
-              <form onSubmit={submitCode} className="space-y-4">
-                <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} required
-                  value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                  placeholder="000000"
-                  className={`${inputCls} text-center text-2xl font-bold tracking-[0.5em]`} />
-                {error && <p className="text-sm text-danger">{error}</p>}
-                <button type="submit" disabled={busy || code.length !== 6}
-                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.invite.activate')}
                 </button>
               </form>
             </>

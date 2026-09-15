@@ -12,9 +12,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 // Inscription libre par code d'organisation.
 //
 // Le parcours est VOLONTAIREMENT le même que celui d'une invitation à partir de la deuxième
-// étape — mot de passe, puis double authentification. Un chemin d'entrée plus court aurait été
-// un chemin d'entrée plus faible, et c'est exactement là qu'il ne faut pas économiser.
-type Step = 'form' | 'qr' | 'done';
+// étape. La double authentification n'y est plus imposée : elle bloquait l'entrée de
+// représentants qui n'arrivaient pas au bout de l'enrôlement. Elle s'active depuis le profil.
+type Step = 'form' | 'done';
 
 const PartnerSignup = () => {
   // Page PUBLIQUE : hors du gabarit partenaire, elle n'hérite pas de l'icône Cluster.
@@ -32,11 +32,6 @@ const PartnerSignup = () => {
   const [email, setEmail] = useState('');
   const [pw1, setPw1] = useState('');
   const [pw2, setPw2] = useState('');
-  const [partnerName, setPartnerName] = useState('');
-  const [qr, setQr] = useState('');
-  const [secret, setSecret] = useState('');
-  const [setupToken, setSetupToken] = useState('');
-  const [code2fa, setCode2fa] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -55,9 +50,13 @@ const PartnerSignup = () => {
       const d = await r.json();
       // Les codes du serveur sont traduits ici : « invalid_code » sous un champ n'apprend rien.
       if (!r.ok) { setError(traduire(d.error)); return; }
-      setPartnerName(d.partnerName || '');
-      setQr(d.qrDataUrl); setSecret(d.secret); setSetupToken(d.setupToken);
-      setStep('qr');
+      // Le compte est ouvert immediatement : la double authentification n'est plus imposee,
+      // elle s'active depuis le profil.
+      const v = await fetch(`${API_URL}/api/partner-auth/verify`, { headers: { Authorization: `Bearer ${d.token}` } });
+      const vd = await v.json();
+      login(vd.user, d.token);
+      setStep('done');
+      navigate('/partner-portal', { replace: true });
     } catch {
       setError(t('auth.networkError') as string);
     } finally { setBusy(false); }
@@ -75,29 +74,6 @@ const PartnerSignup = () => {
     return connus[cle] ? (t(connus[cle]) as string) : portalError(cle, t, t('auth.networkError') as string);
   };
 
-  const submit2fa = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(''); setBusy(true);
-    try {
-      // Le MÊME point d'accès que l'activation d'une invitation : deux parcours parallèles
-      // finiraient par diverger, et c'est celui-ci qui pose le compte en « actif ».
-      const r = await fetch(`${API_URL}/api/partner-auth/invite/verify-2fa`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ setupToken, code: code2fa }),
-      });
-      const d = await r.json();
-      if (!r.ok) { setError(portalError(d.error, t, t('partnerPortal.signup.errCode') as string)); return; }
-      // `login` attend l'usager ET le jeton — le contexte ne va pas le chercher lui-meme.
-      // Meme sequence que l'activation d'une invitation, pour ne pas ouvrir un second chemin.
-      const v = await fetch(`${API_URL}/api/partner-auth/verify`, { headers: { Authorization: `Bearer ${d.token}` } });
-      const vd = await v.json();
-      login(vd.user, d.token);
-      setStep('done');
-      navigate('/partner-portal', { replace: true });
-    } catch {
-      setError(t('auth.networkError') as string);
-    } finally { setBusy(false); }
-  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2">
@@ -152,30 +128,6 @@ const PartnerSignup = () => {
             </>
           )}
 
-          {step === 'qr' && (
-            <>
-              <h1 className="text-center text-2xl font-bold text-black dark:text-white">{t('partnerPortal.signup.twoFactorTitle')}</h1>
-              <p className="mt-2 text-center text-sm text-body">
-                {partnerName
-                  ? t('partnerPortal.signup.twoFactorSubtitlePartner', { partner: partnerName })
-                  : t('partnerPortal.signup.twoFactorSubtitle')}
-              </p>
-              {qr && <img src={qr} alt="QR" className="mx-auto my-5 h-52 w-52 rounded-lg border border-stroke dark:border-strokedark" />}
-              {/* Le secret en clair sous le code : sans lui, une personne qui scanne mal reste
-                  bloquée sans recours. */}
-              <p className="mb-5 break-all text-center font-mono text-xs text-body">{secret}</p>
-              <form onSubmit={submit2fa} className="space-y-4">
-                <input value={code2fa} onChange={(e) => setCode2fa(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  inputMode="numeric" placeholder="000000" required
-                  className="w-full rounded-lg border border-stroke bg-transparent px-4 py-3 text-center font-mono text-2xl tracking-[0.4em] outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
-                {error && <p className="text-sm text-danger">{error}</p>}
-                <button type="submit" disabled={busy || code2fa.length !== 6}
-                  className="w-full rounded-lg bg-black py-3 font-semibold text-white hover:bg-opacity-90 disabled:opacity-50 dark:bg-white dark:text-black">
-                  {busy ? t('partnerPortal.signup.verifying') : t('partnerPortal.signup.finish')}
-                </button>
-              </form>
-            </>
-          )}
         </div>
       </div>
     </div>

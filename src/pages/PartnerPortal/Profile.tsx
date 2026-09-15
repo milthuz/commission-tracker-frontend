@@ -30,7 +30,7 @@ const PartnerProfile: React.FC = () => {
   const [resetOpen, setResetOpen] = useState(false);
   // 'password' first — the backend now requires the current password to re-bind 2FA, so a stolen
   // session token alone can't move the second factor to an attacker's authenticator.
-  const [resetStep, setResetStep] = useState<'password' | 'starting' | 'qr' | 'done'>('password');
+  const [resetStep, setResetStep] = useState<'password' | 'starting' | 'qr' | 'done' | 'disable'>('password');
   const [resetPassword, setResetPassword] = useState('');
   const [qr, setQr] = useState('');
   const [secret, setSecret] = useState('');
@@ -107,6 +107,29 @@ const PartnerProfile: React.FC = () => {
       setResetStep('done');
     } catch (e: any) {
       setResetError(e?.response?.data?.error || t('partnerPortal.profile.twoFactor.invalidCode') as string);
+    } finally {
+      setResetBusy(false);
+    }
+  };
+
+  // Retirer la double authentification exige le mot de passe courant, comme pour la poser :
+  // un jeton vole ne doit pas pouvoir baisser la protection du compte.
+  const startDisable = () => {
+    setResetError(''); setResetPassword('');
+    setResetStep('disable');
+    setResetOpen(true);
+  };
+
+  const submitDisable = async () => {
+    setResetError('');
+    setResetBusy(true);
+    try {
+      await axios.post(`${API_URL}/api/partner-portal/2fa/disable`,
+        { currentPassword: resetPassword }, { headers: authHeaders() });
+      setTotpEnabled(false);
+      setResetStep('done');
+    } catch (e: any) {
+      setResetError(e?.response?.data?.error || t('partnerPortal.profile.twoFactor.resetFailed') as string);
     } finally {
       setResetBusy(false);
     }
@@ -197,12 +220,26 @@ const PartnerProfile: React.FC = () => {
                 {totpEnabled ? t('partnerPortal.profile.twoFactor.enabled') : t('partnerPortal.profile.twoFactor.disabled')}
               </span>
             </div>
-            <p className="mt-3 text-sm text-body">{t('partnerPortal.profile.twoFactor.subtitle')}</p>
-            <div className="mt-6">
+            <p className="mt-3 text-sm text-body">
+              {totpEnabled
+                ? t('partnerPortal.profile.twoFactor.subtitle')
+                : t('partnerPortal.profile.twoFactor.offSubtitle')}
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
               <button onClick={startReset}
-                className="inline-flex items-center gap-2 rounded-md border border-stroke px-6 py-2.5 text-sm font-medium text-black hover:bg-gray-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
-                {t('partnerPortal.profile.twoFactor.resetButton')}
+                className={totpEnabled
+                  ? 'inline-flex items-center gap-2 rounded-md border border-stroke px-6 py-2.5 text-sm font-medium text-black hover:bg-gray-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4'
+                  : 'inline-flex items-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90'}>
+                {totpEnabled
+                  ? t('partnerPortal.profile.twoFactor.resetButton')
+                  : t('partnerPortal.profile.twoFactor.enableButton')}
               </button>
+              {totpEnabled && (
+                <button onClick={startDisable}
+                  className="inline-flex items-center gap-2 rounded-md border border-stroke px-6 py-2.5 text-sm font-medium text-danger hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4">
+                  {t('partnerPortal.profile.twoFactor.disableButton')}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -267,6 +304,28 @@ const PartnerProfile: React.FC = () => {
                 </div>
               </>
             )}
+            {resetStep === 'disable' && (
+              <>
+                <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.disableTitle')}</h3>
+                <p className="mb-4 text-sm text-body">{t('partnerPortal.profile.twoFactor.disableSubtitle')}</p>
+                <PasswordInput value={resetPassword} onChange={(e) => setResetPassword(e.target.value)}
+                  autoComplete="current-password"
+                  placeholder={t('partnerPortal.profile.twoFactor.currentPassword') as string}
+                  className="w-full rounded-md border border-stroke bg-transparent px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+                {resetError && <p className="mt-3 text-sm text-danger">{resetError}</p>}
+                <div className="mt-5 flex justify-end gap-2">
+                  <button onClick={closeReset} disabled={resetBusy}
+                    className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+                    {t('common.cancel')}
+                  </button>
+                  <button onClick={submitDisable} disabled={resetBusy || !resetPassword}
+                    className="rounded-md bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                    {t('partnerPortal.profile.twoFactor.disableButton')}
+                  </button>
+                </div>
+              </>
+            )}
+
             {resetStep === 'done' && (
               <>
                 <h3 className="mb-2 text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.doneTitle')}</h3>
