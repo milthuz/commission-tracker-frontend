@@ -2512,10 +2512,17 @@ const SaasIncrease: React.FC = () => {
         const defaultTemplate = templates.find(tp => tp.isDefault) || templates[0];
         // Tout ce qui reste a rediger, tous segments confondus. On relit l'etat SAUVEGARDE :
         // une ligne redigee a la tranche precedente ne doit pas repartir dans la suivante.
+        const etatNotif = (it: ScenarioItem) => savedItems[rowKey(it)]?.notifyStatus || it.notifyStatus;
+        const adresseDe = (it: ScenarioItem) =>
+          (notifyEdits[it.id]?.to ?? savedItems[rowKey(it)]?.notifyTo ?? it.notifyTo ?? '').trim();
+        const estActif = (it: ScenarioItem) => it.skipped !== true;
         const aRediger = sortedGroups.flatMap(([, items]) => items)
-          .filter(it => it.skipped !== true
-            && (savedItems[rowKey(it)]?.notifyStatus || it.notifyStatus) === 'not_sent')
+          .filter(it => estActif(it) && etatNotif(it) === 'not_sent')
           .map(it => it.id);
+        // Pret a partir : redige, pas deja parti, et avec une adresse.
+        const pretAPartir = (items: ScenarioItem[]) => items.filter(it =>
+          estActif(it) && etatNotif(it) === 'drafted' && adresseDe(it) !== '');
+        const aEnvoyer = pretAPartir(sortedGroups.flatMap(([, items]) => items)).map(it => it.id);
         return (
           <div className={`${card} mt-6 overflow-hidden`}>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
@@ -2544,6 +2551,19 @@ const SaasIncrease: React.FC = () => {
                     className={`${btnSecondary} rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-50`}
                   >
                     {t('saasIncrease.notify.draftAll', { count: aRediger.length })}
+                  </button>
+                )}
+                {/* Il n'existait qu'une case a cocher par ligne : lancer la campagne aurait
+                    demande d'ouvrir trente segments et de cocher 2 742 cases. Ce bouton prend
+                    tout ce qui est REDIGE, pas deja parti, et qui a une adresse. La
+                    confirmation de sendNotifications annonce le compte avant d'agir. */}
+                {aEnvoyer.length > 0 && (
+                  <button
+                    onClick={() => sendNotifications(aEnvoyer)}
+                    disabled={notifyBusyIds.size > 0}
+                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A] dark:hover:bg-opacity-90"
+                  >
+                    {t('saasIncrease.notify.sendAll', { count: aEnvoyer.length })}
                   </button>
                 )}
                 <button
@@ -2577,7 +2597,8 @@ const SaasIncrease: React.FC = () => {
                 const groupBusy = items.some(it => notifyBusyIds.has(it.id));
                 // Les lignes ECARTEES ne comptent pas : le serveur refuse de les rediger, donc
                 // les mettre au denominateur ferait croire a un groupe inachève pour toujours.
-                const groupActifs = items.filter(it => it.skipped !== true);
+                const groupActifs = items.filter(estActif);
+                const groupPret = pretAPartir(items);
                 const groupDrafted = groupActifs.filter(it =>
                   (savedItems[rowKey(it)]?.notifyStatus || it.notifyStatus) !== 'not_sent').length;
                 return (
@@ -2612,6 +2633,18 @@ const SaasIncrease: React.FC = () => {
                               : t('saasIncrease.templates.draftGroupWith')}
                           </button>
                         </>
+                      )}
+                      {/* Envoyer un segment a la fois : c'est ce qui permet une premiere vague
+                          sur un petit groupe avant de lacher les 2 742. */}
+                      {groupPret.length > 0 && (
+                        <button
+                          type="button"
+                          disabled={notifyBusyIds.size > 0}
+                          onClick={() => sendNotifications(groupPret.map(it => it.id))}
+                          className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A]"
+                        >
+                          {t('saasIncrease.notify.sendGroup', { count: groupPret.length })}
+                        </button>
                       )}
                       {canExecute && (
                         <button
