@@ -2532,7 +2532,10 @@
         "enteredBy": "Entered by hand by {{who}}",
         "partnerInactive": "This partner is disabled. Re-enable it first — otherwise we would create a debt towards someone whose access is closed.",
         "partnerMissing": "This partner no longer exists."
-      }
+      },
+      "clear2faHint": "Remove two-factor authentication",
+      "clear2faConfirm": "Remove two-factor authentication for {{email}}? They will then sign in with their password alone, and can turn it back on from their profile.",
+      "clear2faDone": "Two-factor authentication removed for {{email}}. They can now sign in with their password."
     },
     "resources": {
       "title": "Resources storage",

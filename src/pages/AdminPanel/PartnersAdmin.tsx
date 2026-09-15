@@ -194,7 +194,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
     id: number; email: string; name: string | null; role: string; status: string;
     partnerName: string; invitedBy: string | null;
     invitedAt: string | null; firstInvitedAt: string | null; openedAt: string | null; activatedAt: string | null;
-    expiresAt: string | null;
+    expiresAt: string | null; totpEnabled?: boolean;
   };
   const [invites, setInvites] = useState<Invite[]>([]);
   // Filtre par partenaire de la carte des usagers. Le compte de la colonne « Usagers » le pose,
@@ -353,6 +353,22 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
   // ⚠️ Un renvoi ECRASE `invited_at` et remet `invite_opened_at` et `activated_at` a NULL cote
   // serveur. La confirmation nomme donc la personne plutot que d'annoncer un compte : c'est un
   // courriel reel qui part, et la date d'invitation d'origine est perdue au passage.
+  // Retirer le second facteur de quelqu'un dont l'authentificateur ne repond plus. C'est sa
+  // SEULE porte de sortie : la desactivation depuis le profil exige d'etre deja connecte,
+  // ce qu'elle n'arrive justement pas a faire. Elle entre ensuite avec son seul mot de passe
+  // et peut la reactiver depuis son profil.
+  const clear2fa = async (iv: Invite) => {
+    if (!(await dialog.confirm(t('admin.partners.clear2faConfirm', { email: iv.email }) as string))) return;
+    setBusyUserId(iv.id);
+    try {
+      await axios.post(`${API_URL}/api/admin/partner-users/${iv.id}/clear-2fa`, {}, { headers: authHeaders() });
+      dialog.alert(t('admin.partners.clear2faDone', { email: iv.email }) as string);
+      refreshUsers();
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || 'Erreur');
+    } finally { setBusyUserId(null); }
+  };
+
   const resendInvite = async (iv: Invite) => {
     if (!(await dialog.confirm(t('admin.partners.resendConfirm', { email: iv.email }) as string))) return;
     setBusyUserId(iv.id);
@@ -1530,6 +1546,17 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                                 className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-stroke text-body hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark">
                                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                              </button>
+                            )}
+                            {/* Uniquement quand un second facteur EXISTE : proposer de retirer
+                                ce qui n'est pas la n'apprendrait rien et inquieterait. */}
+                            {iv.totpEnabled && (
+                              <button onClick={() => clear2fa(iv)} disabled={busyUserId === iv.id}
+                                title={t('admin.partners.clear2faHint') as string}
+                                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-stroke text-body hover:border-warning hover:text-warning disabled:opacity-50 dark:border-strokedark">
+                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V7a3 3 0 10-6 0M5 10h10a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2z" />
                                 </svg>
                               </button>
                             )}

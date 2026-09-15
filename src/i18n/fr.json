@@ -2532,7 +2532,10 @@
         "enteredBy": "Saisie manuellement par {{who}}",
         "partnerInactive": "Ce partenaire est désactivé. Réactivez-le d’abord — sinon on créerait une dette envers quelqu’un dont l’accès est fermé.",
         "partnerMissing": "Ce partenaire n’existe plus."
-      }
+      },
+      "clear2faHint": "Retirer la double authentification",
+      "clear2faConfirm": "Retirer la double authentification de {{email}} ? Cette personne pourra ensuite se connecter avec son seul mot de passe, et la réactiver depuis son profil.",
+      "clear2faDone": "Double authentification retirée pour {{email}}. Cette personne peut maintenant se connecter avec son mot de passe."
     },
     "resources": {
       "title": "Stockage des ressources",
