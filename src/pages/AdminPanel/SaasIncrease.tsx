@@ -2538,6 +2538,13 @@ const SaasIncrease: React.FC = () => {
                 const [, planLabel] = key.split('||');
                 const orgLabel = orgs.find(o => o.id === items[0].orgId)?.name || items[0].orgId;
                 const chosenTemplateId = groupTemplateChoice[key] ?? defaultTemplate?.id;
+                // Rédiger un groupe de 130 abonnements = 130 appels à Zoho dans UNE requête.
+                // Le bouton restait muet pendant tout ce temps, et le groupe étant replié,
+                // l'état « occupé » des lignes ne se voyait nulle part : David a conclu que le
+                // bouton ne faisait rien, alors qu'il travaillait.
+                const groupBusy = items.some(it => notifyBusyIds.has(it.id));
+                const groupDrafted = items.filter(it =>
+                  (savedItems[rowKey(it)]?.notifyStatus || it.notifyStatus) !== 'not_sent').length;
                 return (
                   <div key={key} className={`border-b ${divider}`}>
                     <div className={`flex flex-wrap items-center gap-2.5 px-5 py-2.5 ${raised}`}>
@@ -2551,15 +2558,23 @@ const SaasIncrease: React.FC = () => {
                         <span className={`shrink-0 text-[11px] ${textQuat}`}>{orgLabel}</span>
                         <span className={`ml-auto shrink-0 text-xs ${textTer}`}>{t('saasIncrease.groupCount', { count: items.length })}</span>
                       </button>
+                      {groupDrafted > 0 && (
+                        <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                          {t('saasIncrease.notify.draftedCount', { done: groupDrafted, total: items.length })}
+                        </span>
+                      )}
                       {templates.length > 0 && (
                         <>
                           <Select value={chosenTemplateId != null ? String(chosenTemplateId) : ''} onChange={(v) => setGroupTemplateChoice((prev) => ({ ...prev, [key]: Number(v) }))} options={templates.map((tp) => ({ value: String(tp.id), label: tp.name }))} buttonClassName={`rounded-md px-2 py-1.5 text-xs ${chipInput}`} />
                           <button
                             type="button"
+                            disabled={groupBusy}
                             onClick={() => draftNotifications(items.map(it => it.id), chosenTemplateId)}
-                            className={`${btnSecondary} px-2.5 py-1.5 text-xs`}
+                            className={`${btnSecondary} px-2.5 py-1.5 text-xs disabled:opacity-60`}
                           >
-                            {t('saasIncrease.templates.draftGroupWith')}
+                            {groupBusy
+                              ? t('saasIncrease.notify.drafting', { count: items.length })
+                              : t('saasIncrease.templates.draftGroupWith')}
                           </button>
                         </>
                       )}

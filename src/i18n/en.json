@@ -1482,6 +1482,8 @@
     "notify": {
       "title": "Merchant notifications",
       "subtitle": "Draft, review and send an email to each merchant about their price increase before (or independent of) pushing it to Zoho.",
+      "drafting": "drafting {{count}}…",
+      "draftedCount": "{{done}}/{{total}} drafted",
       "draftSelected": "Draft for selected ({{count}})",
       "sendSelected": "Send selected ({{count}})",
       "to": "To",
