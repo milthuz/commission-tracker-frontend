@@ -1482,6 +1482,7 @@
     "notify": {
       "title": "Notifications aux marchands",
       "subtitle": "Rédige, révise et envoie un courriel à chaque marchand au sujet de son augmentation de prix, avant (ou indépendamment de) l'envoi vers Zoho.",
+      "draftAll": "Rédiger tout ce qui reste ({{count}})",
       "drafting": "rédaction de {{count}}…",
       "draftedCount": "{{done}}/{{total}} rédigés",
       "draftSelected": "Rédiger pour la sélection ({{count}})",

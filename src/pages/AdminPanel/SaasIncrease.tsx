@@ -1100,29 +1100,43 @@ const SaasIncrease: React.FC = () => {
     });
   };
 
+  // Chaque ligne coute un appel a Zoho (l'adresse du marchand, et depuis le 2026-09-15 sa
+  // province pour choisir la langue). Des tranches courtes, donc : une requete de 700 lignes
+  // meurt chez le mandataire bien avant que le serveur ait fini, et l'ecran n'en sait rien.
+  const DRAFT_CHUNK = 40;
   const draftNotifications = async (itemIds: number[], templateId?: number) => {
     if (!activeScenarioId || !itemIds.length) return;
     markNotifyBusy(itemIds, true);
+    const tranches: number[][] = [];
+    for (let i = 0; i < itemIds.length; i += DRAFT_CHUNK) tranches.push(itemIds.slice(i, i + DRAFT_CHUNK));
+    const depart = Date.now();
+    const suivi = tranches.length > 1;
+    if (suivi) setBulkProgress({ done: 0, total: itemIds.length, label: t('saasIncrease.notify.drafting', { count: itemIds.length }) as string, startedAt: depart });
     try {
-      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/notifications/draft`, {
-        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemIds, templateId }),
-      });
-      if (!r.ok) throw new Error(String(r.status));
-      const data = await r.json();
-      const items = data.items as ScenarioItem[];
-      setSavedItems(prev => {
-        const next = { ...prev };
-        for (const it of items) next[rowKey(it)] = it;
-        return next;
-      });
-      setNotifyEdits(prev => {
-        const next = { ...prev };
-        for (const it of items) next[it.id] = { to: it.notifyTo || '', subject: it.notifySubject || '', body: it.notifyBody || '' };
-        return next;
-      });
+      for (let k = 0; k < tranches.length; k++) {
+        const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/notifications/draft`, {
+          method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ itemIds: tranches[k], templateId }),
+        });
+        if (!r.ok) throw new Error(String(r.status));
+        const data = await r.json();
+        const items = data.items as ScenarioItem[];
+        // On applique tranche par tranche : si la suivante echoue, ce qui est fait reste
+        // visible a l'ecran plutot que de disparaitre avec l'erreur.
+        setSavedItems(prev => {
+          const next = { ...prev };
+          for (const it of items) next[rowKey(it)] = it;
+          return next;
+        });
+        setNotifyEdits(prev => {
+          const next = { ...prev };
+          for (const it of items) next[it.id] = { to: it.notifyTo || '', subject: it.notifySubject || '', body: it.notifyBody || '' };
+          return next;
+        });
+        if (suivi) setBulkProgress({ done: Math.min(itemIds.length, (k + 1) * DRAFT_CHUNK), total: itemIds.length, label: t('saasIncrease.notify.drafting', { count: itemIds.length }) as string, startedAt: depart });
+      }
     } catch { dialog.alert(t('saasIncrease.error') as string); }
-    finally { markNotifyBusy(itemIds, false); }
+    finally { markNotifyBusy(itemIds, false); if (suivi) setBulkProgress(null); }
   };
 
   const previewNotification = async (itemId: number) => {
@@ -2496,6 +2510,11 @@ const SaasIncrease: React.FC = () => {
         }
         const sortedGroups = Array.from(notifyGroups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
         const defaultTemplate = templates.find(tp => tp.isDefault) || templates[0];
+        // Tout ce qui reste a rediger, tous segments confondus. On relit l'etat SAUVEGARDE :
+        // une ligne redigee a la tranche precedente ne doit pas repartir dans la suivante.
+        const aRediger = sortedGroups.flatMap(([, items]) => items)
+          .filter(it => (savedItems[rowKey(it)]?.notifyStatus || it.notifyStatus) === 'not_sent')
+          .map(it => it.id);
         return (
           <div className={`${card} mt-6 overflow-hidden`}>
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
@@ -2514,6 +2533,18 @@ const SaasIncrease: React.FC = () => {
                 >
                   {t('saasIncrease.notify.draftSelected', { count: notifySelected.size })}
                 </button>
+                {/* Trente segments a cliquer un par un, c'est trente occasions d'en sauter un —
+                    et un segment saute, c'est des marchands qui n'ont jamais ete avises. Le
+                    bouton du haut prend TOUT ce qui reste a rediger, avec son compte. */}
+                {aRediger.length > 0 && (
+                  <button
+                    onClick={() => draftNotifications(aRediger, defaultTemplate?.id)}
+                    disabled={notifyBusyIds.size > 0}
+                    className={`${btnSecondary} rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-50`}
+                  >
+                    {t('saasIncrease.notify.draftAll', { count: aRediger.length })}
+                  </button>
+                )}
                 <button
                   onClick={() => sendNotifications(Array.from(notifySelected))}
                   disabled={notifySelected.size === 0}
