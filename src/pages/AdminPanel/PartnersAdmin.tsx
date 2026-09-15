@@ -147,6 +147,10 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
   const [newPartnerName, setNewPartnerName] = useState('');
   const [creating, setCreating] = useState(false);
   const [inviteFor, setInviteFor] = useState<Partner | null>(null);
+  // Le role de la personne invitee. Le meme ecran sert a inviter un administrateur de
+  // partenaire (depuis la ligne du partenaire) et un simple usager (depuis l'annuaire) :
+  // seul ce champ change, et le point d'acces est le meme des deux cotes.
+  const [inviteRole, setInviteRole] = useState<'standard' | 'admin'>('admin');
   const [deletingPartnerId, setDeletingPartnerId] = useState<number | null>(null);
 
   // Logo d'un partenaire. UN seul champ de fichier cache, reutilise pour toutes les
@@ -621,9 +625,14 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
     setInviting(true);
     try {
       await axios.post(`${API_URL}/api/admin/partners/${inviteFor.id}/invite-admin`,
-        { email: inviteEmail.trim(), name: inviteName.trim(), locale: inviteLocale }, { headers: authHeaders() });
+        { email: inviteEmail.trim(), name: inviteName.trim(), locale: inviteLocale, role: inviteRole },
+        { headers: authHeaders() });
+      const quiEtait = inviteEmail.trim();
       setInviteFor(null); setInviteEmail(''); setInviteName('');
-      await fetchPartners();
+      // L'annuaire aussi : sans ca la personne qu'on vient d'inviter n'apparait nulle part,
+      // et on ne sait pas si le geste a porte.
+      await Promise.all([fetchPartners(), refreshUsers()]);
+      dialog.alert(t('admin.partners.inviteUserDone', { email: quiEtait }) as string);
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to send invite'); }
     finally { setInviting(false); }
   };
@@ -1351,7 +1360,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                             className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
                             {t('admin.partners.editPartner')}
                           </button>
-                          <button onClick={() => setInviteFor(p)}
+                          <button onClick={() => { setInviteRole('admin'); setInviteEmail(''); setInviteName(''); setInviteFor(p); }}
                             className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark">
                             {t('admin.partners.inviteAdmin')}
                           </button>
@@ -1423,6 +1432,21 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                   promesse trop vague pour un geste irreversible. */}
               {/* Toujours visible (avec la permission), independamment de la selection : on
                   exporte ce qui est AFFICHE, pas ce qui est coche. */}
+              {/* Ajouter quelqu'un qui n'est PAS encore dans l'annuaire. Les boutons en lot
+                  ci-dessous ne savent que relancer des lignes existantes : il n'y avait aucun
+                  moyen d'inviter une personne nouvelle depuis Sales Hub. */}
+              <button onClick={() => {
+                  const pref = partners.find((x) => x.name === userDirFilter) || partners[0] || null;
+                  setInviteRole('standard'); setInviteEmail(''); setInviteName('');
+                  setInviteFor(pref);
+                }}
+                disabled={!partners.length}
+                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-stroke px-3.5 py-2 text-sm font-semibold text-body hover:border-primary hover:text-primary disabled:opacity-40 dark:border-strokedark">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM19 8v6M22 11h-6" />
+                </svg>
+                {t('admin.partners.inviteUser')}
+              </button>
               {canExportUsers && (
                 <button onClick={exportUsers} disabled={exporting || invites.length === 0}
                   title={t('admin.partners.exportHint') as string}
@@ -2609,12 +2633,33 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setInviteFor(null); }}>
           <div className="w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.inviteAdminFor', { name: inviteFor.name })}</span>
+              <span className="text-base font-bold text-black dark:text-white">
+                {inviteRole === 'admin'
+                  ? t('admin.partners.inviteAdminFor', { name: inviteFor.name })
+                  : t('admin.partners.inviteUserTitle')}
+              </span>
               <button onClick={() => setInviteFor(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             <form onSubmit={sendInvite} className="flex flex-col gap-3">
+              {/* Le partenaire reste MODIFIABLE : ouvert depuis l'annuaire, il est devine a
+                  partir du filtre courant, et deviner n'est pas savoir. */}
+              <Select
+                value={String(inviteFor.id)}
+                onChange={(v) => setInviteFor(partners.find((x) => String(x.id) === v) || inviteFor)}
+                options={partners.map((x) => ({ value: String(x.id), label: x.name }))}
+                aria-label={t('admin.partners.invitePartnerLabel') as string}
+              />
+              <Select
+                value={inviteRole}
+                onChange={(v) => setInviteRole(v as 'standard' | 'admin')}
+                options={[
+                  { value: 'standard', label: t('admin.partners.roleStandard') as string },
+                  { value: 'admin', label: t('admin.partners.roleAdmin') as string },
+                ]}
+                aria-label={t('admin.partners.inviteRoleLabel') as string}
+              />
               <input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} type="email" required
                 placeholder={t('partnerPortal.fEmail') as string} className={inputCls} />
               <input value={inviteName} onChange={(e) => setInviteName(e.target.value)} placeholder={t('partnerPortal.fName') as string} className={inputCls} />

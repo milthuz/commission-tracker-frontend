@@ -2535,7 +2535,14 @@
       },
       "clear2faHint": "Retirer la double authentification",
       "clear2faConfirm": "Retirer la double authentification de {{email}} ? Cette personne pourra ensuite se connecter avec son seul mot de passe, et la réactiver depuis son profil.",
-      "clear2faDone": "Double authentification retirée pour {{email}}. Cette personne peut maintenant se connecter avec son mot de passe."
+      "clear2faDone": "Double authentification retirée pour {{email}}. Cette personne peut maintenant se connecter avec son mot de passe.",
+      "inviteUser": "Inviter un usager",
+      "inviteUserTitle": "Inviter un usager",
+      "inviteUserDone": "Invitation envoyée à {{email}}.",
+      "invitePartnerLabel": "Partenaire",
+      "inviteRoleLabel": "Rôle",
+      "roleStandard": "Usager",
+      "roleAdmin": "Administrateur du partenaire"
     },
     "resources": {
       "title": "Stockage des ressources",

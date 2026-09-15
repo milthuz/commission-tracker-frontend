@@ -2535,7 +2535,14 @@
       },
       "clear2faHint": "Remove two-factor authentication",
       "clear2faConfirm": "Remove two-factor authentication for {{email}}? They will then sign in with their password alone, and can turn it back on from their profile.",
-      "clear2faDone": "Two-factor authentication removed for {{email}}. They can now sign in with their password."
+      "clear2faDone": "Two-factor authentication removed for {{email}}. They can now sign in with their password.",
+      "inviteUser": "Invite a user",
+      "inviteUserTitle": "Invite a user",
+      "inviteUserDone": "Invitation sent to {{email}}.",
+      "invitePartnerLabel": "Partner",
+      "inviteRoleLabel": "Role",
+      "roleStandard": "User",
+      "roleAdmin": "Partner administrator"
     },
     "resources": {
       "title": "Resources storage",
