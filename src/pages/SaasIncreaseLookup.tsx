@@ -259,19 +259,39 @@ export default function SaasIncreaseLookup() {
             {noticeBadge(h)}
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {[
+          {/* Le prix « avec le paiement Cluster » prend sa place dans la ligne des prix,
+              a cote du nouveau prix : c'est un PRIX, l'agent le lit la ou il lit les autres,
+              pas dans un encadre plus bas. Il n'apparait que quand les frais sont connus et
+              que la soustraction a un sens — sinon la colonne n'existe pas du tout, plutot
+              que d'afficher un tiret qu'on prendrait pour « aucune remise ». */}
+          {(() => {
+            const fr = fees[h.subscriptionNumber];
+            const wp = typeof fr === 'object' ? fr.withPayments : null;
+            const avecPrix = wp && !wp.belowZero;
+            const cases = [
               { label: t('csLookup.plan'), value: h.planName || '—' },
               { label: t('csLookup.currentPrice'), value: money(h.currentPrice) },
               { label: t('csLookup.newPrice'), value: money(h.newPrice), strong: true },
+              ...(avecPrix ? [{
+                label: t('csLookup.pay.withPriceLabel'),
+                value: money(wp!.periodPrice), pay: true,
+              }] : []),
               { label: t('csLookup.effective'), value: fmtDate(h.effectiveDate, i18n.language) },
-            ].map((f) => (
-              <div key={String(f.label)}>
-                <div className={`text-[11px] font-semibold uppercase tracking-wider ${textQuat}`}>{f.label}</div>
-                <div className={`mt-1 text-sm ${f.strong ? `font-semibold ${textPri}` : textSec}`}>{f.value}</div>
+            ];
+            return (
+              <div className={`mt-4 grid grid-cols-2 gap-4 ${avecPrix ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
+                {cases.map((f: any) => (
+                  <div key={String(f.label)}>
+                    <div className={`text-[11px] font-semibold uppercase tracking-wider ${
+                      f.pay ? 'text-emerald-700 dark:text-emerald-400' : textQuat}`}>{f.label}</div>
+                    <div className={`mt-1 text-sm ${
+                      f.pay ? 'font-semibold text-emerald-700 dark:text-emerald-400'
+                            : f.strong ? `font-semibold ${textPri}` : textSec}`}>{f.value}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            );
+          })()}
 
           {/* Le paiement. Un marchand qui appelle pour contester sa hausse est deja au
               telephone : c'est le seul moment ou lui proposer le paiement ne le derange pas.
@@ -417,20 +437,15 @@ export default function SaasIncreaseLookup() {
                     </div>
                     {/* Le prix a annoncer. C'est la phrase que l'agent dit au telephone, donc
                         elle est ecrite en entier plutot que laissee a calculer de tete. */}
+                    {/* Le PRIX est monte dans la ligne des prix, en haut de la fiche. Il ne
+                        reste ici que d'ou il sort — le repeter en gras deux fois sur le meme
+                        ecran ferait hesiter sur lequel des deux est le bon. */}
                     {f.withPayments && !f.withPayments.belowZero && (
-                      <div className="mt-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 dark:border-emerald-500/25 dark:bg-emerald-500/10">
-                        <div className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
-                          {t('csLookup.pay.withPrice', {
-                            price: money(f.withPayments.periodPrice),
-                            instead: money(f.withPayments.newPrice),
-                          })}
-                        </div>
-                        <div className="mt-0.5 text-[11px] text-emerald-700/80 dark:text-emerald-400/70">
-                          {t('csLookup.pay.withPriceHow', {
-                            fees: money(f.withPayments.feesPeriod),
-                            current: money(f.withPayments.currentPrice),
-                          })}
-                        </div>
+                      <div className="mt-1 text-[11px] text-emerald-700/90 dark:text-emerald-400/80">
+                        {t('csLookup.pay.withPriceHow', {
+                          fees: money(f.withPayments.feesPeriod),
+                          current: money(f.withPayments.currentPrice),
+                        })}
                       </div>
                     )}
                     {/* Frais superieurs au forfait : la soustraction ne veut plus rien dire, et
