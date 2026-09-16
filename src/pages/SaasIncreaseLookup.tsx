@@ -77,6 +77,11 @@ export default function SaasIncreaseLookup() {
   const { t, i18n } = useTranslation();
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[] | null>(null);
+  // Cet ecran s'ouvrait sur une page VIDE : il fallait deviner quoi taper pour voir quoi que ce
+  // soit. Il s'ouvre desormais sur la LISTE des marchands, et la recherche ne fait que la
+  // reduire. `total` dit combien il y en a, pour que « 50 affiches » ne se lise pas « 50 en tout ».
+  const [total, setTotal] = useState(0);
+  const [suite, setSuite] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openEmail, setOpenEmail] = useState<number | null>(null);
@@ -162,25 +167,36 @@ export default function SaasIncreaseLookup() {
   const saisir = (term: string) => {
     setQ(term);
     if (minuterie.current) clearTimeout(minuterie.current);
-    if (term.trim().length < 2) { setHits(null); setError(null); setLoading(false); return; }
     setLoading(true);
+    // Effacer la recherche ne vide plus l'ecran : on revient a la liste complete.
     minuterie.current = setTimeout(() => search(term), 350);
   };
 
-  const search = async (term: string) => {
-    if (term.trim().length < 2) { setHits(null); setError(null); return; }
-    setLoading(true);
+  const search = async (term: string, offset = 0) => {
+    if (offset === 0) setLoading(true); else setSuite(true);
     setError(null);
     try {
-      const r = await fetch(`${API_URL}/api/saas-increase/lookup?q=${encodeURIComponent(term.trim())}`, { headers: authHeaders() });
+      const mot = term.trim();
+      const r = await fetch(`${API_URL}/api/saas-increase/lookup`
+        + `?q=${encodeURIComponent(mot.length >= 2 ? mot : '')}&offset=${offset}`,
+        { headers: authHeaders() });
       if (!r.ok) throw new Error(String(r.status));
       const d = await r.json();
-      setHits(d.results || []);
+      // On AJOUTE quand on demande la suite, sinon la liste repartirait du debut a chaque page.
+      setHits(prev => (offset > 0 && prev ? [...prev, ...(d.results || [])] : (d.results || [])));
+      setTotal(d.total ?? (d.results || []).length);
     } catch {
       setError(t('csLookup.error') as string);
       setHits(null);
-    } finally { setLoading(false); }
+    } finally { setLoading(false); setSuite(false); }
   };
+
+  // La liste s'affiche a l'ouverture. Aucun appel Zoho n'en decoule : le chargement automatique
+  // des frais reste borne a cinq resultats, donc il ne part qu'apres une recherche qui a
+  // converge. C'est ce qui rend cette page sure a ouvrir — l'inverse nous a valu un blocage de
+  // quota le 2026-09-15.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { void search(''); }, []);
 
   const card = 'rounded-2xl border border-gray-200 bg-white dark:border-[#1B1B1B] dark:bg-[#0E0F11]';
   const textPri = 'text-gray-900 dark:text-white';
@@ -232,6 +248,11 @@ export default function SaasIncreaseLookup() {
           />
         </div>
         <p className={`mt-2 px-1 text-xs ${textQuat}`}>{t('csLookup.searchHint')}</p>
+        {hits && total > 0 && (
+          <p className={`mt-1 px-1 text-xs ${textQuat}`}>
+            {t('csLookup.showing', { shown: hits.length, total })}
+          </p>
+        )}
       </div>
 
       {loading && <div className={`mb-4 text-sm ${textTer}`}>{t('csLookup.searching')}</div>}
@@ -510,6 +531,15 @@ export default function SaasIncreaseLookup() {
           )}
         </div>
       ))}
+
+      {hits && hits.length < total && (
+        <div className="mb-6 flex justify-center">
+          <button onClick={() => search(q, hits.length)} disabled={suite}
+            className={`rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium ${textSec} hover:bg-gray-50 disabled:opacity-50 dark:border-[#242424] dark:hover:bg-[#141414]`}>
+            {suite ? t('csLookup.loadingMore') : t('csLookup.loadMore', { count: Math.min(50, total - hits.length) })}
+          </button>
+        </div>
+      )}
 
       {/* ------------------------------------------------------------------------ FAQ */}
       <div className={`${card} mt-6 p-5`}>
