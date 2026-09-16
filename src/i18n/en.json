@@ -1501,6 +1501,7 @@
       "testSent": "Test email sent to {{to}}.",
       "send": "Send",
       "sending": "Sending notices…",
+      "confirmWhere": "They go out from notifications@clustersystems.com to each merchant's billing address — e.g. {{examples}}",
       "confirmSend": "Send this notification to {{count}} merchant(s)? This can't be unsent.",
       "previewTitle": "Email preview",
       "status": {

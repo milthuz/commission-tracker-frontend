@@ -1501,6 +1501,7 @@
       "testSent": "Courriel test envoyé à {{to}}.",
       "send": "Envoyer",
       "sending": "Envoi des avis…",
+      "confirmWhere": "Ils partiront de notifications@clustersystems.com vers l'adresse de facturation de chaque marchand — par exemple {{examples}}",
       "confirmSend": "Envoyer cette notification à {{count}} marchand(s)? Cette action est irréversible.",
       "previewTitle": "Aperçu du courriel",
       "status": {
