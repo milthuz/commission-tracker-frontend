@@ -2508,7 +2508,11 @@ const SaasIncrease: React.FC = () => {
           if (!notifyGroups.has(key)) notifyGroups.set(key, []);
           notifyGroups.get(key)!.push(item);
         }
-        const sortedGroups = Array.from(notifyGroups.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+        // Un segment dont TOUTES les lignes ont ete ecartees affichait « 0 subscriptions » avec
+        // ses boutons : une ligne de plus a lire, sur laquelle il n'y a rien a faire.
+        const sortedGroups = Array.from(notifyGroups.entries())
+          .filter(([, items]) => items.some(it => it.skipped !== true))
+          .sort((a, b) => a[0].localeCompare(b[0]));
         const defaultTemplate = templates.find(tp => tp.isDefault) || templates[0];
         // Tout ce qui reste a rediger, tous segments confondus. On relit l'etat SAUVEGARDE :
         // une ligne redigee a la tranche precedente ne doit pas repartir dans la suivante.
