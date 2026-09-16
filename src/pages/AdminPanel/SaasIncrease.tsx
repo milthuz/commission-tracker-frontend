@@ -1254,7 +1254,7 @@ const SaasIncrease: React.FC = () => {
   // passerelle bien avant la fin, en laissant un nombre inconnu de marchands avises et aucun
   // rapport a l'ecran. Chaque tranche est courte, et la progression est visible.
   const SEND_CHUNK = 50;
-  const sendNotifications = async (itemIds: number[]) => {
+  const sendNotifications = async (itemIds: number[], avecInterne = true) => {
     if (!activeScenarioId || !itemIds.length) return;
     const adresses = itemIds
       .map(id => (notifyEdits[id]?.to || '').trim())
@@ -1282,7 +1282,7 @@ const SaasIncrease: React.FC = () => {
         const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/notifications/send`, {
           method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
           // L'avis interne ne part qu'a la fin, et il resume TOUT l'envoi, pas la derniere tranche.
-          body: JSON.stringify({ items, sendInternal: derniere, internalScope: 'scenario' }),
+          body: JSON.stringify({ items, sendInternal: avecInterne && derniere, internalScope: 'scenario' }),
         });
         if (!r.ok) {
           // On s'arrete, mais on DIT ce qui est parti. Poursuivre apres une tranche echouee
@@ -2590,7 +2590,7 @@ const SaasIncrease: React.FC = () => {
                   </button>
                 )}
                 <button
-                  onClick={() => sendNotifications(Array.from(notifySelected))}
+                  onClick={() => sendNotifications(Array.from(notifySelected), false)}
                   disabled={notifySelected.size === 0}
                   className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A] dark:hover:bg-opacity-90"
                 >
@@ -2669,7 +2669,7 @@ const SaasIncrease: React.FC = () => {
                         <button
                           type="button"
                           disabled={notifyBusyIds.size > 0}
-                          onClick={() => sendNotifications(groupPret.map(it => it.id))}
+                          onClick={() => sendNotifications(groupPret.map(it => it.id), false)}
                           className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A]"
                         >
                           {t('saasIncrease.notify.sendGroup', { count: groupPret.length })}
@@ -2772,7 +2772,7 @@ const SaasIncrease: React.FC = () => {
                                     >
                                       {t('saasIncrease.notify.testSend')}
                                     </button>
-                                    <button onClick={() => sendNotifications([item.id])} disabled={busy || !draft.to || !draft.subject} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A]">
+                                    <button onClick={() => sendNotifications([item.id], false)} disabled={busy || !draft.to || !draft.subject} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 dark:bg-[#57D193] dark:text-[#0A0A0A]">
                                       {busy ? t('saasIncrease.notify.sending') : t('saasIncrease.notify.send')}
                                     </button>
                                     {canExecute && (
