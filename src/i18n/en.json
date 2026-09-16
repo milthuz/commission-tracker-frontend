@@ -1486,6 +1486,8 @@
       "sendGroup": "Send group ({{count}})",
       "draftAll": "Draft all remaining ({{count}})",
       "drafting": "drafting {{count}}…",
+      "sentCount": "{{done}}/{{total}} sent",
+      "sentSoFar": "{{done}} of {{total}} merchants notified",
       "draftedCount": "{{done}}/{{total}} drafted",
       "draftSelected": "Draft for selected ({{count}})",
       "sendSelected": "Send selected ({{count}})",

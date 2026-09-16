@@ -1486,6 +1486,8 @@
       "sendGroup": "Envoyer le groupe ({{count}})",
       "draftAll": "Rédiger tout ce qui reste ({{count}})",
       "drafting": "rédaction de {{count}}…",
+      "sentCount": "{{done}}/{{total}} envoyés",
+      "sentSoFar": "{{done}} marchands avisés sur {{total}}",
       "draftedCount": "{{done}}/{{total}} rédigés",
       "draftSelected": "Rédiger pour la sélection ({{count}})",
       "sendSelected": "Envoyer à la sélection ({{count}})",

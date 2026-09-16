@@ -1256,7 +1256,16 @@ const SaasIncrease: React.FC = () => {
   const SEND_CHUNK = 50;
   const sendNotifications = async (itemIds: number[]) => {
     if (!activeScenarioId || !itemIds.length) return;
-    if (!(await dialog.confirm(t('saasIncrease.notify.confirmSend', { count: itemIds.length }) as string))) return;
+    const adresses = itemIds
+      .map(id => (notifyEdits[id]?.to || '').trim())
+      .filter(Boolean);
+    const exemples = adresses.slice(0, 3).join(', ')
+      + (adresses.length > 3 ? `, … (+${adresses.length - 3})` : '');
+    const question = `${t('saasIncrease.notify.confirmSend', { count: itemIds.length })}
+
+`
+      + `${t('saasIncrease.notify.confirmWhere', { examples: exemples })}`;
+    if (!(await dialog.confirm(question))) return;
     markNotifyBusy(itemIds, true);
     try {
       const tranches: number[][] = [];
@@ -2533,6 +2542,16 @@ const SaasIncrease: React.FC = () => {
               <div>
                 <h4 className={`text-sm font-semibold ${textPri}`}>{t('saasIncrease.notify.title')}</h4>
                 <p className={`mt-0.5 text-xs ${textTer}`}>{canExecute ? t('saasIncrease.push.subtitle') : t('saasIncrease.notify.subtitle')}</p>
+                {(() => {
+                  const tous = sortedGroups.flatMap(([, items]) => items).filter(estActif);
+                  const envoyes = tous.filter(it => etatNotif(it) === 'sent').length;
+                  if (!envoyes) return null;
+                  return (
+                    <p className="mt-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                      {t('saasIncrease.notify.sentSoFar', { done: envoyes, total: tous.length })}
+                    </p>
+                  );
+                })()}
               </div>
               <div className="flex gap-2">
                 <button onClick={() => { loadTemplates(); setTemplateManagerOpen(true); }} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
@@ -2603,8 +2622,8 @@ const SaasIncrease: React.FC = () => {
                 // les mettre au denominateur ferait croire a un groupe inachève pour toujours.
                 const groupActifs = items.filter(estActif);
                 const groupPret = pretAPartir(items);
-                const groupDrafted = groupActifs.filter(it =>
-                  (savedItems[rowKey(it)]?.notifyStatus || it.notifyStatus) !== 'not_sent').length;
+                const groupDrafted = groupActifs.filter(it => etatNotif(it) !== 'not_sent').length;
+                const groupSent = groupActifs.filter(it => etatNotif(it) === 'sent').length;
                 return (
                   <div key={key} className={`border-b ${divider}`}>
                     <div className={`flex flex-wrap items-center gap-2.5 px-5 py-2.5 ${raised}`}>
@@ -2618,7 +2637,13 @@ const SaasIncrease: React.FC = () => {
                         <span className={`shrink-0 text-[11px] ${textQuat}`}>{orgLabel}</span>
                         <span className={`ml-auto shrink-0 text-xs ${textTer}`}>{t('saasIncrease.groupCount', { count: groupActifs.length })}</span>
                       </button>
-                      {groupDrafted > 0 && (
+                      {/* L'envoi prime sur la redaction : c'est l'etat irreversible. */}
+                      {groupSent > 0 && (
+                        <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-semibold text-white">
+                          {t('saasIncrease.notify.sentCount', { done: groupSent, total: groupActifs.length })}
+                        </span>
+                      )}
+                      {groupSent === 0 && groupDrafted > 0 && (
                         <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
                           {t('saasIncrease.notify.draftedCount', { done: groupDrafted, total: groupActifs.length })}
                         </span>
