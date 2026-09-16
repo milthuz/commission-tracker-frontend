@@ -45,6 +45,16 @@ type Report = {
   scenario: { id: number; name: string; targetMrr: number };
   generatedAt: string;
   totals: { items: number; mrrAdd: number; firstYearCash: number; withoutEffectiveDate: number; notified: number; pushed: number };
+  // Deux etapes distinctes, qui avancent a des rythmes differents : un avis part le jour meme,
+  // sa hausse s'applique des semaines plus tard, au renouvellement du marchand.
+  progress?: {
+    total: number;
+    notified: number; notifyScheduled: number; toNotify: number; notifyFailed: number;
+    mrrNotified: number; mrrScheduled: number; mrrToNotify: number;
+    pushed: number; deferred: number; pushFailed: number; toPush: number;
+    mrrPushed: number; mrrToPush: number;
+    lastNotifiedAt: string | null; lastPushedAt: string | null;
+  };
   ramp: { month: string; count: number; mrrAdded: number; cumulativeMrr: number }[];
   billedByMonth: Billed[];
   billedByYear: { year: string; amount: number; amountNet: number; partial: boolean; from: string; to: string }[];
@@ -180,6 +190,50 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
               {new Date(d.generatedAt).toLocaleString('fr-CA')}
             </p>
           </header>
+
+          {/* ── OU EN EST LA CAMPAGNE. Le reste du rapport decrit le PLAN ; cette bande dit
+                 ce qui est FAIT. Deux barres, parce que les deux etapes ne se suivent pas au
+                 meme rythme : les avis partent en une apres-midi, les hausses s'appliquent sur
+                 deux mois, chacune au renouvellement de son marchand. ── */}
+          {d.progress && (
+            <section className="mb-8 rounded-lg border border-slate-200 p-5">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-slate-500">
+                {t('saasIncrease.report.progressTitle')}
+              </h2>
+              <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <Avancement
+                  titre={t('saasIncrease.report.progressNotices') as string}
+                  fait={d.progress.notified} total={d.progress.total}
+                  mrrFait={d.progress.mrrNotified}
+                  detail={[
+                    d.progress.notifyScheduled > 0
+                      ? t('saasIncrease.report.progressScheduled', { count: d.progress.notifyScheduled }) as string
+                      : '',
+                    d.progress.toNotify > 0
+                      ? t('saasIncrease.report.progressToNotify', { count: d.progress.toNotify }) as string
+                      : '',
+                    d.progress.notifyFailed > 0
+                      ? t('saasIncrease.report.progressFailed', { count: d.progress.notifyFailed }) as string
+                      : '',
+                  ].filter(Boolean)}
+                  quand={d.progress.lastNotifiedAt} />
+                <Avancement
+                  titre={t('saasIncrease.report.progressPushes') as string}
+                  fait={d.progress.pushed} total={d.progress.total}
+                  mrrFait={d.progress.mrrPushed}
+                  detail={[
+                    d.progress.toPush > 0
+                      ? t('saasIncrease.report.progressWaiting', { count: d.progress.toPush }) as string
+                      : '',
+                    d.progress.pushFailed > 0
+                      ? t('saasIncrease.report.progressPushFailed', { count: d.progress.pushFailed }) as string
+                      : '',
+                  ].filter(Boolean)}
+                  quand={d.progress.lastPushedAt} />
+              </div>
+              <p className="mt-4 text-xs text-slate-500">{t('saasIncrease.report.progressNote')}</p>
+            </section>
+          )}
 
           {/* ─────────────────────────────── 1. La montée ─────────────────────────────── */}
           {/* ── 0. L'argent reellement facture, mois par mois. L'onglet de la CFO, donc en
@@ -544,6 +598,31 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
       )}
     </div>,
     document.body,
+  );
+}
+
+// Une etape de la campagne : la part faite, ce qu'elle represente en argent, et ce qui reste.
+// Le pourcentage porte sur le NOMBRE d'abonnements ; le montant a cote dit ce que cette part
+// vaut vraiment — 40 % des lignes ne font pas 40 % de l'argent.
+function Avancement({ titre, fait, total, mrrFait, detail, quand }:
+  { titre: string; fait: number; total: number; mrrFait: number; detail: string[]; quand: string | null }) {
+  const pct = total > 0 ? Math.round((fait / total) * 100) : 0;
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-xs uppercase tracking-wide text-slate-500">{titre}</p>
+        <p className="text-xs text-slate-400">{pct} %</p>
+      </div>
+      <p className="mt-1 text-2xl font-bold text-[#1c2434]">
+        {fait.toLocaleString('fr-CA')} <span className="text-base font-normal text-slate-400">/ {total.toLocaleString('fr-CA')}</span>
+      </p>
+      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="h-full rounded-full bg-[#fe6523]" style={{ width: `${pct}%` }} />
+      </div>
+      <p className="mt-2 text-sm font-semibold text-[#1c2434]">{money2(mrrFait)} /mois</p>
+      {detail.map((x, i) => <p key={i} className="mt-0.5 text-xs text-slate-500">{x}</p>)}
+      {quand && <p className="mt-1 text-xs text-slate-400">{new Date(quand).toLocaleString('fr-CA')}</p>}
+    </div>
   );
 }
 
