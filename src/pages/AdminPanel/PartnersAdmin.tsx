@@ -2013,7 +2013,13 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                             {renderQueueCell(o, c)}
                           </td>
                         ))}
-                        <td className="sticky right-0 bg-white px-3 py-3 text-right xl:px-4 dark:bg-boxdark">
+                        {/* align-top + py-2, comme TOUTES les autres cellules. Cette cellule
+                            gardait le `vertical-align: middle` par defaut d'un td ET un padding
+                            vertical different : dans une rangee de trois lignes, les boutons
+                            flottaient au milieu pendant que la date restait en haut. Ecart
+                            MESURE entre les deux centres : 31 px. Les hauts coincident
+                            desormais exactement. */}
+                        <td className="sticky right-0 bg-white px-3 py-2 align-top text-right xl:px-4 dark:bg-boxdark">
                           <div className="flex items-center justify-end gap-1.5">
                             {o.status === 'pending' ? (
                               <>
