@@ -2932,7 +2932,8 @@
         "partner_reminder": "Portail partenaire — rappel d’activation",
         "lead_review": "Piste — en attente d'examen",
         "lead_assigned": "Piste — attribuée à un représentant",
-        "lead_welcome": "Piste — bienvenue au marchand"
+        "lead_welcome": "Piste — bienvenue au marchand",
+        "partner_lead_assigned": "Partenaire — piste attribuée à un représentant"
       }
     },
     "recalculate": {

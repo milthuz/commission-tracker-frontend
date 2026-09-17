@@ -2932,7 +2932,8 @@
         "partner_reminder": "Partner portal — activation reminder",
         "lead_review": "Lead — waiting for review",
         "lead_assigned": "Lead — assigned to a rep",
-        "lead_welcome": "Lead — merchant welcome"
+        "lead_welcome": "Lead — merchant welcome",
+        "partner_lead_assigned": "Partner — lead assigned to a rep"
       }
     },
     "recalculate": {

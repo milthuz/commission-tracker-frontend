@@ -19,7 +19,7 @@ const TEMPLATE_TYPES = [
   // Pistes (SH-20). `lead_welcome` est le seul des trois qui sorte de l'entreprise : il part
   // UNILINGUE, dans la langue de la piste, et porte la marque Cluster — un prospect n'a jamais
   // entendu parler de Sales Hub.
-  'lead_review', 'lead_assigned', 'lead_welcome',
+  'lead_review', 'lead_assigned', 'lead_welcome', 'partner_lead_assigned',
 ] as const;
 type TemplateType = (typeof TEMPLATE_TYPES)[number];
 
