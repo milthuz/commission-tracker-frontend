@@ -207,6 +207,52 @@ const SaasAutoCard = () => {
   );
 };
 
+// Interrupteur de l'avis au representant Cluster quand une piste partenaire lui est
+// assignee. Meme motif que SaasAutoCard juste au-dessus : deux interrupteurs qui ne se
+// ressemblent pas donneraient l'impression de deux mecanismes differents.
+const AvisRepCard = () => {
+  const { t } = useTranslation();
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
+    axios.get(`${API_URL}/api/admin/partner-rep-notify`, { headers: authH() })
+      .then(r => setEnabled(r.data?.enabled !== false))
+      .catch(() => setEnabled(null));
+  }, []);
+  const toggle = async () => {
+    if (enabled === null || saving) return;
+    setSaving(true);
+    try {
+      const r = await axios.put(`${API_URL}/api/admin/partner-rep-notify`, { enabled: !enabled }, { headers: authH() });
+      setEnabled(r.data?.enabled !== false);
+    } finally { setSaving(false); }
+  };
+  return (
+    <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-semibold text-black dark:text-white">
+            📨 {t('admin.notifications.repNotifyTitle')}
+          </h3>
+          <p className="mt-1 max-w-2xl text-sm text-body">{t('admin.notifications.repNotifyHint')}</p>
+        </div>
+        <button type="button" onClick={toggle} disabled={enabled === null || saving}
+          aria-pressed={enabled === true}
+          className={`relative mt-1 h-7 w-14 shrink-0 rounded-full transition disabled:opacity-50 ${
+            enabled ? 'bg-primary' : 'bg-gray-300 dark:bg-meta-4'}`}>
+          <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
+            enabled ? 'left-8' : 'left-1'}`} />
+        </button>
+      </div>
+      {enabled === false && (
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 dark:bg-red-500/10 dark:text-red-400">
+          {t('admin.notifications.repNotifyOff')}
+        </p>
+      )}
+    </div>
+  );
+};
+
 export default function NotificationsAdmin() {
   const { t } = useTranslation();
   const [users, setUsers] = useState<KnownUser[]>([]);
@@ -268,6 +314,9 @@ export default function NotificationsAdmin() {
           interrupteur vit ici, a cote des destinataires du compte rendu, et non enfoui dans une
           variable d'environnement : celui qui recoit le rapport doit pouvoir couper le robinet. */}
       <SaasAutoCard />
+
+      {/* Un representant Cluster vient de se voir assigner une piste partenaire */}
+      <AvisRepCard />
 
       {/* A partner submitted a new opportunity through the Partner Portal */}
       <RecipientListCard icon="🤝"

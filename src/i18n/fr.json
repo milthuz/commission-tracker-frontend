@@ -2771,7 +2771,10 @@
       "saasAutoHint": "Chaque jour, envoie les avis annuels arrivés à échéance (30 jours avant le renouvellement du marchand) puis applique chez Zoho les hausses devenues possibles. Il ne peut pas démarrer une campagne : il ne touche qu'aux lignes déjà mises en mouvement depuis l'écran. Un compte rendu part aux destinataires ci-dessus les jours où quelque chose se passe.",
       "saasAutoOff": "Arrêté. Les avis annuels ne partiront plus et les hausses ne seront plus appliquées tant que ce n'est pas rallumé.",
       "saasIncreaseInternalTitle": "Hausse de prix SaaS — avis interne de lancement",
-      "saasIncreaseInternalHint": "Envoyé une fois par lot quand des avis partent aux marchands : combien de marchands, quels forfaits, les dates d'effet, et le lien vers la référence du service à la clientèle. Liste vide = personne n'est avisé, et le premier à apprendre la hausse sera celui qui répond au téléphone."
+      "saasIncreaseInternalHint": "Envoyé une fois par lot quand des avis partent aux marchands : combien de marchands, quels forfaits, les dates d'effet, et le lien vers la référence du service à la clientèle. Liste vide = personne n'est avisé, et le premier à apprendre la hausse sera celui qui répond au téléphone.",
+      "repNotifyTitle": "Avis au représentant — piste partenaire",
+      "repNotifyHint": "Quand une opportunité partenaire est approuvée et assignée à un représentant Cluster, celui-ci reçoit un courriel avec le marchand, le partenaire qui l'a référé et son contact chez ce partenaire. Aperçu : « Partenaire — piste attribuée à un représentant ».",
+      "repNotifyOff": "Coupé — les représentants ne sont plus prévenus des pistes qui leur sont assignées. Elles sont toujours créées dans Zoho."
     },
     "deals": {
       "title": "Transactions",
