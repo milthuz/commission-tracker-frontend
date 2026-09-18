@@ -612,6 +612,30 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Tables de taux de référence IC+ (perm: icplus:rates).
+                   ⚠️ AU PREMIER NIVEAU, et non dans le sous-menu du panneau Admin, bien que sa
+                   route soit /admin/icplus-rates. Ce sous-menu est entièrement gardé par
+                   `isAdmin` et la plupart de ses entrées ne portent AUCUNE garde propre — on ne
+                   peut donc pas l'ouvrir à un non-admin sans lui montrer une douzaine d'écrans
+                   qui le rejetteraient au clic. Même patron que « Partenaires » juste au-dessus,
+                   pour la même raison : une permission granulaire attribuée à un non-admin a
+                   besoin de sa propre porte d'entrée. --> */}
+              {(isAdmin || can('icplus:rates')) && (
+                <li>
+                  <NavLink
+                    to="/admin/icplus-rates"
+                    className={navLinkCls(pathname === '/admin/icplus-rates')}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18M3 12h18M3 18h18" />
+                      <circle cx="8" cy="6" r="1.6" /><circle cx="15" cy="12" r="1.6" /><circle cx="11" cy="18" r="1.6" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.icplusRates')}</span>
+                    <NewBadge path="/admin/icplus-rates" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.icplusRates') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item SaaS Increase (perm: saas_increase:manage) — moved out of the Admin
                    Panel submenu so the granular saas_increase:* permissions can be assigned to
                    non-admin users; AdminPanel/index.tsx gates its whole render on isAdmin, which
@@ -739,21 +763,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         {t('sidebar.notifications')}<NewBadge path="/admin/notifications" />
                       </NavLink>
                     </li>
-                    {/* Tables de taux de reference IC+ : les taux publies Visa/MC/Interac contre
-                        lesquels chaque ligne d'un releve est verifiee. Permission distincte de
-                        l'usage du calculateur — c'est un geste de maintenance, pas d'usage courant. */}
-                    {can('icplus:rates') && (
-                      <li>
-                        <NavLink
-                          to="/admin/icplus-rates"
-                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
-                            pathname === '/admin/icplus-rates' ? 'text-white' : ''
-                          }`}
-                        >
-                          {t('sidebar.icplusRates')}<NewBadge path="/admin/icplus-rates" />
-                        </NavLink>
-                      </li>
-                    )}
                     {/* Réglages des pistes (SH-20) : règles d'attribution, tour de rôle,
                         automatisations. La FILE elle-même vit dans le menu principal — ici on ne
                         configure que le comportement. */}
