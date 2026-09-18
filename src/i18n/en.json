@@ -413,7 +413,8 @@
     "leads": "Leads",
     "leadsAdmin": "Leads",
     "saasIncreaseLookup": "SaaS increase reference",
-    "rateCalculator": "IC+ Calculator"
+    "rateCalculator": "IC+ Calculator",
+    "icplusRates": "IC+ reference rates"
   },
   "tour": {
     "skip": "Skip",
@@ -5142,6 +5143,40 @@
       "fixed": "Fixed fees",
       "terminalWireless": "Wireless terminal",
       "terminalWired": "Wired terminal"
+    }
+  },
+  "icplusRates": {
+    "title": "IC+ reference rates",
+    "subtitle": "The published Visa, Mastercard and Interac rates every statement line is checked against. While a table is empty its lines read \"À vérifier\" — never a false \"Conforme\".",
+    "coverage": "{{filled}} of {{total}} table(s) filled.",
+    "percentWarning": "Enter the rate as it appears on the rate card, as a PERCENTAGE: 1.42% is typed 1.42. Conversion to a decimal happens on save. A rate above 100% is refused — never quietly divided, because guessing at a rate is guessing at money.",
+    "cat": "Category",
+    "catPlaceholder": "e.g. Visa — Electronic Standard",
+    "ratePct": "Rate (%)",
+    "weak": "Weak",
+    "weakHelp": "Only matches when the line's label shares words with the category. Tick this when the value could coincide with an unrelated category.",
+    "source": "Source",
+    "pickSource": "Pick a source…",
+    "lastChange": "Last change",
+    "addRow": "Add a row",
+    "save": "Save this table",
+    "savedOk": "Saved",
+    "unsaved": "Unsaved changes",
+    "emptyTable": "This table is empty: its lines will read \"À vérifier\".",
+    "nothingWritten": "NOTHING was written — fix these rows and try again:",
+    "unnamedRow": "unnamed row",
+    "discardChanges": "You have unsaved changes. Discard them?",
+    "loadError": "Could not load the rates.",
+    "saveError": "Saving failed.",
+    "auditNote": "Every change is logged (who, which table, which rate, before → after) in Admin → Audit.",
+    "err": {
+      "required": "category is required",
+      "tooLong": "category too long",
+      "notANumber": "the rate is not a number",
+      "negative": "negative rate",
+      "looksLikePercent": "rate above 100% — percentage not converted?",
+      "unknownSource": "source is required",
+      "duplicate": "duplicate category"
     }
   }
 }

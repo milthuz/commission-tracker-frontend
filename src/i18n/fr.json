@@ -413,7 +413,8 @@
     "leads": "Pistes",
     "leadsAdmin": "Pistes",
     "saasIncreaseLookup": "Référence hausse SaaS",
-    "rateCalculator": "Calculateur IC+"
+    "rateCalculator": "Calculateur IC+",
+    "icplusRates": "Taux de référence IC+"
   },
   "tour": {
     "skip": "Passer",
@@ -5142,6 +5143,40 @@
       "fixed": "Frais fixes",
       "terminalWireless": "Terminal sans fil",
       "terminalWired": "Terminal filaire"
+    }
+  },
+  "icplusRates": {
+    "title": "Taux de référence IC+",
+    "subtitle": "Les taux publiés Visa, Mastercard et Interac contre lesquels chaque ligne d'un relevé est vérifiée. Tant qu'une table est vide, ses lignes affichent « À vérifier » — jamais un faux « Conforme ».",
+    "coverage": "{{filled}} table(s) remplie(s) sur {{total}}.",
+    "percentWarning": "Saisissez le taux tel qu'il est écrit sur la carte de taux, en POURCENTAGE : 1,42 % se tape 1,42. La conversion en décimal se fait à l'enregistrement. Un taux supérieur à 100 % est refusé — jamais divisé en douce, parce que deviner sur un taux c'est deviner sur de l'argent.",
+    "cat": "Catégorie",
+    "catPlaceholder": "p. ex. Visa — Electronic Standard",
+    "ratePct": "Taux (%)",
+    "weak": "Faible",
+    "weakHelp": "Ne correspond que si le libellé de la ligne partage des mots avec la catégorie. À cocher quand la valeur risque de coïncider avec une catégorie sans rapport.",
+    "source": "Source",
+    "pickSource": "Choisir une source…",
+    "lastChange": "Dernière modification",
+    "addRow": "Ajouter une ligne",
+    "save": "Enregistrer cette table",
+    "savedOk": "Enregistré",
+    "unsaved": "Modifications non enregistrées",
+    "emptyTable": "Cette table est vide : ses lignes afficheront « À vérifier ».",
+    "nothingWritten": "RIEN n'a été écrit — corrigez ces lignes et réessayez :",
+    "unnamedRow": "ligne sans nom",
+    "discardChanges": "Des modifications ne sont pas enregistrées. Les abandonner ?",
+    "loadError": "Impossible de charger les taux.",
+    "saveError": "L'enregistrement a échoué.",
+    "auditNote": "Chaque modification est journalisée (qui, quelle table, quel taux, avant → après) dans Admin → Audit.",
+    "err": {
+      "required": "catégorie obligatoire",
+      "tooLong": "catégorie trop longue",
+      "notANumber": "le taux n'est pas un nombre",
+      "negative": "taux négatif",
+      "looksLikePercent": "taux supérieur à 100 % — pourcentage non converti ?",
+      "unknownSource": "source obligatoire",
+      "duplicate": "catégorie en double"
     }
   }
 }

@@ -739,6 +739,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         {t('sidebar.notifications')}<NewBadge path="/admin/notifications" />
                       </NavLink>
                     </li>
+                    {/* Tables de taux de reference IC+ : les taux publies Visa/MC/Interac contre
+                        lesquels chaque ligne d'un releve est verifiee. Permission distincte de
+                        l'usage du calculateur — c'est un geste de maintenance, pas d'usage courant. */}
+                    {can('icplus:rates') && (
+                      <li>
+                        <NavLink
+                          to="/admin/icplus-rates"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname === '/admin/icplus-rates' ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('sidebar.icplusRates')}<NewBadge path="/admin/icplus-rates" />
+                        </NavLink>
+                      </li>
+                    )}
                     {/* Réglages des pistes (SH-20) : règles d'attribution, tour de rôle,
                         automatisations. La FILE elle-même vit dans le menu principal — ici on ne
                         configure que le comportement. */}

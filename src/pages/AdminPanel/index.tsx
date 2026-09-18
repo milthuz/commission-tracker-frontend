@@ -20,6 +20,7 @@ import DataHealth from './DataHealth';
 import Audit from './Audit';
 import HardwareAdmin from './HardwareAdmin';
 import PricingAdmin from './PricingAdmin';
+import IcplusRatesAdmin from './IcplusRatesAdmin';
 import PartnersAdmin from './PartnersAdmin';
 import LeadsAdmin from './LeadsAdmin';
 import DateField from '../../components/DateField';
@@ -131,7 +132,8 @@ const AdminPanel = () => {
   const can = (p: string) => permissions.includes('*') || permissions.includes(p) || permissions.includes(`${p.split(':')[0]}:*`);
   const canAccessTab = (tab: string) => isAdmin
     || (tab === 'partners' && can('partners:manage'))
-    || (tab === 'leads' && can('leads:manage_rules'));
+    || (tab === 'leads' && can('leads:manage_rules'))
+    || (tab === 'icplus-rates' && can('icplus:rates'));
 
   // Handle redirect back from CRM OAuth
   useEffect(() => {
@@ -1636,6 +1638,7 @@ const AdminPanel = () => {
              activeTab === 'data-health' ? t('dataHealth.title') :
              activeTab === 'audit' ? t('admin.audit.title') :
              activeTab === 'hardware' ? t('admin.hardware.title') :
+             activeTab === 'icplus-rates' ? t('icplusRates.title') :
              activeTab === 'pricing' ? t('admin.pricing.title') :
              activeTab === 'partners' ? t('admin.partners.title') :
              activeTab === 'leads' ? t('admin.leads.title') :
@@ -1656,6 +1659,7 @@ const AdminPanel = () => {
              activeTab === 'data-health' ? t('dataHealth.subtitle') :
              activeTab === 'audit' ? t('admin.audit.subtitle') :
              activeTab === 'hardware' ? t('admin.hardware.subtitle') :
+             activeTab === 'icplus-rates' ? t('icplusRates.subtitle') :
              activeTab === 'pricing' ? t('admin.pricing.subtitle') :
              activeTab === 'partners' ? t('admin.partners.subtitle') :
              activeTab === 'leads' ? t('admin.leads.subtitle') :
@@ -3727,6 +3731,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'resources' && <ResourcesAdmin />}
           {activeTab === 'hardware' && <HardwareAdmin />}
           {activeTab === 'pricing' && <PricingAdmin />}
+          {activeTab === 'icplus-rates' && <IcplusRatesAdmin />}
           {activeTab === 'leads' && <LeadsAdmin />}
           {activeTab === 'partners' && <PartnersAdmin canDelete={isAdmin || can('partners:delete')} canMigrate={isAdmin || can('partners:migrate')} canStats={isAdmin || can('partners:stats')} canExportUsers={isAdmin || can('partners:export_users')} canCreateOpportunity={isAdmin || can('partners:create_opportunity')} />}
           {activeTab === 'merchant-links' && <MerchantSaasLinks />}
