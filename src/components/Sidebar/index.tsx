@@ -593,6 +593,25 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Menu Item Calculateur IC+ (perm: icplus:use) — outil de vente, donc dans le
+                   menu PRINCIPAL et non sous le panneau d'administration : c'est un rep qui
+                   dépose le relevé d'un concurrent, pas un administrateur. --> */}
+              {(isAdmin || can('icplus:use')) && (
+                <li>
+                  <NavLink
+                    to="/rate-calculator"
+                    className={navLinkCls(pathname.includes('rate-calculator'))}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="4" y="2" width="16" height="20" rx="2" />
+                      <path d="M8 6h8M8 10h3M13 10h3M8 14h3M13 14h3M8 18h3M13 18h3" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.rateCalculator')}</span>
+                    <NewBadge path="/rate-calculator" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.rateCalculator') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item SaaS Increase (perm: saas_increase:manage) — moved out of the Admin
                    Panel submenu so the granular saas_increase:* permissions can be assigned to
                    non-admin users; AdminPanel/index.tsx gates its whole render on isAdmin, which

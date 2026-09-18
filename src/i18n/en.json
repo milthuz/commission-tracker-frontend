@@ -412,7 +412,8 @@
     "passOps": "The Pass",
     "leads": "Leads",
     "leadsAdmin": "Leads",
-    "saasIncreaseLookup": "SaaS increase reference"
+    "saasIncreaseLookup": "SaaS increase reference",
+    "rateCalculator": "IC+ Calculator"
   },
   "tour": {
     "skip": "Skip",
@@ -5065,6 +5066,82 @@
       "retirer": "Remove",
       "termine": "Done",
       "nom": "Exact account name"
+    }
+  },
+  "icplus": {
+    "title": "IC+ Calculator",
+    "subtitle": "Drop in a merchant's current processor statement: the page compares what they pay against Cluster's pricing and flags any fee that matches no published network rate.",
+    "processor": "Processor",
+    "autoDetect": "Detect automatically",
+    "unverified": "not verified against a real statement",
+    "salesperson": "Sales rep",
+    "uploadStatement": "Upload a statement (PDF)",
+    "pasteJson": "JSON entry",
+    "pasteHelp": "For a scanned statement whose text cannot be read: paste a JSON object carrying at least \"current_processor\" and \"volume\". ```json fences are accepted.",
+    "import": "Import",
+    "empty": "No statement loaded. Upload a PDF to begin.",
+    "merchant": "Merchant",
+    "detectedAs": "Format detected: {{name}}",
+    "savingsMonthly": "Monthly savings",
+    "differenceMonthly": "Monthly difference (Cluster costs more)",
+    "perYear": "per year",
+    "volume": "Monthly volume",
+    "count": "Transactions",
+    "amount": "Amount",
+    "currentSide": "Current processor",
+    "clusterSide": "Cluster IC+",
+    "markup": "Markup",
+    "interchange": "Interchange and network fees",
+    "fixedFees": "Fixed fees",
+    "hiddenBumps": "Suspect fees (already included above)",
+    "pretax": "Total before tax",
+    "tax": "Tax",
+    "grandTotal": "Total",
+    "total": "Total",
+    "margin": "Internal margin",
+    "notes": "Reading notes",
+    "exports": "Documents",
+    "clientNotesPlaceholder": "Optional note to print on the client document…",
+    "downloadClient": "Client PDF",
+    "downloadDetailed": "Detailed PDF (internal)",
+    "rateDataIncomplete": "The reference rate tables are incomplete.",
+    "rateDataIncompleteDetail": "Interchange and Interac lines will read \"À vérifier\" until these tables are filled: {{tables}}. Nothing will be wrongly declared compliant — but nothing can be confirmed either.",
+    "loadError": "Could not load the calculator.",
+    "parseError": "Reading the statement failed.",
+    "unreadable": "This statement could not be read.",
+    "scannedPdf": "This PDF carries no text — it is most likely a scan. Use the JSON entry below.",
+    "pdfError": "The PDF could not be generated.",
+    "brand": {
+      "debit": "Interac debit",
+      "visa": "Visa",
+      "mc": "Mastercard",
+      "amex": "Amex / Discover"
+    },
+    "fixed": {
+      "terminalWireless": "Wireless terminal",
+      "terminalWired": "Wired terminal",
+      "pci": "PCI compliance",
+      "account": "Account fee",
+      "batch": "Batch close",
+      "statement": "Statement"
+    },
+    "audit": {
+      "interchange": "Interchange",
+      "brand": "Brand and network fees",
+      "interac": "Interac",
+      "desc": "Description",
+      "applied": "Applied rate",
+      "published": "Published rate",
+      "amount": "Amount",
+      "status": "Status"
+    },
+    "marginRow": {
+      "transactionFee": "Transaction fee",
+      "discountPct": "Discount (%)",
+      "t1": "T+1",
+      "fixed": "Fixed fees",
+      "terminalWireless": "Wireless terminal",
+      "terminalWired": "Wired terminal"
     }
   }
 }

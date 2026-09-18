@@ -412,7 +412,8 @@
     "passOps": "La Passe",
     "leads": "Pistes",
     "leadsAdmin": "Pistes",
-    "saasIncreaseLookup": "Référence hausse SaaS"
+    "saasIncreaseLookup": "Référence hausse SaaS",
+    "rateCalculator": "Calculateur IC+"
   },
   "tour": {
     "skip": "Passer",
@@ -5065,6 +5066,82 @@
       "retirer": "Retirer",
       "termine": "Terminé",
       "nom": "Nom exact du compte"
+    }
+  },
+  "icplus": {
+    "title": "Calculateur IC+",
+    "subtitle": "Déposez le relevé du processeur actuel d'un marchand : la page compare ce qu'il paie avec la tarification Cluster et signale les frais qui ne correspondent à aucun taux réseau publié.",
+    "processor": "Processeur",
+    "autoDetect": "Détection automatique",
+    "unverified": "non vérifié sur un vrai relevé",
+    "salesperson": "Représentant",
+    "uploadStatement": "Déposer un relevé (PDF)",
+    "pasteJson": "Saisie JSON",
+    "pasteHelp": "Pour un relevé numérisé dont le texte ne peut pas être lu : collez ici un objet JSON contenant au minimum « current_processor » et « volume ». Les clôtures ```json sont acceptées.",
+    "import": "Importer",
+    "empty": "Aucun relevé chargé. Déposez un PDF pour commencer.",
+    "merchant": "Marchand",
+    "detectedAs": "Format reconnu : {{name}}",
+    "savingsMonthly": "Économies par mois",
+    "differenceMonthly": "Écart par mois (Cluster coûte plus cher)",
+    "perYear": "par année",
+    "volume": "Volume mensuel",
+    "count": "Transactions",
+    "amount": "Montant",
+    "currentSide": "Processeur actuel",
+    "clusterSide": "Cluster IC+",
+    "markup": "Majoration",
+    "interchange": "Interchange et frais réseau",
+    "fixedFees": "Frais fixes",
+    "hiddenBumps": "Frais suspects (déjà inclus ci-dessus)",
+    "pretax": "Total avant taxes",
+    "tax": "Taxes",
+    "grandTotal": "Total",
+    "total": "Total",
+    "margin": "Rentabilité interne",
+    "notes": "Notes de lecture",
+    "exports": "Documents",
+    "clientNotesPlaceholder": "Note facultative à faire figurer sur le document client…",
+    "downloadClient": "PDF pour le client",
+    "downloadDetailed": "PDF détaillé (interne)",
+    "rateDataIncomplete": "Les tables de taux de référence sont incomplètes.",
+    "rateDataIncompleteDetail": "Les lignes d'interchange et Interac afficheront « À vérifier » tant que ces tables ne sont pas remplies : {{tables}}. Aucun frais ne sera déclaré conforme à tort — mais aucun ne pourra être confirmé non plus.",
+    "loadError": "Impossible de charger le calculateur.",
+    "parseError": "La lecture du relevé a échoué.",
+    "unreadable": "Ce relevé n'a pas pu être lu.",
+    "scannedPdf": "Ce PDF ne contient pas de texte : c'est probablement une numérisation. Utilisez la saisie JSON ci-dessous.",
+    "pdfError": "La génération du PDF a échoué.",
+    "brand": {
+      "debit": "Débit Interac",
+      "visa": "Visa",
+      "mc": "Mastercard",
+      "amex": "Amex / Discover"
+    },
+    "fixed": {
+      "terminalWireless": "Terminal sans fil",
+      "terminalWired": "Terminal filaire",
+      "pci": "Conformité PCI",
+      "account": "Frais de compte",
+      "batch": "Fermeture de lot",
+      "statement": "Relevé"
+    },
+    "audit": {
+      "interchange": "Interchange",
+      "brand": "Frais de marque et réseau",
+      "interac": "Interac",
+      "desc": "Description",
+      "applied": "Taux facturé",
+      "published": "Taux publié",
+      "amount": "Montant",
+      "status": "Statut"
+    },
+    "marginRow": {
+      "transactionFee": "Frais par transaction",
+      "discountPct": "Escompte (%)",
+      "t1": "T+1",
+      "fixed": "Frais fixes",
+      "terminalWireless": "Terminal sans fil",
+      "terminalWired": "Terminal filaire"
     }
   }
 }

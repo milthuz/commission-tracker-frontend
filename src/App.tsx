@@ -79,6 +79,7 @@ const Proposals = lazyRoute(() => import('./pages/Proposals'));
 const PricingGuide = lazyRoute(() => import('./pages/PricingGuide'));
 const SaasIncrease = lazyRoute(() => import('./pages/AdminPanel/SaasIncrease'));
 const SaasIncreaseLookup = lazyRoute(() => import('./pages/SaasIncreaseLookup'));
+const RateCalculator = lazyRoute(() => import('./pages/RateCalculator'));
 const PartnerPortal = lazyRoute(() => import('./pages/PartnerPortal'));
 const PartnerProfile = lazyRoute(() => import('./pages/PartnerPortal/Profile'));
 const PartnerTeam = lazyRoute(() => import('./pages/PartnerPortal/Team'));
@@ -480,6 +481,15 @@ function AppContent() {
               <>
                 <PageTitle title="Propositions | Sales Hub" />
                 <Proposals />
+              </>
+            }
+          />
+          <Route
+            path="/rate-calculator"
+            element={
+              <>
+                <PageTitle title="Calculateur IC+ | Sales Hub" />
+                <RateCalculator />
               </>
             }
           />
