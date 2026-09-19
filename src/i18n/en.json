@@ -5177,6 +5177,37 @@
       "looksLikePercent": "rate above 100% — percentage not converted?",
       "unknownSource": "source is required",
       "duplicate": "duplicate category"
+    },
+    "uploadRateCard": "Upload a rate card (PDF)",
+    "uploadHelp": "Upload the network's published rate card: its rows will be extracted and proposed here. Nothing is saved until you have reviewed and confirmed.",
+    "extractSource": "Source of the document you are uploading",
+    "pickSourceFirst": "Pick the document's source first",
+    "extracting": "Reading…",
+    "extractError": "Reading the document failed.",
+    "printedAs": "Printed",
+    "flagsCol": "To review",
+    "proposalsTitle": "{{total}} row(s) proposed, {{flagged}} to review",
+    "proposalsHelp": "Flagged rows arrive unticked: check them before keeping them. The ones you tick join the draft below — they are only written when you click \"Save this table\".",
+    "notARateCard": "This document does not look like a published rate card. Check that it is the right file.",
+    "addSelected": "Add the {{n}} selected row(s) to the draft",
+    "discardProposals": "Discard these proposals",
+    "extractErr": {
+      "ai_not_configured": "The assistant is not configured on this server.",
+      "no_file": "No file received.",
+      "not_a_pdf": "That file is not a PDF.",
+      "too_large": "File too large.",
+      "unknown_source": "Unknown source.",
+      "refused": "Reading was declined for this document.",
+      "unparseable": "The response could not be read. Try again, or enter the rates by hand.",
+      "ai_error": "The assistant did not respond."
+    },
+    "flag": {
+      "looksLikePercent": "rate > 100% — percentage not converted?",
+      "printedMismatch": "does not match the printed rate",
+      "negative": "negative rate",
+      "rateUnreadable": "unreadable rate",
+      "unusuallySmall": "unusually small rate",
+      "perItemFee": "per-transaction amount, not a %"
     }
   }
 }

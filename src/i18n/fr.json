@@ -5177,6 +5177,37 @@
       "looksLikePercent": "taux supérieur à 100 % — pourcentage non converti ?",
       "unknownSource": "source obligatoire",
       "duplicate": "catégorie en double"
+    },
+    "uploadRateCard": "Déposer une carte de taux (PDF)",
+    "uploadHelp": "Déposez la carte de taux publiée du réseau : les lignes en seront extraites et proposées ici. Rien n'est enregistré avant que vous ayez revu et validé.",
+    "extractSource": "Source du document à déposer",
+    "pickSourceFirst": "Choisissez d'abord la source du document",
+    "extracting": "Lecture en cours…",
+    "extractError": "La lecture du document a échoué.",
+    "printedAs": "Imprimé",
+    "flagsCol": "À revoir",
+    "proposalsTitle": "{{total}} ligne(s) proposée(s), dont {{flagged}} à revoir",
+    "proposalsHelp": "Les lignes marquées arrivent décochées : vérifiez-les avant de les retenir. Celles que vous cochez rejoignent le brouillon ci-dessous — elles ne seront enregistrées qu'au moment où vous cliquerez « Enregistrer cette table ».",
+    "notARateCard": "Ce document ne ressemble pas à une carte de taux publiée. Vérifiez que c'est le bon fichier.",
+    "addSelected": "Ajouter les {{n}} ligne(s) retenue(s) au brouillon",
+    "discardProposals": "Abandonner ces propositions",
+    "extractErr": {
+      "ai_not_configured": "L'assistant n'est pas configuré sur ce serveur.",
+      "no_file": "Aucun fichier reçu.",
+      "not_a_pdf": "Ce fichier n'est pas un PDF.",
+      "too_large": "Fichier trop volumineux.",
+      "unknown_source": "Source inconnue.",
+      "refused": "La lecture a été refusée pour ce document.",
+      "unparseable": "La réponse n'a pas pu être lue. Réessayez, ou saisissez les taux à la main.",
+      "ai_error": "L'assistant n'a pas répondu."
+    },
+    "flag": {
+      "looksLikePercent": "taux > 100 % — pourcentage non converti ?",
+      "printedMismatch": "ne correspond pas au taux imprimé",
+      "negative": "taux négatif",
+      "rateUnreadable": "taux illisible",
+      "unusuallySmall": "taux inhabituellement petit",
+      "perItemFee": "montant par transaction, pas un %"
     }
   }
 }

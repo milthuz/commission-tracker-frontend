@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Save, AlertTriangle, Check } from 'lucide-react';
+import { Plus, Trash2, Save, AlertTriangle, Check, Upload, Loader2 } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
 
@@ -34,6 +34,13 @@ interface Entry {
 
 type Problem = { index: number; cat: string; errors: { field: string; code: string; value?: number }[] };
 
+// Une ligne proposée par la lecture d'une carte de taux. `flags` est vide quand la
+// vérification côté serveur n'a rien trouvé à redire ; sinon la ligne arrive DÉCOCHÉE.
+interface Proposal {
+  cat: string; rate: number; printedAs: string; page: number | null;
+  note: string; flags: string[]; accept: boolean;
+}
+
 export default function IcplusRatesAdmin() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
@@ -47,6 +54,11 @@ export default function IcplusRatesAdmin() {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [proposals, setProposals] = useState<Proposal[] | null>(null);
+  const [extractInfo, setExtractInfo] = useState<{ network: string; kind: string; caveats: string[] } | null>(null);
+  const [extractSrc, setExtractSrc] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -124,6 +136,62 @@ export default function IcplusRatesAdmin() {
     }
   }
 
+  // ⚠️ LA LECTURE PROPOSE, ELLE N'ENREGISTRE PAS. Les lignes extraites arrivent dans un
+  // panneau de revue ; seules celles que Christine coche rejoignent le brouillon, et
+  // l'enregistrement passe ensuite par le MÊME bouton — donc la même validation serveur,
+  // la même transaction, la même trace. Une extraction automatique se trompe, et un taux
+  // erroné produit une accusation fausse sur un document remis à un client.
+  async function onFile(file: File) {
+    setExtracting(true);
+    setError(null);
+    setProposals(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      if (extractSrc) fd.append('src', extractSrc);
+      const r = await fetch(`${API_URL}/api/icplus/rates/extract`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: fd,
+      });
+      const d = await r.json();
+      if (!d.ok) {
+        setError(t(`icplusRates.extractErr.${d.reason}`, { defaultValue: t('icplusRates.extractError') as string }) as string);
+        return;
+      }
+      setProposals(d.entries || []);
+      setExtractInfo({ network: d.network || '', kind: d.documentKind || '', caveats: d.caveats || [] });
+    } catch {
+      setError(t('icplusRates.extractError') as string);
+    } finally {
+      setExtracting(false);
+    }
+  }
+
+  const toggleProposal = (i: number) =>
+    setProposals((ps) => (ps || []).map((p, k) => (k === i ? { ...p, accept: !p.accept } : p)));
+
+  // Les lignes retenues rejoignent le BROUILLON, pas la base. Un libellé déjà présent est
+  // mis à jour plutôt que dupliqué — le serveur refuserait le doublon de toute façon.
+  function acceptProposals() {
+    const picked = (proposals || []).filter((p) => p.accept);
+    if (!picked.length) return;
+    setDraft((d) => {
+      const next = [...d];
+      for (const p of picked) {
+        const at = next.findIndex((e) => e.cat.trim().toLowerCase() === p.cat.trim().toLowerCase());
+        const entry: Entry = { cat: p.cat, rate: p.rate, src: extractSrc || '', note: p.note };
+        if (at >= 0) next[at] = { ...next[at], ...entry };
+        else next.push(entry);
+      }
+      return next;
+    });
+    setProposals(null);
+    setExtractInfo(null);
+    setDirty(true);
+    setSaved(false);
+  }
+
   const problemFor = (i: number) => problems.find((p) => p.index === i);
 
   const sourceOptions = useMemo(
@@ -166,6 +234,90 @@ export default function IcplusRatesAdmin() {
           );
         })}
       </div>
+
+      {/* Dépôt d'une carte de taux */}
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-sm border border-stroke bg-whiter p-3 dark:border-strokedark dark:bg-meta-4">
+        <div className="min-w-[240px] flex-1">
+          <label className="mb-1 block text-xs font-medium text-black dark:text-white">{t('icplusRates.extractSource')}</label>
+          <Select value={extractSrc} onChange={setExtractSrc} options={sourceOptions} />
+        </div>
+        <button onClick={() => fileRef.current?.click()} disabled={extracting || !extractSrc}
+          title={!extractSrc ? (t('icplusRates.pickSourceFirst') as string) : undefined}
+          className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+          {extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          {extracting ? t('icplusRates.extracting') : t('icplusRates.uploadRateCard')}
+        </button>
+        <input ref={fileRef} type="file" accept="application/pdf" className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ''; }} />
+        <p className="w-full text-xs text-body dark:text-bodydark">{t('icplusRates.uploadHelp')}</p>
+      </div>
+
+      {/* Revue des lignes proposées — rien n'est enregistré tant que Christine ne valide pas. */}
+      {proposals && (
+        <div className="mb-4 rounded-sm border border-primary bg-primary/5 p-4">
+          <p className="mb-1 font-medium text-black dark:text-white">
+            {t('icplusRates.proposalsTitle', { total: proposals.length, flagged: proposals.filter((p) => !p.accept).length })}
+          </p>
+          <p className="mb-3 text-sm text-body dark:text-bodydark">{t('icplusRates.proposalsHelp')}</p>
+
+          {extractInfo && extractInfo.kind !== 'rate_card' && (
+            <p className="mb-3 flex items-start gap-2 text-sm text-warning">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t('icplusRates.notARateCard')}
+            </p>
+          )}
+          {extractInfo && extractInfo.caveats.length > 0 && (
+            <ul className="mb-3 list-inside list-disc text-sm text-warning">
+              {extractInfo.caveats.map((c, i) => <li key={i}>{c}</li>)}
+            </ul>
+          )}
+
+          <div className="max-h-96 overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-stroke text-left text-xs text-body dark:border-strokedark">
+                  <th className="w-10 py-1" />
+                  <th className="py-1">{t('icplusRates.cat')}</th>
+                  <th className="w-24 py-1 text-right">{t('icplusRates.ratePct')}</th>
+                  <th className="w-24 py-1 text-right">{t('icplusRates.printedAs')}</th>
+                  <th className="py-1">{t('icplusRates.flagsCol')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {proposals.map((p, i) => (
+                  <tr key={i} className={`border-b border-stroke dark:border-strokedark ${p.flags.length ? 'bg-warning/5' : ''}`}>
+                    <td className="py-1.5 text-center">
+                      <input type="checkbox" checked={p.accept} onChange={() => toggleProposal(i)} />
+                    </td>
+                    <td className="py-1.5 text-black dark:text-white">{p.cat}</td>
+                    <td className="py-1.5 text-right">{(p.rate * 100).toFixed(4)}</td>
+                    {/* Le taux tel qu'imprimé sur la carte, pour que la conversion soit verifiable d'un coup d'oeil. */}
+                    <td className="py-1.5 text-right text-body">{p.printedAs || '—'}</td>
+                    <td className="py-1.5 text-xs">
+                      {p.flags.map((f) => (
+                        <span key={f} className="mr-1 rounded bg-warning/20 px-1.5 py-0.5 text-warning">
+                          {t(`icplusRates.flag.${f}`, { defaultValue: f })}
+                        </span>
+                      ))}
+                      {p.note && <span className="text-body">{p.note}</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-3 flex gap-3">
+            <button onClick={acceptProposals} disabled={!proposals.some((p) => p.accept)}
+              className="rounded bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+              {t('icplusRates.addSelected', { n: proposals.filter((p) => p.accept).length })}
+            </button>
+            <button onClick={() => { setProposals(null); setExtractInfo(null); }}
+              className="rounded border border-stroke px-4 py-2 text-sm text-black dark:border-strokedark dark:text-white">
+              {t('icplusRates.discardProposals')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {error && <div className="mb-4 rounded-sm border border-danger bg-danger/10 p-3 text-sm text-danger">{error}</div>}
 
