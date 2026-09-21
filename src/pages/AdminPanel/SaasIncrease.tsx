@@ -1311,6 +1311,12 @@ const SaasIncrease: React.FC = () => {
         const premier = plusTard.map((x: any) => x.notifyOn).filter(Boolean).sort()[0] || '';
         dialog.alert(t('saasIncrease.notify.scheduledAnnual', { count: plusTard.length, first: premier }) as string);
       }
+      // Un abonnement resilie ou en pause depuis la redaction ne recoit pas son avis. Le taire
+      // ferait lire « 2 105 envoyes sur 2 108 » comme une panne, alors que c'est le bon geste.
+      const inadmissibles = d.results.filter((x: any) => x.notEligible);
+      if (inadmissibles.length) {
+        dialog.alert(t('saasIncrease.notify.notEligible', { count: inadmissibles.length }) as string);
+      }
       if (d.internal?.reason === 'no_recipients') {
         dialog.alert(t('saasIncrease.notify.internalNoRecipients') as string);
       } else if (d.internal?.sent) {
