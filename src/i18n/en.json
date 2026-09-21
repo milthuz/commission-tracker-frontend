@@ -5180,7 +5180,9 @@
       "negative": "negative rate",
       "looksLikePercent": "rate above 100% — percentage not converted?",
       "unknownSource": "source is required",
-      "duplicate": "duplicate category"
+      "duplicate": "duplicate category",
+      "noValue": "a rate or a per-item amount is required",
+      "perItemTooLarge": "per-item amount too large"
     },
     "uploadRateCard": "Upload a rate card (PDF)",
     "uploadHelp": "Upload the network's published rate card: its rows will be extracted and proposed here. Nothing is saved until you have reviewed and confirmed.",
@@ -5212,6 +5214,52 @@
       "rateUnreadable": "unreadable rate",
       "unusuallySmall": "unusually small rate",
       "perItemFee": "per-transaction amount, not a %"
+    },
+    "perItem": "$/txn",
+    "uploadWorkbook": "Import a mapping workbook",
+    "workbookHelp": "A mapping workbook compares two acquirers line by line. Only the lines where BOTH bill the same figure are proposed pre-checked: that agreement is what identifies a genuine network pass-through. Everything else is a billed rate, and these tables judge published rates.",
+    "wbReading": "Reading…",
+    "wbTitle": "{{proposed}} rows read — {{accepted}} corroborated by both acquirers",
+    "wbBilledWarning": "{{n}} rows show a different figure for {{a}} and {{b}}. Neither column is a published rate: one of the two is adding a margin, and the workbook does not say which. They arrive unchecked — confirm each against the network's own rate card before accepting it.",
+    "wbUnmapped": "{{n}} row(s) have no target table and were left out:",
+    "wbPicked": "{{picked}} of {{total}} selected",
+    "wbLoaded": "loaded",
+    "wbLoadInto": "Load {{n}} into the editor",
+    "wbProposed": "Proposed",
+    "wbNearest": "closest existing entry: {{cat}} — {{value}} ({{pct}}% alike)",
+    "wbClassification": "How the acquirer classifies its own charges ({{n}})",
+    "wbClose": "Close the workbook",
+    "wbError": "Could not read the workbook.",
+    "wbErr": {
+      "no_file": "No file received.",
+      "not_a_workbook": "This is not an .xlsx or .xls file.",
+      "too_large": "Workbook too large.",
+      "unreadable": "The file could not be opened as a workbook.",
+      "no_known_sheet": "No recognizable sheet — expected an \"Interchange Mapping\" or \"Scheme Fee Mapping\" tab.",
+      "error": "Could not read the workbook."
+    },
+    "wbFlag": {
+      "acquirersDisagree": "the two acquirers disagree",
+      "singleSource": "only one acquirer",
+      "noValue": "no rate and no per-item amount",
+      "looksLikePercent": "above 100% — percentage not converted?",
+      "negative": "negative",
+      "perItemTooLarge": "per-item amount implausibly large",
+      "bothRateAndPerItem": "a rate AND a per-item amount",
+      "noTargetTable": "no table for this brand",
+      "alreadyPresent": "already in the table, identical",
+      "nameCollision": "same name as an existing entry, different value",
+      "valueCollision": "same value as an existing entry under another name"
+    },
+    "table": {
+      "visaDomestic": "Visa — domestic",
+      "visaInternational": "Visa — international",
+      "mcDomestic": "Mastercard — domestic",
+      "mcInternational": "Mastercard — international",
+      "networkFees": "Network fees",
+      "schemeFeesCA": "Scheme fees (Canada)",
+      "interacNetwork": "Interac — network",
+      "interacFlash": "Interac Flash — by tier"
     }
   }
 }

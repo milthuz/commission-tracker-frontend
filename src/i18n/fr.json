@@ -5180,7 +5180,9 @@
       "negative": "taux négatif",
       "looksLikePercent": "taux supérieur à 100 % — pourcentage non converti ?",
       "unknownSource": "source obligatoire",
-      "duplicate": "catégorie en double"
+      "duplicate": "catégorie en double",
+      "noValue": "un taux ou un montant par transaction est obligatoire",
+      "perItemTooLarge": "montant par transaction trop élevé"
     },
     "uploadRateCard": "Déposer une carte de taux (PDF)",
     "uploadHelp": "Déposez la carte de taux publiée du réseau : les lignes en seront extraites et proposées ici. Rien n'est enregistré avant que vous ayez revu et validé.",
@@ -5212,6 +5214,52 @@
       "rateUnreadable": "taux illisible",
       "unusuallySmall": "taux inhabituellement petit",
       "perItemFee": "montant par transaction, pas un %"
+    },
+    "perItem": "$/trans.",
+    "uploadWorkbook": "Importer un classeur",
+    "workbookHelp": "Un classeur de correspondance compare deux acquéreurs ligne à ligne. Seules les lignes où les DEUX facturent le même chiffre arrivent cochées : c’est cet accord qui signe un vrai transfert réseau. Tout le reste est un taux FACTURÉ, et ces tables jugent du PUBLIÉ.",
+    "wbReading": "Lecture…",
+    "wbTitle": "{{proposed}} lignes lues — {{accepted}} corroborées par les deux acquéreurs",
+    "wbBilledWarning": "{{n}} lignes portent un chiffre différent chez {{a}} et chez {{b}}. Aucune des deux colonnes n’est un taux publié : l’un des deux ajoute sa marge, et le classeur ne dit pas lequel. Elles arrivent décochées — confrontez chacune à la carte de taux du réseau avant de l’accepter.",
+    "wbUnmapped": "{{n}} ligne(s) sans table d’accueil, laissées de côté :",
+    "wbPicked": "{{picked}} sur {{total}} retenues",
+    "wbLoaded": "chargée",
+    "wbLoadInto": "Charger {{n}} dans l’éditeur",
+    "wbProposed": "Proposé",
+    "wbNearest": "entrée existante la plus proche : {{cat}} — {{value}} ({{pct}} % de ressemblance)",
+    "wbClassification": "Comment l’acquéreur classe ses propres frais ({{n}})",
+    "wbClose": "Fermer le classeur",
+    "wbError": "Lecture du classeur impossible.",
+    "wbErr": {
+      "no_file": "Aucun fichier reçu.",
+      "not_a_workbook": "Ce n’est pas un fichier .xlsx ou .xls.",
+      "too_large": "Classeur trop volumineux.",
+      "unreadable": "Le fichier n’a pas pu être ouvert comme un classeur.",
+      "no_known_sheet": "Aucune feuille reconnue — il faut un onglet « Interchange Mapping » ou « Scheme Fee Mapping ».",
+      "error": "Lecture du classeur impossible."
+    },
+    "wbFlag": {
+      "acquirersDisagree": "les deux acquéreurs divergent",
+      "singleSource": "un seul acquéreur",
+      "noValue": "ni taux ni montant par transaction",
+      "looksLikePercent": "au-dessus de 100 % — pourcentage non converti ?",
+      "negative": "négatif",
+      "perItemTooLarge": "montant par transaction invraisemblable",
+      "bothRateAndPerItem": "un taux ET un montant par transaction",
+      "noTargetTable": "aucune table pour cette marque",
+      "alreadyPresent": "déjà en table, à l’identique",
+      "nameCollision": "même libellé qu’une entrée existante, valeur différente",
+      "valueCollision": "même valeur qu’une entrée existante, sous un autre libellé"
+    },
+    "table": {
+      "visaDomestic": "Visa — domestique",
+      "visaInternational": "Visa — international",
+      "mcDomestic": "Mastercard — domestique",
+      "mcInternational": "Mastercard — international",
+      "networkFees": "Frais de réseau",
+      "schemeFeesCA": "Frais de système (Canada)",
+      "interacNetwork": "Interac — réseau",
+      "interacFlash": "Interac Flash — par palier"
     }
   }
 }

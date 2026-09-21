@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Save, AlertTriangle, Check, Upload, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, AlertTriangle, Check, Upload, Loader2, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
 
@@ -25,6 +25,10 @@ const authHeaders = () => ({
 interface Entry {
   cat: string;
   rate: number;
+  // ⚠️ Une entrée porte SOIT un taux, SOIT un montant par transaction, jamais les deux :
+  // tout le débit Interac et une partie de l'interchange Visa se facturent au sou par
+  // transaction, et les mélanger produirait un théorique calculé sur le mauvais volume.
+  perItem?: number;
   weak?: boolean;
   src: string;
   note?: string;
@@ -39,6 +43,28 @@ type Problem = { index: number; cat: string; errors: { field: string; code: stri
 interface Proposal {
   cat: string; rate: number; printedAs: string; page: number | null;
   note: string; flags: string[]; accept: boolean;
+}
+
+// Une ligne proposée par la lecture d'un CLASSEUR de correspondance. Elle porte en plus
+// ce que chacun des deux acquéreurs facture (`observed`), l'entrée existante la plus
+// proche (`nearest`, montrée avec sa ressemblance et jamais affirmée comme identique) et
+// les heurts avérés avec les tables en service (`collidesWith`).
+interface WbProposal {
+  table: string; cat: string; rate: number; perItem: number; printedAs: string;
+  code: string | null; group: string; agree: boolean; confidence: string | null; note: string;
+  observed: { a: string | null; b: string | null };
+  collidesWith: { kind: string; cat: string; printedAs: string; src: string }[];
+  nearest: { cat: string; printedAs: string; src: string; ratio: number } | null;
+  flags: string[]; accept: boolean;
+}
+
+interface WorkbookRead {
+  labels: { a: string; b: string };
+  proposals: Record<string, WbProposal[]>;
+  unmapped: WbProposal[];
+  classification: { desc: string; section: string; classification: string }[] | null;
+  summary: { total: number; proposed: number; accepted: number; flagged: number;
+    unmapped: number; disagree: number; collisions: number };
 }
 
 export default function IcplusRatesAdmin() {
@@ -58,7 +84,13 @@ export default function IcplusRatesAdmin() {
   const [proposals, setProposals] = useState<Proposal[] | null>(null);
   const [extractInfo, setExtractInfo] = useState<{ network: string; kind: string; caveats: string[] } | null>(null);
   const [extractSrc, setExtractSrc] = useState('');
+  const [wb, setWb] = useState<WorkbookRead | null>(null);
+  const [wbBusy, setWbBusy] = useState(false);
+  // Les tables déjà versées au brouillon, pour que la revue table par table se suive à
+  // l'œil : le classeur en alimente huit, on ne les charge pas d'un coup.
+  const [wbDone, setWbDone] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+  const wbRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -82,6 +114,9 @@ export default function IcplusRatesAdmin() {
     }
   }
 
+  // ⚠️ Ne touche pas à `wb` : la revue d'un classeur se fait table par table, donc
+  // changer de table fait PARTIE du parcours. L'effacer ici obligerait à redéposer le
+  // fichier entre chaque table.
   function switchTable(name: string) {
     if (dirty && !window.confirm(t('icplusRates.discardChanges') as string)) return;
     setActive(name);
@@ -98,7 +133,7 @@ export default function IcplusRatesAdmin() {
   };
 
   const addRow = () => {
-    setDraft((d) => [...d, { cat: '', rate: 0, src: '' }]);
+    setDraft((d) => [...d, { cat: '', rate: 0, perItem: 0, src: '' }]);
     setDirty(true);
   };
 
@@ -192,6 +227,71 @@ export default function IcplusRatesAdmin() {
     setSaved(false);
   }
 
+  // ⚠️ Même principe que la lecture d'une carte de taux : le serveur PROPOSE, rien n'est
+  // écrit. Ce que le classeur apporte en plus, c'est de dire pour chaque ligne si les deux
+  // acquéreurs facturent le même chiffre — seules celles-là arrivent cochées.
+  async function onWorkbook(file: File) {
+    setWbBusy(true);
+    setError(null);
+    setWb(null);
+    setWbDone([]);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await fetch(`${API_URL}/api/icplus/rates/import-workbook`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: fd,
+      });
+      const d = await r.json();
+      if (!d.ok) {
+        setError(t(`icplusRates.wbErr.${d.reason}`, { defaultValue: t('icplusRates.wbError') as string }) as string);
+        return;
+      }
+      setWb(d as WorkbookRead);
+    } catch {
+      setError(t('icplusRates.wbError') as string);
+    } finally {
+      setWbBusy(false);
+    }
+  }
+
+  const toggleWb = (table: string, i: number) =>
+    setWb((w) => (w ? {
+      ...w,
+      proposals: {
+        ...w.proposals,
+        [table]: w.proposals[table].map((p, k) => (k === i ? { ...p, accept: !p.accept } : p)),
+      },
+    } : w));
+
+  // Verse les lignes cochées d'UNE table dans le brouillon de cette table, et y bascule.
+  // L'enregistrement reste le bouton habituel : même validation serveur, même transaction,
+  // même trace que la saisie à la main.
+  function loadWbTable(table: string) {
+    const picked = (wb?.proposals[table] || []).filter((p) => p.accept);
+    if (!picked.length) return;
+    if (dirty && !window.confirm(t('icplusRates.discardChanges') as string)) return;
+
+    const base = (tables[table] || []).map((e) => ({ ...e }));
+    for (const p of picked) {
+      const at = base.findIndex((e) => e.cat.trim().toLowerCase() === p.cat.trim().toLowerCase());
+      const entry: Entry = {
+        cat: p.cat, rate: p.rate, perItem: p.perItem,
+        src: extractSrc || 'adyen_mapping',
+        note: [p.code, p.note].filter(Boolean).join(' — ').slice(0, 300),
+      };
+      if (at >= 0) base[at] = { ...base[at], ...entry };
+      else base.push(entry);
+    }
+    setActive(table);
+    setDraft(base);
+    setProblems([]);
+    setDirty(true);
+    setSaved(false);
+    setWbDone((d) => (d.includes(table) ? d : [...d, table]));
+  }
+
   const problemFor = (i: number) => problems.find((p) => p.index === i);
 
   const sourceOptions = useMemo(
@@ -229,7 +329,7 @@ export default function IcplusRatesAdmin() {
                 active === n ? 'bg-primary text-white'
                   : count === 0 ? 'border border-warning/50 bg-warning/5 text-body dark:text-bodydark'
                   : 'border border-stroke text-black hover:border-primary dark:border-strokedark dark:text-white'}`}>
-              {n} <span className="opacity-70">({count})</span>
+              {t(`icplusRates.table.${n}`, { defaultValue: n })} <span className="opacity-70">({count})</span>
             </button>
           );
         })}
@@ -249,8 +349,139 @@ export default function IcplusRatesAdmin() {
         </button>
         <input ref={fileRef} type="file" accept="application/pdf" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ''; }} />
+
+        <button onClick={() => wbRef.current?.click()} disabled={wbBusy}
+          className="flex items-center gap-2 rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:border-primary disabled:opacity-50 dark:border-strokedark dark:text-white">
+          {wbBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+          {wbBusy ? t('icplusRates.wbReading') : t('icplusRates.uploadWorkbook')}
+        </button>
+        <input ref={wbRef} type="file" accept=".xlsx,.xls" className="hidden"
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onWorkbook(f); e.target.value = ''; }} />
+
         <p className="w-full text-xs text-body dark:text-bodydark">{t('icplusRates.uploadHelp')}</p>
+        <p className="w-full text-xs text-body dark:text-bodydark">{t('icplusRates.workbookHelp')}</p>
       </div>
+
+      {/* Revue d'un classeur de correspondance — table par table. */}
+      {wb && (
+        <div className="mb-4 rounded-sm border border-primary bg-primary/5 p-4">
+          <h4 className="mb-1 font-medium text-black dark:text-white">
+            {t('icplusRates.wbTitle', { proposed: wb.summary.proposed, accepted: wb.summary.accepted })}
+          </h4>
+
+          {/* ⚠️ L'avertissement central, écrit sur la page et pas seulement dans le code :
+              un chiffre facturé n'est pas un chiffre publié. */}
+          <div className="mb-3 flex gap-2 rounded-sm border border-warning bg-warning/10 p-3 text-sm">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            <p className="text-black dark:text-white">
+              {t('icplusRates.wbBilledWarning', { a: wb.labels.a, b: wb.labels.b, n: wb.summary.disagree })}
+            </p>
+          </div>
+
+          {wb.summary.unmapped > 0 && (
+            <p className="mb-3 text-sm text-body dark:text-bodydark">
+              {t('icplusRates.wbUnmapped', { n: wb.summary.unmapped })}{' '}
+              {wb.unmapped.map((u) => u.cat).join(' · ')}
+            </p>
+          )}
+
+          {Object.entries(wb.proposals).map(([table, rows]) => {
+            const picked = rows.filter((r) => r.accept).length;
+            return (
+              <div key={table} className="mb-3 rounded-sm border border-stroke bg-white p-3 dark:border-strokedark dark:bg-boxdark">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-black dark:text-white">
+                    {t(`icplusRates.table.${table}`, { defaultValue: table })}
+                    <span className="ml-2 text-xs font-normal text-body">
+                      {t('icplusRates.wbPicked', { picked, total: rows.length })}
+                    </span>
+                    {wbDone.includes(table) && (
+                      <span className="ml-2 inline-flex items-center gap-1 text-xs text-success">
+                        <Check className="h-3 w-3" />{t('icplusRates.wbLoaded')}
+                      </span>
+                    )}
+                  </span>
+                  <button onClick={() => loadWbTable(table)} disabled={!picked}
+                    className="flex items-center gap-1 rounded bg-primary px-3 py-1.5 text-xs font-medium text-white disabled:opacity-40">
+                    {t('icplusRates.wbLoadInto', { n: picked })}<ArrowRight className="h-3 w-3" />
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[860px] text-xs">
+                    <thead>
+                      <tr className="border-b border-stroke text-left text-body dark:border-strokedark">
+                        <th className="w-8 py-1" />
+                        <th className="py-1">{t('icplusRates.cat')}</th>
+                        <th className="w-28 py-1 text-right">{t('icplusRates.wbProposed')}</th>
+                        <th className="w-28 py-1 text-right">{wb.labels.a}</th>
+                        <th className="w-28 py-1 text-right">{wb.labels.b}</th>
+                        <th className="py-1">{t('icplusRates.flagsCol')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((r, i) => (
+                        <tr key={i} className={`border-b border-stroke dark:border-strokedark ${r.flags.length ? 'bg-warning/5' : ''}`}>
+                          <td className="py-1.5">
+                            <input type="checkbox" checked={r.accept} onChange={() => toggleWb(table, i)} />
+                          </td>
+                          <td className="py-1.5 pr-2 text-black dark:text-white">
+                            {r.cat}
+                            {r.code && <span className="ml-1 text-body">· {r.code}</span>}
+                            {/* Le voisin est MONTRÉ avec sa ressemblance, jamais annoncé
+                                comme la même chose : au-dessous de 100 % c'est une piste. */}
+                            {r.nearest && (
+                              <div className="text-body">
+                                {t('icplusRates.wbNearest', {
+                                  cat: r.nearest.cat, value: r.nearest.printedAs,
+                                  pct: Math.round(r.nearest.ratio * 100),
+                                })}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-1.5 text-right font-medium text-black dark:text-white">{r.printedAs}</td>
+                          <td className="py-1.5 text-right text-body">{r.observed.a || '—'}</td>
+                          <td className={`py-1.5 text-right ${r.agree ? 'text-success' : 'text-warning'}`}>{r.observed.b || '—'}</td>
+                          <td className="py-1.5 text-body">
+                            {r.flags.map((f) => (
+                              <span key={f} className="mr-1 inline-block rounded bg-warning/20 px-1.5 py-0.5 text-warning">
+                                {t(`icplusRates.wbFlag.${f}`, { defaultValue: f })}
+                              </span>
+                            ))}
+                            {r.collidesWith.map((c, k) => (
+                              <div key={k} className="text-danger">{c.cat} — {c.printedAs}</div>
+                            ))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* La feuille des majorations n'est pas une source de taux : elle dit comment
+              l'acquéreur classe ses propres lignes, ce qui confronte nos libellés SUSPECT. */}
+          {wb.classification && wb.classification.length > 0 && (
+            <details className="mb-3 rounded-sm border border-stroke bg-white p-3 text-xs dark:border-strokedark dark:bg-boxdark">
+              <summary className="cursor-pointer font-medium text-black dark:text-white">
+                {t('icplusRates.wbClassification', { n: wb.classification.length })}
+              </summary>
+              <ul className="mt-2 space-y-0.5 text-body">
+                {wb.classification.map((c, i) => (
+                  <li key={i}>{c.desc} — <span className="text-black dark:text-white">{c.classification}</span></li>
+                ))}
+              </ul>
+            </details>
+          )}
+
+          <button onClick={() => { setWb(null); setWbDone([]); }}
+            className="rounded border border-stroke px-4 py-2 text-sm text-black dark:border-strokedark dark:text-white">
+            {t('icplusRates.wbClose')}
+          </button>
+        </div>
+      )}
 
       {/* Revue des lignes proposées — rien n'est enregistré tant que Christine ne valide pas. */}
       {proposals && (
@@ -335,11 +566,12 @@ export default function IcplusRatesAdmin() {
       )}
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[820px] text-sm">
+        <table className="w-full min-w-[920px] text-sm">
           <thead>
             <tr className="border-b border-stroke text-left text-xs text-body dark:border-strokedark">
               <th className="py-2">{t('icplusRates.cat')}</th>
               <th className="w-32 py-2 text-right">{t('icplusRates.ratePct')}</th>
+              <th className="w-32 py-2 text-right">{t('icplusRates.perItem')}</th>
               <th className="w-20 py-2 text-center">{t('icplusRates.weak')}</th>
               <th className="w-56 py-2">{t('icplusRates.source')}</th>
               <th className="w-40 py-2">{t('icplusRates.lastChange')}</th>
@@ -362,6 +594,13 @@ export default function IcplusRatesAdmin() {
                       onChange={(ev) => update(i, { rate: (Number(ev.target.value) || 0) / 100 })}
                       className="w-full rounded border border-stroke bg-transparent px-2 py-1 text-right outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
                   </td>
+                  <td className="py-1.5 pr-2">
+                    {/* En DOLLARS des deux côtés, contrairement au taux : pas de conversion,
+                        donc pas d'occasion de se tromper de facteur. */}
+                    <input type="number" step="0.000001" value={+(e.perItem || 0).toFixed(8)}
+                      onChange={(ev) => update(i, { perItem: Number(ev.target.value) || 0 })}
+                      className="w-full rounded border border-stroke bg-transparent px-2 py-1 text-right outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
+                  </td>
                   <td className="py-1.5 text-center">
                     <input type="checkbox" checked={!!e.weak} onChange={(ev) => update(i, { weak: ev.target.checked })}
                       title={t('icplusRates.weakHelp') as string} />
@@ -381,7 +620,7 @@ export default function IcplusRatesAdmin() {
               );
             })}
             {draft.length === 0 && (
-              <tr><td colSpan={6} className="py-6 text-center text-body dark:text-bodydark">{t('icplusRates.emptyTable')}</td></tr>
+              <tr><td colSpan={7} className="py-6 text-center text-body dark:text-bodydark">{t('icplusRates.emptyTable')}</td></tr>
             )}
           </tbody>
         </table>
