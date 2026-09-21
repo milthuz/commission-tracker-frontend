@@ -1310,6 +1310,7 @@
       "progressFailed": "{{count}} send failures",
       "progressWaiting": "{{count}} waiting for their renewal",
       "progressPushFailed": "{{count}} push failures",
+      "progressClosed": "{{count}} cancelled since their notice — increase moot",
       "progressNote": "A notice goes out the same day; its increase only applies at that merchant's next renewal, at least 30 days later. The two bars are not meant to move together.",
       "rampWarning": "The increase takes effect at each subscription's own renewal, not on a single date. Steady state is therefore NOT what the first year brings in — multiplying the monthly figure by twelve overstates the cash.",
       "month": "Month",
@@ -1554,7 +1555,8 @@
         "pending": "Not pushed",
         "pushed": "Pushed",
         "push_failed": "Failed",
-        "deferred": "Deferred"
+        "deferred": "Deferred",
+        "closed": "Cancelled"
       },
       "confirmTitle": "Push to Zoho",
       "confirmBody": "This will schedule a price change for {{count}} subscription(s), adding {{delta}}/mo, effective at each one's next renewal. This changes live customer billing and can't be undone from here.",
@@ -4898,7 +4900,8 @@
       "pending": "Not applied",
       "pushed": "Applied",
       "push_failed": "Failed",
-      "deferred": "Deferred"
+      "deferred": "Deferred",
+      "closed": "Cancelled"
     },
     "faqTitle": "What to say",
     "faqSubtitle": "Read this before your first call. When in doubt, escalate — never improvise a price.",

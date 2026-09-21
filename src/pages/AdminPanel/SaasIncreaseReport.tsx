@@ -52,6 +52,7 @@ type Report = {
     notified: number; notifyScheduled: number; toNotify: number; notifyFailed: number;
     mrrNotified: number; mrrScheduled: number; mrrToNotify: number;
     pushed: number; deferred: number; pushFailed: number; toPush: number;
+    closed: number; mrrClosed: number; pushTotal: number;
     mrrPushed: number; mrrToPush: number;
     lastNotifiedAt: string | null; lastPushedAt: string | null;
   };
@@ -217,9 +218,12 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                       : '',
                   ].filter(Boolean)}
                   quand={d.progress.lastNotifiedAt} />
+                {/* Le denominateur exclut les abonnements resilies apres leur avis : leur hausse
+                    ne s'appliquera jamais, et les compter ici figerait la barre juste sous 100 %
+                    pour le reste de la campagne. */}
                 <Avancement
                   titre={t('saasIncrease.report.progressPushes') as string}
-                  fait={d.progress.pushed} total={d.progress.total}
+                  fait={d.progress.pushed} total={d.progress.pushTotal ?? d.progress.total}
                   mrrFait={d.progress.mrrPushed}
                   detail={[
                     d.progress.toPush > 0
@@ -227,6 +231,9 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                       : '',
                     d.progress.pushFailed > 0
                       ? t('saasIncrease.report.progressPushFailed', { count: d.progress.pushFailed }) as string
+                      : '',
+                    d.progress.closed > 0
+                      ? t('saasIncrease.report.progressClosed', { count: d.progress.closed }) as string
                       : '',
                   ].filter(Boolean)}
                   quand={d.progress.lastPushedAt} />

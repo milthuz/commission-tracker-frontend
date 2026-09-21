@@ -2155,6 +2155,7 @@ const SaasIncrease: React.FC = () => {
                             className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium ${
                               savedForRow.status === 'pushed' ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' :
                               savedForRow.status === 'push_failed' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
+                              savedForRow.status === 'closed' ? 'bg-slate-200 text-slate-600 dark:bg-slate-500/20 dark:text-slate-300' :
                               neutralPill
                             }`}
                             title={savedForRow.pushError || ''}
@@ -2717,6 +2718,7 @@ const SaasIncrease: React.FC = () => {
                                         className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${
                                           item.status === 'pushed' ? 'bg-emerald-100 text-emerald-700 dark:bg-[rgba(87,209,147,0.12)] dark:text-[#57D193]' :
                                           item.status === 'push_failed' ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
+                                          item.status === 'closed' ? 'bg-slate-200 text-slate-600 dark:bg-slate-500/20 dark:text-slate-300' :
                                           neutralPill
                                         }`}
                                         title={item.pushError || ''}
