@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Select from '../components/Select';
 import { useTranslation } from 'react-i18next';
-import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard } from 'lucide-react';
+import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard,
+         MessageSquareQuote } from 'lucide-react';
 
 // The support desk's page. A merchant calls, an agent types whatever the caller gave them — a
 // name, a subscription number, a merchant id — and gets that one account's facts. Read-only by
@@ -361,20 +362,26 @@ export default function SaasIncreaseLookup() {
       </div>
 
       {/* --------------------------------------------------- « Quoi repondre », a portee */}
-      <div className={`${card} mb-4`}>
+      <div className="mb-4 overflow-hidden rounded-2xl border-l-4 border-primary bg-primary/5 ring-1 ring-primary/20 dark:bg-primary/10">
         <button
           type="button"
           onClick={() => setFaqOuvert((v) => !v)}
-          className="flex w-full items-center justify-between gap-3 px-5 py-3 text-left"
+          className="flex w-full items-center gap-3 px-4 py-3 text-left"
         >
-          <span className="min-w-0">
-            <span className={`block text-sm font-semibold ${textPri}`}>{t('csLookup.faqTitle')}</span>
-            <span className={`mt-0.5 block truncate text-xs ${textQuat}`}>{t('csLookup.faqSubtitle')}</span>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+            <MessageSquareQuote className="h-4 w-4" />
           </span>
-          <ChevronDown className={`h-4 w-4 shrink-0 ${textQuat} transition-transform ${faqOuvert ? 'rotate-180' : ''}`} />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-primary">
+              {t('csLookup.faqKicker')}
+            </span>
+            <span className={`block text-sm font-semibold ${textPri}`}>{t('csLookup.faqTitle')}</span>
+          </span>
+          <span className={`hidden truncate text-xs sm:block ${textTer}`}>{t('csLookup.faqSubtitle')}</span>
+          <ChevronDown className={`h-4 w-4 shrink-0 text-primary transition-transform ${faqOuvert ? 'rotate-180' : ''}`} />
         </button>
         {faqOuvert && (
-          <div className="border-t border-gray-100 px-5 pb-4 dark:border-[#161616]">
+          <div className="border-t border-primary/20 bg-white px-5 pb-4 dark:bg-[#0E0F11]">
             <div className="divide-y divide-gray-100 dark:divide-[#161616]">
               {FAQ_KEYS.map((k) => (
                 <div key={k} className="py-2.5">
