@@ -5094,6 +5094,8 @@
     }
   },
   "revenueModeler": {
+    "hwMargin": "Margin: {{amount}} per location ({{pct}}%)",
+    "hwMarginNone": "Margin: — (no selling price)",
     "title": "Revenue Modeler",
     "subtitle": "Three-year P&L for onboarding a merchant chain: SaaS, payments, terminals, hardware, installation and commissions. Every edit recalculates everything. Internal use — shows Cluster costs.",
     "noAccess": "You don't have access to the Revenue Modeler (permission revmodel:use).",
@@ -5164,8 +5166,8 @@
       "termRentalRev": "Rental per terminal",
       "termWarrantyCost": "Warranty per terminal",
       "termUnitCost": "Terminal purchase cost",
-      "hwPrice": "Hardware price per location",
-      "hwMarginPct": "Hardware gross margin",
+      "hwCost": "Hardware purchase price per location",
+      "hwPrice": "Hardware selling price per location",
       "instPrice": "Installation price per location",
       "commSaasMonths": "SaaS commission (months of SaaS)",
       "commPayPerLoc": "Payment commission per location",
@@ -5235,7 +5237,7 @@
       "payComm": "Payment commission (${{fee}} × {{locs}} loc.)",
       "terminalsNet": "Net terminals",
       "hwRevenue": "Hardware revenue (${{price}} × {{locs}} loc.)",
-      "hwCogs": "Hardware cost ({{margin}}% margin)",
+      "hwCogs": "Hardware purchase cost (${{cost}} × {{locs}} loc.)",
       "hwComm": "Hardware commission ({{pct}}% of invoice)",
       "hwNet": "Net hardware",
       "instRevenue": "Installation revenue (${{price}} × {{locs}} loc.)",
@@ -5245,6 +5247,13 @@
       "profit": "Net profit"
     },
     "tiers": {
+      "edit": "Edit tiers",
+      "editHint": "These three prices are the SaaS pills and comparison columns for EVERY user of the modeler. A new model starts at the middle tier; saved scenarios keep their own price.",
+      "saveTiers": "Save tiers",
+      "cancel": "Cancel",
+      "saved": "SaaS tiers saved.",
+      "saveError": "Saving the tiers failed.",
+      "orderError": "All three prices must be above zero and strictly increasing (Low < Base < High).",
       "title": "SaaS tier comparison",
       "hint": "The same merchant at the three SaaS prices; everything else unchanged.",
       "name0": "Low",

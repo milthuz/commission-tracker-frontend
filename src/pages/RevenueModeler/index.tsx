@@ -4,11 +4,11 @@ import { useSearchParams } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
 import type { ApexOptions } from 'apexcharts';
 import {
-  AlertTriangle, ChevronDown, Download, Link2, Printer, RotateCcw, Save, Trash2,
+  AlertTriangle, ChevronDown, Download, Link2, Printer, RotateCcw, Save, Settings2, Trash2,
 } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
-import { buildRows, compute, INTERAC_ALERT_FLOOR, type Inputs, type NumKey, type Row } from './model';
+import { buildRows, compute, INTERAC_ALERT_FLOOR, upgradeInputs, type Inputs, type NumKey, type Row } from './model';
 
 // Modélisateur de revenus — P&L sur 3 ans de l'intégration d'une chaîne.
 //
@@ -98,6 +98,11 @@ export default function RevenueModeler() {
   const [fatal, setFatal] = useState<string | null>(null);
   const [defaults, setDefaults] = useState<Inputs | null>(null);
   const [tiers, setTiers] = useState<number[]>([89, 119, 149]);
+  // Édition des paliers : décidée par le serveur (revmodel:settings), jamais lue du jeton.
+  const [canEditTiers, setCanEditTiers] = useState(false);
+  const [tierDraft, setTierDraft] = useState<number[] | null>(null);
+  const [tierBusy, setTierBusy] = useState(false);
+  const [tierErr, setTierErr] = useState<string | null>(null);
   const [inputs, setInputs] = useState<Inputs | null>(null);
 
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
@@ -125,13 +130,14 @@ export default function RevenueModeler() {
         const d = await r.json();
         setDefaults(d.defaults);
         if (Array.isArray(d.saasTiers)) setTiers(d.saasTiers);
+        setCanEditTiers(d.canEditSettings === true);
         let start: Inputs = d.defaults;
         const sid = params.get('scenario');
         if (sid) {
           const s = await fetch(`${API_URL}/api/revenue-model/scenarios/${encodeURIComponent(sid)}`, { headers: authHeaders() });
           if (s.ok) {
             const sc: Scenario = (await s.json()).scenario;
-            start = { ...d.defaults, ...sc.inputs };
+            start = { ...d.defaults, ...upgradeInputs(sc.inputs) };
             setActive(sc);
             setSaveName(sc.mine ? sc.name : '');
           } else {
@@ -184,7 +190,7 @@ export default function RevenueModeler() {
   );
 
   const rows = buildRows(inputs, model, t as any, num);
-  const dirty = active ? JSON.stringify({ ...defaults, ...active.inputs }) !== JSON.stringify(inputs) : false;
+  const dirty = active ? JSON.stringify({ ...defaults, ...upgradeInputs(active.inputs) }) !== JSON.stringify(inputs) : false;
 
   // ── Scénarios ──
   const save = async () => {
@@ -215,7 +221,7 @@ export default function RevenueModeler() {
     if (!s) return;
     setActive(s);
     setSaveName(s.name);
-    setInputs({ ...defaults, ...s.inputs });
+    setInputs({ ...defaults, ...upgradeInputs(s.inputs) });
     setParams({ scenario: s.id }, { replace: true });
   };
 
@@ -269,6 +275,31 @@ export default function RevenueModeler() {
     a.download = `Cluster_Revenue_${safe}_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
+  };
+
+  // ── Paliers SaaS (configuration) ──
+  const saveTiers = async () => {
+    if (!tierDraft) return;
+    if (!(tierDraft[0] > 0 && tierDraft[0] < tierDraft[1] && tierDraft[1] < tierDraft[2])) {
+      setTierErr(t('revenueModeler.tiers.orderError') as string);
+      return;
+    }
+    setTierBusy(true);
+    setTierErr(null);
+    try {
+      const r = await fetch(`${API_URL}/api/revenue-model/saas-tiers`, {
+        method: 'PUT', headers: authHeaders(), body: JSON.stringify({ tiers: tierDraft }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { setTierErr(d.demo ? d.error : (t('revenueModeler.tiers.saveError') as string)); return; }
+      setTiers(d.saasTiers);
+      // Un nouveau modèle (Réinitialiser) démarrera au nouveau palier du milieu, comme le serveur.
+      setDefaults((prev) => (prev ? { ...prev, saasPerLoc: d.saasTiers[1] } : prev));
+      setTierDraft(null);
+      flash('ok', t('revenueModeler.tiers.saved') as string);
+    } catch {
+      setTierErr(t('revenueModeler.tiers.saveError') as string);
+    } finally { setTierBusy(false); }
   };
 
   // ── Comparaison des paliers SaaS ──
@@ -442,8 +473,13 @@ export default function RevenueModeler() {
               {f('termUnitCost', '$', 2)}
             </Section>
             <Section title={t('revenueModeler.sec.hardware')}>
+              {f('hwCost', '$', 2)}
               {f('hwPrice', '$', 2)}
-              {f('hwMarginPct', '%', 1)}
+              <p className={`-mt-1 text-xs ${model.hwGrossProfit < 0 ? 'text-danger' : 'text-body dark:text-bodydark'}`}>
+                {model.hwMarginPct === null
+                  ? t('revenueModeler.hwMarginNone')
+                  : t('revenueModeler.hwMargin', { amount: money(inputs.hwPrice - inputs.hwCost), pct: num(model.hwMarginPct, 1) })}
+              </p>
               {f('instPrice', '$', 2)}
             </Section>
             <Section title={t('revenueModeler.sec.commissions')}>
@@ -517,8 +553,39 @@ export default function RevenueModeler() {
           </div>
 
           <div className={`${CARD} p-5`}>
-            <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('revenueModeler.tiers.title')}</h3>
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold text-black dark:text-white">{t('revenueModeler.tiers.title')}</h3>
+              {canEditTiers && !tierDraft && (
+                <button type="button" onClick={() => { setTierDraft([...tiers]); setTierErr(null); }}
+                  className="rm-no-print inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-stroke px-2.5 py-1 text-xs text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                  <Settings2 className="h-3.5 w-3.5" />{t('revenueModeler.tiers.edit')}
+                </button>
+              )}
+            </div>
             <p className="mb-3 text-xs text-body dark:text-bodydark">{t('revenueModeler.tiers.hint')}</p>
+            {tierDraft && (
+              <div className="rm-no-print mb-4 rounded-sm border border-[#FE6523]/30 bg-[#FE6523]/5 p-3">
+                <p className="mb-3 text-xs text-black dark:text-white">{t('revenueModeler.tiers.editHint')}</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {tierDraft.map((v, idx) => (
+                    <NumField key={idx} label={t(`revenueModeler.tiers.name${idx}`) as string} value={v} decimals={2} locale={locale}
+                      unit={t('revenueModeler.unit.perLocMonth') as string}
+                      onChange={(n) => setTierDraft((d) => (d ? d.map((x, j) => (j === idx ? n : x)) : d))} />
+                  ))}
+                </div>
+                {tierErr && <p className="mt-2 text-xs text-danger">{tierErr}</p>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={saveTiers} disabled={tierBusy}
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-[#FE6523] px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                    <Save className="h-3.5 w-3.5" />{t('revenueModeler.tiers.saveTiers')}
+                  </button>
+                  <button type="button" onClick={() => { setTierDraft(null); setTierErr(null); }} disabled={tierBusy}
+                    className="whitespace-nowrap rounded border border-stroke px-3 py-1.5 text-xs text-body hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4">
+                    {t('revenueModeler.tiers.cancel')}
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="overflow-x-auto">
               <table className="w-full min-w-[480px] text-sm">
                 <thead>

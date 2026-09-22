@@ -5094,6 +5094,8 @@
     }
   },
   "revenueModeler": {
+    "hwMargin": "Marge : {{amount}} par emplacement ({{pct}} %)",
+    "hwMarginNone": "Marge : — (aucun prix de vente)",
     "title": "Modélisateur de revenus",
     "subtitle": "P&L sur 3 ans de l'intégration d'une chaîne : SaaS, paiements, terminaux, matériel, installation et commissions. Chaque modification recalcule tout. Usage interne — affiche les coûts de Cluster.",
     "noAccess": "Vous n'avez pas accès au modélisateur de revenus (permission revmodel:use).",
@@ -5164,8 +5166,8 @@
       "termRentalRev": "Location par terminal",
       "termWarrantyCost": "Garantie par terminal",
       "termUnitCost": "Coût d'achat d'un terminal",
-      "hwPrice": "Prix du matériel par emplacement",
-      "hwMarginPct": "Marge brute matériel",
+      "hwCost": "Prix d'achat du matériel par emplacement",
+      "hwPrice": "Prix de vente du matériel par emplacement",
       "instPrice": "Prix d'installation par emplacement",
       "commSaasMonths": "Commission SaaS (mois de SaaS)",
       "commPayPerLoc": "Commission paiement par emplacement",
@@ -5235,7 +5237,7 @@
       "payComm": "Commission paiement ({{fee}} $ × {{locs}} empl.)",
       "terminalsNet": "Terminaux net",
       "hwRevenue": "Revenus matériel ({{price}} $ × {{locs}} empl.)",
-      "hwCogs": "Coût du matériel (marge {{margin}} %)",
+      "hwCogs": "Coût d'achat du matériel ({{cost}} $ × {{locs}} empl.)",
       "hwComm": "Commission matériel ({{pct}} % de la facture)",
       "hwNet": "Matériel net",
       "instRevenue": "Revenus installation ({{price}} $ × {{locs}} empl.)",
@@ -5245,6 +5247,13 @@
       "profit": "Profit net"
     },
     "tiers": {
+      "edit": "Modifier les paliers",
+      "editHint": "Ces trois prix servent de pastilles SaaS et de colonnes de comparaison pour TOUS les usagers du modélisateur. Un nouveau modèle démarre au palier du milieu ; les scénarios déjà enregistrés gardent leur propre prix.",
+      "saveTiers": "Enregistrer les paliers",
+      "cancel": "Annuler",
+      "saved": "Paliers SaaS enregistrés.",
+      "saveError": "L'enregistrement des paliers a échoué.",
+      "orderError": "Les trois prix doivent être supérieurs à zéro et strictement croissants (Bas < Base < Haut).",
       "title": "Comparaison des paliers SaaS",
       "hint": "Le même marchand aux trois prix SaaS ; tout le reste est inchangé.",
       "name0": "Bas",

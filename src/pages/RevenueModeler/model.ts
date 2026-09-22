@@ -24,8 +24,8 @@ export interface Inputs {
   termRentalRev: number;
   termWarrantyCost: number;
   termUnitCost: number;
-  hwPrice: number;
-  hwMarginPct: number;
+  hwCost: number;   // prix d'ACHAT du matériel par emplacement
+  hwPrice: number;  // prix de VENTE du matériel par emplacement
   instPrice: number;
   commSaasMonths: number;
   commPayPerLoc: number;
@@ -63,8 +63,10 @@ export function compute(i: Inputs) {
   const paybackMonths = netTerminalAnnual > 0 ? terminalPurchaseCost / (netTerminalAnnual / 12) : null;
 
   const hwRevenue = i.numLocs * i.hwPrice;
-  const hwCOGS = hwRevenue * (1 - i.hwMarginPct / 100);
-  const hwGrossProfit = hwRevenue * (i.hwMarginPct / 100);
+  const hwCOGS = i.numLocs * i.hwCost;
+  const hwGrossProfit = hwRevenue - hwCOGS;
+  // La marge est un RÉSULTAT (achat vs vente), plus une saisie. null quand rien n'est vendu.
+  const hwMarginPct = i.hwPrice > 0 ? ((i.hwPrice - i.hwCost) / i.hwPrice) * 100 : null;
   const hwCommission = hwRevenue * (i.commHwPct / 100);
   const hwNet = hwGrossProfit - hwCommission;
 
@@ -89,7 +91,7 @@ export function compute(i: Inputs) {
     revMarkup, costCreditPct, revTxnCredit, costTxnCredit, netCredit,
     revTxnInterac, costTxnInterac, netInterac,
     rentalRevAnnual, warrantyCostAnnual, netTerminalAnnual, terminalPurchaseCost, commissionPayment, paybackMonths,
-    hwRevenue, hwCOGS, hwGrossProfit, hwCommission, hwNet,
+    hwRevenue, hwCOGS, hwGrossProfit, hwMarginPct, hwCommission, hwNet,
     instRevenue, instCOGS, instCommission, instNet,
     profitYear1, profitYear2, profitYear3,
     total3Years: profitYear1 + profitYear2 + profitYear3,
@@ -105,6 +107,15 @@ export function compute(i: Inputs) {
 }
 
 export type Model = ReturnType<typeof compute>;
+
+// Scénario d'avant le 2026-09-22 : marge en % au lieu d'un prix d'achat. Même conversion que le
+// serveur (defaults.js), pour qu'un scénario se relise à l'identique quel que soit son âge.
+export function upgradeInputs(raw: any): any {
+  if (!raw || raw.hwCost != null || raw.hwMarginPct == null) return raw;
+  const { hwMarginPct, ...rest } = raw;
+  const price = Number(raw.hwPrice ?? 0);
+  return { ...rest, hwCost: Math.round(price * (1 - Number(hwMarginPct) / 100) * 100) / 100 };
+}
 
 // ── Lignes du P&L ────────────────────────────────────────────────────────────────────────
 // Une structure de données, pas du JSX : le tableau ET l'export CSV la lisent.
@@ -151,7 +162,7 @@ export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number
 
     sec('hardware'),
     { kind: 'rev', label: t(p + 'hwRevenue', { price: num(i.hwPrice, 2), locs: num(i.numLocs) }), y: once(m.hwRevenue), oneTime: true },
-    { kind: 'cost', label: t(p + 'hwCogs', { margin: num(i.hwMarginPct, 1) }), y: once(-m.hwCOGS), oneTime: true },
+    { kind: 'cost', label: t(p + 'hwCogs', { cost: num(i.hwCost, 2), locs: num(i.numLocs) }), y: once(-m.hwCOGS), oneTime: true },
     { kind: 'comm', label: t(p + 'hwComm', { pct: num(i.commHwPct, 1) }), y: once(-m.hwCommission), oneTime: true },
     { kind: 'subtotal', label: t(p + 'hwNet'), y: once(m.hwNet) },
 
