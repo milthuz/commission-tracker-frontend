@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Select from '../components/Select';
 import { useTranslation } from 'react-i18next';
 import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard } from 'lucide-react';
 
@@ -77,6 +78,11 @@ const fmtDate = (raw: string | null, locale: string) => {
 
 const FAQ_KEYS = ['why', 'howMuch', 'when', 'notice', 'refuse', 'cancel', 'noNotice', 'escalate'];
 
+// Le Select partage remplace son habillage quand on lui passe `buttonClassName` : on reprend
+// l'allure du champ de recherche au-dessus, en plus discret.
+const FILTRE = 'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-left text-sm '
+  + 'outline-none transition focus:border-primary dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white';
+
 export default function SaasIncreaseLookup() {
   const { t, i18n } = useTranslation();
   const [q, setQ] = useState('');
@@ -101,6 +107,13 @@ export default function SaasIncreaseLookup() {
   const [error, setError] = useState<string | null>(null);
   const [openEmail, setOpenEmail] = useState<number | null>(null);
   const [openFaq, setOpenFaq] = useState<string | null>(null);
+  // « Quoi repondre » est le script que l'agent lit AU TELEPHONE. Il vivait tout en bas, sous
+  // cinquante lignes de resultats — donc hors de portee au moment ou il sert. Il remonte sous la
+  // recherche, replié : une ligne quand on n'en a pas besoin, un clic quand on en a besoin.
+  const [faqOuvert, setFaqOuvert] = useState(false);
+  const [org, setOrg] = useState('');
+  const [avis, setAvis] = useState('');
+  const [etat, setEtat] = useState('');
   // Les frais d'integration demandent un appel Zoho par abonnement, donc on ne les charge que
   // sur demande et une seule fois. L'etat 'loading' evite le double appel au re-rendu.
   const [fees, setFees] = useState<Record<string, Fees | 'loading' | 'error'>>({});
@@ -197,8 +210,13 @@ export default function SaasIncreaseLookup() {
     setError(null);
     try {
       const mot = term.trim();
+      // Les filtres partent au SERVEUR : ils doivent porter sur toute la campagne, pas sur les
+      // cinquante lignes deja chargees.
       const r = await fetch(`${API_URL}/api/saas-increase/lookup`
-        + `?q=${encodeURIComponent(mot.length >= 2 ? mot : '')}&offset=${offset}`,
+        + `?q=${encodeURIComponent(mot.length >= 2 ? mot : '')}&offset=${offset}`
+        + (org ? `&org=${encodeURIComponent(org)}` : '')
+        + (avis ? `&notify=${encodeURIComponent(avis)}` : '')
+        + (etat ? `&state=${encodeURIComponent(etat)}` : ''),
         { headers: authHeaders() });
       if (!r.ok) throw new Error(String(r.status));
       const d = await r.json();
@@ -217,6 +235,14 @@ export default function SaasIncreaseLookup() {
   // quota le 2026-09-15.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { void search(''); }, []);
+
+  // Un filtre est un CLIC, pas une frappe : on relance tout de suite, sans attendre 350 ms.
+  const premierRendu = useRef(true);
+  useEffect(() => {
+    if (premierRendu.current) { premierRendu.current = false; return; }
+    void search(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [org, avis, etat]);
 
   const card = 'rounded-2xl border border-gray-200 bg-white dark:border-[#1B1B1B] dark:bg-[#0E0F11]';
   const textPri = 'text-gray-900 dark:text-white';
@@ -293,11 +319,82 @@ export default function SaasIncreaseLookup() {
             className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-11 pr-4 text-sm outline-none focus:border-primary dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white"
           />
         </div>
-        <p className={`mt-2 px-1 text-xs ${textQuat}`}>{t('csLookup.searchHint')}</p>
+        {/* Trois filtres, dans la carte de recherche et non flottants a cote du titre. */}
+        <div className="mt-3 flex flex-wrap items-end gap-3">
+          <div className="min-w-[150px]">
+            <label className={`mb-1 block text-xs font-medium ${textTer}`}>{t('csLookup.filterOrg')}</label>
+            <Select value={org} onChange={setOrg} buttonClassName={FILTRE}
+              options={[{ value: '', label: t('csLookup.filterAll') as string },
+                        { value: '697704869', label: 'Cluster Canada' },
+                        { value: '802470810', label: 'Cluster USA' },
+                        { value: '905113716', label: 'Xperio POS' }]} />
+          </div>
+          <div className="min-w-[150px]">
+            <label className={`mb-1 block text-xs font-medium ${textTer}`}>{t('csLookup.filterNotice')}</label>
+            <Select value={avis} onChange={setAvis} buttonClassName={FILTRE}
+              options={[{ value: '', label: t('csLookup.filterAll') as string },
+                        { value: 'sent', label: t('csLookup.shortSent') as string },
+                        { value: 'scheduled', label: t('csLookup.filterScheduled') as string },
+                        { value: 'not_sent', label: t('csLookup.shortNotSent') as string },
+                        { value: 'send_failed', label: t('csLookup.shortFailed') as string }]} />
+          </div>
+          <div className="min-w-[170px]">
+            <label className={`mb-1 block text-xs font-medium ${textTer}`}>{t('csLookup.filterHike')}</label>
+            <Select value={etat} onChange={setEtat} buttonClassName={FILTRE}
+              options={[{ value: '', label: t('csLookup.filterAll') as string },
+                        { value: 'nohike', label: t('csLookup.filterNoHike') as string }]} />
+          </div>
+          {(org || avis || etat) && (
+            <button type="button" onClick={() => { setOrg(''); setAvis(''); setEtat(''); }}
+              className={`pb-2 text-xs font-medium ${textTer} hover:text-primary`}>
+              {t('csLookup.filterClear')}
+            </button>
+          )}
+        </div>
+
+        <p className={`mt-3 px-1 text-xs ${textQuat}`}>{t('csLookup.searchHint')}</p>
         {hits && total > 0 && (
           <p className={`mt-1 px-1 text-xs ${textQuat}`}>
             {t('csLookup.showing', { shown: hits.length, total })}
           </p>
+        )}
+      </div>
+
+      {/* --------------------------------------------------- « Quoi repondre », a portee */}
+      <div className={`${card} mb-4`}>
+        <button
+          type="button"
+          onClick={() => setFaqOuvert((v) => !v)}
+          className="flex w-full items-center justify-between gap-3 px-5 py-3 text-left"
+        >
+          <span className="min-w-0">
+            <span className={`block text-sm font-semibold ${textPri}`}>{t('csLookup.faqTitle')}</span>
+            <span className={`mt-0.5 block truncate text-xs ${textQuat}`}>{t('csLookup.faqSubtitle')}</span>
+          </span>
+          <ChevronDown className={`h-4 w-4 shrink-0 ${textQuat} transition-transform ${faqOuvert ? 'rotate-180' : ''}`} />
+        </button>
+        {faqOuvert && (
+          <div className="border-t border-gray-100 px-5 pb-4 dark:border-[#161616]">
+            <div className="divide-y divide-gray-100 dark:divide-[#161616]">
+              {FAQ_KEYS.map((k) => (
+                <div key={k} className="py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(openFaq === k ? null : k)}
+                    className="flex w-full items-center justify-between gap-3 text-left"
+                  >
+                    <span className={`text-sm font-medium ${textSec}`}>{t(`csLookup.faq.${k}.q`)}</span>
+                    <ChevronDown className={`h-4 w-4 shrink-0 ${textQuat} transition-transform ${openFaq === k ? 'rotate-180' : ''}`} />
+                  </button>
+                  {openFaq === k && (
+                    <p className={`mt-2 max-w-[80ch] whitespace-pre-line text-sm leading-relaxed ${textTer}`}>
+                      {t(`csLookup.faq.${k}.a`)}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
@@ -635,30 +732,6 @@ export default function SaasIncreaseLookup() {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------ FAQ */}
-      <div className={`${card} mt-6 p-5`}>
-        <h3 className={`text-sm font-semibold ${textPri}`}>{t('csLookup.faqTitle')}</h3>
-        <p className={`mt-1 text-xs ${textQuat}`}>{t('csLookup.faqSubtitle')}</p>
-        <div className="mt-3 divide-y divide-gray-100 dark:divide-[#161616]">
-          {FAQ_KEYS.map((k) => (
-            <div key={k} className="py-2.5">
-              <button
-                type="button"
-                onClick={() => setOpenFaq(openFaq === k ? null : k)}
-                className="flex w-full items-center justify-between gap-3 text-left"
-              >
-                <span className={`text-sm font-medium ${textSec}`}>{t(`csLookup.faq.${k}.q`)}</span>
-                <ChevronDown className={`h-4 w-4 shrink-0 ${textQuat} transition-transform ${openFaq === k ? 'rotate-180' : ''}`} />
-              </button>
-              {openFaq === k && (
-                <p className={`mt-2 max-w-[80ch] whitespace-pre-line text-sm leading-relaxed ${textTer}`}>
-                  {t(`csLookup.faq.${k}.a`)}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
