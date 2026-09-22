@@ -455,6 +455,18 @@ export default function RevenueModeler() {
                   </button>
                 ))}
               </div>
+              {/* Même éditeur que la carte de comparaison : c'est ICI, à côté des pastilles, qu'on
+                  le cherche d'instinct (David ne l'a pas trouvé en bas de page, 2026-09-22). */}
+              {canEditTiers && (
+                <button type="button"
+                  onClick={() => {
+                    if (!tierDraft) { setTierDraft([...tiers]); setTierErr(null); }
+                    window.setTimeout(() => document.getElementById('rm-tiers')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0);
+                  }}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-[#FE6523] hover:underline">
+                  <Settings2 className="h-3.5 w-3.5" />{t('revenueModeler.tiers.edit')}
+                </button>
+              )}
               {f('saasPerLoc', t('revenueModeler.unit.perLocMonth') as string, 2)}
             </Section>
             <Section title={t('revenueModeler.sec.payRevenue')}>
@@ -552,7 +564,7 @@ export default function RevenueModeler() {
             ))}
           </div>
 
-          <div className={`${CARD} p-5`}>
+          <div id="rm-tiers" className={`${CARD} scroll-mt-24 p-5`}>
             <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-semibold text-black dark:text-white">{t('revenueModeler.tiers.title')}</h3>
               {canEditTiers && !tierDraft && (
