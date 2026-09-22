@@ -249,6 +249,26 @@ export default function RevenueModeler() {
     setParams({}, { replace: true });
   };
 
+  // Les saisies courantes deviennent le point de départ de TOUT nouveau modèle (revmodel:settings).
+  const saveAsDefaults = async () => {
+    if (!window.confirm(t('revenueModeler.defaultsConfirm') as string)) return;
+    setBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/api/revenue-model/defaults`, {
+        method: 'PUT', headers: authHeaders(), body: JSON.stringify({ inputs }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        flash('err', d.demo ? d.error : t(`revenueModeler.err.${d.error}`, { field: d.field, defaultValue: t('revenueModeler.defaultsError') as string }) as string);
+        return;
+      }
+      setDefaults(d.defaults);
+      flash('ok', t('revenueModeler.defaultsSaved', { n: d.changed }) as string);
+    } catch {
+      flash('err', t('revenueModeler.defaultsError') as string);
+    } finally { setBusy(false); }
+  };
+
   const copyLink = async () => {
     if (!active) return;
     const url = `${window.location.origin}/revenue-modeler?scenario=${active.id}`;
@@ -412,6 +432,12 @@ export default function RevenueModeler() {
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-stroke px-3 py-2 text-sm text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
             <Printer className="h-4 w-4" />{t('revenueModeler.print')}
           </button>
+          {canEditTiers && (
+            <button type="button" onClick={saveAsDefaults} disabled={busy} title={t('revenueModeler.defaultsHint') as string}
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-[#FE6523]/50 px-3 py-2 text-sm text-[#FE6523] hover:bg-[#FE6523]/5 disabled:opacity-60">
+              <Settings2 className="h-4 w-4" />{t('revenueModeler.saveAsDefaults')}
+            </button>
+          )}
           <button type="button" onClick={reset} title={t('revenueModeler.resetHint') as string}
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-stroke px-3 py-2 text-sm text-body hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4">
             <RotateCcw className="h-4 w-4" />{t('revenueModeler.reset')}

@@ -5094,6 +5094,11 @@
     }
   },
   "revenueModeler": {
+    "saveAsDefaults": "Save as defaults",
+    "defaultsHint": "The current values become the starting point of every new model, for all users.",
+    "defaultsConfirm": "Save ALL current values (merchant, volumes, prices, costs, commissions) as the defaults for EVERY user?\n\nThe SaaS price is not included: it follows the middle tier. Saved scenarios do not change.",
+    "defaultsSaved": "Defaults saved ({{n}} change(s)).",
+    "defaultsError": "Saving the defaults failed.",
     "hwMargin": "Margin: {{amount}} per location ({{pct}}%)",
     "hwMarginNone": "Margin: — (no selling price)",
     "title": "Revenue Modeler",

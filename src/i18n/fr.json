@@ -5094,6 +5094,11 @@
     }
   },
   "revenueModeler": {
+    "saveAsDefaults": "Enregistrer comme valeurs par défaut",
+    "defaultsHint": "Les valeurs actuelles deviennent le point de départ de tout nouveau modèle, pour tous les usagers.",
+    "defaultsConfirm": "Enregistrer TOUTES les valeurs actuelles (marchand, volumes, prix, coûts, commissions) comme valeurs par défaut pour TOUS les usagers ?\n\nLe prix SaaS n'en fait pas partie : il suit le palier du milieu. Les scénarios enregistrés ne changent pas.",
+    "defaultsSaved": "Valeurs par défaut enregistrées ({{n}} changement(s)).",
+    "defaultsError": "L'enregistrement des valeurs par défaut a échoué.",
     "hwMargin": "Marge : {{amount}} par emplacement ({{pct}} %)",
     "hwMarginNone": "Marge : — (aucun prix de vente)",
     "title": "Modélisateur de revenus",
