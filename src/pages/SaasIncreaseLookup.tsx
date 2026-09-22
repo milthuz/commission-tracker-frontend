@@ -81,11 +81,17 @@ export default function SaasIncreaseLookup() {
   const { t, i18n } = useTranslation();
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[] | null>(null);
-  // Quelle fiche l'agent a ouverte. La page affichait une fiche COMPLETE — prix, frais, statut
-  // de paiement, courriel recu, bouton d'opportunite — pour chacun des cinquante marchands de
-  // la liste d'ouverture. Cinquante fiches pour une ligne consultee : la page etait lourde a
-  // charger et illisible a parcourir.
-  const [ouvert, setOuvert] = useState<string | null>(null);
+  // Les fiches que l'agent a BASCULEES par rapport a l'etat par defaut. La page rendait une
+  // fiche COMPLETE — prix, frais, statut de paiement, courriel recu, bouton d'opportunite —
+  // pour chacun des cinquante marchands de la liste d'ouverture : lourde a charger, illisible
+  // a parcourir. Un ensemble de bascules plutot qu'une fiche « ouverte », parce qu'il faut
+  // pouvoir REFERMER aussi — y compris sur une recherche etroite ou tout est deplie d'office.
+  const [bascule, setBascule] = useState<Set<string>>(new Set());
+  const basculer = (n: string) => setBascule((prev) => {
+    const copie = new Set(prev);
+    if (copie.has(n)) copie.delete(n); else copie.add(n);
+    return copie;
+  });
   // Cet ecran s'ouvrait sur une page VIDE : il fallait deviner quoi taper pour voir quoi que ce
   // soit. Il s'ouvre desormais sur la LISTE des marchands, et la recherche ne fait que la
   // reduire. `total` dit combien il y en a, pour que « 50 affiches » ne se lise pas « 50 en tout ».
@@ -187,7 +193,7 @@ export default function SaasIncreaseLookup() {
   };
 
   const search = async (term: string, offset = 0) => {
-    if (offset === 0) { setLoading(true); setOuvert(null); } else setSuite(true);
+    if (offset === 0) { setLoading(true); setBascule(new Set()); } else setSuite(true);
     setError(null);
     try {
       const mot = term.trim();
@@ -263,6 +269,12 @@ export default function SaasIncreaseLookup() {
       {t('csLookup.shortNotSent')}</span>;
   };
 
+  // Deplie d'office quand la recherche a converge ; l'agent peut replier, et deplier une ligne
+  // de la longue liste. `!==` sur deux booleens, c'est le OU exclusif : l'etat par defaut,
+  // inverse pour les fiches que l'agent a touchees.
+  const parDefautDeplie = hits ? hits.length <= DETAIL_MAX : false;
+  const deplie = (h: Hit) => parDefautDeplie !== bascule.has(h.subscriptionNumber);
+
   return (
     <div className="font-satoshi">
       <div className="mb-6">
@@ -302,11 +314,11 @@ export default function SaasIncreaseLookup() {
         </div>
       )}
 
-      {hits?.map((h) => (!(hits.length <= DETAIL_MAX || ouvert === h.subscriptionNumber) ? (
+      {hits?.map((h) => (!deplie(h) ? (
         <button
           key={h.id}
           type="button"
-          onClick={() => setOuvert(h.subscriptionNumber)}
+          onClick={() => basculer(h.subscriptionNumber)}
           className={`${card} mb-2 flex w-full items-center gap-3 px-4 py-3 text-left transition hover:border-primary/50`}
         >
           <div className="min-w-0 flex-1">
@@ -327,12 +339,23 @@ export default function SaasIncreaseLookup() {
       ) : (
         <div key={h.id} className={`${card} mb-3 p-5`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className={`text-base font-semibold ${textPri}`}>{h.customerName}</div>
-              <div className={`mt-0.5 font-mono text-[11px] ${textQuat}`}>
-                {h.subscriptionNumber}{h.merchantAccountId ? ` · ${h.merchantAccountId}` : ''} · {h.orgName}
-              </div>
-            </div>
+            {/* Le nom du marchand EST le bouton de repli : c'est la que la main va, et le chevron
+                retourne dit dans quel sens ca ira. Des <span> et non des <div>, un bouton ne
+                peut pas contenir de bloc. */}
+            <button
+              type="button"
+              onClick={() => basculer(h.subscriptionNumber)}
+              title={t('csLookup.collapse') as string}
+              className="flex min-w-0 items-start gap-2 text-left"
+            >
+              <ChevronDown className={`mt-1 h-4 w-4 shrink-0 rotate-180 ${textQuat}`} />
+              <span className="min-w-0">
+                <span className={`block text-base font-semibold ${textPri}`}>{h.customerName}</span>
+                <span className={`mt-0.5 block font-mono text-[11px] ${textQuat}`}>
+                  {h.subscriptionNumber}{h.merchantAccountId ? ` · ${h.merchantAccountId}` : ''} · {h.orgName}
+                </span>
+              </span>
+            </button>
             {noticeBadge(h)}
           </div>
 
