@@ -1,0 +1,166 @@
+// Modélisateur de revenus — le moteur de calcul.
+//
+// Pur et sans React : la page, l'export CSV et le tableau de comparaison des paliers SaaS
+// appellent tous `compute()`, donc un chiffre ne peut pas différer d'un endroit à l'autre.
+// Formules : spec/calculations.md du brief, une par une.
+//
+// ⚠️ Les pourcentages sont en POINTS : markupRate = 0.08 veut dire 0,08 % du volume.
+
+export interface Inputs {
+  merchantName: string;
+  numLocs: number;
+  termsPerLoc: number;
+  gmvCredit: number;
+  txnCredit: number;
+  gmvInterac: number;
+  txnInterac: number;
+  saasPerLoc: number;
+  markupRate: number;
+  txnFeeCredit: number;
+  txnFeeInterac: number;
+  creditCostPct: number;
+  creditCostPerTxn: number;
+  interacCostPerTxn: number;
+  termRentalRev: number;
+  termWarrantyCost: number;
+  termUnitCost: number;
+  hwPrice: number;
+  hwMarginPct: number;
+  instPrice: number;
+  commSaasMonths: number;
+  commPayPerLoc: number;
+  commHwPct: number;
+  commInstPct: number;
+}
+
+export type NumKey = Exclude<keyof Inputs, 'merchantName'>;
+
+// Sous ce seuil, la marge nette Interac déclenche l'alerte.
+export const INTERAC_ALERT_FLOOR = 10000;
+
+export function compute(i: Inputs) {
+  const totalTerminals = i.numLocs * i.termsPerLoc;
+
+  const saasRevenueGross = i.numLocs * i.saasPerLoc * 12;
+  const commissionSaas = i.numLocs * i.saasPerLoc * i.commSaasMonths;
+
+  const revMarkup = i.gmvCredit * (i.markupRate / 100);
+  const costCreditPct = i.gmvCredit * (i.creditCostPct / 100);
+  const revTxnCredit = i.txnCredit * i.txnFeeCredit;
+  const costTxnCredit = i.txnCredit * i.creditCostPerTxn;
+  const netCredit = revMarkup - costCreditPct + revTxnCredit - costTxnCredit;
+
+  const revTxnInterac = i.txnInterac * i.txnFeeInterac;
+  const costTxnInterac = i.txnInterac * i.interacCostPerTxn;
+  const netInterac = revTxnInterac - costTxnInterac;
+
+  const rentalRevAnnual = totalTerminals * i.termRentalRev * 12;
+  const warrantyCostAnnual = totalTerminals * i.termWarrantyCost * 12;
+  const netTerminalAnnual = rentalRevAnnual - warrantyCostAnnual;
+  const terminalPurchaseCost = totalTerminals * i.termUnitCost;
+  const commissionPayment = i.numLocs * i.commPayPerLoc;
+  // Sans revenu net mensuel positif, l'achat ne se rembourse jamais : null, pas l'infini.
+  const paybackMonths = netTerminalAnnual > 0 ? terminalPurchaseCost / (netTerminalAnnual / 12) : null;
+
+  const hwRevenue = i.numLocs * i.hwPrice;
+  const hwCOGS = hwRevenue * (1 - i.hwMarginPct / 100);
+  const hwGrossProfit = hwRevenue * (i.hwMarginPct / 100);
+  const hwCommission = hwRevenue * (i.commHwPct / 100);
+  const hwNet = hwGrossProfit - hwCommission;
+
+  const instRevenue = i.numLocs * i.instPrice;
+  const instCOGS = instRevenue; // refacturé au coût
+  const instCommission = instRevenue * (i.commInstPct / 100);
+  const instNet = -instCommission;
+
+  const recurring = saasRevenueGross + netCredit + netInterac + netTerminalAnnual;
+  const profitYear1 = recurring - commissionSaas - terminalPurchaseCost - commissionPayment + hwNet + instNet;
+  const profitYear2 = recurring;
+  const profitYear3 = recurring;
+
+  const commissionsYear1 = commissionSaas + commissionPayment + hwCommission + instCommission;
+
+  // Prix d'installation qui ramène la ligne à zéro une fois la commission payée.
+  const suggestedInstPrice = i.commInstPct > 0 && i.commInstPct < 100 ? i.instPrice / (1 - i.commInstPct / 100) : null;
+
+  return {
+    totalTerminals,
+    saasRevenueGross, commissionSaas,
+    revMarkup, costCreditPct, revTxnCredit, costTxnCredit, netCredit,
+    revTxnInterac, costTxnInterac, netInterac,
+    rentalRevAnnual, warrantyCostAnnual, netTerminalAnnual, terminalPurchaseCost, commissionPayment, paybackMonths,
+    hwRevenue, hwCOGS, hwGrossProfit, hwCommission, hwNet,
+    instRevenue, instCOGS, instCommission, instNet,
+    profitYear1, profitYear2, profitYear3,
+    total3Years: profitYear1 + profitYear2 + profitYear3,
+    commissionsYear1,
+    netPayments: netCredit + netInterac,
+    gmvTotal: i.gmvCredit + i.gmvInterac,
+    alerts: {
+      installLoss: i.commInstPct > 0 && i.instPrice > 0,
+      interacLow: netInterac < INTERAC_ALERT_FLOOR,
+    },
+    suggestedInstPrice,
+  };
+}
+
+export type Model = ReturnType<typeof compute>;
+
+// ── Lignes du P&L ────────────────────────────────────────────────────────────────────────
+// Une structure de données, pas du JSX : le tableau ET l'export CSV la lisent.
+export type RowKind = 'section' | 'rev' | 'cost' | 'newcost' | 'comm' | 'subtotal' | 'total';
+export interface Row {
+  kind: RowKind;
+  label: string;
+  y: [number, number, number];
+  oneTime?: boolean;
+}
+
+type T = (key: string, opts?: Record<string, unknown>) => string;
+
+export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number) => string): Row[] {
+  const p = 'revenueModeler.pl.';
+  const same = (v: number): [number, number, number] => [v, v, v];
+  const once = (v: number): [number, number, number] => [v, 0, 0];
+  const sec = (key: string): Row => ({ kind: 'section', label: t(p + 'sec.' + key), y: [0, 0, 0] });
+
+  return [
+    sec('saas'),
+    { kind: 'rev', label: t(p + 'saasGross', { price: num(i.saasPerLoc), locs: num(i.numLocs) }), y: same(m.saasRevenueGross) },
+    { kind: 'comm', label: t(p + 'saasComm', { months: num(i.commSaasMonths, 2), price: num(i.saasPerLoc), locs: num(i.numLocs) }), y: once(-m.commissionSaas), oneTime: true },
+    { kind: 'subtotal', label: t(p + 'saasNet'), y: [m.saasRevenueGross - m.commissionSaas, m.saasRevenueGross, m.saasRevenueGross] },
+
+    sec('credit'),
+    { kind: 'rev', label: t(p + 'markup', { rate: num(i.markupRate, 3) }), y: same(m.revMarkup) },
+    { kind: 'cost', label: t(p + 'creditCostPct', { rate: num(i.creditCostPct, 3) }), y: same(-m.costCreditPct) },
+    { kind: 'rev', label: t(p + 'txnFeeCredit', { fee: num(i.txnFeeCredit, 3), n: num(i.txnCredit) }), y: same(m.revTxnCredit) },
+    { kind: 'newcost', label: t(p + 'creditCostTxn', { fee: num(i.creditCostPerTxn, 3) }), y: same(-m.costTxnCredit) },
+    { kind: 'subtotal', label: t(p + 'creditNet'), y: same(m.netCredit) },
+
+    sec('interac'),
+    { kind: 'rev', label: t(p + 'txnFeeInterac', { fee: num(i.txnFeeInterac, 3), n: num(i.txnInterac) }), y: same(m.revTxnInterac) },
+    { kind: 'cost', label: t(p + 'interacCostTxn', { fee: num(i.interacCostPerTxn, 3) }), y: same(-m.costTxnInterac) },
+    { kind: 'subtotal', label: t(p + 'interacNet'), y: same(m.netInterac) },
+
+    sec('terminals'),
+    { kind: 'rev', label: t(p + 'rental', { n: num(m.totalTerminals), fee: num(i.termRentalRev, 2) }), y: same(m.rentalRevAnnual) },
+    { kind: 'cost', label: t(p + 'warranty', { fee: num(i.termWarrantyCost, 2) }), y: same(-m.warrantyCostAnnual) },
+    { kind: 'cost', label: t(p + 'termPurchase', { n: num(m.totalTerminals), cost: num(i.termUnitCost, 2) }), y: once(-m.terminalPurchaseCost), oneTime: true },
+    { kind: 'comm', label: t(p + 'payComm', { fee: num(i.commPayPerLoc, 2), locs: num(i.numLocs) }), y: once(-m.commissionPayment), oneTime: true },
+    { kind: 'subtotal', label: t(p + 'terminalsNet'), y: [m.netTerminalAnnual - m.terminalPurchaseCost - m.commissionPayment, m.netTerminalAnnual, m.netTerminalAnnual] },
+
+    sec('hardware'),
+    { kind: 'rev', label: t(p + 'hwRevenue', { price: num(i.hwPrice, 2), locs: num(i.numLocs) }), y: once(m.hwRevenue), oneTime: true },
+    { kind: 'cost', label: t(p + 'hwCogs', { margin: num(i.hwMarginPct, 1) }), y: once(-m.hwCOGS), oneTime: true },
+    { kind: 'comm', label: t(p + 'hwComm', { pct: num(i.commHwPct, 1) }), y: once(-m.hwCommission), oneTime: true },
+    { kind: 'subtotal', label: t(p + 'hwNet'), y: once(m.hwNet) },
+
+    sec('install'),
+    { kind: 'rev', label: t(p + 'instRevenue', { price: num(i.instPrice, 2), locs: num(i.numLocs) }), y: once(m.instRevenue), oneTime: true },
+    { kind: 'cost', label: t(p + 'instCogs'), y: once(-m.instCOGS), oneTime: true },
+    { kind: 'comm', label: t(p + 'instComm', { pct: num(i.commInstPct, 1) }), y: once(-m.instCommission), oneTime: true },
+    { kind: 'subtotal', label: t(p + 'instNet'), y: once(m.instNet) },
+
+    { kind: 'total', label: t(p + 'profit'), y: [m.profitYear1, m.profitYear2, m.profitYear3] },
+  ];
+}

@@ -382,7 +382,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 <li>
                   <NavLink
                     to="/revenue"
-                    className={navLinkCls(pathname.includes('revenue'))}
+                    className={navLinkCls(pathname === '/revenue' || pathname.startsWith('/revenue/'))}
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M3 12h4l3 8 4-16 3 8h4" />
@@ -609,6 +609,25 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     <span className={labelCls}>{t('sidebar.rateCalculator')}</span>
                     <NewBadge path="/rate-calculator" collapsed={collapsed} />
                     <RailTip label={t('sidebar.rateCalculator') as string} />
+                  </NavLink>
+                </li>
+              )}
+              {/* <!-- Modélisateur de revenus (perm: revmodel:use) — outil de vente, menu principal,
+                   à côté du calculateur IC+. --> */}
+              {(isAdmin || can('revmodel:use')) && (
+                <li>
+                  <NavLink
+                    to="/revenue-modeler"
+                    className={navLinkCls(pathname.includes('revenue-modeler'))}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 3v18h18" />
+                      <path d="M7 15l4-4 3 3 5-6" />
+                      <path d="M15 8h4v4" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.revenueModeler')}</span>
+                    <NewBadge path="/revenue-modeler" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.revenueModeler') as string} />
                   </NavLink>
                 </li>
               )}
