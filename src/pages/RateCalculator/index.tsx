@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Upload, FileText, Download, AlertTriangle, ClipboardPaste, Loader2 } from 'lucide-react';
+import { Upload, FileText, Download, AlertTriangle, ClipboardPaste, Loader2, ScanLine } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
 import { extractCells, looksScanned } from './extract';
@@ -39,6 +39,19 @@ interface Result {
   margin?: { rows: any[]; totalBilled: number; totalCost: number; revenue: number; revenuePct: number | null };
 }
 
+// La transcription d'un releve NUMERISE. Ce n'est pas une analyse : c'est une lecture
+// d'images, rendue pour revue avec le texte imprime en regard de chaque montant.
+interface ScanRead {
+  payload: any;
+  documentKind: string;
+  processorName: string;
+  period: string;
+  readings: { field: string; printed_as: string; page: number; confidence: string }[];
+  caveats: string[];
+  reconcile: { available: boolean; printed?: number; computed?: number; gap?: number; ok?: boolean };
+  flags: { code: string; field?: string; value?: number; n?: number; gap?: number; kind?: string }[];
+}
+
 const CARD = 'rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark';
 
 export default function RateCalculator() {
@@ -58,6 +71,9 @@ export default function RateCalculator() {
 
   const [showPaste, setShowPaste] = useState(false);
   const [pasteText, setPasteText] = useState('');
+  // Le PDF numerise conserve, pour pouvoir le renvoyer au lecteur sans le redemander.
+  const [scanFile, setScanFile] = useState<File | null>(null);
+  const [scan, setScan] = useState<ScanRead | null>(null);
   const [salesperson, setSalesperson] = useState('');
   const [clientNotes, setClientNotes] = useState('');
 
@@ -87,10 +103,15 @@ export default function RateCalculator() {
       const extracted = await extractCells(file);
       if (looksScanned(extracted)) {
         setBusy(null);
-        setError(t('icplus.scannedPdf') as string);
-        setShowPaste(true);
+        setScan(null);
+        // ⚠️ On GARDE le fichier : sans lui, proposer la transcription obligerait le rep a
+        // redeposer le meme PDF, ce que personne ne fait.
+        setScanFile(file);
+        setError(t(config?.canReadScan ? 'icplus.scannedPdfCanRead' : 'icplus.scannedPdf') as string);
+        if (!config?.canReadScan) setShowPaste(true);
         return;
       }
+      setScanFile(null); setScan(null);
       const res = await fetch(`${API_URL}/api/icplus/parse`, {
         method: 'POST',
         headers: authHeaders(),
@@ -116,6 +137,55 @@ export default function RateCalculator() {
       if (pasteText) setShowPaste(false);
     } catch (e: any) {
       setError(e?.message || (t('icplus.parseError') as string));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  // ⚠️ TRANSCRIRE N'EST PAS ANALYSER. Cet appel rend une lecture d'images A REVOIR ; rien
+  // n'est calcule tant que l'humain n'a pas confronte les montants au texte imprime et
+  // appuye sur « utiliser cette transcription ».
+  async function onReadScan() {
+    if (!scanFile) return;
+    setError(null); setBusy('scan'); setScan(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', scanFile);
+      const res = await fetch(`${API_URL}/api/icplus/read-scan`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: fd,
+      });
+      const d = await res.json();
+      if (!d.ok) {
+        setError(t(`icplus.scanErr.${d.reason}`, { defaultValue: t('icplus.scanError') as string }) as string);
+        return;
+      }
+      setScan(d as ScanRead);
+    } catch {
+      setError(t('icplus.scanError') as string);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  // La transcription retenue rejoint le CHEMIN NORMAL : le meme /import que la saisie a la
+  // main, donc la meme validation et les memes garde-fous.
+  async function useScan() {
+    if (!scan) return;
+    setError(null); setBusy('import');
+    try {
+      const res = await fetch(`${API_URL}/api/icplus/import`, {
+        method: 'POST', headers: authHeaders(),
+        // ⚠️ Sérialisée et postée en TEXTE, comme un collage humain : la transcription
+        // emprunte littéralement le même chemin que la saisie à la main, pas une entrée
+        // parallèle qui pourrait en diverger.
+        body: JSON.stringify({ text: JSON.stringify(scan.payload), lang, salesperson }),
+      });
+      applyResponse(await res.json());
+      setScan(null); setScanFile(null);
+    } catch {
+      setError(t('icplus.parseError') as string);
     } finally {
       setBusy(null);
     }
@@ -225,6 +295,103 @@ export default function RateCalculator() {
           <input ref={fileRef} type="file" accept="application/pdf" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ''; }} />
         </div>
+
+        {/* Un PDF numérisé : proposer la transcription plutôt que de renvoyer à la saisie. */}
+        {scanFile && !scan && config?.canReadScan && (
+          <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-stroke pt-4 dark:border-strokedark">
+            <button onClick={onReadScan} disabled={!!busy}
+              className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+              {busy === 'scan' ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanLine className="h-4 w-4" />}
+              {busy === 'scan' ? t('icplus.scanReading') : t('icplus.scanRead')}
+            </button>
+            <span className="text-xs text-body dark:text-bodydark">{t('icplus.scanReadHelp')}</span>
+          </div>
+        )}
+
+        {/* Revue de la transcription. Rien n'est calculé tant que l'humain n'a pas tranché. */}
+        {scan && (
+          <div className="mt-4 rounded-sm border border-primary bg-primary/5 p-4">
+            <h4 className="mb-1 font-medium text-black dark:text-white">
+              {t('icplus.scanTitle', {
+                processor: scan.processorName || t('icplus.scanUnknownProcessor'),
+                period: scan.period || '—',
+              })}
+            </h4>
+
+            {/* ⚠️ L'avertissement central, écrit sur la page : une lecture d'images se trompe. */}
+            <div className="mb-3 flex gap-2 rounded-sm border border-warning bg-warning/10 p-3 text-sm">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+              <p className="text-black dark:text-white">{t('icplus.scanWarning')}</p>
+            </div>
+
+            {/* La réconciliation contre le total que le relevé imprime LUI-MÊME : le seul
+                contrôle capable d'attraper une transcription globalement décalée. */}
+            {scan.reconcile.available ? (
+              <p className={`mb-3 text-sm ${scan.reconcile.ok ? 'text-success' : 'text-danger'}`}>
+                {scan.reconcile.ok
+                  ? t('icplus.scanReconciled', { printed: scan.reconcile.printed })
+                  : t('icplus.scanReconcileGap', {
+                    printed: scan.reconcile.printed, computed: scan.reconcile.computed, gap: scan.reconcile.gap,
+                  })}
+              </p>
+            ) : (
+              <p className="mb-3 text-sm text-warning">{t('icplus.scanNoTotal')}</p>
+            )}
+
+            {scan.flags.length > 0 && (
+              <ul className="mb-3 list-inside list-disc text-sm text-warning">
+                {scan.flags.map((f, i) => (
+                  <li key={i}>{t(`icplus.scanFlag.${f.code}`, { defaultValue: f.code, ...f })}</li>
+                ))}
+              </ul>
+            )}
+
+            {scan.caveats.length > 0 && (
+              <ul className="mb-3 list-inside list-disc text-sm text-body dark:text-bodydark">
+                {scan.caveats.map((c, i) => <li key={i}>{c}</li>)}
+              </ul>
+            )}
+
+            {/* Chaque montant lu, avec le texte imprimé en regard — pour vérifier sans
+                rouvrir le PDF. C'est ce qui rend la revue faisable en pratique. */}
+            {scan.readings.length > 0 && (
+              <details className="mb-3 rounded-sm border border-stroke bg-white p-3 text-xs dark:border-strokedark dark:bg-boxdark">
+                <summary className="cursor-pointer font-medium text-black dark:text-white">
+                  {t('icplus.scanReadings', { n: scan.readings.length })}
+                </summary>
+                <table className="mt-2 w-full">
+                  <tbody>
+                    {scan.readings.map((r, i) => (
+                      <tr key={i} className="border-b border-stroke dark:border-strokedark">
+                        <td className="py-1 pr-3 font-mono text-body">{r.field}</td>
+                        <td className="py-1 pr-3 text-black dark:text-white">{r.printed_as}</td>
+                        <td className="py-1 pr-3 text-body">p.{r.page}</td>
+                        <td className={`py-1 ${r.confidence === 'low' ? 'text-danger' : r.confidence === 'medium' ? 'text-warning' : 'text-success'}`}>
+                          {t(`icplus.confidence.${r.confidence}`, { defaultValue: r.confidence })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </details>
+            )}
+
+            <div className="flex flex-wrap gap-3">
+              <button onClick={useScan} disabled={!!busy}
+                className="rounded bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+                {busy === 'import' ? '…' : t('icplus.scanUse')}
+              </button>
+              <button onClick={() => { setScan(null); setShowPaste(true); }}
+                className="rounded border border-stroke px-4 py-2 text-sm text-black dark:border-strokedark dark:text-white">
+                {t('icplus.scanEditByHand')}
+              </button>
+              <button onClick={() => { setScan(null); setScanFile(null); }}
+                className="rounded border border-stroke px-4 py-2 text-sm text-black dark:border-strokedark dark:text-white">
+                {t('icplus.scanDiscard')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {showPaste && (
           <div className="mt-4 border-t border-stroke pt-4 dark:border-strokedark">

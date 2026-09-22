@@ -5114,7 +5114,7 @@
     "loadError": "Impossible de charger le calculateur.",
     "parseError": "La lecture du relevé a échoué.",
     "unreadable": "Ce relevé n'a pas pu être lu.",
-    "scannedPdf": "Ce PDF ne contient pas de texte : c'est probablement une numérisation. Utilisez la saisie JSON ci-dessous.",
+    "scannedPdf": "Ce PDF ne contient pas de texte : c’est probablement une numérisation. Utilisez la saisie JSON ci-dessous.",
     "pdfError": "La génération du PDF a échoué.",
     "brand": {
       "debit": "Débit Interac",
@@ -5147,6 +5147,44 @@
       "fixed": "Frais fixes",
       "terminalWireless": "Terminal sans fil",
       "terminalWired": "Terminal filaire"
+    },
+    "scannedPdfCanRead": "Ce PDF ne contient pas de texte : c’est probablement une numérisation. Aucun analyseur ne peut le lire, mais l’IA peut en transcrire les pages pour que vous les revoyiez.",
+    "scanRead": "Lire le relevé numérisé",
+    "scanReading": "Lecture des pages…",
+    "scanReadHelp": "L’IA lit les images des pages et propose une transcription. Rien n’est calculé tant que vous ne l’acceptez pas.",
+    "scanTitle": "Transcription — {{processor}}, {{period}}",
+    "scanUnknownProcessor": "processeur non identifié",
+    "scanWarning": "Ceci est une TRANSCRIPTION, pas une analyse. Une lecture d’image se trompe — un 8 pour un 3, une colonne sautée. Confrontez les montants au texte imprimé ci-dessous avant de mettre quoi que ce soit devant un marchand.",
+    "scanReconciled": "Réconcilie avec le total que le relevé imprime lui-même ({{printed}}).",
+    "scanReconcileGap": "NE RÉCONCILIE PAS : le relevé imprime {{printed}}, la transcription totalise {{computed}} — soit {{gap}} d’écart. Quelque chose a été mal lu ; vérifiez avant de l’utiliser.",
+    "scanNoTotal": "Le relevé n’imprime aucun total de frais : la transcription ne peut pas y être confrontée. Revoyez chaque montant.",
+    "scanReadings": "Ce qui a été lu, avec le texte imprimé ({{n}})",
+    "scanUse": "Utiliser cette transcription",
+    "scanEditByHand": "La corriger à la main",
+    "scanDiscard": "Abandonner",
+    "scanError": "Lecture du relevé numérisé impossible.",
+    "scanErr": {
+      "ai_not_configured": "L’IA n’est pas configurée sur ce serveur.",
+      "no_file": "Aucun fichier reçu.",
+      "not_a_pdf": "Ce n’est pas un PDF.",
+      "too_large": "Ce PDF est trop volumineux pour être lu.",
+      "refused": "L’IA a refusé de lire ce document.",
+      "unparseable": "L’IA a répondu quelque chose d’inexploitable.",
+      "ai_error": "L’appel à l’IA a échoué.",
+      "error": "Lecture du relevé numérisé impossible."
+    },
+    "scanFlag": {
+      "notAStatement": "Ce document ne ressemble pas à un relevé de marchand ({{kind}}) — vérifiez le fichier déposé.",
+      "noVolumeRead": "AUCUN volume n’a pu être lu. La numérisation est probablement trop pâle ; une transcription sur des chiffres vides ne vaut rien.",
+      "rateLooksLikePercent": "{{field}} est ressorti à {{value}} : cela ressemble à un pourcentage jamais divisé par 100.",
+      "feeLooksWrong": "{{field}} est ressorti à {{value}} par transaction, ce qui est invraisemblable.",
+      "lowConfidenceReadings": "{{n}} montant(s) lus avec une confiance faible — à vérifier en premier.",
+      "reconcileMismatch": "La transcription ne retombe pas sur le total du relevé (écart de {{gap}})."
+    },
+    "confidence": {
+      "high": "net",
+      "medium": "moyen",
+      "low": "incertain"
     }
   },
   "icplusRates": {

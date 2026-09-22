@@ -5147,6 +5147,44 @@
       "fixed": "Fixed fees",
       "terminalWireless": "Wireless terminal",
       "terminalWired": "Wired terminal"
+    },
+    "scannedPdfCanRead": "This PDF carries no text — it is most likely a scan. No parser can read it, but the AI can transcribe the pages for you to review.",
+    "scanRead": "Read the scanned statement",
+    "scanReading": "Reading the pages…",
+    "scanReadHelp": "The AI reads the page images and proposes a transcription. Nothing is calculated until you accept it.",
+    "scanTitle": "Transcription — {{processor}}, {{period}}",
+    "scanUnknownProcessor": "processor not identified",
+    "scanWarning": "This is a TRANSCRIPTION, not an analysis. Reading an image gets things wrong — an 8 for a 3, a skipped column. Check the amounts against the printed text below before you put anything in front of a merchant.",
+    "scanReconciled": "Reconciles with the total the statement prints itself ({{printed}}).",
+    "scanReconcileGap": "DOES NOT reconcile: the statement prints {{printed}}, the transcription adds up to {{computed}} — a gap of {{gap}}. Something was misread; check before using this.",
+    "scanNoTotal": "The statement prints no fee total, so the transcription cannot be checked against it. Review every amount.",
+    "scanReadings": "What was read, with the printed text ({{n}})",
+    "scanUse": "Use this transcription",
+    "scanEditByHand": "Correct it by hand",
+    "scanDiscard": "Discard",
+    "scanError": "Could not read the scanned statement.",
+    "scanErr": {
+      "ai_not_configured": "The AI is not configured on this server.",
+      "no_file": "No file received.",
+      "not_a_pdf": "This is not a PDF.",
+      "too_large": "This PDF is too large to be read.",
+      "refused": "The AI declined to read this document.",
+      "unparseable": "The AI answered with something unusable.",
+      "ai_error": "The AI call failed.",
+      "error": "Could not read the scanned statement."
+    },
+    "scanFlag": {
+      "notAStatement": "This does not look like a merchant statement ({{kind}}) — check you uploaded the right file.",
+      "noVolumeRead": "NO volume could be read. The scan is most likely too faint; a transcription on empty figures is worthless.",
+      "rateLooksLikePercent": "{{field}} came back as {{value}} — that looks like a percentage that was never divided by 100.",
+      "feeLooksWrong": "{{field}} came back as {{value}} per transaction, which is implausibly large.",
+      "lowConfidenceReadings": "{{n}} amount(s) were read with low confidence — check those first.",
+      "reconcileMismatch": "The transcription does not add up to the statement's own total (gap of {{gap}})."
+    },
+    "confidence": {
+      "high": "clear",
+      "medium": "fair",
+      "low": "uncertain"
     }
   },
   "icplusRates": {
