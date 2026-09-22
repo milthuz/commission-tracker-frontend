@@ -54,7 +54,10 @@ function NumField({ label, value, onChange, unit, decimals = 0, locale, highligh
         <span>{label}</span>
         {highlight && <span className="text-[10px] font-semibold uppercase tracking-wide text-[#FE6523]">{highlight}</span>}
       </span>
-      <div className="relative">
+      {/* L'unité est un SUFFIXE dans le flux, pas une étiquette posée par-dessus le champ : une
+          marge fixe (pr-12) laissait « months » ou « $/mois » chevaucher le chiffre. Ici le
+          champ rétrécit de la largeur réelle de l'unité, quelle que soit la langue. */}
+      <div className="flex items-center rounded border border-stroke transition focus-within:border-[#FE6523] focus-within:ring-2 focus-within:ring-[#FE6523]/15 dark:border-strokedark dark:bg-form-input">
         <input
           type="text" inputMode="decimal" value={draft}
           onFocus={() => setFocused(true)}
@@ -64,9 +67,9 @@ function NumField({ label, value, onChange, unit, decimals = 0, locale, highligh
             const n = parseNum(e.target.value);
             if (n !== null && n >= 0) onChange(n);
           }}
-          className={`${INPUT_CLS} ${unit ? 'pr-12' : ''} text-right tabular-nums`}
+          className="min-w-0 flex-1 bg-transparent px-2.5 py-1.5 text-right text-sm tabular-nums text-black outline-none dark:text-white"
         />
-        {unit && <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-body">{unit}</span>}
+        {unit && <span className="shrink-0 whitespace-nowrap pr-2.5 text-xs text-body dark:text-bodydark">{unit}</span>}
       </div>
     </label>
   );
