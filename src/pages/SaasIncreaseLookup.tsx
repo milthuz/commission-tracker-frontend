@@ -81,6 +81,11 @@ export default function SaasIncreaseLookup() {
   const { t, i18n } = useTranslation();
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[] | null>(null);
+  // Quelle fiche l'agent a ouverte. La page affichait une fiche COMPLETE — prix, frais, statut
+  // de paiement, courriel recu, bouton d'opportunite — pour chacun des cinquante marchands de
+  // la liste d'ouverture. Cinquante fiches pour une ligne consultee : la page etait lourde a
+  // charger et illisible a parcourir.
+  const [ouvert, setOuvert] = useState<string | null>(null);
   // Cet ecran s'ouvrait sur une page VIDE : il fallait deviner quoi taper pour voir quoi que ce
   // soit. Il s'ouvre desormais sur la LISTE des marchands, et la recherche ne fait que la
   // reduire. `total` dit combien il y en a, pour que « 50 affiches » ne se lise pas « 50 en tout ».
@@ -145,6 +150,11 @@ export default function SaasIncreaseLookup() {
   // un appel Zoho : seulement les marchands SANS paiement chez nous — les autres n'ont rien a
   // economiser — et seulement quand la recherche a converge sur peu de resultats. Au-dela, le
   // bouton reste disponible fiche par fiche.
+  // Une recherche qui a converge sur deux ou trois marchands, c'est l'agent au telephone : il
+  // veut tout, tout de suite. Une liste de cinquante, c'est quelqu'un qui cherche — il veut
+  // d'abord trouver. Meme seuil d'esprit que AUTO_MAX plus bas, qui borne les appels Zoho.
+  const DETAIL_MAX = 3;
+
   const AUTO_MAX = 5;
   useEffect(() => {
     if (!hits || hits.length === 0 || hits.length > AUTO_MAX) return;
@@ -177,7 +187,7 @@ export default function SaasIncreaseLookup() {
   };
 
   const search = async (term: string, offset = 0) => {
-    if (offset === 0) setLoading(true); else setSuite(true);
+    if (offset === 0) { setLoading(true); setOuvert(null); } else setSuite(true);
     setError(null);
     try {
       const mot = term.trim();
@@ -233,6 +243,26 @@ export default function SaasIncreaseLookup() {
     );
   };
 
+  // Version courte du badge, pour la liste : un agent qui parcourt veut la couleur et le mot,
+  // pas la date. La date est dans la fiche, qui est a un clic.
+  const pastilleCourte = (h: Hit) => {
+    const base = 'whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium';
+    if (h.priceFrozen || h.excluded) {
+      return <span className={`${base} bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-400`}>
+        {t(h.priceFrozen ? 'csLookup.shortFrozen' : 'csLookup.shortExcluded')}</span>;
+    }
+    if (h.notifyStatus === 'sent') {
+      return <span className={`${base} bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400`}>
+        {t('csLookup.shortSent')}</span>;
+    }
+    if (h.notifyStatus === 'send_failed') {
+      return <span className={`${base} bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400`}>
+        {t('csLookup.shortFailed')}</span>;
+    }
+    return <span className={`${base} bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400`}>
+      {t('csLookup.shortNotSent')}</span>;
+  };
+
   return (
     <div className="font-satoshi">
       <div className="mb-6">
@@ -272,7 +302,29 @@ export default function SaasIncreaseLookup() {
         </div>
       )}
 
-      {hits?.map((h) => (
+      {hits?.map((h) => (!(hits.length <= DETAIL_MAX || ouvert === h.subscriptionNumber) ? (
+        <button
+          key={h.id}
+          type="button"
+          onClick={() => setOuvert(h.subscriptionNumber)}
+          className={`${card} mb-2 flex w-full items-center gap-3 px-4 py-3 text-left transition hover:border-primary/50`}
+        >
+          <div className="min-w-0 flex-1">
+            <div className={`truncate text-sm font-medium ${textPri}`}>{h.customerName}</div>
+            <div className={`mt-0.5 truncate font-mono text-[11px] ${textQuat}`}>
+              {h.subscriptionNumber} &middot; {h.orgName}
+            </div>
+          </div>
+          {/* Le prix disparait sur une ligne gelee ou hors campagne : il n'aura pas lieu. */}
+          <div className={`hidden shrink-0 text-right text-xs tabular-nums sm:block ${textTer}`}>
+            {(h.priceFrozen || h.excluded)
+              ? money(h.currentPrice)
+              : `${money(h.currentPrice)} \u2192 ${money(h.newPrice)}`}
+          </div>
+          {pastilleCourte(h)}
+          <ChevronDown className={`h-4 w-4 shrink-0 ${textQuat}`} />
+        </button>
+      ) : (
         <div key={h.id} className={`${card} mb-3 p-5`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
@@ -549,7 +601,7 @@ export default function SaasIncreaseLookup() {
             </>
           )}
         </div>
-      ))}
+      )))}
 
       {hits && hits.length < total && (
         <div className="mb-6 flex justify-center">
