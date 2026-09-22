@@ -26,6 +26,10 @@ interface Hit {
   effectiveDate: string | null;
   pushStatus: string;
   pushedAt: string | null;
+  // La case cochee dans Zoho, et l'etat de la ligne dans la campagne. Les deux peuvent differer
+  // le temps d'un passage du pilote : la case fait foi, c'est l'engagement pris au marchand.
+  priceFrozen?: boolean;
+  excluded?: boolean;
   notifyStatus: string;
   notifyTo: string | null;
   notifiedAt: string | null;
@@ -280,6 +284,17 @@ export default function SaasIncreaseLookup() {
             {noticeBadge(h)}
           </div>
 
+          {(h.priceFrozen || h.excluded) && (
+            <div className="mt-3 rounded-lg border border-teal-300 bg-teal-50 px-3.5 py-2.5 dark:border-teal-800 dark:bg-teal-950/40">
+              <div className="text-[13px] font-semibold text-teal-900 dark:text-teal-300">
+                {t(h.priceFrozen ? 'csLookup.frozenTitle' : 'csLookup.excludedTitle')}
+              </div>
+              <p className="mt-0.5 max-w-[70ch] text-[12px] leading-relaxed text-teal-800 dark:text-teal-400">
+                {t(h.priceFrozen ? 'csLookup.frozenHint' : 'csLookup.excludedHint')}
+              </p>
+            </div>
+          )}
+
           {/* Le prix « avec le paiement Cluster » prend sa place dans la ligne des prix,
               a cote du nouveau prix : c'est un PRIX, l'agent le lit la ou il lit les autres,
               pas dans un encadre plus bas. Il n'apparait que quand les frais sont connus et
@@ -292,7 +307,11 @@ export default function SaasIncreaseLookup() {
             const cases = [
               { label: t('csLookup.plan'), value: h.planName || '—' },
               { label: t('csLookup.currentPrice'), value: money(h.currentPrice) },
-              { label: t('csLookup.newPrice'), value: money(h.newPrice), strong: true },
+              // Afficher un « nouveau prix » sur une ligne gelee, c'est tendre a l'agent le
+              // chiffre exact qu'il ne doit pas annoncer. On met un tiret, le bandeau explique.
+              { label: t('csLookup.newPrice'),
+                value: (h.priceFrozen || h.excluded) ? '—' : money(h.newPrice),
+                strong: !(h.priceFrozen || h.excluded) },
               ...(avecPrix ? [{
                 label: t('csLookup.pay.withPriceLabel'),
                 value: money(wp!.periodPrice), pay: true,

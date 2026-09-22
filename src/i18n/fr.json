@@ -4885,6 +4885,10 @@
       "opportunity": "Occasion de vente : aucun compte de paiement trouvé",
       "notFoundHint": "rapprochement par nom, à confirmer avant de proposer"
     },
+    "excludedHint": "Cette ligne a été retirée de la campagne. Le prix actuel est maintenu. La raison est inscrite sur la ligne dans le panneau d’administration.",
+    "excludedTitle": "Retiré de la campagne — aucune hausse pour ce marchand",
+    "frozenHint": "La case « Prix gelé » est cochée dans Zoho Billing pour cet abonnement. Le prix actuel est maintenu et la hausse ne sera pas appliquée. Si le marchand a reçu un avis avant le gel, confirmez-lui que cet avis ne s’applique plus.",
+    "frozenTitle": "Prix gelé — aucune hausse pour ce marchand",
     "noResultsHint": "La raison la plus fréquente n'est pas une faute de frappe : ce marchand n'a simplement pas eu de hausse. Ne t'excuse pas pour une augmentation qui n'existe pas — confirme-lui que son prix est inchangé. Si tu crois qu'il devrait y être, escalade au lieu de deviner.",
     "plan": "Forfait",
     "currentPrice": "Prix actuel",

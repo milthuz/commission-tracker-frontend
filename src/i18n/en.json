@@ -4885,6 +4885,10 @@
       "opportunity": "Sales opportunity: no payments account found",
       "notFoundHint": "matched by name, confirm before pitching"
     },
+    "excludedHint": "This line was removed from the campaign. The current price stands. The reason is recorded on the row in the admin panel.",
+    "excludedTitle": "Removed from the campaign — no increase for this merchant",
+    "frozenHint": "The \"Price frozen\" box is checked in Zoho Billing for this subscription. The current price stands and the increase will not be applied. If the merchant received a notice before the freeze, confirm it no longer applies.",
+    "frozenTitle": "Price frozen — no increase for this merchant",
     "noResultsHint": "The most common reason is not a typo: this merchant simply had no increase. Do not apologise for an increase that does not exist — confirm their price is unchanged. If you believe they should be here, escalate rather than guess.",
     "plan": "Plan",
     "currentPrice": "Current price",
