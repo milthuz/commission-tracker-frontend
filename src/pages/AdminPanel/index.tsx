@@ -23,6 +23,7 @@ import PricingAdmin from './PricingAdmin';
 import IcplusRatesAdmin from './IcplusRatesAdmin';
 import PartnersAdmin from './PartnersAdmin';
 import LeadsAdmin from './LeadsAdmin';
+import HrAdmin from './HrAdmin';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -133,6 +134,7 @@ const AdminPanel = () => {
   const canAccessTab = (tab: string) => isAdmin
     || (tab === 'partners' && can('partners:manage'))
     || (tab === 'leads' && can('leads:manage_rules'))
+    || (tab === 'hr' && can('hr:manage'))
     || (tab === 'icplus-rates' && can('icplus:rates'));
 
   // Handle redirect back from CRM OAuth
@@ -1642,6 +1644,7 @@ const AdminPanel = () => {
              activeTab === 'pricing' ? t('admin.pricing.title') :
              activeTab === 'partners' ? t('admin.partners.title') :
              activeTab === 'leads' ? t('admin.leads.title') :
+             activeTab === 'hr' ? t('admin.hr.title') :
              t('admin.title')}
           </h2>
           <p className="text-sm text-body">
@@ -1663,6 +1666,7 @@ const AdminPanel = () => {
              activeTab === 'pricing' ? t('admin.pricing.subtitle') :
              activeTab === 'partners' ? t('admin.partners.subtitle') :
              activeTab === 'leads' ? t('admin.leads.subtitle') :
+             activeTab === 'hr' ? t('admin.hr.subtitle') :
              t('admin.title')}
           </p>
         </div>
@@ -3733,6 +3737,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'pricing' && <PricingAdmin />}
           {activeTab === 'icplus-rates' && <IcplusRatesAdmin />}
           {activeTab === 'leads' && <LeadsAdmin />}
+          {activeTab === 'hr' && <HrAdmin />}
           {activeTab === 'partners' && <PartnersAdmin canDelete={isAdmin || can('partners:delete')} canMigrate={isAdmin || can('partners:migrate')} canStats={isAdmin || can('partners:stats')} canExportUsers={isAdmin || can('partners:export_users')} canCreateOpportunity={isAdmin || can('partners:create_opportunity')} />}
           {activeTab === 'merchant-links' && <MerchantSaasLinks />}
           {activeTab === 'notifications' && <NotificationsAdmin />}

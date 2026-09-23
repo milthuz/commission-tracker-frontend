@@ -12,7 +12,7 @@ const INPUT =
 
 const ManagersEditor = ({ initial, onClose, onSaved }: {
   initial: Manager[];
-  onClose: () => void;
+  onClose?: () => void;
   onSaved: (list: Manager[]) => void;
 }) => {
   const { t } = useTranslation();
@@ -39,7 +39,7 @@ const ManagersEditor = ({ initial, onClose, onSaved }: {
   };
 
   return (
-    <div className="mb-5 rounded-sm border border-primary/40 bg-white p-5 shadow-default dark:border-primary/40 dark:bg-boxdark sm:p-6">
+    <div className="mb-5 rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:p-6">
       <h3 className="font-semibold text-black dark:text-white">{t('hr.managers.title')}</h3>
       <p className="mb-4 mt-1 text-sm text-bodydark2">{t('hr.managers.hint')}</p>
 
@@ -62,9 +62,9 @@ const ManagersEditor = ({ initial, onClose, onSaved }: {
 
       {error && <p className="mt-3 text-sm text-danger">{error}</p>}
       <div className="mt-4 flex flex-wrap justify-end gap-2">
-        <button type="button" onClick={onClose} className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+        {onClose && <button type="button" onClick={onClose} className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
           {t('common.cancel')}
-        </button>
+        </button>}
         <button type="button" onClick={save} disabled={saving} className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
           {saving ? t('common.saving') : t('common.save')}
         </button>

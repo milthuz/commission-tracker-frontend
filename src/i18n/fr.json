@@ -416,7 +416,8 @@
     "rateCalculator": "Calculateur IC+",
     "revenueModeler": "Modélisateur de revenus",
     "icplusRates": "Taux de référence IC+",
-    "hr": "Embauches (RH)"
+    "hr": "Embauches (RH)",
+    "hrAdmin": "RH"
   },
   "tour": {
     "skip": "Passer",
@@ -3795,6 +3796,10 @@
         "secretSet": "Le secret partagé est configuré ({{name}}).",
         "secretMissing": "Aucun secret partagé n'est configuré — l'adresse refusera toutes les soumissions. Définissez LEAD_WEBHOOK_SECRET côté serveur."
       }
+    },
+    "hr": {
+      "title": "RH",
+      "subtitle": "Réglages de la section Embauches : les gestionnaires proposés dans « Relève de » et « Superviseur »."
     }
   },
   "header": {
@@ -5619,8 +5624,8 @@
       "pickManager": "Choisir un gestionnaire…",
       "otherManager": "Autre (saisir un nom)",
       "reportsToNameOther": "Nom complet",
-      "titlesFromList": "Titre tiré de la liste des gestionnaires (bouton « Gestionnaires » de la page Embauches).",
-      "titleMissing": "Ce gestionnaire n’a pas encore de titre dans la liste — saisissez-le ici, ou ajoutez-le une fois dans « Gestionnaires » pour qu’il se remplisse tout seul.",
+      "titlesFromList": "Titre tiré de la liste des gestionnaires (Admin → RH).",
+      "titleMissing": "Ce gestionnaire n’a pas encore de titre dans la liste — saisissez-le ici, ou ajoutez-le une fois dans Admin → RH pour qu’il se remplisse tout seul.",
       "sameAsManager": "Même personne que « Relève de »"
     },
     "detail": {
@@ -5692,7 +5697,6 @@
       "annualTiers": "Primes annuelles (points → prime)"
     },
     "managers": {
-      "button": "Gestionnaires",
       "title": "Gestionnaires (« Relève de »)",
       "hint": "Les personnes proposées dans les listes « Relève de » et « Superviseur », avec leur titre en français et en anglais. Le titre se remplit tout seul dans l’offre d’emploi.",
       "name": "Nom complet",
@@ -5701,7 +5705,9 @@
       "titleFrPh": "ex. Directeur des ventes",
       "titleEnPh": "ex. Sales Director",
       "add": "Ajouter un gestionnaire",
-      "saveFailed": "L’enregistrement a échoué :"
+      "saveFailed": "L’enregistrement a échoué :",
+      "saved": "Liste des gestionnaires enregistrée.",
+      "settingsLink": "Réglages RH (gestionnaires) →"
     }
   },
   "sign": {

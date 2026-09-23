@@ -416,7 +416,8 @@
     "rateCalculator": "IC+ Calculator",
     "revenueModeler": "Revenue Modeler",
     "icplusRates": "IC+ reference rates",
-    "hr": "Hiring (HR)"
+    "hr": "Hiring (HR)",
+    "hrAdmin": "HR"
   },
   "tour": {
     "skip": "Skip",
@@ -3795,6 +3796,10 @@
         "secretSet": "Shared secret is set ({{name}}).",
         "secretMissing": "No shared secret is set — the endpoint will refuse every submission. Set LEAD_WEBHOOK_SECRET on the backend."
       }
+    },
+    "hr": {
+      "title": "HR",
+      "subtitle": "Settings for the Hiring section: the managers offered in “Reports to” and “Supervisor”."
     }
   },
   "header": {
@@ -5619,8 +5624,8 @@
       "pickManager": "Choose a manager…",
       "otherManager": "Other (type a name)",
       "reportsToNameOther": "Full name",
-      "titlesFromList": "Title taken from the managers list (button “Managers” on the Hiring page).",
-      "titleMissing": "This manager has no title in the list yet — type it here, or add it once in “Managers” so it fills in automatically.",
+      "titlesFromList": "Title taken from the managers list (Admin → HR).",
+      "titleMissing": "This manager has no title in the list yet — type it here, or add it once in Admin → HR so it fills in automatically.",
       "sameAsManager": "Same as “Reports to”"
     },
     "detail": {
@@ -5692,7 +5697,6 @@
       "annualTiers": "Annual bonuses (points → bonus)"
     },
     "managers": {
-      "button": "Managers",
       "title": "Managers (“Reports to”)",
       "hint": "The people offered in the “Reports to” and “Supervisor” lists, with their title in French and English. The title fills itself in the offer of employment.",
       "name": "Full name",
@@ -5701,7 +5705,9 @@
       "titleFrPh": "e.g. Directeur des ventes",
       "titleEnPh": "e.g. Sales Director",
       "add": "Add a manager",
-      "saveFailed": "Save failed:"
+      "saveFailed": "Save failed:",
+      "saved": "Managers list saved.",
+      "settingsLink": "HR settings (managers) →"
     }
   },
   "sign": {
