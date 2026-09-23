@@ -284,6 +284,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
                 [t('hr.form.includeCar'), Number(d.terms.carAllowance) > 0 ? `${money(d.terms.carAllowance)} / ${t('hr.form.perYear')}` : t('hr.form.notIncluded')],
                 [t('hr.form.includePhone'), Number(d.terms.phoneAllowance) > 0 ? `${money(d.terms.phoneAllowance)} / ${t('hr.form.perMonth')}` : t('hr.form.notIncluded')],
                 [t('hr.form.vacationWeeks'), String(d.terms.vacationWeeks)],
+                [t('hr.form.noticeWeeks'), String(d.terms.noticeWeeks ?? (d.status === 'draft' ? 2 : 4))],
                 [t('hr.plan.monthlyQuota'), `${d.plan.monthlyQuota} pts`],
                 [t('hr.plan.hardwareRate'), `${d.plan.hardwareRate} % / ${d.plan.hardwareReducedRate} %`],
                 [t('hr.plan.monthlyTiers'), [...d.plan.monthlyTiers].sort((a, b) => a.points - b.points).map((x) => `${x.points} → ${money(x.bonus)}`).join(' · ')],

@@ -5639,7 +5639,8 @@
       "employer": "Employer",
       "employerHint": "The company named in the contracts, the signing page and the emails (Admin → HR to add one).",
       "includeFrReference": "Also give the French versions to the candidate",
-      "frReferenceOff": "Only the English documents will be sent. Make sure the candidate chose English knowingly (Charter of the French Language)."
+      "frReferenceOff": "Only the English documents will be sent. Make sure the candidate chose English knowingly (Charter of the French Language).",
+      "noticeWeeks": "Resignation notice (weeks)"
     },
     "detail": {
       "back": "All hiring files",

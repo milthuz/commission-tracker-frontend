@@ -328,7 +328,7 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
       {/* Conditions de l'offre */}
       <div className={CARD}>
         <h3 className="mb-4 font-semibold text-black dark:text-white">{t('hr.form.compensation')}</h3>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div>
             <label className={LABEL}>{t('hr.form.annualSalary')}<span className="text-danger"> *</span></label>
             <div className="relative">
@@ -342,6 +342,12 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
           <div>
             <label className={LABEL}>{t('hr.form.vacationWeeks')}</label>
             <input type="number" className={INPUT} value={terms.vacationWeeks as any} onChange={(e) => setT('vacationWeeks')(e.target.value === '' ? ('' as any) : Number(e.target.value))} />
+          </div>
+          {/* Préavis de démission (clause 13). Le gabarit disait 4 semaines ; 2 par défaut depuis le
+              2026-09-23 (demande des RH). Écrit en toutes lettres dans le contrat. */}
+          <div>
+            <label className={LABEL}>{t('hr.form.noticeWeeks')}</label>
+            <input type="number" min={1} max={12} className={INPUT + ring('terms.noticeWeeks')} value={(terms.noticeWeeks ?? 2) as any} onChange={(e) => setT('noticeWeeks')(e.target.value === '' ? ('' as any) : Number(e.target.value))} />
           </div>
         </div>
         <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-black dark:text-white">

@@ -5639,7 +5639,8 @@
       "employer": "Employeur",
       "employerHint": "L’entreprise nommée dans les contrats, la page de signature et les courriels (Admin → RH pour en ajouter).",
       "includeFrReference": "Remettre aussi les versions françaises au candidat",
-      "frReferenceOff": "Seuls les documents anglais partiront. Assurez-vous que le candidat a choisi l’anglais en connaissance de cause (Charte de la langue française)."
+      "frReferenceOff": "Seuls les documents anglais partiront. Assurez-vous que le candidat a choisi l’anglais en connaissance de cause (Charte de la langue française).",
+      "noticeWeeks": "Préavis de démission (semaines)"
     },
     "detail": {
       "back": "Tous les dossiers d'embauche",

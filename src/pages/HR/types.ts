@@ -27,6 +27,7 @@ export interface Terms {
   carAllowance: number;
   phoneAllowance: number;
   vacationWeeks: number;
+  noticeWeeks?: number;
   commissionEligible: boolean;
 }
 
