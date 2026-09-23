@@ -72,6 +72,8 @@ const AdminPanel = lazyRoute(() => import('./pages/AdminPanel'));
 const Reseller = lazyRoute(() => import('./pages/Reseller'));
 const Support = lazyRoute(() => import('./pages/Support'));
 const Leads = lazyRoute(() => import('./pages/Leads'));
+const HR = lazyRoute(() => import('./pages/HR'));
+const SignOffer = lazyRoute(() => import('./pages/Sign'));
 const Revenue = lazyRoute(() => import('./pages/Revenue'));
 const Resources = lazyRoute(() => import('./pages/Resources'));
 const KaizenDemo = lazyRoute(() => import('./pages/KaizenDemo'));
@@ -184,6 +186,8 @@ function AppContent() {
           </>
         }
       />
+      {/* Signature d'une offre d'emploi par le candidat — PUBLIQUE, marque Cluster (voir pages/Sign). */}
+      <Route path="/sign" element={<SignOffer />} />
       <Route
         path="/reset-password"
         element={
@@ -418,6 +422,15 @@ function AppContent() {
           />
           {/* Gestion des pistes (SH-20) — la couche d'accueil AVANT Zoho CRM. La portée est
               filtrée côté serveur : un représentant n'y voit que ses propres pistes. */}
+          <Route
+            path="/hr"
+            element={
+              <>
+                <PageTitle title="RH | Sales Hub" />
+                <HR />
+              </>
+            }
+          />
           <Route
             path="/leads"
             element={

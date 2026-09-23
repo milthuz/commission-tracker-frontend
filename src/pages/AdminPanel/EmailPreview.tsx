@@ -20,6 +20,8 @@ const TEMPLATE_TYPES = [
   // UNILINGUE, dans la langue de la piste, et porte la marque Cluster — un prospect n'a jamais
   // entendu parler de Sales Hub.
   'lead_review', 'lead_assigned', 'lead_welcome', 'partner_lead_assigned',
+  // RH. `hr_sign_request` et `hr_completed` partent au CANDIDAT, marque Cluster, unilingues.
+  'hr_sign_request', 'hr_countersign', 'hr_completed', 'hr_declined',
 ] as const;
 type TemplateType = (typeof TEMPLATE_TYPES)[number];
 

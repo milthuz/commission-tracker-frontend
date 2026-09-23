@@ -341,6 +341,14 @@ export default function NotificationsAdmin() {
         endpoint={`${API_URL}/api/admin/pass/credit-recipients`}
         users={users} />
 
+      {/* RH : le candidat a signé (contresignature à faire), a refusé, ou le dossier est complet.
+          Le créateur de la fiche est toujours avisé, en plus de cette liste. */}
+      <RecipientListCard icon="✍️"
+        title={t('admin.notifications.hrTitle')}
+        hint={t('admin.notifications.hrHint')}
+        endpoint={`${API_URL}/api/admin/hr-recipients`}
+        users={users} />
+
       {/* Email templates: preview every transactional email and send yourself a test copy */}
       <EmailPreview />
 

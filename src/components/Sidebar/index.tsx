@@ -325,6 +325,25 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- RH (perm: hr:view) — embauches, contrats et signatures. Données sensibles
+                   (salaire, adresse) : jamais visible sans la permission explicite. --> */}
+              {(isAdmin || can('hr:view')) && (
+                <li>
+                  <NavLink
+                    to="/hr"
+                    className={navLinkCls(pathname.startsWith('/hr'))}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="9" cy="7" r="3.5" />
+                      <path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" />
+                      <path d="M16 11l2 2 4-4" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.hr')}</span>
+                    <NewBadge path="/hr" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.hr') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Soutien technique (perm: support:view_reports) --> */}
               {(isAdmin || can('support:view_reports')) && (
                 <li>
