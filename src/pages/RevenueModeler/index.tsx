@@ -508,6 +508,7 @@ export default function RevenueModeler() {
             <Section title={t('revenueModeler.sec.networkCosts')}>
               {f('creditCostPct', '%', 3)}
               {f('creditCostPerTxn', '$', 3, t('revenueModeler.newCost') as string)}
+              {f('interacCostPct', '%', 3)}
               {f('interacCostPerTxn', '$', 3)}
             </Section>
             <Section title={t('revenueModeler.sec.terminals')}>
@@ -530,7 +531,6 @@ export default function RevenueModeler() {
               {f('commPayPerLoc', '$', 2)}
               {f('commHwPct', '%', 1)}
               {f('commInstPct', '%', 1)}
-              {f('signupBonus', '$', 2)}
             </Section>
           </div>
 

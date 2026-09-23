@@ -21,6 +21,7 @@ export interface Inputs {
   creditCostPct: number;
   creditCostPerTxn: number;
   interacCostPerTxn: number;
+  interacCostPct: number; // coût réseau Interac en % du volume Interac, comme creditCostPct
   termRentalRev: number;
   termWarrantyCost: number;
   termUnitCost: number;
@@ -31,7 +32,6 @@ export interface Inputs {
   commPayPerLoc: number;
   commHwPct: number;
   commInstPct: number;
-  signupBonus: number; // bonus de signature au vendeur, montant unique pour le deal (0 = aucun)
 }
 
 export type NumKey = Exclude<keyof Inputs, 'merchantName'>;
@@ -53,7 +53,9 @@ export function compute(i: Inputs) {
 
   const revTxnInterac = i.txnInterac * i.txnFeeInterac;
   const costTxnInterac = i.txnInterac * i.interacCostPerTxn;
-  const netInterac = revTxnInterac - costTxnInterac;
+  // `|| 0` : absent d'un scénario enregistré avant le 2026-09-23 = aucun coût en %.
+  const costInteracPct = i.gmvInterac * ((i.interacCostPct || 0) / 100);
+  const netInterac = revTxnInterac - costTxnInterac - costInteracPct;
 
   const rentalRevAnnual = totalTerminals * i.termRentalRev * 12;
   const warrantyCostAnnual = totalTerminals * i.termWarrantyCost * 12;
@@ -77,10 +79,9 @@ export function compute(i: Inputs) {
   const instNet = -instCommission;
 
   const recurring = saasRevenueGross + netCredit + netInterac + netTerminalAnnual;
-  // La commission paiement et le bonus de signature sont versés au VENDEUR à la signature : ils
-  // ne sont rattachés à aucune ligne de produit (surtout pas aux terminaux, sans commission).
-  const signupBonus = i.signupBonus || 0; // absent d'un vieux scénario = aucun bonus
-  const otherCommissions = commissionPayment + signupBonus;
+  // La commission paiement est versée au VENDEUR à la signature : elle n'est rattachée à aucune
+  // ligne de produit (surtout pas aux terminaux, qui ne portent aucune commission).
+  const otherCommissions = commissionPayment;
   const profitYear1 = recurring - commissionSaas - terminalPurchaseCost - otherCommissions + hwNet + instNet;
   const profitYear2 = recurring;
   const profitYear3 = recurring;
@@ -94,7 +95,7 @@ export function compute(i: Inputs) {
     totalTerminals,
     saasRevenueGross, commissionSaas,
     revMarkup, costCreditPct, revTxnCredit, costTxnCredit, netCredit,
-    revTxnInterac, costTxnInterac, netInterac,
+    revTxnInterac, costTxnInterac, costInteracPct, netInterac,
     rentalRevAnnual, warrantyCostAnnual, netTerminalAnnual, terminalPurchaseCost, commissionPayment, paybackMonths,
     hwRevenue, hwCOGS, hwGrossProfit, hwMarginPct, hwCommission, hwNet,
     instRevenue, instCOGS, instCommission, instNet,
@@ -155,6 +156,7 @@ export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number
 
     sec('interac'),
     { kind: 'rev', label: t(p + 'txnFeeInterac', { fee: num(i.txnFeeInterac, 6), n: num(i.txnInterac) }), y: same(m.revTxnInterac) },
+    { kind: 'cost', label: t(p + 'interacCostPct', { rate: num(i.interacCostPct || 0, 6) }), y: same(-m.costInteracPct) },
     { kind: 'cost', label: t(p + 'interacCostTxn', { fee: num(i.interacCostPerTxn, 6) }), y: same(-m.costTxnInterac) },
     { kind: 'subtotal', label: t(p + 'interacNet'), y: same(m.netInterac) },
 
@@ -178,7 +180,6 @@ export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number
 
     sec('otherComm'),
     { kind: 'comm', label: t(p + 'payComm', { fee: num(i.commPayPerLoc, 2), locs: num(i.numLocs) }), y: once(-m.commissionPayment), oneTime: true },
-    { kind: 'comm', label: t(p + 'signupBonus'), y: once(-(i.signupBonus || 0)), oneTime: true },
     { kind: 'subtotal', label: t(p + 'otherCommNet'), y: once(-m.otherCommissions) },
 
     { kind: 'total', label: t(p + 'profit'), y: [m.profitYear1, m.profitYear2, m.profitYear3] },

@@ -5180,6 +5180,7 @@
       "creditCostPct": "Credit network cost (% of volume)",
       "creditCostPerTxn": "Credit network cost per transaction",
       "interacCostPerTxn": "Interac network cost per transaction",
+      "interacCostPct": "Interac network cost (% of volume)",
       "termRentalRev": "Rental per terminal",
       "termWarrantyCost": "Warranty per terminal",
       "termUnitCost": "Terminal purchase cost",
@@ -5189,8 +5190,7 @@
       "commSaasMonths": "SaaS commission (months of SaaS)",
       "commPayPerLoc": "Payment commission per location",
       "commHwPct": "Hardware commission (% of invoice)",
-      "commInstPct": "Installation commission (% of invoice)",
-      "signupBonus": "Signup bonus (one-time amount, optional)"
+      "commInstPct": "Installation commission (% of invoice)"
     },
     "alert": {
       "installTitle": "Installation loses money",
@@ -5248,13 +5248,13 @@
       "creditCostTxn": "Credit network per-transaction cost (${{fee}})",
       "creditNet": "Net credit",
       "txnFeeInterac": "Interac per-transaction fee (${{fee}} × {{n}})",
+      "interacCostPct": "Interac network cost ({{rate}}% of volume)",
       "interacCostTxn": "Interac network cost (${{fee}}/transaction)",
       "interacNet": "Net Interac",
       "rental": "Terminal rental ({{n}} × ${{fee}}/mo × 12)",
       "warranty": "Warranty (${{fee}}/terminal/mo)",
       "termPurchase": "Terminal purchase ({{n}} × ${{cost}})",
       "payComm": "Payment commission (${{fee}} × {{locs}} loc.)",
-      "signupBonus": "Salesperson signup bonus",
       "otherCommNet": "Other commissions",
       "terminalsNet": "Net terminals",
       "hwRevenue": "Hardware revenue (${{price}} × {{locs}} loc.)",
