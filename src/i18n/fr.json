@@ -5581,11 +5581,11 @@
       "positionFr": "Titre du poste (français)",
       "startDate": "Date d'entrée en fonction",
       "offerDate": "Date de l'offre",
-      "reportsToName": "Relève de (nom)",
+      "reportsToName": "Relève de",
       "reportsToTitle": "Relève de — titre (anglais)",
       "reportsToTitlePh": "ex. Sales Director",
-      "supervisorName": "Superviseur sur l'entente",
-      "supervisorHint": "Imprimé dans la case SUPERVISEUR de l'entente de rémunération. Par défaut, le gestionnaire ci-dessus.",
+      "supervisorName": "Superviseur sur l’entente de rémunération",
+      "supervisorHint": "La personne nommée dans la case SUPERVISEUR de l’entente de rémunération (bande du haut et page de signature). Suit « Relève de » sauf si vous choisissez quelqu’un d’autre.",
       "compensation": "Conditions de l'offre",
       "annualSalary": "Salaire de base annuel",
       "carAllowance": "Allocation auto ($/an)",
@@ -5615,7 +5615,13 @@
       "docLangHintFr": "Les deux documents sont générés en français. Les courriels et la page de signature sont toujours bilingues.",
       "docLangHintEn": "Le candidat signe les versions anglaises. Les versions françaises sont quand même générées et lui sont remises pour référence, comme l’exige la Charte de la langue française pour un contrat d’adhésion.",
       "reportsToTitleFr": "Relève de — titre (français)",
-      "reportsToTitleFrPh": "ex. Directeur des ventes"
+      "reportsToTitleFrPh": "ex. Directeur des ventes",
+      "pickManager": "Choisir un gestionnaire…",
+      "otherManager": "Autre (saisir un nom)",
+      "reportsToNameOther": "Nom complet",
+      "titlesFromList": "Titre tiré de la liste des gestionnaires (bouton « Gestionnaires » de la page Embauches).",
+      "titleMissing": "Ce gestionnaire n’a pas encore de titre dans la liste — saisissez-le ici, ou ajoutez-le une fois dans « Gestionnaires » pour qu’il se remplisse tout seul.",
+      "sameAsManager": "Même personne que « Relève de »"
     },
     "detail": {
       "back": "Tous les dossiers d'embauche",
@@ -5684,6 +5690,18 @@
       "days": "jours",
       "monthlyTiers": "Primes mensuelles (points → prime)",
       "annualTiers": "Primes annuelles (points → prime)"
+    },
+    "managers": {
+      "button": "Gestionnaires",
+      "title": "Gestionnaires (« Relève de »)",
+      "hint": "Les personnes proposées dans les listes « Relève de » et « Superviseur », avec leur titre en français et en anglais. Le titre se remplit tout seul dans l’offre d’emploi.",
+      "name": "Nom complet",
+      "titleFr": "Titre (français)",
+      "titleEn": "Titre (anglais)",
+      "titleFrPh": "ex. Directeur des ventes",
+      "titleEnPh": "ex. Sales Director",
+      "add": "Ajouter un gestionnaire",
+      "saveFailed": "L’enregistrement a échoué :"
     }
   },
   "sign": {

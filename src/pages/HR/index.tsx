@@ -5,6 +5,7 @@ import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import { ContentLoader } from '../../common/Loader';
 import HireForm from './HireForm';
 import HireDetailView from './HireDetailView';
+import ManagersEditor from './ManagersEditor';
 import { API_URL, authHeaders, scrollToTop, statusTone, type HireDetail, type HireListItem, type HireStatus, type Meta } from './types';
 
 // Section RH : embauche d'un représentant. Une seule page qui alterne trois vues (liste, fiche,
@@ -32,6 +33,7 @@ const HR = () => {
   const [q, setQ] = useState('');
   const [view, setView] = useState<View>({ kind: 'list' });
   const [error, setError] = useState<string | null>(null);
+  const [managersOpen, setManagersOpen] = useState(false);
 
   const loadList = async () => {
     try {
@@ -125,13 +127,27 @@ const HR = () => {
               <p className="mt-1 text-sm text-bodydark2">{t('hr.subtitle')}</p>
             </div>
             {meta.can.manage && (
+              <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setManagersOpen((o) => !o)}
+                className="inline-flex items-center gap-2 rounded-md border border-stroke px-4 py-2.5 text-sm font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                {t('hr.managers.button')}
+              </button>
               <button type="button" onClick={() => setView({ kind: 'new' })}
                 className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                 {t('hr.newHire')}
               </button>
+              </div>
             )}
           </div>
+
+          {managersOpen && meta.can.manage && (
+            <ManagersEditor
+              initial={meta.managers || []}
+              onClose={() => setManagersOpen(false)}
+              onSaved={(managers) => { setMeta({ ...meta, managers }); setManagersOpen(false); }}
+            />
+          )}
 
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-stroke bg-white p-3 shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="inline-flex flex-wrap gap-1">

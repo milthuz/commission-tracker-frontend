@@ -99,9 +99,12 @@ export interface HireDetail extends HireListItem {
   created?: boolean;
 }
 
+export interface Manager { name: string; titleEn: string; titleFr: string }
+
 export interface Meta {
   defaults: Plan;
   terms: Terms;
+  managers: Manager[];
   can: { manage: boolean; countersign: boolean };
 }
 

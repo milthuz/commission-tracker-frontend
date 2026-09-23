@@ -5581,11 +5581,11 @@
       "positionFr": "Position title (French)",
       "startDate": "Start date",
       "offerDate": "Offer date",
-      "reportsToName": "Reports to (name)",
+      "reportsToName": "Reports to",
       "reportsToTitle": "Reports to — title (English)",
       "reportsToTitlePh": "e.g. Sales Director",
-      "supervisorName": "Supervisor on the agreement",
-      "supervisorHint": "Printed in the SUPERVISOR box of the compensation agreement. Defaults to the manager above.",
+      "supervisorName": "Supervisor on the compensation agreement",
+      "supervisorHint": "The person named in the SUPERVISOR box of the compensation agreement (top strip and signature page). Follows “Reports to” unless you pick someone else.",
       "compensation": "Offer terms",
       "annualSalary": "Annual base salary",
       "carAllowance": "Car allowance ($/year)",
@@ -5615,7 +5615,13 @@
       "docLangHintFr": "Both documents are generated in French. The emails and the signing page are always bilingual.",
       "docLangHintEn": "The candidate signs the English versions. The French versions are still generated and given to them for reference, as the Charter of the French Language requires for a standard-form contract.",
       "reportsToTitleFr": "Reports to — title (French)",
-      "reportsToTitleFrPh": "e.g. Directeur des ventes"
+      "reportsToTitleFrPh": "e.g. Directeur des ventes",
+      "pickManager": "Choose a manager…",
+      "otherManager": "Other (type a name)",
+      "reportsToNameOther": "Full name",
+      "titlesFromList": "Title taken from the managers list (button “Managers” on the Hiring page).",
+      "titleMissing": "This manager has no title in the list yet — type it here, or add it once in “Managers” so it fills in automatically.",
+      "sameAsManager": "Same as “Reports to”"
     },
     "detail": {
       "back": "All hiring files",
@@ -5684,6 +5690,18 @@
       "days": "days",
       "monthlyTiers": "Monthly bonuses (points → bonus)",
       "annualTiers": "Annual bonuses (points → bonus)"
+    },
+    "managers": {
+      "button": "Managers",
+      "title": "Managers (“Reports to”)",
+      "hint": "The people offered in the “Reports to” and “Supervisor” lists, with their title in French and English. The title fills itself in the offer of employment.",
+      "name": "Full name",
+      "titleFr": "Title (French)",
+      "titleEn": "Title (English)",
+      "titleFrPh": "e.g. Directeur des ventes",
+      "titleEnPh": "e.g. Sales Director",
+      "add": "Add a manager",
+      "saveFailed": "Save failed:"
     }
   },
   "sign": {

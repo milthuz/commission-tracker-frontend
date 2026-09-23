@@ -38,7 +38,8 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
   onCancel: () => void;
   onSaved: (d: HireDetail) => void;
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language?.startsWith('fr') ? 'fr' : 'en';
   const [hire, setHire] = useState<HireData>(initial ? { ...initial.hire } : blankHire());
   const [terms, setTerms] = useState<Terms>(initial ? { ...initial.terms } : { ...meta.terms });
   const [plan, setPlan] = useState<Plan>(initial ? structuredClone(initial.plan) : structuredClone(meta.defaults));
@@ -47,6 +48,41 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
   const [bad, setBad] = useState<string[]>([]);
 
   const setH = <K extends keyof HireData>(k: K) => (v: HireData[K]) => setHire((h) => ({ ...h, [k]: v }));
+
+  // Gestionnaires : choisir quelqu'un de la liste remplit ses titres ; le superviseur de l'entente
+  // le suit tant qu'on ne l'a pas changé à la main. « Autre » = saisie libre (personne hors liste).
+  const OTHER = '__other__';
+  const managers = meta.managers || [];
+  const inList = (name: string) => managers.some((m) => m.name === name);
+  const [otherManager, setOtherManager] = useState(!!initial?.hire.reportsToName && !inList(initial.hire.reportsToName));
+  const [otherSupervisor, setOtherSupervisor] = useState(
+    !!initial?.hire.supervisorName && !inList(initial.hire.supervisorName) && initial.hire.supervisorName !== initial.hire.reportsToName,
+  );
+  const managerChoice = otherManager ? OTHER : (hire.reportsToName || '');
+  const supervisorChoice = otherSupervisor ? OTHER : (hire.supervisorName || '');
+  const listed = managers.find((m) => m.name === hire.reportsToName);
+  const titlesLocked = !otherManager && !!listed && !!listed.titleEn;
+  const pickManager = (v: string) => {
+    if (v === OTHER) {
+      setOtherManager(true);
+      setHire((h) => ({ ...h, reportsToName: '', reportsToTitle: '', reportsToTitleFr: '', supervisorName: h.supervisorName === h.reportsToName ? '' : h.supervisorName }));
+      return;
+    }
+    const m = managers.find((x) => x.name === v);
+    if (!m) return;
+    setOtherManager(false);
+    setHire((h) => ({
+      ...h,
+      reportsToName: m.name,
+      reportsToTitle: m.titleEn,
+      reportsToTitleFr: m.titleFr,
+      supervisorName: !h.supervisorName || h.supervisorName === h.reportsToName ? m.name : h.supervisorName,
+    }));
+  };
+  const pickSupervisor = (v: string) => {
+    setOtherSupervisor(v === OTHER);
+    setH('supervisorName')(v === OTHER ? '' : v);
+  };
   const setT = <K extends keyof Terms>(k: K) => (v: Terms[K]) => setTerms((x) => ({ ...x, [k]: v }));
   const setP = (k: PlanNumKey) => (v: string) => setPlan((p) => ({ ...p, [k]: v === '' ? ('' as any) : Number(v) }));
 
@@ -204,11 +240,52 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
             <label className={LABEL}>{t('hr.form.offerDate')}</label>
             <DateField value={hire.offerDate} onChange={setH('offerDate')} className={INPUT + ring('offerDate')} />
           </div>
-          <div className="sm:col-span-2">{text('reportsToName', t('hr.form.reportsToName'), { required: true, placeholder: 'Jerome Stroobants' })}</div>
-          {text('reportsToTitleFr', t('hr.form.reportsToTitleFr'), { placeholder: t('hr.form.reportsToTitleFrPh') as string })}
-          {text('reportsToTitle', t('hr.form.reportsToTitle'), { required: true, placeholder: t('hr.form.reportsToTitlePh') as string })}
+          {/* « Relève de » : menu déroulant de la liste des gestionnaires (gérée sur la page RH).
+              Choisir une personne remplit ses titres FR/EN ; « Autre » garde la saisie libre. */}
           <div className="sm:col-span-2">
-            {text('supervisorName', t('hr.form.supervisorName'), { placeholder: hire.reportsToName || '' })}
+            <label className={LABEL}>{t('hr.form.reportsToName')}<span className="text-danger"> *</span></label>
+            <Select
+              value={managerChoice}
+              onChange={pickManager}
+              buttonClassName={SELECT_CLS + ring('reportsToName')}
+              placeholder={t('hr.form.pickManager') as string}
+              options={[
+                ...managers.map((m) => ({ value: m.name, label: m.titleFr || m.titleEn ? `${m.name} — ${lang === 'fr' ? (m.titleFr || m.titleEn) : (m.titleEn || m.titleFr)}` : m.name })),
+                { value: OTHER, label: t('hr.form.otherManager') as string },
+              ]}
+            />
+          </div>
+          {managerChoice === OTHER && (
+            <div className="sm:col-span-2">{text('reportsToName', t('hr.form.reportsToNameOther'), { required: true })}</div>
+          )}
+          {managerChoice !== '' && (titlesLocked ? (
+            <div className="sm:col-span-2 rounded border border-stroke bg-gray-2 px-4 py-3 text-sm dark:border-strokedark dark:bg-meta-4">
+              <p className="text-black dark:text-white">{hire.reportsToTitleFr || '—'} <span className="text-bodydark2">(FR)</span> · {hire.reportsToTitle || '—'} <span className="text-bodydark2">(EN)</span></p>
+              <p className="mt-1 text-xs text-bodydark2">{t('hr.form.titlesFromList')}</p>
+            </div>
+          ) : (
+            <>
+              {text('reportsToTitleFr', t('hr.form.reportsToTitleFr'), { placeholder: t('hr.form.reportsToTitleFrPh') as string })}
+              {text('reportsToTitle', t('hr.form.reportsToTitle'), { required: true, placeholder: t('hr.form.reportsToTitlePh') as string })}
+              {managerChoice !== OTHER && <p className="sm:col-span-2 -mt-2 text-xs text-warning">{t('hr.form.titleMissing')}</p>}
+            </>
+          ))}
+          <div className="sm:col-span-2">
+            <label className={LABEL}>{t('hr.form.supervisorName')}</label>
+            <Select
+              value={supervisorChoice}
+              onChange={pickSupervisor}
+              buttonClassName={SELECT_CLS}
+              placeholder={t('hr.form.sameAsManager') as string}
+              options={[
+                ...managers.map((m) => ({ value: m.name, label: m.name })),
+                ...(hire.reportsToName && !managers.some((m) => m.name === hire.reportsToName) ? [{ value: hire.reportsToName, label: hire.reportsToName }] : []),
+                { value: OTHER, label: t('hr.form.otherManager') as string },
+              ]}
+            />
+            {supervisorChoice === OTHER && (
+              <input className={INPUT + ' mt-2'} value={hire.supervisorName} onChange={(e) => setH('supervisorName')(e.target.value)} placeholder={t('hr.form.reportsToNameOther') as string} />
+            )}
             <p className="mt-1 text-xs text-bodydark2">{t('hr.form.supervisorHint')}</p>
           </div>
         </div>
