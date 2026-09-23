@@ -4897,7 +4897,9 @@
       "byName": "rapproché par le nom du commerce",
       "former": "Ancien client du paiement — compte {{status}}",
       "opportunity": "Occasion de vente : aucun compte de paiement trouvé",
-      "notFoundHint": "rapprochement par nom, à confirmer avant de proposer"
+      "notFoundHint": "rapprochement par nom, à confirmer avant de proposer",
+      "alreadySent": "Piste déjà envoyée le {{date}} par {{who}}",
+      "someone": "un collègue"
     },
     "excludedHint": "Cette ligne a été retirée de la campagne. Le prix actuel est maintenu. La raison est inscrite sur la ligne dans le panneau d’administration.",
     "excludedTitle": "Retiré de la campagne — aucune hausse pour ce marchand",
@@ -5424,7 +5426,10 @@
       "rateLooksLikePercent": "{{field}} est ressorti à {{value}} : cela ressemble à un pourcentage jamais divisé par 100.",
       "feeLooksWrong": "{{field}} est ressorti à {{value}} par transaction, ce qui est invraisemblable.",
       "lowConfidenceReadings": "{{n}} montant(s) lus avec une confiance faible — à vérifier en premier.",
-      "reconcileMismatch": "La transcription ne retombe pas sur le total du relevé (écart de {{gap}})."
+      "reconcileMismatch": "La transcription ne retombe pas sur le total du relevé (écart de {{gap}}).",
+      "bundledPricing": "Tarification GROUPÉE : ce relevé facture un taux unique par marque, interchange compris. Le taux complet est porté en majoration du processeur et l’interchange reste à 0 — il n’y a rien de séparable à comparer.",
+      "bundledButNoRate": "Tarification groupée détectée mais AUCUN taux lu. C’est tout le coût du marchand qui manque — ne pas utiliser cette transcription.",
+      "bundledButInterchange": "Tarification groupée détectée, et pourtant un interchange séparé de {{value}} a aussi été lu. Un forfait ne peut pas avoir les deux : une des deux lectures est fausse."
     },
     "confidence": {
       "high": "net",

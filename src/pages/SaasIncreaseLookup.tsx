@@ -38,6 +38,9 @@ interface Hit {
   notifySubject: string | null;
   notifyBody: string | null;
   scenarioName: string;
+  // Une piste deja partie pour cet abonnement, lue dans le journal d'activite — donc vraie
+  // apres un rechargement et pour un COLLEGUE, pas seulement pour l'onglet qui l'a envoyee.
+  dealCreated?: { at: string; by: string | null; dealId: string | null; accountName: string | null } | null;
   // null = aucun compte de paiement TROUVE. Ce n'est pas la meme chose que « ce marchand n'a
   // pas le paiement » : le rapprochement se fait surtout par nom.
   payments: {
@@ -126,11 +129,13 @@ export default function SaasIncreaseLookup() {
     // Aucun compte Zoho sur ce nom. On ne cree rien — une opportunite orpheline ne remonte
     // sur la fiche d'aucun marchand — et on rend la main avec les candidats trouves.
     | { state: 'noAccount'; searched: string; candidates: { id: string; name: string; city?: string | null }[] }
+    | { state: 'already'; at: string; by: string | null; dealId: string | null }
     | { state: 'error'; msg: string }>>({});
 
   const creerOpportunite = async (h: Hit, force = false, accountId?: string) => {
     const cle = h.subscriptionNumber;
-    if (deal[cle]?.state === 'loading' || deal[cle]?.state === 'done') return;
+    if (['loading', 'done', 'already'].includes(deal[cle]?.state || '')) return;
+    if (h.dealCreated) return;
     setDeal(d => ({ ...d, [cle]: { state: 'loading' } }));
     const f = fees[cle];
     try {
@@ -147,7 +152,12 @@ export default function SaasIncreaseLookup() {
         }),
       });
       const data = await r.json().catch(() => ({}));
-      if (r.ok && data.duplicate) {
+      // 409 : le serveur tient le meme registre que le bouton. Il refuse la deuxieme piste meme
+      // si la page croyait pouvoir la demander — deux agents sur la meme fiche, par exemple.
+      if (r.status === 409 && data.alreadySent) {
+        setDeal(d => ({ ...d, [cle]: { state: 'already', at: data.at, by: data.by || null,
+                                       dealId: data.dealId || null } }));
+      } else if (r.ok && data.duplicate) {
         setDeal(d => ({ ...d, [cle]: { state: 'dup', existing: data.existing || [] } }));
       } else if (r.ok && data.noAccount) {
         setDeal(d => ({ ...d, [cle]: {
@@ -570,7 +580,29 @@ export default function SaasIncreaseLookup() {
                 {/* Le geste utile, a droite de son propre etat. L'occasion meurt avec l'appel
                     si personne n'ouvre rien. */}
                 <div className="shrink-0">
-                  {!d && (
+                  {/* Une piste envoyee est un fait, pas un etat d'ecran : elle vient du journal,
+                      donc elle survit au rechargement et s'impose aussi au collegue qui ouvre la
+                      meme fiche. Sans ca, deux opportunites s'ouvraient sur le meme marchand et
+                      deux vendeurs le rappelaient. */}
+                  {!d && h.dealCreated && (
+                    <span className={`flex flex-wrap items-center justify-end gap-1.5 text-xs font-medium ${textSec}`}>
+                      <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      {t('csLookup.pay.alreadySent', {
+                        date: fmtDate(h.dealCreated.at, i18n.language),
+                        who: h.dealCreated.by || t('csLookup.pay.someone'),
+                      })}
+                    </span>
+                  )}
+                  {d?.state === 'already' && (
+                    <span className={`flex flex-wrap items-center justify-end gap-1.5 text-xs font-medium ${textSec}`}>
+                      <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      {t('csLookup.pay.alreadySent', {
+                        date: fmtDate(d.at, i18n.language),
+                        who: d.by || t('csLookup.pay.someone'),
+                      })}
+                    </span>
+                  )}
+                  {!d && !h.dealCreated && (
                     <button onClick={() => creerOpportunite(h)}
                       className="rounded-lg bg-[#fe6523] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#e2571c]">
                       {t('csLookup.pay.createDeal')}

@@ -4897,7 +4897,9 @@
       "byName": "matched on the business name",
       "former": "Former payments client — account {{status}}",
       "opportunity": "Sales opportunity: no payments account found",
-      "notFoundHint": "matched by name, confirm before pitching"
+      "notFoundHint": "matched by name, confirm before pitching",
+      "alreadySent": "Lead already sent on {{date}} by {{who}}",
+      "someone": "a colleague"
     },
     "excludedHint": "This line was removed from the campaign. The current price stands. The reason is recorded on the row in the admin panel.",
     "excludedTitle": "Removed from the campaign — no increase for this merchant",
@@ -5424,7 +5426,10 @@
       "rateLooksLikePercent": "{{field}} came back as {{value}} — that looks like a percentage that was never divided by 100.",
       "feeLooksWrong": "{{field}} came back as {{value}} per transaction, which is implausibly large.",
       "lowConfidenceReadings": "{{n}} amount(s) were read with low confidence — check those first.",
-      "reconcileMismatch": "The transcription does not add up to the statement's own total (gap of {{gap}})."
+      "reconcileMismatch": "The transcription does not add up to the statement's own total (gap of {{gap}}).",
+      "bundledPricing": "BUNDLED pricing: this statement charges one blended rate per brand that already includes interchange. The whole rate is carried as processor markup and interchange is 0 — there is nothing separable to compare.",
+      "bundledButNoRate": "Bundled pricing was detected but NO rate was read. That is the merchant’s entire cost missing — do not use this transcription.",
+      "bundledButInterchange": "Bundled pricing was detected yet a separate interchange of {{value}} was also read. A bundled tariff cannot have both; one of the two readings is wrong."
     },
     "confidence": {
       "high": "clear",
