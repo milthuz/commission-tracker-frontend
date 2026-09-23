@@ -44,7 +44,9 @@ function NumField({ label, value, onChange, unit, decimals = 0, locale, highligh
   label: string; value: number; onChange: (v: number) => void; unit?: string;
   decimals?: number; locale: string; highlight?: string;
 }) {
-  const show = (v: number) => v.toLocaleString(locale, { maximumFractionDigits: Math.max(decimals, 3), useGrouping: true });
+  // Jusqu'à 6 décimales : un frais de 0,0365 $ doit se relire 0,0365, pas 0,037 (David, 2026-09-23).
+  // maximumFractionDigits n'ajoute pas de zéros : 4 679 reste 4 679.
+  const show = (v: number) => v.toLocaleString(locale, { maximumFractionDigits: Math.max(decimals, 6), useGrouping: true });
   const [draft, setDraft] = useState(() => show(value));
   const [focused, setFocused] = useState(false);
   useEffect(() => { if (!focused) setDraft(show(value)); }, [value, focused, locale]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -528,6 +530,7 @@ export default function RevenueModeler() {
               {f('commPayPerLoc', '$', 2)}
               {f('commHwPct', '%', 1)}
               {f('commInstPct', '%', 1)}
+              {f('signupBonus', '$', 2)}
             </Section>
           </div>
 

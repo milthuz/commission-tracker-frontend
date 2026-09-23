@@ -5189,7 +5189,8 @@
       "commSaasMonths": "Commission SaaS (mois de SaaS)",
       "commPayPerLoc": "Commission paiement par emplacement",
       "commHwPct": "Commission matériel (% de la facture)",
-      "commInstPct": "Commission installation (% de la facture)"
+      "commInstPct": "Commission installation (% de la facture)",
+      "signupBonus": "Bonus de signature (montant unique, facultatif)"
     },
     "alert": {
       "installTitle": "Installation déficitaire",
@@ -5235,7 +5236,8 @@
         "interac": "Interac",
         "terminals": "Terminaux",
         "hardware": "Matériel",
-        "install": "Installation"
+        "install": "Installation",
+        "otherComm": "Autres commissions (vendeur)"
       },
       "saasGross": "Revenus SaaS bruts ({{price}} $/empl./mois × {{locs}} × 12)",
       "saasComm": "Commission SaaS ({{months}} mois × {{price}} $ × {{locs}})",
@@ -5252,6 +5254,8 @@
       "warranty": "Garantie ({{fee}} $/terminal/mois)",
       "termPurchase": "Achat des terminaux ({{n}} × {{cost}} $)",
       "payComm": "Commission paiement ({{fee}} $ × {{locs}} empl.)",
+      "signupBonus": "Bonus de signature du vendeur",
+      "otherCommNet": "Autres commissions",
       "terminalsNet": "Terminaux net",
       "hwRevenue": "Revenus matériel ({{price}} $ × {{locs}} empl.)",
       "hwCogs": "Coût d'achat du matériel ({{cost}} $ × {{locs}} empl.)",

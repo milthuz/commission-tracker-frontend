@@ -5189,7 +5189,8 @@
       "commSaasMonths": "SaaS commission (months of SaaS)",
       "commPayPerLoc": "Payment commission per location",
       "commHwPct": "Hardware commission (% of invoice)",
-      "commInstPct": "Installation commission (% of invoice)"
+      "commInstPct": "Installation commission (% of invoice)",
+      "signupBonus": "Signup bonus (one-time amount, optional)"
     },
     "alert": {
       "installTitle": "Installation loses money",
@@ -5235,7 +5236,8 @@
         "interac": "Interac",
         "terminals": "Terminals",
         "hardware": "Hardware",
-        "install": "Installation"
+        "install": "Installation",
+        "otherComm": "Other commissions (salesperson)"
       },
       "saasGross": "Gross SaaS revenue (${{price}}/loc./mo × {{locs}} × 12)",
       "saasComm": "SaaS commission ({{months}} mo × ${{price}} × {{locs}})",
@@ -5252,6 +5254,8 @@
       "warranty": "Warranty (${{fee}}/terminal/mo)",
       "termPurchase": "Terminal purchase ({{n}} × ${{cost}})",
       "payComm": "Payment commission (${{fee}} × {{locs}} loc.)",
+      "signupBonus": "Salesperson signup bonus",
+      "otherCommNet": "Other commissions",
       "terminalsNet": "Net terminals",
       "hwRevenue": "Hardware revenue (${{price}} × {{locs}} loc.)",
       "hwCogs": "Hardware purchase cost (${{cost}} × {{locs}} loc.)",

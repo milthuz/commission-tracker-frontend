@@ -31,6 +31,7 @@ export interface Inputs {
   commPayPerLoc: number;
   commHwPct: number;
   commInstPct: number;
+  signupBonus: number; // bonus de signature au vendeur, montant unique pour le deal (0 = aucun)
 }
 
 export type NumKey = Exclude<keyof Inputs, 'merchantName'>;
@@ -76,11 +77,15 @@ export function compute(i: Inputs) {
   const instNet = -instCommission;
 
   const recurring = saasRevenueGross + netCredit + netInterac + netTerminalAnnual;
-  const profitYear1 = recurring - commissionSaas - terminalPurchaseCost - commissionPayment + hwNet + instNet;
+  // La commission paiement et le bonus de signature sont versés au VENDEUR à la signature : ils
+  // ne sont rattachés à aucune ligne de produit (surtout pas aux terminaux, sans commission).
+  const signupBonus = i.signupBonus || 0; // absent d'un vieux scénario = aucun bonus
+  const otherCommissions = commissionPayment + signupBonus;
+  const profitYear1 = recurring - commissionSaas - terminalPurchaseCost - otherCommissions + hwNet + instNet;
   const profitYear2 = recurring;
   const profitYear3 = recurring;
 
-  const commissionsYear1 = commissionSaas + commissionPayment + hwCommission + instCommission;
+  const commissionsYear1 = commissionSaas + hwCommission + instCommission + otherCommissions;
 
   // Prix d'installation qui ramène la ligne à zéro une fois la commission payée.
   const suggestedInstPrice = i.commInstPct > 0 && i.commInstPct < 100 ? i.instPrice / (1 - i.commInstPct / 100) : null;
@@ -95,7 +100,7 @@ export function compute(i: Inputs) {
     instRevenue, instCOGS, instCommission, instNet,
     profitYear1, profitYear2, profitYear3,
     total3Years: profitYear1 + profitYear2 + profitYear3,
-    commissionsYear1,
+    commissionsYear1, otherCommissions,
     netPayments: netCredit + netInterac,
     gmvTotal: i.gmvCredit + i.gmvInterac,
     alerts: {
@@ -142,23 +147,22 @@ export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number
     { kind: 'subtotal', label: t(p + 'saasNet'), y: [m.saasRevenueGross - m.commissionSaas, m.saasRevenueGross, m.saasRevenueGross] },
 
     sec('credit'),
-    { kind: 'rev', label: t(p + 'markup', { rate: num(i.markupRate, 3) }), y: same(m.revMarkup) },
-    { kind: 'cost', label: t(p + 'creditCostPct', { rate: num(i.creditCostPct, 3) }), y: same(-m.costCreditPct) },
-    { kind: 'rev', label: t(p + 'txnFeeCredit', { fee: num(i.txnFeeCredit, 3), n: num(i.txnCredit) }), y: same(m.revTxnCredit) },
-    { kind: 'newcost', label: t(p + 'creditCostTxn', { fee: num(i.creditCostPerTxn, 3) }), y: same(-m.costTxnCredit) },
+    { kind: 'rev', label: t(p + 'markup', { rate: num(i.markupRate, 6) }), y: same(m.revMarkup) },
+    { kind: 'cost', label: t(p + 'creditCostPct', { rate: num(i.creditCostPct, 6) }), y: same(-m.costCreditPct) },
+    { kind: 'rev', label: t(p + 'txnFeeCredit', { fee: num(i.txnFeeCredit, 6), n: num(i.txnCredit) }), y: same(m.revTxnCredit) },
+    { kind: 'newcost', label: t(p + 'creditCostTxn', { fee: num(i.creditCostPerTxn, 6) }), y: same(-m.costTxnCredit) },
     { kind: 'subtotal', label: t(p + 'creditNet'), y: same(m.netCredit) },
 
     sec('interac'),
-    { kind: 'rev', label: t(p + 'txnFeeInterac', { fee: num(i.txnFeeInterac, 3), n: num(i.txnInterac) }), y: same(m.revTxnInterac) },
-    { kind: 'cost', label: t(p + 'interacCostTxn', { fee: num(i.interacCostPerTxn, 3) }), y: same(-m.costTxnInterac) },
+    { kind: 'rev', label: t(p + 'txnFeeInterac', { fee: num(i.txnFeeInterac, 6), n: num(i.txnInterac) }), y: same(m.revTxnInterac) },
+    { kind: 'cost', label: t(p + 'interacCostTxn', { fee: num(i.interacCostPerTxn, 6) }), y: same(-m.costTxnInterac) },
     { kind: 'subtotal', label: t(p + 'interacNet'), y: same(m.netInterac) },
 
     sec('terminals'),
     { kind: 'rev', label: t(p + 'rental', { n: num(m.totalTerminals), fee: num(i.termRentalRev, 2) }), y: same(m.rentalRevAnnual) },
     { kind: 'cost', label: t(p + 'warranty', { fee: num(i.termWarrantyCost, 2) }), y: same(-m.warrantyCostAnnual) },
     { kind: 'cost', label: t(p + 'termPurchase', { n: num(m.totalTerminals), cost: num(i.termUnitCost, 2) }), y: once(-m.terminalPurchaseCost), oneTime: true },
-    { kind: 'comm', label: t(p + 'payComm', { fee: num(i.commPayPerLoc, 2), locs: num(i.numLocs) }), y: once(-m.commissionPayment), oneTime: true },
-    { kind: 'subtotal', label: t(p + 'terminalsNet'), y: [m.netTerminalAnnual - m.terminalPurchaseCost - m.commissionPayment, m.netTerminalAnnual, m.netTerminalAnnual] },
+    { kind: 'subtotal', label: t(p + 'terminalsNet'), y: [m.netTerminalAnnual - m.terminalPurchaseCost, m.netTerminalAnnual, m.netTerminalAnnual] },
 
     sec('hardware'),
     { kind: 'rev', label: t(p + 'hwRevenue', { price: num(i.hwPrice, 2), locs: num(i.numLocs) }), y: once(m.hwRevenue), oneTime: true },
@@ -171,6 +175,11 @@ export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number
     { kind: 'cost', label: t(p + 'instCogs'), y: once(-m.instCOGS), oneTime: true },
     { kind: 'comm', label: t(p + 'instComm', { pct: num(i.commInstPct, 1) }), y: once(-m.instCommission), oneTime: true },
     { kind: 'subtotal', label: t(p + 'instNet'), y: once(m.instNet) },
+
+    sec('otherComm'),
+    { kind: 'comm', label: t(p + 'payComm', { fee: num(i.commPayPerLoc, 2), locs: num(i.numLocs) }), y: once(-m.commissionPayment), oneTime: true },
+    { kind: 'comm', label: t(p + 'signupBonus'), y: once(-(i.signupBonus || 0)), oneTime: true },
+    { kind: 'subtotal', label: t(p + 'otherCommNet'), y: once(-m.otherCommissions) },
 
     { kind: 'total', label: t(p + 'profit'), y: [m.profitYear1, m.profitYear2, m.profitYear3] },
   ];
