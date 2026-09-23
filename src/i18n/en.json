@@ -3799,7 +3799,7 @@
     },
     "hr": {
       "title": "HR",
-      "subtitle": "Settings for the Hiring section: the managers offered in “Reports to” and “Supervisor”."
+      "subtitle": "Settings for the Hiring section: managers (“Reports to”), who is copied on the signed package, and the employers named in the contracts."
     }
   },
   "header": {
@@ -5635,7 +5635,11 @@
       "includePhone": "Phone allowance",
       "notIncluded": "Not included",
       "perYear": "year",
-      "perMonth": "month"
+      "perMonth": "month",
+      "employer": "Employer",
+      "employerHint": "The company named in the contracts, the signing page and the emails (Admin → HR to add one).",
+      "includeFrReference": "Also give the French versions to the candidate",
+      "frReferenceOff": "Only the English documents will be sent. Make sure the candidate chose English knowingly (Charter of the French Language)."
     },
     "detail": {
       "back": "All hiring files",
@@ -5718,16 +5722,41 @@
       "titleEnPh": "e.g. Sales Director",
       "add": "Add a manager",
       "saveFailed": "Save failed:",
-      "saved": "Managers list saved."
+      "saved": "Managers list saved.",
+      "email": "Email",
+      "emailPh": "receives a copy of the signed package"
+    },
+    "signedCc": {
+      "title": "Always copied on the signed package",
+      "hint": "These addresses receive the fully signed PDF of every hire, in addition to the position’s manager (their email in the managers list above). They never receive the candidate’s signing link.",
+      "add": "Add",
+      "empty": "Nobody yet.",
+      "invalid": "Invalid email address.",
+      "saved": "Saved."
+    },
+    "employers": {
+      "title": "Employers",
+      "hint": "The same contracts can be issued by another company (e.g. OSP): its legal name replaces “Cluster Systems”, its short name replaces “Cluster”, and its logo appears on the contracts, the signing page and the emails. Choose the employer in the hiring file.",
+      "builtIn": "Built-in",
+      "shortName": "Short name",
+      "legalName": "Legal name",
+      "legalNamePh": "e.g. OSP Solutions Inc.",
+      "website": "Website",
+      "noLogo": "No logo",
+      "pickLogo": "Upload logo",
+      "logoType": "Logo must be PNG or JPEG.",
+      "logoSize": "Logo too large (600 KB max).",
+      "add": "Add an employer",
+      "saved": "Employers saved."
     }
   },
   "sign": {
     "loading": "Loading…",
     "eyebrow": "Offer of employment",
     "hello": "Hi {{name}},",
-    "intro": "Welcome to Cluster! Here are the documents for your {{position}} position. Take the time to read them, then sign below.",
+    "intro": "Welcome to {{company}}! Here are the documents for your {{position}} position. Take the time to read them, then sign below.",
     "step1": "1. Read your documents",
-    "step1Hint": "Each document opens in a new tab. You can download it.",
+    "step1Hint": "Each document opens on screen. You can also download it.",
     "pages_one": "{{n}} page",
     "pages_other": "{{n}} pages",
     "pages": "{{n}} pages",
@@ -5743,7 +5772,7 @@
     "clear": "Clear",
     "submit": "Sign my documents",
     "signing": "Signing…",
-    "legal": "The date, time and IP address of your signature are recorded. You will receive the fully signed package by email once Cluster has countersigned.",
+    "legal": "The date, time and IP address of your signature are recorded. You will receive the fully signed package by email once {{company}} has countersigned.",
     "failed": "The signature could not be saved. Please try again.",
     "alreadySigned": "These documents are already signed.",
     "declineLink": "I do not wish to accept this offer",
@@ -5752,9 +5781,9 @@
     "declineConfirm": "Decline the offer",
     "back": "Back",
     "signedTitle": "Thank you {{name}}!",
-    "signedBody": "Your signature has been recorded. Cluster will countersign shortly and you will receive the complete signed package by email.",
+    "signedBody": "Your signature has been recorded. {{company}} will countersign shortly and you will receive the complete signed package by email.",
     "declinedTitle": "Offer declined",
-    "declinedBody": "Your answer has been sent to Cluster. Thank you for letting us know.",
+    "declinedBody": "Your answer has been sent to {{company}}. Thank you for letting us know.",
     "invalidTitle": "Link not valid",
     "invalidBody": "This signing link is not valid or has been replaced by a newer one. Use the most recent email you received, or contact the person who sent it.",
     "expiredTitle": "Link expired",

@@ -16,7 +16,7 @@ const ManagersEditor = ({ initial, onClose, onSaved }: {
   onSaved: (list: Manager[]) => void;
 }) => {
   const { t } = useTranslation();
-  const [rows, setRows] = useState<Manager[]>(initial.length ? initial.map((m) => ({ ...m })) : [{ name: '', titleEn: '', titleFr: '' }]);
+  const [rows, setRows] = useState<Manager[]>(initial.length ? initial.map((m) => ({ email: '', ...m })) : [{ name: '', titleEn: '', titleFr: '', email: '' }]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,21 +43,22 @@ const ManagersEditor = ({ initial, onClose, onSaved }: {
       <h3 className="font-semibold text-black dark:text-white">{t('hr.managers.title')}</h3>
       <p className="mb-4 mt-1 text-sm text-bodydark2">{t('hr.managers.hint')}</p>
 
-      <div className="hidden gap-2 px-1 pb-1 text-xs font-medium text-bodydark2 md:grid md:grid-cols-[1fr_1fr_1fr_auto]">
-        <span>{t('hr.managers.name')}</span><span>{t('hr.managers.titleFr')}</span><span>{t('hr.managers.titleEn')}</span><span className="w-8" />
+      <div className="hidden gap-2 px-1 pb-1 text-xs font-medium text-bodydark2 md:grid md:grid-cols-[1fr_1fr_1fr_1.2fr_auto]">
+        <span>{t('hr.managers.name')}</span><span>{t('hr.managers.titleFr')}</span><span>{t('hr.managers.titleEn')}</span><span>{t('hr.managers.email')}</span><span className="w-8" />
       </div>
       <div className="space-y-3 md:space-y-2">
         {rows.map((r, i) => (
-          <div key={i} className="grid gap-2 rounded border border-stroke p-3 dark:border-strokedark md:grid-cols-[1fr_1fr_1fr_auto] md:border-0 md:p-0">
+          <div key={i} className="grid gap-2 rounded border border-stroke p-3 dark:border-strokedark md:grid-cols-[1fr_1fr_1fr_1.2fr_auto] md:border-0 md:p-0">
             <input className={INPUT} value={r.name} onChange={(e) => set(i, 'name', e.target.value)} placeholder={t('hr.managers.name') as string} />
             <input className={INPUT + (r.name && !r.titleFr ? ' !border-warning' : '')} value={r.titleFr} onChange={(e) => set(i, 'titleFr', e.target.value)} placeholder={t('hr.managers.titleFrPh') as string} />
             <input className={INPUT + (r.name && !r.titleEn ? ' !border-warning' : '')} value={r.titleEn} onChange={(e) => set(i, 'titleEn', e.target.value)} placeholder={t('hr.managers.titleEnPh') as string} />
+            <input type="email" className={INPUT} value={r.email || ''} onChange={(e) => set(i, 'email', e.target.value)} placeholder={t('hr.managers.emailPh') as string} />
             <button type="button" onClick={() => setRows((x) => x.filter((_, j) => j !== i))}
               className="justify-self-end rounded px-2 py-1 text-bodydark2 hover:text-danger" aria-label={t('common.remove') as string}>✕</button>
           </div>
         ))}
       </div>
-      <button type="button" onClick={() => setRows((x) => [...x, { name: '', titleEn: '', titleFr: '' }])}
+      <button type="button" onClick={() => setRows((x) => [...x, { name: '', titleEn: '', titleFr: '', email: '' }])}
         className="mt-3 text-sm font-medium text-primary hover:underline">+ {t('hr.managers.add')}</button>
 
       {error && <p className="mt-3 text-sm text-danger">{error}</p>}

@@ -3799,7 +3799,7 @@
     },
     "hr": {
       "title": "RH",
-      "subtitle": "Réglages de la section Embauches : les gestionnaires proposés dans « Relève de » et « Superviseur »."
+      "subtitle": "Réglages de la section Embauches : gestionnaires (« Relève de »), personnes en copie du dossier signé et employeurs nommés dans les contrats."
     }
   },
   "header": {
@@ -5635,7 +5635,11 @@
       "includePhone": "Allocation téléphone",
       "notIncluded": "Non incluse",
       "perYear": "an",
-      "perMonth": "mois"
+      "perMonth": "mois",
+      "employer": "Employeur",
+      "employerHint": "L’entreprise nommée dans les contrats, la page de signature et les courriels (Admin → RH pour en ajouter).",
+      "includeFrReference": "Remettre aussi les versions françaises au candidat",
+      "frReferenceOff": "Seuls les documents anglais partiront. Assurez-vous que le candidat a choisi l’anglais en connaissance de cause (Charte de la langue française)."
     },
     "detail": {
       "back": "Tous les dossiers d'embauche",
@@ -5718,16 +5722,41 @@
       "titleEnPh": "ex. Sales Director",
       "add": "Ajouter un gestionnaire",
       "saveFailed": "L’enregistrement a échoué :",
-      "saved": "Liste des gestionnaires enregistrée."
+      "saved": "Liste des gestionnaires enregistrée.",
+      "email": "Courriel",
+      "emailPh": "reçoit une copie du dossier signé"
+    },
+    "signedCc": {
+      "title": "Toujours en copie du dossier signé",
+      "hint": "Ces adresses reçoivent le PDF signé de chaque embauche, en plus du gestionnaire du poste (son courriel dans la liste des gestionnaires ci-dessus). Elles ne reçoivent jamais le lien de signature du candidat.",
+      "add": "Ajouter",
+      "empty": "Personne pour l’instant.",
+      "invalid": "Adresse courriel invalide.",
+      "saved": "Enregistré."
+    },
+    "employers": {
+      "title": "Employeurs",
+      "hint": "Les mêmes contrats peuvent être émis par une autre entreprise (ex. OSP) : son nom légal remplace « Cluster Systems », son nom court remplace « Cluster », et son logo apparaît sur les contrats, la page de signature et les courriels. L’employeur se choisit dans la fiche d’embauche.",
+      "builtIn": "Intégré",
+      "shortName": "Nom court",
+      "legalName": "Nom légal",
+      "legalNamePh": "ex. OSP Solutions inc.",
+      "website": "Site web",
+      "noLogo": "Aucun logo",
+      "pickLogo": "Téléverser le logo",
+      "logoType": "Le logo doit être en PNG ou JPEG.",
+      "logoSize": "Logo trop lourd (600 Ko max).",
+      "add": "Ajouter un employeur",
+      "saved": "Employeurs enregistrés."
     }
   },
   "sign": {
     "loading": "Chargement…",
     "eyebrow": "Offre d'emploi",
     "hello": "Bonjour {{name}},",
-    "intro": "Bienvenue chez Cluster ! Voici les documents liés à votre poste de {{position}}. Prenez le temps de les lire, puis signez ci-dessous.",
+    "intro": "Bienvenue chez {{company}} ! Voici les documents liés à votre poste de {{position}}. Prenez le temps de les lire, puis signez ci-dessous.",
     "step1": "1. Lisez vos documents",
-    "step1Hint": "Chaque document s'ouvre dans un nouvel onglet. Vous pouvez le télécharger.",
+    "step1Hint": "Chaque document s’ouvre à l’écran. Vous pouvez aussi le télécharger.",
     "pages_one": "{{n}} page",
     "pages_other": "{{n}} pages",
     "pages": "{{n}} pages",
@@ -5743,7 +5772,7 @@
     "clear": "Effacer",
     "submit": "Signer mes documents",
     "signing": "Signature…",
-    "legal": "La date, l'heure et l'adresse IP de votre signature sont enregistrées. Vous recevrez le dossier signé par les deux parties par courriel dès que Cluster aura contresigné.",
+    "legal": "La date, l'heure et l'adresse IP de votre signature sont enregistrées. Vous recevrez le dossier signé par les deux parties par courriel dès que {{company}} aura contresigné.",
     "failed": "La signature n'a pas pu être enregistrée. Veuillez réessayer.",
     "alreadySigned": "Ces documents sont déjà signés.",
     "declineLink": "Je ne souhaite pas accepter cette offre",
@@ -5752,9 +5781,9 @@
     "declineConfirm": "Refuser l'offre",
     "back": "Retour",
     "signedTitle": "Merci {{name}} !",
-    "signedBody": "Votre signature a été enregistrée. Cluster contresignera sous peu et vous recevrez le dossier signé complet par courriel.",
+    "signedBody": "Votre signature a été enregistrée. {{company}} contresignera sous peu et vous recevrez le dossier signé complet par courriel.",
     "declinedTitle": "Offre refusée",
-    "declinedBody": "Votre réponse a été transmise à Cluster. Merci de nous en avoir informés.",
+    "declinedBody": "Votre réponse a été transmise à {{company}}. Merci de nous en avoir informés.",
     "invalidTitle": "Lien non valide",
     "invalidBody": "Ce lien de signature n'est pas valide ou a été remplacé par un plus récent. Utilisez le dernier courriel reçu, ou communiquez avec la personne qui vous l'a envoyé.",
     "expiredTitle": "Lien expiré",

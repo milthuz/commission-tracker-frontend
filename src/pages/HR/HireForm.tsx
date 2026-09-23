@@ -27,7 +27,7 @@ const blankHire = (): HireData => ({
   position: 'Sales Representative', positionFr: 'Représentant(e) des ventes',
   startDate: '', offerDate: new Date().toISOString().slice(0, 10),
   reportsToTitle: '', reportsToTitleFr: '', reportsToName: '', supervisorName: '',
-  annualSalary: null, agreementLang: 'fr', includeAgreement: true, notes: '',
+  annualSalary: null, agreementLang: 'fr', includeAgreement: true, includeFrReference: true, employer: 'cluster', notes: '',
 });
 
 type PlanNumKey = Exclude<keyof Plan, 'version' | 'monthlyTiers' | 'annualTiers'>;
@@ -242,11 +242,26 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
         <h3 className="mb-4 font-semibold text-black dark:text-white">{t('hr.form.position')}</h3>
         {/* Une seule langue pour les DEUX documents (offre + entente). En anglais, la version
             française est quand même générée et remise au candidat (Charte, art. 55). */}
+        {(meta.employers || []).length > 1 && (
+          <div className="mb-5 max-w-md">
+            <label className={LABEL}>{t('hr.form.employer')}</label>
+            <Select value={hire.employer || 'cluster'} onChange={(v) => setH('employer')(v)} buttonClassName={SELECT_CLS}
+              options={(meta.employers || []).map((e) => ({ value: e.key, label: `${e.shortName} — ${e.legalName}` }))} />
+            <p className="mt-1 text-xs text-bodydark2">{t('hr.form.employerHint')}</p>
+          </div>
+        )}
         <div className="mb-5 max-w-md">
           <label className={LABEL}>{t('hr.form.docLang')}</label>
           <Select value={hire.agreementLang} onChange={(v) => setH('agreementLang')(v as 'en' | 'fr')} buttonClassName={SELECT_CLS}
             options={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} />
-          <p className="mt-1 text-xs text-bodydark2">{t(hire.agreementLang === 'en' ? 'hr.form.docLangHintEn' : 'hr.form.docLangHintFr')}</p>
+          {hire.agreementLang === 'en' ? (
+            <label className="mt-2 flex cursor-pointer items-start gap-2 text-sm text-black dark:text-white">
+              <input type="checkbox" className="mt-0.5" checked={hire.includeFrReference !== false} onChange={(e) => setH('includeFrReference')(e.target.checked)} />
+              <span>{t('hr.form.includeFrReference')}<span className="block text-xs text-bodydark2">{t(hire.includeFrReference !== false ? 'hr.form.docLangHintEn' : 'hr.form.frReferenceOff')}</span></span>
+            </label>
+          ) : (
+            <p className="mt-1 text-xs text-bodydark2">{t('hr.form.docLangHintFr')}</p>
+          )}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {text('positionFr', t('hr.form.positionFr'), { required: true })}

@@ -5,6 +5,7 @@ import ClusterWordmark from '../../components/ClusterWordmark';
 import SignaturePad, { type SignaturePadHandle } from '../../components/SignaturePad';
 import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
 import { usePassFavicon } from '../Pass/passUi';
+import { employerLogoUrl, type Employer } from '../HR/types';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -29,6 +30,7 @@ interface Info {
   lang: 'en' | 'fr';
   documents: { key: string; kind: 'offer' | 'agreement' | 'attachment'; lang?: 'en' | 'fr'; reference?: boolean; title?: string; pages: number | null }[];
   signedAt: string | null;
+  employer?: Employer;
 }
 
 type Phase = 'loading' | 'invalid' | 'expired' | 'cancelled' | 'ready' | 'signed' | 'declined' | 'error';
@@ -75,6 +77,11 @@ const Sign = () => {
     })();
   }, [token]);
 
+  // Employeur du contrat (Cluster, OSP…) : son nom et son logo remplacent ceux de Cluster.
+  const emp = info?.employer;
+  const company = emp?.shortName || 'Cluster';
+  // Titre de l'onglet = l'employeur (Cluster, OSP…).
+  useEffect(() => { if (emp) document.title = emp.shortName; }, [emp]);
   const docUrl = (key: string) => `${API_URL}/api/public/hr-sign/${encodeURIComponent(token)}/doc/${key}`;
   // Titre traduit par la page : la bascule FR/EN change aussi le nom des documents.
   const docTitle = (d: Info['documents'][number]) => {
@@ -130,7 +137,11 @@ const Sign = () => {
       {viewer && <PdfViewerModal source={viewer} onClose={() => setViewer(null)} tr={(k, o) => t(k, o) as string} />}
       <header className="bg-[#1f1f1f]">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
-          <ClusterWordmark tone="dark" className="h-[24px] w-auto" />
+          {phase === 'loading' ? <span className="h-[24px]" /> : emp && emp.key !== 'cluster' ? (
+            emp.hasLogo
+              ? <span className="rounded bg-white px-2 py-1"><img src={employerLogoUrl(emp.key)} alt={emp.shortName} className="h-[26px] w-auto max-w-[180px] object-contain" /></span>
+              : <span className="text-xl font-bold text-white">{emp.shortName}</span>
+          ) : <ClusterWordmark tone="dark" className="h-[24px] w-auto" />}
           <div className="flex rounded-full bg-white/10 p-0.5 text-xs font-medium">
             {(['fr', 'en'] as const).map((l) => (
               <button key={l} type="button" onClick={() => setLang(l)}
@@ -149,15 +160,15 @@ const Sign = () => {
         {phase === 'expired' && message(t('sign.expiredTitle'), t('sign.expiredBody'))}
         {phase === 'cancelled' && message(t('sign.cancelledTitle'), t('sign.cancelledBody'))}
         {phase === 'error' && message(t('sign.errorTitle'), t('sign.errorBody'))}
-        {phase === 'declined' && message(t('sign.declinedTitle'), t('sign.declinedBody'))}
-        {phase === 'signed' && info && message(t('sign.signedTitle', { name: info.firstName }), t('sign.signedBody'), 'ok')}
+        {phase === 'declined' && message(t('sign.declinedTitle'), t('sign.declinedBody', { company }))}
+        {phase === 'signed' && info && message(t('sign.signedTitle', { name: info.firstName }), t('sign.signedBody', { company }), 'ok')}
 
         {phase === 'ready' && info && (
           <div className="space-y-6">
             <div>
               <p className="text-sm font-medium uppercase tracking-wide text-[#f26b21]">{t('sign.eyebrow')}</p>
               <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{t('sign.hello', { name: info.firstName })}</h1>
-              <p className="mt-2 text-[15px] leading-relaxed text-gray-600">{t('sign.intro', { position: lang === 'fr' ? info.positionFr : info.positionEn })}</p>
+              <p className="mt-2 text-[15px] leading-relaxed text-gray-600">{t('sign.intro', { position: lang === 'fr' ? info.positionFr : info.positionEn, company })}</p>
             </div>
 
             <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6">
@@ -215,7 +226,7 @@ const Sign = () => {
                 className="mt-5 w-full rounded-xl bg-[#f26b21] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#dc5a14] disabled:cursor-not-allowed disabled:opacity-40">
                 {busy ? t('sign.signing') : t('sign.submit')}
               </button>
-              <p className="mt-3 text-center text-xs leading-relaxed text-gray-500">{t('sign.legal')}</p>
+              <p className="mt-3 text-center text-xs leading-relaxed text-gray-500">{t('sign.legal', { company })}</p>
             </section>
 
             <div className="text-center">
@@ -237,7 +248,7 @@ const Sign = () => {
           </div>
         )}
       </main>
-      <footer className="pb-8 text-center text-xs text-gray-400">© {new Date().getFullYear()} Cluster Systems · clustersystems.com</footer>
+      <footer className="pb-8 text-center text-xs text-gray-400">© {new Date().getFullYear()} {emp?.legalName || 'Cluster Systems'}{emp ? (emp.website ? ` · ${emp.website}` : '') : ' · clustersystems.com'}</footer>
     </div>
   );
 };

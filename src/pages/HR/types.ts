@@ -51,6 +51,8 @@ export interface HireData {
   annualSalary: number | null;
   agreementLang: 'en' | 'fr';
   includeAgreement: boolean;
+  includeFrReference?: boolean;
+  employer?: string;
   notes: string;
 }
 
@@ -99,12 +101,17 @@ export interface HireDetail extends HireListItem {
   created?: boolean;
 }
 
-export interface Manager { name: string; titleEn: string; titleFr: string }
+export interface Manager { name: string; titleEn: string; titleFr: string; email?: string }
+
+// Employeur du contrat (Cluster intégré, OSP…). Le logo se lit par l'URL publique.
+export interface Employer { key: string; legalName: string; shortName: string; website: string; hasLogo: boolean; builtIn: boolean }
+export const employerLogoUrl = (key: string) => `${API_URL}/api/public/hr-employer-logo/${key}`;
 
 export interface Meta {
   defaults: Plan;
   terms: Terms;
   managers: Manager[];
+  employers: Employer[];
   can: { manage: boolean; countersign: boolean };
 }
 

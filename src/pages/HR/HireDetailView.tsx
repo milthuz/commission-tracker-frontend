@@ -274,6 +274,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
             <h3 className="mb-4 font-semibold text-black dark:text-white">{t('hr.detail.summary')}</h3>
             <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
               {[
+                ...((meta.employers || []).length > 1 ? [[t('hr.form.employer'), (meta.employers || []).find((e) => e.key === (h.employer || 'cluster'))?.legalName || h.employer]] : []),
                 [t('hr.form.email'), h.email],
                 [t('hr.form.phone'), h.phone || '—'],
                 [t('hr.form.address'), [h.addressLine1, h.city, h.province, h.postalCode].filter(Boolean).join(', ') || '—'],
