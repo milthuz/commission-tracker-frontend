@@ -133,6 +133,7 @@ export default function RevenueModeler() {
         if (r.status === 403) { setFatal(t('revenueModeler.noAccess') as string); return; }
         if (!r.ok) throw new Error();
         const d = await r.json();
+        d.defaults = upgradeInputs(d.defaults);
         setDefaults(d.defaults);
         if (Array.isArray(d.saasTiers)) setTiers(d.saasTiers);
         setCanEditTiers(d.canEditSettings === true);
@@ -265,7 +266,7 @@ export default function RevenueModeler() {
         flash('err', d.demo ? d.error : t(`revenueModeler.err.${d.error}`, { field: d.field, defaultValue: t('revenueModeler.defaultsError') as string }) as string);
         return;
       }
-      setDefaults(d.defaults);
+      setDefaults(upgradeInputs(d.defaults));
       flash('ok', t('revenueModeler.defaultsSaved', { n: d.changed }) as string);
     } catch {
       flash('err', t('revenueModeler.defaultsError') as string);
@@ -341,7 +342,9 @@ export default function RevenueModeler() {
     { key: 'credit', color: '#3C50E0', v: () => model.netCredit },
     { key: 'interac', color: '#80CAEE', v: () => model.netInterac },
     { key: 'terminals', color: '#1D9E75', v: () => model.netTerminalAnnual },
+    { key: 'procFees', color: '#0EA5E9', v: () => model.netProcFees },
     { key: 'hardware', color: '#8B5CF6', v: (y: 0 | 1 | 2) => (yr(y) ? model.hwGrossProfit : 0) },
+    { key: 'install', color: '#14B8A6', v: (y: 0 | 1 | 2) => (yr(y) ? model.instGrossProfit : 0) },
     { key: 'termBuy', color: '#BA7517', v: (y: 0 | 1 | 2) => (yr(y) ? -model.terminalPurchaseCost : 0) },
     { key: 'comm', color: '#A32D2D', v: (y: 0 | 1 | 2) => (yr(y) ? -model.commissionsYear1 : 0) },
   ];
@@ -367,6 +370,7 @@ export default function RevenueModeler() {
   ];
 
   const instPerLoc = inputs.instPrice * (inputs.commInstPct / 100);
+  const instLossPerLoc = inputs.numLocs > 0 ? -model.instNet / inputs.numLocs : 0;
 
   return (
     <div className="rm-print">
@@ -512,6 +516,21 @@ export default function RevenueModeler() {
               {f('interacCostPct', '%', 3)}
               {f('interacCostPerTxn', '$', 3)}
             </Section>
+            {/* Frais de traitement : revenu ET coût, par emplacement par mois (David, 2026-09-23). */}
+            <Section title={t('revenueModeler.sec.procFees')}>
+              {(['aof', 'pci', 'bank'] as const).map((k) => (
+                <div key={k}>
+                  <div className="mb-1.5 text-xs font-medium text-black dark:text-white">{t(`revenueModeler.pl.fee.${k}`)}</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <NumField label={t('revenueModeler.in.feeRev') as string} value={inputs[`${k}Rev`]} onChange={set(`${k}Rev`)}
+                      unit={t('revenueModeler.unit.perMonth') as string} decimals={2} locale={locale} />
+                    <NumField label={t('revenueModeler.in.feeCost') as string} value={inputs[`${k}Cost`]} onChange={set(`${k}Cost`)}
+                      unit={t('revenueModeler.unit.perMonth') as string} decimals={2} locale={locale} />
+                  </div>
+                </div>
+              ))}
+              <p className="text-xs text-body dark:text-bodydark">{t('revenueModeler.procFeesHint', { net: money(model.netProcFees) })}</p>
+            </Section>
             <Section title={t('revenueModeler.sec.terminals')}>
               {f('termsPerLoc')}
               {f('termRentalRev', t('revenueModeler.unit.perMonth') as string, 2)}
@@ -526,7 +545,13 @@ export default function RevenueModeler() {
                   ? t('revenueModeler.hwMarginNone')
                   : t('revenueModeler.hwMargin', { amount: money(inputs.hwPrice - inputs.hwCost), pct: num(model.hwMarginPct, 1) })}
               </p>
+            </Section>
+            <Section title={t('revenueModeler.sec.install')}>
+              {f('instCost', '$', 2)}
               {f('instPrice', '$', 2)}
+              <p className={`-mt-1 text-xs ${inputs.instPrice - inputs.instCost < 0 ? 'text-danger' : 'text-body dark:text-bodydark'}`}>
+                {t('revenueModeler.instMargin', { amount: money(inputs.instPrice - inputs.instCost) })}
+              </p>
             </Section>
             <Section title={t('revenueModeler.sec.commissions')}>
               {f('commSaasMonths', t('revenueModeler.unit.months') as string, 2)}
@@ -541,7 +566,8 @@ export default function RevenueModeler() {
               {model.alerts.installLoss && (
                 <Alert title={t('revenueModeler.alert.installTitle')}>
                   {t('revenueModeler.alert.installBody', {
-                    comm: money(instPerLoc), total: money(model.instCommission),
+                    margin: money(inputs.instPrice - inputs.instCost), comm: money(instPerLoc),
+                    loss: money(instLossPerLoc), total: money(-model.instNet),
                     price: model.suggestedInstPrice === null ? '—' : money(model.suggestedInstPrice),
                   })}
                 </Alert>

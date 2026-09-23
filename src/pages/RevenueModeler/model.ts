@@ -22,12 +22,17 @@ export interface Inputs {
   creditCostPerTxn: number;
   interacCostPerTxn: number;
   interacCostPct: number; // coût réseau Interac en % du volume Interac, comme creditCostPct
+  // Frais de traitement PAR EMPLACEMENT PAR MOIS : revenu et coût de chacun.
+  aofRev: number;  aofCost: number;   // Account on file
+  pciRev: number;  pciCost: number;   // PCI Fee
+  bankRev: number; bankCost: number;  // Bank transfer
   termRentalRev: number;
   termWarrantyCost: number;
   termUnitCost: number;
   hwCost: number;   // prix d'ACHAT du matériel par emplacement
   hwPrice: number;  // prix de VENTE du matériel par emplacement
   instPrice: number;
+  instCost: number;  // coût de l'installation par emplacement
   commSaasMonths: number;
   commPayPerLoc: number;
   commHwPct: number;
@@ -57,6 +62,15 @@ export function compute(i: Inputs) {
   const costInteracPct = i.gmvInterac * ((i.interacCostPct || 0) / 100);
   const netInterac = revTxnInterac - costTxnInterac - costInteracPct;
 
+  // Frais de traitement : par emplacement, par mois → × emplacements × 12, chaque année.
+  const fee = (v: number) => i.numLocs * (v || 0) * 12;
+  const procFees = {
+    aof:  { rev: fee(i.aofRev),  cost: fee(i.aofCost) },
+    pci:  { rev: fee(i.pciRev),  cost: fee(i.pciCost) },
+    bank: { rev: fee(i.bankRev), cost: fee(i.bankCost) },
+  };
+  const netProcFees = Object.values(procFees).reduce((a, f) => a + f.rev - f.cost, 0);
+
   const rentalRevAnnual = totalTerminals * i.termRentalRev * 12;
   const warrantyCostAnnual = totalTerminals * i.termWarrantyCost * 12;
   const netTerminalAnnual = rentalRevAnnual - warrantyCostAnnual;
@@ -74,11 +88,12 @@ export function compute(i: Inputs) {
   const hwNet = hwGrossProfit - hwCommission;
 
   const instRevenue = i.numLocs * i.instPrice;
-  const instCOGS = instRevenue; // refacturé au coût
+  const instCOGS = i.numLocs * i.instCost;
+  const instGrossProfit = instRevenue - instCOGS;
   const instCommission = instRevenue * (i.commInstPct / 100);
-  const instNet = -instCommission;
+  const instNet = instGrossProfit - instCommission;
 
-  const recurring = saasRevenueGross + netCredit + netInterac + netTerminalAnnual;
+  const recurring = saasRevenueGross + netCredit + netInterac + netProcFees + netTerminalAnnual;
   // La commission paiement est versée au VENDEUR à la signature : elle n'est rattachée à aucune
   // ligne de produit (surtout pas aux terminaux, qui ne portent aucune commission).
   const otherCommissions = commissionPayment;
@@ -88,24 +103,26 @@ export function compute(i: Inputs) {
 
   const commissionsYear1 = commissionSaas + hwCommission + instCommission + otherCommissions;
 
-  // Prix d'installation qui ramène la ligne à zéro une fois la commission payée.
-  const suggestedInstPrice = i.commInstPct > 0 && i.commInstPct < 100 ? i.instPrice / (1 - i.commInstPct / 100) : null;
+  // Prix d'installation qui ramène la ligne à zéro une fois la commission payée : P − coût − P×taux = 0.
+  const suggestedInstPrice = i.commInstPct < 100 ? i.instCost / (1 - i.commInstPct / 100) : null;
 
   return {
     totalTerminals,
     saasRevenueGross, commissionSaas,
     revMarkup, costCreditPct, revTxnCredit, costTxnCredit, netCredit,
     revTxnInterac, costTxnInterac, costInteracPct, netInterac,
+    procFees, netProcFees,
     rentalRevAnnual, warrantyCostAnnual, netTerminalAnnual, terminalPurchaseCost, commissionPayment, paybackMonths,
     hwRevenue, hwCOGS, hwGrossProfit, hwMarginPct, hwCommission, hwNet,
-    instRevenue, instCOGS, instCommission, instNet,
+    instRevenue, instCOGS, instGrossProfit, instCommission, instNet,
     profitYear1, profitYear2, profitYear3,
     total3Years: profitYear1 + profitYear2 + profitYear3,
     commissionsYear1, otherCommissions,
-    netPayments: netCredit + netInterac,
+    netPayments: netCredit + netInterac + netProcFees,
     gmvTotal: i.gmvCredit + i.gmvInterac,
     alerts: {
-      installLoss: i.commInstPct > 0 && i.instPrice > 0,
+      // L'installation perd de l'argent une fois sa commission payée.
+      installLoss: i.numLocs > 0 && instNet < -0.005,
       interacLow: netInterac < INTERAC_ALERT_FLOOR,
     },
     suggestedInstPrice,
@@ -114,13 +131,23 @@ export function compute(i: Inputs) {
 
 export type Model = ReturnType<typeof compute>;
 
-// Scénario d'avant le 2026-09-22 : marge en % au lieu d'un prix d'achat. Même conversion que le
-// serveur (defaults.js), pour qu'un scénario se relise à l'identique quel que soit son âge.
+// Remet un scénario ancien au format courant sans changer un seul de ses chiffres.
+// ⚠️ Même logique que upgradeInputs() de commission-tracker/services/revenueModel/defaults.js :
+// garder les deux identiques.
+const FEE_KEYS = ['aofRev', 'aofCost', 'pciRev', 'pciCost', 'bankRev', 'bankCost'];
 export function upgradeInputs(raw: any): any {
-  if (!raw || raw.hwCost != null || raw.hwMarginPct == null) return raw;
-  const { hwMarginPct, ...rest } = raw;
-  const price = Number(raw.hwPrice ?? 0);
-  return { ...rest, hwCost: Math.round(price * (1 - Number(hwMarginPct) / 100) * 100) / 100 };
+  if (!raw || typeof raw !== 'object') return raw;
+  const out = { ...raw };
+  // Avant le 2026-09-22 : marge matériel en % → le prix d'achat qui donne la même marge.
+  if (out.hwCost == null && out.hwMarginPct != null) {
+    out.hwCost = Math.round(Number(out.hwPrice ?? 0) * (1 - Number(out.hwMarginPct) / 100) * 100) / 100;
+  }
+  delete out.hwMarginPct;
+  // Avant le 2026-09-23 : installation refacturée au coût, donc coût = prix.
+  if (out.instCost == null && out.instPrice != null) out.instCost = Number(out.instPrice);
+  // Avant le 2026-09-23 : aucun frais de traitement par emplacement.
+  if (Object.keys(raw).length) for (const k of FEE_KEYS) if (out[k] == null) out[k] = 0;
+  return out;
 }
 
 // ── Lignes du P&L ────────────────────────────────────────────────────────────────────────
@@ -160,6 +187,13 @@ export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number
     { kind: 'cost', label: t(p + 'interacCostTxn', { fee: num(i.interacCostPerTxn, 6) }), y: same(-m.costTxnInterac) },
     { kind: 'subtotal', label: t(p + 'interacNet'), y: same(m.netInterac) },
 
+    sec('procFees'),
+    ...(['aof', 'pci', 'bank'] as const).flatMap((k) => [
+      { kind: 'rev' as const, label: t(p + 'feeRev', { name: t(p + 'fee.' + k), fee: num(i[`${k}Rev`], 6), locs: num(i.numLocs) }), y: same(m.procFees[k].rev) },
+      { kind: 'cost' as const, label: t(p + 'feeCost', { name: t(p + 'fee.' + k), fee: num(i[`${k}Cost`], 6), locs: num(i.numLocs) }), y: same(-m.procFees[k].cost) },
+    ]),
+    { kind: 'subtotal', label: t(p + 'procFeesNet'), y: same(m.netProcFees) },
+
     sec('terminals'),
     { kind: 'rev', label: t(p + 'rental', { n: num(m.totalTerminals), fee: num(i.termRentalRev, 2) }), y: same(m.rentalRevAnnual) },
     { kind: 'cost', label: t(p + 'warranty', { fee: num(i.termWarrantyCost, 2) }), y: same(-m.warrantyCostAnnual) },
@@ -174,7 +208,7 @@ export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number
 
     sec('install'),
     { kind: 'rev', label: t(p + 'instRevenue', { price: num(i.instPrice, 2), locs: num(i.numLocs) }), y: once(m.instRevenue), oneTime: true },
-    { kind: 'cost', label: t(p + 'instCogs'), y: once(-m.instCOGS), oneTime: true },
+    { kind: 'cost', label: t(p + 'instCogs', { cost: num(i.instCost, 2), locs: num(i.numLocs) }), y: once(-m.instCOGS), oneTime: true },
     { kind: 'comm', label: t(p + 'instComm', { pct: num(i.commInstPct, 1) }), y: once(-m.instCommission), oneTime: true },
     { kind: 'subtotal', label: t(p + 'instNet'), y: once(m.instNet) },
 

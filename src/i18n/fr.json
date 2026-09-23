@@ -5157,8 +5157,10 @@
       "payRevenue": "Revenus paiement",
       "networkCosts": "Coûts réseau",
       "terminals": "Terminaux",
-      "hardware": "Matériel & installation",
-      "commissions": "Commissions de vente"
+      "hardware": "Matériel",
+      "commissions": "Commissions de vente",
+      "procFees": "Frais de traitement (par emplacement)",
+      "install": "Installation"
     },
     "unit": {
       "perLocMonth": "$/mois",
@@ -5186,15 +5188,18 @@
       "termUnitCost": "Coût d'achat d'un terminal",
       "hwCost": "Prix d'achat du matériel par emplacement",
       "hwPrice": "Prix de vente du matériel par emplacement",
-      "instPrice": "Prix d'installation par emplacement",
+      "instPrice": "Prix de vente de l'installation par emplacement",
       "commSaasMonths": "Commission SaaS (mois de SaaS)",
       "commPayPerLoc": "Commission paiement par emplacement",
       "commHwPct": "Commission matériel (% de la facture)",
-      "commInstPct": "Commission installation (% de la facture)"
+      "commInstPct": "Commission installation (% de la facture)",
+      "feeRev": "Revenu",
+      "feeCost": "Coût",
+      "instCost": "Coût de l'installation par emplacement"
     },
     "alert": {
       "installTitle": "Installation déficitaire",
-      "installBody": "L'installation est refacturée au coût (0 $ de profit), mais on y verse une commission de {{comm}} par emplacement — soit une perte de {{total}} au total. Correctif : prix à {{price}} par emplacement, ou exclure l'installation de la base de commission.",
+      "installBody": "Marge de {{margin}} par emplacement, mais commission de {{comm}} : perte de {{loss}} par emplacement ({{total}} au total). Correctif : prix à {{price}} par emplacement, ou exclure l'installation de la base de commission.",
       "interacTitle": "Interac peu rentable",
       "interacBody": "Marge nette Interac de seulement {{net}} par an sur {{n}} transactions (seuil d’alerte : {{floor}})."
     },
@@ -5237,7 +5242,8 @@
         "terminals": "Terminaux",
         "hardware": "Matériel",
         "install": "Installation",
-        "otherComm": "Autres commissions (vendeur)"
+        "otherComm": "Autres commissions (vendeur)",
+        "procFees": "Frais de traitement"
       },
       "saasGross": "Revenus SaaS bruts ({{price}} $/empl./mois × {{locs}} × 12)",
       "saasComm": "Commission SaaS ({{months}} mois × {{price}} $ × {{locs}})",
@@ -5262,10 +5268,18 @@
       "hwComm": "Commission matériel ({{pct}} % de la facture)",
       "hwNet": "Matériel net",
       "instRevenue": "Revenus installation ({{price}} $ × {{locs}} empl.)",
-      "instCogs": "Coût de l'installation (refacturée au coût)",
+      "instCogs": "Coût de l'installation ({{cost}} $ × {{locs}} empl.)",
       "instComm": "Commission installation ({{pct}} % de la facture)",
       "instNet": "Installation net",
-      "profit": "Profit net"
+      "profit": "Profit net",
+      "fee": {
+        "aof": "Account on file",
+        "pci": "Frais PCI",
+        "bank": "Virement bancaire"
+      },
+      "feeRev": "{{name}} — revenu ({{fee}} $/empl./mois × {{locs}} × 12)",
+      "feeCost": "{{name}} — coût ({{fee}} $/empl./mois)",
+      "procFeesNet": "Frais de traitement net"
     },
     "tiers": {
       "edit": "Modifier les paliers",
@@ -5296,9 +5310,13 @@
       "terminals": "Location nette",
       "hardware": "Marge matériel",
       "termBuy": "Achat terminaux",
-      "comm": "Commissions"
+      "comm": "Commissions",
+      "procFees": "Frais de traitement",
+      "install": "Marge installation"
     },
-    "footer": "Généré par Sales Hub · Modélisateur de revenus · {{date}} · Confidentiel"
+    "footer": "Généré par Sales Hub · Modélisateur de revenus · {{date}} · Confidentiel",
+    "procFeesHint": "Net des frais de traitement : {{net}} par année.",
+    "instMargin": "Marge : {{amount}} par emplacement (avant commission)"
   },
   "icplus": {
     "title": "Calculateur IC+",
