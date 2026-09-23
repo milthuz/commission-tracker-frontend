@@ -467,7 +467,6 @@ export default function RevenueModeler() {
                   onChange={(e) => setInputs({ ...inputs, merchantName: e.target.value })} className={INPUT_CLS} />
               </label>
               {f('numLocs')}
-              {f('termsPerLoc')}
             </Section>
             <Section title={t('revenueModeler.sec.volume')}>
               {f('gmvCredit', '$')}
@@ -512,6 +511,7 @@ export default function RevenueModeler() {
               {f('interacCostPerTxn', '$', 3)}
             </Section>
             <Section title={t('revenueModeler.sec.terminals')}>
+              {f('termsPerLoc')}
               {f('termRentalRev', t('revenueModeler.unit.perMonth') as string, 2)}
               {f('termWarrantyCost', t('revenueModeler.unit.perMonth') as string, 2)}
               {f('termUnitCost', '$', 2)}
