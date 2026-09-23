@@ -5593,11 +5593,11 @@
       "supervisorHint": "La personne nommée dans la case SUPERVISEUR de l’entente de rémunération (bande du haut et page de signature). Suit « Relève de » sauf si vous choisissez quelqu’un d’autre.",
       "compensation": "Conditions de l'offre",
       "annualSalary": "Salaire de base annuel",
-      "carAllowance": "Allocation auto ($/an)",
-      "phoneAllowance": "Allocation téléphone ($/mois)",
+      "carAllowance": "Montant par année ($)",
+      "phoneAllowance": "Montant par mois ($)",
       "vacationWeeks": "Vacances payées (semaines)",
       "commissionEligible": "Admissible aux commissions (clause 4)",
-      "offerNote": "L’offre reprend le gabarit juridique de Cluster dans la langue choisie. La version française est une traduction non révisée par un juriste. Une allocation à 0 retire sa phrase.",
+      "offerNote": "L’offre reprend le gabarit juridique de Cluster dans la langue choisie (la version française est une traduction non révisée par un juriste). Une allocation décochée est retirée du contrat.",
       "agreement": "Entente de rémunération",
       "agreementHint": "Sales Representative Compensation Agreement v{{version}}, générée avec l'offre.",
       "includeAgreement": "Inclure l'entente",
@@ -5626,7 +5626,12 @@
       "reportsToNameOther": "Nom complet",
       "titlesFromList": "Titre tiré de la liste des gestionnaires (Admin → RH).",
       "titleMissing": "Ce gestionnaire n’a pas encore de titre dans la liste — saisissez-le ici, ou ajoutez-le une fois dans Admin → RH pour qu’il se remplisse tout seul.",
-      "sameAsManager": "Même personne que « Relève de »"
+      "sameAsManager": "Même personne que « Relève de »",
+      "includeCar": "Allocation automobile",
+      "includePhone": "Allocation téléphone",
+      "notIncluded": "Non incluse",
+      "perYear": "an",
+      "perMonth": "mois"
     },
     "detail": {
       "back": "Tous les dossiers d'embauche",

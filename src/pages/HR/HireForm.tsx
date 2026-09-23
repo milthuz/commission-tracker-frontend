@@ -84,6 +84,25 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
     setH('supervisorName')(v === OTHER ? '' : v);
   };
   const setT = <K extends keyof Terms>(k: K) => (v: Terms[K]) => setTerms((x) => ({ ...x, [k]: v }));
+  // Allocations auto / téléphone : OPTIONNELLES. Décochée (ou montant à 0) = la phrase est
+  // retirée du contrat, en français comme en anglais (offerSalaryExtra côté serveur).
+  // Recocher remet le montant du gabarit.
+  const allowance = (k: 'carAllowance' | 'phoneAllowance', label: string, checkLabel: string) => {
+    const on = Number(terms[k]) > 0 || (terms[k] as any) === '';
+    return (
+      <div>
+        <label className="mb-1.5 flex cursor-pointer items-center gap-2 text-sm font-medium text-black dark:text-white">
+          <input type="checkbox" checked={on}
+            onChange={(e) => setT(k)(e.target.checked ? (Number(meta.terms[k]) || (k === 'carAllowance' ? 6000 : 60)) : 0)} />
+          {checkLabel}
+        </label>
+        <input type="number" min={0} className={INPUT + (on ? '' : ' opacity-50')} disabled={!on} aria-label={label}
+          value={on ? (terms[k] as any) : ''} placeholder={on ? '' : (t('hr.form.notIncluded') as string)}
+          onChange={(e) => setT(k)(e.target.value === '' ? ('' as any) : Number(e.target.value))} />
+        {on && <p className="mt-1 text-xs text-bodydark2">{label}</p>}
+      </div>
+    );
+  };
   const setP = (k: PlanNumKey) => (v: string) => setPlan((p) => ({ ...p, [k]: v === '' ? ('' as any) : Number(v) }));
 
   // Comparaison canonique : un plan relu de la base (JSONB) rend ses paliers { bonus, points },
@@ -303,14 +322,8 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-bodydark2">CAD</span>
             </div>
           </div>
-          <div>
-            <label className={LABEL}>{t('hr.form.carAllowance')}</label>
-            <input type="number" className={INPUT} value={terms.carAllowance as any} onChange={(e) => setT('carAllowance')(e.target.value === '' ? ('' as any) : Number(e.target.value))} />
-          </div>
-          <div>
-            <label className={LABEL}>{t('hr.form.phoneAllowance')}</label>
-            <input type="number" className={INPUT} value={terms.phoneAllowance as any} onChange={(e) => setT('phoneAllowance')(e.target.value === '' ? ('' as any) : Number(e.target.value))} />
-          </div>
+          {allowance('carAllowance', t('hr.form.carAllowance'), t('hr.form.includeCar'))}
+          {allowance('phoneAllowance', t('hr.form.phoneAllowance'), t('hr.form.includePhone'))}
           <div>
             <label className={LABEL}>{t('hr.form.vacationWeeks')}</label>
             <input type="number" className={INPUT} value={terms.vacationWeeks as any} onChange={(e) => setT('vacationWeeks')(e.target.value === '' ? ('' as any) : Number(e.target.value))} />

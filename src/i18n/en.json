@@ -5593,11 +5593,11 @@
       "supervisorHint": "The person named in the SUPERVISOR box of the compensation agreement (top strip and signature page). Follows “Reports to” unless you pick someone else.",
       "compensation": "Offer terms",
       "annualSalary": "Annual base salary",
-      "carAllowance": "Car allowance ($/year)",
-      "phoneAllowance": "Phone allowance ($/month)",
+      "carAllowance": "Amount per year ($)",
+      "phoneAllowance": "Amount per month ($)",
       "vacationWeeks": "Paid vacation (weeks)",
       "commissionEligible": "Eligible to earn commissions (clause 4)",
-      "offerNote": "The offer reproduces Cluster’s legal template in the chosen language. The French version is a translation that has not been reviewed by a lawyer. An allowance set to 0 removes its sentence.",
+      "offerNote": "The offer reproduces Cluster’s legal template in the chosen language (the French version is a translation not reviewed by a lawyer). An unchecked allowance is removed from the contract.",
       "agreement": "Compensation agreement",
       "agreementHint": "Sales Representative Compensation Agreement v{{version}}, generated with the offer.",
       "includeAgreement": "Include the agreement",
@@ -5626,7 +5626,12 @@
       "reportsToNameOther": "Full name",
       "titlesFromList": "Title taken from the managers list (Admin → HR).",
       "titleMissing": "This manager has no title in the list yet — type it here, or add it once in Admin → HR so it fills in automatically.",
-      "sameAsManager": "Same as “Reports to”"
+      "sameAsManager": "Same as “Reports to”",
+      "includeCar": "Car allowance",
+      "includePhone": "Phone allowance",
+      "notIncluded": "Not included",
+      "perYear": "year",
+      "perMonth": "month"
     },
     "detail": {
       "back": "All hiring files",
