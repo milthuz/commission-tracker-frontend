@@ -5682,7 +5682,10 @@
       "cancelOffer": "Annuler l'offre",
       "actionFailed": "L'action a échoué :",
       "pdfFailed": "Impossible d'ouvrir le PDF.",
-      "frReference": "version française de référence (non signée)"
+      "frReference": "version française de référence (non signée)",
+      "viewSigned": "Voir le dossier signé",
+      "signedPackage": "Dossier signé",
+      "confirmDeleteClosed": "Supprimer définitivement le dossier de {{name}} ? Ses documents, pièces jointes et sa chronologie seront effacés. (Un dossier signé, lui, ne peut pas être supprimé.)"
     },
     "plan": {
       "monthlyQuota": "Quota mensuel",
@@ -5762,5 +5765,11 @@
     "inEnglish": "anglais",
     "frReference": "version française, pour référence",
     "referenceNote": "Vous signez les versions anglaises. Les versions françaises vous sont également remises : prenez-en connaissance."
+  },
+  "pdfViewer": {
+    "pages_one": "{{count}} page",
+    "pages_other": "{{count}} pages",
+    "download": "Télécharger",
+    "failed": "Impossible d’afficher ce document."
   }
 }

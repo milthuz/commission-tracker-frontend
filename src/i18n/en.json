@@ -5682,7 +5682,10 @@
       "cancelOffer": "Cancel the offer",
       "actionFailed": "Action failed:",
       "pdfFailed": "Could not open the PDF.",
-      "frReference": "French reference copy (not signed)"
+      "frReference": "French reference copy (not signed)",
+      "viewSigned": "View the signed package",
+      "signedPackage": "Signed package",
+      "confirmDeleteClosed": "Permanently delete the file for {{name}}? Its documents, attachments and timeline will be erased. (A signed file cannot be deleted.)"
     },
     "plan": {
       "monthlyQuota": "Monthly quota",
@@ -5762,5 +5765,11 @@
     "inEnglish": "English",
     "frReference": "French version, for reference",
     "referenceNote": "You are signing the English versions. The French versions are provided to you as well; please read them too."
+  },
+  "pdfViewer": {
+    "pages_one": "{{count}} page",
+    "pages_other": "{{count}} pages",
+    "download": "Download",
+    "failed": "Could not display this document."
   }
 }

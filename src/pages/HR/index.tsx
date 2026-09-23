@@ -5,7 +5,8 @@ import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import { ContentLoader } from '../../common/Loader';
 import HireForm from './HireForm';
 import HireDetailView from './HireDetailView';
-import { API_URL, authHeaders, scrollToTop, statusTone, type HireDetail, type HireListItem, type HireStatus, type Meta } from './types';
+import { dialog } from '../../lib/dialog';
+import { API_URL, authHeaders, DELETABLE, scrollToTop, statusTone, type HireDetail, type HireListItem, type HireStatus, type Meta } from './types';
 
 // Section RH : embauche d'un représentant. Une seule page qui alterne trois vues (liste, fiche,
 // formulaire) plutôt que des fenêtres superposées — pas de second ascenseur, et le lien
@@ -89,6 +90,13 @@ const HR = () => {
     if (!m) return '—';
     return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { year: 'numeric', month: 'short', day: 'numeric' });
   };
+  // Suppression depuis la liste (brouillon, annulé, refusé) — même garde que la fiche.
+  const removeRow = async (r: HireListItem) => {
+    if (!(await dialog.confirm(t(r.status === 'draft' ? 'hr.detail.confirmDelete' : 'hr.detail.confirmDeleteClosed', { name: r.name }) as string))) return;
+    const res = await fetch(`${API_URL}/api/hr/hires/${r.id}`, { method: 'DELETE', headers: authHeaders() });
+    if (!res.ok) { dialog.alert(t('hr.detail.actionFailed') as string); return; }
+    loadList();
+  };
   const when = (r: HireListItem) => r.completedAt || r.employeeSignedAt || r.viewedAt || r.sentAt || r.updatedAt;
 
   if (!meta && !error) return <ContentLoader />;
@@ -167,6 +175,7 @@ const HR = () => {
                       <th className="px-4 py-3 font-medium">{t('hr.columns.start')}</th>
                       <th className="px-4 py-3 font-medium">{t('hr.columns.status')}</th>
                       <th className="px-4 py-3 font-medium">{t('hr.columns.updated')}</th>
+                      {meta.can.manage && <th className="w-12 px-2 py-3" aria-label={t('common.actions') as string} />}
                     </tr>
                   </thead>
                   <tbody>
@@ -184,6 +193,17 @@ const HR = () => {
                         <td className="whitespace-nowrap px-4 py-3 text-xs text-bodydark2">
                           {new Date(when(r)).toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' })}
                         </td>
+                        {meta.can.manage && (
+                          <td className="px-2 py-3 text-right">
+                            {DELETABLE.includes(r.status) && (
+                              <button type="button" title={t('common.delete') as string} aria-label={t('common.delete') as string}
+                                onClick={(e) => { e.stopPropagation(); removeRow(r); }}
+                                className="rounded p-1.5 text-bodydark2 transition hover:bg-danger/10 hover:text-danger">
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3" /></svg>
+                              </button>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>

@@ -112,6 +112,10 @@ export interface Meta {
 // aucun effet ici. On ramène l'ancre posée en haut de la page RH.
 export const scrollToTop = () => document.getElementById('hr-top')?.scrollIntoView({ block: 'start' });
 
+// Supprimables : brouillon, annulé, refusé. Jamais un dossier signé (le contrat de travail), ni un
+// dossier en cours de signature (on l'annule d'abord). Même liste que DELETABLE côté serveur.
+export const DELETABLE: HireStatus[] = ['draft', 'cancelled', 'declined'];
+
 export const statusTone: Record<HireStatus, string> = {
   draft: 'bg-gray-2 text-bodydark2 dark:bg-meta-4',
   sent: 'bg-primary/10 text-primary',
@@ -121,25 +125,3 @@ export const statusTone: Record<HireStatus, string> = {
   declined: 'bg-danger/10 text-danger',
   cancelled: 'bg-gray-2 text-bodydark2 dark:bg-meta-4',
 };
-
-// Ouvre un PDF protégé (en-tête d'autorisation) dans un nouvel onglet. La fenêtre est ouverte
-// AVANT l'appel réseau : ouverte après un `await`, elle serait bloquée comme fenêtre surgissante.
-export async function openAuthedPdf(url: string, download?: string) {
-  const w = download ? null : window.open('', '_blank');
-  try {
-    const res = await fetch(url, { headers: authHeaders() });
-    if (!res.ok) throw new Error(String(res.status));
-    const blob = await res.blob();
-    const obj = URL.createObjectURL(blob);
-    if (download) {
-      const a = document.createElement('a');
-      a.href = obj; a.download = download; document.body.appendChild(a); a.click(); a.remove();
-    } else if (w) {
-      w.location.href = obj;
-    }
-    setTimeout(() => URL.revokeObjectURL(obj), 60000);
-  } catch (e) {
-    if (w) w.close();
-    throw e;
-  }
-}

@@ -2,7 +2,8 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import SignaturePad, { type SignaturePadHandle } from '../../components/SignaturePad';
-import { API_URL, authHeaders, openAuthedPdf, statusTone, type HireDetail, type Meta } from './types';
+import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
+import { API_URL, authHeaders, DELETABLE, statusTone, type HireDetail, type Meta } from './types';
 
 // Fiche d'une embauche. Les boutons suivent le cycle de vie — un seul geste principal à la fois
 // (« Envoyer », puis « Contresigner », puis « Créer le représentant ») pour que la prochaine
@@ -35,6 +36,8 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
   const [padEmpty, setPadEmpty] = useState(true);
   const pad = useRef<SignaturePadHandle>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  // Aperçu PDF à l'écran (fenêtre dans l'app), plus de nouvel onglet.
+  const [viewer, setViewer] = useState<PdfSource | null>(null);
 
   const d = detail;
   const h = d.hire;
@@ -70,8 +73,12 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
     }
   };
 
-  const pdf = (doc: string) => openAuthedPdf(`${API_URL}/api/hr/hires/${d.id}/pdf/${doc}`)
-    .catch(() => dialog.alert(t('hr.detail.pdfFailed') as string));
+  const pdf = (doc: string, title: string) => setViewer({
+    url: `${API_URL}/api/hr/hires/${d.id}/pdf/${doc}`,
+    headers: authHeaders(),
+    title: `${title} — ${d.name}`,
+    filename: `Cluster_${doc}_${d.name.replace(/\s+/g, '_')}.pdf`,
+  });
 
   const send = async (resend = false) => {
     const ok = await dialog.confirm(t(resend ? 'hr.detail.confirmResend' : 'hr.detail.confirmSend', { name: d.name, email: d.email }) as string);
@@ -90,7 +97,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
   };
 
   const remove = async () => {
-    if (!(await dialog.confirm(t('hr.detail.confirmDelete') as string))) return;
+    if (!(await dialog.confirm(t(isDraft ? 'hr.detail.confirmDelete' : 'hr.detail.confirmDeleteClosed', { name: d.name }) as string))) return;
     const data = await call('delete', '', { method: 'DELETE' });
     if (data) onDeleted();
   };
@@ -142,6 +149,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
 
   return (
     <div className="space-y-5">
+      {viewer && <PdfViewerModal source={viewer} onClose={() => setViewer(null)} />}
       <button type="button" onClick={onBack} className="text-sm font-medium text-primary hover:underline">← {t('hr.detail.back')}</button>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -164,8 +172,8 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
             <button type="button" className={BTN_PRIMARY} onClick={() => { setSignName(h.supervisorName || ''); setSignOpen(true); }}>{t('hr.detail.countersign')}</button>
           )}
           {d.status === 'completed' && (
-            <button type="button" className={BTN_PRIMARY} onClick={() => openAuthedPdf(`${API_URL}/api/hr/hires/${d.id}/pdf/signed`, `Cluster_Signed_${d.name.replace(/\s+/g, '_')}.pdf`).catch(() => dialog.alert(t('hr.detail.pdfFailed') as string))}>
-              {t('hr.detail.downloadSigned')}
+            <button type="button" className={BTN_PRIMARY} onClick={() => pdf('signed', t('hr.detail.signedPackage') as string)}>
+              {t('hr.detail.viewSigned')}
             </button>
           )}
           {d.status === 'completed' && canManage && !d.salespersonName && (
@@ -232,7 +240,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
               {documents.map((doc) => (
                 <li key={doc.key} className="flex flex-wrap items-center justify-between gap-2 py-3">
                   <span className="text-sm text-black dark:text-white">📄 {doc.label}</span>
-                  <button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => pdf(doc.key)}>
+                  <button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => pdf(doc.key, doc.label)}>
                     {isDraft ? t('hr.detail.preview') : t('hr.detail.viewSent')}
                   </button>
                 </li>
@@ -241,7 +249,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
                 <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
                   <span className="min-w-0 break-all text-sm text-black dark:text-white">📎 {a.filename} <span className="text-xs text-bodydark2">({Math.round(a.size / 1024)} Ko)</span></span>
                   <span className="flex gap-3">
-                    <button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => pdf(`att-${a.id}`)}>{t('hr.detail.open')}</button>
+                    <button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => pdf(`att-${a.id}`, a.filename)}>{t('hr.detail.open')}</button>
                     {isDraft && canManage && (
                       <button type="button" className="text-sm font-medium text-danger hover:underline" disabled={!!busy} onClick={() => removeAttachment(a.id)}>{t('common.remove')}</button>
                     )}
@@ -310,7 +318,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
             <div className="mt-6 flex flex-wrap gap-2 border-t border-stroke pt-4 dark:border-strokedark">
               <button type="button" className={BTN_GHOST} disabled={!!busy} onClick={duplicate}>{t('hr.detail.duplicate')}</button>
               {(pending || d.status === 'employee_signed') && <button type="button" className={BTN_DANGER} disabled={!!busy} onClick={cancel}>{t('hr.detail.cancelOffer')}</button>}
-              {isDraft && <button type="button" className={BTN_DANGER} disabled={!!busy} onClick={remove}>{t('common.delete')}</button>}
+              {DELETABLE.includes(d.status) && <button type="button" className={BTN_DANGER} disabled={!!busy} onClick={remove}>{t('common.delete')}</button>}
             </div>
           )}
         </div>

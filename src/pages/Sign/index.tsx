@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ClusterWordmark from '../../components/ClusterWordmark';
 import SignaturePad, { type SignaturePadHandle } from '../../components/SignaturePad';
+import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
 import { usePassFavicon } from '../Pass/passUi';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -55,6 +56,7 @@ const Sign = () => {
   const [declining, setDeclining] = useState(false);
   const [reason, setReason] = useState('');
   const pad = useRef<SignaturePadHandle>(null);
+  const [viewer, setViewer] = useState<PdfSource | null>(null);
 
   useEffect(() => {
     document.title = 'Cluster';
@@ -125,6 +127,7 @@ const Sign = () => {
 
   return (
     <div className="min-h-screen bg-[#f6f5f3] text-gray-900">
+      {viewer && <PdfViewerModal source={viewer} onClose={() => setViewer(null)} tr={(k, o) => t(k, o) as string} />}
       <header className="bg-[#1f1f1f]">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
           <ClusterWordmark tone="dark" className="h-[24px] w-auto" />
@@ -163,9 +166,9 @@ const Sign = () => {
               <ul className="space-y-2">
                 {info.documents.map((d) => (
                   <li key={d.key}>
-                    <a href={docUrl(d.key)} target="_blank" rel="noopener noreferrer"
-                      onClick={() => setOpened((o) => ({ ...o, [d.key]: true }))}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3 transition hover:border-[#f26b21] hover:bg-orange-50/40">
+                    <button type="button"
+                      onClick={() => { setOpened((o) => ({ ...o, [d.key]: true })); setViewer({ url: docUrl(d.key), title: docTitle(d), filename: `Cluster_${d.key}.pdf` }); }}
+                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3 text-left transition hover:border-[#f26b21] hover:bg-orange-50/40">
                       <span className="flex min-w-0 items-center gap-3">
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-xs font-bold text-[#f26b21]">PDF</span>
                         <span className="min-w-0">
@@ -176,7 +179,7 @@ const Sign = () => {
                       <span className={`shrink-0 text-sm font-medium ${opened[d.key] ? 'text-green-700' : 'text-[#f26b21]'}`}>
                         {opened[d.key] ? `✓ ${t('sign.opened')}` : t('sign.open')}
                       </span>
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
