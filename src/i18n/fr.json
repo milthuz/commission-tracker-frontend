@@ -5577,12 +5577,12 @@
       "province": "Province",
       "postalCode": "Code postal",
       "position": "Poste",
-      "positionEn": "Titre du poste (anglais — offre d'emploi)",
-      "positionFr": "Titre du poste (français — entente)",
+      "positionEn": "Titre du poste (anglais)",
+      "positionFr": "Titre du poste (français)",
       "startDate": "Date d'entrée en fonction",
       "offerDate": "Date de l'offre",
       "reportsToName": "Relève de (nom)",
-      "reportsToTitle": "Relève de (titre)",
+      "reportsToTitle": "Relève de — titre (anglais)",
       "reportsToTitlePh": "ex. Sales Director",
       "supervisorName": "Superviseur sur l'entente",
       "supervisorHint": "Imprimé dans la case SUPERVISEUR de l'entente de rémunération. Par défaut, le gestionnaire ci-dessus.",
@@ -5592,12 +5592,10 @@
       "phoneAllowance": "Allocation téléphone ($/mois)",
       "vacationWeeks": "Vacances payées (semaines)",
       "commissionEligible": "Admissible aux commissions (clause 4)",
-      "offerNote": "L'offre d'emploi reprend mot pour mot le gabarit juridique de Cluster, en anglais. Une allocation à 0 retire sa phrase.",
+      "offerNote": "L’offre reprend le gabarit juridique de Cluster dans la langue choisie. La version française est une traduction non révisée par un juriste. Une allocation à 0 retire sa phrase.",
       "agreement": "Entente de rémunération",
       "agreementHint": "Sales Representative Compensation Agreement v{{version}}, générée avec l'offre.",
       "includeAgreement": "Inclure l'entente",
-      "agreementLang": "Langue de l'entente",
-      "langHint": "Aussi la langue des courriels et de la page de signature que reçoit le candidat.",
       "planDiffers": "Cette entente diffère du plan que le moteur de commissions paie réellement (champs en orange). La modifier ici change le texte signé, pas le calcul de la paie.",
       "planMatches": "Les valeurs correspondent au plan appliqué aujourd'hui par le moteur de commissions.",
       "resetPlan": "Rétablir le plan du moteur",
@@ -5612,7 +5610,12 @@
       "saveFailed": "L'enregistrement a échoué.",
       "saving": "Enregistrement…",
       "save": "Enregistrer",
-      "create": "Créer le dossier"
+      "create": "Créer le dossier",
+      "docLang": "Langue des documents (offre + entente)",
+      "docLangHintFr": "Les deux documents sont générés en français. Les courriels et la page de signature sont toujours bilingues.",
+      "docLangHintEn": "Le candidat signe les versions anglaises. Les versions françaises sont quand même générées et lui sont remises pour référence, comme l’exige la Charte de la langue française pour un contrat d’adhésion.",
+      "reportsToTitleFr": "Relève de — titre (français)",
+      "reportsToTitleFrPh": "ex. Directeur des ventes"
     },
     "detail": {
       "back": "Tous les dossiers d'embauche",
@@ -5646,8 +5649,8 @@
       "signAndComplete": "Signer et finaliser",
       "planDiffers": "Cette entente diffère du plan du moteur de commissions sur : {{fields}}. Vérifiez que la paie suivra.",
       "documents": "Documents",
-      "docOffer": "Offre d'emploi (EN)",
-      "docAgreement": "Entente de rémunération ({{lang}})",
+      "docOffer": "Offre d’emploi",
+      "docAgreement": "Entente de rémunération",
       "preview": "Aperçu",
       "viewSent": "Voir la version envoyée",
       "open": "Ouvrir",
@@ -5662,7 +5665,8 @@
       "duplicate": "Dupliquer",
       "cancelOffer": "Annuler l'offre",
       "actionFailed": "L'action a échoué :",
-      "pdfFailed": "Impossible d'ouvrir le PDF."
+      "pdfFailed": "Impossible d'ouvrir le PDF.",
+      "frReference": "version française de référence (non signée)"
     },
     "plan": {
       "monthlyQuota": "Quota mensuel",
@@ -5723,6 +5727,12 @@
     "cancelledTitle": "Offre retirée",
     "cancelledBody": "Cette offre n'est plus disponible. Communiquez avec la personne qui vous l'a envoyée pour plus d'information.",
     "errorTitle": "Un problème est survenu",
-    "errorBody": "La page n'a pas pu être chargée. Veuillez réessayer dans quelques minutes."
+    "errorBody": "La page n'a pas pu être chargée. Veuillez réessayer dans quelques minutes.",
+    "docOffer": "Offre d’emploi",
+    "docAgreement": "Entente de rémunération",
+    "inFrench": "français",
+    "inEnglish": "anglais",
+    "frReference": "version française, pour référence",
+    "referenceNote": "Vous signez les versions anglaises. Les versions françaises vous sont également remises : prenez-en connaissance."
   }
 }

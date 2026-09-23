@@ -26,7 +26,7 @@ const blankHire = (): HireData => ({
   addressLine1: '', city: 'Montreal', province: 'QC', postalCode: '', country: 'Canada',
   position: 'Sales Representative', positionFr: 'Représentant(e) des ventes',
   startDate: '', offerDate: new Date().toISOString().slice(0, 10),
-  reportsToTitle: '', reportsToName: '', supervisorName: '',
+  reportsToTitle: '', reportsToTitleFr: '', reportsToName: '', supervisorName: '',
   annualSalary: null, agreementLang: 'fr', includeAgreement: true, notes: '',
 });
 
@@ -185,9 +185,17 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
       {/* Poste */}
       <div className={CARD}>
         <h3 className="mb-4 font-semibold text-black dark:text-white">{t('hr.form.position')}</h3>
+        {/* Une seule langue pour les DEUX documents (offre + entente). En anglais, la version
+            française est quand même générée et remise au candidat (Charte, art. 55). */}
+        <div className="mb-5 max-w-md">
+          <label className={LABEL}>{t('hr.form.docLang')}</label>
+          <Select value={hire.agreementLang} onChange={(v) => setH('agreementLang')(v as 'en' | 'fr')} buttonClassName={SELECT_CLS}
+            options={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} />
+          <p className="mt-1 text-xs text-bodydark2">{t(hire.agreementLang === 'en' ? 'hr.form.docLangHintEn' : 'hr.form.docLangHintFr')}</p>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
+          {text('positionFr', t('hr.form.positionFr'), { required: true })}
           {text('position', t('hr.form.positionEn'), { required: true })}
-          {text('positionFr', t('hr.form.positionFr'))}
           <div>
             <label className={LABEL}>{t('hr.form.startDate')}<span className="text-danger"> *</span></label>
             <DateField value={hire.startDate} onChange={setH('startDate')} className={INPUT + ring('startDate')} />
@@ -196,7 +204,8 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
             <label className={LABEL}>{t('hr.form.offerDate')}</label>
             <DateField value={hire.offerDate} onChange={setH('offerDate')} className={INPUT + ring('offerDate')} />
           </div>
-          {text('reportsToName', t('hr.form.reportsToName'), { required: true, placeholder: 'Jerome Stroobants' })}
+          <div className="sm:col-span-2">{text('reportsToName', t('hr.form.reportsToName'), { required: true, placeholder: 'Jerome Stroobants' })}</div>
+          {text('reportsToTitleFr', t('hr.form.reportsToTitleFr'), { placeholder: t('hr.form.reportsToTitleFrPh') as string })}
           {text('reportsToTitle', t('hr.form.reportsToTitle'), { required: true, placeholder: t('hr.form.reportsToTitlePh') as string })}
           <div className="sm:col-span-2">
             {text('supervisorName', t('hr.form.supervisorName'), { placeholder: hire.reportsToName || '' })}
@@ -252,13 +261,6 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
 
         {hire.includeAgreement && (
           <>
-            <div className="mb-5 max-w-xs">
-              <label className={LABEL}>{t('hr.form.agreementLang')}</label>
-              <Select value={hire.agreementLang} onChange={(v) => setH('agreementLang')(v as 'en' | 'fr')} buttonClassName={SELECT_CLS}
-                options={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} />
-              <p className="mt-1 text-xs text-bodydark2">{t('hr.form.langHint')}</p>
-            </div>
-
             {anyDiff ? (
               <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-black dark:text-white">
                 <span>{t('hr.form.planDiffers')}</span>

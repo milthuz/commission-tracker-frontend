@@ -5577,12 +5577,12 @@
       "province": "Province",
       "postalCode": "Postal code",
       "position": "Position",
-      "positionEn": "Position title (English — offer letter)",
-      "positionFr": "Position title (French — agreement)",
+      "positionEn": "Position title (English)",
+      "positionFr": "Position title (French)",
       "startDate": "Start date",
       "offerDate": "Offer date",
       "reportsToName": "Reports to (name)",
-      "reportsToTitle": "Reports to (title)",
+      "reportsToTitle": "Reports to — title (English)",
       "reportsToTitlePh": "e.g. Sales Director",
       "supervisorName": "Supervisor on the agreement",
       "supervisorHint": "Printed in the SUPERVISOR box of the compensation agreement. Defaults to the manager above.",
@@ -5592,12 +5592,10 @@
       "phoneAllowance": "Phone allowance ($/month)",
       "vacationWeeks": "Paid vacation (weeks)",
       "commissionEligible": "Eligible to earn commissions (clause 4)",
-      "offerNote": "The offer letter is Cluster’s legal template reproduced word for word, in English. An allowance set to 0 removes its sentence.",
+      "offerNote": "The offer reproduces Cluster’s legal template in the chosen language. The French version is a translation that has not been reviewed by a lawyer. An allowance set to 0 removes its sentence.",
       "agreement": "Compensation agreement",
       "agreementHint": "Sales Representative Compensation Agreement v{{version}}, generated with the offer.",
       "includeAgreement": "Include the agreement",
-      "agreementLang": "Agreement language",
-      "langHint": "Also the language of the emails and signing page the candidate receives.",
       "planDiffers": "This agreement differs from the plan the commission engine actually pays (orange fields). Changing it here changes the signed text, not the payroll calculation.",
       "planMatches": "Values match the plan the commission engine applies today.",
       "resetPlan": "Reset to the engine’s plan",
@@ -5612,7 +5610,12 @@
       "saveFailed": "Save failed.",
       "saving": "Saving…",
       "save": "Save",
-      "create": "Create the file"
+      "create": "Create the file",
+      "docLang": "Language of the documents (offer + agreement)",
+      "docLangHintFr": "Both documents are generated in French. The emails and the signing page are always bilingual.",
+      "docLangHintEn": "The candidate signs the English versions. The French versions are still generated and given to them for reference, as the Charter of the French Language requires for a standard-form contract.",
+      "reportsToTitleFr": "Reports to — title (French)",
+      "reportsToTitleFrPh": "e.g. Directeur des ventes"
     },
     "detail": {
       "back": "All hiring files",
@@ -5646,8 +5649,8 @@
       "signAndComplete": "Sign and complete",
       "planDiffers": "This agreement differs from the commission engine’s plan on: {{fields}}. Check that payroll will follow.",
       "documents": "Documents",
-      "docOffer": "Offer of employment (EN)",
-      "docAgreement": "Compensation agreement ({{lang}})",
+      "docOffer": "Offer of employment",
+      "docAgreement": "Compensation agreement",
       "preview": "Preview",
       "viewSent": "View sent version",
       "open": "Open",
@@ -5662,7 +5665,8 @@
       "duplicate": "Duplicate",
       "cancelOffer": "Cancel the offer",
       "actionFailed": "Action failed:",
-      "pdfFailed": "Could not open the PDF."
+      "pdfFailed": "Could not open the PDF.",
+      "frReference": "French reference copy (not signed)"
     },
     "plan": {
       "monthlyQuota": "Monthly quota",
@@ -5723,6 +5727,12 @@
     "cancelledTitle": "Offer withdrawn",
     "cancelledBody": "This offer is no longer available. Contact the person who sent it for more information.",
     "errorTitle": "Something went wrong",
-    "errorBody": "The page could not be loaded. Please try again in a few minutes."
+    "errorBody": "The page could not be loaded. Please try again in a few minutes.",
+    "docOffer": "Offer of employment",
+    "docAgreement": "Compensation agreement",
+    "inFrench": "French",
+    "inEnglish": "English",
+    "frReference": "French version, for reference",
+    "referenceNote": "You are signing the English versions. The French versions are provided to you as well; please read them too."
   }
 }

@@ -131,9 +131,13 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
     dialog.alert(t(data.created ? 'hr.detail.repCreated' : 'hr.detail.repLinked', { name: data.salespersonName }) as string);
   };
 
+  // Liste venue du serveur : dossier en anglais = offre + entente EN (signées) + leurs versions
+  // françaises de référence.
   const documents = [
-    { key: 'offer', label: t('hr.detail.docOffer') },
-    ...(h.includeAgreement ? [{ key: 'agreement', label: t('hr.detail.docAgreement', { lang: h.agreementLang.toUpperCase() }) }] : []),
+    ...(d.documents || []).map((x) => ({
+      key: x.key,
+      label: `${t(x.kind === 'offer' ? 'hr.detail.docOffer' : 'hr.detail.docAgreement')} (${x.lang.toUpperCase()})${x.reference ? ` — ${t('hr.detail.frReference')}` : ''}`,
+    })),
   ];
 
   return (

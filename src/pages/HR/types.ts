@@ -45,6 +45,7 @@ export interface HireData {
   startDate: string;
   offerDate: string;
   reportsToTitle: string;
+  reportsToTitleFr?: string;
   reportsToName: string;
   supervisorName: string;
   annualSalary: number | null;
@@ -74,6 +75,10 @@ export interface HireListItem {
   salespersonName: string | null;
 }
 
+// Un document généré. `reference` = version française remise en plus d'un dossier en anglais
+// (non signée).
+export interface DocRef { key: string; kind: 'offer' | 'agreement'; lang: 'en' | 'fr'; reference: boolean }
+
 export interface HireEvent { event: string; actor: string | null; ip: string | null; detail: Record<string, any>; at: string }
 export interface Attachment { id: number; filename: string; size: number; sha256: string; uploadedBy: string; createdAt: string }
 
@@ -86,6 +91,7 @@ export interface HireDetail extends HireListItem {
   employeeSig: { name: string; at: string; ip: string; ua?: string } | null;
   companySig: { name: string; email: string; at: string; ip: string } | null;
   hasSigned: boolean;
+  documents: DocRef[];
   attachments: Attachment[];
   events: HireEvent[];
   emailed?: boolean;
