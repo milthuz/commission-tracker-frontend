@@ -65,6 +65,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   // Same "needs attention" idiom as the data-health badge above, for pending Partner Portal
   // opportunities — so a partner manager notices a new submission without opening the page.
   const canPartners = isAdmin || can('partners:manage');
+  // Sections admin ouvertes à un NON-admin par leur propre permission (voir canAccessTab dans
+  // AdminPanel) ET rangées dans le groupe Admin. Un tel usager voit le groupe avec SEULEMENT ces
+  // entrées ; tout le reste du groupe reste réservé aux admins. Partenaires et taux IC+ sont
+  // au premier niveau du menu, donc pas ici.
+  const scopedAdmin = can('leads:manage_rules') || can('hr:manage');
   const [pendingOppsCount, setPendingOppsCount] = useState<number>(0);
   useEffect(() => {
     if (!canPartners) return;
@@ -714,8 +719,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
-              {/* <!-- Menu Item Admin Panel (Admin Only) --> */}
-              {isAdmin && (
+              {/* <!-- Menu Item Admin Panel — admins, ou non-admin avec une section admin (pistes, RH) --> */}
+              {(isAdmin || scopedAdmin) && (
                 <li>
                   <button
                     data-tour-route="/admin"
@@ -762,7 +767,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       adminMenuOpen && !collapsed ? 'max-h-[32rem] opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
-                    {canHealth && (
+                    {isAdmin && canHealth && (
                       <li>
                         <NavLink
                           to="/admin/data-health"
@@ -779,7 +784,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         </NavLink>
                       </li>
                     )}
-                    {canAudit && (
+                    {isAdmin && canAudit && (
                       <li>
                         <NavLink
                           to="/admin/audit"
@@ -791,6 +796,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         </NavLink>
                       </li>
                     )}
+                    {isAdmin && (
                     <li>
                       <NavLink
                         to="/admin/notifications"
@@ -801,6 +807,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         {t('sidebar.notifications')}<NewBadge path="/admin/notifications" />
                       </NavLink>
                     </li>
+                    )}
                     {/* Réglages des pistes (SH-20) : règles d'attribution, tour de rôle,
                         automatisations. La FILE elle-même vit dans le menu principal — ici on ne
                         configure que le comportement. */}
@@ -830,6 +837,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         </NavLink>
                       </li>
                     )}
+                    {isAdmin && (<>
                     <li>
                       <NavLink
                         to="/admin/sync"
@@ -965,6 +973,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         {t('sidebar.merchantLinks')}<NewBadge path="/admin/merchant-links" />
                       </NavLink>
                     </li>
+                    </>)}
                   </ul>
                 </li>
               )}

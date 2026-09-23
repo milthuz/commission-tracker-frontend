@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import { ContentLoader } from '../../common/Loader';
 import HireForm from './HireForm';
@@ -26,7 +25,6 @@ const HR = () => {
   const fr = !!i18n.language?.startsWith('fr');
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const [meta, setMeta] = useState<Meta | null>(null);
   const [rows, setRows] = useState<HireListItem[] | null>(null);
@@ -125,9 +123,6 @@ const HR = () => {
             <div>
               <h2 className="text-title-md2 font-bold text-black dark:text-white">{t('hr.title')}</h2>
               <p className="mt-1 text-sm text-bodydark2">{t('hr.subtitle')}</p>
-              {meta.can.manage && !user?.isAdmin && (
-                <Link to="/admin/hr" className="mt-1 inline-block text-sm font-medium text-primary hover:underline">{t('hr.managers.settingsLink')}</Link>
-              )}
             </div>
             {meta.can.manage && (
               <button type="button" onClick={() => setView({ kind: 'new' })}
