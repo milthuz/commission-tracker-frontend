@@ -225,7 +225,8 @@ export default function RevenueModeler() {
     const s = scenarios.find((x) => x.id === id);
     if (!s) return;
     setActive(s);
-    setSaveName(s.name);
+    // Le scénario d'un collègue ne se réécrit pas : on propose de l'enregistrer sous son nom à soi.
+    setSaveName(s.mine ? s.name : '');
     setInputs({ ...defaults, ...upgradeInputs(s.inputs) });
     setParams({ scenario: s.id }, { replace: true });
   };
@@ -394,11 +395,12 @@ export default function RevenueModeler() {
         <div className="w-full sm:w-64">
           <span className="mb-1 block text-xs text-body dark:text-bodydark">{t('revenueModeler.myScenarios')}</span>
           <Select
-            value={active && active.mine ? active.id : ''}
+            value={active ? active.id : ''}
             onChange={(v) => v && open(v)}
             options={[
               { value: '', label: scenarios.length ? (t('revenueModeler.pickScenario') as string) : (t('revenueModeler.noScenarios') as string) },
-              ...scenarios.map((s) => ({ value: s.id, label: s.name })),
+              // Bibliothèque d'équipe : les siens d'abord (ordre du serveur), ceux des collègues avec leur auteur.
+              ...scenarios.map((s) => ({ value: s.id, label: s.mine ? s.name : `${s.name} — ${s.owner}` })),
             ]}
           />
         </div>
