@@ -23,7 +23,7 @@ const authHeaders = () => ({
   'Content-Type': 'application/json',
 });
 
-interface Scenario { id: string; name: string; inputs: Inputs; mine: boolean; owner: string; updatedAt: string }
+interface Scenario { id: string; name: string; inputs: Inputs; mine: boolean; owner: string; ownerName?: string; updatedAt: string }
 
 const CARD = 'rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark';
 const ORANGE = '#FE6523';
@@ -400,7 +400,7 @@ export default function RevenueModeler() {
             options={[
               { value: '', label: scenarios.length ? (t('revenueModeler.pickScenario') as string) : (t('revenueModeler.noScenarios') as string) },
               // Bibliothèque d'équipe : les siens d'abord (ordre du serveur), ceux des collègues avec leur auteur.
-              ...scenarios.map((s) => ({ value: s.id, label: s.mine ? s.name : `${s.name} — ${s.owner}` })),
+              ...scenarios.map((s) => ({ value: s.id, label: s.mine ? s.name : `${s.name} — ${s.ownerName || s.owner}` })),
             ]}
           />
         </div>
@@ -451,7 +451,7 @@ export default function RevenueModeler() {
           <div className="w-full text-xs">
             {status && <span className={status.kind === 'ok' ? 'text-meta-3' : 'text-danger'}>{status.text}</span>}
             {!status && active && !active.mine && (
-              <span className="text-body">{t('revenueModeler.sharedBy', { name: active.name, owner: active.owner })}</span>
+              <span className="text-body">{t('revenueModeler.sharedBy', { name: active.name, owner: active.ownerName || active.owner })}</span>
             )}
             {!status && active?.mine && dirty && <span className="text-[#BA7517]">{t('revenueModeler.unsaved')}</span>}
           </div>
