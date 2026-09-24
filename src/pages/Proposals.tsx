@@ -21,7 +21,21 @@ interface Estimate {
   total: number; currency: string; date: string; status: string; salesperson: string;
 }
 // Proposition de CHAÎNE : la tarification vient d'un scénario du modélisateur (prix client seulement).
-interface ChainScenario { id: string; name: string; merchantName: string; numLocs: number }
+interface ChainScenario { id: string; name: string; merchantName: string; numLocs: number; hasLogo?: boolean }
+
+// Le logo du scénario passe en PNG avant d'aller sur la couverture : le rendu de secours (pdf-lib,
+// si le service Chromium est indisponible) ne lit que PNG et JPEG, et un WebP y casserait la
+// proposition.
+const toPng = (dataUrl: string): Promise<string> => new Promise((resolve) => {
+  if (dataUrl.startsWith('data:image/png') || dataUrl.startsWith('data:image/jpeg')) { resolve(dataUrl); return; }
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    c.getContext('2d')!.drawImage(img, 0, 0); resolve(c.toDataURL('image/png'));
+  };
+  img.onerror = () => resolve(dataUrl);
+  img.src = dataUrl;
+});
 interface Prepared { pdfBase64: string; fileName: string; presentationPageCount: number; estimatePageCount: number; email: { to: string; subject: string; body: string }; }
 interface SentRow {
   id: number; estimateId: string; number: string; customerName: string; repEmail: string; toEmail: string;
@@ -129,11 +143,21 @@ const Proposals: React.FC = () => {
       setChainScenarios(r.data.scenarios || []);
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('proposals.chain.loadError')); }
   };
-  const pickChain = (id: string) => {
+  const pickChain = async (id: string) => {
     const c = chainScenarios.find((x) => x.id === id) || null;
     setChain(c); setPrepared(null);
+    if (!c) return;
     // Le nom du marchand du scénario pré-remplit le nom du client (modifiable).
-    if (c) setBlankClientName(c.merchantName || c.name);
+    setBlankClientName(c.merchantName || c.name);
+    // Son logo, s'il en a un, passe sur la couverture (le rep peut revenir au nom).
+    if (c.hasLogo) {
+      try {
+        const r = await axios.get(`${API_URL}/api/proposals/chain-scenarios/${c.id}/logo`, { headers: authHeaders() });
+        if (r.data?.logo) { setLogo(await toPng(r.data.logo)); setBranding('logo'); }
+      } catch { /* sans logo, la couverture porte le nom : rien de bloquant */ }
+    } else {
+      setLogo(null); setBranding('name');
+    }
   };
   const closeBuilder = () => { setBuilderOpen(false); setSel(null); setPrepared(null); setChainMode(false); setChain(null); };
   // Only close on a genuine backdrop click — one that BOTH starts and ends on the overlay.
