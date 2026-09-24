@@ -5319,7 +5319,30 @@
     },
     "footer": "Généré par Sales Hub · Modélisateur de revenus · {{date}} · Confidentiel",
     "procFeesHint": "Net des frais de traitement : {{net}} par année.",
-    "instMargin": "Marge : {{amount}} par emplacement (avant commission)"
+    "instMargin": "Marge : {{amount}} par emplacement (avant commission)",
+    "board": {
+      "open": "Vue conseil",
+      "title": "Vue conseil — Modélisateur de revenus",
+      "print": "Imprimer / PDF",
+      "close": "Fermer",
+      "eyebrow": "Modélisateur de revenus · P&L sur 5 ans · Interne",
+      "y1Sub": "Ponctuel + récurrent",
+      "recSub": "Récurrent seulement",
+      "results": "Résultat par section et par année",
+      "investment": "Investissement de l'an 1",
+      "termBuy": "Achat des terminaux",
+      "commY1": "Commissions versées (an 1)",
+      "payback": "Remboursement de l'achat par la location",
+      "months": "{{n}} mois",
+      "year": "an",
+      "assumptions": "Hypothèses",
+      "prices": "Ce que nous facturons",
+      "costs": "Ce que ça nous coûte",
+      "commissions": "Ce que nous versons au vendeur",
+      "commTotal": "Total des commissions (an 1)",
+      "perMonth": "/mois",
+      "perLocMonth": "/empl./mois"
+    }
   },
   "icplus": {
     "title": "Calculateur IC+",

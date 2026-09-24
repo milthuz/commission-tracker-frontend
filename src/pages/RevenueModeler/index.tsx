@@ -4,10 +4,11 @@ import { useSearchParams } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
 import type { ApexOptions } from 'apexcharts';
 import {
-  AlertTriangle, ChevronDown, Download, Link2, Printer, RotateCcw, Save, Settings2, Trash2,
+  AlertTriangle, ChevronDown, Download, Link2, Presentation, Printer, RotateCcw, Save, Settings2, Trash2,
 } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
+import BoardView from './BoardView';
 import { buildRows, compute, INTERAC_ALERT_FLOOR, upgradeInputs, YEARS, type Inputs, type NumKey, type Row } from './model';
 
 // 1..YEARS, pour les en-têtes de colonnes, le graphique et le CSV.
@@ -119,6 +120,8 @@ export default function RevenueModeler() {
   const [saveName, setSaveName] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  // Vue conseil : le P&L plein écran pour la direction (interne).
+  const [showBoard, setShowBoard] = useState(false);
 
   const flash = (kind: 'ok' | 'err', text: string) => {
     setStatus({ kind, text });
@@ -364,6 +367,8 @@ export default function RevenueModeler() {
     plotOptions: { bar: { borderRadius: 2, columnWidth: '45%' } },
   };
 
+  const chartSeries = series.map((s) => ({ name: t(`revenueModeler.chart.${s.key}`) as string, data: YEAR_NUMS.map((n) => Math.round(s.v(n - 1))) }));
+
   const kpis: { label: string; value: string; sub?: string; color: string }[] = [
     { label: t('revenueModeler.kpi.gmv'), value: compact(model.gmvTotal), sub: t('revenueModeler.kpi.gmvSub', { credit: compact(inputs.gmvCredit), interac: compact(inputs.gmvInterac) }), color: '#64748B' },
     { label: t('revenueModeler.kpi.netPayments'), value: compact(model.netPayments), sub: t('revenueModeler.kpi.perYear'), color: '#1D9E75' },
@@ -378,6 +383,11 @@ export default function RevenueModeler() {
 
   return (
     <div className="rm-print">
+      {showBoard && (
+        <BoardView inputs={inputs} model={model} t={t as any} locale={locale} money={money} compact={compact} num={num}
+          chart={<ReactApexChart type="bar" height={280} options={{ ...chartOpts, tooltip: { ...chartOpts.tooltip, theme: 'light' } }} series={chartSeries} />}
+          onClose={() => setShowBoard(false)} />
+      )}
       <style>{`
         /* Isoler par VISIBILITÉ (même technique que les rapports SaaS) : masquer les frères de
            #root effacerait la page elle-même, montée en profondeur dans la mise en page. */
@@ -430,6 +440,10 @@ export default function RevenueModeler() {
           </button>
         )}
         <div className="ml-auto flex flex-wrap gap-2">
+          <button type="button" onClick={() => setShowBoard(true)}
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-stroke px-3 py-2 text-sm text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+            <Presentation className="h-4 w-4" />{t('revenueModeler.board.open')}
+          </button>
           {active && (
             <button type="button" onClick={copyLink} title={dirty ? (t('revenueModeler.linkIsSaved') as string) : undefined}
               className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-stroke px-3 py-2 text-sm text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
@@ -701,8 +715,7 @@ export default function RevenueModeler() {
           <div className={`${CARD} p-5`}>
             <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('revenueModeler.chart.title')}</h3>
             <p className="mb-2 text-xs text-body dark:text-bodydark">{t('revenueModeler.chart.hint')}</p>
-            <ReactApexChart type="bar" height={300} options={chartOpts}
-              series={series.map((s) => ({ name: t(`revenueModeler.chart.${s.key}`) as string, data: YEAR_NUMS.map((n) => Math.round(s.v(n - 1))) }))} />
+            <ReactApexChart type="bar" height={300} options={chartOpts} series={chartSeries} />
           </div>
 
           <p className="pb-2 text-center text-[11px] text-body dark:text-bodydark">
