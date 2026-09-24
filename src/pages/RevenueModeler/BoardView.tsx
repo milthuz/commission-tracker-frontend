@@ -149,7 +149,10 @@ export default function BoardView({ inputs, model, t, locale, money, compact, nu
           {/* ── En-tête ── */}
           <header className="rm-board-block mb-6">
             <div className={eyebrow}>{t(p + 'eyebrow')}</div>
-            <h1 className="mt-2 text-[34px] font-semibold leading-tight">{inputs.merchantName || t('revenueModeler.title')}</h1>
+            <div className="mt-2 flex items-center gap-5">
+              {inputs.merchantLogo && <img src={inputs.merchantLogo} alt="" className="h-16 max-w-[200px] shrink-0 object-contain" />}
+              <h1 className="text-[34px] font-semibold leading-tight">{inputs.merchantName || t('revenueModeler.title')}</h1>
+            </div>
             <div className="mt-2 flex flex-wrap gap-2 text-xs">
               {[
                 t('revenueModeler.badge.locs', { n: num(inputs.numLocs) }),

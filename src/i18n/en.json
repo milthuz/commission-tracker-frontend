@@ -450,6 +450,15 @@
     "askError": "Sorry, something went wrong — try again."
   },
   "proposals": {
+    "chain": {
+      "new": "Chain proposal",
+      "scenario": "Revenue Modeler scenario",
+      "pick": "Choose a scenario…",
+      "none": "No saved scenarios",
+      "locs": "{{n}} loc.",
+      "hint": "The pricing page uses only the scenario’s customer prices (never our costs). It replaces the Zoho quote.",
+      "loadError": "Could not load the scenarios."
+    },
     "title": "Proposals",
     "subtitle": "Pick a recent quote and we'll build a client-ready proposal — company presentation + the quote — and prep the email.",
     "search": "Search a customer or quote #…",
@@ -5342,6 +5351,15 @@
       "commTotal": "Total commissions (year 1)",
       "perMonth": "/mo",
       "perLocMonth": "/loc./mo"
+    },
+    "logo": {
+      "label": "Merchant logo",
+      "none": "None",
+      "add": "Add a logo",
+      "change": "Replace",
+      "remove": "Remove",
+      "errType": "Accepted formats: PNG, JPEG or WebP.",
+      "errSize": "Image too heavy even after resizing. Try a simpler file."
     }
   },
   "icplus": {

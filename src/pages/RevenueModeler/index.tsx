@@ -82,6 +82,59 @@ function NumField({ label, value, onChange, unit, decimals = 0, locale, highligh
   );
 }
 
+// Logo du marchand : réduit dans le navigateur avant l'envoi (480 × 240 px au plus), pour qu'un
+// scénario ne transporte pas une photo de 5 Mo. PNG gardé (transparence), repli en WebP si le
+// résultat reste lourd. Pas de SVG : le serveur le refuse (il peut contenir du script).
+const LOGO_MAX_W = 480, LOGO_MAX_H = 240, LOGO_MAX_CHARS = 380000;
+function shrinkLogo(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) { reject(new Error('type')); return; }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, LOGO_MAX_W / img.width, LOGO_MAX_H / img.height);
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      let out = c.toDataURL('image/png');
+      if (out.length > LOGO_MAX_CHARS) out = c.toDataURL('image/webp', 0.9);
+      if (out.length > LOGO_MAX_CHARS) { reject(new Error('size')); return; }
+      resolve(out);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('read')); };
+    img.src = url;
+  });
+}
+
+function LogoField({ value, onChange, t }: { value?: string; onChange: (v: string | undefined) => void; t: (k: string) => string }) {
+  const [err, setErr] = useState<string | null>(null);
+  return (
+    <div>
+      <span className="mb-1 block text-xs text-body dark:text-bodydark">{t('revenueModeler.logo.label')}</span>
+      <div className="flex items-center gap-3">
+        <div className="flex h-12 w-24 shrink-0 items-center justify-center overflow-hidden rounded border border-dashed border-stroke bg-white dark:border-strokedark">
+          {value ? <img src={value} alt="" className="max-h-full max-w-full object-contain" /> : <span className="text-[10px] text-body">{t('revenueModeler.logo.none')}</span>}
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="cursor-pointer text-xs font-medium text-[#FE6523] hover:underline">
+            {value ? t('revenueModeler.logo.change') : t('revenueModeler.logo.add')}
+            <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
+              onChange={async (e) => {
+                const f = e.target.files?.[0]; e.target.value = '';
+                if (!f) return;
+                try { setErr(null); onChange(await shrinkLogo(f)); }
+                catch (x: any) { setErr(t(x?.message === 'type' ? 'revenueModeler.logo.errType' : 'revenueModeler.logo.errSize')); }
+              }} />
+          </label>
+          {value && <button type="button" onClick={() => onChange(undefined)} className="text-left text-xs text-body hover:text-danger">{t('revenueModeler.logo.remove')}</button>}
+        </div>
+      </div>
+      {err && <p className="mt-1 text-xs text-danger">{err}</p>}
+    </div>
+  );
+}
+
 function Section({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
@@ -490,6 +543,8 @@ export default function RevenueModeler() {
                 <input value={inputs.merchantName} maxLength={120}
                   onChange={(e) => setInputs({ ...inputs, merchantName: e.target.value })} className={INPUT_CLS} />
               </label>
+              <LogoField value={inputs.merchantLogo} t={t as any}
+                onChange={(v) => setInputs((p) => { if (!p) return p; const n = { ...p }; if (v) n.merchantLogo = v; else delete n.merchantLogo; return n; })} />
               {f('numLocs')}
             </Section>
             <Section title={t('revenueModeler.sec.volume')}>
@@ -601,7 +656,9 @@ export default function RevenueModeler() {
 
         {/* ── Colonne des résultats ── */}
         <main className="min-w-0 space-y-5">
-          <div className={`${CARD} p-5`}>
+          <div className={`${CARD} flex items-center gap-4 p-5`}>
+            {inputs.merchantLogo && <img src={inputs.merchantLogo} alt="" className="h-12 max-w-[140px] shrink-0 object-contain" />}
+            <div className="min-w-0 flex-1">
             <input value={inputs.merchantName} maxLength={120} aria-label={t('revenueModeler.in.merchantName') as string}
               onChange={(e) => setInputs({ ...inputs, merchantName: e.target.value })}
               className="w-full bg-transparent text-xl font-bold text-black outline-none focus:underline focus:decoration-[#FE6523] dark:text-white" />
@@ -615,6 +672,7 @@ export default function RevenueModeler() {
                 <span key={b} className="rounded-full bg-gray-2 px-2.5 py-0.5 text-black dark:bg-meta-4 dark:text-white">{b}</span>
               ))}
               <span className="rounded-full bg-danger/10 px-2.5 py-0.5 font-medium text-danger">{t('revenueModeler.confidential')}</span>
+            </div>
             </div>
           </div>
 

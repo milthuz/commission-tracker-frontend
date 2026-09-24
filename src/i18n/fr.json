@@ -450,6 +450,15 @@
     "askError": "Désolée, une erreur est survenue — réessaie."
   },
   "proposals": {
+    "chain": {
+      "new": "Proposition de chaîne",
+      "scenario": "Scénario du modélisateur de revenus",
+      "pick": "Choisir un scénario…",
+      "none": "Aucun scénario enregistré",
+      "locs": "{{n}} empl.",
+      "hint": "La page de tarification reprend seulement les prix client du scénario (jamais nos coûts). Elle remplace le devis Zoho.",
+      "loadError": "Impossible de charger les scénarios."
+    },
     "title": "Propositions",
     "subtitle": "Choisis une soumission récente et on bâtit une proposition prête pour le client — présentation + la soumission — et on prépare le courriel.",
     "search": "Rechercher un client ou un nº de devis…",
@@ -5342,6 +5351,15 @@
       "commTotal": "Total des commissions (an 1)",
       "perMonth": "/mois",
       "perLocMonth": "/empl./mois"
+    },
+    "logo": {
+      "label": "Logo du marchand",
+      "none": "Aucun",
+      "add": "Ajouter un logo",
+      "change": "Remplacer",
+      "remove": "Retirer",
+      "errType": "Format accepté : PNG, JPEG ou WebP.",
+      "errSize": "Image trop lourde, même réduite. Essayez un fichier plus simple."
     }
   },
   "icplus": {

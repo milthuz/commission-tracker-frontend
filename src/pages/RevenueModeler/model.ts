@@ -8,6 +8,7 @@
 
 export interface Inputs {
   merchantName: string;
+  merchantLogo?: string; // data URL PNG/JPEG/WebP, facultatif (vue conseil, en-tête)
   numLocs: number;
   termsPerLoc: number;
   gmvCredit: number;
@@ -39,7 +40,7 @@ export interface Inputs {
   commInstPct: number;
 }
 
-export type NumKey = Exclude<keyof Inputs, 'merchantName'>;
+export type NumKey = Exclude<keyof Inputs, 'merchantName' | 'merchantLogo'>;
 
 // Horizon du modèle, en années (5 depuis le 2026-09-24 à la demande de David ; 3 avant). L'an 1
 // porte les éléments ponctuels, chaque année suivante est purement récurrente. Tout — tableau,

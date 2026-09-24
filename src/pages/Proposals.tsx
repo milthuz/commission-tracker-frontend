@@ -5,6 +5,7 @@ import { dialog } from '../lib/dialog';
 import { formatDateOnly } from '../utils/date';
 import PdfThumbPreview from './PdfThumbPreview';
 import ActivityTimeline from '../components/ActivityTimeline';
+import Select from '../components/Select';
 
 const b64ToBytes = (b64: string) => {
   const bin = atob(b64); const arr = new Uint8Array(bin.length);
@@ -19,6 +20,8 @@ interface Estimate {
   estimateId: string; number: string; customerName: string;
   total: number; currency: string; date: string; status: string; salesperson: string;
 }
+// Proposition de CHAÎNE : la tarification vient d'un scénario du modélisateur (prix client seulement).
+interface ChainScenario { id: string; name: string; merchantName: string; numLocs: number }
 interface Prepared { pdfBase64: string; fileName: string; presentationPageCount: number; estimatePageCount: number; email: { to: string; subject: string; body: string }; }
 interface SentRow {
   id: number; estimateId: string; number: string; customerName: string; repEmail: string; toEmail: string;
@@ -65,6 +68,11 @@ const Proposals: React.FC = () => {
   const [excludedPages, setExcludedPages] = useState<number[]>([]);
   // Cover co-branding: show the client NAME (default) or the client LOGO
   const [branding, setBranding] = useState<'name' | 'logo'>('name');
+  // Proposition de chaîne (perm proposals:chain, décidée par /api/auth/verify — jamais le jeton brut).
+  const [canChain, setCanChain] = useState(false);
+  const [chainMode, setChainMode] = useState(false);
+  const [chainScenarios, setChainScenarios] = useState<ChainScenario[]>([]);
+  const [chain, setChain] = useState<ChainScenario | null>(null);
   const clientName = () => (sel ? sel.customerName : blankClientName.trim());
 
   const fetchEstimates = async () => {
@@ -90,7 +98,11 @@ const Proposals: React.FC = () => {
   // Admin status (from /api/auth/verify — never the raw JWT) drives the delete control.
   useEffect(() => {
     axios.get(`${API_URL}/api/auth/verify`, { headers: authHeaders() })
-      .then((r) => { const u = r.data?.user; setIsAdmin(!!u?.isAdmin || (u?.permissions || []).includes('*')); })
+      .then((r) => {
+        const u = r.data?.user; const perms: string[] = u?.permissions || [];
+        const admin = !!u?.isAdmin || perms.includes('*');
+        setIsAdmin(admin); setCanChain(admin || perms.includes('proposals:chain'));
+      })
       .catch(() => {});
   }, []);
 
@@ -107,8 +119,23 @@ const Proposals: React.FC = () => {
     setLang(i18n.language?.startsWith('en') ? 'en' : 'fr'); setTitle(''); setLogo(null);
     setPrepared(null); setTo(''); setCc(''); setSubject(''); setBody('');
     setOrder([]); setExcludedPages([]); setBranding('name');
+    setChainMode(false); setChain(null);
   };
-  const closeBuilder = () => { setBuilderOpen(false); setSel(null); setPrepared(null); };
+  const openChainBuilder = async () => {
+    openBuilder(null);
+    setChainMode(true);
+    try {
+      const r = await axios.get(`${API_URL}/api/proposals/chain-scenarios`, { headers: authHeaders() });
+      setChainScenarios(r.data.scenarios || []);
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('proposals.chain.loadError')); }
+  };
+  const pickChain = (id: string) => {
+    const c = chainScenarios.find((x) => x.id === id) || null;
+    setChain(c); setPrepared(null);
+    // Le nom du marchand du scénario pré-remplit le nom du client (modifiable).
+    if (c) setBlankClientName(c.merchantName || c.name);
+  };
+  const closeBuilder = () => { setBuilderOpen(false); setSel(null); setPrepared(null); setChainMode(false); setChain(null); };
   // Only close on a genuine backdrop click — one that BOTH starts and ends on the overlay.
   // Without this, selecting text inside the modal and releasing the mouse outside the window
   // fires a click whose target is the overlay, closing the popup mid-selection.
@@ -127,7 +154,7 @@ const Proposals: React.FC = () => {
       // Always render the FULL document so every page shows as a thumbnail; the rep then drags to
       // reorder / toggles which pages to actually send (applied at send/download time).
       const r = await axios.post(`${API_URL}/api/proposals/prepare`,
-        { estimateId: sel?.estimateId, lang, title: title.trim(), clientName: clientName(), logoBase64: branding === 'logo' ? (logo || undefined) : undefined },
+        { estimateId: sel?.estimateId, scenarioId: chain?.id, lang, title: title.trim(), clientName: clientName(), logoBase64: branding === 'logo' ? (logo || undefined) : undefined },
         { headers: authHeaders() });
       const p: Prepared = r.data;
       setPrepared(p);
@@ -147,10 +174,10 @@ const Proposals: React.FC = () => {
     setSending(true);
     try {
       const resp = await axios.post(`${API_URL}/api/proposals/send`,
-        { estimateId: sel?.estimateId, lang, title: title.trim(), clientName: clientName(), logoBase64: branding === 'logo' ? (logo || undefined) : undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body,
+        { estimateId: sel?.estimateId, scenarioId: chain?.id, lang, title: title.trim(), clientName: clientName(), logoBase64: branding === 'logo' ? (logo || undefined) : undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body,
           pageOrder: order.filter((n) => !excludedPages.includes(n)) },
         { headers: authHeaders() });
-      const note = resp.data && resp.data.acceptLinkIncluded === false ? '\n\n' + t('proposals.noAcceptLink') : '';
+      const note = !chain && resp.data && resp.data.acceptLinkIncluded === false ? '\n\n' + t('proposals.noAcceptLink') : '';
       await dialog.alert(t('proposals.sent', { to: to.trim() }) + note);
       closeBuilder();
       setView('sent'); fetchSent();
@@ -167,7 +194,7 @@ const Proposals: React.FC = () => {
     setDownloading(true);
     try {
       const r = await axios.post(`${API_URL}/api/proposals/prepare`,
-        { estimateId: sel?.estimateId, lang, clientName: clientName(),
+        { estimateId: sel?.estimateId, scenarioId: chain?.id, lang, clientName: clientName(),
           logoBase64: branding === 'logo' ? (logo || undefined) : undefined,
           pageOrder: order.filter((n) => !excludedPages.includes(n)) },
         { headers: authHeaders() });
@@ -220,10 +247,18 @@ const Proposals: React.FC = () => {
             </button>
           ))}
         </div>
+        <div className="flex flex-wrap gap-2">
+        {canChain && (
+          <button onClick={openChainBuilder} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-primary/5 dark:bg-boxdark">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 21V9l8-5 8 5v12M9 21v-6h6v6" /></svg>
+            {t('proposals.chain.new')}
+          </button>
+        )}
         <button onClick={() => openBuilder(null)} className="inline-flex items-center gap-1.5 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
           <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
           {t('proposals.blankNew')}
         </button>
+        </div>
       </div>
 
       {view === 'pending' && (<>
@@ -464,7 +499,7 @@ const Proposals: React.FC = () => {
             <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
               <div>
                 <h3 className="text-lg font-semibold text-black dark:text-white">{t('proposals.builderTitle')}</h3>
-                <p className="text-xs text-gray-400">{sel ? `${sel.number} · ${sel.customerName}` : t('proposals.blankNew')}</p>
+                <p className="text-xs text-gray-400">{sel ? `${sel.number} · ${sel.customerName}` : chainMode ? (chain ? `${t('proposals.chain.new')} · ${chain.name}` : t('proposals.chain.new')) : t('proposals.blankNew')}</p>
               </div>
               <button onClick={closeBuilder} className="rounded-lg p-1.5 text-body hover:bg-gray-1 dark:hover:bg-meta-4"><svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
@@ -474,6 +509,15 @@ const Proposals: React.FC = () => {
               <div className="thin-scrollbar space-y-4 overflow-y-auto p-6">
                 {/* Client name — free text, optional when there's no Zoho estimate to pull it from;
                     a generic placeholder fills the cover when left blank. */}
+                {chainMode && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-body">{t('proposals.chain.scenario')}</label>
+                    <Select value={chain?.id || ''} onChange={pickChain}
+                      options={[{ value: '', label: chainScenarios.length ? (t('proposals.chain.pick') as string) : (t('proposals.chain.none') as string) },
+                        ...chainScenarios.map((c) => ({ value: c.id, label: `${c.name}${c.merchantName && c.merchantName !== c.name ? ` — ${c.merchantName}` : ''} · ${t('proposals.chain.locs', { n: c.numLocs })}` }))]} />
+                    <p className="mt-1 text-[11px] text-gray-400">{t('proposals.chain.hint')}</p>
+                  </div>
+                )}
                 {!sel && (
                   <div>
                     <label className="mb-1 block text-xs font-medium text-body">{t('proposals.blankClientName')}</label>
@@ -510,7 +554,7 @@ const Proposals: React.FC = () => {
                   )}
                 </div>
 
-                <button onClick={prepare} disabled={preparing} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+                <button onClick={prepare} disabled={preparing || (chainMode && !chain)} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
                   {preparing ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('proposals.preparing')}</> : (prepared ? t('proposals.regenerate') : t('proposals.generatePreview'))}
                 </button>
 
