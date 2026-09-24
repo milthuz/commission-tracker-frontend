@@ -41,6 +41,11 @@ export interface Inputs {
 
 export type NumKey = Exclude<keyof Inputs, 'merchantName'>;
 
+// Horizon du modèle, en années (5 depuis le 2026-09-24 à la demande de David ; 3 avant). L'an 1
+// porte les éléments ponctuels, chaque année suivante est purement récurrente. Tout — tableau,
+// cartes, graphique, CSV, comparaison des paliers — se dimensionne sur cette constante.
+export const YEARS = 5;
+
 // Sous ce seuil, la marge nette Interac déclenche l'alerte.
 export const INTERAC_ALERT_FLOOR = 10000;
 
@@ -98,8 +103,9 @@ export function compute(i: Inputs) {
   // ligne de produit (surtout pas aux terminaux, qui ne portent aucune commission).
   const otherCommissions = commissionPayment;
   const profitYear1 = recurring - commissionSaas - terminalPurchaseCost - otherCommissions + hwNet + instNet;
-  const profitYear2 = recurring;
-  const profitYear3 = recurring;
+  // Profit de chaque année : l'an 1, puis la même valeur récurrente pour les années suivantes.
+  const profitYears = [profitYear1, ...Array<number>(YEARS - 1).fill(recurring)];
+  const totalProfit = profitYears.reduce((a, v) => a + v, 0);
 
   const commissionsYear1 = commissionSaas + hwCommission + instCommission + otherCommissions;
 
@@ -115,8 +121,7 @@ export function compute(i: Inputs) {
     rentalRevAnnual, warrantyCostAnnual, netTerminalAnnual, terminalPurchaseCost, commissionPayment, paybackMonths,
     hwRevenue, hwCOGS, hwGrossProfit, hwMarginPct, hwCommission, hwNet,
     instRevenue, instCOGS, instGrossProfit, instCommission, instNet,
-    profitYear1, profitYear2, profitYear3,
-    total3Years: profitYear1 + profitYear2 + profitYear3,
+    profitYear1, profitRecurring: recurring, profitYears, totalProfit,
     commissionsYear1, otherCommissions,
     netPayments: netCredit + netInterac + netProcFees,
     gmvTotal: i.gmvCredit + i.gmvInterac,
@@ -156,7 +161,7 @@ export type RowKind = 'section' | 'rev' | 'cost' | 'newcost' | 'comm' | 'subtota
 export interface Row {
   kind: RowKind;
   label: string;
-  y: [number, number, number];
+  y: number[]; // une valeur par année, YEARS en tout
   oneTime?: boolean;
 }
 
@@ -164,15 +169,17 @@ type T = (key: string, opts?: Record<string, unknown>) => string;
 
 export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number) => string): Row[] {
   const p = 'revenueModeler.pl.';
-  const same = (v: number): [number, number, number] => [v, v, v];
-  const once = (v: number): [number, number, number] => [v, 0, 0];
-  const sec = (key: string): Row => ({ kind: 'section', label: t(p + 'sec.' + key), y: [0, 0, 0] });
+  // an 1 = `first`, chacune des années suivantes = `rest`
+  const split = (first: number, rest: number): number[] => [first, ...Array<number>(YEARS - 1).fill(rest)];
+  const same = (v: number) => split(v, v);   // récurrent : même montant chaque année
+  const once = (v: number) => split(v, 0);   // ponctuel : an 1 seulement
+  const sec = (key: string): Row => ({ kind: 'section', label: t(p + 'sec.' + key), y: split(0, 0) });
 
   return [
     sec('saas'),
     { kind: 'rev', label: t(p + 'saasGross', { price: num(i.saasPerLoc), locs: num(i.numLocs) }), y: same(m.saasRevenueGross) },
     { kind: 'comm', label: t(p + 'saasComm', { months: num(i.commSaasMonths, 2), price: num(i.saasPerLoc), locs: num(i.numLocs) }), y: once(-m.commissionSaas), oneTime: true },
-    { kind: 'subtotal', label: t(p + 'saasNet'), y: [m.saasRevenueGross - m.commissionSaas, m.saasRevenueGross, m.saasRevenueGross] },
+    { kind: 'subtotal', label: t(p + 'saasNet'), y: split(m.saasRevenueGross - m.commissionSaas, m.saasRevenueGross) },
 
     sec('credit'),
     { kind: 'rev', label: t(p + 'markup', { rate: num(i.markupRate, 6) }), y: same(m.revMarkup) },
@@ -198,7 +205,7 @@ export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number
     { kind: 'rev', label: t(p + 'rental', { n: num(m.totalTerminals), fee: num(i.termRentalRev, 2) }), y: same(m.rentalRevAnnual) },
     { kind: 'cost', label: t(p + 'warranty', { fee: num(i.termWarrantyCost, 2) }), y: same(-m.warrantyCostAnnual) },
     { kind: 'cost', label: t(p + 'termPurchase', { n: num(m.totalTerminals), cost: num(i.termUnitCost, 2) }), y: once(-m.terminalPurchaseCost), oneTime: true },
-    { kind: 'subtotal', label: t(p + 'terminalsNet'), y: [m.netTerminalAnnual - m.terminalPurchaseCost, m.netTerminalAnnual, m.netTerminalAnnual] },
+    { kind: 'subtotal', label: t(p + 'terminalsNet'), y: split(m.netTerminalAnnual - m.terminalPurchaseCost, m.netTerminalAnnual) },
 
     sec('hardware'),
     { kind: 'rev', label: t(p + 'hwRevenue', { price: num(i.hwPrice, 2), locs: num(i.numLocs) }), y: once(m.hwRevenue), oneTime: true },
@@ -216,6 +223,6 @@ export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number
     { kind: 'comm', label: t(p + 'payComm', { fee: num(i.commPayPerLoc, 2), locs: num(i.numLocs) }), y: once(-m.commissionPayment), oneTime: true },
     { kind: 'subtotal', label: t(p + 'otherCommNet'), y: once(-m.otherCommissions) },
 
-    { kind: 'total', label: t(p + 'profit'), y: [m.profitYear1, m.profitYear2, m.profitYear3] },
+    { kind: 'total', label: t(p + 'profit'), y: m.profitYears },
   ];
 }

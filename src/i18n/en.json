@@ -439,7 +439,7 @@
     "resourcesBody": "Your shared sales documents — search, browse and download guides and templates. Two featured tools live here too: the Hardware Overview catalog and the Services & Pricing Guide (with a built-in quote builder).",
     "kaizenBody": "Try the Kaizen POS demo — a live, streamed point-of-sale you can show prospects.",
     "proposalsBody": "Build and send a branded sales proposal from a Zoho Books estimate.",
-    "revenueModelerBody": "Model the 3-year P&L of a new merchant — SaaS, payments, terminals, hardware and commissions — and compare SaaS tiers. Internal tool: it shows Cluster costs.",
+    "revenueModelerBody": "Model the 5-year P&L of a new merchant — SaaS, payments, terminals, hardware and commissions — and compare SaaS tiers. Internal tool: it shows Cluster costs.",
     "partnersBody": "Manage partner companies and review the opportunities they submit. Approving one creates a Lead in Zoho, assigned to the Cluster rep you pick. The Statistics tab shows the pipeline — volume received, what is still open, won versus lost, and conversion per partner.",
     "adminBody": "Admin tools — salespeople, imports, integrations, users, and more.",
     "profileBody": "Your account settings, language and preferences.",
@@ -5116,7 +5116,7 @@
     "hwMargin": "Margin: {{amount}} per location ({{pct}}%)",
     "hwMarginNone": "Margin: — (no selling price)",
     "title": "Revenue Modeler",
-    "subtitle": "Three-year P&L for onboarding a merchant chain: SaaS, payments, terminals, hardware, installation and commissions. Every edit recalculates everything. Internal use — shows Cluster costs.",
+    "subtitle": "Five-year P&L for onboarding a merchant chain: SaaS, payments, terminals, hardware, installation and commissions. Every edit recalculates everything. Internal use — shows Cluster costs.",
     "noAccess": "You don't have access to the Revenue Modeler (permission revmodel:use).",
     "loadError": "Couldn't load the Revenue Modeler. Please try again.",
     "scenarioNotFound": "That scenario was not found or has been deleted. Defaults loaded.",
@@ -5226,15 +5226,16 @@
     "summary": {
       "y1": "One-time + recurring",
       "recurring": "Recurring only",
-      "total": "Over the contract term"
+      "total": "Over the contract term",
+      "laterYears": "Each year, years 2–{{n}}",
+      "avgTitle": "Annual average",
+      "avg": "Total ÷ {{n}} years"
     },
     "pl": {
       "col": {
         "item": "Line item",
-        "y1": "Year 1",
-        "y2": "Year 2",
-        "y3": "Year 3",
-        "total": "3-year total"
+        "year": "Year {{n}}",
+        "total": "{{n}}-year total"
       },
       "oneTime": "One-time",
       "sec": {
@@ -5299,8 +5300,8 @@
       "row": {
         "saas": "SaaS revenue / yr",
         "y1": "Net profit year 1",
-        "y2": "Net profit years 2 & 3",
-        "total": "3-year total"
+        "y2": "Net profit, each of years 2–{{n}}",
+        "total": "{{n}}-year total"
       }
     },
     "chart": {
@@ -5435,7 +5436,8 @@
       "high": "clear",
       "medium": "fair",
       "low": "uncertain"
-    }
+    },
+    "hidePaste": "Hide JSON entry"
   },
   "icplusRates": {
     "title": "IC+ reference rates",

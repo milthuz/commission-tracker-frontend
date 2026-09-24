@@ -439,7 +439,7 @@
     "resourcesBody": "Tes documents de vente partagés — cherche, parcours et télécharge guides et modèles. Deux outils vedettes s'y trouvent aussi : le catalogue Aperçu du matériel et le Guide des services et prix (avec générateur de soumission intégré).",
     "kaizenBody": "Essaie la démo Kaizen POS — une caisse en direct à montrer à tes prospects.",
     "proposalsBody": "Crée et envoie une proposition de vente à partir d'une soumission Zoho Books.",
-    "revenueModelerBody": "Modélise le P&L sur 3 ans d’un nouveau marchand — SaaS, paiements, terminaux, matériel et commissions — et compare les paliers SaaS. Outil interne : il affiche les coûts de Cluster.",
+    "revenueModelerBody": "Modélise le P&L sur 5 ans d’un nouveau marchand — SaaS, paiements, terminaux, matériel et commissions — et compare les paliers SaaS. Outil interne : il affiche les coûts de Cluster.",
     "partnersBody": "Gérez les entreprises partenaires et examinez les occasions d’affaires qu’elles soumettent. Approuver une occasion crée une piste dans Zoho, assignée au représentant Cluster de votre choix. L’onglet Statistiques montre le pipeline — volume reçu, ce qui est en cours, gagnés contre perdus, et la conversion par partenaire.",
     "adminBody": "Outils d'administration — vendeurs, imports, intégrations, utilisateurs et plus.",
     "profileBody": "Les réglages de ton compte, la langue et tes préférences.",
@@ -5116,7 +5116,7 @@
     "hwMargin": "Marge : {{amount}} par emplacement ({{pct}} %)",
     "hwMarginNone": "Marge : — (aucun prix de vente)",
     "title": "Modélisateur de revenus",
-    "subtitle": "P&L sur 3 ans de l'intégration d'une chaîne : SaaS, paiements, terminaux, matériel, installation et commissions. Chaque modification recalcule tout. Usage interne — affiche les coûts de Cluster.",
+    "subtitle": "P&L sur 5 ans de l'intégration d'une chaîne : SaaS, paiements, terminaux, matériel, installation et commissions. Chaque modification recalcule tout. Usage interne — affiche les coûts de Cluster.",
     "noAccess": "Vous n'avez pas accès au modélisateur de revenus (permission revmodel:use).",
     "loadError": "Impossible de charger le modélisateur. Réessayez.",
     "scenarioNotFound": "Ce scénario est introuvable ou a été supprimé. Valeurs par défaut chargées.",
@@ -5226,15 +5226,16 @@
     "summary": {
       "y1": "Ponctuel + récurrent",
       "recurring": "Récurrent seulement",
-      "total": "Sur la durée du contrat"
+      "total": "Sur la durée du contrat",
+      "laterYears": "Chaque année, ans 2 à {{n}}",
+      "avgTitle": "Moyenne annuelle",
+      "avg": "Total ÷ {{n}} ans"
     },
     "pl": {
       "col": {
         "item": "Poste",
-        "y1": "An 1",
-        "y2": "An 2",
-        "y3": "An 3",
-        "total": "Total 3 ans"
+        "year": "An {{n}}",
+        "total": "Total {{n}} ans"
       },
       "oneTime": "Unique",
       "sec": {
@@ -5299,8 +5300,8 @@
       "row": {
         "saas": "Revenus SaaS / an",
         "y1": "Profit net an 1",
-        "y2": "Profit net an 2 et 3",
-        "total": "Total 3 ans"
+        "y2": "Profit net, chaque année des ans 2 à {{n}}",
+        "total": "Total {{n}} ans"
       }
     },
     "chart": {
@@ -5435,7 +5436,8 @@
       "high": "net",
       "medium": "moyen",
       "low": "incertain"
-    }
+    },
+    "hidePaste": "Masquer la saisie JSON"
   },
   "icplusRates": {
     "title": "Taux de référence IC+",

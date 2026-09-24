@@ -8,7 +8,11 @@ import {
 } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
-import { buildRows, compute, INTERAC_ALERT_FLOOR, upgradeInputs, type Inputs, type NumKey, type Row } from './model';
+import { buildRows, compute, INTERAC_ALERT_FLOOR, upgradeInputs, YEARS, type Inputs, type NumKey, type Row } from './model';
+
+// 1..YEARS, pour les en-têtes de colonnes, le graphique et le CSV.
+const YEAR_NUMS = Array.from({ length: YEARS }, (_, k) => k + 1);
+const sum = (a: number[]) => a.reduce((x, v) => x + v, 0);
 
 // Modélisateur de revenus — P&L sur 3 ans de l'intégration d'une chaîne.
 //
@@ -287,13 +291,13 @@ export default function RevenueModeler() {
     const sep = lang === 'fr' ? ';' : ',';
     const cell = (s: string) => (/[";,\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
     const n2 = (n: number) => { const s = (Math.round(n * 100) / 100).toFixed(2); return lang === 'fr' ? s.replace('.', ',') : s; };
-    const head = [t('revenueModeler.pl.col.item'), t('revenueModeler.pl.col.y1'), t('revenueModeler.pl.col.y2'), t('revenueModeler.pl.col.y3'), t('revenueModeler.pl.col.total')];
+    const head = [t('revenueModeler.pl.col.item'), ...YEAR_NUMS.map((n) => t('revenueModeler.pl.col.year', { n })), t('revenueModeler.pl.col.total', { n: YEARS })];
     const lines = [
       cell(`${inputs.merchantName} — ${t('revenueModeler.title')}`),
       head.map((h) => cell(h as string)).join(sep),
       ...rows.map((r) => (r.kind === 'section'
         ? cell(r.label.toUpperCase())
-        : [cell(r.label), ...r.y.map(n2), n2(r.y[0] + r.y[1] + r.y[2])].join(sep))),
+        : [cell(r.label), ...r.y.map(n2), n2(sum(r.y))].join(sep))),
     ];
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
@@ -336,17 +340,17 @@ export default function RevenueModeler() {
   // SaaS BRUT dans la barre : la commission SaaS est déjà dans la tranche « Commissions ».
   // (Le brief empilait le SaaS net ET toutes les commissions, ce qui comptait la commission
   // SaaS deux fois.) Ainsi chaque barre se somme exactement au profit de l'année.
-  const yr = (y: 0 | 1 | 2) => y === 0;
+  const yr = (y: number) => y === 0; // l'an 1 porte tout le ponctuel
   const series = [
     { key: 'saas', color: ORANGE, v: () => model.saasRevenueGross },
     { key: 'credit', color: '#3C50E0', v: () => model.netCredit },
     { key: 'interac', color: '#80CAEE', v: () => model.netInterac },
     { key: 'terminals', color: '#1D9E75', v: () => model.netTerminalAnnual },
     { key: 'procFees', color: '#0EA5E9', v: () => model.netProcFees },
-    { key: 'hardware', color: '#8B5CF6', v: (y: 0 | 1 | 2) => (yr(y) ? model.hwGrossProfit : 0) },
-    { key: 'install', color: '#14B8A6', v: (y: 0 | 1 | 2) => (yr(y) ? model.instGrossProfit : 0) },
-    { key: 'termBuy', color: '#BA7517', v: (y: 0 | 1 | 2) => (yr(y) ? -model.terminalPurchaseCost : 0) },
-    { key: 'comm', color: '#A32D2D', v: (y: 0 | 1 | 2) => (yr(y) ? -model.commissionsYear1 : 0) },
+    { key: 'hardware', color: '#8B5CF6', v: (y: number) => (yr(y) ? model.hwGrossProfit : 0) },
+    { key: 'install', color: '#14B8A6', v: (y: number) => (yr(y) ? model.instGrossProfit : 0) },
+    { key: 'termBuy', color: '#BA7517', v: (y: number) => (yr(y) ? -model.terminalPurchaseCost : 0) },
+    { key: 'comm', color: '#A32D2D', v: (y: number) => (yr(y) ? -model.commissionsYear1 : 0) },
   ];
   const chartOpts: ApexOptions = {
     chart: { fontFamily: 'Satoshi, sans-serif', toolbar: { show: false }, zoom: { enabled: false }, stacked: true },
@@ -355,7 +359,7 @@ export default function RevenueModeler() {
     grid: { borderColor: '#E2E8F0', strokeDashArray: 4 },
     tooltip: { theme: 'light', y: { formatter: (v: number) => money(v) } },
     legend: { position: 'top', horizontalAlign: 'left', fontSize: '11px', markers: { radius: 3 } },
-    xaxis: { categories: [t('revenueModeler.pl.col.y1'), t('revenueModeler.pl.col.y2'), t('revenueModeler.pl.col.y3')] },
+    xaxis: { categories: YEAR_NUMS.map((n) => t('revenueModeler.pl.col.year', { n }) as string) },
     yaxis: { labels: { formatter: (v: number) => compact(v) } },
     plotOptions: { bar: { borderRadius: 2, columnWidth: '45%' } },
   };
@@ -613,13 +617,18 @@ export default function RevenueModeler() {
           <PLTable rows={rows} money={money} t={t as any} />
 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {/* Les années 2 à YEARS sont identiques (récurrent seulement) : UNE carte « chaque année »
+                plutôt que quatre cartes du même montant. Le détail année par année est au tableau. */}
             {([
-              ['y1', model.profitYear1], ['y2', model.profitYear2], ['y3', model.profitYear3], ['total', model.total3Years],
-            ] as const).map(([k, v]) => (
+              { k: 'y1', label: t('revenueModeler.pl.col.year', { n: 1 }), v: model.profitYear1, sub: t('revenueModeler.summary.y1') },
+              { k: 'rec', label: t('revenueModeler.summary.laterYears', { n: YEARS }), v: model.profitRecurring, sub: t('revenueModeler.summary.recurring') },
+              { k: 'total', label: t('revenueModeler.pl.col.total', { n: YEARS }), v: model.totalProfit, sub: t('revenueModeler.summary.total') },
+              { k: 'avg', label: t('revenueModeler.summary.avgTitle'), v: model.totalProfit / YEARS, sub: t('revenueModeler.summary.avg', { n: YEARS }) },
+            ]).map(({ k, label, v, sub }) => (
               <div key={k} className={`${CARD} p-4 ${k === 'total' ? 'ring-1 ring-[#FE6523]/40' : ''}`}>
-                <div className="text-[11px] uppercase tracking-wide text-body dark:text-bodydark">{t(`revenueModeler.pl.col.${k}`)}</div>
+                <div className="text-[11px] uppercase tracking-wide text-body dark:text-bodydark">{label}</div>
                 <div className={`mt-1 text-xl font-bold tabular-nums ${v < 0 ? 'text-danger' : ''}`} style={v >= 0 ? { color: k === 'total' ? ORANGE : undefined } : undefined}>{money(v)}</div>
-                <div className="mt-0.5 text-[11px] text-body dark:text-bodydark">{t(k === 'y1' ? 'revenueModeler.summary.y1' : k === 'total' ? 'revenueModeler.summary.total' : 'revenueModeler.summary.recurring')}</div>
+                <div className="mt-0.5 text-[11px] text-body dark:text-bodydark">{sub}</div>
               </div>
             ))}
           </div>
@@ -674,11 +683,11 @@ export default function RevenueModeler() {
                   {([
                     ['saas', (m: ReturnType<typeof compute>) => m.saasRevenueGross],
                     ['y1', (m: ReturnType<typeof compute>) => m.profitYear1],
-                    ['y2', (m: ReturnType<typeof compute>) => m.profitYear2],
-                    ['total', (m: ReturnType<typeof compute>) => m.total3Years],
+                    ['y2', (m: ReturnType<typeof compute>) => m.profitRecurring],
+                    ['total', (m: ReturnType<typeof compute>) => m.totalProfit],
                   ] as const).map(([k, get]) => (
                     <tr key={k} className="border-b border-stroke last:border-b-0 dark:border-strokedark">
-                      <td className="py-2 pr-3 text-black dark:text-white">{t(`revenueModeler.tiers.row.${k}`)}</td>
+                      <td className="py-2 pr-3 text-black dark:text-white">{t(`revenueModeler.tiers.row.${k}`, { n: YEARS })}</td>
                       {tierModels.map(({ price, m }) => (
                         <td key={price} className={`px-3 py-2 text-right ${k === 'total' ? 'font-semibold' : ''} ${get(m) < 0 ? 'text-danger' : 'text-black dark:text-white'}`}>{money(get(m))}</td>
                       ))}
@@ -693,7 +702,7 @@ export default function RevenueModeler() {
             <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('revenueModeler.chart.title')}</h3>
             <p className="mb-2 text-xs text-body dark:text-bodydark">{t('revenueModeler.chart.hint')}</p>
             <ReactApexChart type="bar" height={300} options={chartOpts}
-              series={series.map((s) => ({ name: t(`revenueModeler.chart.${s.key}`) as string, data: [0, 1, 2].map((y) => Math.round(s.v(y as 0 | 1 | 2))) }))} />
+              series={series.map((s) => ({ name: t(`revenueModeler.chart.${s.key}`) as string, data: YEAR_NUMS.map((n) => Math.round(s.v(n - 1))) }))} />
           </div>
 
           <p className="pb-2 text-center text-[11px] text-body dark:text-bodydark">
@@ -714,7 +723,7 @@ function Alert({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-function PLTable({ rows, money, t }: { rows: Row[]; money: (n: number) => string; t: (k: string) => string }) {
+function PLTable({ rows, money, t }: { rows: Row[]; money: (n: number) => string; t: (k: string, o?: Record<string, unknown>) => string }) {
   const rowCls: Record<Row['kind'], string> = {
     section: 'bg-gray-2 dark:bg-meta-4',
     rev: '',
@@ -742,14 +751,15 @@ function PLTable({ rows, money, t }: { rows: Row[]; money: (n: number) => string
   const arrow = (k: Row['kind']) => (k === 'cost' || k === 'comm' || k === 'newcost' ? '↳ ' : '');
   return (
     <div className={`${CARD} overflow-x-auto`}>
-      <table className="w-full min-w-[640px] text-[13px]">
+      {/* 1 + YEARS + 1 colonnes : sous ~900 px le tableau défile à l'horizontale dans SA carte. */}
+      <table className="w-full min-w-[900px] text-[13px]">
         <thead>
           <tr className="border-b border-stroke text-left text-xs text-body dark:border-strokedark dark:text-bodydark">
             <th className="px-4 py-3 font-medium">{t('revenueModeler.pl.col.item')}</th>
-            <th className="w-28 px-3 py-3 text-right font-medium">{t('revenueModeler.pl.col.y1')}</th>
-            <th className="w-28 px-3 py-3 text-right font-medium">{t('revenueModeler.pl.col.y2')}</th>
-            <th className="w-28 px-3 py-3 text-right font-medium">{t('revenueModeler.pl.col.y3')}</th>
-            <th className="w-32 px-4 py-3 text-right font-semibold">{t('revenueModeler.pl.col.total')}</th>
+            {YEAR_NUMS.map((n) => (
+              <th key={n} className="w-24 whitespace-nowrap px-2 py-3 text-right font-medium">{t('revenueModeler.pl.col.year', { n })}</th>
+            ))}
+            <th className="w-28 whitespace-nowrap px-4 py-3 text-right font-semibold">{t('revenueModeler.pl.col.total', { n: YEARS })}</th>
           </tr>
         </thead>
         <tbody className="tabular-nums">
@@ -757,11 +767,11 @@ function PLTable({ rows, money, t }: { rows: Row[]; money: (n: number) => string
             if (r.kind === 'section') {
               return (
                 <tr key={i} className={rowCls.section}>
-                  <td colSpan={5} className={`px-4 py-1.5 ${labelCls.section}`}>{r.label}</td>
+                  <td colSpan={YEARS + 2} className={`px-4 py-1.5 ${labelCls.section}`}>{r.label}</td>
                 </tr>
               );
             }
-            const total = r.y[0] + r.y[1] + r.y[2];
+            const total = sum(r.y);
             return (
               <tr key={i} className={`${rowCls[r.kind]} transition-colors hover:bg-[#FE6523]/[0.04]`}>
                 <td className={`px-4 py-1.5 ${labelCls[r.kind]}`}>
@@ -773,7 +783,7 @@ function PLTable({ rows, money, t }: { rows: Row[]; money: (n: number) => string
                   )}
                 </td>
                 {r.y.map((v, j) => (
-                  <td key={j} className={`whitespace-nowrap px-3 py-1.5 text-right ${valCls(r, v)}`}>{money(v)}</td>
+                  <td key={j} className={`whitespace-nowrap px-2 py-1.5 text-right ${valCls(r, v)}`}>{money(v)}</td>
                 ))}
                 <td className={`whitespace-nowrap px-4 py-1.5 text-right font-semibold ${valCls(r, total)}`}>{money(total)}</td>
               </tr>
