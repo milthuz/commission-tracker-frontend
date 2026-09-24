@@ -273,7 +273,7 @@ const Proposals: React.FC = () => {
         </div>
         <div className="flex flex-wrap gap-2">
         {canChain && (
-          <button onClick={openChainBuilder} className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-white px-3 py-2 text-sm font-medium text-primary hover:bg-primary/5 dark:bg-boxdark">
+          <button onClick={openChainBuilder} className="inline-flex items-center gap-1.5 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 21V9l8-5 8 5v12M9 21v-6h6v6" /></svg>
             {t('proposals.chain.new')}
           </button>
