@@ -16,6 +16,9 @@ export interface PayStubLine {
   not_in_db?: boolean;       // paid per the file but the invoice predates our DB (pre-2025)
   quota_partial?: boolean;   // this paid_amount is a quota-gate partial release, not the full amount
   quota_forfeited?: number;  // the portion that stayed withheld
+  // What the commission is FOR — computed server-side (payStubLineCategory). 'mixed' = the
+  // invoice pays on both its SaaS and its hardware. Null = invoice not in our DB.
+  category?: 'saas' | 'hardware' | 'mixed' | null;
 }
 export interface PayStubBonus {
   bonus_type: string;
@@ -128,29 +131,55 @@ const PayStubModal: React.FC<{
     } finally { setAdjBusy(false); }
   };
 
+  // SaaS / Hardware / SaaS + Hardware — same label on screen, in the PDF, the Excel and the CSV.
+  const categoryLabel = (c?: PayStubLine['category']): string =>
+    c === 'saas' ? tp('categorySaas') : c === 'hardware' ? tp('categoryHardware') : c === 'mixed' ? tp('categoryMixed') : '';
+
+  const download = (parts: BlobPart[], type: string, ext: string) => {
+    if (!data) return;
+    const url = URL.createObjectURL(new Blob(parts, { type }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `PayStub_${data.repName.replace(/\s+/g, '_')}_${data.period}.${ext}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Export to Excel — a .xls (HTML-table) file Excel opens natively. No dependency.
   const exportExcel = () => {
     if (!data) return;
     const esc = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const rows: string[] = [];
-    rows.push(`<tr><th colspan="3" style="text-align:left">${esc(tp('title'))} — ${esc(data.repName)} · ${esc(data.period)}</th></tr>`);
-    if (data.payDate) rows.push(`<tr><td colspan="3">${esc(tp('payRun'))}: ${esc(payDateLabel(data.payDate))}</td></tr>`);
-    rows.push(`<tr><th>${esc(tp('invoice'))}</th><th>${esc(tp('customer'))}</th><th>${esc(tp('amount'))}</th></tr>`);
-    data.lines.forEach(l => rows.push(`<tr><td>${esc(l.invoice_number)}</td><td>${esc(l.customer)}</td><td>${l.paid_amount}</td></tr>`));
-    bonusRows.forEach(b => rows.push(`<tr><td>${esc(bonusLabel(b.bonus_type))}</td><td>${esc(b.merchant_name)}</td><td>${b.amount}</td></tr>`));
+    rows.push(`<tr><th colspan="4" style="text-align:left">${esc(tp('title'))} — ${esc(data.repName)} · ${esc(data.period)}</th></tr>`);
+    if (data.payDate) rows.push(`<tr><td colspan="4">${esc(tp('payRun'))}: ${esc(payDateLabel(data.payDate))}</td></tr>`);
+    rows.push(`<tr><th>${esc(tp('invoice'))}</th><th>${esc(tp('customer'))}</th><th>${esc(tp('category'))}</th><th>${esc(tp('amount'))}</th></tr>`);
+    data.lines.forEach(l => rows.push(`<tr><td>${esc(l.invoice_number)}</td><td>${esc(l.customer)}</td><td>${esc(categoryLabel(l.category))}</td><td>${l.paid_amount}</td></tr>`));
+    bonusRows.forEach(b => rows.push(`<tr><td>${esc(bonusLabel(b.bonus_type))}</td><td>${esc(b.merchant_name)}</td><td></td><td>${b.amount}</td></tr>`));
     if (adjRows.length) {
-      rows.push(`<tr><th colspan="3" style="text-align:left">${esc(tp('adjustments'))}</th></tr>`);
-      adjRows.forEach(b => rows.push(`<tr><td>${esc(bonusLabel(b.bonus_type))}</td><td>${esc(b.merchant_name)}</td><td>${b.amount}</td></tr>`));
+      rows.push(`<tr><th colspan="4" style="text-align:left">${esc(tp('adjustments'))}</th></tr>`);
+      adjRows.forEach(b => rows.push(`<tr><td>${esc(bonusLabel(b.bonus_type))}</td><td>${esc(b.merchant_name)}</td><td></td><td>${b.amount}</td></tr>`));
     }
-    rows.push(`<tr><td></td><td style="text-align:right"><b>${esc(tp('totalPaid'))}</b></td><td><b>${data.total}</b></td></tr>`);
+    rows.push(`<tr><td></td><td></td><td style="text-align:right"><b>${esc(tp('totalPaid'))}</b></td><td><b>${data.total}</b></td></tr>`);
     const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1">${rows.join('')}</table></body></html>`;
-    const blob = new Blob(['﻿', html], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `PayStub_${data.repName.replace(/\s+/g, '_')}_${data.period}.xls`;
-    a.click();
-    URL.revokeObjectURL(url);
+    download(['﻿', html], 'application/vnd.ms-excel', 'xls');
+  };
+
+  // Export to CSV — one flat row per line (rep + period repeated on each) so the file can be
+  // filtered/pivoted or loaded into another tool as-is. Plain numbers, no currency formatting.
+  const exportCsv = () => {
+    if (!data) return;
+    const cell = (v: any) => {
+      const s = String(v ?? '');
+      return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const num = (n: number) => (Math.round(n * 100) / 100).toFixed(2);
+    const rows: any[][] = [[tp('repLabel'), tp('period'), tp('csvSection'), tp('invoice'), tp('customer'), tp('category'), tp('amount')]];
+    data.lines.forEach(l => rows.push([data.repName, data.period, tp('commissions'), l.invoice_number, l.customer, categoryLabel(l.category), num(l.paid_amount)]));
+    bonusRows.forEach(b => rows.push([data.repName, data.period, tp('bonuses'), bonusLabel(b.bonus_type), b.merchant_name, '', num(b.amount)]));
+    adjRows.forEach(b => rows.push([data.repName, data.period, tp('adjustments'), bonusLabel(b.bonus_type), b.merchant_name, '', num(b.amount)]));
+    rows.push([data.repName, data.period, tp('totalPaid'), '', '', '', num(data.total)]);
+    // BOM so Excel reads the accents (Hôtel, Karaïbes…) as UTF-8.
+    download(['﻿', rows.map(r => r.map(cell).join(',')).join('\r\n')], 'text/csv;charset=utf-8', 'csv');
   };
 
   const sendEmail = async () => {
@@ -207,6 +236,7 @@ const PayStubModal: React.FC<{
       <tr${i % 2 ? ' class="alt"' : ''}>
         <td class="mono">${esc(l.invoice_number)}</td>
         <td>${esc(l.customer) || '—'}${l.not_in_db ? ` <span class="pill">${tp('notInDb')}</span>` : ''}${l.quota_partial ? ` <span class="pill">${tpp('missedQuotaPartialBadgePct', { percent: quotaPct(l.paid_amount, l.quota_forfeited) })} — ${fmt(l.quota_forfeited || 0)} ${tp('missedQuotaPartialPillSuffix')}</span>` : ''}</td>
+        <td>${l.category ? `<span class="cat cat-${l.category}">${esc(categoryLabel(l.category))}</span>` : '—'}</td>
         <td class="num">${fmt(l.paid_amount)}</td>
       </tr>`).join('');
     const bonusHtml = bonusRows.map((b, i) => `
@@ -256,6 +286,10 @@ const PayStubModal: React.FC<{
   tfoot td.sub { text-align: right; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #64748b; font-weight: 700; }
   tfoot td.num { font-weight: 800; color: #1c2434; }
   .cap { text-transform: capitalize; }
+  .cat { display: inline-block; font-size: 9.5px; font-weight: 700; border-radius: 99px; padding: 1px 8px; white-space: nowrap; }
+  .cat-saas { background: #eff6ff; color: #1d4ed8; }
+  .cat-hardware { background: #fff7ed; color: #c2410c; }
+  .cat-mixed { background: #f5f3ff; color: #6d28d9; }
   .pill { display: inline-block; font-size: 9px; background: #eef2f7; color: #64748b; border-radius: 99px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
   .totals { margin-top: 26px; display: flex; justify-content: flex-end; }
   .totals .box { min-width: 290px; }
@@ -283,9 +317,9 @@ const PayStubModal: React.FC<{
   <div class="content">
     <h2>${tp('commissions')} (${data.lines.length})</h2>
     <table>
-      <thead><tr><th>${tp('invoice')}</th><th>${tp('customer')}</th><th class="num">${tp('amount')}</th></tr></thead>
-      <tbody>${linesHtml || `<tr><td colspan="3" style="text-align:center;color:#94a3b8">—</td></tr>`}</tbody>
-      ${data.lines.length ? `<tfoot><tr><td class="sub" colspan="2">${tp('subtotalCommissions')}</td><td class="num">${fmt(linesSum)}</td></tr></tfoot>` : ''}
+      <thead><tr><th>${tp('invoice')}</th><th>${tp('customer')}</th><th>${tp('category')}</th><th class="num">${tp('amount')}</th></tr></thead>
+      <tbody>${linesHtml || `<tr><td colspan="4" style="text-align:center;color:#94a3b8">—</td></tr>`}</tbody>
+      ${data.lines.length ? `<tfoot><tr><td class="sub" colspan="3">${tp('subtotalCommissions')}</td><td class="num">${fmt(linesSum)}</td></tr></tfoot>` : ''}
     </table>
     ${bonusRows.length ? `
     <h2>${tp('bonuses')} (${bonusRows.length})</h2>
@@ -374,6 +408,11 @@ const PayStubModal: React.FC<{
                 className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium text-body transition hover:border-success hover:text-success dark:border-strokedark">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4h16v16H4zM4 9h16M9 4v16" /></svg>
                 {tp('excel')}
+              </button>
+              <button onClick={exportCsv} title={tp('csv') as string}
+                className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium text-body transition hover:border-success hover:text-success dark:border-strokedark">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5M9 13h6M9 17h6" /></svg>
+                {tp('csv')}
               </button>
               <button onClick={printStub} title={tp('pdf') as string}
                 className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-opacity-90">
@@ -464,13 +503,14 @@ const PayStubModal: React.FC<{
                     <tr>
                       <th className="px-3 py-2 text-left font-medium">{tp('invoice')}</th>
                       <th className="px-3 py-2 text-left font-medium">{tp('customer')}</th>
+                      <th className="px-3 py-2 text-left font-medium">{tp('category')}</th>
                       <th className="px-3 py-2 text-right font-medium">{tp('amount')}</th>
                       {showApp && <th className="px-3 py-2 text-right font-medium">{tp('appCalc')}</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {data.lines.length === 0 ? (
-                      <tr><td colSpan={showApp ? 4 : 3} className="px-3 py-3 text-center text-body">—</td></tr>
+                      <tr><td colSpan={showApp ? 5 : 4} className="px-3 py-3 text-center text-body">—</td></tr>
                     ) : data.lines.map((l) => {
                       const diff = !l.not_in_db && l.app_commission != null && Math.abs(l.app_commission - l.paid_amount) > 0.01;
                       return (
@@ -489,6 +529,17 @@ const PayStubModal: React.FC<{
                                 {tp('notInDb')}
                               </span>
                             )}
+                          </td>
+                          <td className="px-3 py-2">
+                            {l.category ? (
+                              <span className={`inline-flex whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                l.category === 'saas' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300'
+                                  : l.category === 'hardware' ? 'bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300'
+                                  : 'bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300'
+                              }`}>
+                                {categoryLabel(l.category)}
+                              </span>
+                            ) : <span className="text-body">—</span>}
                           </td>
                           <td className="px-3 py-2 text-right font-semibold text-black dark:text-white whitespace-nowrap">
                             {fmt(l.paid_amount)}
@@ -511,7 +562,7 @@ const PayStubModal: React.FC<{
                   {data.lines.length > 0 && (
                     <tfoot>
                       <tr className="border-t-2 border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4/40">
-                        <td colSpan={2} className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-body">{tp('subtotalCommissions')}</td>
+                        <td colSpan={3} className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-body">{tp('subtotalCommissions')}</td>
                         <td className="px-3 py-2 text-right font-bold text-black dark:text-white">{fmt(data.lines.reduce((a, l) => a + l.paid_amount, 0))}</td>
                         {showApp && <td className="px-3 py-2"></td>}
                       </tr>

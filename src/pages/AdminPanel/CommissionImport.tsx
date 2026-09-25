@@ -80,7 +80,7 @@ interface HistoryRow {
   total_amount: number;
 }
 
-interface StubLine { invoice_number: string; customer: string | null; paid_amount: number; app_commission: number | null; }
+interface StubLine { invoice_number: string; customer: string | null; paid_amount: number; app_commission: number | null; category?: 'saas' | 'hardware' | 'mixed' | null; }
 interface StubBonus { bonus_type: string; merchant_name: string | null; amount: number; report_date: string | null; }
 interface StubDetail { import: HistoryRow; lines: StubLine[]; bonuses: StubBonus[]; }
 
