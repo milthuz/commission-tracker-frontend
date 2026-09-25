@@ -365,7 +365,9 @@
     "refreshStatus": "Refresh Status",
     "managedByZoho": "Managed by Zoho",
     "TOTAL": "TOTAL",
-    "done": "Done"
+    "done": "Done",
+    "copyPhone": "Copy number",
+    "copied": "Copied"
   },
   "probation": {
     "badge": "Probation",
@@ -2442,9 +2444,7 @@
         "dReview": "Review",
         "dAssignedTo": "Cluster rep",
         "dZohoLead": "Zoho lead",
-        "dZohoError": "Zoho error",
-        "copyPhone": "Copy number",
-        "copied": "Copied"
+        "dZohoError": "Zoho error"
       },
       "migration": {
         "title": "Legacy portal import",

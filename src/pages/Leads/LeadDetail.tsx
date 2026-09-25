@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Select from '../../components/Select';
+import TelephoneCopiable from '../../components/TelephoneCopiable';
 import { authHeaders, leadFullName, statusTone, type Lead, type LeadRep } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -207,7 +208,10 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                   <p className="mb-2 text-xs uppercase tracking-wide text-bodydark2">{t('leads.intake.sectionContact')}</p>
                   <Row label={t('leads.field.contact')}>{leadFullName(lead)}{lead.contactTitle ? ` — ${lead.contactTitle}` : ''}</Row>
                   <Row label={t('leads.field.phone')}>
-                    {lead.contactPhone ? <a className="text-primary hover:underline" href={`tel:${lead.contactPhone.replace(/[^\d+]/g, '')}`}>{lead.contactPhone}</a> : null}
+                    {/* Pas de `tel:` : il n'ouvre rien sur un poste Windows. Voir
+                        TelephoneCopiable. Le temoin reste a DROITE ici : la colonne des
+                        valeurs est large et la ligne du dessous porte le courriel. */}
+                    {lead.contactPhone ? <TelephoneCopiable valeur={lead.contactPhone} /> : null}
                   </Row>
                   <Row label={t('leads.field.email')}>
                     {lead.contactEmail ? <a className="text-primary hover:underline" href={`mailto:${lead.contactEmail}`}>{lead.contactEmail}</a> : null}

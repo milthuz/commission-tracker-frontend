@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Select from '../../components/Select';
+import TelephoneCopiable from '../../components/TelephoneCopiable';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { dialog } from '../../lib/dialog';
@@ -25,65 +26,6 @@ interface CrmMatch {
   // trouvent la meme fiche. Absent des verifications faites avant le 2026-08-05.
   matchedOn?: ('name' | 'email' | 'phone')[];
   phone: string | null; email: string | null; city: string | null; crmUrl: string | null;
-}
-// Un numero de telephone qu'on copie d'un clic.
-//
-// PAS un lien `tel:` : sur un poste de travail Windows sans logiciel de telephonie, il n'ouvre
-// rien du tout — David a signale un « lien qui va nulle part ». Copier est le geste utile ici :
-// on compose ensuite depuis son cellulaire ou son logiciel d'appel. Et comme la rangee du tableau
-// est elle-meme cliquable, selectionner le numero a la souris ouvrirait la fiche : un bouton
-// « copier » rend le numero recuperable sans se battre avec le clic de rangee.
-//
-// Le temoin « Copie » est en position ABSOLUE : le tableau de la file tient a la largeur pres
-// (plancher mesure 866 px), un mot qui apparait en flux le pousserait a defiler pendant 1,5 s.
-// Son PLACEMENT depend de la place disponible, et c'est mesure, pas suppose :
-//   - `dessous` dans le tableau, ou la cellule Telephone n'a qu'une ligne alors que la rangee en
-//     fait trois : le temoin tombe dans du vide. A droite il chevauchait la pastille « Aucune
-//     correspondance » et devenait illisible.
-//   - a droite dans la fiche, ou la colonne des valeurs est large et ou le dessous est occupe
-//     par la ligne « Courriel ».
-function TelephoneCopiable({ valeur, className, dessous }: {
-  valeur: string; className?: string; dessous?: boolean;
-}) {
-  const { t } = useTranslation();
-  const [copie, setCopie] = useState(false);
-  return (
-    <span className="relative inline-block">
-      <button type="button"
-        // `writeText` REJETTE dans plusieurs cas ordinaires (onglet non focalise, permission
-        // refusee). Afficher « Copie » sans attendre, c'est promettre un numero que l'usager
-        // n'a pas. On n'annonce donc qu'apres coup, et on retombe sur l'ancienne methode —
-        // une zone de texte selectionnee puis `execCommand` — quand l'API moderne dit non.
-        onClick={async () => {
-          let ok = false;
-          try {
-            await navigator.clipboard.writeText(valeur);
-            ok = true;
-          } catch {
-            const z = document.createElement('textarea');
-            z.value = valeur;
-            z.style.cssText = 'position:fixed;top:-1000px;opacity:0';
-            document.body.appendChild(z);
-            z.select();
-            try { ok = document.execCommand('copy'); } catch { ok = false; }
-            z.remove();
-          }
-          if (!ok) return;
-          setCopie(true);
-          setTimeout(() => setCopie(false), 1500);
-        }}
-        title={t('admin.partners.queue.copyPhone') as string}
-        className={`whitespace-nowrap tabular-nums hover:text-primary ${className || ''}`}>
-        {valeur}
-      </button>
-      {copie && (
-        <span className={`pointer-events-none absolute whitespace-nowrap text-[11px] font-medium text-green-700 dark:text-success ${
-          dessous ? 'left-0 top-full mt-0.5' : 'left-full top-0 ml-2'}`}>
-          {t('admin.partners.queue.copied')}
-        </span>
-      )}
-    </span>
-  );
 }
 // Une ligne « libelle / valeur » de la fiche d'opportunite. Une valeur absente s'affiche « — »
 // plutot que de disparaitre : un champ vide et un champ inexistant ne doivent pas se ressembler.

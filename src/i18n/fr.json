@@ -365,7 +365,9 @@
     "refreshStatus": "Actualiser le statut",
     "managedByZoho": "Géré par Zoho",
     "TOTAL": "TOTAL",
-    "done": "Terminé"
+    "done": "Terminé",
+    "copyPhone": "Copier le numéro",
+    "copied": "Copié"
   },
   "probation": {
     "badge": "Probation",
@@ -2442,9 +2444,7 @@
         "dReview": "Révision",
         "dAssignedTo": "Rep Cluster",
         "dZohoLead": "Fiche Zoho",
-        "dZohoError": "Erreur Zoho",
-        "copyPhone": "Copier le numéro",
-        "copied": "Copié"
+        "dZohoError": "Erreur Zoho"
       },
       "migration": {
         "title": "Reprise de l’ancien portail",
