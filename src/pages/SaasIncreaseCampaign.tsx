@@ -38,6 +38,7 @@ interface DeskTicket {
 }
 interface Desk {
   days: number;
+  departmentId: string | null;
   notifiedTotal: number;   // tous les marchands avises
   eligible: number;        // ceux avises depuis assez longtemps pour une fenetre complete
   merchantsMatched: number;// ceux effectivement retrouves dans Desk
@@ -83,6 +84,10 @@ export default function SaasIncreaseCampaign() {
   const [desk, setDesk] = useState<Desk | null>(null);
   const [deskLoading, setDeskLoading] = useState(false);
   const [deskDays, setDeskDays] = useState(30);
+  // '' = tous les pupitres. Le choix est enregistre pour l'equipe : sans ca, deux personnes
+  // liraient deux chiffres differents de la meme campagne.
+  const [dept, setDept] = useState<string>('');
+  const [deptSaved, setDeptSaved] = useState(false);
 
   useEffect(() => {
     fetch(`${API_URL}/api/admin/saas-increase/scenarios`, { headers: authHeaders() })
@@ -109,16 +114,36 @@ export default function SaasIncreaseCampaign() {
 
   useEffect(() => { if (id != null) void charger(id); setDesk(null); /* eslint-disable-next-line */ }, [id]);
 
-  const chargerDesk = async (jours: number) => {
+  // `pupitre` non passe = on laisse le serveur appliquer le reglage enregistre ; passe = on
+  // previsualise un autre choix sans encore l'enregistrer.
+  const chargerDesk = async (jours: number, pupitre?: string) => {
     if (id == null) return;
     setDeskLoading(true);
     try {
-      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${id}/campaign/desk?days=${jours}`,
+      const qs = new URLSearchParams({ days: String(jours) });
+      if (pupitre !== undefined) qs.set('dept', pupitre);
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${id}/campaign/desk?${qs}`,
         { headers: authHeaders() });
       if (!r.ok) throw new Error(String(r.status));
-      setDesk(await r.json());
+      const d: Desk = await r.json();
+      setDesk(d);
+      setDept(d.departmentId || '');
     } catch { setDesk(null); }
     finally { setDeskLoading(false); }
+  };
+
+  const enregistrerPupitre = async (valeur: string) => {
+    setDept(valeur);
+    setDeptSaved(false);
+    void chargerDesk(deskDays, valeur);
+    try {
+      await fetch(`${API_URL}/api/admin/saas-increase/cs-department`, {
+        method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ departmentId: valeur }),
+      });
+      setDeptSaved(true);
+      setTimeout(() => setDeptSaved(false), 2500);
+    } catch { /* le filtre s'applique quand meme a l'ecran, il ne sera juste pas retenu */ }
   };
 
   const card = 'rounded-2xl border border-gray-200 bg-white dark:border-[#1B1B1B] dark:bg-[#0E0F11]';
@@ -267,6 +292,25 @@ export default function SaasIncreaseCampaign() {
                 <span className={label}>{t('saasCampaign.desk.title')}</span>
               </div>
               <div className="flex items-center gap-2">
+                {/* Le pupitre se CHOISIT ici. Il etait seulement liste, en attendant que David me
+                    dise lequel — ce qui voulait dire attendre un deploiement pour un reglage. */}
+                {desk && desk.departments.length > 0 && (
+                  <select
+                    value={dept}
+                    onChange={(e) => void enregistrerPupitre(e.target.value)}
+                    className="max-w-[220px] rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs outline-none focus:border-primary dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white"
+                  >
+                    <option value="">{t('saasCampaign.desk.allDesks')}</option>
+                    {desk.departments.map(d => (
+                      <option key={d.id} value={d.id}>{d.name} ({d.n})</option>
+                    ))}
+                  </select>
+                )}
+                {deptSaved && (
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                    {t('saasCampaign.desk.deptSaved')}
+                  </span>
+                )}
                 <select
                   value={deskDays}
                   onChange={(e) => { const v = Number(e.target.value); setDeskDays(v); if (desk) void chargerDesk(v); }}
@@ -364,19 +408,15 @@ export default function SaasIncreaseCampaign() {
                   </div>
                 )}
 
-                {/* Les pupitres : c'est David qui designe celui du service a la clientele. Le
-                    deviner d'ici ajouterait une hypothese dans un chiffre qui doit etre sur. */}
-                {desk.departments.length > 0 && (
-                  <div className="mt-5">
-                    <div className={label}>{t('saasCampaign.desk.departments')}</div>
-                    <p className={`mt-1 max-w-[80ch] text-xs ${textQuat}`}>{t('saasCampaign.desk.departmentsHint')}</p>
-                    <div className={`mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs ${textSec}`}>
-                      {desk.departments.slice(0, 8).map(d => (
-                        <span key={d.id}>{d.name} <span className={textQuat}>{d.n}</span></span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* La portee courante, ecrite sous les chiffres : un compte filtre sur un pupitre
+                    et un compte sur tous se ressemblent trop pour qu'on laisse deviner lequel
+                    on regarde. */}
+                <p className={`mt-4 text-xs ${textQuat}`}>
+                  {dept
+                    ? t('saasCampaign.desk.scopedTo', {
+                        name: desk.departments.find(d => d.id === dept)?.name || dept })
+                    : t('saasCampaign.desk.scopedAll')}
+                </p>
               </>
             )}
           </div>

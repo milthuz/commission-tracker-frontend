@@ -5936,8 +5936,10 @@
       "keyword": "{{count}} mention price or billing in the subject",
       "keywordHint": "A keyword net, shown so you can read real subjects and decide which category to trust. It is never the official number: it misses calls where the increase comes up in passing, and catches unrelated pricing questions.",
       "daysAfter": "{{days}} days after the notice",
-      "departments": "Desks",
-      "departmentsHint": "Tell me which one is the customer service desk and I will scope the count to it."
+      "allDesks": "All desks",
+      "deptSaved": "Saved for the team",
+      "scopedTo": "Counting tickets on the {{name}} desk only.",
+      "scopedAll": "Counting tickets across every desk. Pick one above to scope this to customer service."
     }
   }
 }

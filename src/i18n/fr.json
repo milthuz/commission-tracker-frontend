@@ -5936,8 +5936,10 @@
       "keyword": "{{count}} mentionnent le prix ou la facturation en objet",
       "keywordHint": "Un filet à mots-clés, montré pour que tu lises de vrais sujets et décides quelle catégorie retenir. Ce n'est jamais le chiffre officiel : il rate les appels où la hausse est glissée au passage, et attrape des questions de prix sans rapport.",
       "daysAfter": "{{days}} jours après l'avis",
-      "departments": "Pupitres",
-      "departmentsHint": "Dis-moi lequel est celui du service à la clientèle et je restreindrai le compte à celui-là."
+      "allDesks": "Tous les pupitres",
+      "deptSaved": "Enregistré pour l'équipe",
+      "scopedTo": "Compte les billets du pupitre {{name}} seulement.",
+      "scopedAll": "Compte les billets de tous les pupitres. Choisis-en un ci-dessus pour restreindre au service à la clientèle."
     }
   }
 }
