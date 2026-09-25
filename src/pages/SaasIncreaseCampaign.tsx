@@ -304,51 +304,52 @@ export default function SaasIncreaseCampaign() {
           </div>
 
           {/* ── QUAND L'ARGENT ENTRE ───────────────────────────────────────────────────────
-              Un graphique a une barre n'est pas un graphique : c'est une grande boite vide avec
-              un trait au milieu. Sous trois mois de donnees, on ecrit les montants ; au-dela, la
-              forme de la courbe dit quelque chose et merite ses barres. La barre a aussi une
-              largeur MAXIMALE, sinon deux mois donnent deux blocs de trois cents pixels de
-              large qui ne ressemblent a rien. */}
+              Sous trois mois, tout tient sur UNE ligne : titre, puis les montants a la suite.
+              Une carte pleine largeur avec un seul chiffre a gauche et une phrase d'explication
+              a droite laisse un trou au milieu — c'est la boite vide que David a signalee deux
+              fois. La phrase passe en infobulle; elle reste atteignable sans meubler l'ecran. */}
           {data.timeline.length > 0 && (
             <div className={`${card} mb-4 p-5`}>
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <span className={label}>{t('saasCampaign.timeline')}</span>
-                <span className={`max-w-[70ch] text-[11px] ${textQuat}`}>{t('saasCampaign.timelineHint')}</span>
-              </div>
-
               {data.timeline.length < 3 ? (
-                <div className="mt-3 flex flex-wrap gap-x-8 gap-y-2">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                  <span className="flex items-center gap-1.5">
+                    <span className={label}>{t('saasCampaign.timeline')}</span>
+                    <span title={t('saasCampaign.timelineHint') as string} className={`cursor-help ${textQuat}`}>
+                      <Info className="h-3.5 w-3.5" />
+                    </span>
+                  </span>
                   {data.timeline.map((m) => (
-                    <div key={m.month}>
-                      <div className={`text-[11px] ${textQuat}`}>
-                        {moisLisible(m.month, i18n.language)}
-                        <span className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] ${m.past ? 'bg-primary/15 text-primary' : neutralPill}`}>
-                          {m.past ? t('saasCampaign.billed') : t('saasCampaign.toCome')}
-                        </span>
-                      </div>
-                      <div className="mt-0.5 flex items-baseline gap-1.5">
-                        <span className={`text-lg font-semibold tabular-nums ${textPri}`}>{money(m.mrr)}</span>
-                        <span className={`text-[11px] ${textQuat}`}>
-                          {t('saasCampaign.subsN', { count: m.subs })}
-                        </span>
-                      </div>
-                    </div>
+                    <span key={m.month} className="flex items-baseline gap-2">
+                      <span className={`text-lg font-semibold tabular-nums ${textPri}`}>{money(m.mrr)}</span>
+                      <span className={`text-[11px] ${textQuat}`}>
+                        {moisLisible(m.month, i18n.language)} · {t('saasCampaign.subsN', { count: m.subs })}
+                      </span>
+                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${m.past ? 'bg-primary/15 text-primary' : neutralPill}`}>
+                        {m.past ? t('saasCampaign.billed') : t('saasCampaign.toCome')}
+                      </span>
+                    </span>
                   ))}
                 </div>
               ) : (
-                <div className="mt-3 flex items-end gap-1.5" style={{ height: 84 }}>
-                  {data.timeline.map((m) => (
-                    <div key={m.month} className="flex max-w-[64px] flex-1 flex-col items-center justify-end gap-1"
-                         title={t('saasCampaign.barTitle', { subs: m.subs, mrr: money2(m.mrr) }) as string}>
-                      <div className={`text-[10px] tabular-nums ${textQuat}`}>{money(m.mrr)}</div>
-                      <div
-                        className={`w-full rounded-t ${m.past ? 'bg-primary' : 'bg-primary/30'}`}
-                        style={{ height: `${Math.max(3, (m.mrr / maxMois) * 100)}%` }}
-                      />
-                      <div className={`text-[10px] ${textQuat}`}>{moisLisible(m.month, i18n.language)}</div>
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <span className={label}>{t('saasCampaign.timeline')}</span>
+                    <span className={`max-w-[70ch] text-[11px] ${textQuat}`}>{t('saasCampaign.timelineHint')}</span>
+                  </div>
+                  <div className="mt-3 flex items-end gap-1.5" style={{ height: 84 }}>
+                    {data.timeline.map((m) => (
+                      <div key={m.month} className="flex max-w-[64px] flex-1 flex-col items-center justify-end gap-1"
+                           title={t('saasCampaign.barTitle', { subs: m.subs, mrr: money2(m.mrr) }) as string}>
+                        <div className={`text-[10px] tabular-nums ${textQuat}`}>{money(m.mrr)}</div>
+                        <div
+                          className={`w-full rounded-t ${m.past ? 'bg-primary' : 'bg-primary/30'}`}
+                          style={{ height: `${Math.max(3, (m.mrr / maxMois) * 100)}%` }}
+                        />
+                        <div className={`text-[10px] ${textQuat}`}>{moisLisible(m.month, i18n.language)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           )}
