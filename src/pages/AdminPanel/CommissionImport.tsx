@@ -2324,7 +2324,7 @@ const CommissionImport: React.FC = () => {
                   <tbody>
                     {manualActivations.map(m => (
                       <tr key={m.merchant_account_id} className="border-t border-stroke dark:border-strokedark">
-                        <td className="px-4 py-2 text-body whitespace-nowrap">{fmtDate(m.activated_at)}</td>
+                        <td className="px-4 py-2 text-body whitespace-nowrap">{m.activated_at || '—'}</td>
                         <td className="px-4 py-2 text-black dark:text-white whitespace-nowrap">{m.sales_rep_name}</td>
                         <td className="px-4 py-2 text-body">{m.business_name}</td>
                         <td className="px-4 py-2 text-right text-body">{m.points}</td>
