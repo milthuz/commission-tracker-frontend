@@ -4985,6 +4985,16 @@
         "q": "Who do I escalate to?",
         "a": "Any request for a discount or exception, anything contractual, and any case where the figures on the record look wrong to you. Never commit Cluster to a price. Escalate to Samantha Samuels — samantha.samuels@clustersystems.com."
       }
+    },
+    "freeze": {
+      "active": "Increase frozen until {{date}}",
+      "by": "by {{who}}",
+      "none": "No freeze on this increase",
+      "set": "Freeze",
+      "lift": "Lift",
+      "working": "Working…",
+      "reason": "Reason (optional) — what was promised, and why",
+      "willCancel": "This increase is already scheduled in Zoho. Freezing it will REMOVE that scheduled change, so the merchant is not billed at renewal. It goes back to the To do list and can be applied again after the date."
     }
   },
   "support": {

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Select from '../components/Select';
 import { useTranslation } from 'react-i18next';
-import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard,
+import { useAuth } from '../context/AuthContext';
+import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard, Snowflake,
          MessageSquareQuote } from 'lucide-react';
 
 // The support desk's page. A merchant calls, an agent types whatever the caller gave them — a
@@ -38,6 +39,11 @@ interface Hit {
   notifySubject: string | null;
   notifyBody: string | null;
   scenarioName: string;
+  // Le gel promis a ce marchand. `frozenUntil` a une DATE : c'est un report, pas une annulation,
+  // et la ligne revient d'elle-meme dans le travail a faire quand elle est passee.
+  frozenUntil?: string | null;
+  frozenBy?: string | null;
+  frozenReason?: string | null;
   // Une piste deja partie pour cet abonnement, lue dans le journal d'activite — donc vraie
   // apres un rechargement et pour un COLLEGUE, pas seulement pour l'onglet qui l'a envoyee.
   dealCreated?: { at: string; by: string | null; dealId: string | null; accountName: string | null } | null;
@@ -89,6 +95,15 @@ const FILTRE = 'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text
 
 export default function SaasIncreaseLookup() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
+  const can = (p: string) => {
+    const perms = user?.permissions || [];
+    return perms.includes('*') || perms.includes(p) || perms.includes(`${p.split(':')[0]}:*`);
+  };
+  // Geler appartient au service a la clientele : sa propre permission, distincte de celle qui
+  // pousse vers Zoho. Samantha peut reporter sans pouvoir appliquer.
+  const peutGeler = can('saas_increase:freeze');
+  const [gel, setGel] = useState<Record<string, { until: string; reason: string; busy?: boolean; err?: string }>>({});
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[] | null>(null);
   // Les fiches que l'agent a BASCULEES par rapport a l'etat par defaut. La page rendait une
@@ -131,6 +146,27 @@ export default function SaasIncreaseLookup() {
     | { state: 'noAccount'; searched: string; candidates: { id: string; name: string; city?: string | null }[] }
     | { state: 'already'; at: string; by: string | null; dealId: string | null }
     | { state: 'error'; msg: string }>>({});
+
+  const geler = async (h: Hit, until: string) => {
+    const cle = h.subscriptionNumber;
+    setGel(g => ({ ...g, [cle]: { ...(g[cle] || { until: '', reason: '' }), busy: true, err: undefined } }));
+    try {
+      const r = await fetch(`${API_URL}/api/saas-increase/lookup/freeze`, {
+        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orgId: h.orgId, subscriptionNumber: h.subscriptionNumber,
+                               until, reason: gel[cle]?.reason || '' }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+      // On recharge la fiche : l'etat du gel, et le statut de la ligne si le changement vient
+      // d'etre retire de Zoho, doivent venir du serveur et non d'une supposition de l'ecran.
+      setGel(g => ({ ...g, [cle]: { until: d.frozenUntil || '', reason: d.frozenReason || '' } }));
+      void search(q);
+    } catch (e) {
+      setGel(g => ({ ...g, [cle]: { ...(g[cle] || { until: '', reason: '' }), busy: false,
+                                    err: String((e as Error).message || e) } }));
+    }
+  };
 
   const creerOpportunite = async (h: Hit, force = false, accountId?: string) => {
     const cle = h.subscriptionNumber;
@@ -522,6 +558,86 @@ export default function SaasIncreaseLookup() {
                             : f.strong ? `font-semibold ${textPri}` : textSec}`}>{f.value}</div>
                   </div>
                 ))}
+              </div>
+            );
+          })()}
+
+          {/* LE GEL. Place juste sous les prix, parce que c'est la premiere chose a verifier quand
+              un marchand demande un delai : lui a-t-on deja promis quelque chose ? Un gel deja
+              pose se lit avant qu'on en propose un autre. */}
+          {(h.frozenUntil || peutGeler) && (() => {
+            const g = gel[h.subscriptionNumber] || { until: '', reason: '' };
+            const actif = !!h.frozenUntil && h.frozenUntil > new Date().toISOString().slice(0, 10);
+            return (
+              <div className={`mt-4 rounded-lg border px-3 py-2.5 text-sm ${actif
+                ? 'border-sky-200 bg-sky-50 dark:border-sky-500/25 dark:bg-sky-500/10'
+                : 'border-gray-200 dark:border-[#242424]'}`}>
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <Snowflake className={`h-4 w-4 shrink-0 ${actif ? 'text-sky-600 dark:text-sky-400' : textQuat}`} />
+                    {actif ? (
+                      <>
+                        <span className="font-semibold text-sky-800 dark:text-sky-300">
+                          {t('csLookup.freeze.active', { date: fmtDate(h.frozenUntil!, i18n.language) })}
+                        </span>
+                        <span className={`text-[11px] ${textQuat}`}>
+                          {h.frozenBy ? t('csLookup.freeze.by', { who: h.frozenBy }) : ''}
+                          {h.frozenReason ? ` · ${h.frozenReason}` : ''}
+                        </span>
+                      </>
+                    ) : (
+                      <span className={textSec}>{t('csLookup.freeze.none')}</span>
+                    )}
+                  </div>
+
+                  {peutGeler && (
+                    <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+                      <input
+                        type="date"
+                        value={g.until}
+                        min={new Date(Date.now() + 86400000).toISOString().slice(0, 10)}
+                        onChange={(e) => setGel(x => ({ ...x, [h.subscriptionNumber]: { ...g, until: e.target.value } }))}
+                        className={`rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary border-gray-300 bg-white dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white`}
+                      />
+                      <button
+                        type="button"
+                        disabled={!g.until || g.busy}
+                        onClick={() => void geler(h, g.until)}
+                        className="rounded-lg bg-sky-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-40"
+                      >
+                        {g.busy ? t('csLookup.freeze.working') : t('csLookup.freeze.set')}
+                      </button>
+                      {actif && (
+                        <button
+                          type="button"
+                          disabled={g.busy}
+                          onClick={() => void geler(h, '')}
+                          className={`rounded-lg px-2.5 py-1.5 text-xs font-medium ${textSec} hover:text-gray-900 disabled:opacity-40 dark:hover:text-white`}
+                        >
+                          {t('csLookup.freeze.lift')}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {peutGeler && (
+                  <input
+                    value={g.reason}
+                    onChange={(e) => setGel(x => ({ ...x, [h.subscriptionNumber]: { ...g, reason: e.target.value } }))}
+                    placeholder={t('csLookup.freeze.reason') as string}
+                    className={`mt-2 w-full rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary border-gray-300 bg-white dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white`}
+                  />
+                )}
+                {/* Dit en clair ce que le geste fait REELLEMENT quand la hausse est deja chez
+                    Zoho : sans ca, « gele » pourrait vouloir dire « on ne poussera pas » alors
+                    que le marchand serait facture quand meme a son renouvellement. */}
+                {peutGeler && h.pushStatus === 'pushed' && !actif && (
+                  <p className="mt-1.5 text-[11px] text-amber-700 dark:text-amber-400">
+                    {t('csLookup.freeze.willCancel')}
+                  </p>
+                )}
+                {g.err && <p className="mt-1.5 text-[11px] text-red-600 dark:text-red-400">{g.err}</p>}
               </div>
             );
           })()}

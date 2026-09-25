@@ -4985,6 +4985,16 @@
         "q": "À qui escalader?",
         "a": "Toute demande de rabais ou d'exception, toute question contractuelle, et tout cas où les chiffres de la fiche te semblent faux. N'engage jamais Cluster sur un prix. Escalade à Samantha Samuels — samantha.samuels@clustersystems.com."
       }
+    },
+    "freeze": {
+      "active": "Hausse gelée jusqu'au {{date}}",
+      "by": "par {{who}}",
+      "none": "Aucun gel sur cette hausse",
+      "set": "Geler",
+      "lift": "Lever",
+      "working": "En cours…",
+      "reason": "Raison (facultatif) — ce qui a été promis, et pourquoi",
+      "willCancel": "Cette hausse est déjà planifiée dans Zoho. La geler RETIRERA ce changement planifié, pour que le marchand ne soit pas facturé à son renouvellement. Elle retourne dans la liste À faire et pourra être appliquée après la date."
     }
   },
   "support": {
