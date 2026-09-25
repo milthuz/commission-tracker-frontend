@@ -52,15 +52,15 @@ interface Desk {
   oldestNotifiedAt?: string | null;
   // Le VOLUME depuis l'avis, sans fenetre symetrique : c'est lui qui repond a « est-ce qu'on a
   // des billets la-dessus », et il existe des le premier avis envoye.
-  // Le compte OFFICIEL : les billets que le service a la clientele a lui-meme classes sous la
-  // categorie de la campagne. Ne depend ni du rapprochement de noms, ni d'une fenetre.
+  // Les familles de billets, comptees SEPAREMENT. « Il demande une explication » et « il demande
+  // a annuler » ne disent pas la meme chose et ne se classent pas au meme endroit dans Desk.
   categorized?: {
-    issueType: string; csCategory: string; since: string;
-    total: number; matchedToCampaign: number; open: number; closed: number;
-    medianHoursToClose: number | null;
-    byMonth: { month: string; n: number }[];
+    key: string; issueType: string; csCategory: string; since?: string;
+    total: number; matchedToCampaign?: number; open?: number; closed?: number;
+    medianHoursToClose?: number | null;
+    byMonth?: { month: string; n: number }[];
     list: (DeskTicket & { inCampaign: boolean; statusType: string | null })[];
-  } | null;
+  }[];
   sinceNotice?: {
     tickets: number; merchants: number;
     byCategory: { category: string; n: number }[];
@@ -380,74 +380,78 @@ export default function SaasIncreaseCampaign() {
 
             {desk && (
               <>
-                {desk.categorized && (
-                  <div className="mt-4 rounded-xl border border-primary/30 bg-primary/[0.05] p-4">
-                    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                      <div className="flex flex-wrap items-baseline gap-x-3">
-                        <span className={`text-3xl font-semibold ${textPri}`}>{desk.categorized.total}</span>
-                        <span className={`text-sm font-medium ${textSec}`}>
-                          {t('saasCampaign.desk.cat.total', { since: desk.categorized.since })}
-                        </span>
+                {(desk.categorized || []).filter(fam => fam.issueType || fam.csCategory).map(fam => {
+                  // La famille « annulation » n'a pas le meme poids que la famille « question » :
+                  // l'une est le cout normal d'une hausse, l'autre est du revenu qui s'en va.
+                  const grave = fam.key === 'churn';
+                  const max = Math.max(1, ...(fam.byMonth || []).map(x => x.n));
+                  return (
+                    <div key={fam.key}
+                      className={`mt-4 rounded-xl border p-4 ${grave
+                        ? 'border-red-200 bg-red-50/50 dark:border-red-900/40 dark:bg-red-950/15'
+                        : 'border-primary/30 bg-primary/[0.05]'}`}>
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                        <div className="flex flex-wrap items-baseline gap-x-3">
+                          <span className={`text-3xl font-semibold ${grave ? 'text-red-700 dark:text-red-400' : textPri}`}>
+                            {fam.total}
+                          </span>
+                          <span className={`text-sm font-medium ${textSec}`}>
+                            {t(`saasCampaign.desk.fam.${fam.key}`, { since: fam.since || '—' })}
+                          </span>
+                        </div>
+                        <div className={`text-xs ${textTer}`}>
+                          {t('saasCampaign.desk.cat.split', { open: fam.open ?? 0, closed: fam.closed ?? 0 })}
+                          {fam.medianHoursToClose != null &&
+                            ` · ${t('saasCampaign.desk.cat.median', { hours: fam.medianHoursToClose })}`}
+                        </div>
                       </div>
-                      <div className={`text-xs ${textTer}`}>
-                        {t('saasCampaign.desk.cat.split', {
-                          open: desk.categorized.open, closed: desk.categorized.closed })}
-                        {desk.categorized.medianHoursToClose != null &&
-                          ` · ${t('saasCampaign.desk.cat.median', { hours: desk.categorized.medianHoursToClose })}`}
-                      </div>
-                    </div>
-                    <p className={`mt-1.5 text-xs ${textQuat}`}>
-                      {t('saasCampaign.desk.cat.rule', {
-                        issueType: desk.categorized.issueType || '—',
-                        csCategory: desk.categorized.csCategory || '—' })}
-                    </p>
-                    {/* L'ecart entre le total et les marchands avises n'est pas une erreur : un
-                        marchand peut appeler sans avoir ete avise, et le rapprochement par nom est
-                        partiel. Le dire evite qu'on le lise comme un bogue. */}
-                    <p className={`mt-1 text-xs ${textQuat}`}>
-                      {t('saasCampaign.desk.cat.matched', {
-                        matched: desk.categorized.matchedToCampaign, total: desk.categorized.total })}
-                    </p>
+                      <p className={`mt-1.5 text-xs ${textQuat}`}>
+                        {t('saasCampaign.desk.cat.rule', {
+                          issueType: fam.issueType || '—', csCategory: fam.csCategory || '—' })}
+                      </p>
+                      <p className={`mt-1 text-xs ${textQuat}`}>
+                        {t('saasCampaign.desk.cat.matched', {
+                          matched: fam.matchedToCampaign ?? 0, total: fam.total })}
+                      </p>
 
-                    {desk.categorized.byMonth.length > 1 && (
-                      <div className="mt-3 flex items-end gap-1.5" style={{ height: 64 }}>
-                        {desk.categorized.byMonth.map(m => {
-                          const max = Math.max(1, ...desk.categorized!.byMonth.map(x => x.n));
-                          return (
+                      {(fam.byMonth || []).length > 1 && (
+                        <div className="mt-3 flex items-end gap-1.5" style={{ height: 64 }}>
+                          {(fam.byMonth || []).map(m => (
                             <div key={m.month} className="flex flex-1 flex-col items-center justify-end gap-1">
                               <div className={`text-[10px] tabular-nums ${textQuat}`}>{m.n}</div>
-                              <div className="w-full rounded-t bg-primary/70" style={{ height: `${(m.n / max) * 100}%` }} />
+                              <div className={`w-full rounded-t ${grave ? 'bg-red-500/70' : 'bg-primary/70'}`}
+                                   style={{ height: `${(m.n / max) * 100}%` }} />
                               <div className={`text-[10px] ${textQuat}`}>{moisLisible(m.month, i18n.language)}</div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      )}
 
-                    {desk.categorized.list.length > 0 && (
-                      <div className="mt-3 divide-y divide-gray-200/60 dark:divide-[#1B1B1B]">
-                        {desk.categorized.list.slice(0, 15).map(k => (
-                          <div key={k.id} className="flex items-center justify-between gap-3 py-1.5">
-                            <div className="min-w-0">
-                              <div className={`truncate text-[13px] ${textSec}`}>{k.subject}</div>
-                              <div className={`truncate text-[11px] ${textQuat}`}>
-                                {k.customerName || '—'}
-                                {k.inCampaign ? ` · ${t('saasCampaign.desk.cat.inCampaign')}` : ''}
-                                {k.statusType ? ` · ${k.statusType}` : ''}
+                      {fam.list.length > 0 && (
+                        <div className="mt-3 divide-y divide-gray-200/60 dark:divide-[#1B1B1B]">
+                          {fam.list.slice(0, 12).map(k => (
+                            <div key={k.id} className="flex items-center justify-between gap-3 py-1.5">
+                              <div className="min-w-0">
+                                <div className={`truncate text-[13px] ${textSec}`}>{k.subject}</div>
+                                <div className={`truncate text-[11px] ${textQuat}`}>
+                                  {k.customerName || '—'}
+                                  {k.inCampaign ? ` · ${t('saasCampaign.desk.cat.inCampaign')}` : ''}
+                                  {k.statusType ? ` · ${k.statusType}` : ''}
+                                </div>
                               </div>
+                              {k.url && (
+                                <a href={k.url} target="_blank" rel="noreferrer"
+                                   className={`shrink-0 ${textQuat} hover:text-primary`}>
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </a>
+                              )}
                             </div>
-                            {k.url && (
-                              <a href={k.url} target="_blank" rel="noreferrer"
-                                 className={`shrink-0 ${textQuat} hover:text-primary`}>
-                                <ExternalLink className="h-3.5 w-3.5" />
-                              </a>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {/* La reponse a la question de base, toujours affichee. La comparaison appariee
                     plus bas est un raffinement qui demande du recul ; la faire attendre rendait

@@ -5957,6 +5957,10 @@
         "rule": "Counted by the category customer service files them under: {{issueType}} → {{csCategory}}. No name matching involved.",
         "matched": "{{matched}} of {{total}} come from a merchant this campaign notified. The rest either were not notified, or their Desk account is filed under a different name.",
         "inCampaign": "notified by the campaign"
+      },
+      "fam": {
+        "pricing": "price or billing questions since {{since}}",
+        "churn": "suspension or cancellation requests since {{since}}"
       }
     }
   }

@@ -5957,6 +5957,10 @@
         "rule": "Comptés par la catégorie que le service à la clientèle leur donne : {{issueType}} → {{csCategory}}. Aucun rapprochement de noms là-dedans.",
         "matched": "{{matched}} sur {{total}} viennent d'un marchand avisé par cette campagne. Les autres n'ont pas été avisés, ou leur compte Desk porte un nom différent.",
         "inCampaign": "avisé par la campagne"
+      },
+      "fam": {
+        "pricing": "questions de prix ou de facturation depuis le {{since}}",
+        "churn": "demandes de suspension ou d'annulation depuis le {{since}}"
       }
     }
   }
