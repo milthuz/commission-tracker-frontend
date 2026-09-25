@@ -5919,6 +5919,25 @@
     "churnNone": "No subscription in this campaign has cancelled since its increase was applied.",
     "churnLost": "{{amount}}/mo of revenue gone with them",
     "churnCaveat": "These merchants cancelled after their increase was scheduled. That is a sequence, not a cause — customers cancel for many reasons. It is here because it is the number nobody else is watching, and the only one that can turn a campaign’s result around.",
-    "churnDates": "applied {{pushed}} · cancelled {{cancelled}}"
+    "churnDates": "applied {{pushed}} · cancelled {{cancelled}}",
+    "desk": {
+      "title": "Support load since the notices",
+      "window": "{{days}}-day window",
+      "load": "Load tickets",
+      "loading": "Loading…",
+      "method": "No Zoho Desk field says \"this ticket is about the price increase\", so this compares each notified merchant TO HIMSELF: tickets opened in the N days after his notice versus the N days before it. Same merchant, same length, a few weeks apart. Only merchants whose notice is at least N days old are counted — including yesterday's would truncate the after-window and make the increase look harmless.",
+      "before": "Before their notice",
+      "after": "After their notice",
+      "delta": "Difference",
+      "coverage": "Merchants measured",
+      "coverageHint": "{{matched}} of {{eligible}} eligible merchants were found in Desk, out of {{notified}} notified in total. Matching is by normalised company name, so it is partial by nature — read the difference against this denominator, not against the campaign size.",
+      "byCategory": "Which category moved",
+      "byCategoryHint": "The category that rises is the one to count. Nothing here is named in advance — it declares itself.",
+      "keyword": "{{count}} mention price or billing in the subject",
+      "keywordHint": "A keyword net, shown so you can read real subjects and decide which category to trust. It is never the official number: it misses calls where the increase comes up in passing, and catches unrelated pricing questions.",
+      "daysAfter": "{{days}} days after the notice",
+      "departments": "Desks",
+      "departmentsHint": "Tell me which one is the customer service desk and I will scope the count to it."
+    }
   }
 }

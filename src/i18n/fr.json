@@ -5919,6 +5919,25 @@
     "churnNone": "Aucun abonnement de cette campagne n’a annulé depuis que sa hausse a été appliquée.",
     "churnLost": "{{amount}}/mois de revenu partis avec eux",
     "churnCaveat": "Ces marchands ont annulé après que leur hausse ait été planifiée. C’est une séquence, pas une cause — un client annule pour mille raisons. C’est ici parce que c’est le chiffre que personne d’autre ne surveille, et le seul qui puisse renverser le résultat d’une campagne.",
-    "churnDates": "appliquée le {{pushed}} · annulée le {{cancelled}}"
+    "churnDates": "appliquée le {{pushed}} · annulée le {{cancelled}}",
+    "desk": {
+      "title": "Charge du soutien depuis les avis",
+      "window": "fenêtre de {{days}} jours",
+      "load": "Charger les billets",
+      "loading": "Chargement…",
+      "method": "Aucun champ de Zoho Desk ne dit « ce billet parle de la hausse », alors on compare chaque marchand avisé À LUI-MÊME : les billets ouverts dans les N jours suivant son avis contre les N jours qui l'ont précédé. Même marchand, même durée, à quelques semaines près. Seuls les marchands avisés depuis au moins N jours sont comptés — inclure ceux d'hier tronquerait la fenêtre « après » et ferait paraître la hausse sans effet.",
+      "before": "Avant leur avis",
+      "after": "Après leur avis",
+      "delta": "Écart",
+      "coverage": "Marchands mesurés",
+      "coverageHint": "{{matched}} des {{eligible}} marchands admissibles ont été retrouvés dans Desk, sur {{notified}} avisés au total. Le rapprochement se fait par nom normalisé, donc il est partiel par nature — lis l'écart contre ce dénominateur, pas contre la taille de la campagne.",
+      "byCategory": "Quelle catégorie a bougé",
+      "byCategoryHint": "La catégorie qui monte est celle à compter. Rien ici n'est nommé d'avance — elle se désigne elle-même.",
+      "keyword": "{{count}} mentionnent le prix ou la facturation en objet",
+      "keywordHint": "Un filet à mots-clés, montré pour que tu lises de vrais sujets et décides quelle catégorie retenir. Ce n'est jamais le chiffre officiel : il rate les appels où la hausse est glissée au passage, et attrape des questions de prix sans rapport.",
+      "daysAfter": "{{days}} jours après l'avis",
+      "departments": "Pupitres",
+      "departmentsHint": "Dis-moi lequel est celui du service à la clientèle et je restreindrai le compte à celui-là."
+    }
   }
 }

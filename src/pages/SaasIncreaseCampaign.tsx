@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw, TrendingUp, AlertTriangle, Users, CalendarClock } from 'lucide-react';
+import { RefreshCw, TrendingUp, AlertTriangle, Users, CalendarClock, LifeBuoy, ExternalLink } from 'lucide-react';
 
 // Le suivi d'une campagne EN COURS, par opposition a la vue board qui est une proposition figee.
 // Une hausse de prix ne finit pas au clic sur « Appliquer » : chaque abonnement change de prix a
@@ -29,6 +29,23 @@ interface Campaign {
   };
   leads: number;
   firstPushAt: string | null;
+}
+
+interface DeskTicket {
+  id: string; number: string; subject: string; createdAt: string;
+  category: string | null; channel: string | null; url: string | null;
+  accountName: string; customerName: string; daysAfterNotice: number;
+}
+interface Desk {
+  days: number;
+  notifiedTotal: number;   // tous les marchands avises
+  eligible: number;        // ceux avises depuis assez longtemps pour une fenetre complete
+  merchantsMatched: number;// ceux effectivement retrouves dans Desk
+  before: number; after: number;
+  byCategory: { category: string; before: number; after: number; delta: number }[];
+  keyword: { count: number; samples: DeskTicket[] };
+  tickets: DeskTicket[];
+  departments: { id: string; name: string; n: number }[];
 }
 
 interface Scenario { id: number; name: string }
@@ -61,6 +78,11 @@ export default function SaasIncreaseCampaign() {
   const [data, setData] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Le croisement avec Zoho Desk porte sur des milliers de billets : il ne se charge que si on le
+  // demande, pour que ce tableau de bord reste instantane a ouvrir.
+  const [desk, setDesk] = useState<Desk | null>(null);
+  const [deskLoading, setDeskLoading] = useState(false);
+  const [deskDays, setDeskDays] = useState(30);
 
   useEffect(() => {
     fetch(`${API_URL}/api/admin/saas-increase/scenarios`, { headers: authHeaders() })
@@ -85,7 +107,19 @@ export default function SaasIncreaseCampaign() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { if (id != null) void charger(id); /* eslint-disable-next-line */ }, [id]);
+  useEffect(() => { if (id != null) void charger(id); setDesk(null); /* eslint-disable-next-line */ }, [id]);
+
+  const chargerDesk = async (jours: number) => {
+    if (id == null) return;
+    setDeskLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/saas-increase/scenarios/${id}/campaign/desk?days=${jours}`,
+        { headers: authHeaders() });
+      if (!r.ok) throw new Error(String(r.status));
+      setDesk(await r.json());
+    } catch { setDesk(null); }
+    finally { setDeskLoading(false); }
+  };
 
   const card = 'rounded-2xl border border-gray-200 bg-white dark:border-[#1B1B1B] dark:bg-[#0E0F11]';
   const textPri = 'text-gray-900 dark:text-white';
@@ -224,6 +258,128 @@ export default function SaasIncreaseCampaign() {
               </div>
             </div>
           )}
+
+          {/* ── CE QUE LA HAUSSE A COUTE AU SOUTIEN ──────────────────────────────────────── */}
+          <div className={`${card} mb-4 p-6`}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-1.5">
+                <LifeBuoy className={`h-3.5 w-3.5 ${textQuat}`} />
+                <span className={label}>{t('saasCampaign.desk.title')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={deskDays}
+                  onChange={(e) => { const v = Number(e.target.value); setDeskDays(v); if (desk) void chargerDesk(v); }}
+                  className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs outline-none focus:border-primary dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white"
+                >
+                  {[14, 30, 60, 90].map(d => (
+                    <option key={d} value={d}>{t('saasCampaign.desk.window', { days: d })}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => void chargerDesk(deskDays)}
+                  disabled={deskLoading}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-[#242424] dark:bg-[#141414] dark:text-[#D1D1D1]"
+                >
+                  {deskLoading ? t('saasCampaign.desk.loading') : desk ? t('saasCampaign.refresh') : t('saasCampaign.desk.load')}
+                </button>
+              </div>
+            </div>
+
+            {/* La methode, ecrite sur la page. Un chiffre de soutien sans sa methode se cite
+                ensuite en reunion comme s'il etait mesure, alors qu'il est estime. */}
+            <p className={`mt-2 max-w-[85ch] text-xs leading-relaxed ${textTer}`}>
+              {t('saasCampaign.desk.method')}
+            </p>
+
+            {desk && (
+              <>
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  {[
+                    { l: t('saasCampaign.desk.before'), v: String(desk.before) },
+                    { l: t('saasCampaign.desk.after'), v: String(desk.after),
+                      hi: desk.after > desk.before },
+                    { l: t('saasCampaign.desk.delta'),
+                      v: `${desk.after - desk.before >= 0 ? '+' : '−'}${Math.abs(desk.after - desk.before)}`,
+                      hi: desk.after > desk.before },
+                    { l: t('saasCampaign.desk.coverage'),
+                      v: `${desk.merchantsMatched} / ${desk.eligible}` },
+                  ].map((k, n) => (
+                    <div key={n}>
+                      <div className={label}>{k.l}</div>
+                      <div className={`mt-1 text-2xl font-semibold ${k.hi ? 'text-amber-600 dark:text-amber-400' : textPri}`}>{k.v}</div>
+                    </div>
+                  ))}
+                </div>
+                {/* Le denominateur, dit en clair. « 12 billets » ne veut rien dire sans savoir
+                    sur combien de marchands la mesure porte reellement. */}
+                <p className={`mt-2 text-xs ${textQuat}`}>
+                  {t('saasCampaign.desk.coverageHint', {
+                    matched: desk.merchantsMatched, eligible: desk.eligible, notified: desk.notifiedTotal, days: desk.days })}
+                </p>
+
+                {desk.byCategory.length > 0 && (
+                  <div className="mt-5">
+                    <div className={label}>{t('saasCampaign.desk.byCategory')}</div>
+                    <p className={`mt-1 max-w-[80ch] text-xs ${textQuat}`}>{t('saasCampaign.desk.byCategoryHint')}</p>
+                    <div className="mt-2 divide-y divide-gray-100 dark:divide-[#161616]">
+                      {desk.byCategory.slice(0, 10).map(c => (
+                        <div key={c.category} className="flex items-center justify-between gap-3 py-1.5 text-[13px]">
+                          <span className={`min-w-0 truncate ${textSec}`}>{c.category}</span>
+                          <span className={`shrink-0 tabular-nums ${textQuat}`}>
+                            {c.before} → <span className={textPri}>{c.after}</span>
+                            <span className={`ml-2 font-semibold ${c.delta > 0 ? 'text-amber-600 dark:text-amber-400' : c.delta < 0 ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
+                              {c.delta > 0 ? '+' : ''}{c.delta}
+                            </span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {desk.keyword.count > 0 && (
+                  <div className="mt-5">
+                    <div className={label}>{t('saasCampaign.desk.keyword', { count: desk.keyword.count })}</div>
+                    <p className={`mt-1 max-w-[80ch] text-xs ${textQuat}`}>{t('saasCampaign.desk.keywordHint')}</p>
+                    <div className="mt-2 divide-y divide-gray-100 dark:divide-[#161616]">
+                      {desk.keyword.samples.map(k => (
+                        <div key={k.id} className="flex items-center justify-between gap-3 py-1.5">
+                          <div className="min-w-0">
+                            <div className={`truncate text-[13px] ${textSec}`}>{k.subject}</div>
+                            <div className={`truncate text-[11px] ${textQuat}`}>
+                              {k.customerName} · {t('saasCampaign.desk.daysAfter', { days: k.daysAfterNotice })}
+                              {k.category ? ` · ${k.category}` : ''}
+                            </div>
+                          </div>
+                          {k.url && (
+                            <a href={k.url} target="_blank" rel="noreferrer"
+                               className={`shrink-0 ${textQuat} hover:text-primary`}>
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Les pupitres : c'est David qui designe celui du service a la clientele. Le
+                    deviner d'ici ajouterait une hypothese dans un chiffre qui doit etre sur. */}
+                {desk.departments.length > 0 && (
+                  <div className="mt-5">
+                    <div className={label}>{t('saasCampaign.desk.departments')}</div>
+                    <p className={`mt-1 max-w-[80ch] text-xs ${textQuat}`}>{t('saasCampaign.desk.departmentsHint')}</p>
+                    <div className={`mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs ${textSec}`}>
+                      {desk.departments.slice(0, 8).map(d => (
+                        <span key={d.id}>{d.name} <span className={textQuat}>{d.n}</span></span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
 
           {/* ── CE QUI FAIT MAL ──────────────────────────────────────────────────────────── */}
           <div className={`${card} p-6`}>
