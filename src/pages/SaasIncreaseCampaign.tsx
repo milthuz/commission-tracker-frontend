@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw, TrendingUp, AlertTriangle, Users, CalendarClock, LifeBuoy, Info, ChevronDown } from 'lucide-react';
+import { RefreshCw, AlertTriangle, LifeBuoy, Info, ChevronDown } from 'lucide-react';
 
 // Le suivi d'une campagne EN COURS, par opposition a la vue board qui est une proposition figee.
 // Une hausse de prix ne finit pas au clic sur « Appliquer » : chaque abonnement change de prix a
@@ -118,6 +118,7 @@ export default function SaasIncreaseCampaign() {
   const [methodOpen, setMethodOpen] = useState(false);
   const [famOpen, setFamOpen] = useState<string | null>(null);
   const [allOpen, setAllOpen] = useState(false);
+  const [churnOpen, setChurnOpen] = useState(false);
   // La liste des pupitres arrive AVANT le croisement : elle vivait dans la reponse des billets,
   // donc le menu n'apparaissait qu'apres avoir charge des milliers de lignes — il fallait deja
   // savoir que le choix existait pour le faire apparaitre.
@@ -235,88 +236,88 @@ export default function SaasIncreaseCampaign() {
 
       {data && (
         <>
-          {/* ── L'ETAT, en une ligne ─────────────────────────────────────────────────────── */}
+          {/* ── L'ETAT, L'ARGENT ET L'AVANCEMENT, DANS UNE SEULE CARTE ──────────────────────
+              C'etaient trois cartes empilees — la phase, le MRR, puis quatre tuiles — qui
+              disaient toutes la meme chose sous trois formes et occupaient un ecran complet
+              avant le premier graphique. Elles se lisent ensemble, elles tiennent ensemble. */}
           <div className={`${card} mb-4 p-5`}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${PHASE_COLOR[data.phase]}`}>
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${PHASE_COLOR[data.phase]}`}>
                   {t(`saasCampaign.phase.${data.phase}`)}
                 </span>
                 <span className={`text-sm font-medium ${textPri}`}>{data.scenario.name}</span>
                 {data.firstPushAt && (
-                  <span className={`text-xs ${textQuat}`}>
-                    {t('saasCampaign.since', { date: data.firstPushAt })}
-                  </span>
+                  <span className={`text-[11px] ${textQuat}`}>{t('saasCampaign.since', { date: data.firstPushAt })}</span>
                 )}
               </div>
-              <span className={`max-w-[60ch] text-xs ${textTer}`}>{t(`saasCampaign.phaseHint.${data.phase}`)}</span>
+              <span className={`max-w-[52ch] text-[11px] ${textQuat}`}>{t(`saasCampaign.phaseHint.${data.phase}`)}</span>
             </div>
-          </div>
 
-          {/* ── L'ARGENT : engage vs reellement facture ──────────────────────────────────── */}
-          <div className={`${card} mb-4 p-6`}>
-            <div className="flex flex-wrap items-end justify-between gap-6">
+            <div className="mt-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
               <div>
                 <div className={label}>{t('saasCampaign.realized')}</div>
-                <div className={`mt-1 text-[38px] font-semibold leading-none tracking-tight ${textPri}`}>
-                  {money(data.mrr.realized)}<span className={`ml-1 text-base font-normal ${textQuat}`}>/mo</span>
-                </div>
-                {/* La distinction que tout compteur unique de « MRR ajoute » efface : ecrit dans
-                    Zoho n'est pas facture. Entre les deux il y a le renouvellement de chacun. */}
-                <div className={`mt-2 text-sm ${textTer}`}>
-                  {t('saasCampaign.committedVs', { committed: money(data.mrr.committed), upcoming: money(data.mrr.upcoming) })}
+                <div className={`mt-1 text-[32px] font-semibold leading-none tracking-tight ${textPri}`}>
+                  {money(data.mrr.realized)}<span className={`ml-1 text-sm font-normal ${textQuat}`}>/mo</span>
                 </div>
               </div>
-              <div className="text-right">
-                <div className={label}>{t('saasCampaign.target')}</div>
-                <div className={`mt-1 text-2xl font-semibold ${textPri}`}>{money(data.mrr.target)}</div>
-                <div className={`mt-1 text-xs ${textQuat}`}>
-                  {t('saasCampaign.committedPct', { pct: pctCible.toFixed(1) })}
-                </div>
+              {/* La distinction que tout compteur unique de « MRR ajoute » efface : ecrit dans
+                  Zoho n'est pas facture. Entre les deux, le renouvellement de chacun. */}
+              <div className={`text-[11px] ${textTer}`}>
+                {t('saasCampaign.committedVs', {
+                  committed: money(data.mrr.committed), upcoming: money(data.mrr.upcoming) })}
+                <br />
+                <span className={textQuat}>
+                  {t('saasCampaign.committedPct', { pct: pctCible.toFixed(1) })} · {t('saasCampaign.target')} {money(data.mrr.target)}
+                </span>
               </div>
             </div>
             {/* Deux barres superposees : le fonce est encaisse, le pale est promis. */}
-            <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-[#1B1B1B]">
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-[#1B1B1B]">
               <div className="relative h-full">
                 <div className="absolute inset-y-0 left-0 rounded-full bg-primary/30" style={{ width: `${pctCible}%` }} />
                 <div className="absolute inset-y-0 left-0 rounded-full bg-primary" style={{ width: `${pctRealise}%` }} />
               </div>
             </div>
-          </div>
 
-          {/* ── L'AVANCEMENT ─────────────────────────────────────────────────────────────── */}
-          <div className="mb-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {[
-              { icon: TrendingUp, label: t('saasCampaign.pushed'), value: `${data.counts.pushed} / ${data.counts.raised}`,
-                sub: data.counts.pending > 0 ? t('saasCampaign.pendingN', { count: data.counts.pending }) : t('saasCampaign.allPushed') },
-              { icon: Users, label: t('saasCampaign.notified'), value: String(data.counts.notified),
-                sub: data.counts.notifyFailed > 0 ? t('saasCampaign.notifyFailedN', { count: data.counts.notifyFailed }) : t('saasCampaign.noNotifyFail') },
-              { icon: CalendarClock, label: t('saasCampaign.spared'), value: String(data.counts.skipped),
-                sub: t('saasCampaign.ofTotal', { count: data.counts.total }) },
-              { icon: TrendingUp, label: t('saasCampaign.leads'), value: String(data.leads),
-                sub: t('saasCampaign.leadsHint') },
-            ].map((k, n) => (
-              <div key={n} className={`${card} p-5`}>
-                <div className={`flex items-center gap-1.5 ${label}`}><k.icon className="h-3.5 w-3.5" />{k.label}</div>
-                <div className={`mt-1.5 text-2xl font-semibold ${textPri}`}>{k.value}</div>
-                <div className={`mt-1 text-xs ${textQuat}`}>{k.sub}</div>
-              </div>
-            ))}
+            {/* L'avancement en bande, pas en tuiles : quatre chiffres n'ont pas besoin de quatre
+                cartes bordees pour se lire. */}
+            <div className={`mt-4 flex flex-wrap gap-x-7 gap-y-2 border-t border-gray-100 pt-3 dark:border-[#161616]`}>
+              {[
+                { l: t('saasCampaign.pushed'), v: `${data.counts.pushed} / ${data.counts.raised}`,
+                  s: data.counts.pending > 0 ? t('saasCampaign.pendingN', { count: data.counts.pending }) : t('saasCampaign.allPushed') },
+                { l: t('saasCampaign.notified'), v: String(data.counts.notified),
+                  s: data.counts.notifyFailed > 0 ? t('saasCampaign.notifyFailedN', { count: data.counts.notifyFailed }) : t('saasCampaign.noNotifyFail') },
+                { l: t('saasCampaign.spared'), v: String(data.counts.skipped),
+                  s: t('saasCampaign.ofTotal', { count: data.counts.total }) },
+                { l: t('saasCampaign.leads'), v: String(data.leads), s: t('saasCampaign.leadsHint') },
+              ].map((k, n) => (
+                <div key={n} className="min-w-0">
+                  <div className={label}>{k.l}</div>
+                  <div className="mt-0.5 flex items-baseline gap-1.5">
+                    <span className={`text-lg font-semibold ${textPri}`}>{k.v}</span>
+                    <span className={`truncate text-[11px] ${textQuat}`}>{k.s}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* ── QUAND L'ARGENT ENTRE ─────────────────────────────────────────────────────── */}
           {data.timeline.length > 0 && (
-            <div className={`${card} mb-4 p-6`}>
-              <div className={label}>{t('saasCampaign.timeline')}</div>
-              <p className={`mt-1.5 max-w-[70ch] text-xs ${textTer}`}>{t('saasCampaign.timelineHint')}</p>
-              <div className="mt-4 flex items-end gap-1.5" style={{ height: 130 }}>
+            <div className={`${card} mb-4 p-5`}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <span className={label}>{t('saasCampaign.timeline')}</span>
+                <span className={`max-w-[70ch] text-[11px] ${textQuat}`}>{t('saasCampaign.timelineHint')}</span>
+              </div>
+              <div className="mt-3 flex items-end gap-1.5" style={{ height: 84 }}>
                 {data.timeline.map((m) => (
-                  <div key={m.month} className="flex flex-1 flex-col items-center justify-end gap-1.5" style={{ height: '100%' }}>
+                  <div key={m.month} className="flex flex-1 flex-col items-center justify-end gap-1"
+                       title={t('saasCampaign.barTitle', { subs: m.subs, mrr: money2(m.mrr) }) as string}>
                     <div className={`text-[10px] tabular-nums ${textQuat}`}>{money(m.mrr)}</div>
                     <div
                       className={`w-full rounded-t ${m.past ? 'bg-primary' : 'bg-primary/30'}`}
-                      style={{ height: `${Math.max(2, (m.mrr / maxMois) * 100)}%` }}
-                      title={t('saasCampaign.barTitle', { subs: m.subs, mrr: money2(m.mrr) }) as string}
+                      style={{ height: `${Math.max(3, (m.mrr / maxMois) * 100)}%` }}
                     />
                     <div className={`text-[10px] ${textQuat}`}>{moisLisible(m.month, i18n.language)}</div>
                   </div>
@@ -324,7 +325,6 @@ export default function SaasIncreaseCampaign() {
               </div>
             </div>
           )}
-
           {/* ── CHARGE DU SERVICE A LA CLIENTELE ──────────────────────────────────────────────
               Reecrit en compact : la version precedente empilait, pour chaque famille, un grand
               nombre, deux paragraphes d'explication, un graphique et une liste ouverte. Six
@@ -573,42 +573,60 @@ export default function SaasIncreaseCampaign() {
               </p>
             )}
           </div>
-          {/* ── CE QUI FAIT MAL ──────────────────────────────────────────────────────────── */}
-          <div className={`${card} p-6`}>
-            <div className="flex items-center gap-1.5">
-              <AlertTriangle className={`h-3.5 w-3.5 ${data.churn.count > 0 ? 'text-red-500' : textQuat}`} />
-              <span className={label}>{t('saasCampaign.churn')}</span>
+          {/* ── CE QUI FAIT MAL ────────────────────────────────────────────────────────────
+              Meme traitement que les familles de billets : le chiffre et sa mise en garde
+              restent au premier plan, la liste des comptes passe derriere un depliant. Elle
+              peut compter vingt-cinq lignes et n'a pas a pousser tout le reste hors de l'ecran. */}
+          <div className={`${card} p-5`}>
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+              <div className="flex items-center gap-1.5">
+                <AlertTriangle className={`h-3.5 w-3.5 ${data.churn.count > 0 ? 'text-red-500' : textQuat}`} />
+                <span className={label}>{t('saasCampaign.churn')}</span>
+              </div>
+              {data.churn.count > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setChurnOpen(v => !v)}
+                  className={`inline-flex items-center gap-1 text-[11px] font-medium ${textTer} hover:text-primary`}
+                >
+                  {churnOpen ? t('saasCampaign.desk.hideTickets') : t('saasCampaign.churnShow', { count: data.churn.count })}
+                  <ChevronDown className={`h-3 w-3 transition-transform ${churnOpen ? 'rotate-180' : ''}`} />
+                </button>
+              )}
             </div>
             {data.churn.count === 0 ? (
-              <p className={`mt-2 text-sm ${textTer}`}>{t('saasCampaign.churnNone')}</p>
+              <p className={`mt-1.5 text-[13px] ${textTer}`}>{t('saasCampaign.churnNone')}</p>
             ) : (
               <>
-                <div className="mt-2 flex flex-wrap items-baseline gap-x-3">
-                  <span className="text-2xl font-semibold text-red-600 dark:text-red-400">{data.churn.count}</span>
-                  <span className={`text-sm ${textSec}`}>
+                <div className="mt-1.5 flex flex-wrap items-baseline gap-x-3">
+                  <span className="text-2xl font-semibold leading-none text-red-600 dark:text-red-400">{data.churn.count}</span>
+                  <span className={`text-[13px] ${textSec}`}>
                     {t('saasCampaign.churnLost', { amount: money2(data.churn.mrrLost) })}
                   </span>
                 </div>
                 {/* Enonce en clair, parce qu'un tableau de bord qui affiche un churn a cote d'une
                     hausse de prix se lit comme une accusation. Un client annule pour mille
                     raisons ; ce chiffre dit qu'il faut regarder, pas qu'on sait pourquoi. */}
-                <p className={`mt-1.5 max-w-[80ch] text-xs ${textTer}`}>{t('saasCampaign.churnCaveat')}</p>
-                <div className="mt-3 divide-y divide-gray-100 dark:divide-[#161616]">
-                  {data.churn.list.map((c) => (
-                    <div key={c.subscriptionNumber} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                      <div className="min-w-0">
-                        <div className={`truncate text-[13px] font-medium ${textPri}`}>{c.customerName}</div>
-                        <div className={`truncate font-mono text-[11px] ${textQuat}`}>
-                          {c.subscriptionNumber} · {c.orgName}
+                <p className={`mt-1.5 max-w-[85ch] text-[11px] leading-relaxed ${textQuat}`}>{t('saasCampaign.churnCaveat')}</p>
+                {churnOpen && (
+                  <div className="mt-2 max-h-80 space-y-1 overflow-auto pr-1">
+                    {data.churn.list.map((c) => (
+                      <div key={c.subscriptionNumber}
+                           className="flex flex-wrap items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-black/[0.03] dark:hover:bg-white/[0.03]">
+                        <div className="min-w-0">
+                          <div className={`truncate text-[12px] font-medium ${textPri}`}>{c.customerName}</div>
+                          <div className={`truncate font-mono text-[10px] ${textQuat}`}>
+                            {c.subscriptionNumber} · {c.orgName}
+                          </div>
+                        </div>
+                        <div className={`shrink-0 text-right text-[10px] ${textTer}`}>
+                          <div className="tabular-nums">{money2(c.monthly)}/mo</div>
+                          <div className={textQuat}>{t('saasCampaign.churnDates', { pushed: c.pushedAt, cancelled: c.cancelledAt })}</div>
                         </div>
                       </div>
-                      <div className={`shrink-0 text-right text-[11px] ${textTer}`}>
-                        <div className="tabular-nums">{money2(c.monthly)}/mo</div>
-                        <div className={textQuat}>{t('saasCampaign.churnDates', { pushed: c.pushedAt, cancelled: c.cancelledAt })}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </>
             )}
           </div>

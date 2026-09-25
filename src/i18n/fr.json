@@ -5967,6 +5967,7 @@
       "paired": "Comparaison appariée",
       "showTickets": "Voir les {{count}} billets",
       "hideTickets": "Masquer"
-    }
+    },
+    "churnShow": "Voir les {{count}} comptes"
   }
 }

@@ -5967,6 +5967,7 @@
       "paired": "Paired before/after",
       "showTickets": "Show {{count}} tickets",
       "hideTickets": "Hide"
-    }
+    },
+    "churnShow": "Show the {{count}} accounts"
   }
 }
