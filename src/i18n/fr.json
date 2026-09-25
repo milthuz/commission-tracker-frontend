@@ -1691,7 +1691,10 @@
       "confirmUndo": "Remettre {{count}} abonnement(s) épargné(s) dans la liste À faire?"
     },
     "bulkRemaining": "Environ {{min}} min restantes",
-    "bulkKeepOpen": "Ne ferme pas cette page tant que la barre avance — l'opération se poursuit par tranches."
+    "bulkKeepOpen": "Ne ferme pas cette page tant que la barre avance — l'opération se poursuit par tranches.",
+    "campaignBanner": "{{pushed}} sur {{raised}} appliqués · {{realized}}/mois réellement facturés",
+    "campaignChurn": "{{count}} annulation(s) depuis",
+    "campaignOpen": "Ouvrir le suivi"
   },
   "resources": {
     "title": "Ressources",
@@ -5871,5 +5874,51 @@
     "pages_other": "{{count}} pages",
     "download": "Télécharger",
     "failed": "Impossible d’afficher ce document."
+  },
+  "saasCampaign": {
+    "title": "Hausse de prix — suivi de campagne",
+    "subtitle": "Ce qui a réellement atteint la facturation, et ce que ça a coûté. Se met à jour tout seul à partir des faits; rien ici ne se saisit.",
+    "refresh": "Actualiser",
+    "error": "Impossible de charger la campagne.",
+    "none": "Aucune campagne à suivre. Bâtis un scénario et applique-le vers Zoho d’abord.",
+    "since": "première application le {{date}}",
+    "phase": {
+      "draft": "Pas commencée",
+      "notifying": "Avis en cours d’envoi",
+      "applying": "Application vers Zoho",
+      "live": "En cours",
+      "complete": "Terminée"
+    },
+    "phaseHint": {
+      "draft": "Rien n’est encore appliqué dans Zoho. Les marchands n’ont pas été avisés.",
+      "notifying": "Les marchands sont en train d’être avisés. Aucun prix n’a changé dans Zoho.",
+      "applying": "Une partie des hausses est planifiée dans Zoho, le reste attend.",
+      "live": "Toutes les hausses sont planifiées. Les prix changent un à un, au renouvellement de chacun.",
+      "complete": "Tous les renouvellements prévus sont passés. Le plein régime est maintenant facturé."
+    },
+    "realized": "Réellement facturé",
+    "committed": "Planifié dans Zoho",
+    "committedVs": "{{committed}} planifiés · {{upcoming}} attendent encore leur renouvellement",
+    "target": "Cible",
+    "committedPct": "{{pct}} % de la cible planifiée",
+    "pushed": "Appliqués dans Zoho",
+    "pending": "en attente",
+    "pendingN": "{{count}} encore en attente",
+    "allPushed": "tous appliqués",
+    "notified": "Marchands avisés",
+    "notifyFailedN": "{{count}} envois en échec",
+    "noNotifyFail": "aucun échec",
+    "spared": "Épargnés",
+    "ofTotal": "sur {{count}} dans la campagne",
+    "leads": "Pistes de vente ouvertes",
+    "leadsHint": "lors d’appels au sujet de la hausse",
+    "timeline": "Quand l’argent entre",
+    "timelineHint": "Chaque hausse prend effet au renouvellement de son propre abonnement. Les barres pleines sont des mois déjà facturés; les barres pâles restent à venir.",
+    "barTitle": "{{subs}} abonnements · {{mrr}}/mois",
+    "churn": "Annulations après leur hausse",
+    "churnNone": "Aucun abonnement de cette campagne n’a annulé depuis que sa hausse a été appliquée.",
+    "churnLost": "{{amount}}/mois de revenu partis avec eux",
+    "churnCaveat": "Ces marchands ont annulé après que leur hausse ait été planifiée. C’est une séquence, pas une cause — un client annule pour mille raisons. C’est ici parce que c’est le chiffre que personne d’autre ne surveille, et le seul qui puisse renverser le résultat d’une campagne.",
+    "churnDates": "appliquée le {{pushed}} · annulée le {{cancelled}}"
   }
 }

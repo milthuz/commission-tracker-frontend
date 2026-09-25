@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PasswordInput from '../../components/PasswordInput';
 import Select from '../../components/Select';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
@@ -251,6 +252,15 @@ const SaasIncrease: React.FC = () => {
   const [showScanDetails, setShowScanDetails] = useState(false);
   const [stoppingScan, setStoppingScan] = useState(false);
   const [boardOpen, setBoardOpen] = useState(false);
+  // L'etat REEL de la campagne, derive des faits cote serveur. Cette page sert a BATIR un
+  // scenario ; rien dessus ne disait qu'une campagne etait deja partie et facturait des
+  // marchands. On peut donc y revenir des semaines plus tard et la lire comme un brouillon.
+  const [campaign, setCampaign] = useState<{
+    phase: 'draft' | 'notifying' | 'applying' | 'live' | 'complete';
+    counts: { pushed: number; raised: number; notified: number; pending: number };
+    mrr: { realized: number; committed: number };
+    churn: { count: number };
+  } | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   // When the scenario was created, so subscriptions that appeared in Zoho AFTER it can be
   // surfaced: they carry no increase through no decision of anyone's, and would otherwise sit
@@ -367,6 +377,15 @@ const SaasIncrease: React.FC = () => {
   };
 
   useEffect(() => { loadSubs(false); loadScenarios(); loadTemplates(); loadCalibration(); }, []);
+
+  // Recharge a chaque changement de scenario : l'etat appartient au scenario, pas a la page.
+  useEffect(() => {
+    if (activeScenarioId == null) { setCampaign(null); return; }
+    fetch(`${API_URL}/api/admin/saas-increase/scenarios/${activeScenarioId}/campaign`, { headers: authHeaders() })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => setCampaign(d))
+      .catch(() => setCampaign(null));
+  }, [activeScenarioId]);
 
   // When the scan finishes, re-fetch the subscriptions too. The counter polls itself but the table
   // rows are only loaded once, so a completed scan otherwise left rows still showing the amber
@@ -1693,6 +1712,41 @@ const SaasIncrease: React.FC = () => {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Une campagne partie change ce que cette page VEUT DIRE : les chiffres ci-dessous ne sont
+          plus une simulation, ce sont des prix que des marchands paient. Le bandeau le dit avant
+          qu'on touche a quoi que ce soit. */}
+      {campaign && campaign.phase !== 'draft' && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/70 px-5 py-3 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+              {t(`saasCampaign.phase.${campaign.phase}`)}
+            </span>
+            <span className={`text-xs ${textSec}`}>
+              {t('saasIncrease.campaignBanner', {
+                pushed: campaign.counts.pushed,
+                raised: campaign.counts.raised,
+                realized: money(campaign.mrr.realized),
+              })}
+            </span>
+            {campaign.churn.count > 0 && (
+              <span className="text-xs font-medium text-red-600 dark:text-red-400">
+                {t('saasIncrease.campaignChurn', { count: campaign.churn.count })}
+              </span>
+            )}
+          </div>
+          <Link
+            to="/saas-increase/campaign"
+            className="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+          >
+            {t('saasIncrease.campaignOpen')}
+          </Link>
         </div>
       )}
 

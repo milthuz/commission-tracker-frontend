@@ -1691,7 +1691,10 @@
       "confirmUndo": "Put {{count}} spared subscription(s) back in the To do list?"
     },
     "bulkRemaining": "About {{min}} min remaining",
-    "bulkKeepOpen": "Do not close this page while the bar advances — the operation runs in batches."
+    "bulkKeepOpen": "Do not close this page while the bar advances — the operation runs in batches.",
+    "campaignBanner": "{{pushed}} of {{raised}} applied · {{realized}}/mo actually billed",
+    "campaignChurn": "{{count}} cancelled since",
+    "campaignOpen": "Open tracking"
   },
   "resources": {
     "title": "Resources",
@@ -5871,5 +5874,51 @@
     "pages_other": "{{count}} pages",
     "download": "Download",
     "failed": "Could not display this document."
+  },
+  "saasCampaign": {
+    "title": "Price increase — campaign tracking",
+    "subtitle": "What has actually reached billing, and what it has cost. Updates itself from the record; nothing here is typed in.",
+    "refresh": "Refresh",
+    "error": "Could not load the campaign.",
+    "none": "No campaign to track yet. Build a scenario and apply it to Zoho first.",
+    "since": "first applied {{date}}",
+    "phase": {
+      "draft": "Not started",
+      "notifying": "Notices going out",
+      "applying": "Applying to Zoho",
+      "live": "In progress",
+      "complete": "Complete"
+    },
+    "phaseHint": {
+      "draft": "Nothing has been applied to Zoho yet. Merchants have not been told.",
+      "notifying": "Merchants are being notified. No price has changed in Zoho yet.",
+      "applying": "Some increases are scheduled in Zoho, others are still pending.",
+      "live": "Every increase is scheduled. Prices change one by one, at each subscription’s own renewal.",
+      "complete": "Every scheduled renewal has passed. The full run-rate is now being billed."
+    },
+    "realized": "Actually billed",
+    "committed": "Scheduled in Zoho",
+    "committedVs": "{{committed}} scheduled · {{upcoming}} still waiting for its renewal",
+    "target": "Target",
+    "committedPct": "{{pct}}% of target scheduled",
+    "pushed": "Applied to Zoho",
+    "pending": "still pending",
+    "pendingN": "{{count}} still pending",
+    "allPushed": "all applied",
+    "notified": "Merchants notified",
+    "notifyFailedN": "{{count}} failed to send",
+    "noNotifyFail": "no failures",
+    "spared": "Left alone",
+    "ofTotal": "of {{count}} in the campaign",
+    "leads": "Sales leads opened",
+    "leadsHint": "from support calls about the increase",
+    "timeline": "When the money arrives",
+    "timelineHint": "Each increase takes effect at that subscription’s own renewal. Solid bars are months already billed; pale bars are still to come.",
+    "barTitle": "{{subs}} subscriptions · {{mrr}}/mo",
+    "churn": "Cancelled after their increase",
+    "churnNone": "No subscription in this campaign has cancelled since its increase was applied.",
+    "churnLost": "{{amount}}/mo of revenue gone with them",
+    "churnCaveat": "These merchants cancelled after their increase was scheduled. That is a sequence, not a cause — customers cancel for many reasons. It is here because it is the number nobody else is watching, and the only one that can turn a campaign’s result around.",
+    "churnDates": "applied {{pushed}} · cancelled {{cancelled}}"
   }
 }
