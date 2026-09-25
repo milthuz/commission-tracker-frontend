@@ -548,7 +548,19 @@ export default function SaasIncreaseLookup() {
                   fees: money(wp!.feesPeriod), current: money(wp!.currentPrice),
                 }),
               }] : []),
-              { label: t('csLookup.effective'), value: fmtDate(h.effectiveDate, i18n.language) },
+              // Un gel actif REMPLACE cette date. La laisser telle quelle mettait deux dates
+              // contradictoires sur la meme fiche — « prend effet le 1er novembre » juste
+              // au-dessus de « commence le 1er janvier » — et un agent presse lit la premiere.
+              (() => {
+                const gele = !!h.frozenUntil && h.frozenUntil > new Date().toISOString().slice(0, 10);
+                return gele && h.effectiveAfterFreeze
+                  ? { label: t('csLookup.effective'),
+                      value: fmtDate(h.effectiveAfterFreeze, i18n.language),
+                      hint: t('csLookup.freeze.supersedes', {
+                        old: fmtDate(h.effectiveDate, i18n.language) }) as string,
+                      frozen: true }
+                  : { label: t('csLookup.effective'), value: fmtDate(h.effectiveDate, i18n.language) };
+              })(),
             ];
             return (
               <div className={`mt-4 grid grid-cols-2 gap-4 ${avecPrix ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
@@ -558,6 +570,7 @@ export default function SaasIncreaseLookup() {
                       f.pay ? 'text-emerald-700 dark:text-emerald-400' : textQuat}`}>{f.label}</div>
                     <div className={`mt-1 text-sm ${
                       f.pay ? 'font-semibold text-emerald-700 dark:text-emerald-400'
+                            : f.frozen ? 'font-semibold text-sky-700 dark:text-sky-300'
                             : f.strong ? `font-semibold ${textPri}` : textSec}`}>{f.value}</div>
                   </div>
                 ))}

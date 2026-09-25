@@ -5019,7 +5019,8 @@
       "reason": "Raison (facultatif) — ce qui a été promis, et pourquoi",
       "willCancel": "Cette hausse est déjà planifiée dans Zoho. La geler RETIRERA ce changement planifié, pour que le marchand ne soit pas facturé à son renouvellement. Elle retourne dans la liste À faire et pourra être appliquée après la date.",
       "effective": "Son nouveau prix commence le {{date}} — son premier renouvellement à partir de la date du gel.",
-      "earliestHint": "Zoho ne sait appliquer un changement qu'au prochain renouvellement, jamais à une date arbitraire. La date choisie ici fixe le PLUS TÔT; le marchand est facturé à son premier renouvellement à partir de là."
+      "earliestHint": "Zoho ne sait appliquer un changement qu'au prochain renouvellement, jamais à une date arbitraire. La date choisie ici fixe le PLUS TÔT; le marchand est facturé à son premier renouvellement à partir de là.",
+      "supersedes": "Gelé — c'était le {{old}} avant le gel"
     }
   },
   "support": {

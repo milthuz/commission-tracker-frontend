@@ -5019,7 +5019,8 @@
       "reason": "Reason (optional) — what was promised, and why",
       "willCancel": "This increase is already scheduled in Zoho. Freezing it will REMOVE that scheduled change, so the merchant is not billed at renewal. It goes back to the To do list and can be applied again after the date.",
       "effective": "Their new price starts on {{date}} — their first renewal from the freeze date.",
-      "earliestHint": "Zoho can only apply a change at the next renewal, never on an arbitrary date. Picking a date here sets the EARLIEST it may happen; the merchant is billed at their first renewal from then."
+      "earliestHint": "Zoho can only apply a change at the next renewal, never on an arbitrary date. Picking a date here sets the EARLIEST it may happen; the merchant is billed at their first renewal from then.",
+      "supersedes": "Frozen — was {{old}} before the freeze"
     }
   },
   "support": {
