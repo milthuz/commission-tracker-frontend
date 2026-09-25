@@ -2442,7 +2442,9 @@
         "dReview": "Review",
         "dAssignedTo": "Cluster rep",
         "dZohoLead": "Zoho lead",
-        "dZohoError": "Zoho error"
+        "dZohoError": "Zoho error",
+        "copyPhone": "Copy number",
+        "copied": "Copied"
       },
       "migration": {
         "title": "Legacy portal import",

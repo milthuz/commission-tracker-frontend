@@ -2442,7 +2442,9 @@
         "dReview": "Révision",
         "dAssignedTo": "Rep Cluster",
         "dZohoLead": "Fiche Zoho",
-        "dZohoError": "Erreur Zoho"
+        "dZohoError": "Erreur Zoho",
+        "copyPhone": "Copier le numéro",
+        "copied": "Copié"
       },
       "migration": {
         "title": "Reprise de l’ancien portail",
