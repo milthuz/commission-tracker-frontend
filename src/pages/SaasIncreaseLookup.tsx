@@ -44,6 +44,9 @@ interface Hit {
   frozenUntil?: string | null;
   frozenBy?: string | null;
   frozenReason?: string | null;
+  // La vraie date de facturation qui decoule du gel : le premier renouvellement a partir de la.
+  // C'est CE chiffre qu'on annonce au marchand, pas la date du gel.
+  effectiveAfterFreeze?: string | null;
   // Une piste deja partie pour cet abonnement, lue dans le journal d'activite — donc vraie
   // apres un rechargement et pour un COLLEGUE, pas seulement pour l'onglet qui l'a envoyee.
   dealCreated?: { at: string; by: string | null; dealId: string | null; accountName: string | null } | null;
@@ -601,6 +604,7 @@ export default function SaasIncreaseLookup() {
                       />
                       <button
                         type="button"
+                        title={t('csLookup.freeze.earliestHint') as string}
                         disabled={!g.until || g.busy}
                         onClick={() => void geler(h, g.until)}
                         className="rounded-lg bg-sky-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-sky-700 disabled:opacity-40"
@@ -621,6 +625,11 @@ export default function SaasIncreaseLookup() {
                   )}
                 </div>
 
+                {actif && h.effectiveAfterFreeze && (
+                  <p className="mt-1.5 text-[12px] font-medium text-sky-800 dark:text-sky-300">
+                    {t('csLookup.freeze.effective', { date: fmtDate(h.effectiveAfterFreeze, i18n.language) })}
+                  </p>
+                )}
                 {peutGeler && (
                   <input
                     value={g.reason}
