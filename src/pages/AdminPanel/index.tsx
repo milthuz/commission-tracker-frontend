@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -216,7 +216,11 @@ const AdminPanel = () => {
 
   // User roles editing
   const [editingUserRoles, setEditingUserRoles] = useState<string | null>(null); // user email being edited
-  const [preassignEmail, setPreassignEmail] = useState(''); // assign roles to an email that hasn't logged in yet
+  const [preassignEmail, setPreassignEmail] = useState('');
+  // Trente-deux usagers, et ca monte : trouver quelqu'un se faisait a l'oeil dans un tableau
+  // non trie. La recherche porte sur l'adresse ET sur les ROLES, parce que « qui est dans
+  // l'equipe CS » est une question aussi frequente que « ou est melissa ».
+  const [userSearch, setUserSearch] = useState('');
   // Sub-tab state for the reorganized Admin sections.
   const [syncSub, setSyncSub] = useState<'connections' | 'data'>('connections');
   const [spSub, setSpSub] = useState<'reps' | 'teams' | 'points'>('reps');
@@ -305,6 +309,15 @@ const AdminPanel = () => {
 
   // Admin users state
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  // Tolerante : on compare des formes normalisees, pour qu'un point, un tiret ou une majuscule
+  // ne fasse pas rater « gabriela.frenkel » a quelqu'un qui tape « gabriela frenkel ».
+  const usagersFiltres = useMemo(() => {
+    const q = userSearch.trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+    if (!q) return adminUsers;
+    const norm = (v: string) => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+    return adminUsers.filter(u =>
+      norm(u.email).includes(q) || (u.roles || []).some(r => norm(r.name).includes(q)));
+  }, [adminUsers, userSearch]); // assign roles to an email that hasn't logged in yet
   const [adminLoading, setAdminLoading] = useState(false);
 
   // Salespeople tab and edit lock state
@@ -3573,6 +3586,30 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     </button>
                     <span className="text-xs text-body">{t('admin.admins.preassignHint')}</span>
                   </form>
+                  {/* Separe du champ de PRE-ASSIGNATION juste au-dessus : les deux prennent une
+                      adresse courriel et ne font pas du tout la meme chose. Le libelle et
+                      l'icone doivent lever l'ambiguite avant le premier clic. */}
+                  <div className="mb-4 flex flex-wrap items-center gap-3">
+                    <div className="relative w-80 max-w-full">
+                      <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body"
+                           viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                           strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+                      </svg>
+                      <input
+                        type="search"
+                        value={userSearch}
+                        onChange={(e) => setUserSearch(e.target.value)}
+                        placeholder={t('admin.admins.searchPlaceholder')}
+                        className="w-full rounded-md border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
+                      />
+                    </div>
+                    {userSearch.trim() && (
+                      <span className="text-xs text-body">
+                        {t('admin.admins.searchCount', { shown: usagersFiltres.length, total: adminUsers.length })}
+                      </span>
+                    )}
+                  </div>
                   <div className="overflow-x-auto">
                     <table className="w-full table-auto">
                       <thead>
@@ -3585,7 +3622,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                         </tr>
                       </thead>
                       <tbody>
-                        {adminUsers.map((user) => (
+                        {usagersFiltres.map((user) => (
                           // La cle inclut le type : les courriels sont uniques par type mais pas
                           // forcement entre types, et une cle dupliquee fait derailler React.
                           <tr key={`${user.userType || 'zoho'}:${user.localUserId ?? user.email}`}
@@ -3712,6 +3749,11 @@ Joker Pub,Jay Daoust,2024-04-01`}
                         ))}
                       </tbody>
                     </table>
+                    {adminUsers.length > 0 && usagersFiltres.length === 0 && (
+                      <p className="py-6 text-center text-sm text-body">
+                        {t('admin.admins.searchNone', { q: userSearch.trim() })}
+                      </p>
+                    )}
                     {adminUsers.length === 0 && (
                       <div className="py-12 text-center">
                         <p className="text-body">{t('admin.admins.noUsers')}</p>
