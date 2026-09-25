@@ -107,6 +107,27 @@ export default function SaasIncreaseLookup() {
   // pousse vers Zoho. Samantha peut reporter sans pouvoir appliquer.
   const peutGeler = can('saas_increase:freeze');
   const [gel, setGel] = useState<Record<string, { until: string; reason: string; busy?: boolean; err?: string }>>({});
+  // Ce que Zoho a REELLEMENT en attente. Un gel ecrit en base ne prouve rien : seule la
+  // relecture chez Zoho dit si le marchand sera facture ou non.
+  const [verif, setVerif] = useState<Record<string,
+    { state: 'loading' } | { state: 'none' } | { state: 'found'; price: number | null; at: string | null }
+    | { state: 'error'; msg: string }>>({});
+
+  const verifierZoho = async (h: Hit) => {
+    const cle = h.subscriptionNumber;
+    setVerif(v => ({ ...v, [cle]: { state: 'loading' } }));
+    try {
+      const qs = new URLSearchParams({ orgId: h.orgId, subscriptionNumber: h.subscriptionNumber });
+      const r = await fetch(`${API_URL}/api/saas-increase/lookup/scheduled?${qs}`, { headers: authHeaders() });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+      setVerif(v => ({ ...v, [cle]: d.scheduled
+        ? { state: 'found', price: d.price ?? null, at: d.effectiveAt ?? null }
+        : { state: 'none' } }));
+    } catch (e) {
+      setVerif(v => ({ ...v, [cle]: { state: 'error', msg: String((e as Error).message || e) } }));
+    }
+  };
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[] | null>(null);
   // Les fiches que l'agent a BASCULEES par rapport a l'etat par defaut. La page rendait une
@@ -643,6 +664,40 @@ export default function SaasIncreaseLookup() {
                     {t('csLookup.freeze.effective', { date: fmtDate(h.effectiveAfterFreeze, i18n.language) })}
                   </p>
                 )}
+                {/* La preuve. Un gel ecrit en base ne dit pas que Zoho l'a suivi : l'ecran
+                    pourrait afficher « gele » pendant que le marchand est facture quand meme.
+                    Place ICI parce que c'est le geste qui suit le gel — il vivait jusqu'ici a
+                    quatre depliages de profondeur dans la page d'administration. */}
+                {(() => {
+                  const v = verif[h.subscriptionNumber];
+                  return (
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void verifierZoho(h)}
+                        disabled={v?.state === 'loading'}
+                        className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium disabled:opacity-50 ${textSec} border-gray-300 hover:bg-gray-50 dark:border-[#242424] dark:hover:bg-[#141414]`}
+                      >
+                        {v?.state === 'loading' ? t('csLookup.freeze.checking') : t('csLookup.freeze.check')}
+                      </button>
+                      {v?.state === 'none' && (
+                        <span className="text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                          {t('csLookup.freeze.checkNone')}
+                        </span>
+                      )}
+                      {v?.state === 'found' && (
+                        <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                          {t('csLookup.freeze.checkFound', {
+                            price: v.price != null ? money(v.price) : '—',
+                            date: v.at ? fmtDate(v.at, i18n.language) : '—' })}
+                        </span>
+                      )}
+                      {v?.state === 'error' && (
+                        <span className="text-[11px] text-red-600 dark:text-red-400">{v.msg}</span>
+                      )}
+                    </div>
+                  );
+                })()}
                 {peutGeler && (
                   <input
                     value={g.reason}
