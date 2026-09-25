@@ -88,8 +88,17 @@ export default function SaasIncreaseCampaign() {
   // liraient deux chiffres differents de la meme campagne.
   const [dept, setDept] = useState<string>('');
   const [deptSaved, setDeptSaved] = useState(false);
+  // La liste des pupitres arrive AVANT le croisement : elle vivait dans la reponse des billets,
+  // donc le menu n'apparaissait qu'apres avoir charge des milliers de lignes — il fallait deja
+  // savoir que le choix existait pour le faire apparaitre.
+  const [pupitres, setPupitres] = useState<{ id: string; name: string; n: number }[]>([]);
 
   useEffect(() => {
+    fetch(`${API_URL}/api/admin/saas-increase/cs-department`, { headers: authHeaders() })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (!d) return; setDept(d.departmentId || ''); setPupitres(d.departments || []); })
+      .catch(() => { /* le panneau reste utilisable sur tous les pupitres */ });
+
     fetch(`${API_URL}/api/admin/saas-increase/scenarios`, { headers: authHeaders() })
       .then(r => r.json())
       .then(d => {
@@ -128,6 +137,7 @@ export default function SaasIncreaseCampaign() {
       const d: Desk = await r.json();
       setDesk(d);
       setDept(d.departmentId || '');
+      if (d.departments?.length) setPupitres(d.departments);
     } catch { setDesk(null); }
     finally { setDeskLoading(false); }
   };
@@ -294,14 +304,14 @@ export default function SaasIncreaseCampaign() {
               <div className="flex items-center gap-2">
                 {/* Le pupitre se CHOISIT ici. Il etait seulement liste, en attendant que David me
                     dise lequel — ce qui voulait dire attendre un deploiement pour un reglage. */}
-                {desk && desk.departments.length > 0 && (
+                {pupitres.length > 0 && (
                   <select
                     value={dept}
                     onChange={(e) => void enregistrerPupitre(e.target.value)}
                     className="max-w-[220px] rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs outline-none focus:border-primary dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white"
                   >
                     <option value="">{t('saasCampaign.desk.allDesks')}</option>
-                    {desk.departments.map(d => (
+                    {pupitres.map(d => (
                       <option key={d.id} value={d.id}>{d.name} ({d.n})</option>
                     ))}
                   </select>
@@ -335,6 +345,13 @@ export default function SaasIncreaseCampaign() {
             <p className={`mt-2 max-w-[85ch] text-xs leading-relaxed ${textTer}`}>
               {t('saasCampaign.desk.method')}
             </p>
+            {!desk && (
+              <p className={`mt-2 text-xs ${textQuat}`}>
+                {dept
+                  ? t('saasCampaign.desk.scopedTo', { name: pupitres.find(d => d.id === dept)?.name || dept })
+                  : t('saasCampaign.desk.scopedAll')}
+              </p>
+            )}
 
             {desk && (
               <>
@@ -414,7 +431,7 @@ export default function SaasIncreaseCampaign() {
                 <p className={`mt-4 text-xs ${textQuat}`}>
                   {dept
                     ? t('saasCampaign.desk.scopedTo', {
-                        name: desk.departments.find(d => d.id === dept)?.name || dept })
+                        name: pupitres.find(d => d.id === dept)?.name || dept })
                     : t('saasCampaign.desk.scopedAll')}
                 </p>
               </>
