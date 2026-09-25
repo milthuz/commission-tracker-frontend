@@ -157,6 +157,10 @@ export default function SaasIncreaseLookup() {
   const [org, setOrg] = useState('');
   const [avis, setAvis] = useState('');
   const [etat, setEtat] = useState('');
+  // Ou en est la hausse chez Zoho. Sans ce filtre, atteindre une des quelques lignes DEJA
+  // appliquees parmi des milliers relevait de la chance — or ce sont precisement celles ou un
+  // gel doit RETIRER un changement deja planifie, donc celles qu'il faut pouvoir trouver.
+  const [pousse, setPousse] = useState('');
   // Les frais d'integration demandent un appel Zoho par abonnement, donc on ne les charge que
   // sur demande et une seule fois. L'etat 'loading' evite le double appel au re-rendu.
   const [fees, setFees] = useState<Record<string, Fees | 'loading' | 'error'>>({});
@@ -287,7 +291,8 @@ export default function SaasIncreaseLookup() {
         + `?q=${encodeURIComponent(mot.length >= 2 ? mot : '')}&offset=${offset}`
         + (org ? `&org=${encodeURIComponent(org)}` : '')
         + (avis ? `&notify=${encodeURIComponent(avis)}` : '')
-        + (etat ? `&state=${encodeURIComponent(etat)}` : ''),
+        + (etat ? `&state=${encodeURIComponent(etat)}` : '')
+        + (pousse ? `&push=${encodeURIComponent(pousse)}` : ''),
         { headers: authHeaders() });
       if (!r.ok) throw new Error(String(r.status));
       const d = await r.json();
@@ -313,7 +318,7 @@ export default function SaasIncreaseLookup() {
     if (premierRendu.current) { premierRendu.current = false; return; }
     void search(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [org, avis, etat]);
+  }, [org, avis, etat, pousse]);
 
   const card = 'rounded-2xl border border-gray-200 bg-white dark:border-[#1B1B1B] dark:bg-[#0E0F11]';
   const textPri = 'text-gray-900 dark:text-white';
@@ -415,8 +420,17 @@ export default function SaasIncreaseLookup() {
               options={[{ value: '', label: t('csLookup.filterAll') as string },
                         { value: 'nohike', label: t('csLookup.filterNoHike') as string }]} />
           </div>
-          {(org || avis || etat) && (
-            <button type="button" onClick={() => { setOrg(''); setAvis(''); setEtat(''); }}
+          <div className="min-w-[170px]">
+            <label className={`mb-1 block text-xs font-medium ${textTer}`}>{t('csLookup.zohoStatus')}</label>
+            <Select value={pousse} onChange={setPousse} buttonClassName={FILTRE}
+              options={[{ value: '', label: t('csLookup.filterAll') as string },
+                        { value: 'pushed', label: t('csLookup.push.pushed') as string },
+                        { value: 'pending', label: t('csLookup.push.pending') as string },
+                        { value: 'push_failed', label: t('csLookup.push.push_failed') as string },
+                        { value: 'closed', label: t('csLookup.push.closed') as string }]} />
+          </div>
+          {(org || avis || etat || pousse) && (
+            <button type="button" onClick={() => { setOrg(''); setAvis(''); setEtat(''); setPousse(''); }}
               className={`pb-2 text-xs font-medium ${textTer} hover:text-primary`}>
               {t('csLookup.filterClear')}
             </button>
