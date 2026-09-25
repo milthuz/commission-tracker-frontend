@@ -5939,7 +5939,16 @@
       "allDesks": "All desks",
       "deptSaved": "Saved for the team",
       "scopedTo": "Counting tickets on the {{name}} desk only.",
-      "scopedAll": "Counting tickets across every desk. Pick one above to scope this to customer service."
+      "scopedAll": "Counting tickets across every desk. Pick one above to scope this to customer service.",
+      "emptyTitle": "Nothing to count yet — here is why",
+      "why": {
+        "noNotices": "No merchant in this campaign has been notified yet. The comparison needs a notice date to measure from.",
+        "windowTooLong": "{{notified}} merchants were notified, but none more than {{days}} days ago — the most recent notice went out {{last}}. A shorter window would give them a complete before AND after period. Pick 14 days, or wait.",
+        "no_name_match": "None of the {{merchants}} eligible merchants could be matched to a Zoho Desk account. Matching is by normalised company name, so this usually means Desk holds them under a different name than Billing does.",
+        "wrong_desk": "{{anyDept}} tickets exist from these merchants in the window, but none on the selected desk. They are writing somewhere else — switch the desk above, or pick All desks to see where.",
+        "outside_window": "{{anyWindow}} tickets exist from these merchants on this desk, but none within {{days}} days either side of their notice. Try a longer window.",
+        "no_tickets": "{{accounts}} of the {{merchants}} eligible merchants exist in Desk, and none of them has opened a ticket at all. That is a real answer, not a gap: the increase generated no support contact from them."
+      }
     }
   }
 }

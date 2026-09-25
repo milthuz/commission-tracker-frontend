@@ -5939,7 +5939,16 @@
       "allDesks": "Tous les pupitres",
       "deptSaved": "Enregistré pour l'équipe",
       "scopedTo": "Compte les billets du pupitre {{name}} seulement.",
-      "scopedAll": "Compte les billets de tous les pupitres. Choisis-en un ci-dessus pour restreindre au service à la clientèle."
+      "scopedAll": "Compte les billets de tous les pupitres. Choisis-en un ci-dessus pour restreindre au service à la clientèle.",
+      "emptyTitle": "Rien à compter pour l'instant — voici pourquoi",
+      "why": {
+        "noNotices": "Aucun marchand de cette campagne n'a encore été avisé. La comparaison a besoin d'une date d'avis comme point de départ.",
+        "windowTooLong": "{{notified}} marchands ont été avisés, mais aucun depuis plus de {{days}} jours — le dernier avis est parti le {{last}}. Une fenêtre plus courte leur donnerait une période complète avant ET après. Choisis 14 jours, ou attends.",
+        "no_name_match": "Aucun des {{merchants}} marchands admissibles n'a pu être rapproché d'un compte Zoho Desk. Le rapprochement se fait par nom normalisé : Desk les tient probablement sous un nom différent de celui de la facturation.",
+        "wrong_desk": "{{anyDept}} billets existent de ces marchands dans la fenêtre, mais aucun sur le pupitre choisi. Ils écrivent ailleurs — change de pupitre ci-dessus, ou prends Tous les pupitres pour voir où.",
+        "outside_window": "{{anyWindow}} billets existent de ces marchands sur ce pupitre, mais aucun dans les {{days}} jours de part et d'autre de leur avis. Essaie une fenêtre plus longue.",
+        "no_tickets": "{{accounts}} des {{merchants}} marchands admissibles existent dans Desk, et aucun n'a ouvert de billet du tout. C'est une vraie réponse, pas un trou : la hausse n'a généré aucun contact au soutien de leur part."
+      }
     }
   }
 }

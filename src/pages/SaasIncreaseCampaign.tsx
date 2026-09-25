@@ -45,6 +45,14 @@ interface Desk {
   before: number; after: number;
   byCategory: { category: string; before: number; after: number; delta: number }[];
   keyword: { count: number; samples: DeskTicket[] };
+  // Presents SEULEMENT quand le croisement ne rend rien : trois causes possibles, trois gestes
+  // differents. Sans ca le panneau affiche « 0 » et laisse deviner lequel des trois.
+  reason?: 'no_notices' | 'window_too_long';
+  lastNotifiedAt?: string | null;
+  diag?: {
+    accountsMatched: number; ticketsAnyDept: number; ticketsAnyWindow: number;
+    reason: 'no_name_match' | 'wrong_desk' | 'outside_window' | 'no_tickets';
+  } | null;
   tickets: DeskTicket[];
   departments: { id: string; name: string; n: number }[];
 }
@@ -355,6 +363,29 @@ export default function SaasIncreaseCampaign() {
 
             {desk && (
               <>
+                {(desk.reason || desk.diag) && (
+                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
+                    <div className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                      {t('saasCampaign.desk.emptyTitle')}
+                    </div>
+                    <p className={`mt-1 max-w-[85ch] text-xs leading-relaxed ${textSec}`}>
+                      {desk.reason === 'no_notices'
+                        ? t('saasCampaign.desk.why.noNotices')
+                        : desk.reason === 'window_too_long'
+                          ? t('saasCampaign.desk.why.windowTooLong', {
+                              days: desk.days,
+                              last: desk.lastNotifiedAt ? new Date(desk.lastNotifiedAt).toLocaleDateString(i18n.language) : '—',
+                              notified: desk.notifiedTotal })
+                          : t(`saasCampaign.desk.why.${desk.diag?.reason}`, {
+                              merchants: desk.eligible,
+                              accounts: desk.diag?.accountsMatched ?? 0,
+                              anyDept: desk.diag?.ticketsAnyDept ?? 0,
+                              anyWindow: desk.diag?.ticketsAnyWindow ?? 0,
+                              days: desk.days })}
+                    </p>
+                  </div>
+                )}
+
                 <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
                   {[
                     { l: t('saasCampaign.desk.before'), v: String(desk.before) },
