@@ -5949,7 +5949,15 @@
         "outside_window": "{{anyWindow}} tickets exist from these merchants on this desk, but none within {{days}} days either side of their notice. Try a longer window.",
         "no_tickets": "{{accounts}} of the {{merchants}} eligible merchants exist in Desk, and none of them has opened a ticket at all. That is a real answer, not a gap: the increase generated no support contact from them."
       },
-      "sinceNotice": "tickets opened since their notice, from {{merchants}} merchants"
+      "sinceNotice": "tickets opened since their notice, from {{merchants}} merchants",
+      "cat": {
+        "total": "tickets classed as price-increase since {{since}}",
+        "split": "{{open}} open · {{closed}} closed",
+        "median": "median {{hours}} h to close",
+        "rule": "Counted by the category customer service files them under: {{issueType}} → {{csCategory}}. No name matching involved.",
+        "matched": "{{matched}} of {{total}} come from a merchant this campaign notified. The rest either were not notified, or their Desk account is filed under a different name.",
+        "inCampaign": "notified by the campaign"
+      }
     }
   }
 }

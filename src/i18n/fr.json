@@ -5949,7 +5949,15 @@
         "outside_window": "{{anyWindow}} billets existent de ces marchands sur ce pupitre, mais aucun dans les {{days}} jours de part et d'autre de leur avis. Essaie une fenêtre plus longue.",
         "no_tickets": "{{accounts}} des {{merchants}} marchands admissibles existent dans Desk, et aucun n'a ouvert de billet du tout. C'est une vraie réponse, pas un trou : la hausse n'a généré aucun contact au soutien de leur part."
       },
-      "sinceNotice": "billets ouverts depuis leur avis, par {{merchants}} marchands"
+      "sinceNotice": "billets ouverts depuis leur avis, par {{merchants}} marchands",
+      "cat": {
+        "total": "billets classés « hausse de prix » depuis le {{since}}",
+        "split": "{{open}} ouverts · {{closed}} fermés",
+        "median": "médiane {{hours}} h pour fermer",
+        "rule": "Comptés par la catégorie que le service à la clientèle leur donne : {{issueType}} → {{csCategory}}. Aucun rapprochement de noms là-dedans.",
+        "matched": "{{matched}} sur {{total}} viennent d'un marchand avisé par cette campagne. Les autres n'ont pas été avisés, ou leur compte Desk porte un nom différent.",
+        "inCampaign": "avisé par la campagne"
+      }
     }
   }
 }
