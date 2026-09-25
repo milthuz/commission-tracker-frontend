@@ -49,6 +49,14 @@ interface Desk {
   // differents. Sans ca le panneau affiche « 0 » et laisse deviner lequel des trois.
   reason?: 'no_notices' | 'window_too_long';
   lastNotifiedAt?: string | null;
+  oldestNotifiedAt?: string | null;
+  // Le VOLUME depuis l'avis, sans fenetre symetrique : c'est lui qui repond a « est-ce qu'on a
+  // des billets la-dessus », et il existe des le premier avis envoye.
+  sinceNotice?: {
+    tickets: number; merchants: number;
+    byCategory: { category: string; n: number }[];
+    list: DeskTicket[];
+  };
   diag?: {
     accountsMatched: number; ticketsAnyDept: number; ticketsAnyWindow: number;
     reason: 'no_name_match' | 'wrong_desk' | 'outside_window' | 'no_tickets';
@@ -363,6 +371,48 @@ export default function SaasIncreaseCampaign() {
 
             {desk && (
               <>
+                {/* La reponse a la question de base, toujours affichee. La comparaison appariee
+                    plus bas est un raffinement qui demande du recul ; la faire attendre rendait
+                    le panneau muet sur une campagne qui generait deja des appels. */}
+                {desk.sinceNotice && desk.sinceNotice.tickets > 0 && (
+                  <div className="mt-4 rounded-xl border border-gray-200 p-4 dark:border-[#1B1B1B]">
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      <span className={`text-2xl font-semibold ${textPri}`}>{desk.sinceNotice.tickets}</span>
+                      <span className={`text-sm ${textSec}`}>
+                        {t('saasCampaign.desk.sinceNotice', { merchants: desk.sinceNotice.merchants })}
+                      </span>
+                    </div>
+                    {desk.sinceNotice.byCategory.length > 0 && (
+                      <div className={`mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs ${textTer}`}>
+                        {desk.sinceNotice.byCategory.slice(0, 8).map(c => (
+                          <span key={c.category}>{c.category} <span className={textQuat}>{c.n}</span></span>
+                        ))}
+                      </div>
+                    )}
+                    {desk.sinceNotice.list.length > 0 && (
+                      <div className="mt-3 divide-y divide-gray-100 dark:divide-[#161616]">
+                        {desk.sinceNotice.list.slice(0, 12).map(k => (
+                          <div key={k.id} className="flex items-center justify-between gap-3 py-1.5">
+                            <div className="min-w-0">
+                              <div className={`truncate text-[13px] ${textSec}`}>{k.subject}</div>
+                              <div className={`truncate text-[11px] ${textQuat}`}>
+                                {k.customerName} · {t('saasCampaign.desk.daysAfter', { days: k.daysAfterNotice })}
+                                {k.category ? ` · ${k.category}` : ''}
+                              </div>
+                            </div>
+                            {k.url && (
+                              <a href={k.url} target="_blank" rel="noreferrer"
+                                 className={`shrink-0 ${textQuat} hover:text-primary`}>
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {(desk.reason || desk.diag) && (
                   <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
                     <div className="text-sm font-medium text-amber-800 dark:text-amber-300">
@@ -374,7 +424,8 @@ export default function SaasIncreaseCampaign() {
                         : desk.reason === 'window_too_long'
                           ? t('saasCampaign.desk.why.windowTooLong', {
                               days: desk.days,
-                              last: desk.lastNotifiedAt ? new Date(desk.lastNotifiedAt).toLocaleDateString(i18n.language) : '—',
+                              // Le PLUS ANCIEN : c'est lui qui decide de l'admissibilite.
+                              oldest: desk.oldestNotifiedAt ? new Date(desk.oldestNotifiedAt).toLocaleDateString(i18n.language) : '—',
                               notified: desk.notifiedTotal })
                           : t(`saasCampaign.desk.why.${desk.diag?.reason}`, {
                               merchants: desk.eligible,
