@@ -1004,12 +1004,20 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       case 'phone':
         // Cliquable pour composer. La rangee ouvre la fiche : sa garde laisse passer le lien
         // sans ouvrir la fenetre.
-        return o.contactPhone ? (
-          <a href={`tel:${o.contactPhone.replace(/[^\d+]/g, '')}`}
-            className="whitespace-nowrap tabular-nums text-black hover:text-primary dark:text-white">
-            {o.contactPhone}
-          </a>
-        ) : <span className="text-gray-400">—</span>;
+        // `leading-tight` comme TOUTES les autres cellules. C'etait la seule a rendre son
+        // contenu nu, donc avec l'interligne de 20 px de `text-sm` au lieu de 17,5 : la
+        // demi-interligne du dessus poussait le numero 1,33 px plus bas que le nom
+        // d'entreprise et que la date. Mesure sur la ligne de base.
+        return (
+          <div className="leading-tight">
+            {o.contactPhone ? (
+              <a href={`tel:${o.contactPhone.replace(/[^\d+]/g, '')}`}
+                className="whitespace-nowrap tabular-nums text-black hover:text-primary dark:text-white">
+                {o.contactPhone}
+              </a>
+            ) : <span className="text-gray-400">—</span>}
+          </div>
+        );
 
       case 'submitted':
         return (
@@ -2055,13 +2063,16 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                             {renderQueueCell(o, c)}
                           </td>
                         ))}
-                        {/* align-top + py-2, comme TOUTES les autres cellules. Cette cellule
-                            gardait le `vertical-align: middle` par defaut d'un td ET un padding
-                            vertical different : dans une rangee de trois lignes, les boutons
-                            flottaient au milieu pendant que la date restait en haut. Ecart
-                            MESURE entre les deux centres : 31 px. Les hauts coincident
-                            desormais exactement. */}
-                        <td className="sticky right-0 bg-white px-3 py-2 align-top text-right xl:px-4 dark:bg-boxdark">
+                        {/* align-top, comme TOUTES les autres cellules : cette cellule gardait
+                            le `vertical-align: middle` par defaut d'un td et les boutons
+                            flottaient au milieu d'une rangee de trois lignes (ecart mesure
+                            entre les centres : 31 px).
+                            `pt-[3px]` et non `pt-2` : aligner les BOITES ne suffisait pas. Un
+                            bouton porte 1 px de bordure et 4 px de `py-1`, donc son libelle
+                            tombait 5,33 px sous la ligne de base de la rangee — c'est ce que
+                            l'oeil voyait encore. 8 - 5 = 3. Le `pb-2` reste : on remonte le
+                            texte, on ne serre pas le bas de la rangee. */}
+                        <td className="sticky right-0 bg-white px-3 pb-2 pt-[3px] align-top text-right xl:px-4 dark:bg-boxdark">
                           <div className="flex items-center justify-end gap-1.5">
                             {o.status === 'pending' ? (
                               <>
