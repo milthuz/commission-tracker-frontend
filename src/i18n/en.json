@@ -5921,7 +5921,7 @@
     "churnCaveat": "These merchants cancelled after their increase was scheduled. That is a sequence, not a cause — customers cancel for many reasons. It is here because it is the number nobody else is watching, and the only one that can turn a campaign’s result around.",
     "churnDates": "applied {{pushed}} · cancelled {{cancelled}}",
     "desk": {
-      "title": "Support load since the notices",
+      "title": "Customer Success load",
       "window": "{{days}}-day window",
       "load": "Load tickets",
       "loading": "Loading…",
@@ -5956,12 +5956,17 @@
         "median": "median {{hours}} h to close",
         "rule": "Counted by the category customer service files them under: {{issueType}} → {{csCategory}}. No name matching involved.",
         "matched": "{{matched}} of {{total}} come from a merchant this campaign notified. The rest either were not notified, or their Desk account is filed under a different name.",
-        "inCampaign": "notified by the campaign"
+        "inCampaign": "notified by the campaign",
+        "matchedShort": "{{matched}} notified"
       },
       "fam": {
-        "pricing": "price or billing questions since {{since}}",
-        "churn": "suspension or cancellation requests since {{since}}"
-      }
+        "pricing": "price & billing questions",
+        "churn": "suspension / cancellation requests"
+      },
+      "methodShow": "How this is counted",
+      "paired": "Paired before/after",
+      "showTickets": "Show {{count}} tickets",
+      "hideTickets": "Hide"
     }
   }
 }

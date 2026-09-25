@@ -5921,7 +5921,7 @@
     "churnCaveat": "Ces marchands ont annulé après que leur hausse ait été planifiée. C’est une séquence, pas une cause — un client annule pour mille raisons. C’est ici parce que c’est le chiffre que personne d’autre ne surveille, et le seul qui puisse renverser le résultat d’une campagne.",
     "churnDates": "appliquée le {{pushed}} · annulée le {{cancelled}}",
     "desk": {
-      "title": "Charge du soutien depuis les avis",
+      "title": "Charge du service à la clientèle",
       "window": "fenêtre de {{days}} jours",
       "load": "Charger les billets",
       "loading": "Chargement…",
@@ -5956,12 +5956,17 @@
         "median": "médiane {{hours}} h pour fermer",
         "rule": "Comptés par la catégorie que le service à la clientèle leur donne : {{issueType}} → {{csCategory}}. Aucun rapprochement de noms là-dedans.",
         "matched": "{{matched}} sur {{total}} viennent d'un marchand avisé par cette campagne. Les autres n'ont pas été avisés, ou leur compte Desk porte un nom différent.",
-        "inCampaign": "avisé par la campagne"
+        "inCampaign": "avisé par la campagne",
+        "matchedShort": "{{matched}} avisés"
       },
       "fam": {
-        "pricing": "questions de prix ou de facturation depuis le {{since}}",
-        "churn": "demandes de suspension ou d'annulation depuis le {{since}}"
-      }
+        "pricing": "questions de prix et facturation",
+        "churn": "demandes de suspension / annulation"
+      },
+      "methodShow": "Comment ce chiffre est fait",
+      "paired": "Comparaison appariée",
+      "showTickets": "Voir les {{count}} billets",
+      "hideTickets": "Masquer"
     }
   }
 }

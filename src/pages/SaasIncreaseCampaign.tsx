@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw, TrendingUp, AlertTriangle, Users, CalendarClock, LifeBuoy, ExternalLink } from 'lucide-react';
+import { RefreshCw, TrendingUp, AlertTriangle, Users, CalendarClock, LifeBuoy, Info, ChevronDown } from 'lucide-react';
 
 // Le suivi d'une campagne EN COURS, par opposition a la vue board qui est une proposition figee.
 // Une hausse de prix ne finit pas au clic sur « Appliquer » : chaque abonnement change de prix a
@@ -113,6 +113,11 @@ export default function SaasIncreaseCampaign() {
   // liraient deux chiffres differents de la meme campagne.
   const [dept, setDept] = useState<string>('');
   const [deptSaved, setDeptSaved] = useState(false);
+  // Les explications et les listes vivent derriere un geste : elles restent atteignables sans
+  // occuper l'ecran a chaque coup d'oeil.
+  const [methodOpen, setMethodOpen] = useState(false);
+  const [famOpen, setFamOpen] = useState<string | null>(null);
+  const [allOpen, setAllOpen] = useState(false);
   // La liste des pupitres arrive AVANT le croisement : elle vivait dans la reponse des billets,
   // donc le menu n'apparaissait qu'apres avoir charge des milliers de lignes — il fallait deja
   // savoir que le choix existait pour le faire apparaitre.
@@ -187,6 +192,7 @@ export default function SaasIncreaseCampaign() {
   const textTer = 'text-gray-500 dark:text-[#999AA7]';
   const textQuat = 'text-gray-400 dark:text-[#61646C]';
   const label = `text-[11px] font-semibold uppercase tracking-wider ${textQuat}`;
+  const neutralPill = 'bg-gray-100 text-gray-500 dark:bg-[#1B1B1B] dark:text-[#61646C]';
 
   const pctCible = data && data.mrr.target > 0
     ? Math.min(100, (data.mrr.committed / data.mrr.target) * 100) : 0;
@@ -319,21 +325,32 @@ export default function SaasIncreaseCampaign() {
             </div>
           )}
 
-          {/* ── CE QUE LA HAUSSE A COUTE AU SOUTIEN ──────────────────────────────────────── */}
-          <div className={`${card} mb-4 p-6`}>
+          {/* ── CHARGE DU SERVICE A LA CLIENTELE ──────────────────────────────────────────────
+              Reecrit en compact : la version precedente empilait, pour chaque famille, un grand
+              nombre, deux paragraphes d'explication, un graphique et une liste ouverte. Six
+              blocs pleine largeur pour trois chiffres. Les explications comptent — elles disent
+              comment le chiffre est fait — mais elles n'ont pas a occuper l'ecran en permanence :
+              elles passent derriere un ⓘ, et les listes derriere un depliant. */}
+          <div className={`${card} mb-4 p-5`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <LifeBuoy className={`h-3.5 w-3.5 ${textQuat}`} />
                 <span className={label}>{t('saasCampaign.desk.title')}</span>
+                <button
+                  type="button"
+                  onClick={() => setMethodOpen(v => !v)}
+                  title={t('saasCampaign.desk.methodShow') as string}
+                  className={`rounded-full p-0.5 ${methodOpen ? 'text-primary' : textQuat} hover:text-primary`}
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
               </div>
-              <div className="flex items-center gap-2">
-                {/* Le pupitre se CHOISIT ici. Il etait seulement liste, en attendant que David me
-                    dise lequel — ce qui voulait dire attendre un deploiement pour un reglage. */}
+              <div className="flex flex-wrap items-center gap-2">
                 {pupitres.length > 0 && (
                   <select
                     value={dept}
                     onChange={(e) => void enregistrerPupitre(e.target.value)}
-                    className="max-w-[220px] rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs outline-none focus:border-primary dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white"
+                    className="max-w-[200px] rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs outline-none focus:border-primary dark:border-[#242424] dark:bg-[#0A0A0A] dark:text-white"
                   >
                     <option value="">{t('saasCampaign.desk.allDesks')}</option>
                     {pupitres.map(d => (
@@ -365,243 +382,197 @@ export default function SaasIncreaseCampaign() {
               </div>
             </div>
 
-            {/* La methode, ecrite sur la page. Un chiffre de soutien sans sa methode se cite
-                ensuite en reunion comme s'il etait mesure, alors qu'il est estime. */}
-            <p className={`mt-2 max-w-[85ch] text-xs leading-relaxed ${textTer}`}>
-              {t('saasCampaign.desk.method')}
-            </p>
-            {!desk && (
-              <p className={`mt-2 text-xs ${textQuat}`}>
-                {dept
-                  ? t('saasCampaign.desk.scopedTo', { name: pupitres.find(d => d.id === dept)?.name || dept })
-                  : t('saasCampaign.desk.scopedAll')}
+            {/* La methode reste disponible mais cesse d'occuper quatre lignes en permanence. */}
+            {methodOpen && (
+              <p className={`mt-3 max-w-[85ch] text-xs leading-relaxed ${textTer}`}>
+                {t('saasCampaign.desk.method')}
               </p>
             )}
 
             {desk && (
               <>
-                {(desk.categorized || []).filter(fam => fam.issueType || fam.csCategory).map(fam => {
-                  // La famille « annulation » n'a pas le meme poids que la famille « question » :
-                  // l'une est le cout normal d'une hausse, l'autre est du revenu qui s'en va.
-                  const grave = fam.key === 'churn';
-                  const max = Math.max(1, ...(fam.byMonth || []).map(x => x.n));
-                  return (
-                    <div key={fam.key}
-                      className={`mt-4 rounded-xl border p-4 ${grave
-                        ? 'border-red-200 bg-red-50/50 dark:border-red-900/40 dark:bg-red-950/15'
-                        : 'border-primary/30 bg-primary/[0.05]'}`}>
-                      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                        <div className="flex flex-wrap items-baseline gap-x-3">
-                          <span className={`text-3xl font-semibold ${grave ? 'text-red-700 dark:text-red-400' : textPri}`}>
-                            {fam.total}
-                          </span>
-                          <span className={`text-sm font-medium ${textSec}`}>
-                            {t(`saasCampaign.desk.fam.${fam.key}`, { since: fam.since || '—' })}
-                          </span>
-                        </div>
-                        <div className={`text-xs ${textTer}`}>
-                          {t('saasCampaign.desk.cat.split', { open: fam.open ?? 0, closed: fam.closed ?? 0 })}
-                          {fam.medianHoursToClose != null &&
-                            ` · ${t('saasCampaign.desk.cat.median', { hours: fam.medianHoursToClose })}`}
-                        </div>
-                      </div>
-                      <p className={`mt-1.5 text-xs ${textQuat}`}>
-                        {t('saasCampaign.desk.cat.rule', {
-                          issueType: fam.issueType || '—', csCategory: fam.csCategory || '—' })}
-                      </p>
-                      <p className={`mt-1 text-xs ${textQuat}`}>
-                        {t('saasCampaign.desk.cat.matched', {
-                          matched: fam.matchedToCampaign ?? 0, total: fam.total })}
-                      </p>
-
-                      {(fam.byMonth || []).length > 1 && (
-                        <div className="mt-3 flex items-end gap-1.5" style={{ height: 64 }}>
-                          {(fam.byMonth || []).map(m => (
-                            <div key={m.month} className="flex flex-1 flex-col items-center justify-end gap-1">
-                              <div className={`text-[10px] tabular-nums ${textQuat}`}>{m.n}</div>
-                              <div className={`w-full rounded-t ${grave ? 'bg-red-500/70' : 'bg-primary/70'}`}
-                                   style={{ height: `${(m.n / max) * 100}%` }} />
-                              <div className={`text-[10px] ${textQuat}`}>{moisLisible(m.month, i18n.language)}</div>
+                {/* Les familles cote a cote. Elles se comparent du regard au lieu de se succeder
+                    sur deux ecrans de defilement. */}
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {(desk.categorized || []).filter(f => f.issueType || f.csCategory).map(fam => {
+                    const grave = fam.key === 'churn';
+                    const max = Math.max(1, ...(fam.byMonth || []).map(x => x.n));
+                    const ouvert = famOpen === fam.key;
+                    return (
+                      <div key={fam.key}
+                        className={`rounded-xl border p-4 ${grave
+                          ? 'border-red-200 bg-red-50/40 dark:border-red-900/40 dark:bg-red-950/10'
+                          : 'border-gray-200 bg-gray-50/60 dark:border-[#1B1B1B] dark:bg-[#0A0A0A]'}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className={`flex items-baseline gap-2`}>
+                              <span className={`text-[28px] font-semibold leading-none ${grave ? 'text-red-700 dark:text-red-400' : textPri}`}>
+                                {fam.total}
+                              </span>
+                              <span className={`truncate text-[13px] font-medium ${textSec}`}>
+                                {t(`saasCampaign.desk.fam.${fam.key}`)}
+                              </span>
                             </div>
-                          ))}
+                            <div className={`mt-1.5 text-[11px] ${textQuat}`}>
+                              {t('saasCampaign.desk.cat.split', { open: fam.open ?? 0, closed: fam.closed ?? 0 })}
+                              {fam.medianHoursToClose != null &&
+                                ` · ${t('saasCampaign.desk.cat.median', { hours: fam.medianHoursToClose })}`}
+                              {` · ${t('saasCampaign.desk.cat.matchedShort', { matched: fam.matchedToCampaign ?? 0 })}`}
+                            </div>
+                          </div>
+                          {/* La regle de comptage suit le chiffre, en infobulle : elle doit rester
+                              atteignable sans etre relue a chaque coup d'oeil. */}
+                          <span
+                            title={t('saasCampaign.desk.cat.rule', {
+                              issueType: fam.issueType || '—', csCategory: fam.csCategory || '—' }) as string}
+                            className={`shrink-0 cursor-help ${textQuat}`}
+                          >
+                            <Info className="h-3.5 w-3.5" />
+                          </span>
                         </div>
-                      )}
 
-                      {fam.list.length > 0 && (
-                        <div className="mt-3 divide-y divide-gray-200/60 dark:divide-[#1B1B1B]">
-                          {fam.list.slice(0, 12).map(k => (
-                            <div key={k.id} className="flex items-center justify-between gap-3 py-1.5">
-                              <div className="min-w-0">
-                                <div className={`truncate text-[13px] ${textSec}`}>{k.subject}</div>
-                                <div className={`truncate text-[11px] ${textQuat}`}>
+                        {(fam.byMonth || []).length > 1 && (
+                          <div className="mt-3 flex items-end gap-1" style={{ height: 30 }}>
+                            {(fam.byMonth || []).map(m => (
+                              <div key={m.month} className="flex flex-1 flex-col items-center justify-end gap-0.5"
+                                   title={`${moisLisible(m.month, i18n.language)} · ${m.n}`}>
+                                <div className={`w-full rounded-sm ${grave ? 'bg-red-400/70' : 'bg-primary/60'}`}
+                                     style={{ height: `${Math.max(6, (m.n / max) * 100)}%` }} />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {fam.list.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setFamOpen(ouvert ? null : fam.key)}
+                            className={`mt-2.5 inline-flex items-center gap-1 text-[11px] font-medium ${textTer} hover:text-primary`}
+                          >
+                            {ouvert ? t('saasCampaign.desk.hideTickets') : t('saasCampaign.desk.showTickets', { count: fam.total })}
+                            <ChevronDown className={`h-3 w-3 transition-transform ${ouvert ? 'rotate-180' : ''}`} />
+                          </button>
+                        )}
+                        {ouvert && (
+                          <div className="mt-2 max-h-72 space-y-1.5 overflow-auto pr-1">
+                            {fam.list.map(k => (
+                              <a key={k.id} href={k.url || undefined} target="_blank" rel="noreferrer"
+                                 className="block rounded-lg px-2 py-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.04]">
+                                <div className={`truncate text-[12px] ${textSec}`}>{k.subject}</div>
+                                <div className={`truncate text-[10px] ${textQuat}`}>
                                   {k.customerName || '—'}
                                   {k.inCampaign ? ` · ${t('saasCampaign.desk.cat.inCampaign')}` : ''}
                                   {k.statusType ? ` · ${k.statusType}` : ''}
                                 </div>
-                              </div>
-                              {k.url && (
-                                <a href={k.url} target="_blank" rel="noreferrer"
-                                   className={`shrink-0 ${textQuat} hover:text-primary`}>
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </a>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {/* La reponse a la question de base, toujours affichee. La comparaison appariee
-                    plus bas est un raffinement qui demande du recul ; la faire attendre rendait
-                    le panneau muet sur une campagne qui generait deja des appels. */}
-                {desk.sinceNotice && desk.sinceNotice.tickets > 0 && (
-                  <div className="mt-4 rounded-xl border border-gray-200 p-4 dark:border-[#1B1B1B]">
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <span className={`text-2xl font-semibold ${textPri}`}>{desk.sinceNotice.tickets}</span>
-                      <span className={`text-sm ${textSec}`}>
-                        {t('saasCampaign.desk.sinceNotice', { merchants: desk.sinceNotice.merchants })}
-                      </span>
-                    </div>
-                    {desk.sinceNotice.byCategory.length > 0 && (
-                      <div className={`mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs ${textTer}`}>
-                        {desk.sinceNotice.byCategory.slice(0, 8).map(c => (
-                          <span key={c.category}>{c.category} <span className={textQuat}>{c.n}</span></span>
-                        ))}
-                      </div>
-                    )}
-                    {desk.sinceNotice.list.length > 0 && (
-                      <div className="mt-3 divide-y divide-gray-100 dark:divide-[#161616]">
-                        {desk.sinceNotice.list.slice(0, 12).map(k => (
-                          <div key={k.id} className="flex items-center justify-between gap-3 py-1.5">
-                            <div className="min-w-0">
-                              <div className={`truncate text-[13px] ${textSec}`}>{k.subject}</div>
-                              <div className={`truncate text-[11px] ${textQuat}`}>
-                                {k.customerName} · {t('saasCampaign.desk.daysAfter', { days: k.daysAfterNotice })}
-                                {k.category ? ` · ${k.category}` : ''}
-                              </div>
-                            </div>
-                            {k.url && (
-                              <a href={k.url} target="_blank" rel="noreferrer"
-                                 className={`shrink-0 ${textQuat} hover:text-primary`}>
-                                <ExternalLink className="h-3.5 w-3.5" />
                               </a>
-                            )}
+                            ))}
                           </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Le volume d'ensemble, sur une seule ligne : c'est un reperage, pas une analyse. */}
+                {desk.sinceNotice && desk.sinceNotice.tickets > 0 && (
+                  <div className="mt-3 rounded-xl border border-gray-200 px-4 py-3 dark:border-[#1B1B1B]">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-baseline gap-2">
+                        <span className={`text-lg font-semibold ${textPri}`}>{desk.sinceNotice.tickets}</span>
+                        <span className={`text-xs ${textTer}`}>
+                          {t('saasCampaign.desk.sinceNotice', { merchants: desk.sinceNotice.merchants })}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setAllOpen(v => !v)}
+                        className={`inline-flex items-center gap-1 text-[11px] font-medium ${textTer} hover:text-primary`}
+                      >
+                        {allOpen ? t('saasCampaign.desk.hideTickets') : t('saasCampaign.desk.showTickets', { count: desk.sinceNotice.tickets })}
+                        <ChevronDown className={`h-3 w-3 transition-transform ${allOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                    </div>
+                    {/* Les categories en pastilles : huit valeurs sur une ligne au lieu de huit
+                        lignes. C'est la forme d'une ventilation qu'on survole. */}
+                    {desk.sinceNotice.byCategory.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {desk.sinceNotice.byCategory.slice(0, 10).map(c => (
+                          <span key={c.category}
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${neutralPill}`}>
+                            {c.category}<span className="font-semibold">{c.n}</span>
+                          </span>
                         ))}
                       </div>
                     )}
-                  </div>
-                )}
-
-                {(desk.reason || desk.diag) && (
-                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
-                    <div className="text-sm font-medium text-amber-800 dark:text-amber-300">
-                      {t('saasCampaign.desk.emptyTitle')}
-                    </div>
-                    <p className={`mt-1 max-w-[85ch] text-xs leading-relaxed ${textSec}`}>
-                      {desk.reason === 'no_notices'
-                        ? t('saasCampaign.desk.why.noNotices')
-                        : desk.reason === 'window_too_long'
-                          ? t('saasCampaign.desk.why.windowTooLong', {
-                              days: desk.days,
-                              // Le PLUS ANCIEN : c'est lui qui decide de l'admissibilite.
-                              oldest: desk.oldestNotifiedAt ? new Date(desk.oldestNotifiedAt).toLocaleDateString(i18n.language) : '—',
-                              notified: desk.notifiedTotal })
-                          : t(`saasCampaign.desk.why.${desk.diag?.reason}`, {
-                              merchants: desk.eligible,
-                              accounts: desk.diag?.accountsMatched ?? 0,
-                              anyDept: desk.diag?.ticketsAnyDept ?? 0,
-                              anyWindow: desk.diag?.ticketsAnyWindow ?? 0,
-                              days: desk.days })}
-                    </p>
-                  </div>
-                )}
-
-                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  {[
-                    { l: t('saasCampaign.desk.before'), v: String(desk.before) },
-                    { l: t('saasCampaign.desk.after'), v: String(desk.after),
-                      hi: desk.after > desk.before },
-                    { l: t('saasCampaign.desk.delta'),
-                      v: `${desk.after - desk.before >= 0 ? '+' : '−'}${Math.abs(desk.after - desk.before)}`,
-                      hi: desk.after > desk.before },
-                    { l: t('saasCampaign.desk.coverage'),
-                      v: `${desk.merchantsMatched} / ${desk.eligible}` },
-                  ].map((k, n) => (
-                    <div key={n}>
-                      <div className={label}>{k.l}</div>
-                      <div className={`mt-1 text-2xl font-semibold ${k.hi ? 'text-amber-600 dark:text-amber-400' : textPri}`}>{k.v}</div>
-                    </div>
-                  ))}
-                </div>
-                {/* Le denominateur, dit en clair. « 12 billets » ne veut rien dire sans savoir
-                    sur combien de marchands la mesure porte reellement. */}
-                <p className={`mt-2 text-xs ${textQuat}`}>
-                  {t('saasCampaign.desk.coverageHint', {
-                    matched: desk.merchantsMatched, eligible: desk.eligible, notified: desk.notifiedTotal, days: desk.days })}
-                </p>
-
-                {desk.byCategory.length > 0 && (
-                  <div className="mt-5">
-                    <div className={label}>{t('saasCampaign.desk.byCategory')}</div>
-                    <p className={`mt-1 max-w-[80ch] text-xs ${textQuat}`}>{t('saasCampaign.desk.byCategoryHint')}</p>
-                    <div className="mt-2 divide-y divide-gray-100 dark:divide-[#161616]">
-                      {desk.byCategory.slice(0, 10).map(c => (
-                        <div key={c.category} className="flex items-center justify-between gap-3 py-1.5 text-[13px]">
-                          <span className={`min-w-0 truncate ${textSec}`}>{c.category}</span>
-                          <span className={`shrink-0 tabular-nums ${textQuat}`}>
-                            {c.before} → <span className={textPri}>{c.after}</span>
-                            <span className={`ml-2 font-semibold ${c.delta > 0 ? 'text-amber-600 dark:text-amber-400' : c.delta < 0 ? 'text-emerald-600 dark:text-emerald-400' : ''}`}>
-                              {c.delta > 0 ? '+' : ''}{c.delta}
-                            </span>
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {desk.keyword.count > 0 && (
-                  <div className="mt-5">
-                    <div className={label}>{t('saasCampaign.desk.keyword', { count: desk.keyword.count })}</div>
-                    <p className={`mt-1 max-w-[80ch] text-xs ${textQuat}`}>{t('saasCampaign.desk.keywordHint')}</p>
-                    <div className="mt-2 divide-y divide-gray-100 dark:divide-[#161616]">
-                      {desk.keyword.samples.map(k => (
-                        <div key={k.id} className="flex items-center justify-between gap-3 py-1.5">
-                          <div className="min-w-0">
-                            <div className={`truncate text-[13px] ${textSec}`}>{k.subject}</div>
-                            <div className={`truncate text-[11px] ${textQuat}`}>
+                    {allOpen && (
+                      <div className="mt-2 max-h-80 space-y-1.5 overflow-auto pr-1">
+                        {desk.sinceNotice.list.map(k => (
+                          <a key={k.id} href={k.url || undefined} target="_blank" rel="noreferrer"
+                             className="block rounded-lg px-2 py-1.5 hover:bg-black/[0.04] dark:hover:bg-white/[0.04]">
+                            <div className={`truncate text-[12px] ${textSec}`}>{k.subject}</div>
+                            <div className={`truncate text-[10px] ${textQuat}`}>
                               {k.customerName} · {t('saasCampaign.desk.daysAfter', { days: k.daysAfterNotice })}
                               {k.category ? ` · ${k.category}` : ''}
                             </div>
-                          </div>
-                          {k.url && (
-                            <a href={k.url} target="_blank" rel="noreferrer"
-                               className={`shrink-0 ${textQuat} hover:text-primary`}>
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* La portee courante, ecrite sous les chiffres : un compte filtre sur un pupitre
-                    et un compte sur tous se ressemblent trop pour qu'on laisse deviner lequel
-                    on regarde. */}
-                <p className={`mt-4 text-xs ${textQuat}`}>
+                {/* La comparaison appariee : quatre chiffres sur une ligne, avec son explication
+                    d'absence juste dessous quand elle manque de recul. */}
+                <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-gray-100 pt-3 dark:border-[#161616]">
+                  <span className={label}>{t('saasCampaign.desk.paired')}</span>
+                  {[
+                    { l: t('saasCampaign.desk.before'), v: desk.before },
+                    { l: t('saasCampaign.desk.after'), v: desk.after },
+                    { l: t('saasCampaign.desk.delta'), v: `${desk.after - desk.before >= 0 ? '+' : '−'}${Math.abs(desk.after - desk.before)}`,
+                      hi: desk.after > desk.before },
+                    { l: t('saasCampaign.desk.coverage'), v: `${desk.merchantsMatched} / ${desk.eligible}` },
+                  ].map((k, n) => (
+                    <span key={n} className="inline-flex items-baseline gap-1.5">
+                      <span className={`text-sm font-semibold ${k.hi ? 'text-amber-600 dark:text-amber-400' : textPri}`}>{k.v}</span>
+                      <span className={`text-[11px] ${textQuat}`}>{k.l}</span>
+                    </span>
+                  ))}
+                </div>
+
+                {(desk.reason || desk.diag) && (
+                  <p className={`mt-2 max-w-[85ch] text-[11px] leading-relaxed text-amber-700 dark:text-amber-400`}>
+                    {desk.reason === 'no_notices'
+                      ? t('saasCampaign.desk.why.noNotices')
+                      : desk.reason === 'window_too_long'
+                        ? t('saasCampaign.desk.why.windowTooLong', {
+                            days: desk.days,
+                            oldest: desk.oldestNotifiedAt ? new Date(desk.oldestNotifiedAt).toLocaleDateString(i18n.language) : '—',
+                            notified: desk.notifiedTotal })
+                        : t(`saasCampaign.desk.why.${desk.diag?.reason}`, {
+                            merchants: desk.eligible,
+                            accounts: desk.diag?.accountsMatched ?? 0,
+                            anyDept: desk.diag?.ticketsAnyDept ?? 0,
+                            anyWindow: desk.diag?.ticketsAnyWindow ?? 0,
+                            days: desk.days })}
+                  </p>
+                )}
+
+                <p className={`mt-2 text-[11px] ${textQuat}`}>
                   {dept
-                    ? t('saasCampaign.desk.scopedTo', {
-                        name: pupitres.find(d => d.id === dept)?.name || dept })
+                    ? t('saasCampaign.desk.scopedTo', { name: pupitres.find(d => d.id === dept)?.name || dept })
                     : t('saasCampaign.desk.scopedAll')}
                 </p>
               </>
             )}
-          </div>
 
+            {!desk && (
+              <p className={`mt-3 text-[11px] ${textQuat}`}>
+                {dept
+                  ? t('saasCampaign.desk.scopedTo', { name: pupitres.find(d => d.id === dept)?.name || dept })
+                  : t('saasCampaign.desk.scopedAll')}
+              </p>
+            )}
+          </div>
           {/* ── CE QUI FAIT MAL ──────────────────────────────────────────────────────────── */}
           <div className={`${card} p-6`}>
             <div className="flex items-center gap-1.5">
