@@ -5983,6 +5983,11 @@
     "churnShow": "Show the {{count}} accounts",
     "billed": "billed",
     "toCome": "to come",
-    "subsN": "{{count}} subscriptions"
+    "subsN": "{{count}} subscriptions",
+    "auto": {
+      "off": "AUTOPILOT OFF",
+      "on": "autopilot on · last applied {{date}} · {{waiting}} queued",
+      "onNoRun": "autopilot on · nothing applied yet · {{waiting}} queued"
+    }
   }
 }

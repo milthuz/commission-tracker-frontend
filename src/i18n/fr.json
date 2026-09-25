@@ -5983,6 +5983,11 @@
     "churnShow": "Voir les {{count}} comptes",
     "billed": "facturé",
     "toCome": "à venir",
-    "subsN": "{{count}} abonnements"
+    "subsN": "{{count}} abonnements",
+    "auto": {
+      "off": "PILOTE ARRÊTÉ",
+      "on": "pilote actif · dernière application le {{date}} · {{waiting}} en file",
+      "onNoRun": "pilote actif · rien d'appliqué encore · {{waiting}} en file"
+    }
   }
 }

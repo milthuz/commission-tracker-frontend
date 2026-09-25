@@ -29,6 +29,9 @@ interface Campaign {
   };
   leads: number;
   firstPushAt: string | null;
+  // L'etat du pilote quotidien qui applique les hausses. `enabled` dit ce qui DEVRAIT se passer,
+  // `lastPushAt` dit ce qui s'est reellement passe — c'est le second qui tranche.
+  autopilot?: { enabled: boolean | null; lastPushAt: string | null; waiting?: number };
 }
 
 interface DeskTicket {
@@ -87,6 +90,13 @@ const moisLisible = (m: string, locale: string) => {
   const [y, mo] = m.split('-').map(Number);
   if (!y || !mo) return m;
   return new Date(y, mo - 1, 1).toLocaleDateString(locale, { month: 'short', year: '2-digit' });
+};
+
+// Parties locales : new Date('2026-09-25') est minuit UTC et recule d'un jour chez nous.
+const fmtJour = (raw: string, locale: string) => {
+  const [y, m, d] = String(raw).slice(0, 10).split('-').map(Number);
+  if (!y) return raw;
+  return new Date(y, m - 1, d).toLocaleDateString(locale, { day: 'numeric', month: 'short' });
 };
 
 const PHASE_COLOR: Record<Campaign['phase'], string> = {
@@ -249,6 +259,23 @@ export default function SaasIncreaseCampaign() {
                 <span className={`text-sm font-medium ${textPri}`}>{data.scenario.name}</span>
                 {data.firstPushAt && (
                   <span className={`text-[11px] ${textQuat}`}>{t('saasCampaign.since', { date: data.firstPushAt })}</span>
+                )}
+                {/* Le moteur. Un compteur immobile ne dit pas s'il attend son tour ou si le
+                    pilote est arrete — et la difference vaut toute la campagne. */}
+                {data.autopilot && (
+                  data.autopilot.enabled === false ? (
+                    <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-semibold text-red-700 dark:bg-red-950/40 dark:text-red-300">
+                      {t('saasCampaign.auto.off')}
+                    </span>
+                  ) : (
+                    <span className={`text-[11px] ${textQuat}`}>
+                      {data.autopilot.lastPushAt
+                        ? t('saasCampaign.auto.on', {
+                            date: fmtJour(data.autopilot.lastPushAt, i18n.language),
+                            waiting: data.autopilot.waiting ?? 0 })
+                        : t('saasCampaign.auto.onNoRun', { waiting: data.autopilot.waiting ?? 0 })}
+                    </span>
+                  )
                 )}
               </div>
               <span className={`max-w-[52ch] text-[11px] ${textQuat}`}>{t(`saasCampaign.phaseHint.${data.phase}`)}</span>
