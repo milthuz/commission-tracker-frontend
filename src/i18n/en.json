@@ -5968,6 +5968,9 @@
       "showTickets": "Show {{count}} tickets",
       "hideTickets": "Hide"
     },
-    "churnShow": "Show the {{count}} accounts"
+    "churnShow": "Show the {{count}} accounts",
+    "billed": "billed",
+    "toCome": "to come",
+    "subsN": "{{count}} subscriptions"
   }
 }
