@@ -2430,7 +2430,19 @@
         "noClusterRep": "Sans représentant Cluster",
         "allPayouts": "Tous les versements",
         "shown": "{{shown}} sur {{total}}",
-        "resetFilters": "Réinitialiser"
+        "resetFilters": "Réinitialiser",
+        "colPhone": "Téléphone",
+        "openDetails": "Toucher la ligne pour voir la fiche complète",
+        "dMerchant": "Marchand",
+        "dPartnerRep": "Représentant du partenaire",
+        "dContact": "Contact",
+        "dName": "Nom",
+        "dNotes": "Note du partenaire",
+        "dNoNotes": "Aucune note.",
+        "dReview": "Révision",
+        "dAssignedTo": "Rep Cluster",
+        "dZohoLead": "Fiche Zoho",
+        "dZohoError": "Erreur Zoho"
       },
       "migration": {
         "title": "Reprise de l’ancien portail",

@@ -2430,7 +2430,19 @@
         "noClusterRep": "No Cluster rep",
         "allPayouts": "All payout states",
         "shown": "{{shown}} of {{total}}",
-        "resetFilters": "Reset"
+        "resetFilters": "Reset",
+        "colPhone": "Phone",
+        "openDetails": "Click the row to see the full record",
+        "dMerchant": "Merchant",
+        "dPartnerRep": "Partner rep",
+        "dContact": "Contact",
+        "dName": "Name",
+        "dNotes": "Partner note",
+        "dNoNotes": "No note.",
+        "dReview": "Review",
+        "dAssignedTo": "Cluster rep",
+        "dZohoLead": "Zoho lead",
+        "dZohoError": "Zoho error"
       },
       "migration": {
         "title": "Legacy portal import",

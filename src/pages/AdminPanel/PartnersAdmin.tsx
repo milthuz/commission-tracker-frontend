@@ -26,6 +26,23 @@ interface CrmMatch {
   matchedOn?: ('name' | 'email' | 'phone')[];
   phone: string | null; email: string | null; city: string | null; crmUrl: string | null;
 }
+// Une ligne « libelle / valeur » de la fiche d'opportunite. Une valeur absente s'affiche « — »
+// plutot que de disparaitre : un champ vide et un champ inexistant ne doivent pas se ressembler.
+function Ligne({ libelle, valeur, lien }: { libelle: string; valeur?: string | null; lien?: string | null }) {
+  return (
+    <div className="flex gap-2">
+      <dt className="w-24 shrink-0 text-body">{libelle}</dt>
+      <dd className="min-w-0 break-words">
+        {valeur
+          ? (lien
+              ? <a href={lien} target={lien.startsWith('http') ? '_blank' : undefined} rel="noreferrer"
+                  className="text-primary hover:underline">{valeur}</a>
+              : <span className="text-black dark:text-white">{valeur}</span>)
+          : <span className="text-gray-400">—</span>}
+      </dd>
+    </div>
+  );
+}
 interface Opportunity {
   id: number; businessName: string;
   contactFirstName: string | null; contactLastName: string | null;
@@ -774,10 +791,14 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
   // Les colonnes SUIVENT la vue : reviser, suivre et archiver ne demandent pas les memes
   // informations, et tout empiler dans une colonne « Zoho CRM » fourre-tout la rendait illisible.
   const QUEUE_COLS: Record<typeof statusFilter, string[]> = {
-    pending:  ['partner', 'business', 'duplicates', 'submitted'],
+    // Le telephone n'est ajoute que la ou l'on DECIDE — demande de David le 2026-09-25 :
+    // pouvoir joindre le marchand avant de l'assigner. Les vues « approuvees » et « rejetees »
+    // ne le portent pas : la decision y est prise, et la colonne de plus couterait de la largeur
+    // a un tableau qui tient deja juste (voir le plancher mesure plus bas).
+    pending:  ['partner', 'business', 'phone', 'duplicates', 'submitted'],
     approved: ['partner', 'business', 'deal', 'payout', 'submitted'],
     rejected: ['partner', 'business', 'reason', 'submitted'],
-    all:      ['partner', 'business', 'state', 'submitted'],
+    all:      ['partner', 'business', 'phone', 'state', 'submitted'],
   };
   const cols = QUEUE_COLS[statusFilter];
   const COL_LABEL: Record<string, string> = {
@@ -788,6 +809,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
     payout:     t('partnerPortal.colPayout') as string,
     reason:     t('admin.partners.queue.colReason') as string,
     state:      t('partnerPortal.colStatus') as string,
+    phone:      t('admin.partners.queue.colPhone') as string,
     submitted:  t('partnerPortal.colSubmitted') as string,
   };
 
@@ -979,6 +1001,16 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
             )}
           </div>
         );
+      case 'phone':
+        // Cliquable pour composer. La rangee ouvre la fiche : sa garde laisse passer le lien
+        // sans ouvrir la fenetre.
+        return o.contactPhone ? (
+          <a href={`tel:${o.contactPhone.replace(/[^\d+]/g, '')}`}
+            className="whitespace-nowrap tabular-nums text-black hover:text-primary dark:text-white">
+            {o.contactPhone}
+          </a>
+        ) : <span className="text-gray-400">—</span>;
+
       case 'submitted':
         return (
           <div className="leading-tight">
@@ -1025,6 +1057,9 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
   };
 
   const [rejecting, setRejecting] = useState<Opportunity | null>(null);
+  // La fiche complete, ouverte en touchant la rangee. Demande de David : voir les details ET
+  // la note du partenaire AVANT d'assigner — la note tenait jusqu'ici dans une infobulle.
+  const [details, setDetails] = useState<Opportunity | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [reviewing, setReviewing] = useState(false);
   const [checkingCrmId, setCheckingCrmId] = useState<number | null>(null);
@@ -2007,7 +2042,14 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                   </thead>
                   <tbody>
                     {opportunities.map((o) => (
-                      <tr key={o.id} className="border-b border-stroke last:border-0 dark:border-strokedark">
+                      // La garde : un clic parti d'un bouton ou d'un lien reste a ce bouton.
+                      // Elle vaut pour tous les enfants interactifs, y compris ceux qu'on
+                      // ajoutera plus tard — c'est tout l'interet de la poser ICI et pas sur
+                      // chaque cellule.
+                      <tr key={o.id}
+                        onClick={(e) => { if (!(e.target as HTMLElement).closest('button, a, input, select')) setDetails(o); }}
+                        title={t('admin.partners.queue.openDetails') as string}
+                        className="cursor-pointer border-b border-stroke last:border-0 hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4">
                         {cols.map((c) => (
                           <td key={c} className={`px-2 py-2 align-top xl:px-3 ${c === 'submitted' ? 'text-right' : ''}`}>
                             {renderQueueCell(o, c)}
@@ -2611,6 +2653,121 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── FICHE D'UNE OPPORTUNITE ────────────────────────────────────────────────────
+          Demande de David le 2026-09-25 : voir le detail ET la note du partenaire AVANT
+          d'assigner. Les actions sont ICI aussi — sinon il faudrait fermer la fenetre pour
+          agir sur ce qu'on vient de lire. */}
+      {details && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) setDetails(null); }}>
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-stroke px-6 py-4 dark:border-strokedark">
+              <div className="min-w-0">
+                <h3 className="truncate text-lg font-bold text-black dark:text-white">{details.businessName}</h3>
+                <p className="mt-0.5 text-xs text-body">
+                  {details.partnerName}
+                  {' · '}
+                  {new Date(details.createdAt).toLocaleString(i18n.language)}
+                </p>
+              </div>
+              <button onClick={() => setDetails(null)}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* min-h-0 : sans lui, un enfant flex ne defile pas — il pousse le parent a la place. */}
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+              {/* Une seule colonne, MESURE : a deux colonnes la valeur n'avait que ~196 px et
+                  un courriel de marchand cassait au milieu d'un mot. */}
+              <div className="grid gap-6">
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.queue.dMerchant')}</p>
+                  <dl className="space-y-1.5 text-sm">
+                    <Ligne libelle={t('admin.partners.queue.dContact') as string}
+                      valeur={[details.contactFirstName, details.contactLastName].filter(Boolean).join(' ') || null} />
+                    <Ligne libelle={t('admin.partners.queue.colPhone') as string}
+                      valeur={details.contactPhone}
+                      lien={details.contactPhone ? `tel:${details.contactPhone.replace(/[^\d+]/g, '')}` : null} />
+                    <Ligne libelle={t('partnerPortal.fEmail') as string}
+                      valeur={details.contactEmail}
+                      lien={details.contactEmail ? `mailto:${details.contactEmail}` : null} />
+                  </dl>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.queue.dPartnerRep')}</p>
+                  <dl className="space-y-1.5 text-sm">
+                    <Ligne libelle={t('admin.partners.queue.dName') as string}
+                      valeur={[details.repFirstName, details.repLastName].filter(Boolean).join(' ') || null} />
+                    <Ligne libelle={t('admin.partners.queue.colPhone') as string}
+                      valeur={details.repPhone}
+                      lien={details.repPhone ? `tel:${details.repPhone.replace(/[^\d+]/g, '')}` : null} />
+                    <Ligne libelle={t('partnerPortal.fEmail') as string}
+                      valeur={details.repEmail || details.submittedByEmail}
+                      lien={(details.repEmail || details.submittedByEmail) ? `mailto:${details.repEmail || details.submittedByEmail}` : null} />
+                  </dl>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.queue.dNotes')}</p>
+                {/* whitespace-pre-line : la note est saisie a la main et porte ses retours a la ligne. */}
+                <p className={`whitespace-pre-line rounded-lg border border-stroke px-4 py-3 text-sm dark:border-strokedark ${
+                  details.notes ? 'text-black dark:text-white' : 'text-gray-400'}`}>
+                  {details.notes || t('admin.partners.queue.dNoNotes')}
+                </p>
+              </div>
+
+              {(details.crmOwnerName || details.crmLeadId || details.crmLeadError || details.reviewedBy) && (
+                <div className="mt-6">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-body">{t('admin.partners.queue.dReview')}</p>
+                  <dl className="space-y-1.5 text-sm">
+                    <Ligne libelle={t('admin.partners.queue.reviewedBy') as string} valeur={details.reviewedBy} />
+                    <Ligne libelle={t('admin.partners.queue.dAssignedTo') as string} valeur={details.crmOwnerName} />
+                    <Ligne libelle={t('admin.partners.queue.dZohoLead') as string}
+                      valeur={details.crmLeadId}
+                      lien={details.crmLeadId ? `https://crm.zoho.com/crm/tab/Leads/${details.crmLeadId}` : null} />
+                    {details.crmLeadError && (
+                      <div className="flex gap-2">
+                        <dt className="w-24 shrink-0 text-body">{t('admin.partners.queue.dZohoError')}</dt>
+                        <dd className="text-danger">{details.crmLeadError}</dd>
+                      </div>
+                    )}
+                    {details.rejectionReason && (
+                      <div className="flex gap-2">
+                        <dt className="w-24 shrink-0 text-body">{t('admin.partners.queue.colReason')}</dt>
+                        <dd className="text-black dark:text-white">{details.rejectionReason}</dd>
+                      </div>
+                    )}
+                  </dl>
+                </div>
+              )}
+            </div>
+
+            <div className="flex shrink-0 justify-end gap-2 border-t border-stroke px-6 py-4 dark:border-strokedark">
+              <button onClick={() => setDetails(null)}
+                className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4">
+                {t('common.close')}
+              </button>
+              {details.status === 'pending' && (
+                <>
+                  <button onClick={() => { const o = details; setDetails(null); setRejecting(o); setRejectReason(''); }}
+                    disabled={reviewing}
+                    className="rounded-lg border border-danger/40 px-4 py-2 text-sm font-medium text-danger hover:bg-danger/10 disabled:opacity-60">
+                    {t('admin.partners.reject')}
+                  </button>
+                  <button onClick={() => { const o = details; setDetails(null); approve(o); }}
+                    disabled={reviewing}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                    {t('admin.partners.approve')}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
