@@ -26,7 +26,12 @@ interface CrmMatch {
   // trouvent la meme fiche. Absent des verifications faites avant le 2026-08-05.
   matchedOn?: ('name' | 'email' | 'phone')[];
   phone: string | null; email: string | null; city: string | null; crmUrl: string | null;
+  // À qui la fiche appartient déjà dans Zoho. Absent des vérifications faites avant le 2026-09-28.
+  owner?: { id: string | null; name: string; email: string | null } | null;
 }
+// Les propriétaires Zoho distincts des fiches trouvées.
+const matchOwners = (recs: CrmMatch[]) =>
+  [...new Map((recs || []).filter((m) => m.owner?.name).map((m) => [m.owner!.name.toLowerCase(), m.owner!])).values()];
 // Une ligne « libelle / valeur » de la fiche d'opportunite. Une valeur absente s'affiche « — »
 // plutot que de disparaitre : un champ vide et un champ inexistant ne doivent pas se ressembler.
 // `telephone` plutot que `lien` pour un numero : voir TelephoneCopiable. Les courriels gardent
@@ -1101,6 +1106,9 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
   const approve = async (o: Opportunity) => {
     setApproving(o);
     setSelectedRepId('');
+    // Doublon vérifié avant l'ajout du propriétaire : on revérifie, pour que la personne qui
+    // approuve voie à qui le marchand appartient déjà au moment de choisir le représentant.
+    if (o.crmMatchStatus === 'match_found' && (o.crmMatchRecords || []).some((m) => !('owner' in m))) recheckCrm(o);
     if (!crmReps.length) {
       setLoadingReps(true);
       try {
@@ -1110,6 +1118,10 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       finally { setLoadingReps(false); }
     }
   };
+  // Le représentant Zoho qui correspond au propriétaire d'une fiche (par identifiant, puis par nom).
+  const repForOwner = (ow: { id: string | null; name: string }) =>
+    crmReps.find((r) => ow.id && String(r.id) === String(ow.id))
+    || crmReps.find((r) => r.name.trim().toLowerCase() === ow.name.trim().toLowerCase());
   const confirmApprove = () => {
     const rep = crmReps.find((r) => r.id === selectedRepId);
     setStatus(approving as Opportunity, 'approved', undefined, selectedRepId || undefined, rep?.name);
@@ -1134,9 +1146,11 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
     setCheckingCrmId(o.id);
     try {
       const r = await axios.post(`${API_URL}/api/admin/partner-opportunities/${o.id}/crm-check`, {}, { headers: authHeaders() });
-      setAllOpportunities((prev) => prev.map((x) => x.id === o.id
-        ? { ...x, crmMatchStatus: r.data.crmMatchStatus, crmMatchSummary: r.data.crmMatchSummary, crmMatchRecords: r.data.crmMatchRecords || [] }
-        : x));
+      const fresh = { crmMatchStatus: r.data.crmMatchStatus, crmMatchSummary: r.data.crmMatchSummary, crmMatchRecords: r.data.crmMatchRecords || [] };
+      setAllOpportunities((prev) => prev.map((x) => x.id === o.id ? { ...x, ...fresh } : x));
+      // Les fenêtres ouvertes sur cette opportunité suivent aussi.
+      setApproving((a) => (a && a.id === o.id ? { ...a, ...fresh } : a));
+      setViewingMatches((v) => (v && v.id === o.id ? { ...v, ...fresh } : v));
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to check Zoho CRM'); }
     finally { setCheckingCrmId(null); }
   };
@@ -2365,6 +2379,9 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                       {m.email && <span>✉ {m.email}</span>}
                       {m.city && <span>📍 {m.city}</span>}
                     </div>
+                    {m.owner?.name && (
+                      <div className="mt-1 text-xs font-medium text-black dark:text-white">{t('admin.partners.crm.ownedBy', { name: m.owner.name })}</div>
+                    )}
                     {m.crmUrl && (
                       <div className="mt-1.5 text-xs font-medium text-primary">{t('admin.partners.crm.viewInCrm')} →</div>
                     )}
@@ -2559,6 +2576,29 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
               <p className="mb-4 rounded-lg bg-warning/10 p-3 text-xs text-warning">
                 {t('admin.partners.crm.duplicateConfirm', { name: approving.businessName, summary: approving.crmMatchSummary || '' })}
               </p>
+            )}
+            {approving.crmMatchStatus === 'match_found' && matchOwners(approving.crmMatchRecords).length > 0 && (
+              <div className="mb-4 rounded-lg border border-stroke p-3 text-xs dark:border-strokedark">
+                <p className="mb-1.5 font-medium text-black dark:text-white">{t('admin.partners.crm.ownersTitle')}</p>
+                <ul className="space-y-1.5">
+                  {matchOwners(approving.crmMatchRecords).map((ow) => {
+                    const r = repForOwner(ow);
+                    return (
+                      <li key={ow.name} className="flex flex-wrap items-center gap-2">
+                        <span className="text-black dark:text-white">{ow.name}</span>
+                        {!r && !loadingReps && <span className="text-gray-400">({t('admin.partners.crm.ownerNotRep')})</span>}
+                        {r && String(r.id) === selectedRepId && <span className="text-success">✓ {t('admin.partners.crm.ownerSelected')}</span>}
+                        {r && String(r.id) !== selectedRepId && (
+                          <button type="button" onClick={() => setSelectedRepId(String(r.id))}
+                            className="rounded border border-primary/40 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/10">
+                            {t('admin.partners.crm.assignOwner', { name: r.name })}
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             )}
             <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.assignRep')}</label>
             <Select value={selectedRepId} onChange={(v) => setSelectedRepId(v)} disabled={loadingReps} options={[{ value: '', label: t('admin.partners.assignRepNone') as string }, ...crmReps.map((rep) => ({ value: String(rep.id), label: `${rep.name}${rep.email ? ` · ${rep.email}` : ''}` }))]} buttonClassName={`${inputCls} mb-1`} />
