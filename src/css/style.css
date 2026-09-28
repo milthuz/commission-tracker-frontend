@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 @layer base {
+  /* Texte `success` (tailwind.config.cjs, textColor) : vert foncé sur fond clair, le pastel de la
+     palette sur fond sombre. `.dark` est posée sur le body ; les descendants héritent de la
+     variable, donc pas de piège de sélecteur descendant ici. */
+  :root { --color-success-text: 4 120 87; }      /* emerald-700 #047857 */
+  .dark { --color-success-text: 183 240 209; }   /* pastel d'origine #B7F0D1 */
+  :root { --color-warning-text: 194 65 12; }      /* orange-700 #C2410C */
+  .dark { --color-warning-text: 251 205 181; }   /* pastel d'origine #FBCDB5 */
   /* Le fond SOMBRE manquait sur le body : seule la div de DefaultLayout le portait
      (`dark:bg-boxdark-2`). Tant que React n'avait rien affiché — au chargement, entre
      deux routes chargées à la demande, ou pendant une erreur — c'est le gris clair du

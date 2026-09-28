@@ -2604,7 +2604,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
             <Select value={selectedRepId} onChange={(v) => setSelectedRepId(v)} disabled={loadingReps} options={[{ value: '', label: t('admin.partners.assignRepNone') as string }, ...crmReps.map((rep) => ({ value: String(rep.id), label: `${rep.name}${rep.email ? ` · ${rep.email}` : ''}` }))]} buttonClassName={`${inputCls} mb-1`} />
             <p className="mb-4 text-xs text-gray-400">{loadingReps ? t('admin.partners.loadingReps') : t('admin.partners.assignRepHint')}</p>
             <button onClick={confirmApprove} disabled={reviewing}
-              className="w-full rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+              className="w-full rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-opacity-90 disabled:opacity-60">
               {t('admin.partners.approve')}
             </button>
           </div>

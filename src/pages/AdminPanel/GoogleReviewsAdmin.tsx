@@ -464,7 +464,7 @@ const GoogleReviewsAdmin: React.FC = () => {
                           <button disabled={busy === r.id || !assign[r.id]}
                             onClick={() => patch(r.id, { status: 'approved', repName: assign[r.id], period })}
                             title={tr('approveTitle', { period }) as string}
-                            className="mr-1 rounded-md bg-success px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-40">
+                            className="mr-1 rounded-md bg-success px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-opacity-90 disabled:opacity-40">
                             {tr('approve')}
                           </button>
                         )}

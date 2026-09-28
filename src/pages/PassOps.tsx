@@ -313,7 +313,7 @@ const PassOps = () => {
                       {r.status === 'live' && (
                         <button disabled={busyId === r.id} onClick={() => openCredit(r)}
                           title={t('pass.ops.actions.apply')}
-                          className="whitespace-nowrap rounded bg-success px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-40">
+                          className="whitespace-nowrap rounded bg-success px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-opacity-90 disabled:opacity-40">
                           {t('passOps.applyCredit')}
                         </button>
                       )}

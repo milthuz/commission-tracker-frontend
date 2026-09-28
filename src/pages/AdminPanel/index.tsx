@@ -2383,7 +2383,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <button
                     onClick={triggerRecalculate}
                     disabled={recalcPolling || enrichPolling}
-                    className="inline-flex items-center gap-2 rounded-md bg-warning px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-md bg-warning px-5 py-2.5 text-sm font-medium text-orange-900 shadow-sm hover:bg-opacity-90 disabled:opacity-50"
                   >
                     <svg className={`h-4 w-4 ${recalcPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -2822,7 +2822,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                             <button
                               onClick={() => toggleSalesperson(person.name, person.isActive)}
                               className={`shrink-0 inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                                person.isActive ? 'bg-danger text-white hover:bg-opacity-90' : 'bg-success text-white hover:bg-opacity-90'
+                                person.isActive ? 'bg-danger text-white hover:bg-opacity-90' : 'bg-success text-emerald-900 hover:bg-opacity-90'
                               }`}
                             >
                               {person.isActive ? t('admin.salespeople.deactivate') : t('admin.salespeople.activate')}
@@ -3699,7 +3699,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
                                   user.isAdmin
                                     ? 'bg-danger text-white hover:bg-opacity-90'
-                                    : 'bg-success text-white hover:bg-opacity-90'
+                                    : 'bg-success text-emerald-900 hover:bg-opacity-90'
                                 }`}
                               >
                                 {user.isAdmin ? t('admin.admins.revokeAdmin') : t('admin.admins.grantAdmin')}
@@ -3727,7 +3727,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   onClick={() => setAccountStatus(user, user.status === 'disabled' ? 'active' : 'disabled')}
                                   className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
                                     user.status === 'disabled'
-                                      ? 'bg-success text-white hover:bg-opacity-90'
+                                      ? 'bg-success text-emerald-900 hover:bg-opacity-90'
                                       : 'border border-stroke text-body hover:border-danger hover:text-danger dark:border-strokedark'
                                   }`}
                                 >

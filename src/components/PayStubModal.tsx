@@ -706,7 +706,7 @@ const PayStubModal: React.FC<{
                       <input type="number" value={adjYear} onChange={(e) => setAdjYear(parseInt(e.target.value) || adjYear)}
                         className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
                       <button onClick={reportMissed} disabled={adjBusy}
-                        className="rounded-md bg-warning px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+                        className="rounded-md bg-warning px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-opacity-90 disabled:opacity-50">
                         {adjBusy ? '…' : tp('reportButton')}
                       </button>
                     </div>
@@ -720,7 +720,7 @@ const PayStubModal: React.FC<{
                 <button
                   onClick={onCommit}
                   disabled={committing}
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-success px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50"
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-success px-5 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-opacity-90 disabled:opacity-50"
                 >
                   {committing ? (
                     <>

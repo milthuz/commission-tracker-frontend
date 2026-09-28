@@ -101,6 +101,14 @@ module.exports = {
         danger: '#F58346',
         warning: '#FBCDB5',
       },
+      // Le pastel `success` (#B7F0D1) est une couleur de FOND : en texte sur fond clair, il était
+      // illisible (131 `text-success` dans l'app). Seule la couleur de TEXTE est redéfinie, par
+      // une variable qui bascule avec le thème — voir --color-success-text dans css/style.css.
+      textColor: {
+        success: 'rgb(var(--color-success-text) / <alpha-value>)',
+        // Même piège avec le pêche `warning` (#FBCDB5) : 125 `text-warning`.
+        warning: 'rgb(var(--color-warning-text) / <alpha-value>)',
+      },
       fontSize: {
         'title-xxl': ['44px', '55px'],
         'title-xl': ['36px', '45px'],

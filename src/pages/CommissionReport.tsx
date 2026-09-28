@@ -1606,7 +1606,7 @@ const CommissionReport = () => {
       {/* Notification — bottom-right toast, auto-dismisses, manually closable */}
       {notification.show && (
         <div className="fixed bottom-6 right-6 z-[999999] max-w-sm">
-          <div className={`flex items-start gap-3 rounded-lg px-5 py-3.5 shadow-xl ${notification.type === 'success' ? 'bg-success text-white' : 'bg-danger text-white'}`}>
+          <div className={`flex items-start gap-3 rounded-lg px-5 py-3.5 shadow-xl ${notification.type === 'success' ? 'bg-success text-emerald-900' : 'bg-danger text-white'}`}>
             <p className="text-sm font-medium leading-snug">{notification.message}</p>
             <button onClick={() => setNotification(n => ({ ...n, show: false }))} className="-mr-1 ml-auto shrink-0 text-white/80 transition hover:text-white" aria-label="Close">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>

@@ -1934,7 +1934,7 @@ const CommissionImport: React.FC = () => {
               </div>
             </div>
             <button onClick={fetchBonusCommitted} disabled={bonusSendLoading}
-              className="rounded-md border border-warning px-4 py-2 text-sm font-medium text-warning hover:bg-warning hover:text-white disabled:opacity-50">
+              className="rounded-md border border-warning px-4 py-2 text-sm font-medium text-warning hover:bg-warning hover:text-orange-900 disabled:opacity-50">
               {bonusSendLoading ? t('admin.commissionImport.bonusPayroll.loading') : t('admin.commissionImport.bonusPayroll.preview')}
             </button>
             {(() => {
@@ -1997,7 +1997,7 @@ const CommissionImport: React.FC = () => {
                     </table>
                   </div>
                   <button onClick={openBonusConfirm} disabled={bonusSending || payRecipients.length === 0 || bonusSelectedReps.size === 0}
-                    className="rounded-md bg-warning px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                    className="rounded-md bg-warning px-5 py-2.5 text-sm font-medium text-orange-900 hover:bg-opacity-90 disabled:opacity-50"
                     title={payRecipients.length === 0 ? t('admin.commissionImport.payroll.noRecipients') as string : undefined}>
                     {bonusSending ? t('admin.commissionImport.bonusPayroll.sending') : t('admin.commissionImport.bonusPayroll.send')}
                   </button>
@@ -2120,7 +2120,7 @@ const CommissionImport: React.FC = () => {
               <button
                 onClick={commitProcessing}
                 disabled={procCommitting}
-                className="rounded-md bg-success px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                className="rounded-md bg-success px-4 py-2 text-sm font-medium text-emerald-900 hover:bg-opacity-90 disabled:opacity-50"
               >
                 {procCommitting ? t('admin.commissionImport.processing.loading') : t('admin.commissionImport.processing.commit')}
               </button>

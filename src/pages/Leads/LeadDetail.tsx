@@ -394,7 +394,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                         <button type="button" onClick={() => { setConfirmDup(false); doReject(true); }} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-bodydark2 hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:hover:bg-meta-4">
                           {t('leads.detail.markDuplicate')}
                         </button>
-                        <button type="button" onClick={() => doAccept(true)} disabled={!!busy || !rep} className="rounded bg-warning px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                        <button type="button" onClick={() => doAccept(true)} disabled={!!busy || !rep} className="rounded bg-warning px-4 py-2 text-sm font-medium text-orange-900 hover:bg-opacity-90 disabled:opacity-60">
                           {busy === 'accept' ? t('leads.detail.accepting') : t('leads.dup.acceptAnyway')}
                         </button>
                       </div>
