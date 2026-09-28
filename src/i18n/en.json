@@ -4796,6 +4796,22 @@
     "viaRule": "rule “{{rule}}”",
     "viaRotation": "round-robin",
     "duplicateFound": "Zoho already has {{n}} matching record(s)",
+    "dup": {
+      "ownedBy": "owner: {{name}}",
+      "assignToOwner": "Assign to {{name}}",
+      "assignedToOwner": "already assigned to them",
+      "ownerNotRep": "not in the rep list",
+      "sameOwner": "This merchant already belongs to {{name}} in Zoho.",
+      "noMatch": "Checked in Zoho: no existing record for this name, email or phone.",
+      "checkFailed": "The Zoho check couldn't run. Run it again before accepting.",
+      "notChecked": "Not checked in Zoho yet.",
+      "checking": "Checking Zoho…",
+      "checkNow": "Check now",
+      "confirmTitle": "This merchant may already exist in Zoho",
+      "confirmBody": "Zoho already has {{n}} matching record(s). Accepting will create a NEW Zoho record, a callback and emails on behalf of {{rep}}.",
+      "confirmOwners": "Current owner(s) in Zoho: {{names}}.",
+      "acceptAnyway": "Accept anyway"
+    },
     "field": {
       "businessName": "Business name",
       "businessType": "Business type",

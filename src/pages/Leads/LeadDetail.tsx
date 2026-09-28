@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Select from '../../components/Select';
 import TelephoneCopiable from '../../components/TelephoneCopiable';
-import { authHeaders, leadFullName, statusTone, type Lead, type LeadRep } from './types';
+import { authHeaders, leadFullName, statusTone, type DuplicateRecord, type Lead, type LeadRep } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -59,6 +59,8 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ tone: 'ok' | 'warn' | 'error'; text: string } | null>(null);
   const [rejecting, setRejecting] = useState(false);
+  // Doublon Zoho : « Accepter » demande d'abord une confirmation explicite (le serveur l'exige aussi).
+  const [confirmDup, setConfirmDup] = useState(false);
   const [reason, setReason] = useState('');
 
   const dt = (iso?: string | null, withTime = true) =>
@@ -83,6 +85,20 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [leadId]);
 
+  // Fiches vérifiées avant l'ajout du propriétaire, ou jamais vérifiées : on relance la
+  // vérification une fois à l'ouverture, pour que la personne qui attribue voie à qui le
+  // marchand appartient déjà.
+  const [autoChecked, setAutoChecked] = useState(false);
+  useEffect(() => {
+    if (!lead || autoChecked || !canReview) return;
+    if (lead.status !== 'new' && lead.status !== 'in_review') return;
+    const recs = lead.duplicate?.records || [];
+    const stale = !lead.duplicate?.status || (lead.duplicate.status === 'match_found' && recs.some((r) => !('owner' in r)));
+    setAutoChecked(true);
+    if (stale) doRecheck();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lead, canReview]);
+
   const call = async (path: string, body?: any, method = 'POST') => {
     const res = await fetch(`${API_URL}/api/leads/${leadId}${path}`, {
       method,
@@ -101,10 +117,12 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
     finally { setBusy(null); }
   };
 
-  const doAccept = async () => {
+  const doAccept = async (confirmed = false) => {
+    if (lead?.duplicate?.status === 'match_found' && !confirmed) { setConfirmDup(true); return; }
     setBusy('accept'); setNotice(null);
     try {
-      const out = await call('/accept', { repName: rep || undefined });
+      const out = await call('/accept', { repName: rep || undefined, confirmDuplicate: confirmed });
+      setConfirmDup(false);
       await load(); onChanged();
       // Une acceptation À MOITIÉ réussie ne doit pas s'annoncer comme un succès : la fiche Zoho
       // existe, mais si un courriel n'est pas parti, la personne qui a cliqué doit le savoir
@@ -116,6 +134,8 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
         ? { tone: 'warn', text: t('leads.detail.acceptedPartial', { n: failed.length }) }
         : { tone: 'ok', text: t('leads.detail.acceptedOk') });
     } catch (e: any) {
+      // Un doublon apparu depuis l'ouverture de la fiche : on recharge et on demande.
+      if (e?.data?.error === 'duplicate_unconfirmed') { await load(); setConfirmDup(true); return; }
       setNotice({
         tone: 'error',
         text: e?.data?.error === 'no_rep' ? t('leads.detail.noRepChosen')
@@ -140,6 +160,13 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
   };
 
   const dupRecords = lead?.duplicate?.records || [];
+  const dupStatus = lead?.duplicate?.status || null;
+  const matchedOnLabel = (m: DuplicateRecord['matchedOn']) =>
+    (Array.isArray(m) ? m : [m]).map((k) => t(`leads.matchedOn.${k}`, { defaultValue: k })).join(' + ');
+  // Les propriétaires Zoho des fiches trouvées, sans doublon, et ceux qui sont des représentants
+  // de Sales Hub (on peut alors leur attribuer la piste en un clic).
+  const owners = [...new Map(dupRecords.filter((r) => r.owner?.name).map((r) => [r.owner!.name.toLowerCase(), r.owner!.name])).values()];
+  const repFor = (name?: string | null) => (name ? reps.find((x) => x.name.trim().toLowerCase() === name.trim().toLowerCase()) : undefined);
   const pending = lead && (lead.status === 'new' || lead.status === 'in_review');
   const auto = lead?.automation || {};
 
@@ -177,21 +204,54 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                   : 'border-danger/40 bg-danger/10 text-danger'}`}>{notice.text}</div>
               )}
 
-              {/* Le doublon est signalé mais jamais bloquant : c'est un jugement humain. */}
-              {!!dupRecords.length && (
+              {/* Vérification dans Zoho — TOUJOURS affichée : « rien trouvé » et « pas vérifié »
+                  ne doivent pas se ressembler. Le doublon est signalé, jamais bloquant d'office :
+                  c'est un jugement humain (un marchand à plusieurs succursales n'est pas un doublon). */}
+              {dupStatus === 'match_found' && !!dupRecords.length ? (
                 <div className="mb-5 rounded-sm border border-warning/50 bg-warning/10 px-4 py-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-warning">{t('leads.duplicateFound', { n: dupRecords.length })}</p>
-                      <ul className="mt-2 space-y-1 text-xs text-black dark:text-white">
-                        {dupRecords.slice(0, 6).map((r) => (
-                          <li key={`${r.module}-${r.id}`}>
-                            <a href={`https://crm.zoho.com/crm/tab/${r.module}/${r.id}`} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">
-                              {r.company || r.id}
-                            </a>
-                            <span className="text-bodydark2"> — {r.module} · {t(`leads.matchedOn.${r.matchedOn}`, { defaultValue: r.matchedOn })}</span>
-                          </li>
-                        ))}
+                      {owners.length === 1 && (() => {
+                        const ownerRep = repFor(owners[0]);
+                        return (
+                          <p className="mt-1 text-sm text-black dark:text-white">
+                            {t('leads.dup.sameOwner', { name: owners[0] })}
+                            {!ownerRep && <span className="text-bodydark2"> ({t('leads.dup.ownerNotRep')})</span>}
+                            {pending && canReview && ownerRep && ownerRep.name !== rep && (
+                              <button type="button" onClick={() => doAssign(ownerRep.name)} disabled={!!busy}
+                                className="ml-2 rounded border border-primary/40 px-2 py-0.5 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-60">
+                                {t('leads.dup.assignToOwner', { name: ownerRep.name })}
+                              </button>
+                            )}
+                            {ownerRep && ownerRep.name === rep && <span className="ml-2 text-xs text-success">✓ {t('leads.dup.assignedToOwner')}</span>}
+                          </p>
+                        );
+                      })()}
+                      <ul className="mt-2 space-y-1.5 text-xs text-black dark:text-white">
+                        {dupRecords.slice(0, 6).map((r) => {
+                          const ownerRep = repFor(r.owner?.name);
+                          return (
+                            <li key={`${r.module}-${r.id}`}>
+                              <a href={`https://crm.zoho.com/crm/tab/${r.module}/${r.id}`} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">
+                                {r.company || r.name || r.id}
+                              </a>
+                              <span className="text-bodydark2"> — {r.module} · {matchedOnLabel(r.matchedOn)}</span>
+                              {r.owner?.name && owners.length > 1 && (
+                                <span className="text-bodydark2">
+                                  {' · '}{t('leads.dup.ownedBy', { name: r.owner.name })}
+                                  {!ownerRep && ` (${t('leads.dup.ownerNotRep')})`}
+                                </span>
+                              )}
+                              {owners.length > 1 && pending && canReview && ownerRep && ownerRep.name !== rep && (
+                                <button type="button" onClick={() => doAssign(ownerRep.name)} disabled={!!busy}
+                                  className="ml-2 rounded border border-primary/40 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/10 disabled:opacity-60">
+                                  {t('leads.dup.assignToOwner', { name: ownerRep.name })}
+                                </button>
+                              )}
+                            </li>
+                          );
+                        })}
                       </ul>
                     </div>
                     {canReview && (
@@ -200,6 +260,23 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                       </button>
                     )}
                   </div>
+                </div>
+              ) : pending && (
+                <div className={`mb-5 flex items-center justify-between gap-3 rounded-sm border px-4 py-2.5 text-sm ${
+                  dupStatus === 'no_match' ? 'border-success/40 bg-success/10 text-success'
+                  : dupStatus === 'check_failed' ? 'border-warning/50 bg-warning/10 text-warning'
+                  : 'border-stroke text-bodydark2 dark:border-strokedark'}`}>
+                  <span>
+                    {busy === 'recheck' ? t('leads.dup.checking')
+                      : dupStatus === 'no_match' ? t('leads.dup.noMatch')
+                      : dupStatus === 'check_failed' ? t('leads.dup.checkFailed')
+                      : t('leads.dup.notChecked')}
+                  </span>
+                  {canReview && (
+                    <button type="button" onClick={doRecheck} disabled={!!busy} className="shrink-0 whitespace-nowrap rounded border border-current/40 px-3 py-1 text-xs font-medium hover:bg-black/5 disabled:opacity-60 dark:hover:bg-white/5">
+                      {busy === 'recheck' ? t('common.loading') : dupStatus === 'no_match' ? t('leads.detail.recheck') : t('leads.dup.checkNow')}
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -303,12 +380,31 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                         </button>
                       </div>
                     </div>
+                  ) : confirmDup ? (
+                    <div className="mt-4 rounded-sm border border-warning/50 bg-warning/10 px-4 py-3">
+                      <p className="text-sm font-medium text-warning">{t('leads.dup.confirmTitle')}</p>
+                      <p className="mt-1 text-sm text-black dark:text-white">
+                        {t('leads.dup.confirmBody', { n: dupRecords.length, rep: rep || '…' })}
+                        {owners.length > 0 && <> {t('leads.dup.confirmOwners', { names: owners.join(', ') })}</>}
+                      </p>
+                      <div className="mt-3 flex flex-wrap justify-end gap-2">
+                        <button type="button" onClick={() => setConfirmDup(false)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                          {t('common.cancel')}
+                        </button>
+                        <button type="button" onClick={() => { setConfirmDup(false); doReject(true); }} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-bodydark2 hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:hover:bg-meta-4">
+                          {t('leads.detail.markDuplicate')}
+                        </button>
+                        <button type="button" onClick={() => doAccept(true)} disabled={!!busy || !rep} className="rounded bg-warning px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                          {busy === 'accept' ? t('leads.detail.accepting') : t('leads.dup.acceptAnyway')}
+                        </button>
+                      </div>
+                    </div>
                   ) : (
                     <div className="mt-4 flex flex-wrap justify-end gap-2">
                       <button type="button" onClick={() => setRejecting(true)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
                         {t('leads.detail.reject')}
                       </button>
-                      <button type="button" onClick={doAccept} disabled={!!busy || !rep} className="rounded bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                      <button type="button" onClick={() => doAccept()} disabled={!!busy || !rep} className="rounded bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
                         {busy === 'accept' ? t('leads.detail.accepting') : t('leads.detail.accept')}
                       </button>
                     </div>

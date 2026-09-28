@@ -11,11 +11,16 @@ export type LeadSource = (typeof LEAD_SOURCES)[number];
 
 export interface DuplicateRecord {
   module: string;
-  matchedOn: string;
+  // Tableau depuis 2026-08-05 (une même fiche trouvée par plusieurs critères) ; chaîne avant.
+  matchedOn: string | string[];
   company: string | null;
   id: string;
-  owner?: string | null;
-  status?: string | null;
+  name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  city?: string | null;
+  // À qui la fiche appartient déjà dans Zoho. Absent sur les fiches vérifiées avant 2026-09-28.
+  owner?: { id: string | null; name: string; email: string | null } | null;
 }
 
 export interface Lead {

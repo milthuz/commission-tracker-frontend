@@ -4796,6 +4796,22 @@
     "viaRule": "règle « {{rule}} »",
     "viaRotation": "tour de rôle",
     "duplicateFound": "Zoho a déjà {{n}} fiche(s) qui correspondent",
+    "dup": {
+      "ownedBy": "propriétaire : {{name}}",
+      "assignToOwner": "Assigner à {{name}}",
+      "assignedToOwner": "déjà attribuée à cette personne",
+      "ownerNotRep": "pas dans la liste des représentants",
+      "sameOwner": "Ce marchand appartient déjà à {{name}} dans Zoho.",
+      "noMatch": "Vérifié dans Zoho : aucune fiche existante pour ce nom, ce courriel ou ce téléphone.",
+      "checkFailed": "La vérification dans Zoho n'a pas pu se faire. Relancez-la avant d'accepter.",
+      "notChecked": "Pas encore vérifiée dans Zoho.",
+      "checking": "Vérification dans Zoho…",
+      "checkNow": "Vérifier maintenant",
+      "confirmTitle": "Ce marchand existe peut-être déjà dans Zoho",
+      "confirmBody": "Zoho a déjà {{n}} fiche(s) qui correspondent. Accepter créera une NOUVELLE fiche Zoho, un rappel et des courriels au nom de {{rep}}.",
+      "confirmOwners": "Propriétaire(s) actuel(s) dans Zoho : {{names}}.",
+      "acceptAnyway": "Accepter quand même"
+    },
     "field": {
       "businessName": "Nom de l'entreprise",
       "businessType": "Type de commerce",
