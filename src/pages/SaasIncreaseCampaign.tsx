@@ -60,6 +60,8 @@ interface Desk {
   categorized?: {
     key: string; issueType: string; csCategory: string; since?: string;
     total: number; matchedToCampaign?: number; open?: number; closed?: number;
+    // Le partage entre ce que la categorie designe et ce que seul le SUJET a rattrape.
+    byCategoryMatch?: number; bySubjectMatch?: number;
     medianHoursToClose?: number | null;
     byMonth?: { month: string; n: number }[];
     list: (DeskTicket & { inCampaign: boolean; statusType: string | null })[];
@@ -474,6 +476,15 @@ export default function SaasIncreaseCampaign() {
                                 ` · ${t('saasCampaign.desk.cat.median', { hours: fam.medianHoursToClose })}`}
                               {` · ${t('saasCampaign.desk.cat.matchedShort', { matched: fam.matchedToCampaign ?? 0 })}`}
                             </div>
+                            {/* Un chiffre mi-classement mi-mot-clef doit dire lequel est lequel.
+                                Sans ca, personne ne peut juger s'il est solide — et cette part
+                                fondra le jour ou le service corrigera son classement. */}
+                            {!!fam.bySubjectMatch && (
+                              <div className={`mt-1 text-[11px] ${textQuat}`}>
+                                {t('saasCampaign.desk.cat.viaSubject', {
+                                  byCat: fam.byCategoryMatch ?? 0, bySubject: fam.bySubjectMatch })}
+                              </div>
+                            )}
                           </div>
                           {/* La regle de comptage suit le chiffre, en infobulle : elle doit rester
                               atteignable sans etre relue a chaque coup d'oeil. */}

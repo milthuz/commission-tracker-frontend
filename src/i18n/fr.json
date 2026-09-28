@@ -6101,7 +6101,8 @@
         "rule": "Comptés par la catégorie que le service à la clientèle leur donne : {{issueType}} → {{csCategory}}. Aucun rapprochement de noms là-dedans.",
         "matched": "{{matched}} sur {{total}} viennent d'un marchand avisé par cette campagne. Les autres n'ont pas été avisés, ou leur compte Desk porte un nom différent.",
         "inCampaign": "avisé par la campagne",
-        "matchedShort": "{{matched}} avisés"
+        "matchedShort": "{{matched}} avisés",
+        "viaSubject": "{{byCat}} par catégorie · {{bySubject}} rattrapés par le sujet (classés ailleurs)"
       },
       "fam": {
         "pricing": "questions de prix et facturation",
