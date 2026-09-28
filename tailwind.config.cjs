@@ -98,7 +98,10 @@ module.exports = {
           10: '#FFD1E4',
         },
         success: '#B7F0D1',
-        danger: '#F58346',
+        // `danger` était #F58346 — la MÊME couleur que `primary` : un bouton « Supprimer » avait
+        // l'air d'un bouton « Enregistrer », et le texte blanc y tombait à 2,6:1. Rouge franc
+        // (red-600) depuis le 2026-09-28 : blanc lisible dessus (4,8:1), teintes /10 rosées.
+        danger: '#DC2626',
         warning: '#FBCDB5',
       },
       // Le pastel `success` (#B7F0D1) est une couleur de FOND : en texte sur fond clair, il était
@@ -108,6 +111,7 @@ module.exports = {
         success: 'rgb(var(--color-success-text) / <alpha-value>)',
         // Même piège avec le pêche `warning` (#FBCDB5) : 125 `text-warning`.
         warning: 'rgb(var(--color-warning-text) / <alpha-value>)',
+        danger: 'rgb(var(--color-danger-text) / <alpha-value>)',
       },
       fontSize: {
         'title-xxl': ['44px', '55px'],

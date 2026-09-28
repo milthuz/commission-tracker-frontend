@@ -10,6 +10,8 @@
   .dark { --color-success-text: 183 240 209; }   /* pastel d'origine #B7F0D1 */
   :root { --color-warning-text: 194 65 12; }      /* orange-700 #C2410C */
   .dark { --color-warning-text: 251 205 181; }   /* pastel d'origine #FBCDB5 */
+  :root { --color-danger-text: 185 28 28; }       /* red-700 #B91C1C */
+  .dark { --color-danger-text: 248 113 113; }    /* red-400 #F87171 */
   /* Le fond SOMBRE manquait sur le body : seule la div de DefaultLayout le portait
      (`dark:bg-boxdark-2`). Tant que React n'avait rien affiché — au chargement, entre
      deux routes chargées à la demande, ou pendant une erreur — c'est le gris clair du
