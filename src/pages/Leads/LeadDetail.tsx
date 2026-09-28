@@ -332,6 +332,14 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                       label={t('leads.detail.stepCallback', { kind: auto.callback?.kind === 'Tasks' ? t('leads.detail.task') : t('leads.detail.call') })}
                       detail={auto.callback?.ok ? dt(lead.callbackAt) : auto.callback?.skipped ? t('leads.detail.disabled') : auto.callback?.error}
                     />
+                    {auto.calendar && (
+                      <StepLine
+                        ok={!!auto.calendar.ok}
+                        skipped={auto.calendar.skipped}
+                        label={t('leads.detail.stepCalendar')}
+                        detail={auto.calendar.ok ? auto.calendar.calendar : auto.calendar.skipped ? t(`leads.detail.skip.${auto.calendar.skipped}`, { defaultValue: auto.calendar.skipped }) : auto.calendar.error}
+                      />
+                    )}
                     <StepLine
                       ok={!!auto.repEmail?.ok}
                       skipped={auto.repEmail?.skipped}
@@ -342,12 +350,23 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                       ok={!!auto.merchantEmail?.ok}
                       skipped={auto.merchantEmail?.skipped}
                       label={t('leads.detail.stepMerchantEmail')}
-                      detail={auto.merchantEmail?.ok ? auto.merchantEmail.to : auto.merchantEmail?.skipped ? t(`leads.detail.skip.${auto.merchantEmail.skipped}`, { defaultValue: auto.merchantEmail.skipped }) : auto.merchantEmail?.error}
+                      detail={auto.merchantEmail?.ok ? `${auto.merchantEmail.to}${auto.merchantEmail.from ? ` · ${auto.merchantEmail.from}` : ''}` : auto.merchantEmail?.skipped ? t(`leads.detail.skip.${auto.merchantEmail.skipped}`, { defaultValue: auto.merchantEmail.skipped }) : auto.merchantEmail?.error}
                     />
                   </ul>
 
                   <div className="mt-4 border-t border-stroke pt-3 dark:border-strokedark">
                     <Row label={t('leads.field.rep')}>{lead.assigned?.repName}</Row>
+                    {lead.booking?.status && (
+                      <Row label={t('leads.detail.booking')}>
+                        {lead.callbackAt && lead.booking.status !== 'cancelled' ? `${dt(lead.callbackAt)} · ` : ''}
+                        {t(`leads.detail.booking${lead.booking.status.charAt(0).toUpperCase()}${lead.booking.status.slice(1)}`)}
+                        {lead.booking.meetUrl && lead.booking.status !== 'cancelled' && (
+                          <a className="block text-xs text-primary hover:underline" href={lead.booking.meetUrl} target="_blank" rel="noreferrer">Google Meet · {lead.booking.meetUrl.replace(/^https?:\/\//, '')}</a>
+                        )}
+                        {lead.booking.changes > 0 && <span className="block text-xs text-bodydark2">{t('leads.detail.bookingChanges', { n: lead.booking.changes })}</span>}
+                        {auto.availability?.source === 'saleshub' && <span className="block text-xs text-bodydark2">{t('leads.detail.availabilitySaleshub')}</span>}
+                      </Row>
+                    )}
                     <Row label={t('leads.detail.zohoLead')}>
                       {lead.crm.leadId
                         ? <a className="text-primary hover:underline" href={`https://crm.zoho.com/crm/tab/Leads/${lead.crm.leadId}`} target="_blank" rel="noreferrer">{lead.crm.leadId}</a>

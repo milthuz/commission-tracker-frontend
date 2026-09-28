@@ -74,6 +74,7 @@ const Support = lazyRoute(() => import('./pages/Support'));
 const Leads = lazyRoute(() => import('./pages/Leads'));
 const HR = lazyRoute(() => import('./pages/HR'));
 const SignOffer = lazyRoute(() => import('./pages/Sign'));
+const Booking = lazyRoute(() => import('./pages/Booking'));
 const Revenue = lazyRoute(() => import('./pages/Revenue'));
 const Resources = lazyRoute(() => import('./pages/Resources'));
 const KaizenDemo = lazyRoute(() => import('./pages/KaizenDemo'));
@@ -189,6 +190,8 @@ function AppContent() {
       />
       {/* Signature d'une offre d'emploi par le candidat — PUBLIQUE, marque Cluster (voir pages/Sign). */}
       <Route path="/sign" element={<SignOffer />} />
+      {/* Rendez-vous du marchand avec son représentant — PUBLIQUE, marque Cluster (voir pages/Booking). */}
+      <Route path="/rdv" element={<Booking />} />
       <Route
         path="/reset-password"
         element={

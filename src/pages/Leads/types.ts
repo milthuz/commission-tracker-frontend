@@ -70,6 +70,9 @@ export interface Lead {
   callbackAt: string | null;
   repNotifiedAt: string | null;
   merchantNotifiedAt: string | null;
+  // Rendez-vous (services/leadBooking) : proposé à l'acceptation, puis confirmé / déplacé /
+  // annulé par le client depuis la page publique /rdv.
+  booking?: { status: 'proposed' | 'confirmed' | 'cancelled' | null; updatedAt: string | null; changes: number; inGoogleCalendar: boolean; meetUrl?: string | null };
   // Journal par étape écrit à l'acceptation : { crm, callback, repEmail, merchantEmail }.
   // Chaque entrée porte `ok` et, en cas d'échec, `error` ou `skipped`.
   automation: Record<string, any>;
@@ -104,7 +107,14 @@ export interface LeadSettings {
   notifyRep: boolean;
   notifyMerchant: boolean;
   merchantFrom: string;
+  sendFromRep: boolean;
   merchantSiteUrl: string;
+  bookingEnabled: boolean;
+  slotMinutes: number;
+  bookingDays: number;
+  minNoticeHours: number;
+  allowCancel: boolean;
+  includeMeet: boolean;
   reviewReminderHours: number;
   leadSourceWebsite: string;
   leadSourcePhone: string;

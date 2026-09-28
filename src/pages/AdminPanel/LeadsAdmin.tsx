@@ -37,6 +37,11 @@ const LeadsAdmin = () => {
   const [settings, setSettings] = useState<LeadSettings | null>(null);
   const [meta, setMeta] = useState<{ webhookUrl: string; webhookSecretSet: boolean; webhookSecretVar: string; exampleCallback: string } | null>(null);
   const [editing, setEditing] = useState<Partial<LeadRule> | null>(null);
+  // Google Agenda des représentants (services/leadBooking) : connecté ou non, et un essai réel.
+  const [gcal, setGcal] = useState<{ configured: boolean; serviceAccount: { email: string; clientId: string | null; scopes: string[] } | null } | null>(null);
+  const [gcalTestEmail, setGcalTestEmail] = useState('');
+  const [gcalTest, setGcalTest] = useState<{ ok: boolean; text: string } | null>(null);
+  const [gcalTesting, setGcalTesting] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [sim, setSim] = useState({ source: 'website', province: 'QC', language: 'fr', businessType: '', postalCode: '' });
@@ -57,7 +62,28 @@ const LeadsAdmin = () => {
       .then((d) => { if (d) { setSettings(d.settings); setMeta(d); } })
       .catch(() => {});
 
-  useEffect(() => { loadRules(); loadSettings(); }, []);
+  const loadGcal = () =>
+    fetch(`${API_URL}/api/admin/lead-booking/status`, { headers: authHeaders() })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setGcal(d.google); })
+      .catch(() => {});
+
+  useEffect(() => { loadRules(); loadSettings(); loadGcal(); }, []);
+
+  const testGcal = async () => {
+    setGcalTesting(true); setGcalTest(null);
+    try {
+      const r = await fetch(`${API_URL}/api/admin/lead-booking/test`, {
+        method: 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ email: gcalTestEmail.trim() }),
+      });
+      const d = await r.json().catch(() => ({}));
+      setGcalTest(d.ok
+        ? { ok: true, text: t('admin.leads.booking.testOk', { busy: d.busyBlocks, free: d.freeSlots, first: d.firstFree ? new Date(d.firstFree).toLocaleString() : '—' }) as string }
+        : { ok: false, text: t('admin.leads.booking.testFail', { error: d.error || r.status }) as string });
+    } catch (e: any) {
+      setGcalTest({ ok: false, text: t('admin.leads.booking.testFail', { error: e?.message || 'network' }) as string });
+    } finally { setGcalTesting(false); }
+  };
 
   // ── Règles ────────────────────────────────────────────────────────────────
   const saveRule = async () => {
@@ -398,6 +424,12 @@ const LeadsAdmin = () => {
               label={t('admin.leads.automation.notifyMerchant')} hint={t('admin.leads.automation.notifyMerchantHint')} />
 
             {settings.notifyMerchant && (
+              <div className="ml-12">
+                <Toggle on={settings.sendFromRep !== false} onChange={(v) => set('sendFromRep', v)}
+                  label={t('admin.leads.automation.sendFromRep')} hint={t('admin.leads.automation.sendFromRepHint')} />
+              </div>
+            )}
+            {settings.notifyMerchant && (
               <div className="mb-2 ml-12 grid max-w-2xl gap-4 sm:grid-cols-2">
                 <div>
                   <label className={LABEL}>{t('admin.leads.automation.merchantFrom')}</label>
@@ -421,6 +453,90 @@ const LeadsAdmin = () => {
             <button type="button" onClick={saveSettings} disabled={saving} className="mt-5 rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
               {saving ? t('common.loading') : t('common.save')}
             </button>
+          </div>
+
+          {/* ── Rendez-vous en ligne (services/leadBooking) ── */}
+          <div className={CARD}>
+            <h3 className="text-base font-semibold text-black dark:text-white">{t('admin.leads.booking.title')}</h3>
+            <p className="mb-4 mt-0.5 text-xs text-body">{t('admin.leads.booking.hint')}</p>
+
+            <Toggle on={settings.bookingEnabled !== false} onChange={(v) => set('bookingEnabled', v)}
+              label={t('admin.leads.booking.enabled')} hint={t('admin.leads.booking.enabledHint')} />
+            {settings.bookingEnabled !== false && (
+              <>
+                <div className="mb-2 ml-12 grid max-w-2xl gap-4 sm:grid-cols-3">
+                  <div>
+                    <label className={LABEL}>{t('admin.leads.booking.slotMinutes')}</label>
+                    <Select buttonClassName={SELECT_CLS} value={String(settings.slotMinutes ?? 30)} onChange={(v) => set('slotMinutes', Number(v))}
+                      options={[15, 20, 30, 45, 60].map((n) => ({ value: String(n), label: t('admin.leads.booking.minutes', { n }) as string }))} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>{t('admin.leads.booking.days')}</label>
+                    <input className={INPUT} type="number" min="1" max="15" value={settings.bookingDays ?? 5}
+                      onChange={(e) => set('bookingDays', Number(e.target.value))} />
+                  </div>
+                  <div>
+                    <label className={LABEL}>{t('admin.leads.booking.notice')}</label>
+                    <input className={INPUT} type="number" min="0" max="72" value={settings.minNoticeHours ?? 2}
+                      onChange={(e) => set('minNoticeHours', Number(e.target.value))} />
+                  </div>
+                </div>
+                <div className="ml-12">
+                  <Toggle on={settings.allowCancel !== false} onChange={(v) => set('allowCancel', v)}
+                    label={t('admin.leads.booking.allowCancel')} hint={t('admin.leads.booking.allowCancelHint')} />
+                  <Toggle on={settings.includeMeet !== false} onChange={(v) => set('includeMeet', v)}
+                    label={t('admin.leads.booking.includeMeet')} hint={t('admin.leads.booking.includeMeetHint')} />
+                </div>
+              </>
+            )}
+
+            <button type="button" onClick={saveSettings} disabled={saving} className="mt-4 rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+              {saving ? t('common.loading') : t('common.save')}
+            </button>
+
+            <div className="mt-6 border-t border-stroke pt-5 dark:border-strokedark">
+              <h4 className="text-sm font-semibold text-black dark:text-white">{t('admin.leads.booking.googleTitle')}</h4>
+              {gcal?.configured ? (
+                <p className="mt-2 rounded-sm border border-success/40 bg-success/10 px-4 py-3 text-xs text-success">
+                  {t('admin.leads.booking.googleOn', { email: gcal.serviceAccount?.email })}
+                </p>
+              ) : (
+                <p className="mt-2 rounded-sm border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning">{t('admin.leads.booking.googleOff')}</p>
+              )}
+
+              {gcal?.configured && (
+                <div className="mt-4 flex max-w-2xl flex-wrap items-end gap-3">
+                  <div className="min-w-[240px] flex-1">
+                    <label className={LABEL}>{t('admin.leads.booking.testLabel')}</label>
+                    <input className={INPUT} type="email" value={gcalTestEmail} onChange={(e) => setGcalTestEmail(e.target.value)} placeholder="sophie@clustersystems.com" />
+                  </div>
+                  <button type="button" onClick={testGcal} disabled={gcalTesting || !gcalTestEmail.includes('@')}
+                    className="rounded border border-stroke px-4 py-2.5 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                    {gcalTesting ? t('common.loading') : t('admin.leads.booking.testBtn')}
+                  </button>
+                </div>
+              )}
+              {gcalTest && (
+                <p className={`mt-3 text-xs ${gcalTest.ok ? 'text-success' : 'text-danger'}`}>{gcalTest.text}</p>
+              )}
+
+              {!gcal?.configured && (
+                <div className="mt-4 rounded-sm bg-gray-2 px-4 py-3 text-xs text-body dark:bg-meta-4">
+                  <p className="mb-2 font-medium text-black dark:text-white">{t('admin.leads.booking.itTitle')}</p>
+                  <ol className="list-decimal space-y-1.5 pl-4">
+                    <li>{t('admin.leads.booking.it1')}</li>
+                    <li>
+                      {t('admin.leads.booking.it2')}
+                      <code className="mt-1 block break-all rounded bg-white px-2 py-1 text-[11px] text-black dark:bg-boxdark dark:text-white">
+                        https://www.googleapis.com/auth/calendar.freebusy,https://www.googleapis.com/auth/calendar.events
+                      </code>
+                    </li>
+                    <li>{t('admin.leads.booking.it3')}</li>
+                    <li>{t('admin.leads.booking.it4')}</li>
+                  </ol>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Ces deux champs sont des LISTES DE CHOIX chez Zoho : une valeur absente de la liste
