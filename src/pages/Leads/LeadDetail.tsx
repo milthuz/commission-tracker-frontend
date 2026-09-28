@@ -55,6 +55,10 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
   const [lead, setLead] = useState<Lead | null>(null);
   const [history, setHistory] = useState<{ event_type: string; description: string; actor: string; created_at: string }[]>([]);
   const [canReview, setCanReview] = useState(false);
+  // Suppression (permission `leads:delete`) : efface aussi la fiche Zoho, le rappel et l'événement
+  // Google. Confirmation DANS la fiche : une boîte de dialogue globale s'ouvrirait derrière elle.
+  const [canDelete, setCanDelete] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [rep, setRep] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ tone: 'ok' | 'warn' | 'error'; text: string } | null>(null);
@@ -77,6 +81,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
       setLead(data.lead);
       setHistory(data.history || []);
       setCanReview(!!data.can?.review);
+      setCanDelete(!!data.can?.delete);
       setRep(data.lead?.assigned?.repName || data.lead?.suggested?.repName || '');
     } catch {
       setNotice({ tone: 'error', text: t('leads.detail.loadFailed') });
@@ -152,6 +157,23 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
     finally { setBusy(null); }
   };
 
+  const doDelete = async () => {
+    setBusy('delete'); setNotice(null);
+    try {
+      await call('', undefined, 'DELETE');
+      onChanged();
+      onClose();
+    } catch (e: any) {
+      setConfirmDelete(false);
+      setNotice({
+        tone: 'error',
+        text: e?.data?.error === 'converted' ? t('leads.delete.converted')
+          : e?.data?.error === 'crm_delete_failed' ? t('leads.delete.crmFailed', { detail: e?.data?.detail || '' })
+          : t('leads.delete.failed'),
+      });
+    } finally { setBusy(null); }
+  };
+
   const doRecheck = async () => {
     setBusy('recheck'); setNotice(null);
     try { await call('/recheck'); await load(); }
@@ -207,7 +229,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
               {/* Vérification dans Zoho — TOUJOURS affichée : « rien trouvé » et « pas vérifié »
                   ne doivent pas se ressembler. Le doublon est signalé, jamais bloquant d'office :
                   c'est un jugement humain (un marchand à plusieurs succursales n'est pas un doublon). */}
-              {dupStatus === 'match_found' && !!dupRecords.length ? (
+              {!canReview ? null : dupStatus === 'match_found' && !!dupRecords.length ? (
                 <div className="mb-5 rounded-sm border border-warning/50 bg-warning/10 px-4 py-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -483,6 +505,37 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                 <div className="mt-6 rounded-sm border border-stroke px-4 py-4 dark:border-strokedark">
                   <Row label={t('leads.detail.reviewedBy')}>{lead.reviewedBy} · {dt(lead.reviewedAt)}</Row>
                   <Row label={t('leads.detail.rejectReason')}>{lead.rejectionReason}</Row>
+                </div>
+              )}
+
+              {/* ── Suppression ──────────────────────────────────────────────── */}
+              {canDelete && (
+                <div className="mt-6 border-t border-stroke pt-4 dark:border-strokedark">
+                  {!confirmDelete ? (
+                    <button type="button" onClick={() => setConfirmDelete(true)} disabled={!!busy}
+                      className="text-sm text-danger underline-offset-2 hover:underline disabled:opacity-60">
+                      {t('leads.delete.button')}
+                    </button>
+                  ) : (
+                    <div className="rounded-sm border border-danger/40 bg-danger/10 px-4 py-3">
+                      <p className="text-sm font-medium text-danger">{t('leads.delete.title', { name: lead.businessName })}</p>
+                      <p className="mt-1 text-sm text-black dark:text-white">
+                        {lead.crm.dealId ? t('leads.delete.convertedHint')
+                          : lead.crm.leadId ? t('leads.delete.withZoho', { id: lead.crm.leadId })
+                          : t('leads.delete.localOnly')}
+                      </p>
+                      <div className="mt-3 flex flex-wrap justify-end gap-2">
+                        <button type="button" onClick={() => setConfirmDelete(false)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                          {t('common.cancel')}
+                        </button>
+                        {!lead.crm.dealId && (
+                          <button type="button" onClick={doDelete} disabled={!!busy} className="rounded bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                            {busy === 'delete' ? t('common.loading') : t('leads.delete.confirm')}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

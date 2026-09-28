@@ -4801,6 +4801,17 @@
     "viaRule": "rule “{{rule}}”",
     "viaRotation": "round-robin",
     "duplicateFound": "Zoho already has {{n}} matching record(s)",
+    "delete": {
+      "button": "Delete this lead",
+      "title": "Delete “{{name}}”?",
+      "withZoho": "The lead will be deleted from Sales Hub AND from Zoho CRM (record {{id}}), along with its callback and the event in the rep's Google Calendar. This can't be undone.",
+      "localOnly": "This lead was never sent to Zoho: it will only be deleted from Sales Hub. This can't be undone.",
+      "convertedHint": "This lead was converted into a Deal in Zoho, so it can't be deleted from here. A Deal carries money and commissions — clean it up in Zoho directly.",
+      "converted": "This lead was converted into a Deal in Zoho: delete it in Zoho directly.",
+      "crmFailed": "Zoho refused the deletion ({{detail}}). The lead is kept in Sales Hub so no orphan record is left behind in Zoho.",
+      "failed": "The lead couldn't be deleted.",
+      "confirm": "Delete permanently"
+    },
     "dup": {
       "ownedBy": "owner: {{name}}",
       "assignToOwner": "Assign to {{name}}",

@@ -4801,6 +4801,17 @@
     "viaRule": "règle « {{rule}} »",
     "viaRotation": "tour de rôle",
     "duplicateFound": "Zoho a déjà {{n}} fiche(s) qui correspondent",
+    "delete": {
+      "button": "Supprimer la piste",
+      "title": "Supprimer « {{name}} » ?",
+      "withZoho": "La piste sera supprimée de Sales Hub ET de Zoho CRM (fiche {{id}}), avec son rappel et l'événement dans le Google Agenda du représentant. C'est définitif.",
+      "localOnly": "La piste n'a jamais été envoyée dans Zoho : elle sera seulement supprimée de Sales Hub. C'est définitif.",
+      "convertedHint": "Cette piste a été convertie en Deal dans Zoho : elle ne peut pas être supprimée d'ici. Un Deal porte de l'argent et des commissions — faites le ménage dans Zoho directement.",
+      "converted": "Cette piste a été convertie en Deal dans Zoho : supprimez-la dans Zoho directement.",
+      "crmFailed": "Zoho a refusé la suppression ({{detail}}). La piste est gardée dans Sales Hub pour ne pas laisser de fiche orpheline dans Zoho.",
+      "failed": "La piste n'a pas pu être supprimée.",
+      "confirm": "Supprimer définitivement"
+    },
     "dup": {
       "ownedBy": "propriétaire : {{name}}",
       "assignToOwner": "Assigner à {{name}}",

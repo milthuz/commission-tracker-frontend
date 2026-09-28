@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Select from '../../components/Select';
-import { authHeaders, LEAD_SOURCES, type DuplicateRecord } from './types';
+import { authHeaders, LEAD_SOURCES } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -28,8 +28,6 @@ const PROVINCES = ['QC', 'ON', 'NB', 'NS', 'PE', 'NL', 'MB', 'SK', 'AB', 'BC', '
 
 interface Created {
   refCode: string;
-  suggestion: { repName: string | null; via: string; ruleName: string | null };
-  duplicate: { status: string | null; summary: string | null; records: DuplicateRecord[] } | null;
 }
 
 const IntakeForm = ({ open, onClose, onCreated }: {
@@ -70,7 +68,7 @@ const IntakeForm = ({ open, onClose, onCreated }: {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'error');
-      setCreated({ refCode: data.refCode, suggestion: data.suggestion, duplicate: data.duplicate });
+      setCreated({ refCode: data.refCode });
       onCreated();
     } catch (e: any) {
       setError(e?.message || t('leads.intake.failed'));
@@ -97,8 +95,9 @@ const IntakeForm = ({ open, onClose, onCreated }: {
           </button>
         </div>
 
-        {/* Après l'envoi, le formulaire cède la place au compte rendu : numéro de dossier à citer,
-            représentant suggéré, doublons trouvés. C'est ce que l'employé doit lire au client. */}
+        {/* Après l'envoi, le formulaire cède la place au numéro de dossier à citer au client. Ni le
+            représentant suggéré ni les doublons ne sont montrés ici : c'est l'affaire de celui qui
+            DISTRIBUE la piste, pas de celui qui la saisit (décision de David, 2026-09-28). */}
         {created ? (
           <div className="px-6 py-6">
             <div className="rounded-sm border border-success/40 bg-success/10 px-4 py-3">
@@ -108,38 +107,8 @@ const IntakeForm = ({ open, onClose, onCreated }: {
             </div>
 
             <div className="mt-5">
-              <p className={LABEL}>{t('leads.intake.suggestedRep')}</p>
-              <p className="text-sm text-black dark:text-white">
-                {created.suggestion?.repName
-                  ? <>
-                      <strong>{created.suggestion.repName}</strong>
-                      <span className="text-bodydark2">
-                        {' · '}
-                        {created.suggestion.via === 'rule'
-                          ? t('leads.viaRule', { rule: created.suggestion.ruleName })
-                          : t('leads.viaRotation')}
-                      </span>
-                    </>
-                  : <span className="text-warning">{t('leads.intake.noRep')}</span>}
-              </p>
-              <p className="mt-1 text-xs text-bodydark2">{t('leads.intake.notYetInZoho')}</p>
+              <p className="text-xs text-bodydark2">{t('leads.intake.notYetInZoho')}</p>
             </div>
-
-            {!!created.duplicate?.records?.length && (
-              <div className="mt-5 rounded-sm border border-warning/50 bg-warning/10 px-4 py-3">
-                <p className="text-sm font-medium text-warning">
-                  {t('leads.duplicateFound', { n: created.duplicate.records.length })}
-                </p>
-                <ul className="mt-2 space-y-1 text-xs text-black dark:text-white">
-                  {created.duplicate.records.slice(0, 5).map((r) => (
-                    <li key={`${r.module}-${r.id}`}>
-                      <span className="font-medium">{r.company || r.id}</span>
-                      <span className="text-bodydark2"> — {r.module} · {t(`leads.matchedOn.${r.matchedOn}`, { defaultValue: r.matchedOn })}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
 
             <div className="mt-6 flex justify-end gap-3">
               <button type="button" onClick={reset} className="rounded border border-stroke px-5 py-2.5 text-sm font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
