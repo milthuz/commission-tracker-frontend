@@ -106,7 +106,12 @@ export default function SaasIncreaseLookup() {
   // Geler appartient au service a la clientele : sa propre permission, distincte de celle qui
   // pousse vers Zoho. Samantha peut reporter sans pouvoir appliquer.
   const peutGeler = can('saas_increase:freeze');
-  const [gel, setGel] = useState<Record<string, { until: string; reason: string; busy?: boolean; err?: string }>>({});
+  const [gel, setGel] = useState<Record<string, { until: string; reason: string; busy?: boolean;
+    err?: string;
+    // Zoho n'avait RIEN de planifie sur une ligne que Sales Hub disait appliquee. Ce n'est
+    // pas une erreur — le gel tient — mais les deux cotes divergent, et l'agent est au
+    // telephone : il doit le savoir avant de promettre un prix.
+    divergence?: boolean }>>({});
   // Ce que Zoho a REELLEMENT en attente. Un gel ecrit en base ne prouve rien : seule la
   // relecture chez Zoho dit si le marchand sera facture ou non.
   const [verif, setVerif] = useState<Record<string,
@@ -188,7 +193,8 @@ export default function SaasIncreaseLookup() {
       if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
       // On recharge la fiche : l'etat du gel, et le statut de la ligne si le changement vient
       // d'etre retire de Zoho, doivent venir du serveur et non d'une supposition de l'ecran.
-      setGel(g => ({ ...g, [cle]: { until: d.frozenUntil || '', reason: d.frozenReason || '' } }));
+      setGel(g => ({ ...g, [cle]: { until: d.frozenUntil || '', reason: d.frozenReason || '',
+                                    divergence: d.zohoHadNothingScheduled === true } }));
       void search(q);
     } catch (e) {
       setGel(g => ({ ...g, [cle]: { ...(g[cle] || { until: '', reason: '' }), busy: false,
@@ -726,6 +732,15 @@ export default function SaasIncreaseLookup() {
                 {peutGeler && h.pushStatus === 'pushed' && !actif && (
                   <p className="mt-1.5 text-[11px] text-amber-700 dark:text-amber-400">
                     {t('csLookup.freeze.willCancel')}
+                  </p>
+                )}
+                {/* L'ecart base/Zoho, constate pendant le gel. Il survit au rechargement de la
+                    liste parce qu'il vit dans l'etat du gel, pas dans la reponse : c'est un fait
+                    qu'on ne pourra plus observer ensuite, Zoho n'ayant deja plus rien. */}
+                {g.divergence && (
+                  <p className="mt-2 flex items-start gap-1.5 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+                    <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
+                    <span>{t('csLookup.freeze.divergence')}</span>
                   </p>
                 )}
                 {g.err && <p className="mt-1.5 text-[11px] text-red-600 dark:text-red-400">{g.err}</p>}
