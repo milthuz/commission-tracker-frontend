@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import LeadsWebflowCard from './LeadsWebflowCard';
 import { useTranslation } from 'react-i18next';
 import Select from '../../components/Select';
 import { dialog } from '../../lib/dialog';
@@ -569,6 +570,9 @@ const LeadsAdmin = () => {
               {saving ? t('common.loading') : t('common.save')}
             </button>
           </div>
+
+          {/* Le site Webflow : webhook natif, connecté depuis ici (services/webflowLeads). */}
+          <LeadsWebflowCard />
 
           {/* Ce que l'équipe du site public doit brancher. */}
           <div className={CARD}>
