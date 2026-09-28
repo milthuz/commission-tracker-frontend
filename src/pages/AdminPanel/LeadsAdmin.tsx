@@ -497,7 +497,7 @@ const LeadsAdmin = () => {
             <div className="mt-6 border-t border-stroke pt-5 dark:border-strokedark">
               <h4 className="text-sm font-semibold text-black dark:text-white">{t('admin.leads.booking.googleTitle')}</h4>
               {gcal?.configured ? (
-                <p className="mt-2 rounded-sm border border-success/40 bg-success/10 px-4 py-3 text-xs text-success">
+                <p className="mt-2 rounded-sm border px-4 py-3 text-xs border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
                   {t('admin.leads.booking.googleOn', { email: gcal.serviceAccount?.email })}
                 </p>
               ) : (
@@ -517,7 +517,7 @@ const LeadsAdmin = () => {
                 </div>
               )}
               {gcalTest && (
-                <p className={`mt-3 text-xs ${gcalTest.ok ? 'text-success' : 'text-danger'}`}>{gcalTest.text}</p>
+                <p className={`mt-3 text-xs ${gcalTest.ok ? 'text-emerald-700 dark:text-emerald-400' : 'text-danger'}`}>{gcalTest.text}</p>
               )}
 
               {!gcal?.configured && (

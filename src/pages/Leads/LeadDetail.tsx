@@ -224,7 +224,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                                 {t('leads.dup.assignToOwner', { name: ownerRep.name })}
                               </button>
                             )}
-                            {ownerRep && ownerRep.name === rep && <span className="ml-2 text-xs text-success">✓ {t('leads.dup.assignedToOwner')}</span>}
+                            {ownerRep && ownerRep.name === rep && <span className="ml-2 text-xs text-emerald-700 dark:text-emerald-400">✓ {t('leads.dup.assignedToOwner')}</span>}
                           </p>
                         );
                       })()}
@@ -263,7 +263,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                 </div>
               ) : pending && (
                 <div className={`mb-5 flex items-center justify-between gap-3 rounded-sm border px-4 py-2.5 text-sm ${
-                  dupStatus === 'no_match' ? 'border-success/40 bg-success/10 text-success'
+                  dupStatus === 'no_match' ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300'
                   : dupStatus === 'check_failed' ? 'border-warning/50 bg-warning/10 text-warning'
                   : 'border-stroke text-bodydark2 dark:border-strokedark'}`}>
                   <span>

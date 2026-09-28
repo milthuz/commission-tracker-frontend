@@ -2587,7 +2587,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                       <li key={ow.name} className="flex flex-wrap items-center gap-2">
                         <span className="text-black dark:text-white">{ow.name}</span>
                         {!r && !loadingReps && <span className="text-gray-400">({t('admin.partners.crm.ownerNotRep')})</span>}
-                        {r && String(r.id) === selectedRepId && <span className="text-success">✓ {t('admin.partners.crm.ownerSelected')}</span>}
+                        {r && String(r.id) === selectedRepId && <span className="text-emerald-700 dark:text-emerald-400">✓ {t('admin.partners.crm.ownerSelected')}</span>}
                         {r && String(r.id) !== selectedRepId && (
                           <button type="button" onClick={() => setSelectedRepId(String(r.id))}
                             className="rounded border border-primary/40 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/10">
