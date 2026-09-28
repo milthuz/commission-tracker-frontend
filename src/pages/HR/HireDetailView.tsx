@@ -140,10 +140,16 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
 
   // Liste venue du serveur : dossier en anglais = offre + entente EN (signées) + leurs versions
   // françaises de référence.
+  // Addenda : document téléversé par les RH + page de signature générée (voir services/hr/pdf.js).
+  const isAddendum = d.kind === 'addendum';
+  const docTitle = (fr ? h.docTitleFr : h.docTitleEn) || h.docTitleFr || h.docTitleEn || '';
+  const noDocument = isAddendum && !d.attachments.length;
   const documents = [
     ...(d.documents || []).map((x) => ({
       key: x.key,
-      label: `${t(x.kind === 'offer' ? 'hr.detail.docOffer' : 'hr.detail.docAgreement')} (${x.lang.toUpperCase()})${x.reference ? ` — ${t('hr.detail.frReference')}` : ''}`,
+      label: x.kind === 'sigpage'
+        ? `${t('hr.addendum.sigpage')} (${x.lang.toUpperCase()})`
+        : `${t(x.kind === 'offer' ? 'hr.detail.docOffer' : 'hr.detail.docAgreement')} (${x.lang.toUpperCase()})${x.reference ? ` — ${t('hr.detail.frReference')}` : ''}`,
     })),
   ];
 
@@ -158,12 +164,16 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
             <h2 className="text-title-md2 font-bold text-black dark:text-white">{d.name}</h2>
             <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusTone[d.status]}`}>{t(`hr.status.${d.status}`)}</span>
           </div>
-          <p className="mt-1 text-sm text-bodydark2">{d.ref} · {h.position} · {t('hr.detail.starts', { date: day(h.startDate) })}</p>
+          <p className="mt-1 text-sm text-bodydark2">
+            {isAddendum
+              ? <>{d.ref} · <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">{t('hr.addendum.badge')}</span> · {docTitle}{d.parentRef ? ` · ${t('hr.addendum.forFile', { ref: d.parentRef })}` : ''}</>
+              : <>{d.ref} · {h.position} · {t('hr.detail.starts', { date: day(h.startDate) })}</>}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {isDraft && canManage && <button type="button" className={BTN_GHOST} onClick={onEdit}>{t('common.edit')}</button>}
           {isDraft && canManage && (
-            <button type="button" className={BTN_PRIMARY} disabled={!!busy} onClick={() => send(false)}>
+            <button type="button" className={BTN_PRIMARY} disabled={!!busy || noDocument} title={noDocument ? (t('hr.addendum.needDocument') as string) : undefined} onClick={() => send(false)}>
               {busy === 'send' ? t('hr.detail.sending') : t('hr.detail.send')}
             </button>
           )}
@@ -176,7 +186,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
               {t('hr.detail.viewSigned')}
             </button>
           )}
-          {d.status === 'completed' && canManage && !d.salespersonName && (
+          {d.status === 'completed' && canManage && !d.salespersonName && !isAddendum && (
             <button type="button" className={BTN_GHOST} disabled={!!busy} onClick={createRep}>{t('hr.detail.createRep')}</button>
           )}
         </div>
@@ -207,7 +217,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
       {signOpen && (
         <div className={CARD + ' border-primary/50'}>
           <h3 className="mb-1 font-semibold text-black dark:text-white">{t('hr.detail.countersignTitle')}</h3>
-          <p className="mb-4 text-sm text-bodydark2">{t('hr.detail.countersignHint')}</p>
+          <p className="mb-4 text-sm text-bodydark2">{t(isAddendum ? 'hr.addendum.countersignHint' : 'hr.detail.countersignHint')}</p>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('hr.detail.signerName')}</label>
@@ -225,7 +235,11 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
         </div>
       )}
 
-      {d.planDiffers.length > 0 && h.includeAgreement && (
+      {noDocument && isDraft && (
+        <div className="rounded border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-black dark:text-white">{t('hr.addendum.needDocument')}</div>
+      )}
+
+      {d.planDiffers.length > 0 && h.includeAgreement && !isAddendum && (
         <div className="rounded border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-black dark:text-white">
           {t('hr.detail.planDiffers', { fields: d.planDiffers.map((k) => t(`hr.plan.${k}`)).join(', ') })}
         </div>
@@ -235,7 +249,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
         <div className="space-y-5 xl:col-span-2">
           {/* Documents */}
           <div className={CARD}>
-            <h3 className="mb-4 font-semibold text-black dark:text-white">{t('hr.detail.documents')}</h3>
+            <h3 className="mb-4 font-semibold text-black dark:text-white">{t(isAddendum ? 'hr.addendum.documents' : 'hr.detail.documents')}</h3>
             <ul className="divide-y divide-stroke dark:divide-strokedark">
               {documents.map((doc) => (
                 <li key={doc.key} className="flex flex-wrap items-center justify-between gap-2 py-3">
@@ -261,9 +275,9 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
               <div className="mt-3">
                 <input ref={fileInput} type="file" accept="application/pdf" className="hidden" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} />
                 <button type="button" className={BTN_GHOST} disabled={!!busy} onClick={() => fileInput.current?.click()}>
-                  {busy === 'upload' ? t('hr.detail.uploading') : `+ ${t('hr.detail.attach')}`}
+                  {busy === 'upload' ? t('hr.detail.uploading') : `+ ${t(isAddendum ? 'hr.addendum.attach' : 'hr.detail.attach')}`}
                 </button>
-                <p className="mt-2 text-xs text-bodydark2">{t('hr.detail.attachHint')}</p>
+                <p className="mt-2 text-xs text-bodydark2">{t(isAddendum ? 'hr.addendum.attachHint' : 'hr.detail.attachHint')}</p>
               </div>
             )}
             {!isDraft && <p className="mt-3 text-xs text-bodydark2">{t('hr.detail.lockedHint')}</p>}
@@ -273,7 +287,15 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
           <div className={CARD}>
             <h3 className="mb-4 font-semibold text-black dark:text-white">{t('hr.detail.summary')}</h3>
             <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
-              {[
+              {(isAddendum ? [
+                ...((meta.employers || []).length > 1 ? [[t('hr.form.employer'), (meta.employers || []).find((e) => e.key === (h.employer || 'cluster'))?.legalName || h.employer]] : []),
+                [t('hr.form.email'), h.email],
+                [t('hr.addendum.titleFr'), h.docTitleFr || '—'],
+                [t('hr.addendum.titleEn'), h.docTitleEn || '—'],
+                [t('hr.addendum.signer'), h.supervisorName],
+                [t('hr.addendum.parent'), d.parentRef || t('hr.addendum.noParent')],
+                [t('hr.addendum.lang'), h.agreementLang === 'en' ? 'English' : 'Français'],
+              ] : [
                 ...((meta.employers || []).length > 1 ? [[t('hr.form.employer'), (meta.employers || []).find((e) => e.key === (h.employer || 'cluster'))?.legalName || h.employer]] : []),
                 [t('hr.form.email'), h.email],
                 [t('hr.form.phone'), h.phone || '—'],
@@ -288,7 +310,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
                 [t('hr.plan.monthlyQuota'), `${d.plan.monthlyQuota} pts`],
                 [t('hr.plan.hardwareRate'), `${d.plan.hardwareRate} % / ${d.plan.hardwareReducedRate} %`],
                 [t('hr.plan.monthlyTiers'), [...d.plan.monthlyTiers].sort((a, b) => a.points - b.points).map((x) => `${x.points} → ${money(x.bonus)}`).join(' · ')],
-              ].map(([k, v]) => (
+              ]).map(([k, v]) => (
                 <div key={k as string}>
                   <dt className="text-xs text-bodydark2">{k}</dt>
                   <dd className="break-words text-black dark:text-white">{v}</dd>

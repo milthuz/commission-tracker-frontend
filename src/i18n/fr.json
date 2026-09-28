@@ -5920,6 +5920,39 @@
       "logoSize": "Logo trop lourd (600 Ko max).",
       "add": "Ajouter un employeur",
       "saved": "Employeurs enregistrés."
+    },
+    "addendum": {
+      "new": "Nouvel addenda",
+      "badge": "Addenda",
+      "newTitle": "Nouvel addenda",
+      "editTitle": "Modifier l’addenda",
+      "subtitle": "Téléversez un document (hausse salariale, nouveau poste, territoire…) pour un employé déjà en poste et faites-le signer par le même circuit qu’une embauche : lien personnel, suivi, contresignature, certificat, copies.",
+      "employee": "Employé(e)",
+      "modeLinked": "Embauché par Sales Hub",
+      "modeManual": "Embauché avant Sales Hub",
+      "parent": "Dossier d’embauche signé",
+      "pickParent": "Choisir le dossier signé de l’employé…",
+      "noSigned": "Aucun dossier d’embauche signé pour l’instant — utilisez « Embauché avant Sales Hub ».",
+      "linkedHint": "Nom repris du dossier signé. Le courriel peut être mis à jour si l’employé a une nouvelle adresse.",
+      "forFile": "pour {{ref}}",
+      "noParent": "Aucun (embauché avant Sales Hub)",
+      "document": "Document",
+      "titleFr": "Titre du document (français)",
+      "titleEn": "Titre du document (anglais)",
+      "titleFrPh": "ex. Hausse salariale 2027",
+      "titleEnPh": "ex. 2027 salary increase",
+      "lang": "Langue de la page de signature",
+      "langHint": "Les courriels et la page de signature sont toujours bilingues.",
+      "signer": "Contresigné par",
+      "signerHint": "Reçoit l’avis quand l’employé a signé (son courriel dans Admin → RH → Gestionnaires).",
+      "nextStep": "Étape suivante : dans la fiche, joignez le PDF de l’addenda, puis envoyez-le pour signature.",
+      "create": "Créer l’addenda",
+      "documents": "Documents de l’addenda",
+      "attach": "Joindre le PDF de l’addenda",
+      "attachHint": "Le document à signer (PDF, 10 Mo max). Sales Hub y ajoute une page de signature qui le nomme avec son empreinte, puis le certificat.",
+      "needDocument": "Joignez le PDF de l’addenda avant de l’envoyer pour signature.",
+      "sigpage": "Page de signature",
+      "countersignHint": "Votre signature est apposée sur la page de signature de l’addenda. Le document signé est ensuite envoyé à l’employé."
     }
   },
   "booking": {
@@ -6011,7 +6044,10 @@
     "inFrench": "français",
     "inEnglish": "anglais",
     "frReference": "version française, pour référence",
-    "referenceNote": "Vous signez les versions anglaises. Les versions françaises vous sont également remises : prenez-en connaissance."
+    "referenceNote": "Vous signez les versions anglaises. Les versions françaises vous sont également remises : prenez-en connaissance.",
+    "addendumEyebrow": "Document à signer",
+    "sigpage": "Page de signature",
+    "addendumIntro": "{{company}} vous transmet un addenda à votre contrat de travail : « {{title}} ». Prenez le temps de le lire, puis signez ci-dessous."
   },
   "pdfViewer": {
     "pages_one": "{{count}} page",

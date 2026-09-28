@@ -28,7 +28,10 @@ interface Info {
   positionEn: string;
   startDate: string;
   lang: 'en' | 'fr';
-  documents: { key: string; kind: 'offer' | 'agreement' | 'attachment'; lang?: 'en' | 'fr'; reference?: boolean; title?: string; pages: number | null }[];
+  kind?: 'hire' | 'addendum';
+  docTitleFr?: string | null;
+  docTitleEn?: string | null;
+  documents: { key: string; kind: 'offer' | 'agreement' | 'attachment' | 'sigpage'; lang?: 'en' | 'fr'; reference?: boolean; title?: string; pages: number | null }[];
   signedAt: string | null;
   employer?: Employer;
 }
@@ -86,6 +89,7 @@ const Sign = () => {
   // Titre traduit par la page : la bascule FR/EN change aussi le nom des documents.
   const docTitle = (d: Info['documents'][number]) => {
     if (d.kind === 'attachment') return d.title || '';
+    if (d.kind === 'sigpage') return t('sign.sigpage') as string;
     const base = t(d.kind === 'offer' ? 'sign.docOffer' : 'sign.docAgreement') as string;
     const tag = t(d.lang === 'fr' ? 'sign.inFrench' : 'sign.inEnglish') as string;
     return d.reference ? `${base} — ${t('sign.frReference')}` : `${base} (${tag})`;
@@ -166,9 +170,11 @@ const Sign = () => {
         {phase === 'ready' && info && (
           <div className="space-y-6">
             <div>
-              <p className="text-sm font-medium uppercase tracking-wide text-[#f26b21]">{t('sign.eyebrow')}</p>
+              <p className="text-sm font-medium uppercase tracking-wide text-[#f26b21]">{t(info.kind === 'addendum' ? 'sign.addendumEyebrow' : 'sign.eyebrow')}</p>
               <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{t('sign.hello', { name: info.firstName })}</h1>
-              <p className="mt-2 text-[15px] leading-relaxed text-gray-600">{t('sign.intro', { position: lang === 'fr' ? info.positionFr : info.positionEn, company })}</p>
+              <p className="mt-2 text-[15px] leading-relaxed text-gray-600">{info.kind === 'addendum'
+                ? t('sign.addendumIntro', { company, title: (lang === 'fr' ? info.docTitleFr : info.docTitleEn) || info.docTitleFr || info.docTitleEn })
+                : t('sign.intro', { position: lang === 'fr' ? info.positionFr : info.positionEn, company })}</p>
             </div>
 
             <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6">
@@ -184,7 +190,7 @@ const Sign = () => {
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-xs font-bold text-[#f26b21]">PDF</span>
                         <span className="min-w-0">
                           <span className="block truncate text-[15px] font-medium">{docTitle(d)}</span>
-                          {d.pages && <span className="block text-xs text-gray-500">{t('sign.pages', { n: d.pages })}</span>}
+                          {d.pages && <span className="block text-xs text-gray-500">{t('sign.pages', { n: d.pages, count: d.pages })}</span>}
                         </span>
                       </span>
                       <span className={`shrink-0 text-sm font-medium ${opened[d.key] ? 'text-green-700' : 'text-[#f26b21]'}`}>

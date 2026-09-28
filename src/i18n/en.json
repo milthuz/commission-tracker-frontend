@@ -5920,6 +5920,39 @@
       "logoSize": "Logo too large (600 KB max).",
       "add": "Add an employer",
       "saved": "Employers saved."
+    },
+    "addendum": {
+      "new": "New addendum",
+      "badge": "Addendum",
+      "newTitle": "New addendum",
+      "editTitle": "Edit the addendum",
+      "subtitle": "Upload a document (salary change, new position, territory…) for an employee already in place, and have it signed through the same process as a hiring: personal link, tracking, countersignature, certificate, copies.",
+      "employee": "Employee",
+      "modeLinked": "Hired through Sales Hub",
+      "modeManual": "Hired before Sales Hub",
+      "parent": "Signed hiring file",
+      "pickParent": "Choose the employee’s signed file…",
+      "noSigned": "No signed hiring file yet — use “Hired before Sales Hub”.",
+      "linkedHint": "Name taken from the signed file. The email can be updated if the employee has a new address.",
+      "forFile": "for {{ref}}",
+      "noParent": "None (hired before Sales Hub)",
+      "document": "Document",
+      "titleFr": "Document title (French)",
+      "titleEn": "Document title (English)",
+      "titleFrPh": "e.g. Hausse salariale 2027",
+      "titleEnPh": "e.g. 2027 salary increase",
+      "lang": "Language of the signature page",
+      "langHint": "The emails and the signing page are always bilingual.",
+      "signer": "Countersigned by",
+      "signerHint": "Receives the notice when the employee has signed (their email in Admin → HR → Managers).",
+      "nextStep": "Next step: in the file, attach the addendum PDF, then send it for signature.",
+      "create": "Create the addendum",
+      "documents": "Addendum documents",
+      "attach": "Attach the addendum PDF",
+      "attachHint": "The document to sign (PDF, 10 MB max). Sales Hub adds a signature page that names it with its fingerprint, then the certificate.",
+      "needDocument": "Attach the addendum PDF before sending it for signature.",
+      "sigpage": "Signature page",
+      "countersignHint": "Your signature is applied to the addendum’s signature page. The signed document is then emailed to the employee."
     }
   },
   "booking": {
@@ -6011,7 +6044,10 @@
     "inFrench": "French",
     "inEnglish": "English",
     "frReference": "French version, for reference",
-    "referenceNote": "You are signing the English versions. The French versions are provided to you as well; please read them too."
+    "referenceNote": "You are signing the English versions. The French versions are provided to you as well; please read them too.",
+    "addendumEyebrow": "Document to sign",
+    "sigpage": "Signature page",
+    "addendumIntro": "{{company}} is sending you an addendum to your employment agreement: “{{title}}”. Take the time to read it, then sign below."
   },
   "pdfViewer": {
     "pages_one": "{{count}} page",

@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import { ContentLoader } from '../../common/Loader';
 import HireForm from './HireForm';
+import AddendumForm from './AddendumForm';
 import HireDetailView from './HireDetailView';
 import { dialog } from '../../lib/dialog';
 import { API_URL, authHeaders, DELETABLE, scrollToTop, statusTone, type HireDetail, type HireListItem, type HireStatus, type Meta } from './types';
@@ -19,7 +20,7 @@ const TAB_STATUSES: Record<Exclude<Tab, 'all'>, HireStatus[]> = {
   closed: ['declined', 'cancelled'],
 };
 
-type View = { kind: 'list' } | { kind: 'new' } | { kind: 'edit'; detail: HireDetail } | { kind: 'detail'; detail: HireDetail };
+type View = { kind: 'list' } | { kind: 'new' } | { kind: 'newAddendum' } | { kind: 'edit'; detail: HireDetail } | { kind: 'detail'; detail: HireDetail };
 
 const HR = () => {
   const { t, i18n } = useTranslation();
@@ -82,7 +83,7 @@ const HR = () => {
     const needle = q.trim().toLowerCase();
     return (rows || [])
       .filter((r) => tab === 'all' || TAB_STATUSES[tab].includes(r.status))
-      .filter((r) => !needle || `${r.name} ${r.email} ${r.ref} ${r.position}`.toLowerCase().includes(needle));
+      .filter((r) => !needle || `${r.name} ${r.email} ${r.ref} ${r.position} ${r.docTitleFr || ""} ${r.docTitleEn || ""}`.toLowerCase().includes(needle));
   }, [rows, tab, q]);
 
   const day = (iso?: string | null) => {
@@ -110,7 +111,13 @@ const HR = () => {
       {meta && view.kind === 'new' && (
         <HireForm meta={meta} initial={null} onCancel={backToList} onSaved={(d) => { setView({ kind: 'detail', detail: d }); navigate(`/hr?id=${d.id}`, { replace: true }); }} />
       )}
-      {meta && view.kind === 'edit' && (
+      {meta && view.kind === 'newAddendum' && (
+        <AddendumForm meta={meta} initial={null} hires={rows || []} onCancel={backToList} onSaved={(d) => { setView({ kind: 'detail', detail: d }); navigate(`/hr?id=${d.id}`, { replace: true }); }} />
+      )}
+      {meta && view.kind === 'edit' && view.detail.kind === 'addendum' && (
+        <AddendumForm meta={meta} initial={view.detail} hires={rows || []} onCancel={() => setView({ kind: 'detail', detail: view.detail })} onSaved={(d) => setView({ kind: 'detail', detail: d })} />
+      )}
+      {meta && view.kind === 'edit' && view.detail.kind !== 'addendum' && (
         <HireForm meta={meta} initial={view.detail} onCancel={() => setView({ kind: 'detail', detail: view.detail })} onSaved={(d) => setView({ kind: 'detail', detail: d })} />
       )}
       {meta && view.kind === 'detail' && (
@@ -133,11 +140,18 @@ const HR = () => {
               <p className="mt-1 text-sm text-bodydark2">{t('hr.subtitle')}</p>
             </div>
             {meta.can.manage && (
+              <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setView({ kind: 'newAddendum' })}
+                className="inline-flex items-center gap-2 rounded-md border border-stroke px-4 py-2.5 text-sm font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M12 12v6M9 15h6" /></svg>
+                {t('hr.addendum.new')}
+              </button>
               <button type="button" onClick={() => setView({ kind: 'new' })}
                 className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
                 {t('hr.newHire')}
               </button>
+              </div>
             )}
           </div>
 
@@ -185,7 +199,11 @@ const HR = () => {
                           <p className="text-sm font-medium text-black dark:text-white">{r.name}</p>
                           <p className="text-xs text-bodydark2">{r.ref} · {r.email}</p>
                         </td>
-                        <td className="px-4 py-3 text-sm text-black dark:text-white">{r.position}</td>
+                        <td className="px-4 py-3 text-sm text-black dark:text-white">
+                          {r.kind === 'addendum'
+                            ? <><span className="mr-1.5 rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">{t('hr.addendum.badge')}</span>{(fr ? r.docTitleFr : r.docTitleEn) || r.docTitleFr}</>
+                            : r.position}
+                        </td>
                         <td className="whitespace-nowrap px-4 py-3 text-sm text-black dark:text-white">{day(r.startDate)}</td>
                         <td className="px-4 py-3">
                           <span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${statusTone[r.status]}`}>{t(`hr.status.${r.status}`)}</span>

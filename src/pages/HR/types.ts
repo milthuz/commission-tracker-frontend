@@ -54,6 +54,9 @@ export interface HireData {
   includeAgreement: boolean;
   includeFrReference?: boolean;
   employer?: string;
+  docTitleFr?: string;
+  docTitleEn?: string;
+  parentId?: string | null;
   notes: string;
 }
 
@@ -76,11 +79,16 @@ export interface HireListItem {
   cancelledAt: string | null;
   tokenExpiresAt: string | null;
   salespersonName: string | null;
+  // 'addendum' = document téléversé par les RH, signé par le même circuit (2026-09-28).
+  kind?: 'hire' | 'addendum';
+  docTitleFr?: string | null;
+  docTitleEn?: string | null;
+  parentId?: string | null;
 }
 
 // Un document généré. `reference` = version française remise en plus d'un dossier en anglais
 // (non signée).
-export interface DocRef { key: string; kind: 'offer' | 'agreement'; lang: 'en' | 'fr'; reference: boolean }
+export interface DocRef { key: string; kind: 'offer' | 'agreement' | 'sigpage'; lang: 'en' | 'fr'; reference: boolean }
 
 export interface HireEvent { event: string; actor: string | null; ip: string | null; detail: Record<string, any>; at: string }
 export interface Attachment { id: number; filename: string; size: number; sha256: string; uploadedBy: string; createdAt: string }
@@ -94,6 +102,7 @@ export interface HireDetail extends HireListItem {
   employeeSig: { name: string; at: string; ip: string; ua?: string } | null;
   companySig: { name: string; email: string; at: string; ip: string } | null;
   hasSigned: boolean;
+  parentRef?: string | null;
   documents: DocRef[];
   attachments: Attachment[];
   events: HireEvent[];
