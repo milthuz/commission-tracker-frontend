@@ -135,7 +135,12 @@ const AdminPanel = () => {
     || (tab === 'partners' && can('partners:manage'))
     || (tab === 'leads' && can('leads:manage_rules'))
     || (tab === 'hr' && can('hr:manage'))
-    || (tab === 'icplus-rates' && can('icplus:rates'));
+    || (tab === 'icplus-rates' && can('icplus:rates'))
+    // Catalogue (2026-09-28) : un rôle « Delivery Manager » doit pouvoir éditer le matériel et les
+    // prix/SKU (y compris SaaS) sans être admin. Les routes /api/hardware et /api/pricing exigent
+    // déjà hardware:manage / pricing:manage — seul l'écran leur fermait la porte.
+    || (tab === 'hardware' && can('hardware:manage'))
+    || (tab === 'pricing' && can('pricing:manage'));
 
   // Handle redirect back from CRM OAuth
   useEffect(() => {

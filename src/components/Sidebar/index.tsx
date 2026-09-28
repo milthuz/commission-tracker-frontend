@@ -69,7 +69,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   // AdminPanel) ET rangées dans le groupe Admin. Un tel usager voit le groupe avec SEULEMENT ces
   // entrées ; tout le reste du groupe reste réservé aux admins. Partenaires et taux IC+ sont
   // au premier niveau du menu, donc pas ici.
-  const scopedAdmin = can('leads:manage_rules') || can('hr:manage');
+  const scopedAdmin = can('leads:manage_rules') || can('hr:manage') || can('hardware:manage') || can('pricing:manage');
   const [pendingOppsCount, setPendingOppsCount] = useState<number>(0);
   useEffect(() => {
     if (!canPartners) return;
@@ -834,6 +834,32 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                           }`}
                         >
                           {t('sidebar.hrAdmin')}<NewBadge path="/admin/hr" />
+                        </NavLink>
+                      </li>
+                    )}
+                    {/* Catalogue (perms hardware:manage / pricing:manage) pour un NON-admin. Un admin
+                        les voit déjà dans le sous-menu « Ressources » plus bas. */}
+                    {!isAdmin && can('hardware:manage') && (
+                      <li>
+                        <NavLink
+                          to="/admin/hardware"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname === '/admin/hardware' ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('sidebar.hardwareAdmin')}<NewBadge path="/admin/hardware" />
+                        </NavLink>
+                      </li>
+                    )}
+                    {!isAdmin && can('pricing:manage') && (
+                      <li>
+                        <NavLink
+                          to="/admin/pricing"
+                          className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${
+                            pathname === '/admin/pricing' ? 'text-white' : ''
+                          }`}
+                        >
+                          {t('sidebar.pricingAdmin')}<NewBadge path="/admin/pricing" />
                         </NavLink>
                       </li>
                     )}
