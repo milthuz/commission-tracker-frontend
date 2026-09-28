@@ -283,3 +283,13 @@ span.flatpickr-weekday,
 [x-cloak] {
   display: none !important;
 }
+
+/* Boutons, onglets et pastilles ORANGE de marque (`primary` #F58346) : texte FONCÉ plutôt que
+   blanc — blanc sur cet orange = 2,56:1, #1C2434 = 6,08:1 (choix « C » de David, 2026-09-28).
+   Une règle ici plutôt que 233 `text-white` réécrits un par un : la spécificité de deux classes
+   l'emporte sur `.text-white`, et tout nouvel élément `bg-primary text-white` en profite. */
+.bg-primary.text-white,
+.hover\:bg-primary.hover\:text-white:hover,
+.dark .dark\:bg-primary.text-white {
+  color: #1C2434;
+}
