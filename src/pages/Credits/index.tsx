@@ -340,6 +340,7 @@ function Editor({ credit, t, onClose, onSaved }: { credit: Credit | null; t: (k:
           {field('phone', t('credits.f.phone'))}
           {field('email', t('credits.f.email'), 'email')}
         </div>
+        <p className="-mt-2 text-xs text-body dark:text-bodydark">{t('credits.clientCompletes')}</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
             <span className="mb-1 block text-xs font-medium text-body dark:text-bodydark">{t('credits.f.amount')}</span>
