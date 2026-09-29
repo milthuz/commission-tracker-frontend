@@ -74,6 +74,9 @@ const Support = lazyRoute(() => import('./pages/Support'));
 const Leads = lazyRoute(() => import('./pages/Leads'));
 const HR = lazyRoute(() => import('./pages/HR'));
 const SignOffer = lazyRoute(() => import('./pages/Sign'));
+// Signature PUBLIQUE d'une entente de crédit de compensation (lien reçu par courriel, sans session).
+const CreditSign = lazyRoute(() => import('./pages/CreditSign'));
+const Credits = lazyRoute(() => import('./pages/Credits'));
 const Booking = lazyRoute(() => import('./pages/Booking'));
 const Revenue = lazyRoute(() => import('./pages/Revenue'));
 const Resources = lazyRoute(() => import('./pages/Resources'));
@@ -190,6 +193,7 @@ function AppContent() {
       />
       {/* Signature d'une offre d'emploi par le candidat — PUBLIQUE, marque Cluster (voir pages/Sign). */}
       <Route path="/sign" element={<SignOffer />} />
+      <Route path="/credit-sign" element={<CreditSign />} />
       {/* Rendez-vous du marchand avec son représentant — PUBLIQUE, marque Cluster (voir pages/Booking). */}
       <Route path="/rdv" element={<Booking />} />
       <Route
@@ -471,6 +475,15 @@ function AppContent() {
               <>
                 <PageTitle title="Resources | Sales Hub" />
                 <Resources />
+              </>
+            }
+          />
+          <Route
+            path="/credits"
+            element={
+              <>
+                <PageTitle title="Crédits marchand | Sales Hub" />
+                <Credits />
               </>
             }
           />

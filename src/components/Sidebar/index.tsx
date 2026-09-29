@@ -583,6 +583,26 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </li>
                 );
               })()}
+              {/* <!-- Crédits marchand (perms: credits:send / view_all / approve) — crédit de
+                   compensation d'une pénalité de résiliation, signé en ligne par le client. Juste
+                   sous Ressources, à la demande de David. --> */}
+              {(isAdmin || can('credits:send') || can('credits:view_all') || can('credits:approve')) && (
+                <li>
+                  <NavLink
+                    to="/credits"
+                    className={navLinkCls(pathname === '/credits')}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <path d="M3 10h18M7 15h3" />
+                      <path d="M15.5 15.5l1.5 1.5 3-3" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.credits')}</span>
+                    <NewBadge path="/credits" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.credits') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item Kaizen DEMO (perm: demo:kaizen) — streamed POS demo --> */}
               {(isAdmin || can('demo:kaizen')) && (
                 <li>

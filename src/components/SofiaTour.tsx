@@ -19,6 +19,7 @@ const NAV_DESC: Record<string, string> = {
   '/reseller': 'tour.resellerBody',
   '/revenue': 'tour.revenueBody',
   '/resources': 'tour.resourcesBody',
+  '/credits': 'tour.creditsBody',
   '/kaizen-demo': 'tour.kaizenBody',
   '/proposals': 'tour.proposalsBody',
   '/revenue-modeler': 'tour.revenueModelerBody',
