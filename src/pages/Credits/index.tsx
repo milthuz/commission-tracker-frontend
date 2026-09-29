@@ -6,9 +6,9 @@ import { ContentLoader } from '../../common/Loader';
 import { dialog } from '../../lib/dialog';
 import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
 
-// Crédits de compensation marchand (/credits).
+// Crédits processeur marchand (/credits).
 //
-// Le rep crée un dossier à partir d'un compte Zoho Books, téléverse les pièces exigées par la
+// Le rep crée un dossier à partir d'un marchand ZENTACT (seule source permise, demande de David), téléverse les pièces exigées par la
 // clause 4 du formulaire (facture de pénalité, preuve de paiement), puis l'envoie au client, qui
 // signe en ligne. L'approbateur approuve le dossier signé : la note de crédit est alors créée dans
 // Zoho Books. Tout est décidé par le serveur (permissions, statuts, verrous) — l'écran ne fait
@@ -23,7 +23,7 @@ const authHeaders = (json = true): Record<string, string> => ({
 type Status = 'draft' | 'sent' | 'viewed' | 'signed' | 'approved' | 'rejected' | 'declined' | 'cancelled' | 'expired';
 interface Credit {
   id: string; ref: string; status: Status; lang: 'fr' | 'en';
-  repEmail: string; repName: string | null; customerId: string | null;
+  repEmail: string; repName: string | null; customerId: string | null; merchantId: string | null;
   legalName: string; contactPerson: string; phone: string; email: string; amount: number; note: string | null;
   tokenExpiresAt: string | null; sentAt: string | null; viewedAt: string | null; signedAt: string | null;
   signerName: string | null; signerTitle: string | null; commitmentEnd: string | null; declineReason: string | null;
@@ -35,6 +35,7 @@ interface Doc { id: number; filename: string; mime: string; size: number; upload
 interface Detail { credit: Credit; docs: Doc[]; events: { type: string; description: string; actor: string; at: string }[]; canApprove: boolean; canEdit: boolean }
 interface Meta { canSend: boolean; canViewAll: boolean; canApprove: boolean; commitmentMonths: number }
 interface Customer { id: string; name: string; company: string; email: string; phone: string }
+interface ZMerchant { id: string; name: string; email: string; status: string; rep: string }
 
 const CARD = 'rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark';
 const INPUT = 'w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white';
@@ -229,10 +230,10 @@ function Modal({ title, subtitle, onClose, children, wide }: { title: string; su
 
 // ── Création / modification d'un brouillon ──────────────────────────────────────────────
 function Editor({ credit, t, onClose, onSaved }: { credit: Credit | null; t: (k: string, o?: any) => string; onClose: () => void; onSaved: (c: Credit) => void }) {
-  const [customerId, setCustomerId] = useState(credit?.customerId || '');
-  const [customerLabel, setCustomerLabel] = useState(credit?.legalName || '');
+  const [merchantId, setMerchantId] = useState(credit?.merchantId || '');
+  const [merchantLabel, setMerchantLabel] = useState(credit?.legalName || '');
   const [search, setSearch] = useState('');
-  const [results, setResults] = useState<Customer[]>([]);
+  const [results, setResults] = useState<ZMerchant[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchErr, setSearchErr] = useState<string | null>(null);
   const [f, setF] = useState({
@@ -242,33 +243,29 @@ function Editor({ credit, t, onClose, onSaved }: { credit: Credit | null; t: (k:
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // Recherche Zoho Books, avec un léger délai pour ne pas interroger Zoho à chaque frappe.
+  // Recherche parmi les marchands Zentact, avec un léger délai entre les frappes.
   useEffect(() => {
     const needle = search.trim();
     if (needle.length < 2) { setResults([]); return; }
     const h = window.setTimeout(async () => {
       setSearching(true); setSearchErr(null);
-      const r = await api<{ customers: Customer[] }>('GET', `/api/credits/customers?q=${encodeURIComponent(needle)}`);
+      const r = await api<{ merchants: ZMerchant[] }>('GET', `/api/credits/merchants?q=${encodeURIComponent(needle)}`);
       setSearching(false);
-      if (r.ok) setResults(r.data.customers || []); else setSearchErr(t('credits.booksError'));
-    }, 350);
+      if (r.ok) setResults(r.data.merchants || []); else setSearchErr(t('credits.actionError'));
+    }, 300);
     return () => window.clearTimeout(h);
   }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const pick = async (c: Customer) => {
-    setCustomerId(c.id); setCustomerLabel(c.name); setResults([]); setSearch('');
-    setF((p) => ({ ...p, legalName: c.company || c.name, email: c.email || p.email, phone: c.phone || p.phone }));
-    const r = await api<{ customer: { legalName: string; contactPerson: string; email: string; phone: string } }>('GET', `/api/credits/customers/${c.id}`);
-    if (r.ok && r.data.customer) {
-      const d = r.data.customer;
-      setF((p) => ({ ...p, legalName: d.legalName || p.legalName, contactPerson: d.contactPerson || p.contactPerson, email: d.email || p.email, phone: d.phone || p.phone }));
-    }
+  // Zentact donne le nom et le courriel ; la personne-ressource et le téléphone se saisissent.
+  const pick = (m: ZMerchant) => {
+    setMerchantId(m.id); setMerchantLabel(m.name); setResults([]); setSearch('');
+    setF((p) => ({ ...p, legalName: m.name || p.legalName, email: m.email || p.email }));
   };
 
   const save = async () => {
-    if (!customerId) { setErr(t('credits.err.customer_required')); return; }
+    if (!merchantId) { setErr(t('credits.err.merchant_required')); return; }
     setBusy(true); setErr(null);
-    const body = { customerId, ...f };
+    const body = { merchantId, ...f };
     const r = credit ? await api('PUT', `/api/credits/${credit.id}`, body) : await api('POST', '/api/credits', body);
     setBusy(false);
     if (!r.ok) { setErr(t(`credits.err.${(r.data as any).error}`, { defaultValue: t('credits.saveError') })); return; }
@@ -286,32 +283,32 @@ function Editor({ credit, t, onClose, onSaved }: { credit: Credit | null; t: (k:
     <Modal title={credit ? t('credits.editTitle', { ref: credit.ref }) : t('credits.newTitle')} onClose={onClose}>
       <div className="space-y-4">
         <div>
-          <span className="mb-1 block text-xs font-medium text-body dark:text-bodydark">{t('credits.customer')}</span>
-          {customerId && (
+          <span className="mb-1 block text-xs font-medium text-body dark:text-bodydark">{t('credits.merchant')}</span>
+          {merchantId && (
             <div className="mb-2 flex items-center justify-between rounded border border-success/40 bg-success/5 px-3 py-2 text-sm">
-              <span className="text-black dark:text-white">{customerLabel}</span>
-              <span className="text-xs text-body">Zoho Books #{customerId}</span>
+              <span className="text-black dark:text-white">{merchantLabel}</span>
+              <span className="text-xs text-body">Zentact · {merchantId}</span>
             </div>
           )}
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t(customerId ? 'credits.changeCustomer' : 'credits.searchCustomer') as string} className={`${INPUT} pl-9`} />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t(merchantId ? 'credits.changeMerchant' : 'credits.searchMerchant') as string} className={`${INPUT} pl-9`} />
           </div>
           {searching && <p className="mt-1 text-xs text-body">{t('credits.searching')}</p>}
           {searchErr && <p className="mt-1 text-xs text-danger">{searchErr}</p>}
           {results.length > 0 && (
             <ul className="mt-1 max-h-56 overflow-y-auto rounded border border-stroke dark:border-strokedark">
-              {results.map((c) => (
-                <li key={c.id}>
-                  <button type="button" onClick={() => pick(c)} className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-gray-1 dark:hover:bg-meta-4">
-                    <span className="text-black dark:text-white">{c.name}{c.company && c.company !== c.name ? <span className="text-body"> — {c.company}</span> : null}</span>
-                    <span className="truncate text-xs text-body">{c.email}</span>
+              {results.map((m) => (
+                <li key={m.id}>
+                  <button type="button" onClick={() => pick(m)} className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-gray-1 dark:hover:bg-meta-4">
+                    <span className="min-w-0 text-black dark:text-white">{m.name || m.id}{m.rep ? <span className="text-body"> · {m.rep}</span> : null}</span>
+                    <span className="shrink-0 text-xs text-body">{m.status === 'ACTIVE' ? m.email : t('credits.zentactStatus', { status: m.status })}</span>
                   </button>
                 </li>
               ))}
             </ul>
           )}
-          {search.trim().length >= 2 && !searching && !searchErr && results.length === 0 && <p className="mt-1 text-xs text-body">{t('credits.noCustomer')}</p>}
+          {search.trim().length >= 2 && !searching && !searchErr && results.length === 0 && <p className="mt-1 text-xs text-body">{t('credits.noMerchant')}</p>}
         </div>
 
         {field('legalName', t('credits.f.legalName'))}
@@ -458,6 +455,8 @@ function DetailModal({ id, t, money, date, locale, onClose, onChanged, onEdit }:
           </dl>
           {c.note && <p className="rounded bg-gray-2 p-3 text-sm text-body dark:bg-meta-4 dark:text-bodydark">{c.note}</p>}
 
+          <BooksLink c={c} t={t} canLink={(d.canEdit || d.canApprove) && !locked} onLinked={() => { load(); onChanged(); }} />
+
           {/* Pièces justificatives — clause 4 */}
           <div className="rounded border border-stroke p-4 dark:border-strokedark">
             <div className="mb-2 flex items-center justify-between gap-2">
@@ -519,7 +518,8 @@ function DetailModal({ id, t, money, date, locale, onClose, onChanged, onEdit }:
             <div className="space-y-2 rounded border border-warning/40 bg-warning/5 p-3">
               <p className="text-sm font-medium text-black dark:text-white">{t('credits.toApprove')}</p>
               {d.docs.length === 0 && <p className="text-xs text-warning">{t('credits.approveNeedsDocs')}</p>}
-              <button type="button" disabled={!!busy || d.docs.length === 0}
+              {!c.customerId && <p className="text-xs text-warning">{t('credits.approveNeedsBooks')}</p>}
+              <button type="button" disabled={!!busy || d.docs.length === 0 || !c.customerId}
                 onClick={async () => { if (await act('approve', `/api/credits/${c.id}/approve`, undefined, t('credits.approveConfirm', { amount: money(c.amount), name: c.legalName }))) load(); }}
                 className={`${BTN_PRIMARY} w-full justify-center`}>
                 <Check className="h-4 w-4" />{busy === 'approve' ? t('credits.approving') : t('credits.approve')}
@@ -580,5 +580,75 @@ function DetailModal({ id, t, money, date, locale, onClose, onChanged, onEdit }:
         </div>
       </div>
     </Modal>
+  );
+}
+
+// Relie le dossier au compte Zoho Books qui recevra la note de crédit. La recherche part du nom
+// légal du marchand ; l'approbateur (ou l'auteur) choisit le bon compte.
+function BooksLink({ c, t, canLink, onLinked }: { c: Credit; t: (k: string, o?: any) => string; canLink: boolean; onLinked: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState(c.legalName || '');
+  const [results, setResults] = useState<Customer[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const needle = q.trim();
+    if (needle.length < 2) { setResults([]); return; }
+    const h = window.setTimeout(async () => {
+      setSearching(true); setErr(null);
+      const r = await api<{ customers: Customer[] }>('GET', `/api/credits/customers?q=${encodeURIComponent(needle)}`);
+      setSearching(false);
+      if (r.ok) setResults(r.data.customers || []); else setErr(t('credits.booksError'));
+    }, 350);
+    return () => window.clearTimeout(h);
+  }, [q, open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const link = async (cust: Customer) => {
+    setBusy(true); setErr(null);
+    const r = await api('POST', `/api/credits/${c.id}/books-customer`, { customerId: cust.id });
+    setBusy(false);
+    if (!r.ok) { setErr(t(`credits.err.${(r.data as any).error}`, { defaultValue: t('credits.actionError') })); return; }
+    setOpen(false); onLinked();
+  };
+
+  return (
+    <div className={`rounded border p-4 ${c.customerId ? 'border-stroke dark:border-strokedark' : 'border-warning/40 bg-warning/5'}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h4 className="text-sm font-semibold text-black dark:text-white">{t('credits.books.title')}</h4>
+          <p className="text-xs text-body dark:text-bodydark">{c.customerId ? t('credits.books.linked', { id: c.customerId }) : t('credits.books.notLinked')}</p>
+        </div>
+        {canLink && !open && (
+          <button type="button" onClick={() => setOpen(true)} className={BTN}>{t(c.customerId ? 'credits.books.change' : 'credits.books.link')}</button>
+        )}
+      </div>
+      {open && (
+        <div className="mt-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" />
+            <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('credits.books.search') as string} className={`${INPUT} pl-9`} />
+          </div>
+          {searching && <p className="mt-1 text-xs text-body">{t('credits.searching')}</p>}
+          {err && <p className="mt-1 text-xs text-danger">{err}</p>}
+          {results.length > 0 && (
+            <ul className="mt-1 max-h-48 overflow-y-auto rounded border border-stroke dark:border-strokedark">
+              {results.map((cu) => (
+                <li key={cu.id}>
+                  <button type="button" disabled={busy} onClick={() => link(cu)} className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-gray-1 disabled:opacity-50 dark:hover:bg-meta-4">
+                    <span className="text-black dark:text-white">{cu.name}{cu.company && cu.company !== cu.name ? <span className="text-body"> — {cu.company}</span> : null}</span>
+                    <span className="truncate text-xs text-body">{cu.email}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {q.trim().length >= 2 && !searching && !err && results.length === 0 && <p className="mt-1 text-xs text-body">{t('credits.noCustomer')}</p>}
+          <button type="button" onClick={() => setOpen(false)} className="mt-2 text-xs text-body hover:underline">{t('credits.cancelBtn')}</button>
+        </div>
+      )}
+    </div>
   );
 }

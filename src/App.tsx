@@ -482,7 +482,7 @@ function AppContent() {
             path="/credits"
             element={
               <>
-                <PageTitle title="Crédits marchand | Sales Hub" />
+                <PageTitle title="Crédits processeur marchand | Sales Hub" />
                 <Credits />
               </>
             }

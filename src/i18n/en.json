@@ -417,7 +417,7 @@
     "saasIncreaseLookup": "SaaS increase reference",
     "rateCalculator": "IC+ Calculator",
     "revenueModeler": "Revenue Modeler",
-    "credits": "Merchant Credits",
+    "credits": "Merchant Processor Credits",
     "icplusRates": "IC+ reference rates",
     "hr": "Hiring (HR)",
     "hrAdmin": "HR"
@@ -443,7 +443,7 @@
     "kaizenBody": "Try the Kaizen POS demo — a live, streamed point-of-sale you can show prospects.",
     "proposalsBody": "Build and send a branded sales proposal from a Zoho Books estimate.",
     "revenueModelerBody": "Model the 5-year P&L of a new merchant — SaaS, payments, terminals, hardware and commissions — and compare SaaS tiers. Internal tool: it shows Cluster costs.",
-    "creditsBody": "Compensation credits for a termination penalty: prepare the file from a Zoho Books account, the merchant signs online, approval creates the credit note.",
+    "creditsBody": "Compensation credits for a termination penalty: pick the Zentact merchant, the merchant signs online, approval creates the Zoho Books credit note.",
     "partnersBody": "Manage partner companies and review the opportunities they submit. Approving one creates a Lead in Zoho, assigned to the Cluster rep you pick. The Statistics tab shows the pipeline — volume received, what is still open, won versus lost, and conversion per partner.",
     "adminBody": "Admin tools — salespeople, imports, integrations, users, and more.",
     "profileBody": "Your account settings, language and preferences.",
@@ -5535,10 +5535,10 @@
     }
   },
   "credits": {
-    "noAccess": "You don't have access to Merchant Credits (permission credits:send, credits:view_all or credits:approve).",
-    "loadError": "Couldn't load merchant credits.",
-    "title": "Merchant Credits",
-    "subtitle": "Compensation credits for the previous processor's termination penalty: prepare the file, the merchant signs online, approval creates the credit note in Zoho Books.",
+    "noAccess": "You don't have access to Merchant Processor Credits (permission credits:send, credits:view_all or credits:approve).",
+    "loadError": "Couldn't load merchant processor credits.",
+    "title": "Merchant Processor Credits",
+    "subtitle": "Compensation credits for the previous processor's termination penalty: pick the Zentact merchant, the merchant signs online, approval creates the credit note in Zoho Books.",
     "filter": {
       "all": "All",
       "open": "In progress",
@@ -5572,7 +5572,6 @@
     },
     "booksError": "Zoho Books isn't responding. Try again in a moment.",
     "err": {
-      "customer_required": "Pick the customer in Zoho Books.",
       "not_draft": "This file was already sent: it can no longer be edited.",
       "incomplete": "Missing before sending: {{fields}}.",
       "not_sendable": "This file can no longer be sent.",
@@ -5588,14 +5587,15 @@
       "nothing_to_retry": "Nothing to retry: the credit note already exists.",
       "forbidden": "You can't edit this file.",
       "save_failed": "Saving failed.",
-      "send_failed": "Sending failed."
+      "send_failed": "Sending failed.",
+      "merchant_required": "Pick the merchant from the Zentact list.",
+      "books_customer_required": "First link the Zoho Books account that will receive the credit note.",
+      "books_unavailable": "Zoho Books isn't responding. Try again in a moment.",
+      "bad_id": "Invalid Zoho Books account."
     },
     "saveError": "Saving failed.",
     "editTitle": "Edit {{ref}}",
     "newTitle": "New compensation credit",
-    "customer": "Customer (Zoho Books account)",
-    "changeCustomer": "Change customer…",
-    "searchCustomer": "Search the customer in Zoho Books…",
     "searching": "Searching Zoho Books…",
     "noCustomer": "No account found.",
     "f": {
@@ -5607,7 +5607,8 @@
       "lang": "Form language",
       "note": "Internal note (optional)",
       "notePh": "Visible in Sales Hub only, never to the merchant.",
-      "customerShort": "customer"
+      "customerShort": "customer",
+      "merchant": "Zentact merchant"
     },
     "cancelBtn": "Cancel",
     "saving": "Saving…",
@@ -5658,7 +5659,21 @@
     "cancelFile": "Cancel file",
     "deleteConfirm": "Delete this draft?",
     "delete": "Delete",
-    "history": "History"
+    "history": "History",
+    "merchant": "Merchant (Zentact platform)",
+    "searchMerchant": "Search the merchant in Zentact…",
+    "changeMerchant": "Change merchant…",
+    "noMerchant": "No Zentact merchant found (closed or revoked merchants are excluded).",
+    "zentactStatus": "Zentact: {{status}}",
+    "approveNeedsBooks": "First link the Zoho Books account that will receive the credit note.",
+    "books": {
+      "title": "Zoho Books account",
+      "linked": "Linked to account #{{id}} — the credit note will be created there.",
+      "notLinked": "Not linked yet. Choose the Zoho Books account that will receive the credit note before approving.",
+      "link": "Link a Zoho Books account",
+      "change": "Change account",
+      "search": "Search the account in Zoho Books…"
+    }
   },
   "creditSign": {
     "loading": "Loading…",

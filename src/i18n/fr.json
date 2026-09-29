@@ -417,7 +417,7 @@
     "saasIncreaseLookup": "Référence hausse SaaS",
     "rateCalculator": "Calculateur IC+",
     "revenueModeler": "Modélisateur de revenus",
-    "credits": "Crédits marchand",
+    "credits": "Crédits processeur marchand",
     "icplusRates": "Taux de référence IC+",
     "hr": "Embauches (RH)",
     "hrAdmin": "RH"
@@ -443,7 +443,7 @@
     "kaizenBody": "Essaie la démo Kaizen POS — une caisse en direct à montrer à tes prospects.",
     "proposalsBody": "Crée et envoie une proposition de vente à partir d'une soumission Zoho Books.",
     "revenueModelerBody": "Modélise le P&L sur 5 ans d’un nouveau marchand — SaaS, paiements, terminaux, matériel et commissions — et compare les paliers SaaS. Outil interne : il affiche les coûts de Cluster.",
-    "creditsBody": "Crédits de compensation d'une pénalité de résiliation : préparez le dossier à partir d'un compte Zoho Books, le client signe en ligne, l'approbation crée la note de crédit.",
+    "creditsBody": "Crédits de compensation d'une pénalité de résiliation : choisissez le marchand Zentact, le client signe en ligne, l'approbation crée la note de crédit Zoho Books.",
     "partnersBody": "Gérez les entreprises partenaires et examinez les occasions d’affaires qu’elles soumettent. Approuver une occasion crée une piste dans Zoho, assignée au représentant Cluster de votre choix. L’onglet Statistiques montre le pipeline — volume reçu, ce qui est en cours, gagnés contre perdus, et la conversion par partenaire.",
     "adminBody": "Outils d'administration — vendeurs, imports, intégrations, utilisateurs et plus.",
     "profileBody": "Les réglages de ton compte, la langue et tes préférences.",
@@ -5535,10 +5535,10 @@
     }
   },
   "credits": {
-    "noAccess": "Vous n'avez pas accès aux crédits marchand (permission credits:send, credits:view_all ou credits:approve).",
-    "loadError": "Impossible de charger les crédits marchand.",
-    "title": "Crédits marchand",
-    "subtitle": "Crédits de compensation pour la pénalité de résiliation du processeur précédent : préparez le dossier, le client signe en ligne, l'approbation crée la note de crédit dans Zoho Books.",
+    "noAccess": "Vous n'avez pas accès aux crédits processeur marchand (permission credits:send, credits:view_all ou credits:approve).",
+    "loadError": "Impossible de charger les crédits processeur marchand.",
+    "title": "Crédits processeur marchand",
+    "subtitle": "Crédits de compensation pour la pénalité de résiliation du processeur précédent : choisissez le marchand Zentact, le client signe en ligne, l'approbation crée la note de crédit dans Zoho Books.",
     "filter": {
       "all": "Tous",
       "open": "En cours",
@@ -5572,7 +5572,6 @@
     },
     "booksError": "Zoho Books ne répond pas. Réessayez dans un instant.",
     "err": {
-      "customer_required": "Choisissez le client dans Zoho Books.",
       "not_draft": "Le dossier a déjà été envoyé : il n'est plus modifiable.",
       "incomplete": "Champs manquants avant l’envoi : {{fields}}.",
       "not_sendable": "Ce dossier ne peut plus être envoyé.",
@@ -5588,14 +5587,15 @@
       "nothing_to_retry": "Rien à relancer : la note de crédit existe déjà.",
       "forbidden": "Vous ne pouvez pas modifier ce dossier.",
       "save_failed": "L'enregistrement a échoué.",
-      "send_failed": "L'envoi a échoué."
+      "send_failed": "L'envoi a échoué.",
+      "merchant_required": "Choisissez le marchand dans la liste Zentact.",
+      "books_customer_required": "Reliez d'abord le compte Zoho Books qui recevra la note de crédit.",
+      "books_unavailable": "Zoho Books ne répond pas. Réessayez dans un instant.",
+      "bad_id": "Compte Zoho Books invalide."
     },
     "saveError": "L'enregistrement a échoué.",
     "editTitle": "Modifier {{ref}}",
     "newTitle": "Nouveau crédit de compensation",
-    "customer": "Client (compte Zoho Books)",
-    "changeCustomer": "Changer de client…",
-    "searchCustomer": "Chercher le client dans Zoho Books…",
     "searching": "Recherche dans Zoho Books…",
     "noCustomer": "Aucun compte trouvé.",
     "f": {
@@ -5607,7 +5607,8 @@
       "lang": "Langue du formulaire",
       "note": "Note interne (facultative)",
       "notePh": "Visible dans Sales Hub seulement, jamais par le client.",
-      "customerShort": "client"
+      "customerShort": "client",
+      "merchant": "marchand Zentact"
     },
     "cancelBtn": "Annuler",
     "saving": "Enregistrement…",
@@ -5658,7 +5659,21 @@
     "cancelFile": "Annuler le dossier",
     "deleteConfirm": "Supprimer ce brouillon ?",
     "delete": "Supprimer",
-    "history": "Historique"
+    "history": "Historique",
+    "merchant": "Marchand (plateforme Zentact)",
+    "searchMerchant": "Chercher le marchand dans Zentact…",
+    "changeMerchant": "Changer de marchand…",
+    "noMerchant": "Aucun marchand Zentact trouvé (les marchands fermés ou révoqués sont exclus).",
+    "zentactStatus": "Zentact : {{status}}",
+    "approveNeedsBooks": "Reliez d'abord le compte Zoho Books qui recevra la note de crédit.",
+    "books": {
+      "title": "Compte Zoho Books",
+      "linked": "Relié au compte #{{id}} — la note de crédit y sera créée.",
+      "notLinked": "Pas encore relié. Il faut choisir le compte Zoho Books qui recevra la note de crédit avant l'approbation.",
+      "link": "Relier un compte Zoho Books",
+      "change": "Changer de compte",
+      "search": "Chercher le compte dans Zoho Books…"
+    }
   },
   "creditSign": {
     "loading": "Chargement…",
