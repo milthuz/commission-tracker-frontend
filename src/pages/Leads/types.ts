@@ -77,7 +77,7 @@ export interface Lead {
   merchantNotifiedAt: string | null;
   // Rendez-vous (services/leadBooking) : proposé à l'acceptation, puis confirmé / déplacé /
   // annulé par le client depuis la page publique /rdv.
-  booking?: { status: 'proposed' | 'confirmed' | 'cancelled' | null; updatedAt: string | null; changes: number; inGoogleCalendar: boolean; meetUrl?: string | null };
+  booking?: { status: 'proposed' | 'confirmed' | 'callback' | 'cancelled' | null; updatedAt: string | null; changes: number; inGoogleCalendar: boolean; meetUrl?: string | null };
   // Journal par étape écrit à l'acceptation : { crm, callback, repEmail, merchantEmail }.
   // Chaque entrée porte `ok` et, en cas d'échec, `error` ou `skipped`.
   automation: Record<string, any>;

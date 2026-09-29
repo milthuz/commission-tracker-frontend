@@ -24,7 +24,8 @@ interface Info {
   businessName: string;
   firstName: string | null;
   repName: string | null;
-  appointment: { at: string; status: 'proposed' | 'confirmed'; meetUrl: string | null } | null;
+  // 'callback' (2026-09-29) : le représentant rappelle « d'ici une heure » ; rien n'est encore fixé.
+  appointment: { at: string; status: 'proposed' | 'confirmed' | 'callback'; meetUrl: string | null } | null;
   cancelled: boolean;
   past: boolean;
   enabled: boolean;
@@ -76,6 +77,13 @@ const Booking = () => {
   const fmtWhen = (iso: string) => new Date(iso).toLocaleString(locale, {
     timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit',
   });
+  // « d'ici une heure » quand c'est vrai, sinon le jour et l'heure (même règle que le courriel).
+  const callbackWhen = (iso: string) => {
+    const mins = (new Date(iso).getTime() - Date.now()) / 60000;
+    if (mins <= 65) return t('booking.withinHour') as string;
+    if (mins <= 125) return t('booking.withinTwoHours') as string;
+    return t('booking.onDay', { when: fmtWhen(iso) }) as string;
+  };
   const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString(locale, { timeZone: TZ, hour: 'numeric', minute: '2-digit' });
   // La date d'un jour (« AAAA-MM-JJ ») lue à midi UTC : aucun fuseau ne la fait changer de jour.
   const dayLabel = (date: string) => {
@@ -182,7 +190,9 @@ const Booking = () => {
                 {info.firstName ? t('booking.hello', { name: info.firstName }) : t('booking.helloAnon')}
               </h1>
               <p className="mt-2 text-[15px] leading-relaxed text-gray-600">
-                {t('booking.intro', { rep, business: info.businessName, minutes: info.slotMinutes })}
+                {info.appointment?.status === 'callback'
+                  ? t('booking.introCallback', { rep, business: info.businessName })
+                  : t('booking.intro', { rep, business: info.businessName, minutes: info.slotMinutes })}
               </p>
             </div>
 
@@ -192,9 +202,12 @@ const Booking = () => {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      {appt.status === 'confirmed' ? t('booking.currentConfirmed') : t('booking.currentProposed')}
+                      {appt.status === 'confirmed' ? t('booking.currentConfirmed')
+                        : appt.status === 'callback' ? t('booking.currentCallback') : t('booking.currentProposed')}
                     </p>
-                    <p className="mt-1 text-lg font-semibold first-letter:uppercase">{fmtWhen(appt.at)}</p>
+                    <p className="mt-1 text-lg font-semibold first-letter:uppercase">
+                      {appt.status === 'callback' ? t('booking.callbackLine', { rep, when: callbackWhen(appt.at) }) : fmtWhen(appt.at)}
+                    </p>
                   </div>
                   {appt.status === 'proposed' && !info.past && (
                     <button type="button" onClick={() => book(appt.at)} disabled={busy}
@@ -218,7 +231,7 @@ const Booking = () => {
 
             {!info.past && info.enabled && (
               <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6">
-                <h2 className="font-semibold">{appt ? t('booking.pickOther') : t('booking.pick')}</h2>
+                <h2 className="font-semibold">{appt?.status === 'callback' ? t('booking.pickInsteadOfCallback') : appt ? t('booking.pickOther') : t('booking.pick')}</h2>
                 <p className="mb-4 mt-0.5 text-xs text-gray-500">{t('booking.tzNote')}</p>
 
                 <div className="-mx-1 mb-4 flex gap-2 overflow-x-auto px-1 pb-1">
@@ -271,11 +284,11 @@ const Booking = () => {
               <div className="text-center">
                 {!confirmCancel ? (
                   <button type="button" onClick={() => setConfirmCancel(true)} className="text-sm text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline">
-                    {t('booking.cancelLink')}
+                    {appt?.status === 'callback' ? t('booking.cancelCallbackLink') : t('booking.cancelLink')}
                   </button>
                 ) : (
                   <div className="rounded-2xl bg-white p-5 text-left shadow-sm ring-1 ring-gray-200">
-                    <h3 className="mb-1 font-semibold">{t('booking.cancelTitle')}</h3>
+                    <h3 className="mb-1 font-semibold">{appt?.status === 'callback' ? t('booking.cancelCallbackTitle') : t('booking.cancelTitle')}</h3>
                     <p className="text-sm text-gray-600">{t('booking.cancelBody', { rep })}</p>
                     <div className="mt-4 flex flex-wrap justify-end gap-2">
                       <button type="button" onClick={() => setConfirmCancel(false)} className="rounded-lg px-4 py-2 text-sm text-gray-600 hover:bg-gray-100">{t('booking.back')}</button>
