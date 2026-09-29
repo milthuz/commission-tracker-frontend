@@ -5543,7 +5543,8 @@
       "all": "All",
       "open": "In progress",
       "toApprove": "To approve",
-      "done": "Done"
+      "done": "Done",
+      "clawback": "Clawback possible"
     },
     "search": "Search a merchant, reference, rep…",
     "new": "New credit",
@@ -5673,6 +5674,25 @@
       "link": "Link a Zoho Books account",
       "change": "Change account",
       "search": "Search the account in Zoho Books…"
+    },
+    "clawback": {
+      "badge": "Clawback possible",
+      "title": "Clawback possible (clause 3)",
+      "body": "The merchant is \"{{status}}\" in Zentact (detected {{flagged}}), before the end of its commitment on {{end}} — about {{months}} months were left. Cluster may reclaim the credit.",
+      "notePh": "Note (optional): how the credit was reclaimed, or why it is waived.",
+      "markReclaimed": "Credit reclaimed",
+      "markWaived": "No clawback",
+      "confirm_reclaimed": "Record that the credit was reclaimed?",
+      "confirm_waived": "Record that the credit will not be reclaimed?",
+      "reclaimed": "Credit reclaimed (clause 3)",
+      "waived": "Clawback waived",
+      "decidedBy": "Decided by {{who}} on {{date}}",
+      "check": "Check clawbacks",
+      "checking": "Checking…",
+      "checkHint": "Look now for credited merchants closed in Zentact before 36 months (this check also runs daily).",
+      "checked_one": "{{count}} new possible clawback flagged.",
+      "checked_other": "{{count}} new possible clawbacks flagged.",
+      "checked_zero": "No new clawback to flag."
     }
   },
   "creditSign": {

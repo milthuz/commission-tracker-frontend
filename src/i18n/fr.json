@@ -5543,7 +5543,8 @@
       "all": "Tous",
       "open": "En cours",
       "toApprove": "À approuver",
-      "done": "Terminés"
+      "done": "Terminés",
+      "clawback": "Reprise possible"
     },
     "search": "Chercher un client, une référence, un représentant…",
     "new": "Nouveau crédit",
@@ -5673,6 +5674,25 @@
       "link": "Relier un compte Zoho Books",
       "change": "Changer de compte",
       "search": "Chercher le compte dans Zoho Books…"
+    },
+    "clawback": {
+      "badge": "Reprise possible",
+      "title": "Reprise possible (clause 3)",
+      "body": "Le marchand est « {{status}} » dans Zentact (détecté le {{flagged}}), avant la fin de son engagement le {{end}} — il restait environ {{months}} mois. Cluster peut reprendre le crédit.",
+      "notePh": "Note (facultative) : comment le crédit a été repris, ou pourquoi on y renonce.",
+      "markReclaimed": "Crédit repris",
+      "markWaived": "Pas de reprise",
+      "confirm_reclaimed": "Noter que le crédit a été repris ?",
+      "confirm_waived": "Noter qu’on ne reprend pas le crédit ?",
+      "reclaimed": "Crédit repris (clause 3)",
+      "waived": "Reprise abandonnée",
+      "decidedBy": "Décidé par {{who}} le {{date}}",
+      "check": "Vérifier les reprises",
+      "checking": "Vérification…",
+      "checkHint": "Cherche tout de suite les marchands crédités fermés dans Zentact avant 36 mois (la vérification tourne aussi chaque jour).",
+      "checked_one": "{{count}} nouvelle reprise possible signalée.",
+      "checked_other": "{{count}} nouvelles reprises possibles signalées.",
+      "checked_zero": "Aucune nouvelle reprise à signaler."
     }
   },
   "creditSign": {

@@ -30,6 +30,8 @@ interface Credit {
   approvedBy: string | null; approvedAt: string | null; rejectedBy: string | null; rejectedAt: string | null; rejectReason: string | null;
   creditnoteId: string | null; creditnoteNumber: string | null; booksError: string | null;
   docCount: number; createdAt: string; updatedAt: string;
+  // Reprise (clause 3) : départ détecté avant la fin des 36 mois, puis décision.
+  clawback: { status: 'flagged' | 'reclaimed' | 'waived'; flaggedAt: string; zentactStatus: string; decidedBy: string | null; decidedAt: string | null; note: string | null } | null;
 }
 interface Doc { id: number; filename: string; mime: string; size: number; uploadedBy: string; uploadedAt: string }
 interface Detail { credit: Credit; docs: Doc[]; events: { type: string; description: string; actor: string; at: string }[]; canApprove: boolean; canEdit: boolean }
@@ -58,7 +60,10 @@ const FILTERS: Record<string, Status[] | null> = {
   open: ['draft', 'sent', 'viewed', 'expired'],
   toApprove: ['signed'],
   done: ['approved', 'rejected', 'declined', 'cancelled'],
+  clawback: null, // filtre à part : reprise possible, non tranchée
 };
+const isClawback = (c: Credit) => c.clawback?.status === 'flagged';
+const matchFilter = (k: string, c: Credit) => (k === 'clawback' ? isClawback(c) : !FILTERS[k] || FILTERS[k]!.includes(c.status));
 
 async function api<T = any>(method: string, path: string, body?: any): Promise<{ ok: boolean; status: number; data: T }> {
   const r = await fetch(`${API_URL}${path}`, { method, headers: authHeaders(), body: body ? JSON.stringify(body) : undefined });
@@ -75,7 +80,9 @@ export default function Credits() {
   const [fatal, setFatal] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [credits, setCredits] = useState<Credit[]>([]);
-  const [filter, setFilter] = useState<keyof typeof FILTERS>('all');
+  // Le courriel d'alerte ouvre /credits?filter=clawback.
+  const [filter, setFilter] = useState<keyof typeof FILTERS>(params.get('filter') === 'clawback' ? 'clawback' : 'all');
+  const [checking, setChecking] = useState(false);
   const [q, setQ] = useState('');
   const [editor, setEditor] = useState<{ credit: Credit | null } | null>(null);
   const [openId, setOpenId] = useState<string | null>(params.get('id'));
@@ -112,12 +119,20 @@ export default function Credits() {
   };
 
   const shown = useMemo(() => {
-    const st = FILTERS[filter];
     const needle = q.trim().toLowerCase();
-    return credits.filter((c) => (!st || st.includes(c.status))
+    return credits.filter((c) => matchFilter(filter, c)
       && (!needle || `${c.ref} ${c.legalName} ${c.contactPerson} ${c.repName || ''}`.toLowerCase().includes(needle)));
   }, [credits, filter, q]);
-  const counts = useMemo(() => Object.fromEntries(Object.entries(FILTERS).map(([k, st]) => [k, credits.filter((c) => !st || st.includes(c.status)).length])), [credits]);
+  const counts = useMemo(() => Object.fromEntries(Object.keys(FILTERS).map((k) => [k, credits.filter((c) => matchFilter(k, c)).length])), [credits]);
+
+  const checkNow = async () => {
+    setChecking(true);
+    const r = await api<{ flagged: number }>('POST', '/api/credits/clawback-check');
+    setChecking(false);
+    if (!r.ok) { dialog.alert(t('credits.actionError')); return; }
+    await loadList();
+    dialog.alert(t('credits.clawback.checked', { count: r.data.flagged }));
+  };
 
   if (loading) return <ContentLoader />;
   if (fatal || !meta) return <div className={`${CARD} p-8 text-center text-sm text-danger`}>{fatal}</div>;
@@ -131,9 +146,9 @@ export default function Credits() {
 
       <div className={`${CARD} mb-5 flex flex-wrap items-center gap-3 p-4`}>
         <div className="inline-flex flex-wrap rounded-lg border border-stroke p-1 dark:border-strokedark">
-          {(Object.keys(FILTERS) as (keyof typeof FILTERS)[]).map((k) => (
+          {(Object.keys(FILTERS) as (keyof typeof FILTERS)[]).filter((k) => k !== 'clawback' || counts.clawback > 0 || filter === 'clawback').map((k) => (
             <button key={k} type="button" onClick={() => setFilter(k)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${filter === k ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+              className={`rounded-md px-3 py-1.5 text-sm font-medium ${filter === k ? 'bg-primary text-white' : k === 'clawback' ? 'text-danger hover:bg-danger/5' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
               {t(`credits.filter.${k}`)} <span className="opacity-70">({counts[k] || 0})</span>
             </button>
           ))}
@@ -142,6 +157,11 @@ export default function Credits() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('credits.search') as string} className={`${INPUT} pl-9`} />
         </div>
+        {meta.canApprove && (
+          <button type="button" onClick={checkNow} disabled={checking} title={t('credits.clawback.checkHint') as string} className={BTN}>
+            <RefreshCw className="h-4 w-4" />{checking ? t('credits.clawback.checking') : t('credits.clawback.check')}
+          </button>
+        )}
         {meta.canSend && (
           <button type="button" onClick={() => setEditor({ credit: null })} className={BTN_PRIMARY}>
             <Plus className="h-4 w-4" />{t('credits.new')}
@@ -175,7 +195,10 @@ export default function Credits() {
                     )}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-black dark:text-white">{money(c.amount)}</td>
-                  <td className="px-4 py-3"><StatusBadge c={c} t={t as any} /></td>
+                  <td className="px-4 py-3">
+                    <StatusBadge c={c} t={t as any} />
+                    {isClawback(c) && <span className="ml-1.5 inline-block whitespace-nowrap rounded-full bg-danger/10 px-2.5 py-0.5 text-xs font-medium text-danger">{t('credits.clawback.badge')}</span>}
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3 text-body dark:text-bodydark">{c.repName || c.repEmail}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-body dark:text-bodydark">{date(c.updatedAt)}</td>
                 </tr>
@@ -443,6 +466,7 @@ function DetailModal({ id, t, money, date, locale, onClose, onChanged, onEdit }:
               )}
             </div>
           )}
+          {c.clawback && <ClawbackPanel c={c} t={t} date={date} canDecide={d.canApprove} onDone={() => { load(); onChanged(); }} />}
           {c.status === 'rejected' && <p className="rounded bg-danger/5 p-3 text-sm text-danger">{t('credits.rejectedBy', { who: c.rejectedBy, reason: c.rejectReason })}</p>}
           {c.status === 'declined' && <p className="rounded bg-danger/5 p-3 text-sm text-danger">{t('credits.declinedBy')}{c.declineReason ? ` — ${c.declineReason}` : ''}</p>}
 
@@ -647,6 +671,55 @@ function BooksLink({ c, t, canLink, onLinked }: { c: Credit; t: (k: string, o?: 
           )}
           {q.trim().length >= 2 && !searching && !err && results.length === 0 && <p className="mt-1 text-xs text-body">{t('credits.noCustomer')}</p>}
           <button type="button" onClick={() => setOpen(false)} className="mt-2 text-xs text-body hover:underline">{t('credits.cancelBtn')}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Reprise avant 36 mois (clause 3). Signalé par la vérification quotidienne quand le marchand est
+// fermé dans Zentact avant la fin de l'engagement ; l'approbateur tranche et c'est tracé.
+function ClawbackPanel({ c, t, date, canDecide, onDone }: { c: Credit; t: (k: string, o?: any) => string; date: (d: string | null) => string; canDecide: boolean; onDone: () => void }) {
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const cb = c.clawback!;
+  // Mois d'engagement restants au moment du départ détecté (arrondis au mois supérieur).
+  const monthsLeft = (() => {
+    if (!c.commitmentEnd) return null;
+    const [y, m, d] = c.commitmentEnd.split('-').map(Number);
+    const end = new Date(y, m - 1, d);
+    const from = new Date(cb.flaggedAt);
+    return Math.max(0, Math.ceil((end.getTime() - from.getTime()) / (30.44 * 86400000)));
+  })();
+  const decide = async (decision: 'reclaimed' | 'waived') => {
+    if (!(await dialog.confirm(t(`credits.clawback.confirm_${decision}`), { confirmText: t('credits.confirm') }))) return;
+    setBusy(true);
+    const r = await api('POST', `/api/credits/${c.id}/clawback`, { decision, note });
+    setBusy(false);
+    if (!r.ok) { dialog.alert(t('credits.actionError')); return; }
+    onDone();
+  };
+  if (cb.status !== 'flagged') {
+    return (
+      <div className="rounded border border-stroke p-3 text-sm dark:border-strokedark">
+        <p className="font-medium text-black dark:text-white">{t(`credits.clawback.${cb.status}`)}</p>
+        <p className="mt-0.5 text-xs text-body dark:text-bodydark">{t('credits.clawback.decidedBy', { who: cb.decidedBy, date: date(cb.decidedAt) })}{cb.note ? ` — ${cb.note}` : ''}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded border border-danger/40 bg-danger/5 p-4 text-sm">
+      <p className="font-semibold text-danger">{t('credits.clawback.title')}</p>
+      <p className="mt-1 text-black dark:text-white">
+        {t('credits.clawback.body', { status: cb.zentactStatus, flagged: date(cb.flaggedAt), end: date(c.commitmentEnd), months: monthsLeft ?? '—' })}
+      </p>
+      {canDecide && (
+        <div className="mt-3 space-y-2">
+          <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('credits.clawback.notePh') as string} className={INPUT} />
+          <div className="flex flex-wrap gap-2">
+            <button type="button" disabled={busy} onClick={() => decide('reclaimed')} className={BTN_PRIMARY}>{t('credits.clawback.markReclaimed')}</button>
+            <button type="button" disabled={busy} onClick={() => decide('waived')} className={BTN}>{t('credits.clawback.markWaived')}</button>
+          </div>
         </div>
       )}
     </div>
