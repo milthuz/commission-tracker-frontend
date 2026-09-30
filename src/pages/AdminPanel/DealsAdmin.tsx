@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
+import ManualDeals from './ManualDeals';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 type Deal = {
   dealId: string; dealName: string; accountName: string; ownerName: string;
   leadSourceGroup: string | null; points: number; soldDate: string;
-  excluded: boolean; exclusionReason: string | null;
+  excluded: boolean; exclusionReason: string | null; isManual?: boolean;
 };
 
 const fmtDate = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString();
@@ -50,7 +51,7 @@ export default function DealsAdmin() {
       const rows: Deal[] = (r.data.deals || []).map((d: any) => ({
         dealId: d.deal_id, dealName: d.deal_name, accountName: d.account_name, ownerName: d.owner_name,
         leadSourceGroup: d.lead_source_group, points: d.points, soldDate: d.sold_date,
-        excluded: !!d.excluded, exclusionReason: d.exclusion_reason || null,
+        excluded: !!d.excluded, exclusionReason: d.exclusion_reason || null, isManual: !!d.is_manual,
       }));
       setDeals(rows);
       const initEdit: Record<string, string> = {};
@@ -116,6 +117,7 @@ export default function DealsAdmin() {
   };
 
   return (
+    <>
     <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
       <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
         <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.deals.title')}</h3>
@@ -202,6 +204,11 @@ export default function DealsAdmin() {
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className={`font-medium text-black dark:text-white ${d.excluded ? 'line-through' : ''}`}>{d.dealName}</span>
+                          {d.isManual && (
+                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                              {t('admin.deals.manual.badge')}
+                            </span>
+                          )}
                           {d.excluded && (
                             <span className="rounded-full bg-danger/10 px-2 py-0.5 text-[11px] font-medium text-danger">
                               {t('admin.deals.excludedBadge')}
@@ -311,5 +318,7 @@ export default function DealsAdmin() {
         </div>
       )}
     </div>
+    <ManualDeals />
+    </>
   );
 }

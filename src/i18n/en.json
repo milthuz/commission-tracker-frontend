@@ -2854,7 +2854,27 @@
       "excludeTitle": "Exclude this deal",
       "reasonLabel": "Reason (optional, but useful six months from now)",
       "reasonPlaceholder": "e.g. duplicate of deal #1234 · test deal · should never have counted",
-      "noneExcluded": "No deals excluded from the tracker yet."
+      "noneExcluded": "No deals excluded from the tracker yet.",
+      "manual": {
+        "title": "Manual deals",
+        "subtitle": "Give a rep the points for a sale that has no deal in Zoho CRM — e.g. a V2 install on an existing client. It counts everywhere a synced deal does (tracker, monthly totals, quota), and its points are the deal type's value.",
+        "selectRep": "Select a rep",
+        "dealName": "Deal name",
+        "dealNamePlaceholder": "e.g. Sir Donair and Pizza – V2",
+        "accountName": "Account (optional)",
+        "dealType": "Deal type",
+        "selectType": "Select a type",
+        "soldDate": "Sale date",
+        "note": "Note (optional)",
+        "notePlaceholder": "Why it is added manually",
+        "add": "Add the deal",
+        "preview": "{{rep}} will get {{points}} pt for {{month}}.",
+        "needFields": "Rep, deal name, deal type and date are required.",
+        "none": "No manual deals yet.",
+        "remove": "Remove",
+        "confirmRemove": "Remove the manual deal “{{deal}}”? {{rep}} will lose {{points}} point(s).",
+        "badge": "Manual"
+      }
     },
     "merchantLinks": {
       "title": "Merchant ↔ SaaS links",

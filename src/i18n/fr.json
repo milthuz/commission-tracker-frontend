@@ -2854,7 +2854,27 @@
       "excludeTitle": "Exclure cette transaction",
       "reasonLabel": "Motif (facultatif, mais utile dans six mois)",
       "reasonPlaceholder": "ex. doublon de la transaction #1234 · transaction de test · ne devait jamais compter",
-      "noneExcluded": "Aucune transaction exclue du tracker pour l'instant."
+      "noneExcluded": "Aucune transaction exclue du tracker pour l'instant.",
+      "manual": {
+        "title": "Deals manuels",
+        "subtitle": "Donnez à un vendeur les points d'une vente qui n'a pas de deal dans Zoho CRM — ex. une installation V2 chez un client existant. Il compte partout comme un deal synchronisé (tracker, totaux mensuels, quota), et ses points sont ceux du type de deal.",
+        "selectRep": "Choisir un vendeur",
+        "dealName": "Nom du deal",
+        "dealNamePlaceholder": "ex. Sir Donair and Pizza – V2",
+        "accountName": "Compte (facultatif)",
+        "dealType": "Type de deal",
+        "selectType": "Choisir un type",
+        "soldDate": "Date de vente",
+        "note": "Note (facultatif)",
+        "notePlaceholder": "Pourquoi il est ajouté à la main",
+        "add": "Ajouter le deal",
+        "preview": "{{rep}} recevra {{points}} pt pour {{month}}.",
+        "needFields": "Vendeur, nom du deal, type et date sont obligatoires.",
+        "none": "Aucun deal manuel pour l'instant.",
+        "remove": "Retirer",
+        "confirmRemove": "Retirer le deal manuel « {{deal}} » ? {{rep}} perdra {{points}} point(s).",
+        "badge": "Manuel"
+      }
     },
     "merchantLinks": {
       "title": "Liens Marchand ↔ SaaS",
