@@ -89,6 +89,28 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     return () => { cancelled = true; clearInterval(id); };
   }, [canPartners]);
 
+  // Même idiome pour les pistes du site qui attendent un examen (Webflow, formulaires, saisie) :
+  // l'examinateur voit arriver une piste sans ouvrir la page. Réservé à leads:review.
+  const canReviewLeads = isAdmin || can('leads:review');
+  const [pendingLeadsCount, setPendingLeadsCount] = useState<number>(0);
+  useEffect(() => {
+    if (!canReviewLeads) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const r = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/leads/pending-count`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        });
+        if (!r.ok) return;
+        const d = await r.json();
+        if (!cancelled) setPendingLeadsCount(d.count || 0);
+      } catch { /* ignore */ }
+    };
+    load();
+    const id = setInterval(load, 120000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [canReviewLeads]);
+
   const [adminMenuOpen, setAdminMenuOpen] = useState(pathname.includes('admin'));
   // Opening the Admin section acknowledges its "new" features, so the aggregate orange dot
   // clears even without visiting each sub-page (and covers feature paths that match no route).
@@ -325,6 +347,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       <path d="M8 12h6M8 16h4" />
                     </svg>
                     <span className={labelCls}>{t('sidebar.leads')}</span>
+                    {pendingLeadsCount > 0 && !collapsed && (
+                      <span title={t('sidebar.leadsPending', { count: pendingLeadsCount }) as string}
+                        className="ml-auto inline-flex min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-xs font-semibold text-white">
+                        {pendingLeadsCount}
+                      </span>
+                    )}
+                    {pendingLeadsCount > 0 && collapsed && (
+                      <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" aria-hidden />
+                    )}
                     <NewBadge path="/leads" collapsed={collapsed} />
                     <RailTip label={t('sidebar.leads') as string} />
                   </NavLink>

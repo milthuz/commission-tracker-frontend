@@ -412,6 +412,8 @@
     "collapse": "Réduire la barre latérale",
     "expand": "Agrandir la barre latérale",
     "passOps": "La Passe",
+    "leadsPending_one": "{{count}} piste attend un examen",
+    "leadsPending_other": "{{count}} pistes attendent un examen",
     "leads": "Pistes",
     "leadsAdmin": "Pistes",
     "saasIncreaseLookup": "Référence hausse SaaS",

@@ -412,6 +412,8 @@
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar",
     "passOps": "The Pass",
+    "leadsPending_one": "{{count}} lead waiting for review",
+    "leadsPending_other": "{{count}} leads waiting for review",
     "leads": "Leads",
     "leadsAdmin": "Leads",
     "saasIncreaseLookup": "SaaS increase reference",
