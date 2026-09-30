@@ -5743,14 +5743,17 @@
       "open": "Supprimer le dossier",
       "title": "Supprimer ce dossier",
       "warn": "Le dossier, son entente et ses pièces seront effacés de Sales Hub. Une trace reste au journal d’activité.",
-      "warnCn": "Le dossier, son entente et ses pièces seront effacés de Sales Hub (une trace reste au journal). ⚠️ La note de crédit {{number}} n’est PAS supprimée : annulez-la vous-même dans Zoho Books.",
+      "warnCn": "Le dossier, son entente et ses pièces seront effacés de Sales Hub (une trace reste au journal). La note de crédit {{number}} sera ANNULÉE dans Zoho Books : elle y reste visible, marquée annulée.",
       "reasonPh": "Raison (obligatoire) — ex. « Test », « Dossier en double »",
       "back": "Retour",
       "button": "Supprimer",
       "deleting": "Suppression…",
       "confirm": "Supprimer définitivement le dossier {{ref}} ?",
       "reasonRequired": "Indiquez une raison.",
-      "doneCn": "Dossier supprimé. N’oubliez pas d’annuler la note de crédit {{number}} dans Zoho Books."
+      "doneCn": "Dossier supprimé. La note de crédit {{number}} n’a PAS été annulée : annulez-la vous-même dans Zoho Books.",
+      "doneVoided": "Dossier supprimé. La note de crédit {{number}} a été annulée dans Zoho Books.",
+      "voidFailed": "Zoho Books a refusé d’annuler la note de crédit {{number}} : « {{message}} ». Rien n’a été supprimé. Si la note est déjà appliquée à une facture, retirez-la d’abord dans Zoho Books. Supprimer le dossier quand même (la note restera à annuler à la main) ?",
+      "force": "Supprimer quand même"
     }
   },
   "creditSign": {

@@ -761,10 +761,18 @@ function DeletePanel({ c, t, onDeleted }: { c: Credit; t: (k: string, o?: any) =
   const go = async () => {
     if (!(await dialog.confirm(t('credits.del.confirm', { ref: c.ref }), { danger: true, confirmText: t('credits.del.button') }))) return;
     setBusy(true);
-    const r = await api<{ creditnoteNumber: string | null }>('DELETE', `/api/credits/${c.id}`, { reason: reason.trim() });
+    let r = await api<{ creditnoteNumber: string | null; creditnoteVoided: boolean }>('DELETE', `/api/credits/${c.id}`, { reason: reason.trim() });
+    // Zoho a refusé d'annuler la note (déjà appliquée à une facture, par exemple) : rien n'a été
+    // effacé. On montre le message de Zoho et on propose de supprimer quand même.
+    if (!r.ok && (r.data as any).error === 'books_void_failed') {
+      const d: any = r.data;
+      const again = await dialog.confirm(t('credits.del.voidFailed', { number: d.creditnoteNumber, message: d.message }), { danger: true, confirmText: t('credits.del.force') });
+      if (!again) { setBusy(false); return; }
+      r = await api('DELETE', `/api/credits/${c.id}`, { reason: reason.trim(), force: true });
+    }
     setBusy(false);
     if (!r.ok) { dialog.alert(t((r.data as any).error === 'reason_required' ? 'credits.del.reasonRequired' : 'credits.actionError')); return; }
-    if (r.data.creditnoteNumber) dialog.alert(t('credits.del.doneCn', { number: r.data.creditnoteNumber }));
+    if (r.data.creditnoteNumber) dialog.alert(t(r.data.creditnoteVoided ? 'credits.del.doneVoided' : 'credits.del.doneCn', { number: r.data.creditnoteNumber }));
     onDeleted();
   };
   if (!open) {

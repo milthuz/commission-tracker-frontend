@@ -5743,14 +5743,17 @@
       "open": "Delete file",
       "title": "Delete this file",
       "warn": "The file, its agreement and its documents will be erased from Sales Hub. A trace stays in the activity log.",
-      "warnCn": "The file, its agreement and its documents will be erased from Sales Hub (a trace stays in the log). ⚠️ Credit note {{number}} is NOT deleted: void it yourself in Zoho Books.",
+      "warnCn": "The file, its agreement and its documents will be erased from Sales Hub (a trace stays in the log). Credit note {{number}} will be VOIDED in Zoho Books: it stays visible there, marked void.",
       "reasonPh": "Reason (required) — e.g. \"Test\", \"Duplicate file\"",
       "back": "Back",
       "button": "Delete",
       "deleting": "Deleting…",
       "confirm": "Permanently delete file {{ref}}?",
       "reasonRequired": "Enter a reason.",
-      "doneCn": "File deleted. Remember to void credit note {{number}} in Zoho Books."
+      "doneCn": "File deleted. Credit note {{number}} was NOT voided: void it yourself in Zoho Books.",
+      "doneVoided": "File deleted. Credit note {{number}} was voided in Zoho Books.",
+      "voidFailed": "Zoho Books refused to void credit note {{number}}: \"{{message}}\". Nothing was deleted. If the note is already applied to an invoice, remove it there first. Delete the file anyway (the note will have to be voided by hand)?",
+      "force": "Delete anyway"
     }
   },
   "creditSign": {
