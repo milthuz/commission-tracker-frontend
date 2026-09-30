@@ -3627,6 +3627,9 @@
       }
     },
     "admins": {
+      "moreActions": "More actions",
+      "menuGrantAdmin": "Make admin",
+      "menuRevokeAdmin": "Remove admin rights",
       "title": "User Access",
       "subtitle": "Manage roles and admin access for everyone who can sign in",
       "description": "Zoho users, external users and pre-assigned emails all appear here. Assign roles to control what each user sees, and grant or revoke admin privileges (Zoho accounts only). Admins can access all data, manage salespeople, run syncs, and modify settings.",

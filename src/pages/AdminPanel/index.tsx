@@ -10,6 +10,7 @@ import { formatDateOnly } from '../../utils/date';
 import ZohoSystemAccount from './ZohoSystemAccount';
 import CommissionImport from './CommissionImport';
 import ExternalUsers from './ExternalUsers';
+import RowActionsMenu from './RowActionsMenu';
 import SofiaGovernance from './SofiaGovernance';
 import ResellerAdmin from './ResellerAdmin';
 import MerchantSaasLinks from './MerchantSaasLinks';
@@ -3534,21 +3535,20 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
             {usersSub === 'access' && (<>
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.admins.title')}</h3>
-                <p className="text-sm text-body mt-1">{t('admin.admins.subtitle')}</p>
-              </div>
-
-              {/* Stats */}
-              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <div className="flex flex-wrap gap-6">
-                  <div>
-                    <span className="text-2xl font-bold text-black dark:text-white">{adminUsers.length}</span>
-                    <span className="ml-2 text-sm text-body">{t('admin.admins.totalUsers')}</span>
+              {/* En-tête : titre et explication à gauche, compteurs à droite — une seule bande. */}
+              <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stroke px-7 py-5 dark:border-strokedark">
+                <div className="min-w-0 max-w-3xl">
+                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.admins.title')}</h3>
+                  <p className="mt-1 text-sm text-body">{t('admin.admins.description')}</p>
+                </div>
+                <div className="flex shrink-0 gap-3">
+                  <div className="rounded-md border border-stroke px-4 py-2 text-center dark:border-strokedark">
+                    <div className="text-xl font-bold leading-tight text-black dark:text-white">{adminUsers.length}</div>
+                    <div className="text-xs text-body">{t('admin.admins.totalUsers')}</div>
                   </div>
-                  <div>
-                    <span className="text-2xl font-bold text-success">{adminUsers.filter(u => u.isAdmin).length}</span>
-                    <span className="ml-2 text-sm text-body">{t('admin.admins.adminCount')}</span>
+                  <div className="rounded-md border border-stroke px-4 py-2 text-center dark:border-strokedark">
+                    <div className="text-xl font-bold leading-tight text-success">{adminUsers.filter(u => u.isAdmin).length}</div>
+                    <div className="text-xs text-body">{t('admin.admins.adminCount')}</div>
                   </div>
                 </div>
               </div>
@@ -3559,43 +3559,11 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 </div>
               ) : (
                 <div className="p-7">
-                  <p className="mb-4 text-sm text-body">{t('admin.admins.description')}</p>
-                  {/* Pre-assign roles to an email that hasn't logged in yet (rep's first Zoho
-                      login will pick the roles up by email match). */}
-                  <form
-                    className="mb-4 flex flex-wrap items-center gap-2"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      const email = preassignEmail.trim().toLowerCase();
-                      if (!email || !email.includes('@')) return;
-                      setEditingUserRoles(email);
-                      setEditingUserRoleIds(
-                        (adminUsers.find(u => u.email.toLowerCase() === email)?.roles || []).map(r => r.id)
-                      );
-                      setPreassignEmail('');
-                    }}
-                  >
-                    <input
-                      type="email"
-                      value={preassignEmail}
-                      onChange={(e) => setPreassignEmail(e.target.value)}
-                      placeholder={t('admin.admins.preassignPlaceholder')}
-                      className="w-72 rounded-md border border-stroke bg-transparent py-2 px-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!preassignEmail.trim().includes('@')}
-                      className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
-                    >
-                      {t('admin.admins.preassignButton')}
-                    </button>
-                    <span className="text-xs text-body">{t('admin.admins.preassignHint')}</span>
-                  </form>
-                  {/* Separe du champ de PRE-ASSIGNATION juste au-dessus : les deux prennent une
-                      adresse courriel et ne font pas du tout la meme chose. Le libelle et
-                      l'icone doivent lever l'ambiguite avant le premier clic. */}
-                  <div className="mb-4 flex flex-wrap items-center gap-3">
-                    <div className="relative w-80 max-w-full">
+                  {/* Une seule rangée : CHERCHER un usager existant à gauche, PRÉ-ASSIGNER des rôles à
+                      une adresse (avant sa première connexion) à droite. Les deux prennent un
+                      courriel mais ne font pas la même chose : icône, libellé et place les séparent. */}
+                  <div className="mb-5 flex flex-wrap items-center gap-3 rounded-md border border-stroke bg-gray-2/50 p-3 dark:border-strokedark dark:bg-meta-4/30">
+                    <div className="relative min-w-[240px] flex-1">
                       <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body"
                            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                            strokeLinecap="round" strokeLinejoin="round">
@@ -3606,14 +3574,54 @@ Joker Pub,Jay Daoust,2024-04-01`}
                         value={userSearch}
                         onChange={(e) => setUserSearch(e.target.value)}
                         placeholder={t('admin.admins.searchPlaceholder')}
-                        className="w-full rounded-md border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
+                        className="w-full rounded-md border border-stroke bg-white py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
                       />
                     </div>
                     {userSearch.trim() && (
-                      <span className="text-xs text-body">
+                      <span className="whitespace-nowrap text-xs text-body">
                         {t('admin.admins.searchCount', { shown: usagersFiltres.length, total: adminUsers.length })}
                       </span>
                     )}
+                    <div className="hidden h-8 w-px bg-stroke dark:bg-strokedark sm:block" aria-hidden />
+                    {/* Pré-assigner des rôles à une adresse qui ne s'est pas encore connectée (la
+                        première connexion Zoho d'un rep reprend les rôles par courriel). */}
+                    <form
+                      className="flex min-w-[260px] flex-1 items-center gap-2 sm:flex-none"
+                      title={t('admin.admins.preassignHint') as string}
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const email = preassignEmail.trim().toLowerCase();
+                        if (!email || !email.includes('@')) return;
+                        setEditingUserRoles(email);
+                        setEditingUserRoleIds(
+                          (adminUsers.find(u => u.email.toLowerCase() === email)?.roles || []).map(r => r.id)
+                        );
+                        setPreassignEmail('');
+                      }}
+                    >
+                      <div className="relative flex-1 sm:w-64 sm:flex-none">
+                        <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body"
+                             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                             strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="10" cy="8" r="4" /><path d="M2 20c0-3.3 3.6-6 8-6" /><path d="M18 14v6M15 17h6" />
+                        </svg>
+                        <input
+                          type="email"
+                          value={preassignEmail}
+                          onChange={(e) => setPreassignEmail(e.target.value)}
+                          placeholder={t('admin.admins.preassignPlaceholder')}
+                          aria-label={t('admin.admins.preassignButton') as string}
+                          className="w-full rounded-md border border-stroke bg-white py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={!preassignEmail.trim().includes('@')}
+                        className="whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-opacity-90 disabled:cursor-not-allowed disabled:bg-gray-3 disabled:text-body dark:disabled:bg-meta-4"
+                      >
+                        {t('admin.admins.preassignButton')}
+                      </button>
+                    </form>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full table-auto">
@@ -3623,7 +3631,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.lastLogin')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.role')}</th>
                           <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.rolesColumn')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('common.actions')}</th>
+                          <th className="px-4 py-4 text-right font-medium text-black dark:text-white">{t('common.actions')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -3688,66 +3696,44 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               </div>
                             </td>
                             <td className="px-4 py-5">
-                              <div className="flex flex-wrap gap-2">
+                              {/* Action courante en bouton, le reste dans le menu « ⋯ » : quatre boutons
+                                  de couleurs différentes passaient sur deux lignes et noyaient la ligne. */}
+                              <div className="flex items-center justify-end gap-2 whitespace-nowrap">
                                 <button
                                   onClick={() => {
                                     setEditingUserRoles(user.email);
                                     setEditingUserRoleIds((user.roles || []).map(r => r.id));
                                   }}
-                                  className="inline-flex items-center justify-center rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
+                                  className="inline-flex items-center justify-center rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-black transition hover:border-primary hover:text-primary dark:border-strokedark dark:text-white"
                                 >
                                   {t('admin.admins.editRoles')}
                                 </button>
-                              {(!user.userType || user.userType === 'zoho') && (
-                              <button
-                                onClick={() => toggleAdminStatus(user.email, user.isAdmin)}
-                                className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                                  user.isAdmin
-                                    ? 'bg-danger text-white hover:bg-opacity-90'
-                                    : 'bg-success text-emerald-900 hover:bg-opacity-90'
-                                }`}
-                              >
-                                {user.isAdmin ? t('admin.admins.revokeAdmin') : t('admin.admins.grantAdmin')}
-                              </button>
-                              )}
-                              {user.userType !== 'pending' && (
-                              <button
-                                onClick={() => toggleDemoMode(user.email, user.isDemo === true)}
-                                title={t('admin.admins.demoHint') as string}
-                                className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                                  user.isDemo
-                                    ? 'bg-[#8B5CF6] text-white hover:bg-opacity-90'
-                                    : 'border border-[#8B5CF6] border-opacity-40 text-[#8B5CF6] hover:bg-[#8B5CF6] hover:bg-opacity-10'
-                                }`}
-                              >
-                                {user.isDemo ? t('admin.admins.demoOff') : t('admin.admins.demoOn')}
-                              </button>
-                              )}
-                              {/* Désactiver / réactiver — disponible pour les comptes qui ont un
-                                  vrai interrupteur : portail et externes. Un compte Zoho se
-                                  connecte par SSO, le bloquer demanderait un mécanisme qui
-                                  n'existe pas encore. */}
-                              {user.userType === 'external' && (
-                                <button
-                                  onClick={() => setAccountStatus(user, user.status === 'disabled' ? 'active' : 'disabled')}
-                                  className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                                    user.status === 'disabled'
-                                      ? 'bg-success text-emerald-900 hover:bg-opacity-90'
-                                      : 'border border-stroke text-body hover:border-danger hover:text-danger dark:border-strokedark'
-                                  }`}
-                                >
-                                  {t(user.status === 'disabled' ? 'partnerPortal.userMgmt.enable' : 'partnerPortal.userMgmt.disable')}
-                                </button>
-                              )}
-                              {/* ⚠️ La suppression est ROUTÉE selon le type : supprimer par courriel
-                                  viserait le compte Sales Hub alors que la ligne montre un compte de
-                                  portail. Deux comptes, deux points d'accès. */}
-                              <button
-                                onClick={() => deleteAnyUser(user)}
-                                className="inline-flex items-center justify-center rounded-md border border-danger border-opacity-40 px-3 py-1.5 text-xs font-medium text-danger transition hover:bg-danger hover:bg-opacity-10"
-                              >
-                                {t('admin.admins.deleteUser')}
-                              </button>
+                                <RowActionsMenu
+                                  label={t('admin.admins.moreActions') as string}
+                                  actions={[
+                                    ...((!user.userType || user.userType === 'zoho') ? [{
+                                      label: (user.isAdmin ? t('admin.admins.menuRevokeAdmin') : t('admin.admins.menuGrantAdmin')) as string,
+                                      tone: (user.isAdmin ? 'danger' : 'success') as 'danger' | 'success',
+                                      onClick: () => toggleAdminStatus(user.email, user.isAdmin),
+                                    }] : []),
+                                    ...(user.userType !== 'pending' ? [{
+                                      label: (user.isDemo ? t('admin.admins.demoOff') : t('admin.admins.demoOn')) as string,
+                                      tone: 'violet' as const,
+                                      hint: t('admin.admins.demoHint') as string,
+                                      onClick: () => toggleDemoMode(user.email, user.isDemo === true),
+                                    }] : []),
+                                    // Désactiver / réactiver : seulement les comptes qui ont un vrai
+                                    // interrupteur (externes). Un compte Zoho se connecte par SSO.
+                                    ...(user.userType === 'external' ? [{
+                                      label: t(user.status === 'disabled' ? 'partnerPortal.userMgmt.enable' : 'partnerPortal.userMgmt.disable') as string,
+                                      onClick: () => setAccountStatus(user, user.status === 'disabled' ? 'active' : 'disabled'),
+                                    }] : []),
+                                    // ⚠️ La suppression est ROUTÉE selon le type (deleteAnyUser) : supprimer
+                                    // par courriel viserait le compte Sales Hub alors que la ligne montre
+                                    // un compte de portail. Deux comptes, deux points d'accès.
+                                    { label: t('admin.admins.deleteUser') as string, tone: 'danger' as const, divider: true, onClick: () => deleteAnyUser(user) },
+                                  ]}
+                                />
                               </div>
                             </td>
                           </tr>
