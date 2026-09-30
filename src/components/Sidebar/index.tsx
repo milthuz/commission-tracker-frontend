@@ -617,7 +617,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               {/* <!-- Crédits marchand (perms: credits:send / view_all / approve) — crédit de
                    compensation d'une pénalité de résiliation, signé en ligne par le client. Juste
                    sous Ressources, à la demande de David. --> */}
-              {(isAdmin || can('credits:send') || can('credits:view_all') || can('credits:approve')) && (
+              {(isAdmin || can('credits:send') || can('credits:view_all') || can('credits:approve') || can('credits:report') || can('credits:delete')) && (
                 <li>
                   <NavLink
                     to="/credits"

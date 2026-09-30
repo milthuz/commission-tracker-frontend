@@ -5697,6 +5697,60 @@
       "checked_one": "{{count}} nouvelle reprise possible signalée.",
       "checked_other": "{{count}} nouvelles reprises possibles signalées.",
       "checked_zero": "Aucune nouvelle reprise à signaler."
+    },
+    "tab": {
+      "files": "Dossiers",
+      "report": "Rapport mensuel"
+    },
+    "report": {
+      "subtitle": "Crédits approuvés par mois, pour la comptabilité : compte Zoho Books, note de crédit, reprises. Export CSV pour Excel.",
+      "hint": "Crédits approuvés pendant le mois (heure de Montréal).",
+      "month": "Mois",
+      "prev": "Mois précédent",
+      "next": "Mois suivant",
+      "export": "Exporter (CSV)",
+      "exporting": "Export…",
+      "exportError": "L’export n’a pas pu être généré. Réessayez.",
+      "loadError": "Le rapport n’a pas pu être chargé.",
+      "count": "Crédits approuvés",
+      "total": "Total crédité",
+      "creditNotes": "Notes de crédit créées",
+      "reclaimed": "Crédits repris ce mois-ci",
+      "pendingCn_one": "{{count}} crédit approuvé n’a pas encore sa note de crédit dans Zoho Books (bouton Réessayer dans le dossier).",
+      "pendingCn_other": "{{count}} crédits approuvés n’ont pas encore leur note de crédit dans Zoho Books (bouton Réessayer dans le dossier).",
+      "empty": "Aucun crédit approuvé en {{month}}.",
+      "toCreate": "À créer",
+      "pdf": "PDF",
+      "totalRow_one": "Total — {{count}} crédit",
+      "totalRow_other": "Total — {{count}} crédits",
+      "clawbacksTitle": "Reprises tranchées ce mois-ci",
+      "col": {
+        "approved": "Approuvé le",
+        "books": "Compte Zoho Books",
+        "creditNote": "Note de crédit",
+        "approvedBy": "Approuvé par",
+        "decided": "Tranché le",
+        "decision": "Décision",
+        "note": "Note"
+      },
+      "cb": {
+        "flagged": "Reprise possible",
+        "reclaimed": "Crédit repris",
+        "waived": "Pas de reprise"
+      }
+    },
+    "del": {
+      "open": "Supprimer le dossier",
+      "title": "Supprimer ce dossier",
+      "warn": "Le dossier, son entente et ses pièces seront effacés de Sales Hub. Une trace reste au journal d’activité.",
+      "warnCn": "Le dossier, son entente et ses pièces seront effacés de Sales Hub (une trace reste au journal). ⚠️ La note de crédit {{number}} n’est PAS supprimée : annulez-la vous-même dans Zoho Books.",
+      "reasonPh": "Raison (obligatoire) — ex. « Test », « Dossier en double »",
+      "back": "Retour",
+      "button": "Supprimer",
+      "deleting": "Suppression…",
+      "confirm": "Supprimer définitivement le dossier {{ref}} ?",
+      "reasonRequired": "Indiquez une raison.",
+      "doneCn": "Dossier supprimé. N’oubliez pas d’annuler la note de crédit {{number}} dans Zoho Books."
     }
   },
   "creditSign": {

@@ -5697,6 +5697,60 @@
       "checked_one": "{{count}} new possible clawback flagged.",
       "checked_other": "{{count}} new possible clawbacks flagged.",
       "checked_zero": "No new clawback to flag."
+    },
+    "tab": {
+      "files": "Files",
+      "report": "Monthly report"
+    },
+    "report": {
+      "subtitle": "Approved credits by month, for accounting: Zoho Books account, credit note, clawbacks. CSV export for Excel.",
+      "hint": "Credits approved during the month (Montréal time).",
+      "month": "Month",
+      "prev": "Previous month",
+      "next": "Next month",
+      "export": "Export (CSV)",
+      "exporting": "Exporting…",
+      "exportError": "The export could not be generated. Try again.",
+      "loadError": "The report could not be loaded.",
+      "count": "Approved credits",
+      "total": "Total credited",
+      "creditNotes": "Credit notes created",
+      "reclaimed": "Credits reclaimed this month",
+      "pendingCn_one": "{{count}} approved credit doesn’t have its Zoho Books credit note yet (Retry button in the file).",
+      "pendingCn_other": "{{count}} approved credits don’t have their Zoho Books credit note yet (Retry button in the file).",
+      "empty": "No credit approved in {{month}}.",
+      "toCreate": "To create",
+      "pdf": "PDF",
+      "totalRow_one": "Total — {{count}} credit",
+      "totalRow_other": "Total — {{count}} credits",
+      "clawbacksTitle": "Clawbacks decided this month",
+      "col": {
+        "approved": "Approved on",
+        "books": "Zoho Books account",
+        "creditNote": "Credit note",
+        "approvedBy": "Approved by",
+        "decided": "Decided on",
+        "decision": "Decision",
+        "note": "Note"
+      },
+      "cb": {
+        "flagged": "Clawback possible",
+        "reclaimed": "Credit reclaimed",
+        "waived": "No clawback"
+      }
+    },
+    "del": {
+      "open": "Delete file",
+      "title": "Delete this file",
+      "warn": "The file, its agreement and its documents will be erased from Sales Hub. A trace stays in the activity log.",
+      "warnCn": "The file, its agreement and its documents will be erased from Sales Hub (a trace stays in the log). ⚠️ Credit note {{number}} is NOT deleted: void it yourself in Zoho Books.",
+      "reasonPh": "Reason (required) — e.g. \"Test\", \"Duplicate file\"",
+      "back": "Back",
+      "button": "Delete",
+      "deleting": "Deleting…",
+      "confirm": "Permanently delete file {{ref}}?",
+      "reasonRequired": "Enter a reason.",
+      "doneCn": "File deleted. Remember to void credit note {{number}} in Zoho Books."
     }
   },
   "creditSign": {

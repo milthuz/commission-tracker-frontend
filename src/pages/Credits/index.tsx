@@ -5,6 +5,7 @@ import { Check, FileText, Paperclip, Plus, RefreshCw, Search, Send, Trash2, Uplo
 import { ContentLoader } from '../../common/Loader';
 import { dialog } from '../../lib/dialog';
 import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
+import CreditsReport from './Report';
 
 // Crédits processeur marchand (/credits).
 //
@@ -35,7 +36,7 @@ interface Credit {
 }
 interface Doc { id: number; filename: string; mime: string; size: number; uploadedBy: string; uploadedAt: string }
 interface Detail { credit: Credit; docs: Doc[]; events: { type: string; description: string; actor: string; at: string }[]; canApprove: boolean; canEdit: boolean }
-interface Meta { canSend: boolean; canViewAll: boolean; canApprove: boolean; commitmentMonths: number }
+interface Meta { canSend: boolean; canViewAll: boolean; canApprove: boolean; canDelete: boolean; canReport: boolean; commitmentMonths: number }
 interface Customer { id: string; name: string; company: string; email: string; phone: string }
 interface ZMerchant { id: string; name: string; email: string; status: string; rep: string }
 
@@ -86,6 +87,7 @@ export default function Credits() {
   const [q, setQ] = useState('');
   const [editor, setEditor] = useState<{ credit: Credit | null } | null>(null);
   const [openId, setOpenId] = useState<string | null>(params.get('id'));
+  const [tab, setTab] = useState<'files' | 'report'>(params.get('tab') === 'report' ? 'report' : 'files');
 
   const money = (v: number) => v.toLocaleString(locale, { style: 'currency', currency: 'CAD', currencyDisplay: 'narrowSymbol', minimumFractionDigits: 2, maximumFractionDigits: 2 });
   // « AAAA-MM-JJ » (date sans heure, ex. fin d'engagement) = date LOCALE : new Date('2029-09-29')
@@ -108,7 +110,8 @@ export default function Credits() {
       if (m.status === 403) { setFatal(t('credits.noAccess') as string); setLoading(false); return; }
       if (!m.ok) { setFatal(t('credits.loadError') as string); setLoading(false); return; }
       setMeta(m.data);
-      await loadList();
+      const filesAccess = m.data.canSend || m.data.canViewAll || m.data.canApprove;
+      if (filesAccess) await loadList(); else setTab('report');
       setLoading(false);
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -136,13 +139,33 @@ export default function Credits() {
 
   if (loading) return <ContentLoader />;
   if (fatal || !meta) return <div className={`${CARD} p-8 text-center text-sm text-danger`}>{fatal}</div>;
+  const filesAccess = meta.canSend || meta.canViewAll || meta.canApprove;
+  const pickTab = (k: 'files' | 'report') => { setTab(k); setParams(k === 'report' ? { tab: 'report' } : {}, { replace: true }); };
+
+  const heading = (
+    <div className="mb-4">
+      <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('credits.title')}</h2>
+      <p className="mt-1 text-sm text-body dark:text-bodydark">{t(tab === 'report' ? 'credits.report.subtitle' : 'credits.subtitle')}</p>
+      {filesAccess && meta.canReport && (
+        <div className="mt-4 flex gap-1 border-b border-stroke dark:border-strokedark">
+          {(['files', 'report'] as const).map((k) => (
+            <button key={k} type="button" onClick={() => pickTab(k)}
+              className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${tab === k ? 'border-primary text-primary' : 'border-transparent text-body hover:text-black dark:hover:text-white'}`}>
+              {t(`credits.tab.${k}`)}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  if (tab === 'report' || !filesAccess) {
+    return <div>{heading}<CreditsReport t={t as any} money={money} date={date} locale={locale} /></div>;
+  }
 
   return (
     <div>
-      <div className="mb-4">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('credits.title')}</h2>
-        <p className="mt-1 text-sm text-body dark:text-bodydark">{t('credits.subtitle')}</p>
-      </div>
+      {heading}
 
       <div className={`${CARD} mb-5 flex flex-wrap items-center gap-3 p-4`}>
         <div className="inline-flex flex-wrap rounded-lg border border-stroke p-1 dark:border-strokedark">
@@ -214,7 +237,7 @@ export default function Credits() {
           onSaved={async (c) => { setEditor(null); await loadList(); openCredit(c.id); }} />
       )}
       {openId && (
-        <DetailModal id={openId} t={t as any} money={money} date={date} locale={locale}
+        <DetailModal id={openId} t={t as any} money={money} date={date} locale={locale} canDelete={meta.canDelete}
           onClose={() => openCredit(null)} onChanged={loadList}
           onEdit={(c) => { openCredit(null); setEditor({ credit: c }); }} />
       )}
@@ -376,8 +399,8 @@ function Editor({ credit, t, onClose, onSaved }: { credit: Credit | null; t: (k:
 }
 
 // ── Dossier ─────────────────────────────────────────────────────────────────────────────
-function DetailModal({ id, t, money, date, locale, onClose, onChanged, onEdit }: {
-  id: string; t: (k: string, o?: any) => string; money: (v: number) => string; date: (d: string | null) => string; locale: string;
+function DetailModal({ id, t, money, date, locale, canDelete, onClose, onChanged, onEdit }: {
+  id: string; t: (k: string, o?: any) => string; money: (v: number) => string; date: (d: string | null) => string; locale: string; canDelete: boolean;
   onClose: () => void; onChanged: () => void; onEdit: (c: Credit) => void;
 }) {
   const [d, setD] = useState<Detail | null>(null);
@@ -589,6 +612,8 @@ function DetailModal({ id, t, money, date, locale, onClose, onChanged, onEdit }:
             </div>
           )}
 
+          {canDelete && c.status !== 'draft' && <DeletePanel c={c} t={t} onDeleted={() => { onChanged(); onClose(); }} />}
+
           {d.events.length > 0 && (
             <div>
               <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-body dark:text-bodydark">{t('credits.history')}</h4>
@@ -723,6 +748,44 @@ function ClawbackPanel({ c, t, date, canDecide, onDone }: { c: Credit; t: (k: st
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// Supprimer un dossier envoyé, signé ou approuvé (credits:delete) : raison obligatoire, tracée au
+// journal. La note de crédit Zoho n'est PAS supprimée — l'écran le rappelle avant et après.
+function DeletePanel({ c, t, onDeleted }: { c: Credit; t: (k: string, o?: any) => string; onDeleted: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const go = async () => {
+    if (!(await dialog.confirm(t('credits.del.confirm', { ref: c.ref }), { danger: true, confirmText: t('credits.del.button') }))) return;
+    setBusy(true);
+    const r = await api<{ creditnoteNumber: string | null }>('DELETE', `/api/credits/${c.id}`, { reason: reason.trim() });
+    setBusy(false);
+    if (!r.ok) { dialog.alert(t((r.data as any).error === 'reason_required' ? 'credits.del.reasonRequired' : 'credits.actionError')); return; }
+    if (r.data.creditnoteNumber) dialog.alert(t('credits.del.doneCn', { number: r.data.creditnoteNumber }));
+    onDeleted();
+  };
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)} className={`${BTN} w-full justify-center text-danger`}>
+        <Trash2 className="h-4 w-4" />{t('credits.del.open')}
+      </button>
+    );
+  }
+  return (
+    <div className="space-y-2 rounded border border-danger/40 bg-danger/5 p-3 text-sm">
+      <p className="font-medium text-danger">{t('credits.del.title')}</p>
+      <p className="text-black dark:text-white">{c.creditnoteNumber ? t('credits.del.warnCn', { number: c.creditnoteNumber }) : t('credits.del.warn')}</p>
+      <textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t('credits.del.reasonPh') as string} className={INPUT} />
+      <div className="flex justify-end gap-2">
+        <button type="button" onClick={() => { setOpen(false); setReason(''); }} className={BTN}>{t('credits.del.back')}</button>
+        <button type="button" onClick={go} disabled={busy || reason.trim().length < 3}
+          className="inline-flex items-center gap-1.5 rounded bg-danger px-3.5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+          <Trash2 className="h-4 w-4" />{busy ? t('credits.del.deleting') : t('credits.del.button')}
+        </button>
+      </div>
     </div>
   );
 }
