@@ -326,9 +326,9 @@ const Leads = () => {
                             {[l.city, l.province].filter(Boolean).length ? ` · ${[l.city, l.province].filter(Boolean).join(', ')}` : ''}
                           </p>
                           {/* Signalements : jamais bloquants, toujours visibles avant d'accepter. */}
-                          {(!!l.duplicate.records?.length || l.crm.error || stale || !!l.existingCustomer?.matches?.length) && (
+                          {(!!l.duplicate.records?.length || l.crm.error || stale || !!l.existingCustomer?.matches?.length || l.formSaysExisting) && (
                             <p className="mt-1.5 flex flex-wrap gap-1.5">
-                              {!!l.existingCustomer?.matches?.length && (l.status === 'new' || l.status === 'in_review') && (
+                              {(!!l.existingCustomer?.matches?.length || l.formSaysExisting) && (l.status === 'new' || l.status === 'in_review') && (
                                 <span className="inline-flex whitespace-nowrap rounded bg-[#3C50E0]/10 px-1.5 py-0.5 text-[11px] font-medium text-[#3C50E0] dark:text-[#8FA1FF]">
                                   {t('leads.badge.existing')}
                                 </span>

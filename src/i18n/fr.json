@@ -5074,7 +5074,8 @@
       "desk": "contact Zoho Desk",
       "inactive": "inactif",
       "hint": "Si sa demande est du soutien et non une vente, convertis-la en billet Zoho Desk plutôt qu'en piste.",
-      "checkFailed": "Vérification « client existant » incomplète : Zoho n'a pas répondu. « Revérifier » relance la recherche."
+      "checkFailed": "Vérification « client existant » incomplète : Zoho n'a pas répondu. « Revérifier » relance la recherche.",
+      "form": "Le client a indiqué « client existant » dans le formulaire."
     },
     "ticket": {
       "button": "Billet de soutien",

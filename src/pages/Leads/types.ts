@@ -85,6 +85,8 @@ export interface Lead {
   // Client existant : contacts Zoho Books (3 organisations) et Desk, par courriel. null = pas
   // encore vérifié. Masqué à qui n'examine pas (comme le doublon).
   existingCustomer?: ExistingCustomer | null;
+  // Le client a coché « Existant » dans le formulaire du site.
+  formSaysExisting?: boolean;
   deskTicket?: { id: string; number: string | null; url: string | null } | null;
 }
 

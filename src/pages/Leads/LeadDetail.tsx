@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { LifeBuoy } from 'lucide-react';
 import Select from '../../components/Select';
 import TelephoneCopiable from '../../components/TelephoneCopiable';
 import { authHeaders, leadFullName, statusTone, type DuplicateRecord, type Lead, type LeadRep } from './types';
@@ -237,6 +238,8 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
   const owners = [...new Map(dupRecords.filter((r) => r.owner?.name).map((r) => [r.owner!.name.toLowerCase(), r.owner!.name])).values()];
   const repFor = (name?: string | null) => (name ? reps.find((x) => x.name.trim().toLowerCase() === name.trim().toLowerCase()) : undefined);
   const pending = lead && (lead.status === 'new' || lead.status === 'in_review');
+  // Client existant : le client l'a dit dans le formulaire, ou son courriel est connu de Books/Desk.
+  const looksExisting = !!lead && (!!lead.formSaysExisting || !!lead.existingCustomer?.matches?.length);
   const auto = lead?.automation || {};
 
   return (
@@ -275,11 +278,14 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
 
               {/* Client existant : un SIGNAL, jamais une décision. Le courriel du formulaire correspond
                   à un client Zoho Books ou à un contact Desk — sa demande est peut-être du soutien. */}
-              {canReview && !!lead.existingCustomer?.matches?.length && (
+              {canReview && looksExisting && (
                 <div className="mb-5 rounded-sm border border-[#3C50E0]/30 bg-[#3C50E0]/5 px-4 py-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
                   <p className="text-sm font-medium text-[#3C50E0] dark:text-[#8FA1FF]">{t('leads.existing.title')}</p>
+                  {lead.formSaysExisting && <p className="mt-1 text-sm text-black dark:text-white">· {t('leads.existing.form')}</p>}
                   <ul className="mt-1 space-y-0.5 text-sm text-black dark:text-white">
-                    {lead.existingCustomer.matches.map((m, i) => (
+                    {(lead.existingCustomer?.matches || []).map((m, i) => (
                       <li key={`${m.source}-${m.id}-${i}`}>
                         · {m.customerName || lead.existingCustomer?.byEmail}
                         <span className="text-bodydark2">
@@ -290,6 +296,16 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                     ))}
                   </ul>
                   {pending && <p className="mt-1.5 text-xs text-bodydark2">{t('leads.existing.hint')}</p>}
+                  </div>
+                  {/* Le geste attendu est À CÔTÉ du constat, pas en bas de la fiche. */}
+                  {pending && canTicket && !ticketOpen && (
+                    <button type="button" onClick={() => { openTicket(); window.setTimeout(() => document.getElementById('lead-ticket-panel')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50); }}
+                      disabled={!!busy}
+                      className="inline-flex shrink-0 items-center gap-2 rounded-md bg-[#3C50E0] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-60">
+                      <LifeBuoy className="h-4 w-4" />{t('leads.ticket.button')}
+                    </button>
+                  )}
+                  </div>
                 </div>
               )}
               {canReview && !!lead.existingCustomer?.errors?.length && !lead.existingCustomer?.matches?.length && (
@@ -451,7 +467,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                   </div>
 
                   {ticketOpen ? (
-                    <div className="mt-4 rounded-sm border border-[#3C50E0]/30 bg-[#3C50E0]/5 px-4 py-4">
+                    <div id="lead-ticket-panel" className="mt-4 rounded-sm border border-[#3C50E0]/30 bg-[#3C50E0]/5 px-4 py-4">
                       <p className="text-sm font-medium text-black dark:text-white">{t('leads.ticket.title')}</p>
                       <p className="mt-1 text-xs text-bodydark2">{t('leads.ticket.hint', { email: lead.contactEmail || lead.contactPhone || '—' })}</p>
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -529,11 +545,13 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                   ) : (
                     <div className="mt-4 flex flex-wrap justify-end gap-2">
                       {canTicket && (
-                        <button type="button" onClick={openTicket} disabled={!!busy} className={`mr-auto rounded border px-4 py-2 text-sm font-medium disabled:opacity-60 ${
-                          lead.existingCustomer?.matches?.length
-                            ? 'border-[#3C50E0] bg-[#3C50E0]/10 text-[#3C50E0] hover:bg-[#3C50E0]/15 dark:text-[#8FA1FF]'
-                            : 'border-stroke text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4'}`}>
-                          {t('leads.ticket.button')}
+                        // Toujours en couleur, avec une icône : c'est une vraie sortie de la file, pas une
+                        // option secondaire. Plein quand la piste a l'air d'un client existant.
+                        <button type="button" onClick={openTicket} disabled={!!busy} className={`mr-auto inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-60 ${
+                          looksExisting
+                            ? 'bg-[#3C50E0] text-white shadow-sm hover:bg-opacity-90'
+                            : 'border border-[#3C50E0] text-[#3C50E0] hover:bg-[#3C50E0]/10 dark:text-[#8FA1FF]'}`}>
+                          <LifeBuoy className="h-4 w-4" />{t('leads.ticket.button')}
                         </button>
                       )}
                       <button type="button" onClick={() => setRejecting(true)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">

@@ -5074,7 +5074,8 @@
       "desk": "Zoho Desk contact",
       "inactive": "inactive",
       "hint": "If this is a support request rather than a sale, turn it into a Zoho Desk ticket instead of a lead.",
-      "checkFailed": "Existing-customer check incomplete: Zoho did not answer. \"Recheck\" runs it again."
+      "checkFailed": "Existing-customer check incomplete: Zoho did not answer. \"Recheck\" runs it again.",
+      "form": "The customer selected \"existing customer\" on the form."
     },
     "ticket": {
       "button": "Support ticket",
