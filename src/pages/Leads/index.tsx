@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import Select from '../../components/Select';
-import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import IntakeForm from './IntakeForm';
 import LeadDetail from './LeadDetail';
 import { authHeaders, leadFullName, statusTone, LEAD_SOURCES, type Lead, type LeadRep } from './types';
@@ -128,8 +127,6 @@ const Leads = () => {
 
   return (
     <>
-      <Breadcrumb pageName={t('sidebar.leads')} />
-
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-title-md2 font-bold text-black dark:text-white">{t('leads.title')}</h2>

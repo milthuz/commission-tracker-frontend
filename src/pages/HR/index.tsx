@@ -105,7 +105,9 @@ const HR = () => {
   return (
     <>
       <div id="hr-top" />
-      <Breadcrumb pageName={t('sidebar.hr')} />
+      {/* Le fil d'Ariane sert de titre aux fiches et aux formulaires. La liste a déjà son propre
+          titre + sous-titre : les deux ensemble affichaient « Embauches » deux fois. */}
+      {view.kind !== 'list' && <Breadcrumb pageName={t('sidebar.hr')} />}
       {error && <div className="mb-5 rounded border border-danger/40 bg-danger/5 px-4 py-3 text-sm text-danger">{error}</div>}
 
       {meta && view.kind === 'new' && (
