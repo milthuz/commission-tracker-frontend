@@ -5377,7 +5377,11 @@
       "perMonth": "$/mois",
       "months": "mois"
     },
+    "pricing": {"icplus": "Interchange+", "flat": "Taux fixe"},
     "in": {
+      "pricingModel": "Tarification crédit",
+      "flatRatePct": "Taux fixe crédit (% du volume)",
+      "interchangeCostPct": "Interchange absorbé (% du volume crédit)",
       "merchantName": "Nom du marchand",
       "numLocs": "Nombre d'emplacements",
       "termsPerLoc": "Terminaux par emplacement",
@@ -5408,6 +5412,8 @@
       "instCost": "Coût de l'installation par emplacement"
     },
     "alert": {
+      "flatTitle": "Taux fixe déficitaire",
+      "flatBody": "Crédit net de {{net}} par an : le taux fixe de {{rate}} % ne couvre pas l'interchange absorbé ({{ic}} %) et les coûts réseau. Monter le taux fixe ou le frais par transaction.",
       "installTitle": "Installation déficitaire",
       "installBody": "Marge de {{margin}} par emplacement, mais commission de {{comm}} : perte de {{loss}} par emplacement ({{total}} au total). Correctif : prix à {{price}} par emplacement, ou exclure l'installation de la base de commission.",
       "interacTitle": "Interac peu rentable",
@@ -5440,6 +5446,8 @@
       "avg": "Total ÷ {{n}} ans"
     },
     "pl": {
+      "flatRate": "Taux fixe crédit ({{rate}} % du volume)",
+      "interchangeCost": "Interchange absorbé ({{rate}} % du volume)",
       "col": {
         "item": "Poste",
         "year": "An {{n}}",
@@ -5447,6 +5455,7 @@
       },
       "oneTime": "Unique",
       "sec": {
+        "creditFlat": "Crédit — taux fixe",
         "saas": "SaaS",
         "credit": "Crédit",
         "interac": "Interac",

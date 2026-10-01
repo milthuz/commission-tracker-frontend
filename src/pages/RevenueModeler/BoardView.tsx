@@ -73,7 +73,8 @@ export default function BoardView({ inputs, model, t, locale, money, compact, nu
       title: t(p + 'prices'),
       items: [
         [t('revenueModeler.in.saasPerLoc'), per(inputs.saasPerLoc, t(p + 'perLocMonth'))],
-        [t('revenueModeler.in.markupRate'), pct(inputs.markupRate)],
+        [t('revenueModeler.in.pricingModel'), t(`revenueModeler.pricing.${model.flat ? 'flat' : 'icplus'}`)],
+        model.flat ? [t('revenueModeler.in.flatRatePct'), pct(inputs.flatRatePct || 0)] : [t('revenueModeler.in.markupRate'), pct(inputs.markupRate)],
         [t('revenueModeler.in.txnFeeCredit'), `${num(inputs.txnFeeCredit, 6)} $`],
         [t('revenueModeler.in.txnFeeInterac'), `${num(inputs.txnFeeInterac, 6)} $`],
         [t('revenueModeler.in.termRentalRev'), per(inputs.termRentalRev, mo)],
@@ -84,6 +85,7 @@ export default function BoardView({ inputs, model, t, locale, money, compact, nu
     {
       title: t(p + 'costs'),
       items: [
+        ...(model.flat ? [[t('revenueModeler.in.interchangeCostPct'), pct(inputs.interchangeCostPct || 0)] as [string, string]] : []),
         [t('revenueModeler.in.creditCostPct'), pct(inputs.creditCostPct)],
         [t('revenueModeler.in.creditCostPerTxn'), `${num(inputs.creditCostPerTxn, 6)} $`],
         [t('revenueModeler.in.interacCostPct'), pct(inputs.interacCostPct || 0)],
@@ -232,8 +234,13 @@ export default function BoardView({ inputs, model, t, locale, money, compact, nu
                   </dd>
                 </div>
               </dl>
-              {(model.alerts.installLoss || model.alerts.interacLow) && (
+              {(model.alerts.installLoss || model.alerts.interacLow || model.alerts.flatLoss) && (
                 <div className="mt-4 space-y-2">
+                  {model.alerts.flatLoss && (
+                    <div className="rounded-lg border-l-4 border-[#BA7517] bg-amber-50 p-2.5 text-xs">
+                      <b>{t('revenueModeler.alert.flatTitle')}</b> — {money(model.netCredit)} / {t(p + 'year')}
+                    </div>
+                  )}
                   {model.alerts.installLoss && (
                     <div className="rounded-lg border-l-4 border-[#BA7517] bg-amber-50 p-2.5 text-xs">
                       <b>{t('revenueModeler.alert.installTitle')}</b>

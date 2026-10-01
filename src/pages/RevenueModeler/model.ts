@@ -16,7 +16,12 @@ export interface Inputs {
   gmvInterac: number;
   txnInterac: number;
   saasPerLoc: number;
+  // Crédit : Interchange+ (majoration, interchange refacturé) ou taux fixe (un % tout compris,
+  // interchange absorbé par Cluster). Absent = Interchange+ (scénarios d'avant le 2026-10-01).
+  pricingModel?: PricingModel;
   markupRate: number;
+  flatRatePct: number;        // taux fixe, % du volume crédit
+  interchangeCostPct: number; // interchange moyen absorbé en taux fixe, % du volume crédit
   txnFeeCredit: number;
   txnFeeInterac: number;
   creditCostPct: number;
@@ -40,7 +45,8 @@ export interface Inputs {
   commInstPct: number;
 }
 
-export type NumKey = Exclude<keyof Inputs, 'merchantName' | 'merchantLogo'>;
+export type PricingModel = 'icplus' | 'flat';
+export type NumKey = Exclude<keyof Inputs, 'merchantName' | 'merchantLogo' | 'pricingModel'>;
 
 // Horizon du modèle, en années (5 depuis le 2026-09-24 à la demande de David ; 3 avant). L'an 1
 // porte les éléments ponctuels, chaque année suivante est purement récurrente. Tout — tableau,
@@ -56,11 +62,17 @@ export function compute(i: Inputs) {
   const saasRevenueGross = i.numLocs * i.saasPerLoc * 12;
   const commissionSaas = i.numLocs * i.saasPerLoc * i.commSaasMonths;
 
-  const revMarkup = i.gmvCredit * (i.markupRate / 100);
+  // Interchange+ : on facture une majoration, l'interchange est refacturé au marchand (neutre).
+  // Taux fixe : on facture un % tout compris et c'est Cluster qui paie l'interchange. Dans les
+  // deux cas, mêmes frais par transaction et mêmes coûts réseau.
+  const flat = i.pricingModel === 'flat';
+  const revMarkup = flat ? 0 : i.gmvCredit * (i.markupRate / 100);
+  const revFlat = flat ? i.gmvCredit * ((i.flatRatePct || 0) / 100) : 0;
+  const costInterchange = flat ? i.gmvCredit * ((i.interchangeCostPct || 0) / 100) : 0;
   const costCreditPct = i.gmvCredit * (i.creditCostPct / 100);
   const revTxnCredit = i.txnCredit * i.txnFeeCredit;
   const costTxnCredit = i.txnCredit * i.creditCostPerTxn;
-  const netCredit = revMarkup - costCreditPct + revTxnCredit - costTxnCredit;
+  const netCredit = revMarkup + revFlat - costInterchange - costCreditPct + revTxnCredit - costTxnCredit;
 
   const revTxnInterac = i.txnInterac * i.txnFeeInterac;
   const costTxnInterac = i.txnInterac * i.interacCostPerTxn;
@@ -116,7 +128,7 @@ export function compute(i: Inputs) {
   return {
     totalTerminals,
     saasRevenueGross, commissionSaas,
-    revMarkup, costCreditPct, revTxnCredit, costTxnCredit, netCredit,
+    flat, revMarkup, revFlat, costInterchange, costCreditPct, revTxnCredit, costTxnCredit, netCredit,
     revTxnInterac, costTxnInterac, costInteracPct, netInterac,
     procFees, netProcFees,
     rentalRevAnnual, warrantyCostAnnual, netTerminalAnnual, terminalPurchaseCost, commissionPayment, paybackMonths,
@@ -130,6 +142,8 @@ export function compute(i: Inputs) {
       // L'installation perd de l'argent une fois sa commission payée.
       installLoss: i.numLocs > 0 && instNet < -0.005,
       interacLow: netInterac < INTERAC_ALERT_FLOOR,
+      // Taux fixe sous le coût : l'interchange absorbé + les coûts réseau dépassent ce qu'on facture.
+      flatLoss: flat && i.gmvCredit > 0 && netCredit < -0.005,
     },
     suggestedInstPrice,
   };
@@ -182,8 +196,13 @@ export function buildRows(i: Inputs, m: Model, t: T, num: (n: number, d?: number
     { kind: 'comm', label: t(p + 'saasComm', { months: num(i.commSaasMonths, 2), price: num(i.saasPerLoc), locs: num(i.numLocs) }), y: once(-m.commissionSaas), oneTime: true },
     { kind: 'subtotal', label: t(p + 'saasNet'), y: split(m.saasRevenueGross - m.commissionSaas, m.saasRevenueGross) },
 
-    sec('credit'),
-    { kind: 'rev', label: t(p + 'markup', { rate: num(i.markupRate, 6) }), y: same(m.revMarkup) },
+    sec(m.flat ? 'creditFlat' : 'credit'),
+    ...(m.flat
+      ? [
+          { kind: 'rev' as const, label: t(p + 'flatRate', { rate: num(i.flatRatePct || 0, 6) }), y: same(m.revFlat) },
+          { kind: 'cost' as const, label: t(p + 'interchangeCost', { rate: num(i.interchangeCostPct || 0, 6) }), y: same(-m.costInterchange) },
+        ]
+      : [{ kind: 'rev' as const, label: t(p + 'markup', { rate: num(i.markupRate, 6) }), y: same(m.revMarkup) }]),
     { kind: 'cost', label: t(p + 'creditCostPct', { rate: num(i.creditCostPct, 6) }), y: same(-m.costCreditPct) },
     { kind: 'rev', label: t(p + 'txnFeeCredit', { fee: num(i.txnFeeCredit, 6), n: num(i.txnCredit) }), y: same(m.revTxnCredit) },
     { kind: 'newcost', label: t(p + 'creditCostTxn', { fee: num(i.creditCostPerTxn, 6) }), y: same(-m.costTxnCredit) },

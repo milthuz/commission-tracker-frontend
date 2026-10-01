@@ -5377,7 +5377,11 @@
       "perMonth": "$/mo",
       "months": "months"
     },
+    "pricing": {"icplus": "Interchange+", "flat": "Flat rate"},
     "in": {
+      "pricingModel": "Credit pricing",
+      "flatRatePct": "Credit flat rate (% of volume)",
+      "interchangeCostPct": "Absorbed interchange (% of credit volume)",
       "merchantName": "Merchant name",
       "numLocs": "Number of locations",
       "termsPerLoc": "Terminals per location",
@@ -5408,6 +5412,8 @@
       "instCost": "Installation cost per location"
     },
     "alert": {
+      "flatTitle": "Flat rate losing money",
+      "flatBody": "Net credit of {{net}} per year: the {{rate}}% flat rate does not cover the absorbed interchange ({{ic}}%) and network costs. Raise the flat rate or the per-transaction fee.",
       "installTitle": "Installation loses money",
       "installBody": "Margin of {{margin}} per location, but a {{comm}} commission: a {{loss}} loss per location ({{total}} in total). Fix: price it at {{price}} per location, or exclude installation from the commission base.",
       "interacTitle": "Interac barely profitable",
@@ -5440,6 +5446,8 @@
       "avg": "Total ÷ {{n}} years"
     },
     "pl": {
+      "flatRate": "Credit flat rate ({{rate}}% of volume)",
+      "interchangeCost": "Absorbed interchange ({{rate}}% of volume)",
       "col": {
         "item": "Line item",
         "year": "Year {{n}}",
@@ -5447,6 +5455,7 @@
       },
       "oneTime": "One-time",
       "sec": {
+        "creditFlat": "Credit — flat rate",
         "saas": "SaaS",
         "credit": "Credit",
         "interac": "Interac",

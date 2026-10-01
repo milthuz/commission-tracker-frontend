@@ -579,11 +579,30 @@ export default function RevenueModeler() {
               {f('saasPerLoc', t('revenueModeler.unit.perLocMonth') as string, 2)}
             </Section>
             <Section title={t('revenueModeler.sec.payRevenue')}>
-              {f('markupRate', '%', 3)}
+              {/* Modèle de tarification du crédit — choisi PAR scénario (David, 2026-10-01). */}
+              <div>
+                <span className="mb-1 block text-xs text-body dark:text-bodydark">{t('revenueModeler.in.pricingModel')}</span>
+                <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label={t('revenueModeler.in.pricingModel') as string}>
+                  {(['icplus', 'flat'] as const).map((pm) => {
+                    const on = (inputs.pricingModel || 'icplus') === pm;
+                    return (
+                      <button key={pm} type="button" role="radio" aria-checked={on}
+                        onClick={() => setInputs((p) => (p ? { ...p, pricingModel: pm } : p))}
+                        className={`rounded py-1.5 text-sm font-medium transition ${on
+                          ? 'bg-[#FE6523] text-white'
+                          : 'border border-stroke text-black hover:border-[#FE6523] dark:border-strokedark dark:text-white'}`}>
+                        {t(`revenueModeler.pricing.${pm}`)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {model.flat ? f('flatRatePct', '%', 3) : f('markupRate', '%', 3)}
               {f('txnFeeCredit', '$', 3)}
               {f('txnFeeInterac', '$', 3)}
             </Section>
             <Section title={t('revenueModeler.sec.networkCosts')}>
+              {model.flat && f('interchangeCostPct', '%', 3)}
               {f('creditCostPct', '%', 3)}
               {f('creditCostPerTxn', '$', 3, t('revenueModeler.newCost') as string)}
               {f('interacCostPct', '%', 3)}
@@ -634,8 +653,13 @@ export default function RevenueModeler() {
             </Section>
           </div>
 
-          {(model.alerts.installLoss || model.alerts.interacLow) && (
+          {(model.alerts.installLoss || model.alerts.interacLow || model.alerts.flatLoss) && (
             <div className="mt-4 space-y-3">
+              {model.alerts.flatLoss && (
+                <Alert title={t('revenueModeler.alert.flatTitle')}>
+                  {t('revenueModeler.alert.flatBody', { net: money(model.netCredit), rate: num(inputs.flatRatePct || 0, 6), ic: num(inputs.interchangeCostPct || 0, 6) })}
+                </Alert>
+              )}
               {model.alerts.installLoss && (
                 <Alert title={t('revenueModeler.alert.installTitle')}>
                   {t('revenueModeler.alert.installBody', {
