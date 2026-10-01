@@ -6246,7 +6246,14 @@
       "frReference": "French reference copy (not signed)",
       "viewSigned": "View the signed package",
       "signedPackage": "Signed package",
-      "confirmDeleteClosed": "Permanently delete the file for {{name}}? Its documents, attachments and timeline will be erased. (A signed file cannot be deleted.)"
+      "confirmDeleteClosed": "Permanently delete the file for {{name}}? Its documents, attachments and timeline will be erased. (A signed file cannot be deleted.)",
+      "deleteSigned": "Delete signed file",
+      "deleteSignedTitle": "Delete a SIGNED file",
+      "deleteSignedHint": "This file is signed: it is an employment contract. Delete it only if it was a test or created by mistake. The documents, signatures, attachments and timeline of {{name}} will be permanently erased; the deletion and your reason stay in the activity log. A rep already created from this file is not touched.",
+      "deleteSignedName": "Type the candidate's name to confirm ({{name}})",
+      "deleteSignedReason": "Reason",
+      "deleteSignedReasonPh": "e.g. test file",
+      "deleteSignedConfirm": "Permanently delete"
     },
     "plan": {
       "monthlyQuota": "Monthly quota",

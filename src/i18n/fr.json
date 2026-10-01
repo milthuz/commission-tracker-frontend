@@ -6246,7 +6246,14 @@
       "frReference": "version française de référence (non signée)",
       "viewSigned": "Voir le dossier signé",
       "signedPackage": "Dossier signé",
-      "confirmDeleteClosed": "Supprimer définitivement le dossier de {{name}} ? Ses documents, pièces jointes et sa chronologie seront effacés. (Un dossier signé, lui, ne peut pas être supprimé.)"
+      "confirmDeleteClosed": "Supprimer définitivement le dossier de {{name}} ? Ses documents, pièces jointes et sa chronologie seront effacés. (Un dossier signé, lui, ne peut pas être supprimé.)",
+      "deleteSigned": "Supprimer le dossier signé",
+      "deleteSignedTitle": "Supprimer un dossier SIGNÉ",
+      "deleteSignedHint": "Ce dossier est signé : c'est un contrat de travail. Supprimez-le seulement s'il s'agit d'un test ou d'une erreur. Les documents, signatures, pièces jointes et la chronologie de {{name}} seront effacés définitivement ; la suppression et votre motif restent au journal d'activité. Un représentant déjà créé à partir de ce dossier n'est pas touché.",
+      "deleteSignedName": "Retapez le nom du candidat pour confirmer ({{name}})",
+      "deleteSignedReason": "Motif",
+      "deleteSignedReasonPh": "ex. dossier de test",
+      "deleteSignedConfirm": "Supprimer définitivement"
     },
     "plan": {
       "monthlyQuota": "Quota mensuel",

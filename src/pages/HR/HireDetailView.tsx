@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import SignaturePad, { type SignaturePadHandle } from '../../components/SignaturePad';
 import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
-import { API_URL, authHeaders, DELETABLE, statusTone, type HireDetail, type Meta } from './types';
+import { API_URL, authHeaders, DELETABLE, SIGNED_DELETABLE, scrollToTop, statusTone, type HireDetail, type Meta } from './types';
 
 // Fiche d'une embauche. Les boutons suivent le cycle de vie — un seul geste principal à la fois
 // (« Envoyer », puis « Contresigner », puis « Créer le représentant ») pour que la prochaine
@@ -32,6 +32,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
   const [busy, setBusy] = useState<string | null>(null);
   const [manualLink, setManualLink] = useState<string | null>(null);
   const [signOpen, setSignOpen] = useState(false);
+  const [delSigned, setDelSigned] = useState<{ name: string; reason: string } | null>(null);
   const [signName, setSignName] = useState('');
   const [padEmpty, setPadEmpty] = useState(true);
   const pad = useRef<SignaturePadHandle>(null);
@@ -101,6 +102,16 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
     const data = await call('delete', '', { method: 'DELETE' });
     if (data) onDeleted();
   };
+
+  // Dossier SIGNÉ : pas un simple « Confirmer ». Il faut retaper le nom et donner un motif
+  // (vérifiés aussi par le serveur), parce qu'on efface un contrat de travail.
+  const removeSigned = async () => {
+    if (!delSigned) return;
+    const data = await call('delete', '', { method: 'DELETE', body: JSON.stringify({ confirmName: delSigned.name, reason: delSigned.reason }) });
+    if (data) { setDelSigned(null); onDeleted(); }
+  };
+  const nameMatches = !!delSigned
+    && delSigned.name.trim().replace(/\s+/g, ' ').toLowerCase() === String(d.name || '').trim().replace(/\s+/g, ' ').toLowerCase();
 
   const duplicate = async () => {
     const data = await call('duplicate', '/duplicate', { method: 'POST' });
@@ -235,6 +246,32 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
         </div>
       )}
 
+      {delSigned && (
+        <div className={CARD + ' border-danger/50'}>
+          <h3 className="mb-1 font-semibold text-danger">{t('hr.detail.deleteSignedTitle')}</h3>
+          <p className="mb-4 text-sm text-bodydark2">{t('hr.detail.deleteSignedHint', { name: d.name })}</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('hr.detail.deleteSignedName', { name: d.name })}</label>
+              <input className={INPUT} value={delSigned.name} autoComplete="off"
+                onChange={(e) => setDelSigned((s) => (s ? { ...s, name: e.target.value } : s))} />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('hr.detail.deleteSignedReason')}</label>
+              <input className={INPUT} value={delSigned.reason} placeholder={t('hr.detail.deleteSignedReasonPh') as string}
+                onChange={(e) => setDelSigned((s) => (s ? { ...s, reason: e.target.value } : s))} />
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
+            <button type="button" className={BTN_GHOST} onClick={() => setDelSigned(null)}>{t('common.cancel')}</button>
+            <button type="button" className={`${BTN} bg-danger text-white hover:bg-opacity-90 disabled:opacity-60`}
+              disabled={!nameMatches || delSigned.reason.trim().length < 3 || busy === 'delete'} onClick={removeSigned}>
+              {t('hr.detail.deleteSignedConfirm')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {noDocument && isDraft && (
         <div className="rounded border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-black dark:text-white">{t('hr.addendum.needDocument')}</div>
       )}
@@ -343,6 +380,12 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
               <button type="button" className={BTN_GHOST} disabled={!!busy} onClick={duplicate}>{t('hr.detail.duplicate')}</button>
               {(pending || d.status === 'employee_signed') && <button type="button" className={BTN_DANGER} disabled={!!busy} onClick={cancel}>{t('hr.detail.cancelOffer')}</button>}
               {DELETABLE.includes(d.status) && <button type="button" className={BTN_DANGER} disabled={!!busy} onClick={remove}>{t('common.delete')}</button>}
+              {SIGNED_DELETABLE.includes(d.status) && meta.can.deleteSigned && (
+                <button type="button" className={BTN_DANGER} disabled={!!busy}
+                  onClick={() => { setDelSigned({ name: '', reason: '' }); scrollToTop(); }}>
+                  {t('hr.detail.deleteSigned')}
+                </button>
+              )}
             </div>
           )}
         </div>

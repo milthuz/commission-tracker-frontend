@@ -122,7 +122,7 @@ export interface Meta {
   terms: Terms;
   managers: Manager[];
   employers: Employer[];
-  can: { manage: boolean; countersign: boolean };
+  can: { manage: boolean; countersign: boolean; deleteSigned?: boolean };
 }
 
 // Le contenu défile dans le conteneur du DefaultLayout, pas dans window : window.scrollTo n'a
@@ -132,6 +132,8 @@ export const scrollToTop = () => document.getElementById('hr-top')?.scrollIntoVi
 // Supprimables : brouillon, annulé, refusé. Jamais un dossier signé (le contrat de travail), ni un
 // dossier en cours de signature (on l'annule d'abord). Même liste que DELETABLE côté serveur.
 export const DELETABLE: HireStatus[] = ['draft', 'cancelled', 'declined'];
+// Signés : supprimables seulement avec hr:delete_signed (nom retapé + motif). Même liste que le serveur.
+export const SIGNED_DELETABLE: HireStatus[] = ['employee_signed', 'completed'];
 
 export const statusTone: Record<HireStatus, string> = {
   draft: 'bg-gray-2 text-bodydark2 dark:bg-meta-4',
