@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
+import { registerPrefetch } from './lib/routePrefetch';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import './i18n';
 
@@ -40,7 +41,10 @@ import PartnerSignup from './pages/PartnerPortal/Signup';
 // garde-fou de 10 s empeche la boucle : si le rechargement echoue encore, l'erreur remonte
 // a la barriere, qui affiche un message plutot que du vide.
 const CHUNK_RELOAD_KEY = 'sh-chunk-reload-at';
-function lazyRoute<T extends { default: React.ComponentType<any> }>(factory: () => Promise<T>) {
+// `prefetch` : section INTERNE, téléchargée en arrière-plan une fois la coquille affichée
+// (lib/routePrefetch.ts). Les pages publiques ne s'inscrivent pas.
+function lazyRoute<T extends { default: React.ComponentType<any> }>(factory: () => Promise<T>, prefetch: boolean | 'last' = false) {
+  if (prefetch) registerPrefetch(factory, prefetch === 'last');
   return lazy(() =>
     factory().catch((err) => {
       const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0);
@@ -64,30 +68,30 @@ function lazyRoute<T extends { default: React.ComponentType<any> }>(factory: () 
 //
 // Kept EAGER on purpose: ZohoLogin / the auth + legal pages (first paint for a signed-out user),
 // RepDashboard (the landing page for most users), Profile, Versions, and the layout/route guards.
-const ECommerce = lazyRoute(() => import('./pages/Dashboard/ECommerce'));
-const ManagerDashboard = lazyRoute(() => import('./pages/Dashboard/ManagerDashboard'));
-const CommissionTracker = lazyRoute(() => import('./pages/CommissionTracker'));
-const CommissionReport = lazyRoute(() => import('./pages/CommissionReport'));
-const AdminPanel = lazyRoute(() => import('./pages/AdminPanel'));
-const Reseller = lazyRoute(() => import('./pages/Reseller'));
-const Support = lazyRoute(() => import('./pages/Support'));
-const Leads = lazyRoute(() => import('./pages/Leads'));
-const HR = lazyRoute(() => import('./pages/HR'));
+const ECommerce = lazyRoute(() => import('./pages/Dashboard/ECommerce'), true);
+const ManagerDashboard = lazyRoute(() => import('./pages/Dashboard/ManagerDashboard'), true);
+const CommissionTracker = lazyRoute(() => import('./pages/CommissionTracker'), true);
+const CommissionReport = lazyRoute(() => import('./pages/CommissionReport'), true);
+const AdminPanel = lazyRoute(() => import('./pages/AdminPanel'), 'last');
+const Reseller = lazyRoute(() => import('./pages/Reseller'), true);
+const Support = lazyRoute(() => import('./pages/Support'), true);
+const Leads = lazyRoute(() => import('./pages/Leads'), true);
+const HR = lazyRoute(() => import('./pages/HR'), true);
 const SignOffer = lazyRoute(() => import('./pages/Sign'));
 // Signature PUBLIQUE d'une entente de crédit de compensation (lien reçu par courriel, sans session).
 const CreditSign = lazyRoute(() => import('./pages/CreditSign'));
-const Credits = lazyRoute(() => import('./pages/Credits'));
+const Credits = lazyRoute(() => import('./pages/Credits'), true);
 const Booking = lazyRoute(() => import('./pages/Booking'));
-const Revenue = lazyRoute(() => import('./pages/Revenue'));
-const Resources = lazyRoute(() => import('./pages/Resources'));
-const KaizenDemo = lazyRoute(() => import('./pages/KaizenDemo'));
-const Proposals = lazyRoute(() => import('./pages/Proposals'));
-const PricingGuide = lazyRoute(() => import('./pages/PricingGuide'));
-const SaasIncrease = lazyRoute(() => import('./pages/AdminPanel/SaasIncrease'));
+const Revenue = lazyRoute(() => import('./pages/Revenue'), true);
+const Resources = lazyRoute(() => import('./pages/Resources'), true);
+const KaizenDemo = lazyRoute(() => import('./pages/KaizenDemo'), true);
+const Proposals = lazyRoute(() => import('./pages/Proposals'), true);
+const PricingGuide = lazyRoute(() => import('./pages/PricingGuide'), true);
+const SaasIncrease = lazyRoute(() => import('./pages/AdminPanel/SaasIncrease'), true);
 const SaasIncreaseLookup = lazyRoute(() => import('./pages/SaasIncreaseLookup'));
 const SaasIncreaseCampaign = lazyRoute(() => import('./pages/SaasIncreaseCampaign'));
-const RateCalculator = lazyRoute(() => import('./pages/RateCalculator'));
-const RevenueModeler = lazyRoute(() => import('./pages/RevenueModeler'));
+const RateCalculator = lazyRoute(() => import('./pages/RateCalculator'), true);
+const RevenueModeler = lazyRoute(() => import('./pages/RevenueModeler'), true);
 const PartnerPortal = lazyRoute(() => import('./pages/PartnerPortal'));
 const PartnerProfile = lazyRoute(() => import('./pages/PartnerPortal/Profile'));
 const PartnerTeam = lazyRoute(() => import('./pages/PartnerPortal/Team'));
@@ -95,7 +99,7 @@ const PartnerOrganization = lazyRoute(() => import('./pages/PartnerPortal/Organi
 const PassJoin = lazyRoute(() => import('./pages/Pass/Join'));
 const PassHub = lazyRoute(() => import('./pages/Pass/Hub'));
 const PassRefer = lazyRoute(() => import('./pages/Pass/Refer'));
-const PassOps = lazyRoute(() => import('./pages/PassOps'));
+const PassOps = lazyRoute(() => import('./pages/PassOps'), true);
 const PassProgram = lazyRoute(() => import('./pages/Pass/Program'));
 const PassLinkPage = lazyRoute(() => import('./pages/Pass/LinkPage'));
 const PassTerms = lazyRoute(() => import('./pages/Pass/Terms'));

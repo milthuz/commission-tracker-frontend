@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from '../components/Header/index';
 import Sidebar from '../components/Sidebar/index';
@@ -11,6 +11,7 @@ import SofiaTour from '../components/SofiaTour';
 import InvoicePreviewHost from '../components/InvoicePreviewHost';
 import { ContentLoader } from '../common/Loader';
 import { useAuth } from '../context/AuthContext';
+import { prefetchRoutes } from '../lib/routePrefetch';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,6 +21,10 @@ const DefaultLayout: React.FC = () => {
   const { user } = useAuth();
   const perms = user?.permissions || [];
   const crmEnabled = perms.includes('*') || perms.some((p) => p.startsWith('assistant:crm'));
+
+  // La coquille est affichée : télécharger les autres sections au repos, pour que la première
+  // visite de chacune n'attende plus son code (une seule fois par chargement de page).
+  useEffect(() => { prefetchRoutes(); }, []);
 
   return (
     <div className="dark:bg-boxdark-2 dark:text-bodydark">

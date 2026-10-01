@@ -16,3 +16,9 @@
   # (self) opens it to this origin only; geolocation and camera stay closed.
   Permissions-Policy: geolocation=(), microphone=(self), camera=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# Fichiers de code et de style produits par Vite : leur NOM contient l'empreinte de leur contenu,
+# donc une nouvelle version porte un nouveau nom. Les garder un an est sans risque, et évite
+# l'aller-retour de revalidation (~0,15 s) que max-age=0 imposait à chaque section (2026-10-01).
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

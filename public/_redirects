@@ -10,4 +10,10 @@ https://partners.clusterpos.com/      /partner-portal   301!
 https://lapasse.clusterpos.com/       /pass/programme   301!
 https://thepass.clusterpos.com/       /pass/programme   301!
 
+# Un fichier de code ABSENT (ancienne version, onglet resté ouvert pendant un déploiement) doit
+# répondre 404, pas la page HTML en 200 : sinon le navigateur garderait du HTML sous un nom .js
+# mis en cache un an (voir _headers). La relance automatique de lazyRoute (App.tsx) prend le relais.
+# Les fichiers qui existent passent avant cette règle (Netlify ne réécrit que ce qui manque).
+/assets/*   /404.html   404
+
 /*    /index.html   200
