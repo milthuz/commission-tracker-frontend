@@ -66,6 +66,14 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
   // Doublon Zoho : « Accepter » demande d'abord une confirmation explicite (le serveur l'exige aussi).
   const [confirmDup, setConfirmDup] = useState(false);
   const [reason, setReason] = useState('');
+  // Piste → billet Zoho Desk (permission leads:to_ticket). Le département se choisit à chaque
+  // fois (David, 2026-10-01), pré-réglé sur celui dont le nom évoque le soutien.
+  const [canTicket, setCanTicket] = useState(false);
+  const [ticketOpen, setTicketOpen] = useState(false);
+  const [departments, setDepartments] = useState<{ id: string; name: string }[] | null>(null);
+  const [deptId, setDeptId] = useState('');
+  const [ticketSubject, setTicketSubject] = useState('');
+  const [ticketNote, setTicketNote] = useState('');
 
   const dt = (iso?: string | null, withTime = true) =>
     iso ? new Date(iso).toLocaleString(fr ? 'fr-CA' : 'en-CA', {
@@ -82,6 +90,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
       setHistory(data.history || []);
       setCanReview(!!data.can?.review);
       setCanDelete(!!data.can?.delete);
+      setCanTicket(!!data.can?.toTicket);
       setRep(data.lead?.assigned?.repName || data.lead?.suggested?.repName || '');
     } catch {
       setNotice({ tone: 'error', text: t('leads.detail.loadFailed') });
@@ -157,6 +166,44 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
     finally { setBusy(null); }
   };
 
+  const openTicket = async () => {
+    setTicketOpen(true); setNotice(null);
+    if (lead && !ticketSubject) {
+      const first = String(lead.notes || '').split('\n')[0].trim().slice(0, 120);
+      setTicketSubject(`${lead.businessName}${first ? ` — ${first}` : ''}`);
+    }
+    if (departments) return;
+    try {
+      const res = await fetch(`${API_URL}/api/leads/meta/desk-departments`, { headers: authHeaders() });
+      const data = await res.json().catch(() => ({}));
+      const list: { id: string; name: string }[] = res.ok ? (data.departments || []) : [];
+      setDepartments(list);
+      const pref = list.find((d) => /support|soutien|technique|tech/i.test(d.name)) || list[0];
+      if (pref) setDeptId(pref.id);
+      if (!res.ok) setNotice({ tone: 'error', text: t('leads.ticket.deptFailed') });
+    } catch {
+      setDepartments([]);
+      setNotice({ tone: 'error', text: t('leads.ticket.deptFailed') });
+    }
+  };
+
+  const doTicket = async () => {
+    setBusy('ticket'); setNotice(null);
+    try {
+      const out = await call('/to-ticket', { departmentId: deptId, subject: ticketSubject.trim(), description: ticketNote.trim() });
+      setTicketOpen(false);
+      await load(); onChanged();
+      setNotice({ tone: 'ok', text: t('leads.ticket.created', { n: out?.ticket?.number || out?.ticket?.id || '' }) });
+    } catch (e: any) {
+      setNotice({
+        tone: 'error',
+        text: e?.data?.error === 'desk_scope' ? t('leads.ticket.scope')
+          : e?.data?.error === 'already_ticket' ? t('leads.ticket.already')
+          : t('leads.ticket.failed', { detail: e?.data?.detail || e?.data?.error || '' }),
+      });
+    } finally { setBusy(null); }
+  };
+
   const doDelete = async () => {
     setBusy('delete'); setNotice(null);
     try {
@@ -224,6 +271,29 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                   notice.tone === 'ok' ? 'border-success/40 bg-success/10 text-success'
                   : notice.tone === 'warn' ? 'border-warning/50 bg-warning/10 text-warning'
                   : 'border-danger/40 bg-danger/10 text-danger'}`}>{notice.text}</div>
+              )}
+
+              {/* Client existant : un SIGNAL, jamais une décision. Le courriel du formulaire correspond
+                  à un client Zoho Books ou à un contact Desk — sa demande est peut-être du soutien. */}
+              {canReview && !!lead.existingCustomer?.matches?.length && (
+                <div className="mb-5 rounded-sm border border-[#3C50E0]/30 bg-[#3C50E0]/5 px-4 py-3">
+                  <p className="text-sm font-medium text-[#3C50E0] dark:text-[#8FA1FF]">{t('leads.existing.title')}</p>
+                  <ul className="mt-1 space-y-0.5 text-sm text-black dark:text-white">
+                    {lead.existingCustomer.matches.map((m, i) => (
+                      <li key={`${m.source}-${m.id}-${i}`}>
+                        · {m.customerName || lead.existingCustomer?.byEmail}
+                        <span className="text-bodydark2">
+                          {' — '}{m.source === 'books' ? t('leads.existing.books', { org: m.org || '' }) : t('leads.existing.desk')}
+                          {m.source === 'books' && m.active === false ? ` (${t('leads.existing.inactive')})` : ''}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {pending && <p className="mt-1.5 text-xs text-bodydark2">{t('leads.existing.hint')}</p>}
+                </div>
+              )}
+              {canReview && !!lead.existingCustomer?.errors?.length && !lead.existingCustomer?.matches?.length && (
+                <p className="mb-5 text-xs text-bodydark2">{t('leads.existing.checkFailed')}</p>
               )}
 
               {/* Vérification dans Zoho — TOUJOURS affichée : « rien trouvé » et « pas vérifié »
@@ -380,7 +450,42 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                     </div>
                   </div>
 
-                  {rejecting ? (
+                  {ticketOpen ? (
+                    <div className="mt-4 rounded-sm border border-[#3C50E0]/30 bg-[#3C50E0]/5 px-4 py-4">
+                      <p className="text-sm font-medium text-black dark:text-white">{t('leads.ticket.title')}</p>
+                      <p className="mt-1 text-xs text-bodydark2">{t('leads.ticket.hint', { email: lead.contactEmail || lead.contactPhone || '—' })}</p>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-1.5 block text-xs font-medium text-black dark:text-white">{t('leads.ticket.department')}</label>
+                          {departments === null ? (
+                            <p className="py-2.5 text-sm text-bodydark2">{t('common.loading')}</p>
+                          ) : departments.length ? (
+                            <Select value={deptId} onChange={setDeptId} buttonClassName={SELECT_CLS}
+                              options={departments.map((d) => ({ value: d.id, label: d.name }))} />
+                          ) : (
+                            <p className="py-2.5 text-sm text-danger">{t('leads.ticket.noDepartments')}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-xs font-medium text-black dark:text-white">{t('leads.ticket.subject')}</label>
+                          <input value={ticketSubject} onChange={(e) => setTicketSubject(e.target.value)} maxLength={250}
+                            className="w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                        </div>
+                      </div>
+                      <label className="mb-1.5 mt-3 block text-xs font-medium text-black dark:text-white">{t('leads.ticket.note')}</label>
+                      <textarea rows={2} value={ticketNote} onChange={(e) => setTicketNote(e.target.value)}
+                        placeholder={t('leads.ticket.notePlaceholder') as string}
+                        className="w-full resize-y rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                      <div className="mt-3 flex flex-wrap justify-end gap-2">
+                        <button type="button" onClick={() => setTicketOpen(false)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                          {t('common.cancel')}
+                        </button>
+                        <button type="button" onClick={doTicket} disabled={!!busy || !deptId} className="rounded bg-[#3C50E0] px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                          {busy === 'ticket' ? t('leads.ticket.creating') : t('leads.ticket.create')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : rejecting ? (
                     <div className="mt-4">
                       <label className="mb-2 block text-sm font-medium text-black dark:text-white">{t('leads.detail.rejectReason')}</label>
                       <input
@@ -423,6 +528,14 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                     </div>
                   ) : (
                     <div className="mt-4 flex flex-wrap justify-end gap-2">
+                      {canTicket && (
+                        <button type="button" onClick={openTicket} disabled={!!busy} className={`mr-auto rounded border px-4 py-2 text-sm font-medium disabled:opacity-60 ${
+                          lead.existingCustomer?.matches?.length
+                            ? 'border-[#3C50E0] bg-[#3C50E0]/10 text-[#3C50E0] hover:bg-[#3C50E0]/15 dark:text-[#8FA1FF]'
+                            : 'border-stroke text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4'}`}>
+                          {t('leads.ticket.button')}
+                        </button>
+                      )}
                       <button type="button" onClick={() => setRejecting(true)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
                         {t('leads.detail.reject')}
                       </button>
@@ -464,6 +577,14 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                       label={t('leads.detail.stepRepEmail')}
                       detail={auto.repEmail?.ok ? auto.repEmail.to : auto.repEmail?.skipped ? t(`leads.detail.skip.${auto.repEmail.skipped}`, { defaultValue: auto.repEmail.skipped }) : auto.repEmail?.error}
                     />
+                    {auto.repSms && (
+                      <StepLine
+                        ok={!!auto.repSms.ok}
+                        skipped={auto.repSms.skipped}
+                        label={t('leads.detail.stepRepSms')}
+                        detail={auto.repSms.ok ? auto.repSms.to : auto.repSms.skipped ? t(`leads.detail.skip.${auto.repSms.skipped}`, { defaultValue: auto.repSms.skipped }) : auto.repSms.error}
+                      />
+                    )}
                     <StepLine
                       ok={!!auto.merchantEmail?.ok}
                       skipped={auto.merchantEmail?.skipped}
@@ -498,6 +619,17 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                     <Row label={t('leads.detail.depositDate')}>{lead.crm.depositDate ? dt(lead.crm.depositDate, false) : null}</Row>
                     <Row label={t('leads.detail.reviewedBy')}>{lead.reviewedBy} · {dt(lead.reviewedAt)}</Row>
                   </div>
+                </div>
+              )}
+
+              {lead.status === 'support_ticket' && (
+                <div className="mt-6 rounded-sm border border-stroke px-4 py-4 dark:border-strokedark">
+                  <Row label={t('leads.ticket.label')}>
+                    {lead.deskTicket?.url
+                      ? <a href={lead.deskTicket.url} target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">#{lead.deskTicket.number || lead.deskTicket.id} — {t('leads.ticket.open')}</a>
+                      : `#${lead.deskTicket?.number || lead.deskTicket?.id || '—'}`}
+                  </Row>
+                  <Row label={t('leads.detail.reviewedBy')}>{lead.reviewedBy} · {dt(lead.reviewedAt)}</Row>
                 </div>
               )}
 

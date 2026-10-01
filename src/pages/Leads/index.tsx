@@ -12,11 +12,12 @@ const API_URL = import.meta.env.VITE_API_URL;
 // filtre de statut. Une pastille « À examiner » plus un menu déroulant « statut » se
 // contrediraient à la première combinaison, et rien n'indiquerait laquelle gagne.
 
-type Tab = 'queue' | 'accepted' | 'closed' | 'all' | 'stats';
+type Tab = 'queue' | 'accepted' | 'closed' | 'support' | 'all' | 'stats';
 const TAB_STATUSES: Record<Exclude<Tab, 'stats' | 'all'>, string[]> = {
   queue: ['new', 'in_review'],
   accepted: ['accepted'],
   closed: ['rejected', 'duplicate'],
+  support: ['support_ticket'],
 };
 
 interface Stats {
@@ -115,7 +116,7 @@ const Leads = () => {
   };
 
   const TABS: Tab[] = can.viewAll || can.review
-    ? ['queue', 'accepted', 'closed', 'all', 'stats']
+    ? ['queue', 'accepted', 'closed', 'support', 'all', 'stats']
     : ['queue', 'accepted', 'closed', 'all'];
 
   const kpis = stats ? [
@@ -325,8 +326,13 @@ const Leads = () => {
                             {[l.city, l.province].filter(Boolean).length ? ` · ${[l.city, l.province].filter(Boolean).join(', ')}` : ''}
                           </p>
                           {/* Signalements : jamais bloquants, toujours visibles avant d'accepter. */}
-                          {(!!l.duplicate.records?.length || l.crm.error || stale) && (
+                          {(!!l.duplicate.records?.length || l.crm.error || stale || !!l.existingCustomer?.matches?.length) && (
                             <p className="mt-1.5 flex flex-wrap gap-1.5">
+                              {!!l.existingCustomer?.matches?.length && (l.status === 'new' || l.status === 'in_review') && (
+                                <span className="inline-flex whitespace-nowrap rounded bg-[#3C50E0]/10 px-1.5 py-0.5 text-[11px] font-medium text-[#3C50E0] dark:text-[#8FA1FF]">
+                                  {t('leads.badge.existing')}
+                                </span>
+                              )}
                               {!!l.duplicate.records?.length && (
                                 <span className="inline-flex items-center gap-1 whitespace-nowrap rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-medium text-warning">
                                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 9v5M12 17.5v.1" /><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /></svg>

@@ -4042,7 +4042,23 @@
     "commissionRate": "Commission Rate",
     "activeRep": "Active Rep",
     "inactiveRep": "Inactive Rep",
-    "failedToLoad": "Failed to load profile"
+    "failedToLoad": "Failed to load profile",
+    "sms": {
+      "title": "SMS alerts",
+      "subtitle": "Get a text as soon as a new lead is assigned to you, on top of the email.",
+      "mobile": "Mobile number",
+      "mobileHint": "Canadian or US number, 10 digits.",
+      "enabled": "Text me for every new lead",
+      "saved": "Saved.",
+      "test": "Send a test text",
+      "testSent": "Test text sent.",
+      "badNumber": "Invalid number: 10 digits expected.",
+      "notLinked": "Your account is not linked to a salesperson record — ask an admin.",
+      "noMobile": "Save your mobile number first.",
+      "wait": "Wait a minute before another test.",
+      "notConfigured": "Text messages are not enabled on Sales Hub yet. Your number will be used as soon as they are.",
+      "failed": "The text was not sent ({{reason}})."
+    }
   },
   "impersonation": {
     "banner": "You are impersonating: {{name}}",
@@ -4828,14 +4844,16 @@
       "accepted": "Accepted",
       "closed": "Rejected",
       "all": "All",
-      "stats": "Report"
+      "stats": "Report",
+      "support": "Support"
     },
     "status": {
       "new": "New",
       "in_review": "In review",
       "accepted": "Accepted",
       "rejected": "Rejected",
-      "duplicate": "Duplicate"
+      "duplicate": "Duplicate",
+      "support_ticket": "Support ticket"
     },
     "source": {
       "website": "Website form",
@@ -4873,7 +4891,8 @@
     "badge": {
       "duplicate": "Possible duplicate",
       "crmFailed": "Zoho refused",
-      "waiting": "{{n}} h waiting"
+      "waiting": "{{n}} h waiting",
+      "existing": "Existing customer"
     },
     "actions": {
       "review": "Review",
@@ -5010,14 +5029,18 @@
         "no_rep_email": "this rep has no email on file",
         "no_contact_email": "no merchant email on file",
         "google_not_configured": "Google Calendar not connected",
-        "no_callback": "no callback scheduled"
+        "no_callback": "no callback scheduled",
+        "no_mobile": "no mobile number in their profile",
+        "opted_out": "texts turned off in their profile",
+        "not_configured": "text messages not enabled on Sales Hub yet"
       },
       "zohoLead": "Zoho record",
       "dealStage": "Deal stage",
       "notConvertedYet": "not converted yet",
       "depositDate": "Deposit date",
       "reviewedBy": "Reviewed by",
-      "history": "History"
+      "history": "History",
+      "stepRepSms": "Text message to the rep"
     },
     "kpi": {
       "waiting": "Waiting for review",
@@ -5044,6 +5067,33 @@
       "won": "Won",
       "winRate": "Win rate",
       "noData": "No data yet."
+    },
+    "existing": {
+      "title": "This contact is already a customer",
+      "books": "Zoho Books customer ({{org}})",
+      "desk": "Zoho Desk contact",
+      "inactive": "inactive",
+      "hint": "If this is a support request rather than a sale, turn it into a Zoho Desk ticket instead of a lead.",
+      "checkFailed": "Existing-customer check incomplete: Zoho did not answer. \"Recheck\" runs it again."
+    },
+    "ticket": {
+      "button": "Support ticket",
+      "title": "Turn into a Zoho Desk support ticket",
+      "hint": "The lead will not go into Zoho CRM. The ticket is created in Desk in the customer’s name ({{email}}), with their message, and the lead is filed under the Support tab.",
+      "department": "Desk department",
+      "subject": "Ticket subject",
+      "note": "Note for support (optional)",
+      "notePlaceholder": "e.g. Customer since 2023, terminal issue mentioned on the phone",
+      "create": "Create ticket",
+      "creating": "Creating…",
+      "created": "Ticket #{{n}} created in Zoho Desk.",
+      "already": "A ticket was already created for this lead.",
+      "failed": "Zoho Desk refused the ticket. {{detail}}",
+      "scope": "Zoho Desk does not allow ticket creation yet: an admin must reconnect Desk once (Admin → Integrations → Reconnect Desk).",
+      "deptFailed": "Could not read the Zoho Desk departments. Is Desk connected (Admin → Integrations)?",
+      "noDepartments": "No readable Desk department.",
+      "label": "Zoho Desk ticket",
+      "open": "open in Zoho Desk"
     }
   },
   "csLookup": {
@@ -5377,7 +5427,10 @@
       "perMonth": "$/mo",
       "months": "months"
     },
-    "pricing": {"icplus": "Interchange+", "flat": "Flat rate"},
+    "pricing": {
+      "icplus": "Interchange+",
+      "flat": "Flat rate"
+    },
     "in": {
       "pricingModel": "Credit pricing",
       "flatRatePct": "Credit flat rate (% of volume)",

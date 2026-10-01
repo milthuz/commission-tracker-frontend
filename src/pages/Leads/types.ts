@@ -3,7 +3,8 @@
 // démo masque par NOM de clé, et une clé générique `email` toucherait aussi les courriels des
 // représentants partout ailleurs dans l'application.
 
-export const LEAD_STATUSES = ['new', 'in_review', 'accepted', 'rejected', 'duplicate'] as const;
+// 'support_ticket' : client existant, sa demande est devenue un billet Zoho Desk.
+export const LEAD_STATUSES = ['new', 'in_review', 'accepted', 'rejected', 'duplicate', 'support_ticket'] as const;
 export const LEAD_SOURCES = ['website', 'phone', 'walk_in', 'referral', 'event', 'other'] as const;
 
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
@@ -81,6 +82,17 @@ export interface Lead {
   // Journal par étape écrit à l'acceptation : { crm, callback, repEmail, merchantEmail }.
   // Chaque entrée porte `ok` et, en cas d'échec, `error` ou `skipped`.
   automation: Record<string, any>;
+  // Client existant : contacts Zoho Books (3 organisations) et Desk, par courriel. null = pas
+  // encore vérifié. Masqué à qui n'examine pas (comme le doublon).
+  existingCustomer?: ExistingCustomer | null;
+  deskTicket?: { id: string; number: string | null; url: string | null } | null;
+}
+
+export interface ExistingCustomer {
+  checkedAt: string;
+  byEmail: string | null;
+  matches: { source: 'books' | 'desk'; org?: string; id: string; customerName: string | null; active?: boolean; url?: string | null }[];
+  errors: string[];
 }
 
 export interface LeadRep {
@@ -138,4 +150,5 @@ export const statusTone: Record<LeadStatus, string> = {
   accepted: 'bg-success/15 text-success',
   rejected: 'bg-danger/10 text-danger',
   duplicate: 'bg-bodydark2/15 text-bodydark2 dark:text-bodydark1',
+  support_ticket: 'bg-[#3C50E0]/10 text-[#3C50E0] dark:text-[#8FA1FF]',
 };

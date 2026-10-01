@@ -4042,7 +4042,23 @@
     "commissionRate": "Taux de commission",
     "activeRep": "Vendeur actif",
     "inactiveRep": "Vendeur inactif",
-    "failedToLoad": "Impossible de charger le profil"
+    "failedToLoad": "Impossible de charger le profil",
+    "sms": {
+      "title": "Alertes SMS",
+      "subtitle": "Reçois un texto dès qu'une nouvelle piste t'est attribuée, en plus du courriel.",
+      "mobile": "Cellulaire",
+      "mobileHint": "Numéro canadien ou américain, 10 chiffres.",
+      "enabled": "Recevoir un texto pour chaque nouvelle piste",
+      "saved": "Enregistré.",
+      "test": "Envoyer un texto d'essai",
+      "testSent": "Texto d'essai envoyé.",
+      "badNumber": "Numéro invalide : 10 chiffres attendus.",
+      "notLinked": "Ton compte n'est pas relié à une fiche de représentant : demande à un admin.",
+      "noMobile": "Enregistre d'abord ton cellulaire.",
+      "wait": "Attends une minute avant un autre essai.",
+      "notConfigured": "Les textos ne sont pas encore activés sur Sales Hub. Ton numéro servira dès qu’ils le seront.",
+      "failed": "Le texto n'est pas parti ({{reason}})."
+    }
   },
   "impersonation": {
     "banner": "Vous personnifiez : {{name}}",
@@ -4828,14 +4844,16 @@
       "accepted": "Acceptées",
       "closed": "Rejetées",
       "all": "Toutes",
-      "stats": "Rapport"
+      "stats": "Rapport",
+      "support": "Soutien"
     },
     "status": {
       "new": "Nouvelle",
       "in_review": "En examen",
       "accepted": "Acceptée",
       "rejected": "Rejetée",
-      "duplicate": "Doublon"
+      "duplicate": "Doublon",
+      "support_ticket": "Billet de soutien"
     },
     "source": {
       "website": "Formulaire du site",
@@ -4873,7 +4891,8 @@
     "badge": {
       "duplicate": "Doublon possible",
       "crmFailed": "Zoho a refusé",
-      "waiting": "{{n}} h d'attente"
+      "waiting": "{{n}} h d'attente",
+      "existing": "Client existant"
     },
     "actions": {
       "review": "Examiner",
@@ -5010,14 +5029,18 @@
         "no_rep_email": "ce représentant n'a pas de courriel",
         "no_contact_email": "aucun courriel du marchand",
         "google_not_configured": "Google Agenda non connecté",
-        "no_callback": "aucun rappel planifié"
+        "no_callback": "aucun rappel planifié",
+        "no_mobile": "aucun cellulaire dans son profil",
+        "opted_out": "textos coupés dans son profil",
+        "not_configured": "textos pas encore activés sur Sales Hub"
       },
       "zohoLead": "Fiche Zoho",
       "dealStage": "Étape du deal",
       "notConvertedYet": "pas encore convertie",
       "depositDate": "Date de dépôt",
       "reviewedBy": "Examinée par",
-      "history": "Historique"
+      "history": "Historique",
+      "stepRepSms": "Texto au représentant"
     },
     "kpi": {
       "waiting": "En attente d'examen",
@@ -5044,6 +5067,33 @@
       "won": "Gagnées",
       "winRate": "Taux de réussite",
       "noData": "Aucune donnée."
+    },
+    "existing": {
+      "title": "Ce contact est déjà client",
+      "books": "client Zoho Books ({{org}})",
+      "desk": "contact Zoho Desk",
+      "inactive": "inactif",
+      "hint": "Si sa demande est du soutien et non une vente, convertis-la en billet Zoho Desk plutôt qu'en piste.",
+      "checkFailed": "Vérification « client existant » incomplète : Zoho n'a pas répondu. « Revérifier » relance la recherche."
+    },
+    "ticket": {
+      "button": "Billet de soutien",
+      "title": "Convertir en billet de soutien Zoho Desk",
+      "hint": "La piste n'ira pas dans Zoho CRM. Le billet est créé dans Desk au nom du client ({{email}}), avec son message, et la piste est rangée sous l'onglet Soutien.",
+      "department": "Département Desk",
+      "subject": "Sujet du billet",
+      "note": "Note pour le soutien (facultatif)",
+      "notePlaceholder": "ex. Client depuis 2023, problème de terminal mentionné au téléphone",
+      "create": "Créer le billet",
+      "creating": "Création…",
+      "created": "Billet #{{n}} créé dans Zoho Desk.",
+      "already": "Un billet a déjà été créé pour cette piste.",
+      "failed": "Zoho Desk a refusé le billet. {{detail}}",
+      "scope": "Zoho Desk n'autorise pas encore la création de billets : un admin doit reconnecter Desk une fois (Admin → Intégrations → Reconnecter Desk).",
+      "deptFailed": "Impossible de lire les départements Zoho Desk. Desk est-il connecté (Admin → Intégrations) ?",
+      "noDepartments": "Aucun département Desk lisible.",
+      "label": "Billet Zoho Desk",
+      "open": "ouvrir dans Zoho Desk"
     }
   },
   "csLookup": {
@@ -5377,7 +5427,10 @@
       "perMonth": "$/mois",
       "months": "mois"
     },
-    "pricing": {"icplus": "Interchange+", "flat": "Taux fixe"},
+    "pricing": {
+      "icplus": "Interchange+",
+      "flat": "Taux fixe"
+    },
     "in": {
       "pricingModel": "Tarification crédit",
       "flatRatePct": "Taux fixe crédit (% du volume)",

@@ -107,6 +107,42 @@ const Profile = () => {
   const [pinSaved, setPinSaved] = useState(false);
   const [pinError, setPinError] = useState('');
   const canPushPin = can('saas_increase:execute');
+  // Alertes SMS des nouvelles pistes (permission leads:sms_alerts).
+  const canSms = can('leads:sms_alerts');
+  const [sms, setSms] = useState<{ configured: boolean; linked: boolean; mobile: string; enabled: boolean } | null>(null);
+  const [smsMobile, setSmsMobile] = useState('');
+  const [smsEnabled, setSmsEnabled] = useState(true);
+  const [smsBusy, setSmsBusy] = useState<string | null>(null);
+  const [smsMsg, setSmsMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  useEffect(() => {
+    if (!canSms) return;
+    axios.get(`${API_URL}/api/user/sms-alerts`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+      .then((r) => { setSms(r.data); setSmsMobile(r.data.mobile || ''); setSmsEnabled(r.data.enabled !== false); })
+      .catch(() => {});
+  }, [canSms]);
+  const smsCall = async (kind: 'save' | 'test') => {
+    setSmsBusy(kind); setSmsMsg(null);
+    const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+    try {
+      if (kind === 'save') {
+        const r = await axios.put(`${API_URL}/api/user/sms-alerts`, { mobile: smsMobile, enabled: smsEnabled }, { headers });
+        setSmsMobile(r.data.mobile || '');
+        setSmsMsg({ ok: true, text: t('profile.sms.saved') });
+      } else {
+        await axios.post(`${API_URL}/api/user/sms-alerts/test`, {}, { headers });
+        setSmsMsg({ ok: true, text: t('profile.sms.testSent') });
+      }
+    } catch (e: any) {
+      const err = e?.response?.data?.error;
+      setSmsMsg({ ok: false, text:
+        err === 'bad_number' ? t('profile.sms.badNumber')
+        : err === 'no_salesperson' ? t('profile.sms.notLinked')
+        : err === 'no_mobile' ? t('profile.sms.noMobile')
+        : err === 'wait' ? t('profile.sms.wait')
+        : err === 'not_configured' ? t('profile.sms.notConfigured')
+        : t('profile.sms.failed', { reason: err || '' }) });
+    } finally { setSmsBusy(null); }
+  };
 
   // 2FA device reset — LOCAL (external, email+password+TOTP) accounts only. Zoho SSO users
   // authenticate via Zoho and have no TOTP secret to reset. Mirrors PartnerPortal/Profile.tsx's
@@ -635,6 +671,51 @@ const Profile = () => {
                     </span>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Alertes SMS — un texto à chaque nouvelle piste attribuée (leads:sms_alerts). */}
+          {canSms && sms && (
+            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
+                <h3 className="text-lg font-semibold text-black dark:text-white">{t('profile.sms.title')}</h3>
+                <p className="text-sm text-body mt-1">{t('profile.sms.subtitle')}</p>
+              </div>
+              <div className="p-7">
+                {!sms.linked ? (
+                  <p className="text-sm text-body">{t('profile.sms.notLinked')}</p>
+                ) : (
+                  <>
+                    {!sms.configured && <p className="mb-4 rounded border border-warning/40 bg-warning/10 px-4 py-2.5 text-sm text-black dark:text-white">{t('profile.sms.notConfigured')}</p>}
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">{t('profile.sms.mobile')}</label>
+                        <input type="tel" inputMode="tel" value={smsMobile} onChange={(e) => setSmsMobile(e.target.value)}
+                          placeholder="514 555-1234"
+                          className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                        <p className="mt-1.5 text-xs text-body">{t('profile.sms.mobileHint')}</p>
+                      </div>
+                      <label className="flex cursor-pointer items-center gap-3 self-center">
+                        <input type="checkbox" className="h-5 w-5 accent-primary" checked={smsEnabled} onChange={(e) => setSmsEnabled(e.target.checked)} />
+                        <span className="text-sm text-black dark:text-white">{t('profile.sms.enabled')}</span>
+                      </label>
+                    </div>
+                    <div className="mt-6 flex flex-wrap items-center gap-3">
+                      <button onClick={() => smsCall('save')} disabled={!!smsBusy}
+                        className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                        {smsBusy === 'save' ? t('common.saving') : t('common.save')}
+                      </button>
+                      {sms.configured && (
+                        <button onClick={() => smsCall('test')} disabled={!!smsBusy || !smsMobile.trim()}
+                          className="rounded-md border border-stroke px-5 py-2.5 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                          {smsBusy === 'test' ? t('common.loading') : t('profile.sms.test')}
+                        </button>
+                      )}
+                      {smsMsg && <span className={`text-sm font-medium ${smsMsg.ok ? 'text-success' : 'text-danger'}`}>{smsMsg.text}</span>}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
