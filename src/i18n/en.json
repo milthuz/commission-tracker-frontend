@@ -2193,7 +2193,18 @@
     "pending": "pending",
     "undoApproval": "Undo approval",
     "unlockedOnly": "Unlocked commissions only",
-    "noUnlockedCommissions": "No unlocked commissions for this period"
+    "noUnlockedCommissions": "No unlocked commissions for this period",
+    "bulk": {
+      "selected": "{{n}} invoice(s) selected",
+      "clear": "clear selection",
+      "selectAll": "Select all",
+      "approve": "Approve {{n}} ({{total}})",
+      "pay": "Pay {{n}} ({{total}})",
+      "confirmApprove": "Approve the commission on {{n}} invoice(s) for {{rep}} — {{total}}?",
+      "confirmPay": "Mark the commission on {{n}} invoice(s) for {{rep}} as PAID — {{total}}?\n\nA paid commission is frozen: a rule change will no longer reach it. The month's pay stub is rebuilt accordingly.",
+      "done": "✓ {{n}} invoice(s) updated.",
+      "failed": "The operation failed. Nothing was changed."
+    }
   },
   "admin": {
     "title": "Admin Panel",

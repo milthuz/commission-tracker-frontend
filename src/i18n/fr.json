@@ -2193,7 +2193,18 @@
     "pending": "en attente",
     "undoApproval": "Annuler l'approbation",
     "unlockedOnly": "Commissions débloquées seulement",
-    "noUnlockedCommissions": "Aucune commission débloquée pour cette période"
+    "noUnlockedCommissions": "Aucune commission débloquée pour cette période",
+    "bulk": {
+      "selected": "{{n}} facture(s) sélectionnée(s)",
+      "clear": "tout désélectionner",
+      "selectAll": "Tout sélectionner",
+      "approve": "Approuver {{n}} ({{total}})",
+      "pay": "Payer {{n}} ({{total}})",
+      "confirmApprove": "Approuver la commission de {{n}} facture(s) pour {{rep}} — {{total}} ?",
+      "confirmPay": "Marquer PAYÉE la commission de {{n}} facture(s) pour {{rep}} — {{total}} ?\n\nUne commission payée est gelée : un changement de règle ne la touchera plus. Le bulletin de paie du mois est reconstruit en conséquence.",
+      "done": "✓ {{n}} facture(s) mise(s) à jour.",
+      "failed": "L’opération a échoué. Rien n’a été modifié."
+    }
   },
   "admin": {
     "title": "Panneau d'administration",

@@ -162,6 +162,11 @@ const CommissionReport = () => {
   const [committingStub, setCommittingStub] = useState(false);
   const [approvingMonth, setApprovingMonth] = useState<number | null>(null);
   const [markingPaidMonth, setMarkingPaidMonth] = useState<number | null>(null);
+  // Sélection de factures PRÉCISES (demande de David, 2026-10-05) : payer la commission d'une
+  // seule facture plutôt que tout le mois. Les deux endpoints acceptaient déjà une liste ;
+  // il n'y avait aucun moyen de la composer à l'écran.
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState<'approve' | 'pay' | null>(null);
 
   // Drill-down state
   const [expandedMonth, setExpandedMonth] = useState<number | null>(null);
@@ -661,11 +666,99 @@ const CommissionReport = () => {
     }
   };
 
+  // Ce qu'on a le droit de faire sur UNE facture. Ces règles reproduisent exactement celles du
+  // serveur — approuver exige `pending` + une commission réellement gagnée, payer exige
+  // `approved`. Les recopier ici évite d'offrir une case à cocher qui ne ferait rien.
+  const GAGNE = ['hardware', 'saas_first', 'saas_annual', 'quota_partial'];
+  const approuvable = (inv: DrillInvoice) =>
+    inv.approvalStatus === 'pending' && (inv.commission || 0) > 0 && GAGNE.includes(inv.commissionStatus || '');
+  const payable = (inv: DrillInvoice) => inv.approvalStatus === 'approved';
+  const selectionnable = (inv: DrillInvoice) =>
+    (canApprove && approuvable(inv)) || (canMarkPaid && payable(inv));
+
+  const basculer = (num: string) => setSelected((s) => {
+    const n = new Set(s);
+    if (n.has(num)) n.delete(num); else n.add(num);
+    return n;
+  });
+
+  // Agit sur les factures sélectionnées QUI SONT DANS LE BON ÉTAT, et le dit : envoyer une
+  // facture déjà payée à « approuver » ne ferait rien, en silence.
+  const agirSurSelection = async (quoi: 'approve' | 'pay', factures: DrillInvoice[]) => {
+    const cibles = factures.filter((i) => selected.has(i.invoiceNumber) && (quoi === 'approve' ? approuvable(i) : payable(i)));
+    if (!cibles.length) return;
+    const total = cibles.reduce((a, i) => a + (i.commission || 0), 0);
+    const qui = report?.repName || '';
+    const message = quoi === 'approve'
+      ? t('commissionReport.bulk.confirmApprove', { n: cibles.length, total: formatCurrency(total), rep: qui })
+      : t('commissionReport.bulk.confirmPay', { n: cibles.length, total: formatCurrency(total), rep: qui });
+    if (!(await dialog.confirm(message as string))) return;
+    setBulkBusy(quoi);
+    try {
+      const token = localStorage.getItem('token');
+      const url = quoi === 'approve' ? '/api/commissions/approve' : '/api/commissions/mark-paid';
+      const res = await axios.post(`${API_URL}${url}`,
+        { invoiceNumbers: cibles.map((i) => i.invoiceNumber) },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setSelected(new Set());
+      await refreshReport();
+      dialog.alert(t('commissionReport.bulk.done', { n: res.data?.invoicesUpdated ?? cibles.length }) as string);
+    } catch (e) {
+      console.error('bulk action failed:', e);
+      dialog.alert(t('commissionReport.bulk.failed') as string);
+    } finally { setBulkBusy(null); }
+  };
+
   // Reusable invoice sub-table for drill-downs
-  const renderInvoiceTable = (invoices: DrillInvoice[]) => (
+  const renderInvoiceTable = (invoices: DrillInvoice[]) => {
+    const cochables = invoices.filter(selectionnable);
+    const choisies = invoices.filter((i) => selected.has(i.invoiceNumber));
+    const nApprouver = choisies.filter(approuvable).length;
+    const nPayer = choisies.filter(payable).length;
+    const montant = (f: (i: DrillInvoice) => boolean) =>
+      choisies.filter(f).reduce((a, i) => a + (i.commission || 0), 0);
+    return (
+    <>
+    {/* La barre n'apparaît QUE s'il y a une sélection : une barre d'actions permanente sur un
+        écran d'argent invite au clic distrait. Chaque bouton annonce son nombre ET son montant. */}
+    {!!cochables.length && !!choisies.length && (
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke bg-primary/5 px-3 py-2.5 dark:border-strokedark">
+        <span className="text-xs text-black dark:text-white">
+          {t('commissionReport.bulk.selected', { n: choisies.length })}
+          <button type="button" onClick={() => setSelected(new Set())} className="ml-2 text-xs text-body underline hover:text-primary">
+            {t('commissionReport.bulk.clear')}
+          </button>
+        </span>
+        <span className="flex flex-wrap items-center gap-2">
+          {canApprove && nApprouver > 0 && (
+            <button type="button" onClick={() => agirSurSelection('approve', invoices)} disabled={!!bulkBusy}
+              className="rounded border border-primary/40 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-60">
+              {bulkBusy === 'approve' ? '…' : t('commissionReport.bulk.approve', { n: nApprouver, total: formatCurrency(montant(approuvable)) })}
+            </button>
+          )}
+          {canMarkPaid && nPayer > 0 && (
+            <button type="button" onClick={() => agirSurSelection('pay', invoices)} disabled={!!bulkBusy}
+              className="rounded bg-emerald-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+              {bulkBusy === 'pay' ? '…' : t('commissionReport.bulk.pay', { n: nPayer, total: formatCurrency(montant(payable)) })}
+            </button>
+          )}
+        </span>
+      </div>
+    )}
     <table className="w-full table-auto">
       <thead>
         <tr className="bg-gray-50 dark:bg-meta-4/50">
+          {!!cochables.length && (
+            <th className="w-8 px-3 py-2">
+              <input type="checkbox" aria-label={t('commissionReport.bulk.selectAll') as string}
+                checked={cochables.every((i) => selected.has(i.invoiceNumber))}
+                onChange={(e) => setSelected((prev) => {
+                  const n = new Set(prev);
+                  cochables.forEach((i) => (e.target.checked ? n.add(i.invoiceNumber) : n.delete(i.invoiceNumber)));
+                  return n;
+                })} />
+            </th>
+          )}
           <th className="px-3 py-2 text-xs font-medium text-body text-left">{t('commissionReport.invoiceNumber')}</th>
           <th className="px-3 py-2 text-xs font-medium text-body text-left">{t('commissionReport.customer')}</th>
           <th className="px-3 py-2 text-xs font-medium text-body text-left">{t('commissionReport.date')}</th>
@@ -682,6 +775,17 @@ const CommissionReport = () => {
           const cs = inv.commissionStatus && COMMISSION_STATUS_STYLES[inv.commissionStatus];
           return (
           <tr key={inv.invoiceNumber} className="border-b border-stroke/50 dark:border-strokedark/50 hover:bg-gray-50 dark:hover:bg-meta-4/30">
+            {!!cochables.length && (
+              <td className="px-3 py-2.5">
+                {/* Une facture déjà payée, exclue ou sans commission gagnée n'a pas de case :
+                    rien ne s'y appliquerait. Mieux vaut l'absence que l'illusion du choix. */}
+                {selectionnable(inv) && (
+                  <input type="checkbox" checked={selected.has(inv.invoiceNumber)}
+                    onChange={() => basculer(inv.invoiceNumber)}
+                    aria-label={inv.invoiceNumber} />
+                )}
+              </td>
+            )}
             <td className="px-3 py-2.5 text-xs">
               <button onClick={() => handlePreview(inv.invoiceNumber)} className="font-medium text-primary hover:underline">{inv.invoiceNumber}</button>
             </td>
@@ -740,7 +844,9 @@ const CommissionReport = () => {
         })}
       </tbody>
     </table>
-  );
+    </>
+    );
+  };
 
   const formatCurrency = (val: number) => {
     return val.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
