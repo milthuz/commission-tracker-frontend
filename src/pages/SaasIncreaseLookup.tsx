@@ -581,84 +581,87 @@ export default function SaasIncreaseLookup() {
             </div>
           )}
 
-          {/* 💣 CHAQUE CASE DE PRIX EST UNE ADDITION : forfait, options, total. C'est ce qui
-              rend la colonne « avec notre paiement » lisible — elle a ete retiree le 2026-10-05
-              parce qu'elle posait un TOTAL nu au milieu de prix de forfait : « nouveau prix
-              219 $ » puis, en vert, « avec notre paiement 248 $ », ce qui se lisait comme une
-              hausse (signale par Dora). Elle revient ici avec la MEME structure que ses
-              voisines : meme forfait, options amputees du frais d'integration, total plus bas.
-              328 $ en face de 248 $, l'economie se voit sans etre expliquee.
-              Elle n'apparait qu'une fois les frais releves : avant, on ignore quelle part des
-              options disparaitrait. */}
+          {/* LE PRIX, RACONTE COMME UNE HISTOIRE — meme grammaire que l'encadre de vente
+              plus bas : un libelle en petites capitales, le chiffre qui compte en gros, le
+              detail en dessous, et une fleche entre les etapes.
+              Une grille de cinq colonnes vivait ici : forfait, prix actuel, nouveau prix, avec
+              notre paiement, date. Trop de chiffres de meme taille — l'agent devait lire au
+              lieu de voir.
+              💣 « Avec notre paiement » a quitte cette rangee : l'encadre orange raconte la
+              meme chose en mieux, dix centimetres plus bas, et le repeter ici posait deux fois
+              les trois memes montants a vingt pixels d'ecart. */}
           {(() => {
-            const fr = fees[h.subscriptionNumber];
-            const wp = typeof fr === 'object' ? fr.withPayments : null;
-            const montrerPaiement = !!wp && !h.priceFrozen && !h.excluded;
-            const cases = [
-              { label: t('csLookup.plan'), value: h.planName || '—' },
-              // Sous chaque prix de forfait : les options, puis le total. Les trois lignes se
-              // lisent de haut en bas comme une addition — c'est la seule facon de poser un
-              // total pres d'un prix de forfait sans que l'un passe pour l'autre.
-              { label: t('csLookup.currentPrice'), value: money(h.currentPrice),
-                addons: h.addonsPrice, total: h.currentTotal },
-              // Afficher un « nouveau prix » sur une ligne gelee, c'est tendre a l'agent le
-              // chiffre exact qu'il ne doit pas annoncer. On met un tiret, le bandeau explique.
-              { label: t('csLookup.newPrice'),
-                value: (h.priceFrozen || h.excluded) ? '—' : money(h.newPrice),
-                strong: !(h.priceFrozen || h.excluded),
-                addons: (h.priceFrozen || h.excluded) ? null : h.addonsPrice,
-                total: (h.priceFrozen || h.excluded) ? null : h.newTotal },
-              ...(montrerPaiement ? [{
-                label: t('csLookup.pay.withPriceLabel'),
-                value: money(wp!.newPrice), pay: true,
-                // Les options qui RESTENT : le frais d'integration a disparu, les autres non.
-                addons: Math.max(0, (h.addonsPrice ?? 0) - wp!.feesPeriod) || null,
-                total: wp!.withTotalPeriod,
-                // L'economie, dans la meme base de periode que le reste de la case.
-                saving: wp!.feesPeriod,
-              }] : []),
-              // Un gel actif REMPLACE cette date. La laisser telle quelle mettait deux dates
-              // contradictoires sur la meme fiche — « prend effet le 1er novembre » juste
-              // au-dessus de « commence le 1er janvier » — et un agent presse lit la premiere.
-              (() => {
-                const gele = !!h.frozenUntil && h.frozenUntil > new Date().toISOString().slice(0, 10);
-                return gele && h.effectiveAfterFreeze
-                  ? { label: t('csLookup.effective'),
-                      value: fmtDate(h.effectiveAfterFreeze, i18n.language),
-                      hint: t('csLookup.freeze.supersedes', {
-                        old: fmtDate(h.effectiveDate, i18n.language) }) as string,
-                      frozen: true }
-                  : { label: t('csLookup.effective'), value: fmtDate(h.effectiveDate, i18n.language) };
-              })(),
-            ];
+            const gele = !!h.frozenUntil && h.frozenUntil > new Date().toISOString().slice(0, 10);
+            const sansSuite = h.priceFrozen || h.excluded;
+            // Le TOTAL quand on le connait, le forfait seul sinon : la carte ne doit jamais
+            // annoncer un total qu'elle n'a pas calcule.
+            const aujourdhui = h.currentTotal ?? h.currentPrice;
+            const apres = h.newTotal ?? h.newPrice;
+            const detail = (forfait: number | null) => h.addonsPrice
+              ? t('csLookup.breakdown', { plan: money(forfait), addons: money(h.addonsPrice) })
+              : null;
+            const dateEffet = gele && h.effectiveAfterFreeze ? h.effectiveAfterFreeze : h.effectiveDate;
             return (
-              <div className={`mt-4 grid grid-cols-2 gap-4 ${montrerPaiement ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
-                {cases.map((f: any) => (
-                  <div key={String(f.label)} title={f.hint || undefined}>
-                    <div className={`text-[11px] font-semibold uppercase tracking-wider ${
-                      f.pay ? 'text-emerald-700 dark:text-emerald-400' : textQuat}`}>{f.label}</div>
-                    <div className={`mt-1 text-sm ${
-                      f.pay ? textSec
-                            : f.frozen ? 'font-semibold text-sky-700 dark:text-sky-300'
-                            : f.strong ? `font-semibold ${textPri}` : textSec}`}>{f.value}</div>
-                    {f.total != null && (
-                      <div className="mt-0.5 text-[11px] leading-snug tabular-nums">
-                        {!!f.addons && (
-                          <div className={textQuat}>{t('csLookup.plusAddons', { amount: money(f.addons) })}</div>
-                        )}
-                        <div className={`font-semibold ${
-                          f.pay ? 'text-emerald-700 dark:text-emerald-400' : textSec}`}>
-                          {t('csLookup.totalLine', { amount: money(f.total) })}
-                        </div>
-                        {f.saving != null && (
-                          <div className="font-semibold text-emerald-700 dark:text-emerald-400">
-                            {t('csLookup.pay.savingInline', { amount: money(f.saving) })}
-                          </div>
-                        )}
-                      </div>
-                    )}
+              <div className="mt-4 flex flex-wrap items-start gap-x-6 gap-y-3">
+                <div className="min-w-0 max-w-[230px] shrink-0">
+                  <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
+                    {t('csLookup.plan')}
                   </div>
-                ))}
+                  <div className={`mt-1 text-sm ${textSec}`}>{h.planName || '—'}</div>
+                </div>
+
+                <div className="hidden w-px self-stretch bg-gray-200 dark:bg-[#242424] sm:block" />
+
+                <div className="min-w-0 flex-1">
+                  <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
+                    {t('csLookup.priceStory')}
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-start gap-x-2.5 gap-y-1.5 tabular-nums">
+                    <div>
+                      <div className={`text-[17px] font-semibold leading-none ${textSec}`}>
+                        {money(aujourdhui)}
+                      </div>
+                      <div className={`mt-1 text-[10px] ${textQuat}`}>
+                        {t('csLookup.pay.stepToday')}{detail(h.currentPrice) ? ` · ${detail(h.currentPrice)}` : ''}
+                      </div>
+                    </div>
+                    <ArrowRight className={`mt-1 h-3.5 w-3.5 shrink-0 ${textQuat}`} />
+                    <div>
+                      {/* Afficher un « nouveau prix » sur une ligne gelee ou hors campagne,
+                          c'est tendre a l'agent le chiffre exact qu'il ne doit PAS annoncer.
+                          Un tiret, et le bandeau juste au-dessus explique pourquoi. */}
+                      <div className={`text-[17px] font-semibold leading-none ${
+                        sansSuite ? textQuat : textPri}`}>
+                        {sansSuite ? '—' : money(apres)}
+                      </div>
+                      <div className={`mt-1 text-[10px] ${textQuat}`}>
+                        {t('csLookup.pay.stepNext')}
+                        {!sansSuite && detail(h.newPrice) ? ` · ${detail(h.newPrice)}` : ''}
+                      </div>
+                    </div>
+                    {/* Pas de « (avant taxes) » ici : la note complete suit immediatement
+                        sous la rangee, et la repeter faisait une etiquette orpheline qui
+                        passait a la ligne toute seule. */}
+                  </div>
+                </div>
+
+                <div className="hidden w-px self-stretch bg-gray-200 dark:bg-[#242424] sm:block" />
+
+                {/* Un gel actif REMPLACE la date d'effet. La laisser telle quelle mettait deux
+                    dates contradictoires sur la meme fiche — « prend effet le 1er novembre »
+                    juste au-dessus de « commence le 1er janvier » — et un agent presse lit la
+                    premiere. */}
+                <div className="shrink-0" title={gele && h.effectiveAfterFreeze
+                  ? (t('csLookup.freeze.supersedes', { old: fmtDate(h.effectiveDate, i18n.language) }) as string)
+                  : undefined}>
+                  <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
+                    {t('csLookup.effective')}
+                  </div>
+                  <div className={`mt-1 text-sm ${gele && h.effectiveAfterFreeze
+                    ? 'font-semibold text-sky-700 dark:text-sky-300' : textSec}`}>
+                    {fmtDate(dateEffet, i18n.language)}
+                  </div>
+                </div>
               </div>
             );
           })()}
