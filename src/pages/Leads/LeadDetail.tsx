@@ -78,6 +78,9 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
   const [ticketOpen, setTicketOpen] = useState(false);
   const [departments, setDepartments] = useState<{ id: string; name: string }[] | null>(null);
   const [deptId, setDeptId] = useState('');
+  // Combien de departements Desk ne sont PAS proposes, faute d'y etre agent. Affiche sous le
+  // selecteur : une liste qui passe de 13 a 4 sans explication ressemble a une panne.
+  const [deptHidden, setDeptHidden] = useState(0);
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketNote, setTicketNote] = useState('');
 
@@ -205,6 +208,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
       const data = await res.json().catch(() => ({}));
       const list: { id: string; name: string }[] = res.ok ? (data.departments || []) : [];
       setDepartments(list);
+      setDeptHidden(Number(data.hidden) || 0);
       const pref = list.find((d) => /support|soutien|technique|tech/i.test(d.name)) || list[0];
       if (pref) setDeptId(pref.id);
       if (!res.ok) setNotice({ tone: 'error', text: t('leads.ticket.deptFailed') });
@@ -224,7 +228,14 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
     } catch (e: any) {
       setNotice({
         tone: 'error',
+        // ⚠️ 403 n'est pas 401. Jusqu'au 2026-10-05 les deux affichaient « reconnectez Desk »,
+        // ce qui a envoye David reconnecter un acces parfaitement valide. Un 403 veut dire que
+        // le compte Desk de Sales Hub n'est pas agent du departement choisi.
         text: e?.data?.error === 'desk_scope' ? t('leads.ticket.scope')
+          : e?.data?.error === 'desk_forbidden'
+            ? t('leads.ticket.forbidden', {
+                dept: (departments || []).find((d) => d.id === e?.data?.departmentId)?.name || deptId,
+              })
           : e?.data?.error === 'already_ticket' ? t('leads.ticket.already')
           : t('leads.ticket.failed', { detail: e?.data?.detail || e?.data?.error || '' }),
       });
@@ -543,6 +554,9 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                               options={departments.map((d) => ({ value: d.id, label: d.name }))} />
                           ) : (
                             <p className="py-2.5 text-sm text-danger">{t('leads.ticket.noDepartments')}</p>
+                          )}
+                          {deptHidden > 0 && (
+                            <p className="mt-1 text-xs text-bodydark2">{t('leads.ticket.deptHidden', { n: deptHidden })}</p>
                           )}
                         </div>
                         <div>

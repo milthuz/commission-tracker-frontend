@@ -5125,7 +5125,9 @@
       "deptFailed": "Could not read the Zoho Desk departments. Is Desk connected (Admin → Integrations)?",
       "noDepartments": "No readable Desk department.",
       "label": "Zoho Desk ticket",
-      "open": "open in Zoho Desk"
+      "open": "open in Zoho Desk",
+      "deptHidden": "{{n}} other department(s) are not offered: the Sales Hub Desk account is not an agent there, so Zoho would refuse. To open one up, add that account as an agent of the department in Zoho Desk.",
+      "forbidden": "Zoho Desk refused: the Sales Hub Desk account is not an agent of the “{{dept}}” department. Pick another department, or add the account as an agent of that one in Zoho Desk. Reconnecting Desk would not help."
     }
   },
   "csLookup": {
