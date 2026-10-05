@@ -70,7 +70,7 @@ interface Hit {
 type Fees = {
   cadenceMonths: number;
   addons: { code: string; name: string; quantity: number; pricePeriod: number; monthly: number; isPayment: boolean }[];
-  paymentFees: { code: string; name: string; monthly: number }[];
+  paymentFees: { code: string; name: string; monthly: number; quantity: number; pricePeriod: number }[];
   monthlySaving: number;
   yearlySaving: number;
   // Le prix a annoncer si le marchand passe au paiement Cluster : le nouveau prix moins les
@@ -81,6 +81,10 @@ type Fees = {
     periodPrice: number; monthlyPrice: number;
     newPrice: number; currentPrice: number; feesPeriod: number;
     todayTotalMonthly: number; newTotalMonthly: number; withTotalMonthly: number;
+    // Les memes, par PERIODE de facturation : la rangee des prix est en periode, l'encadre
+    // orange en mois. Melanger les deux bases dans une meme rangee serait rejouer le defaut
+    // qu'on vient de corriger, en plus discret.
+    todayTotalPeriod: number; newTotalPeriod: number; withTotalPeriod: number;
     savingMonthly: number; savingYearly: number; savingVsTodayMonthly: number;
   } | null;
 };
@@ -577,15 +581,19 @@ export default function SaasIncreaseLookup() {
             </div>
           )}
 
-          {/* 💣 CETTE RANGEE NE CONTIENT QUE DES PRIX DE FORFAIT. Une colonne « avec notre
-              paiement » y a vecu jusqu'au 2026-10-05 : elle affichait un TOTAL DE FACTURE au
-              milieu de prix de forfait. Club de golf de Chicoutimi montrait « nouveau prix
-              219 $ » et, juste a cote et en VERT, « avec notre paiement 248 $ » — le total,
-              options comprises. Lu de gauche a droite, ca disait au marchand que notre
-              paiement coute plus cher. Dora l'a signale le jour meme.
-              Les trois totaux vivent desormais ensemble dans l'encadre orange, ou ils sont
-              nommes comme des totaux et se lisent les uns par rapport aux autres. */}
+          {/* 💣 CHAQUE CASE DE PRIX EST UNE ADDITION : forfait, options, total. C'est ce qui
+              rend la colonne « avec notre paiement » lisible — elle a ete retiree le 2026-10-05
+              parce qu'elle posait un TOTAL nu au milieu de prix de forfait : « nouveau prix
+              219 $ » puis, en vert, « avec notre paiement 248 $ », ce qui se lisait comme une
+              hausse (signale par Dora). Elle revient ici avec la MEME structure que ses
+              voisines : meme forfait, options amputees du frais d'integration, total plus bas.
+              328 $ en face de 248 $, l'economie se voit sans etre expliquee.
+              Elle n'apparait qu'une fois les frais releves : avant, on ignore quelle part des
+              options disparaitrait. */}
           {(() => {
+            const fr = fees[h.subscriptionNumber];
+            const wp = typeof fr === 'object' ? fr.withPayments : null;
+            const montrerPaiement = !!wp && !h.priceFrozen && !h.excluded;
             const cases = [
               { label: t('csLookup.plan'), value: h.planName || '—' },
               // Sous chaque prix de forfait : les options, puis le total. Les trois lignes se
@@ -600,6 +608,15 @@ export default function SaasIncreaseLookup() {
                 strong: !(h.priceFrozen || h.excluded),
                 addons: (h.priceFrozen || h.excluded) ? null : h.addonsPrice,
                 total: (h.priceFrozen || h.excluded) ? null : h.newTotal },
+              ...(montrerPaiement ? [{
+                label: t('csLookup.pay.withPriceLabel'),
+                value: money(wp!.newPrice), pay: true,
+                // Les options qui RESTENT : le frais d'integration a disparu, les autres non.
+                addons: Math.max(0, (h.addonsPrice ?? 0) - wp!.feesPeriod) || null,
+                total: wp!.withTotalPeriod,
+                // L'economie, dans la meme base de periode que le reste de la case.
+                saving: wp!.feesPeriod,
+              }] : []),
               // Un gel actif REMPLACE cette date. La laisser telle quelle mettait deux dates
               // contradictoires sur la meme fiche — « prend effet le 1er novembre » juste
               // au-dessus de « commence le 1er janvier » — et un agent presse lit la premiere.
@@ -615,21 +632,29 @@ export default function SaasIncreaseLookup() {
               })(),
             ];
             return (
-              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className={`mt-4 grid grid-cols-2 gap-4 ${montrerPaiement ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
                 {cases.map((f: any) => (
                   <div key={String(f.label)} title={f.hint || undefined}>
-                    <div className={`text-[11px] font-semibold uppercase tracking-wider ${textQuat}`}>{f.label}</div>
+                    <div className={`text-[11px] font-semibold uppercase tracking-wider ${
+                      f.pay ? 'text-emerald-700 dark:text-emerald-400' : textQuat}`}>{f.label}</div>
                     <div className={`mt-1 text-sm ${
-                      f.frozen ? 'font-semibold text-sky-700 dark:text-sky-300'
-                               : f.strong ? `font-semibold ${textPri}` : textSec}`}>{f.value}</div>
+                      f.pay ? textSec
+                            : f.frozen ? 'font-semibold text-sky-700 dark:text-sky-300'
+                            : f.strong ? `font-semibold ${textPri}` : textSec}`}>{f.value}</div>
                     {f.total != null && (
                       <div className="mt-0.5 text-[11px] leading-snug tabular-nums">
                         {!!f.addons && (
                           <div className={textQuat}>{t('csLookup.plusAddons', { amount: money(f.addons) })}</div>
                         )}
-                        <div className={`font-semibold ${textSec}`}>
+                        <div className={`font-semibold ${
+                          f.pay ? 'text-emerald-700 dark:text-emerald-400' : textSec}`}>
                           {t('csLookup.totalLine', { amount: money(f.total) })}
                         </div>
+                        {f.saving != null && (
+                          <div className="font-semibold text-emerald-700 dark:text-emerald-400">
+                            {t('csLookup.pay.savingInline', { amount: money(f.saving) })}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -914,8 +939,13 @@ export default function SaasIncreaseLookup() {
                     </>
                   )}
                   <dt className={textQuat}>{t('csLookup.pay.feesLabel')}</dt>
+                  {/* La QUANTITE change tout : Club de golf de Chicoutimi paie 80 $ parce
+                      qu'il a quatre integrations a 20 $, pas une a 80 $. Un agent a qui on
+                      demande « d'ou sort ce chiffre ? » doit pouvoir repondre. */}
                   <dd className={textSec}>
-                    {f.paymentFees.map(l => `${l.name} — ${money(l.monthly)}`).join(' · ')}
+                    {f.paymentFees.map(l => l.quantity > 1
+                      ? `${l.name} — ${money(l.monthly / l.quantity)} × ${l.quantity} = ${money(l.monthly)}`
+                      : `${l.name} — ${money(l.monthly)}`).join(' · ')}
                   </dd>
                   {/* Les autres integrations NE disparaissent PAS : le dire evite qu'un agent
                       les compte dans l'economie annoncee au client. */}

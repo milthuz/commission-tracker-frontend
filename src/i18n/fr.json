@@ -5146,6 +5146,7 @@
       "noFees": "aucun frais d'intégration de paiement sur cet abonnement",
       "savingLabel": "Économie",
       "savingValue": "{{month}}/mois · {{year}}/an",
+      "savingInline": "économie de {{amount}}",
       "todayLabel": "Sur sa facture",
       "todayFlow": "{{today}}/mois aujourd’hui · {{next}}/mois à la date d’effet ·",
       "todayWithUs": "{{withUs}}/mois avec notre paiement",
@@ -5170,7 +5171,8 @@
       "opportunity": "Occasion de vente : aucun compte de paiement trouvé",
       "notFoundHint": "rapprochement par nom, à confirmer avant de proposer",
       "alreadySent": "Piste déjà envoyée le {{date}} par {{who}}",
-      "someone": "un collègue"
+      "someone": "un collègue",
+      "withPriceLabel": "Avec notre paiement"
     },
     "excludedHint": "Cette ligne a été retirée de la campagne. Le prix actuel est maintenu. La raison est inscrite sur la ligne dans le panneau d’administration.",
     "excludedTitle": "Retiré de la campagne — aucune hausse pour ce marchand",

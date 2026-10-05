@@ -5146,6 +5146,7 @@
       "noFees": "no payment integration fee on this subscription",
       "savingLabel": "Saving",
       "savingValue": "{{month}}/month · {{year}}/year",
+      "savingInline": "saves {{amount}}",
       "todayLabel": "On his invoice",
       "todayFlow": "{{today}}/month today · {{next}}/month from the effective date ·",
       "todayWithUs": "{{withUs}}/month with our payments",
@@ -5170,7 +5171,8 @@
       "opportunity": "Sales opportunity: no payments account found",
       "notFoundHint": "matched by name, confirm before pitching",
       "alreadySent": "Lead already sent on {{date}} by {{who}}",
-      "someone": "a colleague"
+      "someone": "a colleague",
+      "withPriceLabel": "With our payments"
     },
     "excludedHint": "This line was removed from the campaign. The current price stands. The reason is recorded on the row in the admin panel.",
     "excludedTitle": "Removed from the campaign — no increase for this merchant",
