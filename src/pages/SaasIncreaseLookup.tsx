@@ -71,13 +71,12 @@ type Fees = {
   // Le prix a annoncer si le marchand passe au paiement Cluster : le nouveau prix moins les
   // frais d'integration qu'il paie aujourd'hui. null quand il n'en paie aucun.
   withPayments: {
-    periodPrice: number; monthlyPrice: number; belowZero: boolean;
+    // TOTAL de sa facture avec le paiement Cluster — pas une ligne de facture. Le forfait suit
+    // sa hausse ; c'est le frais d'integration qui disparait, et lui seul.
+    periodPrice: number; monthlyPrice: number;
     newPrice: number; currentPrice: number; feesPeriod: number;
-    // Facture a facture : ce qu'il paie aujourd'hui, options comprises, et ce qu'il paierait.
-    // C'est de LA que sort l'economie — pas des seuls frais qui disparaissent.
-    todayTotalMonthly: number; withTotalMonthly: number;
-    savingMonthly: number; savingYearly: number; savingVsNewMonthly: number;
-    noSaving: boolean;
+    todayTotalMonthly: number; newTotalMonthly: number; withTotalMonthly: number;
+    savingMonthly: number; savingYearly: number; savingVsTodayMonthly: number;
   } | null;
 };
 
@@ -577,7 +576,7 @@ export default function SaasIncreaseLookup() {
           {(() => {
             const fr = fees[h.subscriptionNumber];
             const wp = typeof fr === 'object' ? fr.withPayments : null;
-            const avecPrix = wp && !wp.belowZero;
+            const avecPrix = !!wp;
             const cases = [
               { label: t('csLookup.plan'), value: h.planName || '—' },
               { label: t('csLookup.currentPrice'), value: money(h.currentPrice) },
@@ -591,7 +590,8 @@ export default function SaasIncreaseLookup() {
                 value: money(wp!.periodPrice), pay: true,
                 // D'ou sort le chiffre : en infobulle plutot qu'en ligne de texte sous le bloc.
                 hint: t('csLookup.pay.withPriceHow', {
-                  fees: money(wp!.feesPeriod), current: money(wp!.currentPrice),
+                  fees: money(wp!.feesPeriod), today: money(wp!.todayTotalMonthly),
+                  instead: money(wp!.newTotalMonthly),
                 }),
               }] : []),
               // Un gel actif REMPLACE cette date. La laisser telle quelle mettait deux dates
@@ -873,23 +873,21 @@ export default function SaasIncreaseLookup() {
                 <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
                   <dt className={textQuat}>{t('csLookup.pay.savingLabel')}</dt>
                   <dd className="font-semibold text-[#c44d18] dark:text-[#fe8f5c]">
-                    {f.withPayments?.noSaving
-                      ? t('csLookup.pay.noSaving')
-                      : t('csLookup.pay.savingValue', {
-                          month: money(f.monthlySaving), year: money(f.yearlySaving),
-                        })}
+                    {t('csLookup.pay.savingValue', {
+                      month: money(f.monthlySaving), year: money(f.yearlySaving),
+                    })}
                   </dd>
-                  {/* D'ou sort le chiffre, en clair. L'agent est au telephone avec la facture
-                      sous les yeux du marchand : « 199 $ » n'y figure pas, « 239 $ » si. Sans
-                      cette ligne, l'economie annoncee ne se raccroche a rien de verifiable. */}
-                  {f.withPayments && !f.withPayments.belowZero && !f.withPayments.noSaving && (
+                  {/* Les trois totaux, en clair. L'agent est au telephone avec la facture sous
+                      les yeux du marchand : « 199 $ » n'y figure pas, « 239 $ » si. Sans cette
+                      ligne, l'economie annoncee ne se raccroche a rien de verifiable. */}
+                  {f.withPayments && (
                     <>
                       <dt className={textQuat}>{t('csLookup.pay.todayLabel')}</dt>
                       <dd className={textSec}>
                         {t('csLookup.pay.todayValue', {
                           today: money(f.withPayments.todayTotalMonthly),
+                          next: money(f.withPayments.newTotalMonthly),
                           withUs: money(f.withPayments.withTotalMonthly),
-                          vsNew: money(f.withPayments.savingVsNewMonthly),
                         })}
                       </dd>
                     </>
@@ -911,16 +909,8 @@ export default function SaasIncreaseLookup() {
                 </dl>
               )}
 
-              {/* Frais superieurs au forfait : la soustraction ne veut plus rien dire, et
-                  afficher « 0 $ » ferait annoncer la gratuite. On le dit, sans chiffre. */}
-              {f?.withPayments?.belowZero && (
-                <div className="mt-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/25 dark:bg-amber-500/10 dark:text-amber-300">
-                  {t('csLookup.pay.withPriceBelow', {
-                    fees: money(f.withPayments.feesPeriod), price: money(f.withPayments.newPrice),
-                  })}
-                </div>
-              )}
-
+              {/* Le cas « frais superieurs au forfait » a disparu avec la soustraction : plus
+                  rien n'est retranche du forfait, donc aucun prix ne peut passer sous zero. */}
               {/* Le marchand vient de la facturation, pas du CRM : son nom ne trouve pas
                   toujours un compte Zoho. Rattacher au MAUVAIS compte enverrait un vendeur
                   rappeler quelqu'un d'autre, alors on s'arrete et on laisse l'agent trancher. */}
