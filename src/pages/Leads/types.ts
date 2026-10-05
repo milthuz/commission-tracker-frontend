@@ -71,6 +71,10 @@ export interface Lead {
     depositDate: string | null;
     followupId: string | null;
     followupKind: string | null;
+    // Non nul = piste RATTACHÉE à un marchand déjà dans Zoho : pas de fiche Lead, une
+    // opportunité sur son compte (serveur : resolveAttachTarget / createCrmDealOnAccount).
+    accountId: string | null;
+    accountName: string | null;
   };
 
   callbackAt: string | null;
@@ -139,6 +143,9 @@ export interface LeadSettings {
   leadSourcePhone: string;
   contactMethodWebsite: string;
   contactMethodPhone: string;
+  // Rattachement à un marchand existant : l'opportunité créée sur son compte.
+  dealStage: string;
+  dealCloseDays: number;
 }
 
 export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });

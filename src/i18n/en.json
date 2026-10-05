@@ -3948,6 +3948,16 @@
         "tolerant": "Field names are forgiving: businessName / business_name / company all work, and contactName is split into first and last name. A submission with no business name falls back to the contact name.",
         "secretSet": "Shared secret is set ({{name}}).",
         "secretMissing": "No shared secret is set — the endpoint will refuse every submission. Set LEAD_WEBHOOK_SECRET on the backend."
+      },
+      "deal": {
+        "title": "Merchant already a customer — the deal created",
+        "hint": "When a lead is attached to a merchant that already exists in Zoho, a deal is created on their account — never a second record.",
+        "stage": "Starting stage",
+        "stagePlaceholder": "Leave empty = the pipeline's first stage",
+        "stagesKnown": "{{n}} stages offered by Zoho. A value missing from the list is still accepted: Zoho's metadata leaves some out.",
+        "stagesUnknown": "Zoho reported no stages. Type one, otherwise attaching will stop before writing.",
+        "closeDays": "Expected closing date (days)",
+        "closeDaysHint": "Zoho requires a closing date. It is counted from today and can be corrected in Zoho afterwards."
       }
     },
     "hr": {
@@ -4928,6 +4938,27 @@
       "confirmBody": "Zoho already has {{n}} matching record(s). Accepting will create a NEW Zoho record, a callback and emails on behalf of {{rep}}.",
       "confirmOwners": "Current owner(s) in Zoho: {{names}}.",
       "acceptAnyway": "Accept anyway"
+    },
+    "attach": {
+      "button": "Attach",
+      "chosen": "Chosen",
+      "strip": "Attaching to {{name}}",
+      "stripWhy": "A deal will be created on their Zoho account — not a second record.",
+      "clear": "Cancel attachment",
+      "willDeal": "create a deal on “{{name}}” in Zoho, owned by the rep",
+      "accept": "Attach and create the deal",
+      "hint": "This merchant is already in Zoho. Rather than adding a second record — which would become a second account on conversion — attach the lead to their account: pick “Attach” on one of the results above.",
+      "stepDeal": "Deal created on the existing account",
+      "attachedTo": "Attached to",
+      "openDeal": "Open the deal in Zoho",
+      "err": {
+        "unknown": "That record is not among the matches found for this lead. Re-check duplicates, then try again.",
+        "invalid": "Invalid record to attach to.",
+        "notCustomer": "A Zoho Lead is not a merchant: it has neither an account nor a contact. Pick an account or a contact, or merge the two records in Zoho.",
+        "noAccount": "That Zoho contact has no account, and a deal requires one. Pick another result, or give the contact an account in Zoho.",
+        "unreadable": "Zoho could not read that record. Try again in a moment.",
+        "noStage": "No starting stage: Zoho reports none and none is configured. Admin → Leads → Automations."
+      }
     },
     "field": {
       "businessName": "Business name",

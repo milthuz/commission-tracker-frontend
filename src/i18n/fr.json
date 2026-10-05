@@ -3948,6 +3948,16 @@
         "tolerant": "Les noms de champs sont tolérants : businessName / business_name / company fonctionnent tous, et contactName est découpé en prénom et nom. Une soumission sans nom d'entreprise retombe sur le nom du contact.",
         "secretSet": "Le secret partagé est configuré ({{name}}).",
         "secretMissing": "Aucun secret partagé n'est configuré — l'adresse refusera toutes les soumissions. Définissez LEAD_WEBHOOK_SECRET côté serveur."
+      },
+      "deal": {
+        "title": "Marchand déjà client — l’opportunité créée",
+        "hint": "Quand on rattache une piste à un marchand qui existe déjà dans Zoho, c’est une opportunité qui est créée sur son compte, jamais une seconde fiche.",
+        "stage": "Étape de départ",
+        "stagePlaceholder": "Laisser vide = la première étape du pipeline",
+        "stagesKnown": "{{n}} étapes proposées par Zoho. Une valeur absente de la liste reste acceptée : les métadonnées de Zoho en omettent.",
+        "stagesUnknown": "Zoho n’a annoncé aucune étape. Saisissez-en une, sinon le rattachement s’arrêtera avant d’écrire.",
+        "closeDays": "Date de clôture prévue (jours)",
+        "closeDaysHint": "Zoho exige une date de clôture. Elle se calcule à partir d’aujourd’hui et se corrige ensuite dans Zoho."
       }
     },
     "hr": {
@@ -4928,6 +4938,27 @@
       "confirmBody": "Zoho a déjà {{n}} fiche(s) qui correspondent. Accepter créera une NOUVELLE fiche Zoho, un rappel et des courriels au nom de {{rep}}.",
       "confirmOwners": "Propriétaire(s) actuel(s) dans Zoho : {{names}}.",
       "acceptAnyway": "Accepter quand même"
+    },
+    "attach": {
+      "button": "Rattacher",
+      "chosen": "Choisi",
+      "strip": "Rattachement à {{name}}",
+      "stripWhy": "On créera une opportunité sur son compte Zoho, pas une seconde fiche.",
+      "clear": "Annuler le rattachement",
+      "willDeal": "créer une opportunité sur « {{name}} » dans Zoho, au nom du représentant",
+      "accept": "Rattacher et créer l’opportunité",
+      "hint": "Ce marchand est déjà dans Zoho. Plutôt que d’y ajouter une seconde fiche — qui deviendrait un second compte à la conversion —, rattachez la piste à son compte : choisissez « Rattacher » sur l’un des résultats ci-dessus.",
+      "stepDeal": "Opportunité créée sur le compte existant",
+      "attachedTo": "Rattachée à",
+      "openDeal": "Ouvrir l’opportunité dans Zoho",
+      "err": {
+        "unknown": "Cette fiche ne fait pas partie des résultats trouvés pour cette piste. Revérifiez les doublons, puis réessayez.",
+        "invalid": "Fiche à rattacher invalide.",
+        "notCustomer": "Un Lead Zoho n’est pas un marchand : il n’a ni compte ni contact. Choisissez un compte ou un contact, ou fusionnez les deux fiches dans Zoho.",
+        "noAccount": "Ce contact Zoho n’est rattaché à aucun compte, et une opportunité en exige un. Choisissez un autre résultat, ou donnez-lui un compte dans Zoho.",
+        "unreadable": "Zoho n’a pas pu lire cette fiche. Réessayez dans un instant.",
+        "noStage": "Aucune étape de départ : Zoho n’en annonce aucune et aucune n’est configurée. Admin → Pistes → Automatisations."
+      }
     },
     "field": {
       "businessName": "Nom de l'entreprise",

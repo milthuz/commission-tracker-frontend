@@ -70,6 +70,11 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
   // Piste → billet Zoho Desk (permission leads:to_ticket). Le département se choisit à chaque
   // fois (David, 2026-10-01), pré-réglé sur celui dont le nom évoque le soutien.
   const [canTicket, setCanTicket] = useState(false);
+  // Rattachement a un marchand deja dans Zoho (permission `leads:attach_existing`, David
+  // 2026-10-05). Un Lead Zoho n'a aucun champ « compte » : rattacher veut donc dire creer une
+  // OPPORTUNITE sur le compte existant, pas une seconde fiche qui deviendrait un second compte.
+  const [canAttach, setCanAttach] = useState(false);
+  const [attachTo, setAttachTo] = useState<DuplicateRecord | null>(null);
   const [ticketOpen, setTicketOpen] = useState(false);
   const [departments, setDepartments] = useState<{ id: string; name: string }[] | null>(null);
   const [deptId, setDeptId] = useState('');
@@ -92,13 +97,16 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
       setCanReview(!!data.can?.review);
       setCanDelete(!!data.can?.delete);
       setCanTicket(!!data.can?.toTicket);
+      setCanAttach(!!data.can?.attachExisting);
       setRep(data.lead?.assigned?.repName || data.lead?.suggested?.repName || '');
     } catch {
       setNotice({ tone: 'error', text: t('leads.detail.loadFailed') });
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [leadId]);
+  // `setAttachTo(null)` : une fiche choisie sur la piste precedente ne doit pas survivre au
+  // changement de dossier — ce serait un rattachement au mauvais marchand, en silence.
+  useEffect(() => { setAttachTo(null); load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [leadId]);
 
   // Fiches vérifiées avant l'ajout du propriétaire, ou jamais vérifiées : on relance la
   // vérification une fois à l'ouverture, pour que la personne qui attribue voie à qui le
@@ -132,12 +140,18 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
     finally { setBusy(null); }
   };
 
-  const doAccept = async (confirmed = false) => {
-    if (lead?.duplicate?.status === 'match_found' && !confirmed) { setConfirmDup(true); return; }
+  const doAccept = async (confirmed = false, attach: DuplicateRecord | null = null) => {
+    // Rattacher EST la reconnaissance du doublon — et la bonne reponse : ce chemin n'a rien de
+    // plus a confirmer. Le serveur applique la meme regle.
+    if (!attach && lead?.duplicate?.status === 'match_found' && !confirmed) { setConfirmDup(true); return; }
     setBusy('accept'); setNotice(null);
     try {
-      const out = await call('/accept', { repName: rep || undefined, confirmDuplicate: confirmed });
-      setConfirmDup(false);
+      const out = await call('/accept', {
+        repName: rep || undefined,
+        confirmDuplicate: confirmed,
+        ...(attach ? { attachTo: { module: attach.module, id: attach.id } } : {}),
+      });
+      setConfirmDup(false); setAttachTo(null);
       await load(); onChanged();
       // Une acceptation À MOITIÉ réussie ne doit pas s'annoncer comme un succès : la fiche Zoho
       // existe, mais si un courriel n'est pas parti, la personne qui a cliqué doit le savoir
@@ -151,9 +165,21 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
     } catch (e: any) {
       // Un doublon apparu depuis l'ouverture de la fiche : on recharge et on demande.
       if (e?.data?.error === 'duplicate_unconfirmed') { await load(); setConfirmDup(true); return; }
+      // Chaque refus du rattachement dit QUOI faire : « attach_no_account » veut dire qu'il
+      // manque un compte sur ce contact dans Zoho, pas que l'application est cassee.
+      const ATTACH_ERR: Record<string, string> = {
+        attach_unknown:        'leads.attach.err.unknown',
+        attach_invalid:        'leads.attach.err.invalid',
+        attach_not_a_customer: 'leads.attach.err.notCustomer',
+        attach_no_account:     'leads.attach.err.noAccount',
+        attach_unreadable:     'leads.attach.err.unreadable',
+        deal_no_stage:         'leads.attach.err.noStage',
+      };
+      const cle = ATTACH_ERR[e?.data?.error as string];
       setNotice({
         tone: 'error',
-        text: e?.data?.error === 'no_rep' ? t('leads.detail.noRepChosen')
+        text: cle ? t(cle)
+          : e?.data?.error === 'no_rep' ? t('leads.detail.noRepChosen')
           : e?.data?.error === 'crm_failed' ? t('leads.detail.crmFailed', { detail: e?.data?.detail || '' })
           : t('leads.detail.acceptFailed'),
       });
@@ -230,6 +256,14 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
   };
 
   const dupRecords = lead?.duplicate?.records || [];
+  // Ce a quoi une opportunite peut pendre : un compte, ou un contact (dont on lira le compte).
+  // Un Lead n'a ni l'un ni l'autre — s'y rattacher n'aurait aucun sens, et le serveur le refuse.
+  const attachable = (r: DuplicateRecord) => r.module === 'Accounts' || r.module === 'Contacts';
+  const estRattache = (r: DuplicateRecord) => !!attachTo && attachTo.module === r.module && attachTo.id === r.id;
+  // La fiche choisie ne vaut que si elle figure TOUJOURS dans les resultats : une revérification
+  // entre-temps peut l'avoir fait disparaitre, et on n'enverrait sinon qu'un refus du serveur.
+  const rattachement = attachTo && dupRecords.some((r) => estRattache(r)) ? attachTo : null;
+  const nomRattachement = rattachement ? (rattachement.company || rattachement.name || rattachement.id) : '';
   const dupStatus = lead?.duplicate?.status || null;
   const matchedOnLabel = (m: DuplicateRecord['matchedOn']) =>
     (Array.isArray(m) ? m : [m]).map((k) => t(`leads.matchedOn.${k}`, { defaultValue: k })).join(' + ');
@@ -357,6 +391,18 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                                   {t('leads.dup.assignToOwner', { name: ownerRep.name })}
                                 </button>
                               )}
+                              {/* Un Lead n'est pas rattachable : il n'a ni compte ni contact. On n'offre donc
+                                  le bouton que sur ce a quoi une opportunite peut vraiment pendre. */}
+                              {pending && canAttach && attachable(r) && (
+                                estRattache(r) ? (
+                                  <span className="ml-2 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">✓ {t('leads.attach.chosen')}</span>
+                                ) : (
+                                  <button type="button" onClick={() => setAttachTo(r)} disabled={!!busy}
+                                    className="ml-2 rounded border border-emerald-600/50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 hover:bg-emerald-600/10 disabled:opacity-60 dark:text-emerald-400">
+                                    {t('leads.attach.button')}
+                                  </button>
+                                )
+                              )}
                             </li>
                           );
                         })}
@@ -458,13 +504,30 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                     <div className="rounded-sm bg-gray-2 px-4 py-3 dark:bg-meta-4">
                       <p className="mb-1.5 text-xs font-medium text-black dark:text-white">{t('leads.detail.willHappen')}</p>
                       <ul className="space-y-1 text-xs text-bodydark2">
-                        <li>· {t('leads.detail.willCrm')}</li>
+                        <li>· {rattachement
+                          ? <span className="font-medium text-emerald-700 dark:text-emerald-400">{t('leads.attach.willDeal', { name: nomRattachement })}</span>
+                          : t('leads.detail.willCrm')}</li>
                         <li>· {t('leads.detail.willCallback')}</li>
                         <li>· {t('leads.detail.willRepEmail', { rep: rep || '…' })}</li>
                         <li>· {lead.contactEmail ? t('leads.detail.willMerchantEmail', { email: lead.contactEmail }) : t('leads.detail.noMerchantEmail')}</li>
                       </ul>
                     </div>
                   </div>
+
+                  {/* Le rattachement choisi, rappelé ICI : la liste des doublons est tout en haut
+                      de la fiche et on ne la voit plus au moment de cliquer. */}
+                  {rattachement && (
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-emerald-600/40 bg-emerald-600/10 px-4 py-3">
+                      <p className="min-w-0 text-sm text-black dark:text-white">
+                        <span className="font-medium text-emerald-700 dark:text-emerald-400">{t('leads.attach.strip', { name: nomRattachement })}</span>
+                        <span className="block text-xs text-bodydark2">{t('leads.attach.stripWhy')}</span>
+                      </p>
+                      <button type="button" onClick={() => setAttachTo(null)} disabled={!!busy}
+                        className="shrink-0 rounded border border-stroke px-3 py-1.5 text-xs font-medium text-bodydark2 hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:hover:bg-meta-4">
+                        {t('leads.attach.clear')}
+                      </button>
+                    </div>
+                  )}
 
                   {ticketOpen ? (
                     <div id="lead-ticket-panel" className="mt-4 rounded-sm border border-[#3C50E0]/30 bg-[#3C50E0]/5 px-4 py-4">
@@ -530,6 +593,14 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                         {t('leads.dup.confirmBody', { n: dupRecords.length, rep: rep || '…' })}
                         {owners.length > 0 && <> {t('leads.dup.confirmOwners', { names: owners.join(', ') })}</>}
                       </p>
+                      {/* Le meilleur chemin, nommé AVANT « Accepter quand même » : accepter crée un
+                          second compte à la conversion, rattacher non. On ne retire pas l'autre
+                          bouton pour autant — un même numéro peut appartenir à deux commerces. */}
+                      {canAttach && dupRecords.some(attachable) && (
+                        <p className="mt-2 rounded-sm bg-emerald-600/10 px-3 py-2 text-xs text-emerald-800 dark:text-emerald-300">
+                          {t('leads.attach.hint')}
+                        </p>
+                      )}
                       <div className="mt-3 flex flex-wrap justify-end gap-2">
                         <button type="button" onClick={() => setConfirmDup(false)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
                           {t('common.cancel')}
@@ -557,9 +628,16 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                       <button type="button" onClick={() => setRejecting(true)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
                         {t('leads.detail.reject')}
                       </button>
-                      <button type="button" onClick={() => doAccept()} disabled={!!busy || !rep} className="rounded bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
-                        {busy === 'accept' ? t('leads.detail.accepting') : t('leads.detail.accept')}
-                      </button>
+                      {rattachement ? (
+                        <button type="button" onClick={() => doAccept(false, rattachement)} disabled={!!busy || !rep}
+                          className="rounded bg-emerald-700 px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                          {busy === 'accept' ? t('leads.detail.accepting') : t('leads.attach.accept')}
+                        </button>
+                      ) : (
+                        <button type="button" onClick={() => doAccept()} disabled={!!busy || !rep} className="rounded bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                          {busy === 'accept' ? t('leads.detail.accepting') : t('leads.detail.accept')}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -570,10 +648,14 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                 <div className="mt-6 rounded-sm border border-stroke px-4 py-4 dark:border-strokedark">
                   <p className="mb-3 text-xs uppercase tracking-wide text-bodydark2">{t('leads.detail.automation')}</p>
                   <ul>
+                    {/* Une piste rattachée n'a PAS de fiche Lead : afficher « fiche Zoho créée »
+                        serait faux. L'étape dit ce qui existe vraiment, et sur quel compte. */}
                     <StepLine
                       ok={!!auto.crm?.ok}
-                      label={t('leads.detail.stepCrm')}
-                      detail={lead.crm.leadId ? `Zoho ${lead.crm.leadId}${auto.crmRetriedWithoutPicklists ? ` · ${t('leads.detail.retriedPicklists')}` : ''}` : lead.crm.error}
+                      label={lead.crm.accountId ? t('leads.attach.stepDeal') : t('leads.detail.stepCrm')}
+                      detail={lead.crm.accountId
+                        ? `${lead.crm.accountName || lead.crm.accountId}${lead.crm.dealId ? ` · Zoho ${lead.crm.dealId}` : ''}${auto.crm?.stage ? ` · ${auto.crm.stage}` : ''}`
+                        : lead.crm.leadId ? `Zoho ${lead.crm.leadId}${auto.crmRetriedWithoutPicklists ? ` · ${t('leads.detail.retriedPicklists')}` : ''}` : lead.crm.error}
                     />
                     <StepLine
                       ok={!!auto.callback?.ok}
@@ -613,6 +695,16 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
 
                   <div className="mt-4 border-t border-stroke pt-3 dark:border-strokedark">
                     <Row label={t('leads.field.rep')}>{lead.assigned?.repName}</Row>
+                    {lead.crm.accountId && (
+                      <Row label={t('leads.attach.attachedTo')}>
+                        <a href={`https://crm.zoho.com/crm/tab/Accounts/${lead.crm.accountId}`} target="_blank" rel="noreferrer"
+                          className="text-primary hover:underline">{lead.crm.accountName || lead.crm.accountId}</a>
+                        {lead.crm.dealId && (
+                          <a href={`https://crm.zoho.com/crm/tab/Deals/${lead.crm.dealId}`} target="_blank" rel="noreferrer"
+                            className="block text-xs text-primary hover:underline">{t('leads.attach.openDeal')}</a>
+                        )}
+                      </Row>
+                    )}
                     {lead.booking?.status && (
                       <Row label={t('leads.detail.booking')}>
                         {lead.callbackAt && lead.booking.status !== 'cancelled' ? `${dt(lead.callbackAt)} · ` : ''}

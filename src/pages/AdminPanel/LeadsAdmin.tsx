@@ -44,6 +44,9 @@ const LeadsAdmin = () => {
   const [gcalTest, setGcalTest] = useState<{ ok: boolean; text: string } | null>(null);
   const [gcalTesting, setGcalTesting] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Les étapes du pipeline Zoho, pour proposer au lieu de faire deviner. Liste INDICATIVE :
+  // le champ reste libre, parce que les métadonnées de Zoho en omettent (voir leadDealStage).
+  const [dealStages, setDealStages] = useState<string[]>([]);
 
   const [sim, setSim] = useState({ source: 'website', province: 'QC', language: 'fr', businessType: '', postalCode: '' });
   const [simOut, setSimOut] = useState<{ trace: any[]; result: any } | null>(null);
@@ -70,6 +73,13 @@ const LeadsAdmin = () => {
       .catch(() => {});
 
   useEffect(() => { loadRules(); loadSettings(); loadGcal(); }, []);
+  useEffect(() => {
+    // Zoho muet ne doit rien casser : sans liste, le champ reste simplement libre.
+    fetch(`${API_URL}/api/leads/meta/deal-stages`, { headers: authHeaders() })
+      .then((r) => (r.ok ? r.json() : { stages: [] }))
+      .then((d) => setDealStages(Array.isArray(d.stages) ? d.stages : []))
+      .catch(() => setDealStages([]));
+  }, []);
 
   const testGcal = async () => {
     setGcalTesting(true); setGcalTest(null);
@@ -566,6 +576,36 @@ const LeadsAdmin = () => {
             <p className="mt-3 rounded-sm border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning">
               {t('admin.leads.zoho.picklistWarning')}
             </p>
+
+            {/* Rattachement à un marchand déjà dans Zoho : l'opportunité créée sur son compte.
+                L'étape se CHOISIT dans la liste que Zoho annonce, mais reste saisissable à la
+                main : ces métadonnées omettent des valeurs pourtant valides (voir le serveur). */}
+            <div className="mt-6 border-t border-stroke pt-5 dark:border-strokedark">
+              <h4 className="text-sm font-semibold text-black dark:text-white">{t('admin.leads.deal.title')}</h4>
+              <p className="mb-4 mt-0.5 text-xs text-body">{t('admin.leads.deal.hint')}</p>
+              <div className="grid max-w-3xl gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={LABEL}>{t('admin.leads.deal.stage')}</label>
+                  <input className={INPUT} value={settings.dealStage} list="sh-deal-stages"
+                    onChange={(e) => set('dealStage', e.target.value)}
+                    placeholder={t('admin.leads.deal.stagePlaceholder') as string} />
+                  <datalist id="sh-deal-stages">
+                    {dealStages.map((st) => <option key={st} value={st} />)}
+                  </datalist>
+                  <p className="mt-1 text-xs text-body">
+                    {dealStages.length
+                      ? t('admin.leads.deal.stagesKnown', { n: dealStages.length })
+                      : t('admin.leads.deal.stagesUnknown')}
+                  </p>
+                </div>
+                <div>
+                  <label className={LABEL}>{t('admin.leads.deal.closeDays')}</label>
+                  <input className={INPUT} type="number" min="1" max="365" value={settings.dealCloseDays}
+                    onChange={(e) => set('dealCloseDays', Number(e.target.value))} />
+                  <p className="mt-1 text-xs text-body">{t('admin.leads.deal.closeDaysHint')}</p>
+                </div>
+              </div>
+            </div>
             <button type="button" onClick={saveSettings} disabled={saving} className="mt-4 rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
               {saving ? t('common.loading') : t('common.save')}
             </button>
