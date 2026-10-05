@@ -568,15 +568,15 @@ export default function SaasIncreaseLookup() {
             </div>
           )}
 
-          {/* Le prix « avec le paiement Cluster » prend sa place dans la ligne des prix,
-              a cote du nouveau prix : c'est un PRIX, l'agent le lit la ou il lit les autres,
-              pas dans un encadre plus bas. Il n'apparait que quand les frais sont connus et
-              que la soustraction a un sens — sinon la colonne n'existe pas du tout, plutot
-              que d'afficher un tiret qu'on prendrait pour « aucune remise ». */}
+          {/* 💣 CETTE RANGEE NE CONTIENT QUE DES PRIX DE FORFAIT. Une colonne « avec notre
+              paiement » y a vecu jusqu'au 2026-10-05 : elle affichait un TOTAL DE FACTURE au
+              milieu de prix de forfait. Club de golf de Chicoutimi montrait « nouveau prix
+              219 $ » et, juste a cote et en VERT, « avec notre paiement 248 $ » — le total,
+              options comprises. Lu de gauche a droite, ca disait au marchand que notre
+              paiement coute plus cher. Dora l'a signale le jour meme.
+              Les trois totaux vivent desormais ensemble dans l'encadre orange, ou ils sont
+              nommes comme des totaux et se lisent les uns par rapport aux autres. */}
           {(() => {
-            const fr = fees[h.subscriptionNumber];
-            const wp = typeof fr === 'object' ? fr.withPayments : null;
-            const avecPrix = !!wp;
             const cases = [
               { label: t('csLookup.plan'), value: h.planName || '—' },
               { label: t('csLookup.currentPrice'), value: money(h.currentPrice) },
@@ -585,15 +585,6 @@ export default function SaasIncreaseLookup() {
               { label: t('csLookup.newPrice'),
                 value: (h.priceFrozen || h.excluded) ? '—' : money(h.newPrice),
                 strong: !(h.priceFrozen || h.excluded) },
-              ...(avecPrix ? [{
-                label: t('csLookup.pay.withPriceLabel'),
-                value: money(wp!.periodPrice), pay: true,
-                // D'ou sort le chiffre : en infobulle plutot qu'en ligne de texte sous le bloc.
-                hint: t('csLookup.pay.withPriceHow', {
-                  fees: money(wp!.feesPeriod), today: money(wp!.todayTotalMonthly),
-                  instead: money(wp!.newTotalMonthly),
-                }),
-              }] : []),
               // Un gel actif REMPLACE cette date. La laisser telle quelle mettait deux dates
               // contradictoires sur la meme fiche — « prend effet le 1er novembre » juste
               // au-dessus de « commence le 1er janvier » — et un agent presse lit la premiere.
@@ -609,15 +600,13 @@ export default function SaasIncreaseLookup() {
               })(),
             ];
             return (
-              <div className={`mt-4 grid grid-cols-2 gap-4 ${avecPrix ? 'sm:grid-cols-5' : 'sm:grid-cols-4'}`}>
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {cases.map((f: any) => (
                   <div key={String(f.label)} title={f.hint || undefined}>
-                    <div className={`text-[11px] font-semibold uppercase tracking-wider ${
-                      f.pay ? 'text-emerald-700 dark:text-emerald-400' : textQuat}`}>{f.label}</div>
+                    <div className={`text-[11px] font-semibold uppercase tracking-wider ${textQuat}`}>{f.label}</div>
                     <div className={`mt-1 text-sm ${
-                      f.pay ? 'font-semibold text-emerald-700 dark:text-emerald-400'
-                            : f.frozen ? 'font-semibold text-sky-700 dark:text-sky-300'
-                            : f.strong ? `font-semibold ${textPri}` : textSec}`}>{f.value}</div>
+                      f.frozen ? 'font-semibold text-sky-700 dark:text-sky-300'
+                               : f.strong ? `font-semibold ${textPri}` : textSec}`}>{f.value}</div>
                   </div>
                 ))}
               </div>
@@ -877,18 +866,25 @@ export default function SaasIncreaseLookup() {
                       month: money(f.monthlySaving), year: money(f.yearlySaving),
                     })}
                   </dd>
-                  {/* Les trois totaux, en clair. L'agent est au telephone avec la facture sous
-                      les yeux du marchand : « 199 $ » n'y figure pas, « 239 $ » si. Sans cette
-                      ligne, l'economie annoncee ne se raccroche a rien de verifiable. */}
+                  {/* Les trois totaux, dans l'ordre ou l'agent les dit au telephone, et c'est
+                      le SEUL endroit ou le prix a annoncer apparait depuis que la colonne a ete
+                      retiree de la ligne des prix. Il porte donc l'emphase : un agent presse
+                      doit tomber dessus sans le chercher. Ce sont des TOTAUX, options comprises,
+                      et le libelle le dit — « 199 $ » ne figure pas sur la facture du marchand,
+                      « 308 $ » si. */}
                   {f.withPayments && (
                     <>
                       <dt className={textQuat}>{t('csLookup.pay.todayLabel')}</dt>
                       <dd className={textSec}>
-                        {t('csLookup.pay.todayValue', {
+                        {t('csLookup.pay.todayFlow', {
                           today: money(f.withPayments.todayTotalMonthly),
                           next: money(f.withPayments.newTotalMonthly),
-                          withUs: money(f.withPayments.withTotalMonthly),
                         })}
+                        <span className="ml-1 font-semibold text-emerald-700 dark:text-emerald-400">
+                          {t('csLookup.pay.todayWithUs', {
+                            withUs: money(f.withPayments.withTotalMonthly),
+                          })}
+                        </span>
                       </dd>
                     </>
                   )}
