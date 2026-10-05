@@ -73,6 +73,11 @@ type Fees = {
   withPayments: {
     periodPrice: number; monthlyPrice: number; belowZero: boolean;
     newPrice: number; currentPrice: number; feesPeriod: number;
+    // Facture a facture : ce qu'il paie aujourd'hui, options comprises, et ce qu'il paierait.
+    // C'est de LA que sort l'economie — pas des seuls frais qui disparaissent.
+    todayTotalMonthly: number; withTotalMonthly: number;
+    savingMonthly: number; savingYearly: number; savingVsNewMonthly: number;
+    noSaving: boolean;
   } | null;
 };
 
@@ -868,10 +873,27 @@ export default function SaasIncreaseLookup() {
                 <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
                   <dt className={textQuat}>{t('csLookup.pay.savingLabel')}</dt>
                   <dd className="font-semibold text-[#c44d18] dark:text-[#fe8f5c]">
-                    {t('csLookup.pay.savingValue', {
-                      month: money(f.monthlySaving), year: money(f.yearlySaving),
-                    })}
+                    {f.withPayments?.noSaving
+                      ? t('csLookup.pay.noSaving')
+                      : t('csLookup.pay.savingValue', {
+                          month: money(f.monthlySaving), year: money(f.yearlySaving),
+                        })}
                   </dd>
+                  {/* D'ou sort le chiffre, en clair. L'agent est au telephone avec la facture
+                      sous les yeux du marchand : « 199 $ » n'y figure pas, « 239 $ » si. Sans
+                      cette ligne, l'economie annoncee ne se raccroche a rien de verifiable. */}
+                  {f.withPayments && !f.withPayments.belowZero && !f.withPayments.noSaving && (
+                    <>
+                      <dt className={textQuat}>{t('csLookup.pay.todayLabel')}</dt>
+                      <dd className={textSec}>
+                        {t('csLookup.pay.todayValue', {
+                          today: money(f.withPayments.todayTotalMonthly),
+                          withUs: money(f.withPayments.withTotalMonthly),
+                          vsNew: money(f.withPayments.savingVsNewMonthly),
+                        })}
+                      </dd>
+                    </>
+                  )}
                   <dt className={textQuat}>{t('csLookup.pay.feesLabel')}</dt>
                   <dd className={textSec}>
                     {f.paymentFees.map(l => `${l.name} — ${money(l.monthly)}`).join(' · ')}
