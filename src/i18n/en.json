@@ -2055,7 +2055,10 @@
       "reportButton": "Carry forward",
       "adjustConfirm": "Carry these missed commissions to the selected month? They'll be marked settled here and added to that month's pay stub.",
       "otherAmounts": "Monthly bonus / other",
-      "reconstructedBanner": "This import predates per-invoice storage, so the invoice breakdown below is reconstructed from the app's data. The file total stays authoritative. Re-import the file to store the exact paid amounts."
+      "reconstructedBanner": "This import predates per-invoice storage, so the invoice breakdown below is reconstructed from the app's data. The file total stays authoritative. Re-import the file to store the exact paid amounts.",
+      "carrySelected": "{{n}} line(s) selected — {{total}}",
+      "carrySelectAll": "Select all",
+      "carryClear": "clear selection"
     },
     "bonusStatement": {
       "title": "Bi-Annual Processing Bonus Statement",

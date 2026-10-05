@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Select from './Select';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -78,6 +78,17 @@ const PayStubModal: React.FC<{
   const [adjMonth, setAdjMonth] = useState(now.getMonth() + 1);
   const [adjYear, setAdjYear] = useState(now.getFullYear());
   const [adjBusy, setAdjBusy] = useState(false);
+  // Les lignes cochées en vue d'un report (voir `reportable` juste en dessous).
+  const [carry, setCarry] = useState<Set<string>>(new Set());
+  // Sur un bulletin GENERE, toute ligne affichee est une commission NON PAYEE — c'est sa
+  // definition (« ce qu'on vous paierait maintenant »). Chacune est donc reportable, sans
+  // qu'il faille demander quoi que ce soit de plus au serveur. Sur un bulletin IMPORTE, les
+  // lignes sont ce qui a DEJA ete paye : on n'y touche pas, le report s'y fait depuis la
+  // section « gagnee mais non payee » plus bas.
+  const reportable = data?.source === 'generated' && !!onAdjusted;
+  // Une selection laissee d'un bulletin a l'autre reporterait les factures de QUELQU'UN
+  // D'AUTRE, ou d'un autre mois. Elle meurt avec le bulletin affiche.
+  useEffect(() => { setCarry(new Set()); }, [data?.repName, data?.period, data?.source]);
   // Invoice PDF preview (click an invoice number) — same endpoint the Commission Report uses.
   const [invPreview, setInvPreview] = useState<{ num: string; loading: boolean } | null>(null);
   const [invPreviewTab, setInvPreviewTab] = useState<'details' | 'activity'>('details');
@@ -112,16 +123,17 @@ const PayStubModal: React.FC<{
     const s = new Date(2000, m - 1, 1).toLocaleString(i18n.language, { month: 'long' });
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
-  // Carry all "missed" (earned-but-unpaid) invoices of this period forward to a chosen month.
-  const reportMissed = async () => {
-    if (!data?.missed?.length) return;
+  // UN SEUL chemin pour reporter, quelle que soit l'origine du bulletin : la liste des
+  // factures à déplacer est le seul paramètre. Deux fonctions auraient divergé.
+  const reporter = async (numeros: string[]) => {
+    if (!numeros.length) return;
     if (!(await dialog.confirm(tp('adjustConfirm') as string))) return;
     setAdjBusy(true);
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_URL}/api/commissions/adjustments`, {
         repName: data.repName, year: adjYear, month: adjMonth,
-        invoiceNumbers: data.missed.map((m) => m.invoice_number),
+        invoiceNumbers: numeros,
         description: `${tp('adjustment')} — ${data.period}`,
       }, { headers: { Authorization: `Bearer ${token}` } });
       onAdjusted?.();
@@ -501,6 +513,15 @@ const PayStubModal: React.FC<{
                 <table className="w-full text-sm">
                   <thead className="bg-gray-2 dark:bg-meta-4">
                     <tr>
+                      {reportable && (
+                        <th className="w-8 px-3 py-2">
+                          <input type="checkbox" aria-label={tp('carrySelectAll') as string}
+                            checked={data.lines.length > 0 && data.lines.every((l) => carry.has(l.invoice_number))}
+                            onChange={(e) => setCarry(e.target.checked
+                              ? new Set(data.lines.map((l) => l.invoice_number))
+                              : new Set())} />
+                        </th>
+                      )}
                       <th className="px-3 py-2 text-left font-medium">{tp('invoice')}</th>
                       <th className="px-3 py-2 text-left font-medium">{tp('customer')}</th>
                       <th className="px-3 py-2 text-left font-medium">{tp('category')}</th>
@@ -510,11 +531,22 @@ const PayStubModal: React.FC<{
                   </thead>
                   <tbody>
                     {data.lines.length === 0 ? (
-                      <tr><td colSpan={showApp ? 5 : 4} className="px-3 py-3 text-center text-body">—</td></tr>
+                      <tr><td colSpan={(showApp ? 5 : 4) + (reportable ? 1 : 0)} className="px-3 py-3 text-center text-body">—</td></tr>
                     ) : data.lines.map((l) => {
                       const diff = !l.not_in_db && l.app_commission != null && Math.abs(l.app_commission - l.paid_amount) > 0.01;
                       return (
                         <tr key={l.invoice_number} className="border-t border-stroke dark:border-strokedark">
+                          {reportable && (
+                            <td className="px-3 py-2">
+                              <input type="checkbox" aria-label={l.invoice_number}
+                                checked={carry.has(l.invoice_number)}
+                                onChange={() => setCarry((prev) => {
+                                  const n = new Set(prev);
+                                  if (n.has(l.invoice_number)) n.delete(l.invoice_number); else n.add(l.invoice_number);
+                                  return n;
+                                })} />
+                            </td>
+                          )}
                           <td className="px-3 py-2">
                             <button onClick={() => openInvPreview(l.invoice_number)}
                               title={tp('viewInvoice') as string}
@@ -562,7 +594,8 @@ const PayStubModal: React.FC<{
                   {data.lines.length > 0 && (
                     <tfoot>
                       <tr className="border-t-2 border-stroke bg-gray-1 dark:border-strokedark dark:bg-meta-4/40">
-                        <td colSpan={3} className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-body">{tp('subtotalCommissions')}</td>
+                        {/* +1 colonne quand les cases sont la, sinon le sous-total glisse. */}
+                        <td colSpan={reportable ? 4 : 3} className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-body">{tp('subtotalCommissions')}</td>
                         <td className="px-3 py-2 text-right font-bold text-black dark:text-white">{fmt(data.lines.reduce((a, l) => a + l.paid_amount, 0))}</td>
                         {showApp && <td className="px-3 py-2"></td>}
                       </tr>
@@ -570,6 +603,34 @@ const PayStubModal: React.FC<{
                   )}
                 </table>
               </div>
+
+              {/* Reporter les lignes cochees vers un autre mois de paie. N'apparait qu'une fois
+                  quelque chose de coche : une commande permanente sur un ecran d'argent invite
+                  au clic distrait. Elle annonce le nombre ET le montant deplaces. */}
+              {reportable && carry.size > 0 && (
+                <div className="mt-3 flex flex-wrap items-center gap-2 rounded border border-warning/40 bg-warning/10 px-3 py-2.5">
+                  <span className="text-xs font-medium text-black dark:text-white">
+                    {tpp('carrySelected', {
+                      n: carry.size,
+                      total: fmt(data.lines.filter((l) => carry.has(l.invoice_number)).reduce((a, l) => a + l.paid_amount, 0)),
+                    })}
+                  </span>
+                  <span className="text-xs font-medium text-body">{tp('reportTo')}</span>
+                  <Select value={String(adjMonth)} onChange={(v) => setAdjMonth(parseInt(v))}
+                    options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))}
+                    buttonClassName={'rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input'} />
+                  <input type="number" value={adjYear} onChange={(e) => setAdjYear(parseInt(e.target.value) || adjYear)}
+                    className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                  <button onClick={() => reporter([...carry])} disabled={adjBusy}
+                    className="rounded-md bg-warning px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-opacity-90 disabled:opacity-50">
+                    {adjBusy ? '…' : tp('reportButton')}
+                  </button>
+                  <button onClick={() => setCarry(new Set())} disabled={adjBusy}
+                    className="text-xs text-body underline hover:text-primary disabled:opacity-50">
+                    {tp('carryClear')}
+                  </button>
+                </div>
+              )}
 
               {/* Bonuses — adjustments excluded, they get their own section below */}
               {bonusRows.length > 0 && (
@@ -705,7 +766,7 @@ const PayStubModal: React.FC<{
                       <Select value={String(adjMonth)} onChange={(v) => setAdjMonth(parseInt(v))} options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))} buttonClassName={'rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input'} />
                       <input type="number" value={adjYear} onChange={(e) => setAdjYear(parseInt(e.target.value) || adjYear)}
                         className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-                      <button onClick={reportMissed} disabled={adjBusy}
+                      <button onClick={() => reporter((data.missed || []).map((m) => m.invoice_number))} disabled={adjBusy}
                         className="rounded-md bg-warning px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-opacity-90 disabled:opacity-50">
                         {adjBusy ? '…' : tp('reportButton')}
                       </button>
