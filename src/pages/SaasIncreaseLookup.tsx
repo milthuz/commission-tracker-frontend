@@ -3,7 +3,7 @@ import Select from '../components/Select';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard, Snowflake,
-         MessageSquareQuote } from 'lucide-react';
+         MessageSquareQuote, ArrowRight } from 'lucide-react';
 
 // The support desk's page. A merchant calls, an agent types whatever the caller gave them — a
 // name, a subscription number, a merchant id — and gets that one account's facts. Read-only by
@@ -917,60 +917,100 @@ export default function SaasIncreaseLookup() {
                 <div className={`mt-2 text-xs ${textQuat}`}>{t('csLookup.pay.noFees')}</div>
               )}
 
+              {/* L'ARGUMENTAIRE, PAS UN TABLEAU DE DONNEES.
+                  C'etait quatre lignes etiquette->valeur en 11 px : tout y etait, rien ne s'en
+                  detachait, et l'agent au telephone devait lire pour trouver son chiffre. Trois
+                  etages maintenant, dans l'ordre ou il s'en sert :
+                    1. CE QU'IL ECONOMISE, en gros — la seule phrase qu'il dira au marchand ;
+                    2. LE CHEMIN DES PRIX, trois paliers flechés, le dernier encadre en vert ;
+                    3. LE DETAIL, en pied discret, pour repondre a « d'ou sort ce chiffre ? ». */}
               {f && f.paymentFees.length > 0 && (
-                <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-                  <dt className={textQuat}>{t('csLookup.pay.savingLabel')}</dt>
-                  <dd className="font-semibold text-[#c44d18] dark:text-[#fe8f5c]">
-                    {t('csLookup.pay.savingValue', {
-                      month: money(f.monthlySaving), year: money(f.yearlySaving),
-                    })}
-                  </dd>
-                  {/* Les trois totaux, dans l'ordre ou l'agent les dit au telephone, et c'est
-                      le SEUL endroit ou le prix a annoncer apparait depuis que la colonne a ete
-                      retiree de la ligne des prix. Il porte donc l'emphase : un agent presse
-                      doit tomber dessus sans le chercher. Ce sont des TOTAUX, options comprises,
-                      et le libelle le dit — « 199 $ » ne figure pas sur la facture du marchand,
-                      « 308 $ » si. */}
-                  {f.withPayments && (
-                    <>
-                      <dt className={textQuat}>{t('csLookup.pay.todayLabel')}</dt>
-                      <dd className={textSec}>
-                        {t('csLookup.pay.todayFlow', {
-                          today: money(f.withPayments.todayTotalMonthly),
-                          next: money(f.withPayments.newTotalMonthly),
-                        })}
-                        <span className="ml-1 font-semibold text-emerald-700 dark:text-emerald-400">
-                          {t('csLookup.pay.todayWithUs', {
-                            withUs: money(f.withPayments.withTotalMonthly),
-                          })}
+                <div className="mt-2.5 border-t border-[#fe6523]/20 pt-3">
+                  <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
+                    <div className="shrink-0">
+                      <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
+                        {t('csLookup.pay.savingLabel')}
+                      </div>
+                      <div className="mt-0.5 flex items-baseline gap-1">
+                        <span className="text-[26px] font-semibold leading-none text-[#c44d18] dark:text-[#fe8f5c]">
+                          {money(f.monthlySaving)}
                         </span>
-                        <span className={`ml-1 ${textQuat}`}>{t('csLookup.beforeTaxShort')}</span>
-                      </dd>
-                    </>
-                  )}
-                  <dt className={textQuat}>{t('csLookup.pay.feesLabel')}</dt>
-                  {/* La QUANTITE change tout : Club de golf de Chicoutimi paie 80 $ parce
-                      qu'il a quatre integrations a 20 $, pas une a 80 $. Un agent a qui on
-                      demande « d'ou sort ce chiffre ? » doit pouvoir repondre. */}
-                  <dd className={textSec}>
-                    {f.paymentFees.map(l => l.quantity > 1
-                      ? `${l.name} — ${money(l.monthly / l.quantity)} × ${l.quantity} = ${money(l.monthly)}`
-                      : `${l.name} — ${money(l.monthly)}`).join(' · ')}
-                  </dd>
-                  {/* Les autres integrations NE disparaissent PAS : le dire evite qu'un agent
-                      les compte dans l'economie annoncee au client. */}
-                  {f.addons.some(a => !a.isPayment) && (
-                    <>
-                      <dt className={textQuat}>{t('csLookup.pay.keptLabel')}</dt>
-                      {/* Chacune avec SON prix : sans le montant, l'agent ne peut pas expliquer
-                          le total au marchand qui lui lit sa facture ligne par ligne. */}
-                      <dd className={textQuat}>
-                        {f.addons.filter(a => !a.isPayment)
-                          .map(a => `${a.name} — ${money(a.monthly)}`).join(' · ')}
-                      </dd>
-                    </>
-                  )}
-                </dl>
+                        <span className={`text-xs ${textTer}`}>{t('csLookup.pay.perMonth')}</span>
+                      </div>
+                      <div className={`mt-1 text-[11px] ${textTer}`}>
+                        {t('csLookup.pay.perYear', { amount: money(f.yearlySaving) })}
+                      </div>
+                    </div>
+
+                    {f.withPayments && (
+                      <>
+                        {/* Le trait ne survit pas au repliement en colonne : sur un ecran
+                            etroit les deux blocs s'empilent et un filet vertical n'y a plus
+                            de sens. */}
+                        <div className="hidden w-px self-stretch bg-[#fe6523]/20 sm:block" />
+                        <div className="min-w-0 flex-1">
+                          <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
+                            {t('csLookup.pay.invoiceEachMonth')}
+                          </div>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 tabular-nums">
+                            <div>
+                              <div className={`text-sm font-medium ${textSec}`}>
+                                {money(f.withPayments.todayTotalMonthly)}
+                              </div>
+                              <div className={`text-[10px] ${textQuat}`}>{t('csLookup.pay.stepToday')}</div>
+                            </div>
+                            <ArrowRight className={`h-3.5 w-3.5 shrink-0 ${textQuat}`} />
+                            <div>
+                              <div className={`text-sm font-medium ${textSec}`}>
+                                {money(f.withPayments.newTotalMonthly)}
+                              </div>
+                              <div className={`text-[10px] ${textQuat}`}>{t('csLookup.pay.stepNext')}</div>
+                            </div>
+                            <ArrowRight className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-500" />
+                            {/* Le seul chiffre encadre de la carte : c'est celui que l'agent
+                                annonce. */}
+                            <div className="rounded-md bg-emerald-500/10 px-2 py-0.5 ring-1 ring-emerald-500/30">
+                              <div className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                                {money(f.withPayments.withTotalMonthly)}
+                              </div>
+                              <div className="text-[10px] text-emerald-700/80 dark:text-emerald-500/80">
+                                {t('csLookup.pay.stepWithUs')}
+                              </div>
+                            </div>
+                            <span className={`ml-1 self-end pb-0.5 text-[10px] ${textQuat}`}>
+                              {t('csLookup.beforeTaxShort')}
+                            </span>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="mt-3 border-t border-[#fe6523]/15 pt-2 text-[11px] leading-relaxed">
+                    <div className="flex gap-2">
+                      <span className={`w-[104px] shrink-0 ${textQuat}`}>{t('csLookup.pay.goesAway')}</span>
+                      {/* La QUANTITE change tout : Club de golf de Chicoutimi paie 80 $ parce
+                          qu'il a quatre integrations a 20 $, pas une a 80 $. Un agent a qui on
+                          demande « d'ou sort ce chiffre ? » doit pouvoir repondre. */}
+                      <span className={textSec}>
+                        {f.paymentFees.map(l => l.quantity > 1
+                          ? `${l.name} — ${money(l.monthly / l.quantity)} × ${l.quantity} = ${money(l.monthly)}`
+                          : `${l.name} — ${money(l.monthly)}`).join(' · ')}
+                      </span>
+                    </div>
+                    {/* Les autres integrations NE disparaissent PAS : le dire evite qu'un agent
+                        les compte dans l'economie annoncee au client. */}
+                    {f.addons.some(a => !a.isPayment) && (
+                      <div className="mt-0.5 flex gap-2">
+                        <span className={`w-[104px] shrink-0 ${textQuat}`}>{t('csLookup.pay.keptLabel')}</span>
+                        <span className={textTer}>
+                          {f.addons.filter(a => !a.isPayment)
+                            .map(a => `${a.name} — ${money(a.monthly)}`).join(' · ')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
 
               {/* Le cas « frais superieurs au forfait » a disparu avec la soustraction : plus
