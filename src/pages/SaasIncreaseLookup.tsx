@@ -593,6 +593,11 @@ export default function SaasIncreaseLookup() {
           {(() => {
             const gele = !!h.frozenUntil && h.frozenUntil > new Date().toISOString().slice(0, 10);
             const sansSuite = h.priceFrozen || h.excluded;
+            const fr = fees[h.subscriptionNumber];
+            const wp = typeof fr === 'object' ? fr.withPayments : null;
+            // Le troisieme palier n'existe qu'une fois les frais releves : avant, on ignore
+            // quelle part des options disparaitrait.
+            const avecNous = wp && !sansSuite ? wp : null;
             // Le TOTAL quand on le connait, le forfait seul sinon : la carte ne doit jamais
             // annoncer un total qu'elle n'a pas calcule.
             const aujourdhui = h.currentTotal ?? h.currentPrice;
@@ -602,17 +607,38 @@ export default function SaasIncreaseLookup() {
               : null;
             const dateEffet = gele && h.effectiveAfterFreeze ? h.effectiveAfterFreeze : h.effectiveDate;
             return (
-              <div className="mt-4 flex flex-wrap items-start gap-x-6 gap-y-3">
-                <div className="min-w-0 max-w-[230px] shrink-0">
-                  <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
-                    {t('csLookup.plan')}
+              <div className="mt-4">
+                {/* ⚠️ LE CHEMIN DES PRIX PREND TOUTE LA LARGEUR, et le forfait et la date se
+                    partagent la ligne au-dessus. Les trois ensemble sur une seule rangee ne
+                    tenaient pas : le troisieme palier passait a la ligne en laissant sa fleche
+                    orpheline au bout de la precedente (mesure a 942 px, « chemin sur 3 lignes »).
+                    Trois totaux et leur decomposition, ca demande la pleine largeur. */}
+                <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+                  <div className="min-w-0 max-w-[420px]">
+                    <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
+                      {t('csLookup.plan')}
+                    </div>
+                    <div className={`mt-1 text-sm ${textSec}`}>{h.planName || '—'}</div>
                   </div>
-                  <div className={`mt-1 text-sm ${textSec}`}>{h.planName || '—'}</div>
+
+                  {/* Un gel actif REMPLACE la date d'effet. La laisser telle quelle mettait deux
+                      dates contradictoires sur la meme fiche — « prend effet le 1er novembre »
+                      juste au-dessus de « commence le 1er janvier » — et un agent presse lit la
+                      premiere. */}
+                  <div className="shrink-0 text-right" title={gele && h.effectiveAfterFreeze
+                    ? (t('csLookup.freeze.supersedes', { old: fmtDate(h.effectiveDate, i18n.language) }) as string)
+                    : undefined}>
+                    <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
+                      {t('csLookup.effective')}
+                    </div>
+                    <div className={`mt-1 text-sm ${gele && h.effectiveAfterFreeze
+                      ? 'font-semibold text-sky-700 dark:text-sky-300' : textSec}`}>
+                      {fmtDate(dateEffet, i18n.language)}
+                    </div>
+                  </div>
                 </div>
 
-                <div className="hidden w-px self-stretch bg-gray-200 dark:bg-[#242424] sm:block" />
-
-                <div className="min-w-0 flex-1">
+                <div className="mt-3 border-t border-gray-200 pt-3 dark:border-[#242424]">
                   <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
                     {t('csLookup.priceStory')}
                   </div>
@@ -639,27 +665,33 @@ export default function SaasIncreaseLookup() {
                         {!sansSuite && detail(h.newPrice) ? ` · ${detail(h.newPrice)}` : ''}
                       </div>
                     </div>
+                    {/* LE TROISIEME PALIER. Il a le droit d'etre ici depuis que les trois
+                        sont des TOTAUX decomposes de la meme facon — c'est ce qui manquait le
+                        2026-10-05, quand un total nu pose au milieu de prix de forfait se
+                        lisait comme une hausse (signale par Dora). Encadre en vert : c'est le
+                        chiffre que l'agent annonce. */}
+                    {avecNous && (
+                      <>
+                        <ArrowRight className="mt-1 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-500" />
+                        <div className="rounded-md bg-emerald-500/10 px-2 py-1 ring-1 ring-emerald-500/30">
+                          <div className="text-[17px] font-semibold leading-none text-emerald-700 dark:text-emerald-400">
+                            {money(avecNous.withTotalPeriod)}
+                          </div>
+                          <div className="mt-1 text-[10px] text-emerald-700/80 dark:text-emerald-500/80">
+                            {t('csLookup.pay.stepWithUs')}
+                            {h.addonsPrice != null
+                              ? ` · ${t('csLookup.breakdown', {
+                                  plan: money(h.newPrice),
+                                  addons: money(Math.max(0, h.addonsPrice - avecNous.feesPeriod)),
+                                })}`
+                              : ''}
+                          </div>
+                        </div>
+                      </>
+                    )}
                     {/* Pas de « (avant taxes) » ici : la note complete suit immediatement
                         sous la rangee, et la repeter faisait une etiquette orpheline qui
                         passait a la ligne toute seule. */}
-                  </div>
-                </div>
-
-                <div className="hidden w-px self-stretch bg-gray-200 dark:bg-[#242424] sm:block" />
-
-                {/* Un gel actif REMPLACE la date d'effet. La laisser telle quelle mettait deux
-                    dates contradictoires sur la meme fiche — « prend effet le 1er novembre »
-                    juste au-dessus de « commence le 1er janvier » — et un agent presse lit la
-                    premiere. */}
-                <div className="shrink-0" title={gele && h.effectiveAfterFreeze
-                  ? (t('csLookup.freeze.supersedes', { old: fmtDate(h.effectiveDate, i18n.language) }) as string)
-                  : undefined}>
-                  <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
-                    {t('csLookup.effective')}
-                  </div>
-                  <div className={`mt-1 text-sm ${gele && h.effectiveAfterFreeze
-                    ? 'font-semibold text-sky-700 dark:text-sky-300' : textSec}`}>
-                    {fmtDate(dateEffet, i18n.language)}
                   </div>
                 </div>
               </div>
