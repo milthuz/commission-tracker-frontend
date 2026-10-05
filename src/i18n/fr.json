@@ -5194,6 +5194,8 @@
     "plan": "Forfait",
     "currentPrice": "Prix actuel",
     "newPrice": "Nouveau prix",
+    "plusAddons": "+ {{amount}} d’options",
+    "totalLine": "= {{amount}} au total",
     "effective": "En vigueur le",
     "zohoStatus": "Appliqué dans Zoho",
     "sentTo": "Avis envoyé à",

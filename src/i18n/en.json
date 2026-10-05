@@ -5194,6 +5194,8 @@
     "plan": "Plan",
     "currentPrice": "Current price",
     "newPrice": "New price",
+    "plusAddons": "+ {{amount}} add-ons",
+    "totalLine": "= {{amount}} total",
     "effective": "Takes effect",
     "zohoStatus": "Applied in Zoho",
     "sentTo": "Notice sent to",

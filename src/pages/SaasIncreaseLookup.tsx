@@ -26,6 +26,11 @@ interface Hit {
   planName: string;
   currentPrice: number | null;
   newPrice: number | null;
+  // Les options et le total que le marchand voit sur sa facture. Le forfait seul ne lui parle
+  // pas : 1 625 des 2 757 lignes de la campagne portent des options.
+  addonsPrice: number | null;
+  currentTotal: number | null;
+  newTotal: number | null;
   effectiveDate: string | null;
   pushStatus: string;
   pushedAt: string | null;
@@ -525,11 +530,15 @@ export default function SaasIncreaseLookup() {
               {h.subscriptionNumber} &middot; {h.orgName}
             </div>
           </div>
-          {/* Le prix disparait sur une ligne gelee ou hors campagne : il n'aura pas lieu. */}
+          {/* Le prix disparait sur une ligne gelee ou hors campagne : il n'aura pas lieu.
+              Quand les options sont connues, c'est le TOTAL qu'on resume ici : c'est le chiffre
+              que le marchand reconnait, et la carte depliee en donne le detail. */}
           <div className={`hidden shrink-0 text-right text-xs tabular-nums sm:block ${textTer}`}>
-            {(h.priceFrozen || h.excluded)
-              ? money(h.currentPrice)
-              : `${money(h.currentPrice)} \u2192 ${money(h.newPrice)}`}
+            {(() => {
+              const de = h.currentTotal ?? h.currentPrice;
+              const a = h.newTotal ?? h.newPrice;
+              return (h.priceFrozen || h.excluded) ? money(de) : `${money(de)} \u2192 ${money(a)}`;
+            })()}
           </div>
           {pastilleCourte(h)}
           <ChevronDown className={`h-4 w-4 shrink-0 ${textQuat}`} />
@@ -579,12 +588,18 @@ export default function SaasIncreaseLookup() {
           {(() => {
             const cases = [
               { label: t('csLookup.plan'), value: h.planName || '—' },
-              { label: t('csLookup.currentPrice'), value: money(h.currentPrice) },
+              // Sous chaque prix de forfait : les options, puis le total. Les trois lignes se
+              // lisent de haut en bas comme une addition — c'est la seule facon de poser un
+              // total pres d'un prix de forfait sans que l'un passe pour l'autre.
+              { label: t('csLookup.currentPrice'), value: money(h.currentPrice),
+                addons: h.addonsPrice, total: h.currentTotal },
               // Afficher un « nouveau prix » sur une ligne gelee, c'est tendre a l'agent le
               // chiffre exact qu'il ne doit pas annoncer. On met un tiret, le bandeau explique.
               { label: t('csLookup.newPrice'),
                 value: (h.priceFrozen || h.excluded) ? '—' : money(h.newPrice),
-                strong: !(h.priceFrozen || h.excluded) },
+                strong: !(h.priceFrozen || h.excluded),
+                addons: (h.priceFrozen || h.excluded) ? null : h.addonsPrice,
+                total: (h.priceFrozen || h.excluded) ? null : h.newTotal },
               // Un gel actif REMPLACE cette date. La laisser telle quelle mettait deux dates
               // contradictoires sur la meme fiche — « prend effet le 1er novembre » juste
               // au-dessus de « commence le 1er janvier » — et un agent presse lit la premiere.
@@ -607,6 +622,16 @@ export default function SaasIncreaseLookup() {
                     <div className={`mt-1 text-sm ${
                       f.frozen ? 'font-semibold text-sky-700 dark:text-sky-300'
                                : f.strong ? `font-semibold ${textPri}` : textSec}`}>{f.value}</div>
+                    {f.total != null && (
+                      <div className="mt-0.5 text-[11px] leading-snug tabular-nums">
+                        {!!f.addons && (
+                          <div className={textQuat}>{t('csLookup.plusAddons', { amount: money(f.addons) })}</div>
+                        )}
+                        <div className={`font-semibold ${textSec}`}>
+                          {t('csLookup.totalLine', { amount: money(f.total) })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -897,8 +922,11 @@ export default function SaasIncreaseLookup() {
                   {f.addons.some(a => !a.isPayment) && (
                     <>
                       <dt className={textQuat}>{t('csLookup.pay.keptLabel')}</dt>
+                      {/* Chacune avec SON prix : sans le montant, l'agent ne peut pas expliquer
+                          le total au marchand qui lui lit sa facture ligne par ligne. */}
                       <dd className={textQuat}>
-                        {f.addons.filter(a => !a.isPayment).map(a => a.name).join(', ')}
+                        {f.addons.filter(a => !a.isPayment)
+                          .map(a => `${a.name} — ${money(a.monthly)}`).join(' · ')}
                       </dd>
                     </>
                   )}
