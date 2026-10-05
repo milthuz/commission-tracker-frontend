@@ -5198,6 +5198,8 @@
     "newPrice": "Nouveau prix",
     "plusAddons": "+ {{amount}} d’options",
     "totalLine": "= {{amount}} au total",
+    "beforeTax": "Montants avant taxes — sa facture affiche le total taxé.",
+    "beforeTaxShort": "(avant taxes)",
     "effective": "En vigueur le",
     "zohoStatus": "Appliqué dans Zoho",
     "sentTo": "Avis envoyé à",

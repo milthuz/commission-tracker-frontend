@@ -5198,6 +5198,8 @@
     "newPrice": "New price",
     "plusAddons": "+ {{amount}} add-ons",
     "totalLine": "= {{amount}} total",
+    "beforeTax": "All amounts before taxes — his invoice shows the taxed total.",
+    "beforeTaxShort": "(before taxes)",
     "effective": "Takes effect",
     "zohoStatus": "Applied in Zoho",
     "sentTo": "Notice sent to",

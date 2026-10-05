@@ -663,6 +663,15 @@ export default function SaasIncreaseLookup() {
             );
           })()}
 
+          {/* ⚠️ Tous ces montants sont AVANT TAXES. Zoho dit « 354,12 $ » pour le Club de golf
+              de Chicoutimi la ou la carte dit 308 $ — l'ecart, ce sont la TPS et la TVQ. Un
+              agent qui annonce un total a un marchand qui lit sa facture doit savoir laquelle
+              des deux lignes il tient. Dit une fois, sous la rangee, plutot que repete sur
+              chaque total : la carte est deja dense. */}
+          {h.currentTotal != null && (
+            <p className={`mt-2 text-[11px] ${textQuat}`}>{t('csLookup.beforeTax')}</p>
+          )}
+
           {/* LE GEL. Place juste sous les prix, parce que c'est la premiere chose a verifier quand
               un marchand demande un delai : lui a-t-on deja promis quelque chose ? Un gel deja
               pose se lit avant qu'on en propose un autre. */}
@@ -935,6 +944,7 @@ export default function SaasIncreaseLookup() {
                             withUs: money(f.withPayments.withTotalMonthly),
                           })}
                         </span>
+                        <span className={`ml-1 ${textQuat}`}>{t('csLookup.beforeTaxShort')}</span>
                       </dd>
                     </>
                   )}
