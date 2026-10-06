@@ -22,6 +22,7 @@ import Audit from './Audit';
 import HardwareAdmin from './HardwareAdmin';
 import PricingAdmin from './PricingAdmin';
 import IcplusRatesAdmin from './IcplusRatesAdmin';
+import OpenerMatchAdmin from './OpenerMatchAdmin';
 import PartnersAdmin from './PartnersAdmin';
 import LeadsAdmin from './LeadsAdmin';
 import HrAdmin from './HrAdmin';
@@ -137,6 +138,7 @@ const AdminPanel = () => {
     || (tab === 'leads' && can('leads:manage_rules'))
     || (tab === 'hr' && can('hr:manage'))
     || (tab === 'icplus-rates' && can('icplus:rates'))
+    || (tab === 'opener' && can('opener:match'))
     // Catalogue (2026-09-28) : un rôle « Delivery Manager » doit pouvoir éditer le matériel et les
     // prix/SKU (y compris SaaS) sans être admin. Les routes /api/hardware et /api/pricing exigent
     // déjà hardware:manage / pricing:manage — seul l'écran leur fermait la porte.
@@ -1660,6 +1662,7 @@ const AdminPanel = () => {
              activeTab === 'audit' ? t('admin.audit.title') :
              activeTab === 'hardware' ? t('admin.hardware.title') :
              activeTab === 'icplus-rates' ? t('icplusRates.title') :
+             activeTab === 'opener' ? t('openerMatch.title') :
              activeTab === 'pricing' ? t('admin.pricing.title') :
              activeTab === 'partners' ? t('admin.partners.title') :
              activeTab === 'leads' ? t('admin.leads.title') :
@@ -1682,6 +1685,7 @@ const AdminPanel = () => {
              activeTab === 'audit' ? t('admin.audit.subtitle') :
              activeTab === 'hardware' ? t('admin.hardware.subtitle') :
              activeTab === 'icplus-rates' ? t('icplusRates.subtitle') :
+             activeTab === 'opener' ? t('openerMatch.subtitle') :
              activeTab === 'pricing' ? t('admin.pricing.subtitle') :
              activeTab === 'partners' ? t('admin.partners.subtitle') :
              activeTab === 'leads' ? t('admin.leads.subtitle') :
@@ -3769,6 +3773,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'hardware' && <HardwareAdmin />}
           {activeTab === 'pricing' && <PricingAdmin />}
           {activeTab === 'icplus-rates' && <IcplusRatesAdmin />}
+          {activeTab === 'opener' && <OpenerMatchAdmin />}
           {activeTab === 'leads' && <LeadsAdmin />}
           {activeTab === 'hr' && <HrAdmin />}
           {activeTab === 'partners' && <PartnersAdmin canDelete={isAdmin || can('partners:delete')} canMigrate={isAdmin || can('partners:migrate')} canStats={isAdmin || can('partners:stats')} canExportUsers={isAdmin || can('partners:export_users')} canCreateOpportunity={isAdmin || can('partners:create_opportunity')} />}
