@@ -6325,7 +6325,22 @@
     "billingAddress": "billing address",
     "fromTwin": "listing taken from the Kaizen store",
     "plans": "Plans",
-    "twinOf": "Same restaurant as Kaizen store \"{{name}}\""
+    "twinOf": "Same restaurant as Kaizen store \"{{name}}\"",
+    "progress": {
+      "step": "Step {{step}} of {{total}}",
+      "kaizen": "Reading Kaizen stores…",
+      "billing_subs": "Reading Zoho Billing subscriptions (Cluster Canada, Xperio)…",
+      "billing_addresses": "Reading Zoho addresses: {{done}} of {{total}}",
+      "twins": "Finding Billing customers already on V2…",
+      "matching": "Google matching: {{done}} of {{total}}",
+      "short": {
+        "kaizen": "Kaizen",
+        "billing_subs": "Subscriptions",
+        "billing_addresses": "Addresses",
+        "twins": "V2 twins",
+        "matching": "Google"
+      }
+    }
   },
   "hr": {
     "title": "Hiring",

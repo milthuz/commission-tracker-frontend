@@ -6325,7 +6325,22 @@
     "billingAddress": "adresse de facturation",
     "fromTwin": "fiche reprise du magasin Kaizen",
     "plans": "Forfaits",
-    "twinOf": "Même restaurant que le magasin Kaizen « {{name}} »"
+    "twinOf": "Même restaurant que le magasin Kaizen « {{name}} »",
+    "progress": {
+      "step": "Étape {{step}} sur {{total}}",
+      "kaizen": "Lecture des magasins Kaizen…",
+      "billing_subs": "Lecture des abonnements Zoho Billing (Cluster Canada, Xperio)…",
+      "billing_addresses": "Lecture des adresses Zoho : {{done}} sur {{total}}",
+      "twins": "Repérage des clients Billing déjà en V2…",
+      "matching": "Appariement Google : {{done}} sur {{total}}",
+      "short": {
+        "kaizen": "Kaizen",
+        "billing_subs": "Abonnements",
+        "billing_addresses": "Adresses",
+        "twins": "Jumeaux V2",
+        "matching": "Google"
+      }
+    }
   },
   "hr": {
     "title": "Embauches",

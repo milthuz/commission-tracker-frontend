@@ -81,9 +81,15 @@ interface RunInfo {
   matchError?: string;
 }
 
+interface Progress { phase: Phase; done: number; total: number; at: string }
+// Ordre des phases d'une synchro, tel que le serveur les parcourt.
+const PHASES = ['kaizen', 'billing_subs', 'billing_addresses', 'twins', 'matching'] as const;
+type Phase = typeof PHASES[number];
+
 interface Status {
   configured: { kaizen: boolean; google: boolean; billing: boolean };
   running: boolean;
+  progress: Progress | null;
   lastRun: RunInfo | null;
   counts: Record<MatchStatus, number>;
   totals: { active: number; inactive: number; missing: number; kaizen: number; billing: number; v1: number; v2: number; twins: number };
@@ -110,6 +116,38 @@ const VERSION_TONE: Record<Version, string> = {
 
 const mapsUrl = (placeId: string) => `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}`;
 const fmtDate = (s: string | null | undefined, lng: string) => (s ? new Date(s).toLocaleString(lng === 'fr' ? 'fr-CA' : 'en-CA', { dateStyle: 'medium', timeStyle: 'short' }) : '—');
+
+// Barre de progression de la synchro : l'étape (n sur 5), son libellé, et l'avancement quand
+// l'étape a un total connu (adresses Zoho lues, recherches Google faites). Sans total : barre
+// animée, l'étape est courte.
+const SyncProgress = ({ p }: { p: Progress | null }) => {
+  const { t } = useTranslation();
+  const phase: Phase = p?.phase && PHASES.includes(p.phase) ? p.phase : 'kaizen';
+  const step = PHASES.indexOf(phase) + 1;
+  const pct = p && p.total > 0 ? Math.min(100, Math.round((p.done / p.total) * 100)) : null;
+  return (
+    <div className="mt-3 rounded border border-primary/40 bg-primary/5 p-3" role="status" aria-live="polite">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span className="font-semibold text-black dark:text-white">
+          {t('openerMatch.progress.step', { step, total: PHASES.length })} · {t(`openerMatch.progress.${phase}`, { done: p?.done ?? 0, total: p?.total ?? 0 })}
+        </span>
+        {pct != null && <span className="font-semibold text-primary">{pct} %</span>}
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-stroke dark:bg-meta-4">
+        {pct != null
+          ? <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${pct}%` }} />
+          : <div className="h-full w-1/3 animate-pulse rounded-full bg-primary" />}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+        {PHASES.map((ph, i) => (
+          <span key={ph} className={i + 1 < step ? 'text-success' : i + 1 === step ? 'font-semibold text-primary' : 'text-body dark:text-bodydark'}>
+            {i + 1 < step ? '✓ ' : ''}{t(`openerMatch.progress.short.${ph}`)}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const OpenerMatchAdmin = () => {
   const { t, i18n } = useTranslation();
@@ -169,7 +207,7 @@ const OpenerMatchAdmin = () => {
   }, [loadStatus]);
   useEffect(() => { loadLocs(); }, [loadLocs]);
 
-  // Pendant une synchro : on relit l'état toutes les 5 s, puis la liste à la fin.
+  // Pendant une synchro : on relit l'état (et sa progression) toutes les 3 s, puis la liste à la fin.
   useEffect(() => {
     if (!status?.running) return;
     pollRef.current = window.setInterval(async () => {
@@ -177,7 +215,7 @@ const OpenerMatchAdmin = () => {
         const s = await loadStatus();
         if (!s.running) { if (pollRef.current) window.clearInterval(pollRef.current); loadLocs(); }
       } catch { /* on réessaie au prochain tour */ }
-    }, 5000);
+    }, 3000);
     return () => { if (pollRef.current) window.clearInterval(pollRef.current); };
   }, [status?.running, loadStatus, loadLocs]);
 
@@ -333,6 +371,8 @@ const OpenerMatchAdmin = () => {
             </div>
           ))}
         </div>
+
+        {status.running && <SyncProgress p={status.progress} />}
 
         {run && (run.syncError || run.billingError || run.matchError || run.match?.aborted || run.sync?.missingSkipped || bil?.missingSkipped || bil?.stopped) && (
           <div className="mt-3 space-y-1 text-xs text-danger">
