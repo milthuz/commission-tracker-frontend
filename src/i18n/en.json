@@ -421,7 +421,7 @@
     "revenueModeler": "Revenue Modeler",
     "credits": "Merchant Processor Credits",
     "icplusRates": "IC+ reference rates",
-    "openerMatch": "Cluster stores ↔ Google",
+    "openerMatch": "Cluster locations ↔ Google",
     "hr": "Hiring (HR)",
     "hrAdmin": "HR"
   },
@@ -6210,11 +6210,11 @@
     }
   },
   "openerMatch": {
-    "title": "Cluster stores ↔ Google",
-    "subtitle": "Every Cluster POS store (Kaizen) linked to its Google listing. This is what will show a restaurant as a \"customer\" on the openers' map.",
+    "title": "Cluster locations ↔ Google",
+    "subtitle": "Every Cluster customer restaurant linked to its Google listing, with its version: V2 (Kaizen) or V1 (Zoho Billing subscribers of Cluster Canada and Xperio). This is what will show a restaurant as a \"customer\" on the openers' map.",
     "noKaizen": "Kaizen credentials missing: add KAIZEN_API_EMAIL and KAIZEN_API_PASSWORD to the Railway variables (web AND worker). Use a dedicated service account.",
     "noGoogle": "Google key missing: add GOOGLE_PLACES_API_KEY to the Railway variables (web AND worker) — a key dedicated to \"Places API (New)\", separate from GOOGLE_MAPS_API_KEY (Google reviews).",
-    "parkTitle": "Store base",
+    "parkTitle": "Customer restaurants",
     "lastRun": "Last run: {{date}} ({{source}})",
     "sourceManual": "manual",
     "sourceScheduled": "scheduled",
@@ -6223,14 +6223,16 @@
     "running": "Sync in progress…",
     "alreadyRunning": "A sync is already running.",
     "tiles": {
-      "stores": "Kaizen stores",
-      "storesSub": "{{active}} active · {{inactive}} inactive",
+      "v2": "V2 (Kaizen)",
+      "v2Sub": "{{kaizen}} Kaizen stores · {{twins}} of them also Billing subscribers",
+      "v1": "V1",
+      "v1Sub": "Billing subscribers with no Kaizen store",
       "matched": "Matched",
       "matchedSub": "{{auto}} automatic · {{manual}} manual",
       "toReview": "To handle",
       "toReviewSub": "{{review}} to confirm · {{none}} not found · {{noAddr}} no address",
       "pending": "Pending",
-      "pendingSub": "{{ignored}} ignored · {{missing}} gone from Kaizen"
+      "pendingSub": "{{ignored}} ignored · {{missing}} gone from their source"
     },
     "syncError": "Kaizen sync failed: {{error}}",
     "matchError": "Matching failed: {{error}}",
@@ -6300,7 +6302,30 @@
     "noResults": "No results.",
     "pageInfo": "{{from}}–{{to}} of {{total}}",
     "prev": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "parkSources": "{{total}} locations (Kaizen + Zoho Billing)",
+    "billingError": "Zoho Billing read failed: {{error}}",
+    "billingStopped": "Zoho address reading stopped ({{reason}}): the rest on the next run.",
+    "lastBilling": "Zoho Billing (Cluster Canada + Xperio): {{customers}} customers ({{active}} active) · {{read}} addresses read this run · {{pending}} still to read · {{outside}} outside Canada skipped.",
+    "versionAll": "V1 and V2",
+    "sourceAll": "All sources",
+    "sourceKaizen": "Kaizen",
+    "sourceBilling": "Zoho Billing",
+    "versionForced": "Version set by hand",
+    "versionWhy": {
+      "kaizen": "V2: store found in Kaizen",
+      "twin": "V2: same restaurant as a Kaizen store",
+      "billing": "V1: Zoho Billing subscriber with no matching Kaizen store"
+    },
+    "versionHelp": "Software version. \"Auto\" = deduced (Kaizen = V2; Billing subscriber with no Kaizen store = V1).",
+    "versionAuto": "Auto ({{v}})",
+    "versionSet": "{{v}} (set)",
+    "formerClient": "Former customer",
+    "noAddressBilling": "No address on the Zoho contact",
+    "billingAddress": "billing address",
+    "fromTwin": "listing taken from the Kaizen store",
+    "plans": "Plans",
+    "twinOf": "Same restaurant as Kaizen store \"{{name}}\""
   },
   "hr": {
     "title": "Hiring",

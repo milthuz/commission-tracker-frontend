@@ -421,7 +421,7 @@
     "revenueModeler": "Modélisateur de revenus",
     "credits": "Crédits processeur marchand",
     "icplusRates": "Taux de référence IC+",
-    "openerMatch": "Magasins Cluster ↔ Google",
+    "openerMatch": "Emplacements Cluster ↔ Google",
     "hr": "Embauches (RH)",
     "hrAdmin": "RH"
   },
@@ -6210,11 +6210,11 @@
     }
   },
   "openerMatch": {
-    "title": "Magasins Cluster ↔ Google",
-    "subtitle": "Chaque magasin Cluster POS (Kaizen) relié à sa fiche Google. C'est ce qui fera apparaître un restaurant « client » sur la carte des openers.",
+    "title": "Emplacements Cluster ↔ Google",
+    "subtitle": "Chaque restaurant client de Cluster relié à sa fiche Google, avec sa version : V2 (Kaizen) ou V1 (abonnés Zoho Billing de Cluster Canada et Xperio). C'est ce qui fera apparaître un restaurant « client » sur la carte des openers.",
     "noKaizen": "Identifiants Kaizen absents : ajoutez KAIZEN_API_EMAIL et KAIZEN_API_PASSWORD dans les variables Railway (web ET worker). Utilisez un compte de service dédié.",
     "noGoogle": "Clé Google absente : ajoutez GOOGLE_PLACES_API_KEY dans les variables Railway (web ET worker) — une clé réservée à « Places API (New) », distincte de GOOGLE_MAPS_API_KEY (avis Google).",
-    "parkTitle": "Parc de magasins",
+    "parkTitle": "Parc de restaurants clients",
     "lastRun": "Dernier passage : {{date}} ({{source}})",
     "sourceManual": "manuel",
     "sourceScheduled": "planifié",
@@ -6223,14 +6223,16 @@
     "running": "Synchronisation en cours…",
     "alreadyRunning": "Une synchronisation est déjà en cours.",
     "tiles": {
-      "stores": "Magasins Kaizen",
-      "storesSub": "{{active}} actifs · {{inactive}} inactifs",
+      "v2": "V2 (Kaizen)",
+      "v2Sub": "{{kaizen}} magasins Kaizen · dont {{twins}} aussi abonnés Billing",
+      "v1": "V1",
+      "v1Sub": "abonnés Billing sans magasin Kaizen",
       "matched": "Appariés",
       "matchedSub": "{{auto}} automatiques · {{manual}} manuels",
       "toReview": "À traiter",
       "toReviewSub": "{{review}} à confirmer · {{none}} non trouvés · {{noAddr}} sans adresse",
       "pending": "En attente",
-      "pendingSub": "{{ignored}} ignorés · {{missing}} disparus de Kaizen"
+      "pendingSub": "{{ignored}} ignorés · {{missing}} disparus de leur source"
     },
     "syncError": "Synchro Kaizen en échec : {{error}}",
     "matchError": "Appariement en échec : {{error}}",
@@ -6300,7 +6302,30 @@
     "noResults": "Aucun résultat.",
     "pageInfo": "{{from}}–{{to}} sur {{total}}",
     "prev": "Précédent",
-    "next": "Suivant"
+    "next": "Suivant",
+    "parkSources": "{{total}} emplacements (Kaizen + Zoho Billing)",
+    "billingError": "Lecture Zoho Billing en échec : {{error}}",
+    "billingStopped": "Lecture des adresses Zoho interrompue ({{reason}}) : la suite au prochain passage.",
+    "lastBilling": "Zoho Billing (Cluster Canada + Xperio) : {{customers}} clients ({{active}} actifs) · {{read}} adresses lues ce passage · {{pending}} encore à lire · {{outside}} hors Canada écartés.",
+    "versionAll": "V1 et V2",
+    "sourceAll": "Toutes les sources",
+    "sourceKaizen": "Kaizen",
+    "sourceBilling": "Zoho Billing",
+    "versionForced": "Version choisie à la main",
+    "versionWhy": {
+      "kaizen": "V2 : magasin présent dans Kaizen",
+      "twin": "V2 : même restaurant qu'un magasin Kaizen",
+      "billing": "V1 : abonné Zoho Billing sans magasin Kaizen correspondant"
+    },
+    "versionHelp": "Version du logiciel. « Auto » = déduite (Kaizen = V2 ; abonné Billing sans magasin Kaizen = V1).",
+    "versionAuto": "Auto ({{v}})",
+    "versionSet": "{{v}} (imposée)",
+    "formerClient": "Ancien client",
+    "noAddressBilling": "Aucune adresse sur le contact Zoho",
+    "billingAddress": "adresse de facturation",
+    "fromTwin": "fiche reprise du magasin Kaizen",
+    "plans": "Forfaits",
+    "twinOf": "Même restaurant que le magasin Kaizen « {{name}} »"
   },
   "hr": {
     "title": "Embauches",
