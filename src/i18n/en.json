@@ -6213,7 +6213,7 @@
     "title": "Cluster stores ↔ Google",
     "subtitle": "Every Cluster POS store (Kaizen) linked to its Google listing. This is what will show a restaurant as a \"customer\" on the openers' map.",
     "noKaizen": "Kaizen credentials missing: add KAIZEN_API_EMAIL and KAIZEN_API_PASSWORD to the Railway variables (web AND worker). Use a dedicated service account.",
-    "noGoogle": "Google key missing: GOOGLE_MAPS_API_KEY must exist, with \"Places API (New)\" enabled in the Google Cloud console.",
+    "noGoogle": "Google key missing: add GOOGLE_PLACES_API_KEY to the Railway variables (web AND worker) — a key dedicated to \"Places API (New)\", separate from GOOGLE_MAPS_API_KEY (Google reviews).",
     "parkTitle": "Store base",
     "lastRun": "Last run: {{date}} ({{source}})",
     "sourceManual": "manual",

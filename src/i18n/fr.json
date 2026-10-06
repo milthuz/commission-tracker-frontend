@@ -6213,7 +6213,7 @@
     "title": "Magasins Cluster ↔ Google",
     "subtitle": "Chaque magasin Cluster POS (Kaizen) relié à sa fiche Google. C'est ce qui fera apparaître un restaurant « client » sur la carte des openers.",
     "noKaizen": "Identifiants Kaizen absents : ajoutez KAIZEN_API_EMAIL et KAIZEN_API_PASSWORD dans les variables Railway (web ET worker). Utilisez un compte de service dédié.",
-    "noGoogle": "Clé Google absente : GOOGLE_MAPS_API_KEY doit exister, avec « Places API (New) » activée dans la console Google Cloud.",
+    "noGoogle": "Clé Google absente : ajoutez GOOGLE_PLACES_API_KEY dans les variables Railway (web ET worker) — une clé réservée à « Places API (New) », distincte de GOOGLE_MAPS_API_KEY (avis Google).",
     "parkTitle": "Parc de magasins",
     "lastRun": "Dernier passage : {{date}} ({{source}})",
     "sourceManual": "manuel",
