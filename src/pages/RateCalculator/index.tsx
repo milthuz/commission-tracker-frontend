@@ -28,6 +28,7 @@ type Processor = { key: string; name: string; implemented: boolean; verified: bo
 interface AuditRow {
   desc: string; count?: number; volume?: number; rate?: number | null; total: number;
   cat?: string | null; publishedRate?: number | null; theoretical?: number | null;
+  perItem?: number | null; publishedPerItem?: number | null; blendedTiers?: boolean;
   delta?: number | null; status: string; tier?: string | null; why?: string;
 }
 
@@ -86,6 +87,21 @@ export default function RateCalculator() {
     if (v == null) return '—';
     const s = (Number(v) * 100).toFixed(d);
     return lang === 'en' ? `${s}%` : `${s.replace('.', ',')} %`;
+  };
+  // Un frais facturé AU TRANSACTION n'est pas un pourcentage : un palier Interac Flash
+  // vaut 0,035 $ par transaction. Passé dans pct(), il s'affiche « 0,0000 % » juste à côté
+  // d'un statut « À vérifier » — il a l'air d'une panne de l'outil, pas d'un vrai frais.
+  const perTxn = (v: number | null | undefined) => {
+    const s = Number(v).toFixed(4);
+    return lang === 'en' ? `$${s}/txn` : `${s.replace('.', ',')} $/tr.`;
+  };
+  // Le montant par transaction ne remplace le pourcentage que faute de pourcentage utile.
+  // ⚠️ Même règle que fmtRateCell() dans services/icplus/notes.js, qui rend le PDF : les
+  // deux vues doivent lire pareil, le PDF étant le document qui part chez le marchand.
+  const rateCell = (rate?: number | null, perItem?: number | null) => {
+    const hasRate = rate != null && Number(rate) !== 0;
+    if (!hasRate && perItem != null && Number(perItem) > 0) return perTxn(perItem);
+    return pct(rate);
   };
 
   useEffect(() => {
@@ -568,8 +584,8 @@ export default function RateCalculator() {
                       {state.lineAudit[bucket].map((r: AuditRow, i: number) => (
                         <tr key={i} className="border-b border-stroke dark:border-strokedark">
                           <td className="py-2 text-black dark:text-white" title={r.why}>{r.desc}</td>
-                          <td className="py-2 text-right text-body">{pct(r.rate)}</td>
-                          <td className="py-2 text-right text-body">{pct(r.publishedRate)}</td>
+                          <td className="py-2 text-right text-body">{rateCell(r.rate, r.perItem)}</td>
+                          <td className="py-2 text-right text-body">{rateCell(r.publishedRate, r.publishedPerItem)}</td>
                           <td className="py-2 text-right text-black dark:text-white">{money(r.total)}</td>
                           <td className="py-2 text-right">
                             <span className={`rounded px-2 py-0.5 text-xs font-medium ${
