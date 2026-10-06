@@ -91,6 +91,8 @@ const SaasIncrease = lazyRoute(() => import('./pages/AdminPanel/SaasIncrease'), 
 const SaasIncreaseLookup = lazyRoute(() => import('./pages/SaasIncreaseLookup'));
 const SaasIncreaseCampaign = lazyRoute(() => import('./pages/SaasIncreaseCampaign'));
 const RateCalculator = lazyRoute(() => import('./pages/RateCalculator'), true);
+const OpenerField = lazyRoute(() => import('./pages/Opener/Field'));
+const OpenerRoutes = lazyRoute(() => import('./pages/Opener/RouteDesigner'), true);
 const RevenueModeler = lazyRoute(() => import('./pages/RevenueModeler'), true);
 const PartnerPortal = lazyRoute(() => import('./pages/PartnerPortal'));
 const PartnerProfile = lazyRoute(() => import('./pages/PartnerPortal/Profile'));
@@ -367,6 +369,17 @@ function AppContent() {
 
       {/* Protected Routes - Wrapped in DefaultLayout */}
       <Route element={<ProtectedRoute />}>
+        {/* Application de terrain de l'opener : plein écran, SANS la mise en page de Sales Hub
+            (pensée pour un téléphone). Elle gère elle-même sa permission (opener:field). */}
+        <Route
+          path="/opener/*"
+          element={
+            <>
+              <PageTitle title="Opener | Sales Hub" />
+              <OpenerField />
+            </>
+          }
+        />
         <Route element={<DefaultLayout />}>
           <Route
             index
@@ -516,6 +529,16 @@ function AppContent() {
               <>
                 <PageTitle title="Propositions | Sales Hub" />
                 <Proposals />
+              </>
+            }
+          />
+          {/* Conception des routes de l'opener (manager, opener:routes). */}
+          <Route
+            path="/opener-routes"
+            element={
+              <>
+                <PageTitle title="Routes opener | Sales Hub" />
+                <OpenerRoutes />
               </>
             }
           />

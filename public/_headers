@@ -13,8 +13,10 @@
   # microphone=(self) — needed by Sofia's dictation (2026-08-13). An empty list,
   # microphone=(), blocks the API for EVERY origin including this page, so the
   # browser refuses before any of our code runs and the failure is silent.
-  # (self) opens it to this origin only; geolocation and camera stay closed.
-  Permissions-Policy: geolocation=(), microphone=(self), camera=()
+  # (self) opens it to this origin only; camera stays closed.
+  # geolocation=(self) — needed by the opener field app (2026-10-06): the map centres on the
+  # opener, and each check-in records where it was made (distance to the restaurant).
+  Permissions-Policy: geolocation=(self), microphone=(self), camera=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains
 
 # Fichiers de code et de style produits par Vite : leur NOM contient l'empreinte de leur contenu,

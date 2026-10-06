@@ -52,7 +52,7 @@ const IntakeForm = ({ open, onClose, onCreated }: {
   if (!open) return null;
 
   const set = (k: keyof typeof blank) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
-  const INTERESTS = ['pos', 'payments', 'both', 'hardware', 'other'];
+  const INTERESTS = ['pos', 'payments', 'both', 'hardware', 'beverage_control', 'other'];
 
   const reset = () => { setForm({ ...blank }); setInterest([]); setCreated(null); setError(null); };
   const close = () => { reset(); onClose(); };

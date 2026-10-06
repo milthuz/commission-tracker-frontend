@@ -749,6 +749,34 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
+              {/* <!-- Module Opener (lots 1 à 4). « Routes opener » : le manager conçoit et publie
+                   (opener:routes). « Opener (terrain) » : l'application plein écran du téléphone
+                   (opener:field) — elle quitte la mise en page de Sales Hub. --> */}
+              {(isAdmin || can('opener:routes')) && (
+                <li>
+                  <NavLink to="/opener-routes" className={navLinkCls(pathname.startsWith('/opener-routes'))}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="6" cy="19" r="2.5" /><circle cx="18" cy="5" r="2.5" />
+                      <path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.openerRoutes')}</span>
+                    <NewBadge path="/opener-routes" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.openerRoutes') as string} />
+                  </NavLink>
+                </li>
+              )}
+              {(isAdmin || can('opener:field')) && (
+                <li>
+                  <NavLink to="/opener" className={navLinkCls(pathname === '/opener' || pathname.startsWith('/opener/'))}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="6" y="2.5" width="12" height="19" rx="2.5" /><path d="M10.5 18.5h3" />
+                    </svg>
+                    <span className={labelCls}>{t('sidebar.openerField')}</span>
+                    <NewBadge path="/opener" collapsed={collapsed} />
+                    <RailTip label={t('sidebar.openerField') as string} />
+                  </NavLink>
+                </li>
+              )}
               {/* <!-- Menu Item SaaS Increase (perm: saas_increase:manage) — moved out of the Admin
                    Panel submenu so the granular saas_increase:* permissions can be assigned to
                    non-admin users; AdminPanel/index.tsx gates its whole render on isAdmin, which

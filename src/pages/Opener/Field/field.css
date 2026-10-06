@@ -1,0 +1,52 @@
+/* Palette de l'application de terrain de l'opener — suit le thème de Sales Hub (classe `dark`
+   posée sur le body par useColorMode). Les écrans n'emploient QUE ces variables : aucune
+   couleur de surface ou de texte n'y est codée en dur.
+
+   Thème clair : les mêmes rôles que Sales Hub en clair (fond whiten, cartes blanches, bordure
+   stroke). Thème sombre : les jetons du brief de design (boxdark-2, boxdark, strokedark…).
+   Les couleurs de statut sont des pastels lisibles sur fond sombre ; en clair, leur TEXTE passe
+   à une teinte foncée (même règle que success/warning dans style.css). */
+.opener-field {
+  --of-page: #F1F5F9;
+  --of-surface: #FFFFFF;
+  --of-raised: #EFF4FB;
+  --of-stroke: #E2E8F0;
+  --of-input: #FFFFFF;
+  --of-input-stroke: #CBD5E1;
+  --of-title: #1C2434;
+  --of-text: #334155;
+  --of-muted: #475569;
+  --of-faint: #64748B;
+  --of-ok: #047857;
+  --of-warn: #C2410C;
+  --of-bad: #B91C1C;
+  --of-shadow: rgba(15, 23, 42, 0.14);
+  --of-st-client: #047857;
+  --of-st-former: #2F5D85;
+  --of-st-prospect: #C2410C;
+  --of-st-new: #475569;
+  background: var(--of-page);
+  color: var(--of-text);
+  color-scheme: light;
+}
+.dark .opener-field {
+  --of-page: #1A222C;
+  --of-surface: #24303F;
+  --of-raised: #313D4A;
+  --of-stroke: #2E3A47;
+  --of-input: #1D2A39;
+  --of-input-stroke: #3D4D60;
+  --of-title: #FFFFFF;
+  --of-text: #DEE4EE;
+  --of-muted: #AEB7C0;
+  --of-faint: #8A99AF;
+  --of-ok: #B7F0D1;
+  --of-warn: #FBCDB5;
+  --of-bad: #F87171;
+  --of-shadow: rgba(0, 0, 0, 0.35);
+  --of-st-client: #B7F0D1;
+  --of-st-former: #CFE0F0;
+  --of-st-prospect: #FBCDB5;
+  --of-st-new: #DEE4EE;
+  color-scheme: dark;
+}
