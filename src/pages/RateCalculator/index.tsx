@@ -288,10 +288,18 @@ export default function RateCalculator() {
             {busy === 'parse' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
             {t('icplus.uploadStatement')}
           </button>
-          <button onClick={() => setShowPaste((v) => !v)}
-            className="flex items-center gap-2 rounded border border-stroke px-4 py-2 font-medium text-black hover:border-primary dark:border-strokedark dark:text-white">
-            <ClipboardPaste className="h-4 w-4" />{t('icplus.pasteJson')}
-          </button>
+          {/* ⚠️ LA SAISIE JSON N'EST PLUS UN BOUTON PERMANENT. Coller un objet JSON brut
+              n'est pas un geste de rep : c'est une trappe de développeur, et elle trônait
+              dans la barre d'outils d'un outil de vente. Elle n'a de sens que dans deux
+              cas, et le code les ouvre lui-même — un PDF numérisé chez quelqu'un qui n'a
+              pas `icplus:read_scan`, ou une transcription qu'on préfère corriger à la
+              main. On la laisse donc accessible, mais seulement là où elle sert. */}
+          {showPaste && (
+            <button onClick={() => setShowPaste(false)}
+              className="flex items-center gap-2 rounded border border-stroke px-4 py-2 font-medium text-black hover:border-primary dark:border-strokedark dark:text-white">
+              <ClipboardPaste className="h-4 w-4" />{t('icplus.hidePaste')}
+            </button>
+          )}
           <input ref={fileRef} type="file" accept="application/pdf" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ''; }} />
         </div>
