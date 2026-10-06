@@ -6628,7 +6628,9 @@
         "checkins": "Check-ins",
         "leads": "Leads créés",
         "decisionMakers": "Décideurs rencontrés",
-        "covered": "Parcourus"
+        "covered": "Parcourus",
+        "visitTime": "Temps en visite",
+        "avgVisit": "Durée moyenne d'une visite"
       },
       "leadsCreated": "Leads créés",
       "notVisited": "Non visités · {{n}}",
@@ -6642,7 +6644,10 @@
       "dayClosed": "Journée terminée. Merci !",
       "toggleTheme": "Thème clair ou sombre",
       "gpsNotice": "Votre position GPS est enregistrée avec chaque check-in, pour confirmer la visite du restaurant. Elle n'est pas suivie entre les check-ins.",
-      "locating": "Localisation…"
+      "locating": "Localisation…",
+      "visitTimer": "Durée de la visite",
+      "arrivedAt": "Arrivée à {{time}}",
+      "restartTimer": "Remettre à zéro"
     },
     "kind": {
       "restaurant": "Restaurants",
@@ -6674,7 +6679,8 @@
       "help": "Un secteur par route, coloré selon l'avancement. Chaque visite prend la couleur de son verdict, d'après la position du téléphone au check-in : un trait relie le restaurant à l'endroit du check-in quand il a été fait à distance.",
       "empty": "Aucune route sur cette période.",
       "lastCheckin": "Dernier check-in {{time}} · {{name}}",
-      "openRoute": "Ouvrir la route"
+      "openRoute": "Ouvrir la route",
+      "visitTime": "{{time}} en visite"
     }
   },
   "hr": {

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Loader2, Sun, Moon, CheckCircle2 } from 'lucide-react';
 import { TabBar, useField } from './index';
 import { Card, Eyebrow, btnPrimary } from './ui';
-import { api, fmtDistance, STATUS_COLOR, type DaySummary, type PlaceStatus } from '../api';
+import { api, fmtDistance, fmtMinutes, STATUS_COLOR, type DaySummary, type PlaceStatus } from '../api';
 import { statusTone, type LeadStatus } from '../../Leads/types';
 import { dialog } from '../../../lib/dialog';
 
@@ -71,6 +71,8 @@ export default function Day() {
               { v: String(s.leads), l: t('opener.field.stat.leads'), cls: 'text-[var(--of-ok)]' },
               { v: String(s.decisionMakers), l: t('opener.field.stat.decisionMakers') },
               { v: `${fmtDistance(s.distanceM, lng)}${s.durationMin ? ` · ${h} h ${String(m).padStart(2, '0')}` : ''}`, l: t('opener.field.stat.covered') },
+              { v: fmtMinutes(s.visitMinutes || 0), l: t('opener.field.stat.visitTime') },
+              { v: s.avgVisitMin != null ? fmtMinutes(s.avgVisitMin) : '—', l: t('opener.field.stat.avgVisit') },
             ].map((x) => (
               <Card key={x.l}>
                 <p className={`text-[28px] font-bold leading-tight tracking-[-0.02em] ${x.cls || 'text-[var(--of-title)]'} ${x.v.length > 10 ? '!text-xl' : ''}`}>{x.v}</p>

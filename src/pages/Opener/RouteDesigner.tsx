@@ -6,7 +6,7 @@ import DateField from '../../components/DateField';
 import { ContentLoader } from '../../common/Loader';
 import { dialog } from '../../lib/dialog';
 import {
-  api, ApiError, fmtDistance, STATUS_COLOR, VERDICT_COLOR,
+  api, ApiError, fmtDistance, fmtMinutes, STATUS_COLOR, VERDICT_COLOR,
   type Route, type RouteSummary, type ScannedPlace, type PlaceStatus, type Stop, type PlaceCard,
 } from './api';
 import { GoogleMapView, getOpenerConfig, pinIcon, dotIcon, useIsDark } from './GoogleMap';
@@ -594,6 +594,7 @@ export default function RouteDesigner() {
                     <p className="truncate text-[11px] text-body dark:text-bodydark2">
                       {t(`opener.status.${st}`)}{s.version ? ` ${s.version.toUpperCase()}` : ''} · {s.address || '—'}
                       {s.outcome === 'skipped' ? ` · ${t(`opener.skip.${s.skipReason || 'other'}`)}` : ''}
+                      {s.outcome === 'done' && s.checkin?.durationMin != null ? ` · ${fmtMinutes(s.checkin.durationMin)}` : ''}
                     </p>
                   </div>
                   {editable && (

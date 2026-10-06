@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, MapPin, RefreshCw, ExternalLink } from 'lucide-react';
 import { ContentLoader } from '../../common/Loader';
-import { api, fmtDistance, VERDICT_COLOR, type OverviewRoute, type Verdict } from './api';
+import { api, fmtDistance, fmtMinutes, VERDICT_COLOR, type OverviewRoute, type Verdict } from './api';
 import { GoogleMapView, getOpenerConfig, pinIcon, useIsDark } from './GoogleMap';
 import { convexHull, type LatLng } from './geo';
 
@@ -87,7 +87,7 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
         const col = s.outcome === 'done' ? VERDICT_COLOR[v || 'nogps'] : s.outcome === 'skipped' ? '#94A3B8' : (dark ? '#3d4d60' : '#CBD5E1');
         const mk = new g.maps.Marker({ position: { lat: s.lat, lng: s.lng }, map, zIndex: 10 + i,
           icon: pinIcon(g, col, s.outcome === 'done' ? null : i + 1, { size: 22, done: s.outcome === 'done', surface: dark ? '#24303F' : '#FFFFFF' }),
-          title: `${i + 1}. ${s.name} — ${s.outcome === 'done' ? `${t(`opener.track.verdict.${v || 'nogps'}`)}${s.checkin?.distanceM != null ? ` (${fmtDistance(s.checkin.distanceM, lng)})` : ''}` : t(`opener.track.outcome.${s.outcome}`)}` });
+          title: `${i + 1}. ${s.name} — ${s.outcome === 'done' ? `${t(`opener.track.verdict.${v || 'nogps'}`)}${s.checkin?.distanceM != null ? ` (${fmtDistance(s.checkin.distanceM, lng)})` : ''}${s.checkin?.durationMin != null ? ` · ${fmtMinutes(s.checkin.durationMin)}` : ''}` : t(`opener.track.outcome.${s.outcome}`)}` });
         layers.current.push(mk);
         // Visite faite loin du restaurant : trait restaurant → position du téléphone.
         if (s.checkin?.lat != null && (v === 'far' || v === 'imprecise')) {
@@ -172,6 +172,9 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
                     <span className="h-2 w-2 rounded-full" style={{ background: VERDICT_COLOR[v] }} />{r.verdicts[v]} {t(`opener.track.verdict.${v}`).toLowerCase()}
                   </span>
                 ))}
+                {r.visitMinutes > 0 && (
+                  <span className="text-body dark:text-bodydark">{t('opener.track.visitTime', { time: fmtMinutes(r.visitMinutes) })}</span>
+                )}
                 {r.lastCheckin && (
                   <span className="text-body dark:text-bodydark">{t('opener.track.lastCheckin', { time: fmtTime(r.lastCheckin.at), name: r.lastCheckin.stopName })}</span>
                 )}
@@ -186,7 +189,7 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
                       <span className="min-w-0 flex-1 truncate text-black dark:text-white">{s.name}</span>
                       <span className="shrink-0 text-body dark:text-bodydark">
                         {s.outcome === 'done' && s.checkin
-                          ? `${fmtTime(s.checkin.at)} · ${s.checkin.distanceM != null ? fmtDistance(s.checkin.distanceM, lng) : t('opener.track.verdict.nogps')}`
+                          ? `${s.checkin.startedAt ? `${fmtTime(s.checkin.startedAt)} → ` : ''}${fmtTime(s.checkin.at)}${s.checkin.durationMin != null ? ` · ${fmtMinutes(s.checkin.durationMin)}` : ''} · ${s.checkin.distanceM != null ? fmtDistance(s.checkin.distanceM, lng) : t('opener.track.verdict.nogps')}`
                           : s.outcome === 'skipped' ? t(`opener.skip.${s.skipReason || 'other'}`) : t(`opener.track.outcome.${s.outcome}`)}
                       </span>
                     </div>

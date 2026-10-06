@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Clock, Check } from 'lucide-react';
@@ -26,7 +26,17 @@ const freshPosition = () => new Promise<GeolocationPosition | null>((resolve) =>
 interface Form {
   id: string; currentPos: string | null; serviceType: ServiceType | null; terminals: number; onlineDelivery: boolean;
   decisionMaker: 'yes' | 'no' | 'later' | null; interest: number; services: Service[]; notes: string; createLead: boolean;
+  // Arrivée au restaurant : l'ouverture de cet écran (heure + position). Gardée dans le brouillon.
+  startedAt?: string; startLat?: number | null; startLng?: number | null; startAccuracy?: number | null;
 }
+
+// Un écran resté ouvert plus de 3 h n'est plus une visite en cours : le chronomètre repart.
+const STALE_MS = 3 * 3600 * 1000;
+const fmtElapsed = (ms: number) => {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  return h ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+};
 
 export default function CheckIn() {
   const { t } = useTranslation();
@@ -35,13 +45,35 @@ export default function CheckIn() {
   const { lng, route, position, accuracy, markStop } = useField();
   const stop = route?.stops.find((s) => String(s.id) === stopId) || null;
   const draftKey = `stop_${stopId}`;
-  const [form, setForm] = useState<Form>(() => loadDraft<Form>(draftKey) || {
-    id: uuid(), currentPos: null, serviceType: null, terminals: 1, onlineDelivery: false,
-    decisionMaker: null, interest: 0, services: [], notes: '', createLead: false,
+  const [form, setForm] = useState<Form>(() => {
+    const d: Form = loadDraft<Form>(draftKey) || {
+      id: uuid(), currentPos: null, serviceType: null, terminals: 1, onlineDelivery: false,
+      decisionMaker: null, interest: 0, services: [], notes: '', createLead: false,
+    };
+    if (!d.startedAt || Date.now() - new Date(d.startedAt).getTime() > STALE_MS) {
+      return { ...d, startedAt: new Date().toISOString(), startLat: null, startLng: null, startAccuracy: null };
+    }
+    return d;
   });
+  const [tick, setTick] = useState(Date.now());
+  useEffect(() => { const iv = window.setInterval(() => setTick(Date.now()), 1000); return () => window.clearInterval(iv); }, []);
+  // Position À L'ARRIVÉE : lue une fois, fraîche ; à défaut, la dernière position connue.
+  useEffect(() => {
+    if (form.startLat != null) return;
+    let cancelled = false;
+    freshPosition().then((p) => {
+      if (cancelled) return;
+      const lat = p ? p.coords.latitude : position?.[0] ?? null;
+      const lngv = p ? p.coords.longitude : position?.[1] ?? null;
+      if (lat == null) return;
+      setForm((f) => ({ ...f, startLat: lat, startLng: lngv, startAccuracy: p ? p.coords.accuracy : accuracy ?? null }));
+    });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.startedAt]);
+  const restart = () => setForm((f) => ({ ...f, startedAt: new Date().toISOString(), startLat: null, startLng: null, startAccuracy: null }));
   const [tried, setTried] = useState(false);
   const [sending, setSending] = useState(false);
-  const now = useMemo(() => new Date().toLocaleTimeString(lng === 'fr' ? 'fr-CA' : 'en-CA', { hour: '2-digit', minute: '2-digit' }), [lng]);
 
   useEffect(() => { saveDraft(draftKey, form); }, [form, draftKey]);
   const set = <K extends keyof Form>(k: K) => (v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
@@ -67,6 +99,7 @@ export default function CheckIn() {
     }
     const payload: CheckinInput = {
       id: form.id, placeId: stop.placeId, stopId: stop.id, at: new Date().toISOString(),
+      startedAt: form.startedAt, startLat: form.startLat ?? null, startLng: form.startLng ?? null, startAccuracy: form.startAccuracy ?? null,
       lat: here?.[0] ?? null, lng: here?.[1] ?? null, accuracy: hereAcc ?? null,
       currentPos: form.currentPos!, serviceType: form.serviceType!, terminals: form.terminals, onlineDelivery: form.onlineDelivery,
       decisionMaker: form.decisionMaker, interest: form.interest, services: form.services, notes: form.notes.trim(),
@@ -94,8 +127,14 @@ export default function CheckIn() {
   return (
     <div className="pb-36">
       <ScreenHeader eyebrow={t('opener.field.checkin')} title={stop.name}
-        right={<span className="inline-flex items-center gap-1 text-xs text-[var(--of-faint)]"><Clock className="h-3.5 w-3.5" />{now}</span>} />
+        right={<span className="inline-flex items-center gap-1 rounded-full bg-[rgba(245,131,70,.12)] px-2.5 py-1 text-xs font-bold tabular-nums text-primary" aria-label={t('opener.field.visitTimer') as string}>
+          <Clock className="h-3.5 w-3.5" />{fmtElapsed(tick - new Date(form.startedAt || tick).getTime())}</span>} />
       <div className="space-y-[22px] px-4 pt-4">
+        <p className="flex flex-wrap items-center gap-x-2 text-xs text-[var(--of-faint)]">
+          {t('opener.field.arrivedAt', { time: new Date(form.startedAt || tick).toLocaleTimeString(lng === 'fr' ? 'fr-CA' : 'en-CA', { hour: '2-digit', minute: '2-digit' }) })}
+          <span>·</span>
+          <button type="button" onClick={restart} className="font-semibold text-primary">{t('opener.field.restartTimer')}</button>
+        </p>
         {dist != null && dist > FAR_M && (
           <p className="rounded-[10px] border border-[rgba(245,131,70,.3)] bg-[rgba(245,131,70,.08)] p-3 text-xs text-[var(--of-warn)]">{t('opener.field.farNotice', { dist: fmtDistance(dist, lng) })}</p>
         )}

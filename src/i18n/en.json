@@ -6628,7 +6628,9 @@
         "checkins": "Check-ins",
         "leads": "Leads created",
         "decisionMakers": "Decision makers met",
-        "covered": "Covered"
+        "covered": "Covered",
+        "visitTime": "Time in visits",
+        "avgVisit": "Average visit"
       },
       "leadsCreated": "Leads created",
       "notVisited": "Not visited · {{n}}",
@@ -6642,7 +6644,10 @@
       "dayClosed": "Day finished. Thank you!",
       "toggleTheme": "Light or dark theme",
       "gpsNotice": "Your GPS location is recorded with each check-in, to confirm the restaurant visit. It is not tracked between check-ins.",
-      "locating": "Locating…"
+      "locating": "Locating…",
+      "visitTimer": "Visit duration",
+      "arrivedAt": "Arrived at {{time}}",
+      "restartTimer": "Reset"
     },
     "kind": {
       "restaurant": "Restaurants",
@@ -6674,7 +6679,8 @@
       "help": "One sector per route, coloured by progress. Each visit takes the colour of its verdict, from the phone's location at check-in: a line joins the restaurant to where the check-in was made when it was done at a distance.",
       "empty": "No route in this period.",
       "lastCheckin": "Last check-in {{time}} · {{name}}",
-      "openRoute": "Open the route"
+      "openRoute": "Open the route",
+      "visitTime": "{{time}} in visits"
     }
   },
   "hr": {

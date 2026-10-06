@@ -48,7 +48,8 @@ export interface Stop extends ClusterInfo {
   skipReason: SkipReason | null;
   doneAt: string | null;
   checkin: { id: string; at: string; interest: number; leadId: number | null; decisionMaker: string | null; currentPos: string;
-    distanceM?: number | null; accuracyM?: number | null; verdict?: Verdict } | null;
+    distanceM?: number | null; accuracyM?: number | null; verdict?: Verdict;
+    startedAt?: string | null; durationMin?: number | null; endDistanceM?: number | null } | null;
 }
 
 export interface Route {
@@ -86,14 +87,15 @@ export interface PlaceCard {
   history: {
     id: string; at: string; by: string; currentPos: string; serviceType: ServiceType; terminals: number | null;
     decisionMaker: string | null; interest: number; services: Service[]; notes: string | null; leadRef: string | null;
-    distanceM?: number | null; verdict?: Verdict;
+    distanceM?: number | null; verdict?: Verdict; durationMin?: number | null;
   }[];
 }
 
 export interface DaySummary {
   date: string;
   route: { id: number; name: string; status: Route['status'] } | null;
-  stats: { stops: number; done: number; skipped: number; checkins: number; leads: number; decisionMakers: number; distanceM: number; durationMin: number };
+  stats: { stops: number; done: number; skipped: number; checkins: number; leads: number; decisionMakers: number; distanceM: number; durationMin: number;
+    visitMinutes: number; avgVisitMin: number | null };
   leads: { id: number; refCode: string; businessName: string; status: string; interest: string[]; level: number | null }[];
   notVisited: { id: number; name: string; status: PlaceStatus; outcome: Stop['outcome']; skipReason: SkipReason | null }[];
 }
@@ -103,8 +105,10 @@ export interface OverviewRoute {
   id: number; name: string; date: string; status: Route['status']; openerEmail: string | null; openerName: string | null;
   zone: [number, number][] | null; total: number; done: number; skipped: number;
   stops: { id: number; name: string; lat: number | null; lng: number | null; outcome: Stop['outcome']; skipReason: SkipReason | null; doneAt: string | null;
-    checkin: { at: string; lat: number | null; lng: number | null; distanceM: number | null; accuracyM: number | null; verdict: Verdict } | null }[];
+    checkin: { at: string; lat: number | null; lng: number | null; distanceM: number | null; accuracyM: number | null; verdict: Verdict;
+      startedAt: string | null; durationMin: number | null; endDistanceM: number | null } | null }[];
   verdicts: Partial<Record<Verdict, number>>;
+  visitMinutes: number;
   lastCheckin: { at: string; lat: number | null; lng: number | null; stopName: string; distanceM: number | null } | null;
 }
 
@@ -113,6 +117,7 @@ export const VERDICT_COLOR: Record<Verdict, string> = { onsite: '#57D193', far: 
 export interface CheckinInput {
   id: string; placeId: string; stopId?: number | null; at: string;
   lat?: number | null; lng?: number | null; accuracy?: number | null;
+  startedAt?: string | null; startLat?: number | null; startLng?: number | null; startAccuracy?: number | null;
   currentPos: string; serviceType: ServiceType; terminals: number; onlineDelivery: boolean;
   decisionMaker: 'yes' | 'no' | 'later' | null; interest: number; services: Service[]; notes: string;
 }
@@ -164,6 +169,9 @@ export const STATUS_BADGE: Record<PlaceStatus, string> = {
   prospect: 'bg-[rgba(245,131,70,.15)] text-[var(--of-st-prospect)]',
   new: 'bg-[rgba(138,153,175,.18)] text-[var(--of-st-new)]',
 };
+
+// Durée en minutes → « 17 min » ou « 1 h 05 ».
+export const fmtMinutes = (m: number) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`);
 
 export const fmtDistance = (m: number, lng: string) =>
   m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toLocaleString(lng === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 1 })} km`;

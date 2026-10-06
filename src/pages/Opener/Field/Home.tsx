@@ -5,7 +5,7 @@ import { Navigation, Check, ChevronRight, RefreshCw, Loader2 } from 'lucide-reac
 import { useField, TabBar } from './index';
 import { Eyebrow, StatusBadge, btnPrimary, btnSecondary } from './ui';
 import { GoogleMapView, pinIcon } from '../GoogleMap';
-import { STATUS_COLOR, haversine, fmtDistance, walkMin, directionsUrl, type PlaceStatus, type Stop } from '../api';
+import { STATUS_COLOR, haversine, fmtDistance, fmtMinutes, walkMin, directionsUrl, type PlaceStatus, type Stop } from '../api';
 
 // Écrans 1a (carte) et 1b (liste) — la route du jour.
 
@@ -219,7 +219,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
               <p className="truncate text-[15px] font-bold text-[var(--of-title)]">{s.name}</p>
               <p className="truncate text-xs text-[var(--of-faint)]">
                 {s.outcome === 'done'
-                  ? `${t('opener.field.checkinAt', { time: s.doneAt ? new Date(s.doneAt).toLocaleTimeString(lng === 'fr' ? 'fr-CA' : 'en-CA', { hour: '2-digit', minute: '2-digit' }) : '—' })}${s.checkin ? ` · ${t('opener.field.interestShort', { n: s.checkin.interest })}` : ''}${s.checkin?.leadId ? ` · ${t('opener.field.leadCreated')}` : ''}`
+                  ? `${t('opener.field.checkinAt', { time: s.doneAt ? new Date(s.doneAt).toLocaleTimeString(lng === 'fr' ? 'fr-CA' : 'en-CA', { hour: '2-digit', minute: '2-digit' }) : '—' })}${s.checkin?.durationMin != null ? ` · ${fmtMinutes(s.checkin.durationMin)}` : ''}${s.checkin ? ` · ${t('opener.field.interestShort', { n: s.checkin.interest })}` : ''}${s.checkin?.leadId ? ` · ${t('opener.field.leadCreated')}` : ''}`
                   : t(`opener.skip.${s.skipReason || 'other'}`)}
               </p>
             </div>
