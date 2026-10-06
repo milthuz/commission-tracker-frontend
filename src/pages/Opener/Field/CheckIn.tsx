@@ -16,6 +16,13 @@ import { dialog } from '../../../lib/dialog';
 const POS = ['Lightspeed', 'Square', 'Toast', "Maitre'D", 'Veloce', 'Cluster', 'Aucun', 'Autre'];
 const FAR_M = 150;
 
+// Position FRAÎCHE au moment d'enregistrer (pas celle gardée en mémoire par la carte, qui peut
+// dater de l'arrivée dans le quartier) : c'est elle qui atteste la visite.
+const freshPosition = () => new Promise<GeolocationPosition | null>((resolve) => {
+  if (!navigator.geolocation) return resolve(null);
+  navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+});
+
 interface Form {
   id: string; currentPos: string | null; serviceType: ServiceType | null; terminals: number; onlineDelivery: boolean;
   decisionMaker: 'yes' | 'no' | 'later' | null; interest: number; services: Service[]; notes: string; createLead: boolean;
@@ -49,14 +56,18 @@ export default function CheckIn() {
   const submit = async () => {
     setTried(true);
     if (!valid) return;
-    if (dist != null && dist > FAR_M) {
-      const ok = await dialog.confirm(t('opener.field.farConfirm', { dist: fmtDistance(dist, lng) }), { confirmText: t('opener.field.saveAnyway') });
-      if (!ok) return;
-    }
     setSending(true);
+    const fresh = await freshPosition();
+    const here: [number, number] | null = fresh ? [fresh.coords.latitude, fresh.coords.longitude] : position;
+    const hereAcc = fresh ? fresh.coords.accuracy : accuracy;
+    const d = here && stop.lat != null ? haversine(here, [stop.lat, stop.lng!]) : null;
+    if (d != null && d > FAR_M) {
+      const ok = await dialog.confirm(t('opener.field.farConfirm', { dist: fmtDistance(d, lng) }), { confirmText: t('opener.field.saveAnyway') });
+      if (!ok) { setSending(false); return; }
+    }
     const payload: CheckinInput = {
       id: form.id, placeId: stop.placeId, stopId: stop.id, at: new Date().toISOString(),
-      lat: position?.[0] ?? null, lng: position?.[1] ?? null, accuracy: accuracy ?? null,
+      lat: here?.[0] ?? null, lng: here?.[1] ?? null, accuracy: hereAcc ?? null,
       currentPos: form.currentPos!, serviceType: form.serviceType!, terminals: form.terminals, onlineDelivery: form.onlineDelivery,
       decisionMaker: form.decisionMaker, interest: form.interest, services: form.services, notes: form.notes.trim(),
     };
@@ -126,10 +137,12 @@ export default function CheckIn() {
           </div>
         </Card>
         {tried && !valid && <p className="text-xs text-[var(--of-bad)]">{t('opener.field.requiredMissing')}</p>}
+        {/* Loi 25 : l'opener sait que sa position est recueillie, et pourquoi. */}
+        <p className="text-[11px] leading-relaxed text-[var(--of-faint)]">{t('opener.field.gpsNotice')}</p>
       </div>
       <StickyCta>
         <button onClick={submit} disabled={sending} className={`${btnPrimary} flex-1`}>
-          {form.createLead ? t('opener.field.finishAndLead') : t('opener.field.finishCheckin')}
+          {sending ? t('opener.field.locating') : form.createLead ? t('opener.field.finishAndLead') : t('opener.field.finishCheckin')}
         </button>
       </StickyCta>
     </div>

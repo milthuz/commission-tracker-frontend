@@ -7,6 +7,8 @@ export type ServiceType = 'tables' | 'quick' | 'both';
 export type Version = 'v1' | 'v2';
 export type Service = 'payments' | 'pos' | 'beverage_control';
 export type SkipReason = 'closed' | 'no_time' | 'refused' | 'other' | 'postponed';
+// Verdict d'une visite, d'après la position GPS au check-in (serveur : field.js, verdict()).
+export type Verdict = 'onsite' | 'far' | 'imprecise' | 'nogps';
 
 export interface ClusterInfo {
   status: PlaceStatus;
@@ -45,7 +47,8 @@ export interface Stop extends ClusterInfo {
   outcome: 'planned' | 'done' | 'skipped';
   skipReason: SkipReason | null;
   doneAt: string | null;
-  checkin: { id: string; at: string; interest: number; leadId: number | null; decisionMaker: string | null; currentPos: string } | null;
+  checkin: { id: string; at: string; interest: number; leadId: number | null; decisionMaker: string | null; currentPos: string;
+    distanceM?: number | null; accuracyM?: number | null; verdict?: Verdict } | null;
 }
 
 export interface Route {
@@ -83,6 +86,7 @@ export interface PlaceCard {
   history: {
     id: string; at: string; by: string; currentPos: string; serviceType: ServiceType; terminals: number | null;
     decisionMaker: string | null; interest: number; services: Service[]; notes: string | null; leadRef: string | null;
+    distanceM?: number | null; verdict?: Verdict;
   }[];
 }
 
@@ -93,6 +97,18 @@ export interface DaySummary {
   leads: { id: number; refCode: string; businessName: string; status: string; interest: string[]; level: number | null }[];
   notVisited: { id: number; name: string; status: PlaceStatus; outcome: Stop['outcome']; skipReason: SkipReason | null }[];
 }
+
+// Vue de suivi (GET /api/opener/routes-overview).
+export interface OverviewRoute {
+  id: number; name: string; date: string; status: Route['status']; openerEmail: string | null; openerName: string | null;
+  zone: [number, number][] | null; total: number; done: number; skipped: number;
+  stops: { id: number; name: string; lat: number | null; lng: number | null; outcome: Stop['outcome']; skipReason: SkipReason | null; doneAt: string | null;
+    checkin: { at: string; lat: number | null; lng: number | null; distanceM: number | null; accuracyM: number | null; verdict: Verdict } | null }[];
+  verdicts: Partial<Record<Verdict, number>>;
+  lastCheckin: { at: string; lat: number | null; lng: number | null; stopName: string; distanceM: number | null } | null;
+}
+
+export const VERDICT_COLOR: Record<Verdict, string> = { onsite: '#57D193', far: '#F87171', imprecise: '#F2B53C', nogps: '#94A3B8' };
 
 export interface CheckinInput {
   id: string; placeId: string; stopId?: number | null; at: string;

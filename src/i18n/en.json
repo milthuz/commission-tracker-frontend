@@ -464,7 +464,10 @@
     "rateCalculatorBody": "Drop in the PDF statement of a merchant's current payment processor: you get a comparison with Cluster's pricing, a line-by-line audit of every fee, and two PDFs. \"SUSPECT\" is the label worth raising — a fee billed under a name with no network counterpart.",
     "icplusRatesBody": "The published network rates the IC+ calculator judges statements against. Typed as a percent, stored as a decimal, each one sourced and traced. Published rates only — never a figure read off a statement.",
     "saasIncreaseBody": "Apply a SaaS price increase to a subscription. It takes effect at that subscription's own next renewal, never on a shared date.",
-    "saasIncreaseLookupBody": "The support desk's reference when a merchant calls about their bill: search one account and read back the old price, the new price, the date and the exact notice they received."
+    "saasIncreaseLookupBody": "The support desk's reference when a merchant calls about their bill: search one account and read back the old price, the new price, the date and the exact notice they received.",
+    "openerMatchBody": "Every Cluster customer restaurant linked to its Google listing, with its version: V2 (Kaizen) or V1 (Zoho Billing subscribers). Doubtful cases are confirmed here; this is what shows a restaurant as a \"customer\" on the openers' map.",
+    "openerRoutesBody": "Prepare door-to-door days: a neighbourhood and the time available are enough to get suggested routes, or draw a zone. Click a point for its card, publish the route to the opener. The Tracking tab shows progress and confirms each visit by the check-in location.",
+    "openerFieldBody": "The opener's app, to open on their phone: the day's route on a map, each restaurant's card, check-in, lead creation and the day summary."
   },
   "proposals": {
     "chain": {
@@ -6447,7 +6450,41 @@
       "conflict": "Someone else just changed this route. It has been reloaded.",
       "zoneTooLarge": "Zone too large (maximum {{km2}} km²). Draw a smaller zone.",
       "budgetExhausted": "The monthly Google search budget is used up. It resets on the 1st of the month.",
-      "scanFailed": "The zone scan failed: {{error}}"
+      "scanFailed": "The zone scan failed: {{error}}",
+      "tab": {
+        "plan": "Plan",
+        "track": "Tracking"
+      },
+      "planTitle": "Plan automatically",
+      "planHelp": "A neighbourhood or an address, the time available: Sales Hub suggests routes that fit in the day.",
+      "planWhere": "Neighbourhood or address",
+      "planWherePh": "e.g. Plateau-Mont-Royal, 4520 rue Saint-Denis…",
+      "planRadius": "Radius",
+      "planTime": "Time available",
+      "planPerStop": "Minutes per stop",
+      "planGo": "Suggest routes",
+      "noSuggestion": "No route possible with these filters. Widen the statuses or types, or increase the radius.",
+      "placeNotFound": "No place found for \"{{q}}\".",
+      "planNeedsZone": "Type a neighbourhood or an address, or draw a zone, before asking for suggestions.",
+      "route": "Route",
+      "replaceStops": "Replace the draft's {{n}} stops with this suggested route?",
+      "createAllConfirm": "Create {{n}} route drafts, one per business day, from {{from}} to {{to}}? You can adjust them before publishing.",
+      "createdAll": "{{n}} drafts created. The first one is open.",
+      "close": "Close",
+      "lastVisitBy": "Visited {{n}} d ago · {{by}}",
+      "removeFromRoute": "Remove (stop {{n}})",
+      "addToRoute": "Add to route",
+      "moreDetails": "More details",
+      "tabResults": "List ({{n}})",
+      "tabSuggest": "Suggestions ({{n}})",
+      "filterKind": "Business type",
+      "noSuggestionYet": "Use \"Suggest routes\" at the top: suggested routes will appear here.",
+      "sugTitle": "Suggested route {{n}}",
+      "sugStats": "{{n}} stops · {{dist}} on foot · ~{{h}} h {{min}}",
+      "useSuggestion": "Use",
+      "showOnMap": "Show on map",
+      "createAll": "Create {{n}} drafts (one per business day)",
+      "createAllHelp": "Starting from the current route's date, for the chosen opener. Nothing is published."
     },
     "field": {
       "noAccess": "This app is for openers (opener:field permission).",
@@ -6603,7 +6640,41 @@
       "closeConfirm": "Finish the day? The route will be closed.",
       "closeWaitOutbox": "{{n}} check-in(s) are still waiting to send. Get back online before finishing the day.",
       "dayClosed": "Day finished. Thank you!",
-      "toggleTheme": "Light or dark theme"
+      "toggleTheme": "Light or dark theme",
+      "gpsNotice": "Your GPS location is recorded with each check-in, to confirm the restaurant visit. It is not tracked between check-ins.",
+      "locating": "Locating…"
+    },
+    "kind": {
+      "restaurant": "Restaurants",
+      "takeout": "Counters",
+      "cafe": "Cafés",
+      "bar": "Bars",
+      "bakery": "Bakeries",
+      "other": "Other"
+    },
+    "track": {
+      "verdict": {
+        "onsite": "On site",
+        "far": "At a distance",
+        "imprecise": "Imprecise location",
+        "nogps": "No location"
+      },
+      "outcome": {
+        "planned": "To do",
+        "done": "Visited",
+        "skipped": "Not visited"
+      },
+      "lastPosition": "Last check-in",
+      "period": {
+        "past7": "Last 7 days",
+        "today": "Today",
+        "next7": "Next 7 days"
+      },
+      "refresh": "Refresh",
+      "help": "One sector per route, coloured by progress. Each visit takes the colour of its verdict, from the phone's location at check-in: a line joins the restaurant to where the check-in was made when it was done at a distance.",
+      "empty": "No route in this period.",
+      "lastCheckin": "Last check-in {{time}} · {{name}}",
+      "openRoute": "Open the route"
     }
   },
   "hr": {

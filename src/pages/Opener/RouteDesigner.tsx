@@ -1,21 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, GripVertical, Navigation, Pencil, Check, Loader2, Send, Undo2, Trash2, Star, Search, MapPin, Save } from 'lucide-react';
+import { Plus, X, GripVertical, Navigation, Pencil, Check, Loader2, Send, Undo2, Trash2, Star, Search, MapPin, Save, Sparkles, Phone, Clock, Globe, Info, Minus } from 'lucide-react';
 import Select from '../../components/Select';
 import DateField from '../../components/DateField';
 import { ContentLoader } from '../../common/Loader';
 import { dialog } from '../../lib/dialog';
 import {
-  api, ApiError, haversine, fmtDistance, STATUS_COLOR,
-  type Route, type RouteSummary, type ScannedPlace, type PlaceStatus, type Stop,
+  api, ApiError, fmtDistance, STATUS_COLOR, VERDICT_COLOR,
+  type Route, type RouteSummary, type ScannedPlace, type PlaceStatus, type Stop, type PlaceCard,
 } from './api';
 import { GoogleMapView, getOpenerConfig, pinIcon, dotIcon, useIsDark } from './GoogleMap';
+import { optimize, pathM, circlePolygon, kindOf, suggestRoutes, type PlaceKind, type Suggestion, type LatLng } from './geo';
+import RouteTracking from './RouteTracking';
 
 // Écran 1g — conception des routes (manager). Permission opener:routes.
+// Deux onglets : « Planifier » (ci-dessous) et « Suivi » (RouteTracking : avancement des routes et
+// vérification des visites par la position GPS du check-in).
 //
-// 1. Dessiner une zone sur la carte (clics → sommets, « Terminer la zone »).
+// Planification automatique : un quartier ou une adresse + un rayon → zone balayée ; le temps
+// disponible et les minutes par arrêt → routes suggérées (geo.suggestRoutes), compactes, qui
+// tiennent dans la journée. « Utiliser » remplit le brouillon ; « Créer en brouillons » en fait
+// une par jour ouvrable.
+//
+// 1. Ou dessiner une zone sur la carte (clics → sommets, « Terminer la zone »).
 // 2. Le serveur balaie la zone (Google) et rend chaque restaurant avec son statut Cluster.
-// 3. Filtrer, ajouter des arrêts (clic sur un point ou « + »), les réordonner, optimiser.
+// 3. Filtrer, cliquer un point pour voir sa fiche, ajouter des arrêts, les réordonner, optimiser.
 // 4. Choisir l'opener et la date, publier : l'opener reçoit un courriel.
 //
 // Le brouillon s'enregistre tout seul (verrou de version côté serveur).
@@ -28,31 +37,20 @@ interface Draft {
 
 const MONTREAL: [number, number] = [45.5236, -73.5865];
 const ALL_STATUSES: PlaceStatus[] = ['new', 'prospect', 'former', 'client'];
-const pathM = (pts: [number, number][]) => pts.reduce((s, p, i) => (i ? s + haversine(pts[i - 1], p) : 0), 0);
-
-// Plus proche voisin + 2-opt (même méthode que le serveur).
-function optimize(points: [number, number][]): number[] {
-  const n = points.length;
-  if (n < 3) return points.map((_, i) => i);
-  const d = (i: number, j: number) => haversine(points[i], points[j]);
-  const left = new Set(points.map((_, i) => i));
-  let cur = 0; left.delete(0);
-  const order = [0];
-  while (left.size) {
-    let best = -1;
-    left.forEach((i) => { if (best < 0 || d(cur, i) < d(cur, best)) best = i; });
-    order.push(best); left.delete(best); cur = best;
+const ALL_KINDS: PlaceKind[] = ['restaurant', 'takeout', 'cafe', 'bar', 'bakery', 'other'];
+// Couleurs des routes suggérées (une par route, sur la carte et dans la liste).
+const SUG_COLORS = ['#F58346', '#3C50E0', '#10B981', '#E85D9B', '#8B5CF6', '#F2B53C', '#22B8CF', '#64748B'];
+// Prochain jour ouvrable (lundi à vendredi) à partir d'une date AAAA-MM-JJ, incluse.
+const weekdaysFrom = (ymd: string, n: number) => {
+  const out: string[] = [];
+  const d = new Date(`${ymd}T12:00:00Z`);
+  while (out.length < n) {
+    const wd = d.getUTCDay();
+    if (wd !== 0 && wd !== 6) out.push(d.toISOString().slice(0, 10));
+    d.setUTCDate(d.getUTCDate() + 1);
   }
-  let improved = true;
-  for (let pass = 0; improved && pass < 50; pass++) {
-    improved = false;
-    for (let i = 0; i < n - 2; i++) for (let k = i + 1; k < n - 1; k++) {
-      const a = order[i], b = order[i + 1], c = order[k], e = order[k + 1];
-      if (d(a, c) + d(b, e) < d(a, b) + d(c, e) - 0.5) { order.splice(i + 1, k - i, ...order.slice(i + 1, k + 1).reverse()); improved = true; }
-    }
-  }
-  return order;
-}
+  return out;
+};
 
 const emptyDraft = (today: string): Draft => ({ id: null, name: '', date: today, openerEmail: '', zone: null, stops: [], version: null, status: 'draft' });
 
@@ -78,10 +76,24 @@ export default function RouteDesigner() {
   const [service, setService] = useState<'all' | 'tables' | 'quick'>('all');
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
+  const [tab, setTab] = useState<'plan' | 'track'>('plan');
+  const [kinds, setKinds] = useState<PlaceKind[]>(ALL_KINDS);
+  // Planification automatique
+  const [planQ, setPlanQ] = useState('');
+  const [planRadius, setPlanRadius] = useState('800');
+  const [planHours, setPlanHours] = useState('5');
+  const [stopMin, setStopMin] = useState('12');
+  const [planning, setPlanning] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion<ScannedPlace>[]>([]);
+  const [sugHover, setSugHover] = useState<number | null>(null);
+  const [rightTab, setRightTab] = useState<'results' | 'suggest'>('results');
+  // Fiche détaillée (Google, à la demande) du point sélectionné
+  const [detail, setDetail] = useState<PlaceCard | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const mapRef = useRef<{ g: any; map: any } | null>(null);
-  const layers = useRef<{ markers: Map<string, any>; poly: any; line: any; drawLine: any; clickL: any }>({ markers: new Map(), poly: null, line: null, drawLine: null, clickL: null });
+  const layers = useRef<{ markers: Map<string, any>; poly: any; line: any; drawLine: any; clickL: any; sug: any[] }>({ markers: new Map(), poly: null, line: null, drawLine: null, clickL: null, sug: [] });
   const draftRef = useRef<Draft | null>(null);
   draftRef.current = draft;
   // Les écouteurs de clic des marqueurs sont créés une fois : ils lisent la liste À JOUR ici.
@@ -116,6 +128,7 @@ export default function RouteDesigner() {
     if (dirty && draft?.id) await save();
     if (id === 'new') { setDraft(emptyDraft(today)); setResults([]); setScanInfo(null); setDirty(false); return; }
     const r = await api<{ route: Route }>(`/api/opener/routes/${id}`);
+    setSuggestions([]);
     setDraft(fromRoute(r.route));
     setDirty(false);
     setResults([]);
@@ -164,7 +177,7 @@ export default function RouteDesigner() {
   }, [draft, dirty, editable, save]);
 
   // ------------------------------------------------------------------ balayage
-  const scan = async (zone: [number, number][], fit = true) => {
+  const scan = async (zone: [number, number][], fit = true): Promise<ScannedPlace[] | null> => {
     setScanning(true);
     try {
       const r = await api<{ places: ScannedPlace[]; calls: number; truncated: boolean; budget: { calls: number; limit: number } }>(
@@ -172,11 +185,13 @@ export default function RouteDesigner() {
       setResults(r.places);
       setScanInfo({ calls: r.calls, truncated: r.truncated, budget: r.budget });
       if (fit) fitTo(zone);
+      return r.places;
     } catch (e) {
       const err = e as ApiError;
       dialog.alert(err.body?.error === 'zone_too_large' ? t('opener.designer.zoneTooLarge', { km2: err.body.maxKm2 })
         : err.body?.error === 'scan_budget_exhausted' ? t('opener.designer.budgetExhausted')
         : t('opener.designer.scanFailed', { error: err.message }));
+      return null;
     } finally { setScanning(false); }
   };
 
@@ -226,11 +241,8 @@ export default function RouteDesigner() {
       let mk = L.markers.get(id);
       if (!mk) {
         mk = new g.maps.Marker({ position: { lat: p.lat, lng: p.lng }, map, title: p.name });
-        mk.addListener('click', () => {
-          setSelected(id);
-          const sp = resultsRef.current.find((r) => r.placeId === id) || (p as ScannedPlace);
-          addStopRef.current(sp as ScannedPlace);
-        });
+        // Clic : la fiche du restaurant s'ouvre (l'ajout se fait depuis la fiche).
+        mk.addListener('click', () => setSelected(id));
         L.markers.set(id, mk);
       }
       mk.setIcon(icon);
@@ -243,7 +255,23 @@ export default function RouteDesigner() {
     if (path.length > 1) {
       L.line = new g.maps.Polyline({ path, map, strokeOpacity: 0, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.85, strokeColor: '#F58346', scale: 3 }, offset: '0', repeat: '10px' }], clickable: false });
     }
-  }, [draft?.zone, draft?.stops, results, inRoute, selected, t]);
+    // Routes suggérées : un secteur coloré par route.
+    L.sug.forEach((x) => x.setMap(null));
+    L.sug = [];
+    suggestions.forEach((s, i) => {
+      if (s.hull.length < 3) return;
+      const col = SUG_COLORS[i % SUG_COLORS.length];
+      const on = sugHover === i;
+      const poly = new g.maps.Polygon({ paths: s.hull.map(([a, b]) => ({ lat: a, lng: b })), strokeColor: col, strokeOpacity: 0.95,
+        strokeWeight: on ? 4 : 2, fillColor: col, fillOpacity: on ? 0.22 : 0.1, map, zIndex: 2 });
+      poly.addListener('mouseover', () => setSugHover(i));
+      poly.addListener('mouseout', () => setSugHover(null));
+      L.sug.push(poly);
+    });
+  }, [draft?.zone, draft?.stops, results, inRoute, selected, t, suggestions, sugHover]);
+
+  // Fiche : on oublie les détails Google d'un autre point.
+  useEffect(() => { setDetail(null); }, [selected]);
 
   // Mode dessin : clics sur la carte → sommets ; trait provisoire.
   useEffect(() => {
@@ -270,18 +298,99 @@ export default function RouteDesigner() {
   };
 
   // ------------------------------------------------------------------ filtres
-  const filtered = useMemo(() => {
+  const applyFilters = useCallback((list: ScannedPlace[]) => {
     const minDays = parseInt(lastVisitMin, 10) || 0;
     const minR = parseFloat(minRating) || 0;
     const now = Date.now();
     const qq = q.trim().toLowerCase();
-    return results.filter((p) => statuses.includes(p.status)
+    return list.filter((p) => statuses.includes(p.status)
+      && kinds.includes(kindOf(p.primaryType))
       && (!minDays || !p.lastVisitAt || (now - new Date(p.lastVisitAt).getTime()) / 86400000 >= minDays)
       && (!minR || (p.rating != null && p.rating >= minR))
       && (service === 'all' || p.serviceType === service || p.serviceType === 'both')
       && (!qq || p.name.toLowerCase().includes(qq) || p.address.toLowerCase().includes(qq)))
       .sort((a, b) => (b.rating || 0) - (a.rating || 0));
-  }, [results, statuses, lastVisitMin, minRating, service, q]);
+  }, [statuses, kinds, lastVisitMin, minRating, service, q]);
+  const filtered = useMemo(() => applyFilters(results), [applyFilters, results]);
+  const kindCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    results.forEach((p) => { const k = kindOf(p.primaryType); c[k] = (c[k] || 0) + 1; });
+    return c;
+  }, [results]);
+
+  // ------------------------------------------------------------------ planification automatique
+  const computeSuggestions = (list: ScannedPlace[]) => {
+    const s = suggestRoutes(applyFilters(list), { minutes: (parseFloat(planHours) || 5) * 60, stopMin: parseInt(stopMin, 10) || 12 });
+    setSuggestions(s);
+    setRightTab('suggest');
+    if (!s.length) dialog.alert(t('opener.designer.noSuggestion'));
+  };
+
+  const plan = async () => {
+    setPlanning(true);
+    try {
+      let list = results;
+      if (planQ.trim()) {
+        const g = await api<{ results: { name: string; lat: number; lng: number }[] }>(`/api/opener/geocode?q=${encodeURIComponent(planQ.trim())}`);
+        if (!g.results.length) { dialog.alert(t('opener.designer.placeNotFound', { q: planQ })); return; }
+        const zone = circlePolygon([g.results[0].lat, g.results[0].lng], parseInt(planRadius, 10) || 800);
+        if (draftRef.current?.status === 'draft') patch({ zone });
+        const scanned = await scan(zone);
+        if (!scanned) return;
+        list = scanned;
+      } else if (!results.length) {
+        dialog.alert(t('opener.designer.planNeedsZone'));
+        return;
+      }
+      computeSuggestions(list);
+    } catch (e: any) { dialog.alert(t('opener.designer.scanFailed', { error: e.message })); }
+    finally { setPlanning(false); }
+  };
+
+  const toDraftStops = (s: Suggestion<ScannedPlace>) =>
+    s.stops.map((p) => ({ placeId: p.placeId, name: p.name, address: p.address, lat: p.lat, lng: p.lng, status: p.status, version: p.version }));
+
+  const useSuggestion = async (i: number) => {
+    const s = suggestions[i];
+    const d = draftRef.current;
+    if (!s || !d) return;
+    if (d.status !== 'draft') {
+      setDraft({ ...emptyDraft(today), name: `${planQ.trim() || t('opener.designer.route')} · ${i + 1}`, zone: s.hull, stops: toDraftStops(s) });
+      setDirty(true);
+      return;
+    }
+    if (d.stops.length && !(await dialog.confirm(t('opener.designer.replaceStops', { n: d.stops.length })))) return;
+    patch({ stops: toDraftStops(s), zone: s.hull, name: d.name || `${planQ.trim() || t('opener.designer.route')} · ${i + 1}` });
+    fitTo(s.hull);
+  };
+
+  // Une route par jour ouvrable, à partir de la date du brouillon, pour l'opener choisi.
+  const createAllDrafts = async () => {
+    const d = draftRef.current;
+    if (!suggestions.length || !d) return;
+    const dates = weekdaysFrom(d.date || today, suggestions.length);
+    const base = planQ.trim() || d.name.trim() || t('opener.designer.route');
+    if (!(await dialog.confirm(t('opener.designer.createAllConfirm', { n: suggestions.length, from: dates[0], to: dates[dates.length - 1] })))) return;
+    setBusy(true);
+    try {
+      let firstId: number | null = null;
+      for (const [i, s] of suggestions.entries()) {
+        const r = await api<{ route: Route }>('/api/opener/routes', { method: 'POST', body: {
+          name: `${base} · ${i + 1}`, date: dates[i], openerEmail: d.openerEmail || null, zone: s.hull,
+          stops: s.stops.map((p) => ({ placeId: p.placeId, name: p.name, address: p.address, lat: p.lat, lng: p.lng })) } });
+        if (firstId == null) firstId = r.route.id;
+      }
+      await loadRoutes();
+      dialog.alert(t('opener.designer.createdAll', { n: suggestions.length }));
+      if (firstId != null) { setDirty(false); await openRoute(String(firstId)); }
+    } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); }
+  };
+
+  const loadDetail = async (placeId: string) => {
+    setDetailLoading(true);
+    try { setDetail(await api<PlaceCard>(`/api/opener/place/${encodeURIComponent(placeId)}?lang=${lng}`)); }
+    catch (e: any) { dialog.alert(e.message); } finally { setDetailLoading(false); }
+  };
 
   const addAll = () => {
     const d = draftRef.current;
@@ -311,9 +420,9 @@ export default function RouteDesigner() {
   const stats = useMemo(() => {
     const pts = (draft?.stops || []).filter((s) => s.lat != null).map((s) => [s.lat!, s.lng!] as [number, number]);
     const m = pathM(pts);
-    const minutes = Math.round(m / 80) + (draft?.stops.length || 0) * 15;   // marche + ~15 min par arrêt
+    const minutes = Math.round(m / 80) + (draft?.stops.length || 0) * (parseInt(stopMin, 10) || 12);   // marche + minutes par arrêt
     return { m, h: Math.floor(minutes / 60), min: minutes % 60 };
-  }, [draft?.stops]);
+  }, [draft?.stops, stopMin]);
 
   // ------------------------------------------------------------------ publication
   const publish = async () => {
@@ -368,6 +477,17 @@ export default function RouteDesigner() {
 
   return (
     <div className="space-y-4">
+      <div className="inline-flex gap-1 rounded-xl border border-stroke bg-white p-1 dark:border-strokedark dark:bg-boxdark">
+        {(['plan', 'track'] as const).map((k) => (
+          <button key={k} onClick={() => setTab(k)}
+            className={`h-9 rounded-[9px] px-4 text-sm font-semibold ${tab === k ? 'bg-primary text-white' : 'text-body dark:text-bodydark'}`}>
+            {t(`opener.designer.tab.${k}`)}
+          </button>
+        ))}
+      </div>
+      {tab === 'track' ? (
+        <RouteTracking onOpen={(id) => { setTab('plan'); openRoute(String(id)); }} />
+      ) : (<>
       {/* En-tête : choix de la route + état d'enregistrement */}
       <div className={`${card} flex flex-wrap items-center gap-3 p-3`}>
         <div className="min-w-[260px] flex-1">
@@ -384,6 +504,40 @@ export default function RouteDesigner() {
             {t('opener.designer.budget', { used: scanInfo.budget.calls, limit: scanInfo.budget.limit })}
           </span>
         )}
+      </div>
+
+      {/* Planification automatique : où, combien de temps → routes suggérées. */}
+      <div className={`${card} p-3`}>
+        <div className="mb-2 flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <p className="text-sm font-semibold text-black dark:text-white">{t('opener.designer.planTitle')}</p>
+          <span className="hidden text-xs text-body dark:text-bodydark sm:inline">{t('opener.designer.planHelp')}</span>
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="min-w-[220px] flex-[2]">
+            <label className="mb-1 block text-xs font-medium text-black dark:text-white">{t('opener.designer.planWhere')}</label>
+            <input value={planQ} onChange={(e) => setPlanQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') plan(); }}
+              placeholder={t('opener.designer.planWherePh') as string}
+              className="h-11 w-full rounded border border-stroke bg-transparent px-3 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+          </div>
+          <div className="w-32">
+            <label className="mb-1 block text-xs font-medium text-black dark:text-white">{t('opener.designer.planRadius')}</label>
+            <Select value={planRadius} onChange={setPlanRadius} options={['500', '800', '1200', '1500'].map((v) => ({ value: v, label: Number(v) >= 1000 ? `${(Number(v) / 1000).toLocaleString(lng === 'fr' ? 'fr-CA' : 'en-CA')} km` : `${v} m` }))} />
+          </div>
+          <div className="w-32">
+            <label className="mb-1 block text-xs font-medium text-black dark:text-white">{t('opener.designer.planTime')}</label>
+            <Select value={planHours} onChange={setPlanHours} options={['2', '3', '4', '5', '6', '7', '8'].map((v) => ({ value: v, label: `${v} h` }))} />
+          </div>
+          <div className="w-36">
+            <label className="mb-1 block text-xs font-medium text-black dark:text-white">{t('opener.designer.planPerStop')}</label>
+            <Select value={stopMin} onChange={setStopMin} options={['8', '10', '12', '15', '20'].map((v) => ({ value: v, label: `${v} min` }))} />
+          </div>
+          <button onClick={plan} disabled={planning || scanning}
+            className="inline-flex h-11 items-center gap-2 rounded bg-primary px-4 text-sm font-bold text-white hover:bg-opacity-90 disabled:opacity-50">
+            {planning || scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            {t('opener.designer.planGo')}
+          </button>
+        </div>
       </div>
 
       {/* 3 colonnes à partir de 2xl seulement : sous ce seuil, la barre latérale (~290 px) ne laisse
@@ -488,7 +642,11 @@ export default function RouteDesigner() {
         {/* ---------------- Centre : la carte ---------------- */}
         <div className={`${card} relative order-first min-h-[460px] overflow-hidden md:col-span-2 2xl:order-none 2xl:col-span-1`}>
           <GoogleMapView lang={lng} dark={dark} className="absolute inset-0" center={MONTREAL} zoom={14}
-            onReady={(g, map) => { mapRef.current = { g, map }; setResults((r) => [...r]); }}
+            onReady={(g, map) => {
+              // La carte est recréée en revenant de l'onglet Suivi : les anciens calques n'existent plus.
+              layers.current = { markers: new Map(), poly: null, line: null, drawLine: null, clickL: null, sug: [] };
+              mapRef.current = { g, map }; setResults((r) => [...r]);
+            }}
             fallback={(err) => (
               <div className="flex h-full items-center justify-center p-6 text-center text-sm text-body dark:text-bodydark">
                 {err === 'no_maps_key' ? t('opener.noMapsKey') : t('opener.mapsFailed')}
@@ -530,6 +688,73 @@ export default function RouteDesigner() {
               </button>
             )}
           </div>
+          {/* Fiche du point sélectionné */}
+          {(() => {
+            const p = results.find((r) => r.placeId === selected) || (draft.stops.find((s) => s.placeId === selected) as ScannedPlace | undefined);
+            if (!p) return null;
+            const n = inRoute.get(p.placeId);
+            const g = detail?.placeId === p.placeId ? detail.google : null;
+            const days = p.lastVisitAt ? Math.floor((Date.now() - new Date(p.lastVisitAt).getTime()) / 86400000) : null;
+            return (
+              <div className="absolute bottom-14 left-3 z-10 w-[min(340px,calc(100%-24px))] rounded-lg border border-stroke bg-white p-3 shadow-lg dark:border-strokedark dark:bg-boxdark">
+                <div className="mb-1 flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-black dark:text-white">{p.name}</p>
+                    <p className="truncate text-xs text-body dark:text-bodydark">{p.address}</p>
+                  </div>
+                  <button onClick={() => setSelected(null)} className="rounded p-1 text-body hover:text-black dark:hover:text-white" aria-label={t('opener.designer.close') as string}><X className="h-4 w-4" /></button>
+                </div>
+                <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                  <span className="inline-flex items-center gap-1 font-semibold text-black dark:text-white">
+                    <span className="h-2 w-2 rounded-full" style={{ background: STATUS_COLOR[(p.status as PlaceStatus) || 'new'] }} />
+                    {t(`opener.status.${p.status || 'new'}`)}{p.version ? ` ${p.version.toUpperCase()}` : ''}
+                  </span>
+                  {p.rating != null && <span className="text-body dark:text-bodydark"><Star className="mb-0.5 inline h-3 w-3 fill-[#FDB022] text-[#FDB022]" /> {p.rating.toLocaleString(lng === 'fr' ? 'fr-CA' : 'en-CA')}{p.reviews != null ? ` (${p.reviews})` : ''}</span>}
+                  {p.primaryType && <span className="text-body dark:text-bodydark">{t(`opener.kind.${kindOf(p.primaryType)}`)}</span>}
+                  {p.serviceType && <span className="text-body dark:text-bodydark">{t(`opener.serviceShort.${p.serviceType}`)}</span>}
+                </div>
+                <div className="mb-2 space-y-0.5 text-xs text-body dark:text-bodydark">
+                  <p>{days != null ? t('opener.designer.lastVisitBy', { n: days, by: p.lastVisitBy || '—' }) : t('opener.field.neverVisited')}</p>
+                  {p.competitorPos && <p>POS : {p.competitorPos}</p>}
+                  {p.lead && <p>{t('opener.field.lead')} : {p.lead.refCode}</p>}
+                  {p.clusterName && <p>{t('opener.field.clusterName')} : {p.clusterName}</p>}
+                  {g && (
+                    <>
+                      {g.openNow != null && <p className="flex items-center gap-1"><Clock className="h-3 w-3" /><span className={g.openNow ? 'text-success' : 'text-danger'}>{g.openNow ? t('opener.field.openNow') : t('opener.field.closedNow')}</span></p>}
+                      {g.phone && <p className="flex items-center gap-1"><Phone className="h-3 w-3" />{g.phone}</p>}
+                      {g.website && <p className="flex items-center gap-1 truncate"><Globe className="h-3 w-3 shrink-0" /><a href={g.website} target="_blank" rel="noreferrer" className="truncate text-primary hover:underline">{g.website.replace(/^https?:\/\/(www\.)?/, '')}</a></p>}
+                    </>
+                  )}
+                  {detail?.placeId === p.placeId && detail.history.length > 0 && (
+                    <div className="mt-1 border-t border-stroke pt-1 dark:border-strokedark">
+                      {detail.history.slice(0, 3).map((h) => (
+                        <p key={h.id} className="flex items-center gap-1">
+                          {h.verdict && <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[h.verdict] }} title={t(`opener.track.verdict.${h.verdict}`) as string} />}
+                          {new Date(h.at).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'short' })} · {h.by} · {t('opener.field.interestShort', { n: h.interest })}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {editable && (n ? (
+                    <button onClick={() => removeStop(n - 1)} className="inline-flex items-center gap-1 rounded border border-stroke px-3 py-1.5 text-xs font-semibold text-black hover:border-danger hover:text-danger dark:border-strokedark dark:text-white">
+                      <Minus className="h-3.5 w-3.5" />{t('opener.designer.removeFromRoute', { n })}
+                    </button>
+                  ) : (
+                    <button onClick={() => addStop(p as ScannedPlace)} className="inline-flex items-center gap-1 rounded bg-primary px-3 py-1.5 text-xs font-bold text-white">
+                      <Plus className="h-3.5 w-3.5" />{t('opener.designer.addToRoute')}
+                    </button>
+                  ))}
+                  {detail?.placeId !== p.placeId && (
+                    <button onClick={() => loadDetail(p.placeId)} disabled={detailLoading} className="inline-flex items-center gap-1 rounded border border-stroke px-3 py-1.5 text-xs font-medium text-black hover:border-primary dark:border-strokedark dark:text-white">
+                      {detailLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Info className="h-3.5 w-3.5" />}{t('opener.designer.moreDetails')}
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
           {/* Légende */}
           <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
             {ALL_STATUSES.map((s) => (
@@ -542,7 +767,13 @@ export default function RouteDesigner() {
 
         {/* ---------------- Droite : ajouter des arrêts ---------------- */}
         <div className={`${card} flex min-h-0 flex-col p-4 md:max-h-[760px] 2xl:max-h-none`}>
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-[.06em] text-body dark:text-bodydark2">{t('opener.designer.addTitle')}</p>
+          <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl border border-stroke p-1 dark:border-strokedark">
+            {(['results', 'suggest'] as const).map((k) => (
+              <button key={k} onClick={() => setRightTab(k)} className={`h-8 rounded-[9px] text-xs font-semibold ${rightTab === k ? 'bg-primary text-white' : 'text-body dark:text-bodydark'}`}>
+                {k === 'results' ? t('opener.designer.tabResults', { n: filtered.length }) : t('opener.designer.tabSuggest', { n: suggestions.length })}
+              </button>
+            ))}
+          </div>
           <p className="mb-1 text-xs font-medium text-black dark:text-white">{t('opener.designer.filterStatus')}</p>
           <div className="mb-3 flex flex-wrap gap-1.5">
             {ALL_STATUSES.map((s) => {
@@ -551,6 +782,18 @@ export default function RouteDesigner() {
                 <button key={s} onClick={() => setStatuses((x) => (on ? x.filter((y) => y !== s) : [...x, s]))}
                   className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${on ? 'bg-primary text-white' : 'border border-stroke text-black dark:border-strokedark dark:text-bodydark1'}`}>
                   <span className="h-2 w-2 rounded-full" style={{ background: STATUS_COLOR[s] }} />{t(`opener.status.${s}`)}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mb-1 text-xs font-medium text-black dark:text-white">{t('opener.designer.filterKind')}</p>
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {ALL_KINDS.filter((k) => kindCounts[k] || kinds.includes(k) === false).map((k) => {
+              const on = kinds.includes(k);
+              return (
+                <button key={k} onClick={() => setKinds((x) => (on ? x.filter((y) => y !== k) : [...x, k]))}
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold ${on ? 'bg-primary text-white' : 'border border-stroke text-black dark:border-strokedark dark:text-bodydark1'}`}>
+                  {t(`opener.kind.${k}`)} <span className="opacity-70">({kindCounts[k] || 0})</span>
                 </button>
               );
             })}
@@ -573,6 +816,41 @@ export default function RouteDesigner() {
               </button>
             ))}
           </div>
+          {rightTab === 'suggest' ? (
+            <div className="-mx-1 min-h-[160px] flex-1 space-y-2 overflow-y-auto px-1">
+              {!suggestions.length && (
+                <p className="rounded border border-dashed border-stroke p-4 text-center text-xs text-body dark:border-strokedark dark:text-bodydark">
+                  <Sparkles className="mx-auto mb-1 h-4 w-4" />{t('opener.designer.noSuggestionYet')}
+                </p>
+              )}
+              {suggestions.map((s, i) => (
+                <div key={i} onMouseEnter={() => setSugHover(i)} onMouseLeave={() => setSugHover(null)}
+                  className={`rounded-lg border p-3 ${sugHover === i ? 'border-primary' : 'border-stroke dark:border-strokedark'}`}>
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: SUG_COLORS[i % SUG_COLORS.length] }} />
+                    <p className="text-sm font-semibold text-black dark:text-white">{t('opener.designer.sugTitle', { n: i + 1 })}</p>
+                  </div>
+                  <p className="mb-2 text-xs text-body dark:text-bodydark">
+                    {t('opener.designer.sugStats', { n: s.stops.length, dist: fmtDistance(s.meters, lng), h: Math.floor(s.minutes / 60), min: String(s.minutes % 60).padStart(2, '0') })}
+                  </p>
+                  <p className="mb-2 truncate text-[11px] text-body dark:text-bodydark2">{s.stops.slice(0, 4).map((p) => p.name).join(' · ')}{s.stops.length > 4 ? ' …' : ''}</p>
+                  <div className="flex gap-2">
+                    <button onClick={() => useSuggestion(i)} className="inline-flex items-center gap-1 rounded bg-primary px-3 py-1.5 text-xs font-bold text-white">{t('opener.designer.useSuggestion')}</button>
+                    <button onClick={() => fitTo(s.hull.length ? s.hull : s.stops.map((p) => [p.lat, p.lng] as LatLng))} className="rounded border border-stroke px-3 py-1.5 text-xs font-medium text-black dark:border-strokedark dark:text-white">{t('opener.designer.showOnMap')}</button>
+                  </div>
+                </div>
+              ))}
+              {suggestions.length > 0 && (
+                <div className="border-t border-stroke pt-3 dark:border-strokedark">
+                  <button onClick={createAllDrafts} disabled={busy} className="inline-flex w-full items-center justify-center gap-1.5 rounded border border-primary px-3 py-2 text-xs font-bold text-primary hover:bg-primary/5 disabled:opacity-50">
+                    {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                    {t('opener.designer.createAll', { n: suggestions.length })}
+                  </button>
+                  <p className="mt-1 text-[11px] text-body dark:text-bodydark">{t('opener.designer.createAllHelp')}</p>
+                </div>
+              )}
+            </div>
+          ) : (<>
           <div className="relative mb-2">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-body" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('opener.designer.searchPh') as string}
@@ -595,8 +873,8 @@ export default function RouteDesigner() {
               const n = inRoute.get(p.placeId);
               const days = p.lastVisitAt ? Math.floor((Date.now() - new Date(p.lastVisitAt).getTime()) / 86400000) : null;
               return (
-                <div key={p.placeId} onMouseEnter={() => setSelected(p.placeId)}
-                  className={`flex items-center gap-2 rounded px-2 py-1.5 ${selected === p.placeId ? 'bg-gray-2 dark:bg-meta-4' : ''}`}>
+                <div key={p.placeId} onClick={() => { setSelected(p.placeId); mapRef.current?.map.panTo({ lat: p.lat, lng: p.lng }); }}
+                  className={`flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 ${selected === p.placeId ? 'bg-gray-2 dark:bg-meta-4' : ''}`}>
                   <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: STATUS_COLOR[p.status] }} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-semibold text-black dark:text-white">{p.name}</p>
@@ -620,8 +898,10 @@ export default function RouteDesigner() {
               );
             })}
           </div>
+          </>)}
         </div>
       </div>
+      </>)}
     </div>
   );
 }

@@ -464,7 +464,10 @@
     "icplusRatesBody": "Les taux publiés par les réseaux, contre lesquels le calculateur IC+ juge les relevés. Saisis en pourcentage, stockés en décimal, chacun sourcé et tracé. Du publié seulement — jamais un chiffre lu sur un relevé.",
     "saasIncreaseBody": "Applique une hausse de prix SaaS à un abonnement. Elle prend effet au prochain renouvellement de CET abonnement, jamais à une date commune.",
     "saasIncreaseLookupBody": "La référence du soutien quand un marchand appelle au sujet de sa facture : cherchez un compte et lisez l'ancien prix, le nouveau, la date et l'avis exact qu'il a reçu.",
-    "supportBody": "Rapports de haut niveau sur les billets Zoho Desk : volume, délais de résolution, types de problèmes, équipes, marchands, et billets croisés avec les revenus et le churn. Ce qui distingue les marchands qui partent, ce sont les billets qui traînent, pas leur nombre."
+    "supportBody": "Rapports de haut niveau sur les billets Zoho Desk : volume, délais de résolution, types de problèmes, équipes, marchands, et billets croisés avec les revenus et le churn. Ce qui distingue les marchands qui partent, ce sont les billets qui traînent, pas leur nombre.",
+    "openerMatchBody": "Chaque restaurant client de Cluster relié à sa fiche Google, avec sa version : V2 (Kaizen) ou V1 (abonnés Zoho Billing). Les cas douteux se confirment ici ; c'est ce qui fait apparaître un restaurant « client » sur la carte des openers.",
+    "openerRoutesBody": "Préparez les journées de porte-à-porte : un quartier et le temps disponible suffisent pour obtenir des routes suggérées, ou dessinez une zone. Cliquez un point pour sa fiche, publiez la route à l'opener. L'onglet Suivi montre l'avancement et confirme chaque visite par la position du check-in.",
+    "openerFieldBody": "L'application de l'opener, à ouvrir sur son téléphone : la route du jour sur une carte, la fiche de chaque restaurant, le check-in, la création de lead et le résumé de la journée."
   },
   "proposals": {
     "chain": {
@@ -6447,7 +6450,41 @@
       "conflict": "Quelqu'un d'autre vient de modifier cette route. Elle a été rechargée.",
       "zoneTooLarge": "Zone trop grande (maximum {{km2}} km²). Dessinez une zone plus petite.",
       "budgetExhausted": "Le budget mensuel de recherches Google est atteint. Il se renouvelle le 1er du mois.",
-      "scanFailed": "Le balayage de la zone a échoué : {{error}}"
+      "scanFailed": "Le balayage de la zone a échoué : {{error}}",
+      "tab": {
+        "plan": "Planifier",
+        "track": "Suivi"
+      },
+      "planTitle": "Planifier automatiquement",
+      "planHelp": "Un quartier ou une adresse, le temps disponible : Sales Hub propose des routes qui tiennent dans la journée.",
+      "planWhere": "Quartier ou adresse",
+      "planWherePh": "Ex. : Plateau-Mont-Royal, 4520 rue Saint-Denis…",
+      "planRadius": "Rayon",
+      "planTime": "Temps disponible",
+      "planPerStop": "Minutes par arrêt",
+      "planGo": "Suggérer des routes",
+      "noSuggestion": "Aucune route possible avec ces filtres. Élargissez les statuts ou les types, ou augmentez le rayon.",
+      "placeNotFound": "Aucun lieu trouvé pour « {{q}} ».",
+      "planNeedsZone": "Tapez un quartier ou une adresse, ou dessinez une zone, avant de demander des suggestions.",
+      "route": "Route",
+      "replaceStops": "Remplacer les {{n}} arrêts du brouillon par cette route suggérée ?",
+      "createAllConfirm": "Créer {{n}} brouillons de route, un par jour ouvrable, du {{from}} au {{to}} ? Vous pourrez les ajuster avant de les publier.",
+      "createdAll": "{{n}} brouillons créés. Le premier est ouvert.",
+      "close": "Fermer",
+      "lastVisitBy": "Visité il y a {{n}} j · {{by}}",
+      "removeFromRoute": "Retirer (arrêt {{n}})",
+      "addToRoute": "Ajouter à la route",
+      "moreDetails": "Plus de détails",
+      "tabResults": "Liste ({{n}})",
+      "tabSuggest": "Suggestions ({{n}})",
+      "filterKind": "Type d'établissement",
+      "noSuggestionYet": "Utilisez « Suggérer des routes » en haut : les routes proposées apparaîtront ici.",
+      "sugTitle": "Route suggérée {{n}}",
+      "sugStats": "{{n}} arrêts · {{dist}} à pied · ~{{h}} h {{min}}",
+      "useSuggestion": "Utiliser",
+      "showOnMap": "Voir sur la carte",
+      "createAll": "Créer {{n}} brouillons (un par jour ouvrable)",
+      "createAllHelp": "À partir de la date de la route en cours, pour l'opener choisi. Rien n'est publié."
     },
     "field": {
       "noAccess": "Cette application est réservée aux openers (permission opener:field).",
@@ -6603,7 +6640,41 @@
       "closeConfirm": "Terminer la journée ? La route sera fermée.",
       "closeWaitOutbox": "{{n}} check-in(s) attendent encore d'être envoyés. Reconnectez-vous avant de terminer la journée.",
       "dayClosed": "Journée terminée. Merci !",
-      "toggleTheme": "Thème clair ou sombre"
+      "toggleTheme": "Thème clair ou sombre",
+      "gpsNotice": "Votre position GPS est enregistrée avec chaque check-in, pour confirmer la visite du restaurant. Elle n'est pas suivie entre les check-ins.",
+      "locating": "Localisation…"
+    },
+    "kind": {
+      "restaurant": "Restaurants",
+      "takeout": "Comptoirs",
+      "cafe": "Cafés",
+      "bar": "Bars",
+      "bakery": "Boulangeries",
+      "other": "Autres"
+    },
+    "track": {
+      "verdict": {
+        "onsite": "Sur place",
+        "far": "À distance",
+        "imprecise": "Position imprécise",
+        "nogps": "Sans position"
+      },
+      "outcome": {
+        "planned": "À faire",
+        "done": "Visité",
+        "skipped": "Non visité"
+      },
+      "lastPosition": "Dernier check-in",
+      "period": {
+        "past7": "7 derniers jours",
+        "today": "Aujourd'hui",
+        "next7": "7 prochains jours"
+      },
+      "refresh": "Actualiser",
+      "help": "Un secteur par route, coloré selon l'avancement. Chaque visite prend la couleur de son verdict, d'après la position du téléphone au check-in : un trait relie le restaurant à l'endroit du check-in quand il a été fait à distance.",
+      "empty": "Aucune route sur cette période.",
+      "lastCheckin": "Dernier check-in {{time}} · {{name}}",
+      "openRoute": "Ouvrir la route"
     }
   },
   "hr": {
