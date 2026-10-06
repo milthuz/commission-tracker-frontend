@@ -454,7 +454,14 @@
     "sofiaTitle": "I'm always here",
     "sofiaBody": "Click me anytime for help, or to take this tour again. Enjoy Sales Hub!",
     "askPlaceholder": "Ask Sofia a question…",
-    "askError": "Sorry, something went wrong — try again."
+    "askError": "Sorry, something went wrong — try again.",
+    "hrBody": "Prepare a new rep's hiring file: offer and compensation agreement are generated, the candidate signs on screen, then someone signs for Cluster. Salary data — visible only with the HR permissions.",
+    "supportBody": "High-level reports on Zoho Desk tickets: volume, resolution times, issue types, teams, merchants, and tickets crossed with revenue and churn. What separates merchants who leave is slow tickets, not ticket counts.",
+    "passBody": "The merchant referral program. The credit is floored when the referral is submitted, capped when the new merchant goes live, then confirmed by hand before accounting is told.",
+    "rateCalculatorBody": "Drop in the PDF statement of a merchant's current payment processor: you get a comparison with Cluster's pricing, a line-by-line audit of every fee, and two PDFs. \"SUSPECT\" is the label worth raising — a fee billed under a name with no network counterpart.",
+    "icplusRatesBody": "The published network rates the IC+ calculator judges statements against. Typed as a percent, stored as a decimal, each one sourced and traced. Published rates only — never a figure read off a statement.",
+    "saasIncreaseBody": "Apply a SaaS price increase to a subscription. It takes effect at that subscription's own next renewal, never on a shared date.",
+    "saasIncreaseLookupBody": "The support desk's reference when a merchant calls about their bill: search one account and read back the old price, the new price, the date and the exact notice they received."
   },
   "proposals": {
     "chain": {

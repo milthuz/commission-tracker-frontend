@@ -454,7 +454,14 @@
     "sofiaTitle": "Je suis toujours là",
     "sofiaBody": "Clique sur moi à tout moment pour de l'aide, ou pour refaire cette visite. Bon Sales Hub !",
     "askPlaceholder": "Pose une question à Sofia…",
-    "askError": "Désolée, une erreur est survenue — réessaie."
+    "askError": "Désolée, une erreur est survenue — réessaie.",
+    "hrBody": "Préparez le dossier d'embauche d'un nouveau rep : l'offre et l'entente de rémunération sont générées, le candidat signe à l'écran, puis quelqu'un signe pour Cluster. Données salariales — visibles seulement avec les permissions RH.",
+    "passBody": "Le programme de référencement entre marchands. Le crédit est plancher à la soumission, plafonné au palier à la mise en service, puis confirmé à la main avant d'aviser la comptabilité.",
+    "rateCalculatorBody": "Déposez le relevé PDF du processeur de paiement actuel d'un marchand : vous obtenez la comparaison avec la tarification Cluster, une vérification ligne par ligne de chaque frais, et deux PDF. « SUSPECT » est la mention à soulever — un frais facturé sous un nom sans contrepartie réseau.",
+    "icplusRatesBody": "Les taux publiés par les réseaux, contre lesquels le calculateur IC+ juge les relevés. Saisis en pourcentage, stockés en décimal, chacun sourcé et tracé. Du publié seulement — jamais un chiffre lu sur un relevé.",
+    "saasIncreaseBody": "Applique une hausse de prix SaaS à un abonnement. Elle prend effet au prochain renouvellement de CET abonnement, jamais à une date commune.",
+    "saasIncreaseLookupBody": "La référence du soutien quand un marchand appelle au sujet de sa facture : cherchez un compte et lisez l'ancien prix, le nouveau, la date et l'avis exact qu'il a reçu.",
+    "supportBody": "Rapports de haut niveau sur les billets Zoho Desk : volume, délais de résolution, types de problèmes, équipes, marchands, et billets croisés avec les revenus et le churn. Ce qui distingue les marchands qui partent, ce sont les billets qui traînent, pas leur nombre."
   },
   "proposals": {
     "chain": {
