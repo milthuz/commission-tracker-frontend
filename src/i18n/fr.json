@@ -1835,7 +1835,15 @@
     "noInvoices": "Aucune facture.",
     "paymentActivation": "Activation de paiement",
     "noActivity": "Aucune activité ce mois-ci.",
-    "noData": "Aucune donnée."
+    "noData": "Aucune donnée.",
+    "forecast": {
+      "title": "Prime de traitement — versement de {{period}}",
+      "settledLabel": "déjà acquis (définitif)",
+      "projectedLabel": "estimé — {{n}} compte(s) encore en cours, le chiffre final peut changer",
+      "note": "Estimation au {{through}}. La prime d’un compte est la moyenne de son profit mensuel sur six mois : tant que sa fenêtre n’est pas terminée, le montant projeté peut monter ou descendre. Seul le montant « déjà acquis » est définitif.",
+      "noteSettled": "Au {{through}}, toutes les fenêtres de vos comptes sont terminées : ce montant ne bougera plus. Il sera versé une fois la prime approuvée.",
+      "badge": "Estimation"
+    }
   },
   "adminActions": {
     "payrollDue": "Paie à envoyer — {{month}}",

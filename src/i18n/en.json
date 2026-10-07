@@ -1835,7 +1835,15 @@
     "noInvoices": "No invoices.",
     "paymentActivation": "Payment activation",
     "noActivity": "No activity this month yet.",
-    "noData": "No data yet."
+    "noData": "No data yet.",
+    "forecast": {
+      "title": "Processing bonus — {{period}} payout",
+      "settledLabel": "already earned (final)",
+      "projectedLabel": "estimated — {{n}} account(s) still running, the final figure can change",
+      "note": "Estimate as of {{through}}. An account's bonus is the average of its monthly profit over six months: until its window closes, the projected amount can go up or down. Only the “already earned” figure is final.",
+      "noteSettled": "As of {{through}}, every one of your accounts has closed its window: this amount will not move. It is paid once the bonus is approved.",
+      "badge": "Estimate"
+    }
   },
   "adminActions": {
     "payrollDue": "Payroll to send — {{month}}",

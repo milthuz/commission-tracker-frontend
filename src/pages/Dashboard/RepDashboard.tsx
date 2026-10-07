@@ -8,7 +8,18 @@ import InvoiceLink from '../../components/InvoiceLink';
 import { ContentLoader } from '../../common/Loader';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const QUOTA = 15;
+
+// Projection de la prime semestrielle (demande de David, 2026-10-07).
+// `settledAmount` = la part DÉFINITIVE ; l'écart avec `total` vient des comptes dont la
+// fenêtre de 6 mois n'est pas encore couverte par les données de revenus — ce montant-là
+// peut encore monter ou descendre.
+interface BonusForecast {
+  period: string; total: number; settledAmount: number; pendingAmount: number;
+  openAccounts: number; dataThrough: string | null;
+  accounts: { merchantName: string; amount: number; settled: boolean }[];
+}
 
 interface Deal { crm_deal_id: string; deal_name: string; account_name: string; lead_source_group: string; points: number; close_date: string; }
 interface Merchant { merchant_account_id: string; business_name: string; points: number; bonus_amount: number; activated_at: string; }
@@ -86,6 +97,17 @@ const RepDashboard: React.FC = () => {
   const fmt2 = (v: number) =>
     (Number(v) || 0).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  // Projection de la prime semestrielle. Chargée à part : la permission
+  // `report:bonus_forecast` n'est pas donnée à tout le monde, et un 403 ne doit pas faire
+  // échouer tout le tableau de bord — la carte disparaît, le reste vit.
+  const [forecast, setForecast] = useState<BonusForecast | null>(null);
+  useEffect(() => {
+    axios.get(`${API_URL}/api/commissions/processing-bonus/projection`,
+      { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+      .then((r) => setForecast(r.data))
+      .catch(() => setForecast(null));
+  }, []);
+
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -139,6 +161,13 @@ const RepDashboard: React.FC = () => {
 
   const monthCommission = report?.summary.currentMonth.commission || 0;
   const monthlyBonus = me?.monthlyBonus || 0;
+  // « 2026-12 » → « décembre 2026 », dans la langue de l'usager.
+  const periodLabel = (p: string) => {
+    const [y, m] = p.split('-').map(Number);
+    if (!y || !m) return p;
+    const nom = new Date(y, m - 1, 1).toLocaleString(i18n.language, { month: 'long' });
+    return `${nom.charAt(0).toUpperCase()}${nom.slice(1)} ${y}`;
+  };
   const zentactBonus = me?.zentactBonus || 0;
   const periodTotal = monthCommission + monthlyBonus + zentactBonus;
   const ytd = report?.summary.ytd.commission || 0;
@@ -209,6 +238,44 @@ const RepDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Prochaine prime semestrielle — une PROJECTION, pas une promesse.
+
+          🔑 Deux montants, jamais un seul. La prime d'un compte est la MOYENNE mensuelle de
+          son profit sur six mois, moins 100 $ : tant que la fenêtre n'est pas close, le
+          chiffre peut monter ou DESCENDRE. N'afficher que la projection, c'est promettre un
+          montant qu'on devra parfois reprendre. On montre donc d'abord l'acquis. */}
+      {forecast && forecast.total > 0 && (
+        <div className="mt-4 rounded-xl border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                {t('repDashboard.forecast.title', { period: periodLabel(forecast.period) })}
+                {forecast.pendingAmount > 0 && (
+                  <span className="inline-flex rounded-full bg-warning/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-warning">
+                    {t('repDashboard.forecast.badge')}
+                  </span>
+                )}
+              </p>
+              <p className="mt-1 text-3xl font-bold text-black dark:text-white">{fmt2(forecast.settledAmount)}</p>
+              <p className="mt-0.5 text-xs text-gray-500">{t('repDashboard.forecast.settledLabel')}</p>
+            </div>
+            {forecast.pendingAmount > 0 && (
+              <div className="text-right">
+                <p className="text-2xl font-semibold text-primary">{fmt2(forecast.total)}</p>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  {t('repDashboard.forecast.projectedLabel', { n: forecast.openAccounts })}
+                </p>
+              </div>
+            )}
+          </div>
+          <p className="mt-3 rounded-md bg-gray-2 px-3 py-2 text-[11px] leading-snug text-body dark:bg-meta-4">
+            {forecast.pendingAmount > 0
+              ? t('repDashboard.forecast.note', { through: forecast.dataThrough || '—' })
+              : t('repDashboard.forecast.noteSettled', { through: forecast.dataThrough || '—' })}
+          </p>
+        </div>
+      )}
 
       {/* KPI row */}
       <div className="mt-4 grid grid-cols-2 gap-4 xl:grid-cols-4">
