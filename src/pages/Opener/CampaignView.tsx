@@ -25,6 +25,12 @@ const nextMonday = (today: string) => {
   d.setUTCDate(d.getUTCDate() + add);
   return d.toISOString().slice(0, 10);
 };
+// Prochain jour ouvrable après `today` (« Demain » ; un vendredi → lundi).
+const nextWorkday = (today: string) => {
+  const d = new Date(`${today}T12:00:00Z`);
+  do d.setUTCDate(d.getUTCDate() + 1); while (d.getUTCDay() === 0 || d.getUTCDay() === 6);
+  return d.toISOString().slice(0, 10);
+};
 // Une couleur par opener dans la proposition de la semaine (distinctes des couleurs de statut).
 const OPENER_COLORS = ['#F58346', '#8B5CF6', '#0EA5E9', '#EC4899', '#14B8A6', '#EAB308', '#EF4444', '#6366F1'];
 interface Proposal {
@@ -48,6 +54,8 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
   const [nOpeners, setNOpeners] = useState(2);
   const [targetWeeks, setTargetWeeks] = useState(6);
   const [weekStart, setWeekStart] = useState('');
+  // Nombre de jours à planifier (1 à 5) : « des routes pour demain » autant qu'une semaine.
+  const [nDays, setNDays] = useState(5);
   const [picked, setPicked] = useState<string[]>([]);
   const [assignTo, setAssignTo] = useState('');
   const [assignDate, setAssignDate] = useState('');
@@ -258,13 +266,13 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
     let stale = false;
     setProposalBusy(true);
     const tm = window.setTimeout(() => {
-      api<{ openers: Proposal[] }>('/api/opener/campaign/plan-week', { method: 'POST', body: { openers: picked, weekStart, days: 5, preview: true } })
+      api<{ openers: Proposal[] }>('/api/opener/campaign/plan-week', { method: 'POST', body: { openers: picked, weekStart, days: nDays, preview: true } })
         .then((r) => { if (!stale) setProposal(r.openers); })
         .catch(() => { if (!stale) setProposal(null); })
         .finally(() => { if (!stale) setProposalBusy(false); });
     }, 300);
     return () => { stale = true; window.clearTimeout(tm); };
-  }, [picked, weekStart, todoCount]);
+  }, [picked, weekStart, nDays, todoCount]);
 
   const dropFromProposal = (routeId: number) =>
     setProposal((p) => (p ? p.map((o) => ({ ...o, days: o.days.filter((d) => d.campaignRouteId !== routeId) })) : p));
@@ -275,7 +283,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
     if (!(await dialog.confirm(t('opener.campaign.planConfirm', { n: proposal.filter((o) => o.days.length).length, routes: nProposed, date: fmtDay(weekStart) }), { confirmText: t('opener.campaign.publish') }))) return;
     const assignments = proposal.map((o) => ({ openerEmail: o.openerEmail, ids: o.days.map((d) => d.campaignRouteId) }));
     const r = await api<{ openers: { openerName: string; days: { date: string; name: string }[]; emailSent: boolean }[] }>(
-      '/api/opener/campaign/plan-week', { method: 'POST', body: { openers: assignments.filter((a) => a.ids.length).map((a) => a.openerEmail), weekStart, days: 5, assignments } });
+      '/api/opener/campaign/plan-week', { method: 'POST', body: { openers: assignments.filter((a) => a.ids.length).map((a) => a.openerEmail), weekStart, days: nDays, assignments } });
     setPlanResult(r.openers);
     setProposal(null);
     setPicked([]);
@@ -549,8 +557,25 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
             <>
               <p className="mb-1 font-semibold text-black dark:text-white">{t('opener.campaign.planWeek')}</p>
               <p className="mb-3 text-xs text-body dark:text-bodydark">{t('opener.campaign.planHelp')}</p>
-              <label className="mb-1 block text-xs font-medium text-black dark:text-white">{t('opener.campaign.weekOf')}</label>
-              <div className="mb-3"><DateField value={weekStart} onChange={setWeekStart} /></div>
+              <label className="mb-1 block text-xs font-medium text-black dark:text-white">{t('opener.campaign.fromDate')}</label>
+              <div className="mb-1.5"><DateField value={weekStart} onChange={setWeekStart} /></div>
+              {today && (
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {[{ k: 'tomorrow', d: nextWorkday(today) }, { k: 'nextMonday', d: nextMonday(today) }].map((o) => (
+                    <button key={o.k} type="button" onClick={() => setWeekStart(o.d)}
+                      className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${weekStart === o.d ? 'border-primary bg-primary/10 text-primary' : 'border-stroke text-body hover:border-primary dark:border-strokedark dark:text-bodydark'}`}>
+                      {t(`opener.campaign.quick.${o.k}`)} · {fmtDay(o.d)}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="mb-1 text-xs font-medium text-black dark:text-white">{t('opener.campaign.nDaysLabel')}</p>
+              <div className="mb-3 grid grid-cols-5 gap-1 rounded-lg border border-stroke p-1 dark:border-strokedark" role="radiogroup">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button key={n} type="button" role="radio" aria-checked={nDays === n} onClick={() => setNDays(n)}
+                    className={`h-8 rounded-md text-sm font-semibold ${nDays === n ? 'bg-primary text-white' : 'text-body hover:bg-gray-2 dark:text-bodydark dark:hover:bg-meta-4'}`}>{n}</button>
+                ))}
+              </div>
               <p className="mb-1 text-xs font-medium text-black dark:text-white">{t('opener.campaign.openers')}</p>
               <div className="mb-3 space-y-1">
                 {!openers.length && <p className="text-xs text-warning">{t('opener.designer.noOpeners')}</p>}

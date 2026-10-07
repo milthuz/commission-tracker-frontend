@@ -6767,13 +6767,13 @@
       "excludedHelp": "Ils ne reviennent plus dans les routes. Rétablissez-en un exclu par erreur.",
       "excludedNone": "Aucun établissement exclu.",
       "restore": "Rétablir",
-      "planWeek": "Planifier la semaine",
+      "planWeek": "Planifier des routes",
       "planWeekN": "Planifier {{n}} routes",
-      "planHelp": "Cochez les openers : leurs 5 routes de la semaine (lundi à vendredi), voisines et près de là où chacun a travaillé la dernière fois, apparaissent sur la carte, une couleur par opener. Cliquez une route pour voir ses arrêts, retirez-en une au besoin, puis publiez.",
+      "planHelp": "Choisissez la date de départ et le nombre de jours, puis cochez les openers : leurs routes (voisines, près de là où chacun a travaillé la dernière fois, un jour ouvrable chacune) apparaissent sur la carte, une couleur par opener. Cliquez une route pour voir ses arrêts, retirez-en une au besoin, puis publiez.",
       "weekOf": "Semaine du",
       "openers": "Openers",
       "pickOpeners": "Cochez au moins un opener.",
-      "planConfirm": "Publier {{routes}} routes pour {{n}} opener(s), semaine du {{date}} ? Chacun les verra dans son application et recevra un courriel avec sa semaine.",
+      "planConfirm": "Publier {{routes}} route(s) pour {{n}} opener(s), à partir du {{date}} ? Chacun les verra dans son application et recevra un courriel avec ses journées.",
       "emailSent": "courriel envoyé",
       "noneLeft": "aucune route libre",
       "clickHint": "Cliquez une route sur la carte pour voir ses arrêts, la donner à un opener ou exclure ce qui n'est pas un restaurant.",
@@ -6794,10 +6794,16 @@
       "nClients_one": "{{count}} client",
       "nClients_other": "{{count}} clients",
       "legend": "Légende",
-      "legendProposal": "Proposition de la semaine",
+      "legendProposal": "Proposition",
       "legendHint": "Pastille numérotée = une route d'une journée (son numéro). Cliquez-la : ses restaurants apparaissent en petits points, numérotés dans l'ordre de passage. Survolez un point pour sa fiche.",
       "clickForStops": "Cliquez pour voir ses restaurants",
-      "legendStops": "Restaurants de R{{n}}"
+      "legendStops": "Restaurants de R{{n}}",
+      "fromDate": "À partir du",
+      "nDaysLabel": "Nombre de jours",
+      "quick": {
+        "tomorrow": "Demain",
+        "nextMonday": "Lundi prochain"
+      }
     }
   },
   "hr": {

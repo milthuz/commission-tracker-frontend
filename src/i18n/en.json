@@ -6767,13 +6767,13 @@
       "excludedHelp": "They no longer appear in routes. Restore one excluded by mistake.",
       "excludedNone": "No excluded places.",
       "restore": "Restore",
-      "planWeek": "Plan the week",
+      "planWeek": "Plan routes",
       "planWeekN": "Plan {{n}} routes",
-      "planHelp": "Check the openers: their 5 routes for the week (Monday to Friday), neighbouring and near where each last worked, show up on the map, one colour per opener. Click a route to see its stops, remove one if needed, then publish.",
+      "planHelp": "Pick the start date and number of days, then check the openers: their routes (neighbouring, near where each last worked, one business day each) show up on the map, one colour per opener. Click a route to see its stops, remove one if needed, then publish.",
       "weekOf": "Week of",
       "openers": "Openers",
       "pickOpeners": "Check at least one opener.",
-      "planConfirm": "Publish {{routes}} routes for {{n}} opener(s), week of {{date}}? Each will see them in their app and get an email with their week.",
+      "planConfirm": "Publish {{routes}} route(s) for {{n}} opener(s), starting {{date}}? Each will see them in their app and get an email with their days.",
       "emailSent": "email sent",
       "noneLeft": "no free route",
       "clickHint": "Click a route on the map to see its stops, give it to an opener or exclude what isn't a restaurant.",
@@ -6794,10 +6794,16 @@
       "nClients_one": "{{count}} customer",
       "nClients_other": "{{count}} customers",
       "legend": "Legend",
-      "legendProposal": "Week proposal",
+      "legendProposal": "Proposal",
       "legendHint": "Numbered dot = one day route (its number). Click it: its restaurants appear as small dots, numbered in visiting order. Hover a dot for its details.",
       "clickForStops": "Click to see its restaurants",
-      "legendStops": "Restaurants in R{{n}}"
+      "legendStops": "Restaurants in R{{n}}",
+      "fromDate": "Starting",
+      "nDaysLabel": "Number of days",
+      "quick": {
+        "tomorrow": "Tomorrow",
+        "nextMonday": "Next Monday"
+      }
     }
   },
   "hr": {
