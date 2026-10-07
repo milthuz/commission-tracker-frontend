@@ -31,6 +31,7 @@ interface Proposal {
   openerEmail: string; openerName: string;
   days: { date: string; campaignRouteId: number; seq: number; region: string; name: string; stops: number; minutes: number; mode: 'walk' | 'car' }[];
 }
+const esc = (v: string) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 const addWeeks = (ymd: string, w: number) => { const d = new Date(`${ymd}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + w * 7); return d.toISOString().slice(0, 10); };
 
 export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: number) => void }) {
@@ -66,6 +67,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
   const layers = useRef<any[]>([]);
   const labels = useRef<any[]>([]);
   const hover = useRef<any>(null);
+  const tip = useRef<any>(null);
   const [close, setClose] = useState(false);
   const fmtDay = (s: string) => new Date(`${s}T12:00:00Z`).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
   const fmtDayShort = (s: string) => new Date(`${s}T12:00:00Z`).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { timeZone: 'UTC', weekday: 'short' });
@@ -132,6 +134,11 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
     labels.current.forEach((l) => l.setMap(null));
     layers.current = []; labels.current = [];
     hover.current?.setMap(null); hover.current = null;
+    // Fiche au survol (ou au toucher) : une seule bulle partagée, refermée en quittant le point.
+    if (!tip.current) tip.current = new g.maps.InfoWindow({ disableAutoPan: true });
+    tip.current.close();
+    const showTip = (anchor: any, html: string) => { tip.current.setContent(`<div style="font:12px/1.45 Satoshi,system-ui,sans-serif;color:#1C2434;max-width:240px">${html}</div>`); tip.current.open({ anchor, map, shouldFocus: false }); };
+    const hideTip = () => tip.current?.close();
     // Contours des régions : discrets, juste pour situer.
     for (const reg of data.regions) {
       layers.current.push(new g.maps.Polyline({ path: [...reg.polygon, reg.polygon[0]].map(([a, b]) => ({ lat: a, lng: b })), map, clickable: false,
@@ -153,7 +160,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
       const big = !!prop || on || close;
       const pin = new g.maps.Marker({
         position: { lat: r.centroid[0], lng: r.centroid[1] }, map, zIndex: on ? 60 : prop ? 50 : r.status === 'todo' ? 20 : 30,
-        title: prop ? `R${r.seq} · ${prop.opener} · ${fmtDay(prop.date)}` : `R${r.seq}`,
+        // (pas de title : la fiche au survol le remplace)
         icon: { path: g.maps.SymbolPath.CIRCLE, scale: prop ? 13 : big ? 11 : 5, fillColor: col, fillOpacity: 1,
           strokeColor: on ? '#1C2434' : '#FFFFFF', strokeWeight: on ? 3 : 2 },
         // Dans la pastille : le jour pour la proposition (« lun. »), le numéro de route de près.
@@ -162,18 +169,42 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
       });
       pin.addListener('click', () => setSelected((s) => (s === r.id ? null : r.id)));
       // Survol : le contour apparaît le temps du survol.
-      pin.addListener('mouseover', () => { hover.current?.setMap(null); if (!prop && !on) hover.current = hullOf(r, col, false); });
-      pin.addListener('mouseout', () => { hover.current?.setMap(null); hover.current = null; });
+      const regionName = (data.regions.find((x) => x.key === r.region) || { fr: r.region, en: r.region })[lng === 'fr' ? 'fr' : 'en'];
+      const routeTip = [
+        `<b style="font-size:13px">R${r.seq}</b> · ${esc(regionName)}`,
+        `${t('opener.campaign.nStops', { n: r.n })} · ~${fmtMinutes(r.minutes)} · ${t(`opener.campaign.mode.${r.mode}`)}`,
+        r.clients ? `<span style="color:#047857;font-weight:600">${t('opener.campaign.nClients', { count: r.clients })}</span>` : '',
+        prop ? `<span style="color:${prop.color};font-weight:700">${esc(prop.opener)} · ${esc(fmtDay(prop.date))}</span>`
+          : `<span style="color:${CAMPAIGN_COLOR[r.status]};font-weight:700">${t(`opener.campaign.status.${r.status}`)}</span>${r.openerName ? ` · ${esc(r.openerName)}${r.date ? ` · ${esc(fmtDay(r.date))}` : ''}` : ''}`,
+        `<span style="color:#64748B">${t('opener.campaign.clickForStops')}</span>`,
+      ].filter(Boolean).join('<br/>');
+      pin.addListener('mouseover', () => { hover.current?.setMap(null); if (!prop && !on) hover.current = hullOf(r, col, false); showTip(pin, routeTip); });
+      pin.addListener('mouseout', () => { hover.current?.setMap(null); hover.current = null; hideTip(); });
       labels.current.push(pin);
     }
     const lst = map.addListener('zoom_changed', () => setClose(map.getZoom() >= 13));
     // Arrêts de la route sélectionnée
     if (detail) {
-      for (const s of detail.stops) {
-        if (s.lat == null) continue;
-        layers.current.push(new g.maps.Marker({ position: { lat: s.lat, lng: s.lng }, map, zIndex: 30, title: s.name || '',
-          icon: { path: g.maps.SymbolPath.CIRCLE, scale: 5, fillColor: STATUS_COLOR[(s.status as PlaceStatus) || 'new'], fillOpacity: 1, strokeColor: '#1C2434', strokeWeight: 1 } }));
-      }
+      // Les restaurants de la route choisie : numérotés dans l'ordre de passage, couleur du statut
+      // (vert client, bleu-gris ancien client, orange prospect, gris jamais visité), fiche au survol.
+      detail.stops.forEach((s, i) => {
+        if (s.lat == null) return;
+        const st = (s.status as PlaceStatus) || 'new';
+        const mk = new g.maps.Marker({ position: { lat: s.lat, lng: s.lng }, map, zIndex: 70 + i,
+          icon: { path: g.maps.SymbolPath.CIRCLE, scale: 8, fillColor: STATUS_COLOR[st], fillOpacity: 1, strokeColor: '#FFFFFF', strokeWeight: 1.5 },
+          label: { text: String(i + 1), color: '#1C2434', fontSize: '9px', fontWeight: '700' } });
+        const html = [
+          `<b style="font-size:13px">${i + 1}. ${esc(s.name || '—')}</b>`,
+          s.address ? esc(s.address) : '',
+          `<span style="color:${STATUS_COLOR[st]};font-weight:700">● </span>${t(`opener.status.${st}`)}${s.version ? ` ${String(s.version).toUpperCase()}` : ''}${s.kind ? ` · ${t(`opener.kind.${s.kind}`, { defaultValue: s.kind })}` : ''}`,
+          s.lastSatisfaction ? `${t('opener.field.client.satShort', { n: s.lastSatisfaction })}` : '',
+          s.lastVisitAt ? `${t('opener.field.lastVisit')} : ${esc(new Date(s.lastVisitAt).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA'))}` : '',
+        ].filter(Boolean).join('<br/>');
+        mk.addListener('mouseover', () => showTip(mk, html));
+        mk.addListener('mouseout', hideTip);
+        mk.addListener('click', () => showTip(mk, html));
+        layers.current.push(mk);
+      });
       const path = detail.stops.filter((s) => s.lat != null).map((s) => ({ lat: s.lat!, lng: s.lng! }));
       if (path.length > 1) {
         layers.current.push(new g.maps.Polyline({ path, map, zIndex: 25, clickable: false, strokeOpacity: 0,
@@ -401,6 +432,18 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
                     <span className="text-body dark:text-bodydark">{o.days.length}</span>
                   </p>
                 ) : null)}
+              </>
+            )}
+            {detail && (
+              <>
+                <p className="mb-1 mt-2.5 border-t border-stroke pt-2 text-[10px] font-bold uppercase tracking-[.08em] text-body dark:border-strokedark dark:text-bodydark2">{t('opener.campaign.legendStops', { n: detail.seq })}</p>
+                {(['client', 'former', 'prospect', 'new'] as PlaceStatus[]).map((st) => (
+                  <p key={st} className="flex items-center gap-2 py-0.5 text-black dark:text-bodydark1">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: STATUS_COLOR[st] }} />
+                    <span className="flex-1">{t(`opener.status.${st}`)}</span>
+                    <span className="text-body dark:text-bodydark">{detail.stops.filter((x) => (x.status || 'new') === st).length}</span>
+                  </p>
+                ))}
               </>
             )}
             <p className="mt-2 text-[10px] leading-snug text-body dark:text-bodydark">{t('opener.campaign.legendHint')}</p>

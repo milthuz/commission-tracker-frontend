@@ -6795,7 +6795,9 @@
       "nClients_other": "{{count}} clients",
       "legend": "Légende",
       "legendProposal": "Proposition de la semaine",
-      "legendHint": "Une pastille = une route d'une journée. Survolez pour voir sa zone, cliquez pour ses arrêts."
+      "legendHint": "Pastille numérotée = une route d'une journée (son numéro). Cliquez-la : ses restaurants apparaissent en petits points, numérotés dans l'ordre de passage. Survolez un point pour sa fiche.",
+      "clickForStops": "Cliquez pour voir ses restaurants",
+      "legendStops": "Restaurants de R{{n}}"
     }
   },
   "hr": {

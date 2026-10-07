@@ -6795,7 +6795,9 @@
       "nClients_other": "{{count}} customers",
       "legend": "Legend",
       "legendProposal": "Week proposal",
-      "legendHint": "One dot = one day route. Hover to see its area, click for its stops."
+      "legendHint": "Numbered dot = one day route (its number). Click it: its restaurants appear as small dots, numbered in visiting order. Hover a dot for its details.",
+      "clickForStops": "Click to see its restaurants",
+      "legendStops": "Restaurants in R{{n}}"
     }
   },
   "hr": {
