@@ -26,6 +26,7 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
   const lng = i18n.language?.startsWith('fr') ? 'fr' : 'en';
   const dark = useIsDark();
   const [period, setPeriod] = useState<Period>('today');
+  const autoNext = useRef(false);
   const [routes, setRoutes] = useState<OverviewRoute[] | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,6 +44,9 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
       const to = period === 'next7' ? addDays(cfg.today, 6) : cfg.today;
       const r = await api<{ routes: OverviewRoute[] }>(`/api/opener/routes-overview?from=${from}&to=${to}`);
       setRoutes(r.routes);
+      // Rien aujourd'hui (routes publiées pour les jours suivants) : on montre les 7 prochains jours
+      // au lieu d'un écran vide — une seule fois, l'utilisateur garde ensuite la main.
+      if (period === 'today' && !r.routes.length && !autoNext.current) { autoNext.current = true; setPeriod('next7'); }
     } catch { setRoutes([]); } finally { setRefreshing(false); }
   }, [period]);
 

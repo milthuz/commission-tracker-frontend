@@ -6819,7 +6819,9 @@
       "quick": {
         "tomorrow": "Tomorrow",
         "nextMonday": "Next Monday"
-      }
+      },
+      "plannedTitle": "Planned routes",
+      "today": "Today"
     }
   },
   "hr": {

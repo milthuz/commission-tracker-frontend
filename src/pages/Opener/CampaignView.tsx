@@ -308,6 +308,15 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
     load().catch(() => {});
   });
 
+  const plannedByOpener = useMemo(() => {
+    const m = new Map<string, NonNullable<typeof data>['routes']>();
+    for (const r of (data?.routes || []).filter((x) => x.status === 'planned').sort((a, b) => (a.date || '').localeCompare(b.date || ''))) {
+      const k = r.openerName || r.openerEmail || '—';
+      m.set(k, [...(m.get(k) || []), r]);
+    }
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], 'fr'));
+  }, [data]);
+
   const showExcluded = () => { setSelected(null); setExcludedList([]); api<{ excluded: NonNullable<typeof excludedList> }>('/api/opener/excluded').then((r) => setExcludedList(r.excluded)).catch((e) => { setExcludedList(null); dialog.alert(e.message); }); };
   const restore = (placeId: string) => run(`re:${placeId}`, async () => {
     await api(`/api/opener/places/${encodeURIComponent(placeId)}/exclude`, { method: 'DELETE' });
@@ -555,6 +564,30 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
             </>
           ) : (
             <>
+              {/* Ce que chaque opener a à faire : les routes planifiées, par opener puis par date.
+                  Un clic montre la route sur la carte (David, 2026-10-07 : « où je vois ce qu'il a
+                  à faire ? »). */}
+              {plannedByOpener.length > 0 && (
+                <div className="mb-4 border-b border-stroke pb-4 dark:border-strokedark">
+                  <p className="mb-1 font-semibold text-black dark:text-white">{t('opener.campaign.plannedTitle')}</p>
+                  <div className="max-h-[260px] space-y-2 overflow-y-auto">
+                    {plannedByOpener.map(([name, list]) => (
+                      <div key={name}>
+                        <p className="px-1 text-xs font-bold text-black dark:text-white">{name}</p>
+                        {list.map((r) => (
+                          <button key={r.id} onClick={() => setSelected(r.id)}
+                            className="flex w-full items-center gap-2 rounded px-1.5 py-1 text-left text-xs hover:bg-gray-2 dark:hover:bg-meta-4">
+                            <span className={`h-2 w-2 shrink-0 rounded-full ${r.date === today ? 'bg-primary' : ''}`} style={r.date === today ? undefined : { background: CAMPAIGN_COLOR.planned }} />
+                            <span className="w-[86px] shrink-0 font-medium text-black dark:text-white">{r.date === today ? t('opener.campaign.today') : r.date ? fmtDay(r.date) : '—'}</span>
+                            <span className="min-w-0 flex-1 truncate text-body dark:text-bodydark">R{r.seq} · {t('opener.campaign.nStops', { n: r.n })} · ~{fmtMinutes(r.minutes)}</span>
+                            <span className="shrink-0 tabular-nums text-body dark:text-bodydark">{r.visited}/{r.n}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <p className="mb-1 font-semibold text-black dark:text-white">{t('opener.campaign.planWeek')}</p>
               <p className="mb-3 text-xs text-body dark:text-bodydark">{t('opener.campaign.planHelp')}</p>
               <label className="mb-1 block text-xs font-medium text-black dark:text-white">{t('opener.campaign.fromDate')}</label>
