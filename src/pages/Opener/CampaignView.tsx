@@ -25,6 +25,12 @@ const nextMonday = (today: string) => {
   d.setUTCDate(d.getUTCDate() + add);
   return d.toISOString().slice(0, 10);
 };
+// Une couleur par opener dans la proposition de la semaine (distinctes des couleurs de statut).
+const OPENER_COLORS = ['#F58346', '#8B5CF6', '#0EA5E9', '#EC4899', '#14B8A6', '#EAB308', '#EF4444', '#6366F1'];
+interface Proposal {
+  openerEmail: string; openerName: string;
+  days: { date: string; campaignRouteId: number; seq: number; region: string; name: string; stops: number; minutes: number; mode: 'walk' | 'car' }[];
+}
 const addWeeks = (ymd: string, w: number) => { const d = new Date(`${ymd}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + w * 7); return d.toISOString().slice(0, 10); };
 
 export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: number) => void }) {
@@ -45,12 +51,22 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
   const [assignTo, setAssignTo] = useState('');
   const [assignDate, setAssignDate] = useState('');
   const [planResult, setPlanResult] = useState<{ openerName: string; days: { date: string; name: string }[]; emailSent: boolean }[] | null>(null);
+  // Proposition de la semaine (aperçu, rien de publié) : recalculée dès qu'on coche un opener ou
+  // change la semaine. Le manager la regarde sur la carte, retire une route au besoin, puis publie.
+  const [proposal, setProposal] = useState<Proposal[] | null>(null);
+  const [proposalBusy, setProposalBusy] = useState(false);
   const [excludedList, setExcludedList] = useState<{ placeId: string; name: string | null; address: string | null; at: string; by: string | null; reason: string | null }[] | null>(null);
+  const proposed = useMemo(() => {
+    const m = new Map<number, { color: string; opener: string; date: string; day: number }>();
+    (proposal || []).forEach((o, k) => o.days.forEach((d, i) => m.set(d.campaignRouteId, { color: OPENER_COLORS[k % OPENER_COLORS.length], opener: o.openerName, date: d.date, day: i })));
+    return m;
+  }, [proposal]);
   const mapRef = useRef<{ g: any; map: any } | null>(null);
   const [mapReady, setMapReady] = useState(false);
   const layers = useRef<any[]>([]);
   const labels = useRef<any[]>([]);
   const fmtDay = (s: string) => new Date(`${s}T12:00:00Z`).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
+  const fmtDayShort = (s: string) => new Date(`${s}T12:00:00Z`).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { timeZone: 'UTC', weekday: 'short' });
 
   const load = useCallback(async () => {
     const c = await api<Campaign>('/api/opener/campaign');
@@ -120,19 +136,23 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
     }
     for (const r of data.routes) {
       if (!r.hull || r.hull.length < 3) continue;
-      const col = CAMPAIGN_COLOR[r.status];
+      const prop = proposed.get(r.id);
+      const col = prop ? prop.color : CAMPAIGN_COLOR[r.status];
       const on = selected === r.id;
-      const poly = new g.maps.Polygon({ paths: r.hull.map(([a, b]) => ({ lat: a, lng: b })), map, zIndex: on ? 10 : 2,
-        strokeColor: on ? '#F58346' : col, strokeOpacity: 0.95, strokeWeight: on ? 3 : 1.2, fillColor: col, fillOpacity: on ? 0.35 : r.status === 'todo' ? 0.12 : 0.28 });
+      const poly = new g.maps.Polygon({ paths: r.hull.map(([a, b]) => ({ lat: a, lng: b })), map, zIndex: on ? 12 : prop ? 8 : 2,
+        strokeColor: on ? '#1C2434' : col, strokeOpacity: 0.95, strokeWeight: on ? 3 : prop ? 2.5 : 1.2,
+        fillColor: col, fillOpacity: on ? 0.45 : prop ? 0.4 : r.status === 'todo' ? 0.12 : 0.28 });
       poly.addListener('click', () => setSelected((s) => (s === r.id ? null : r.id)));
       layers.current.push(poly);
-      const lbl = new g.maps.Marker({ position: { lat: r.centroid[0], lng: r.centroid[1] }, map, clickable: false, zIndex: 20,
+      // Route proposée : « Hao · lun. » toujours visible ; les autres : « R12 » de près seulement.
+      const lbl = new g.maps.Marker({ position: { lat: r.centroid[0], lng: r.centroid[1] }, map, clickable: false, zIndex: prop ? 40 : 20,
         icon: { path: g.maps.SymbolPath.CIRCLE, scale: 0 },
-        label: { text: `R${r.seq}`, color: dark ? '#DEE4EE' : '#1C2434', fontSize: '11px', fontWeight: '700' } });
+        label: { text: prop ? `${prop.opener.split(' ')[0]} · ${fmtDayShort(prop.date)}` : `R${r.seq}`, color: dark ? '#FFFFFF' : '#1C2434', fontSize: prop ? '12px' : '11px', fontWeight: '700' } });
+      (lbl as any).__always = !!prop;
       labels.current.push(lbl);
     }
     // Étiquettes seulement de près : de loin, des centaines de numéros seraient illisibles.
-    const toggle = () => { const z = map.getZoom(); labels.current.forEach((l) => l.setVisible(z >= 13)); };
+    const toggle = () => { const z = map.getZoom(); labels.current.forEach((l) => l.setVisible((l as any).__always || z >= 13)); };
     toggle();
     const lst = map.addListener('zoom_changed', toggle);
     // Arrêts de la route sélectionnée
@@ -149,7 +169,16 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
       }
     }
     return () => lst.remove();
-  }, [data, mapReady, selected, detail, dark]);
+  }, [data, mapReady, selected, detail, dark, proposed]);
+
+  // La proposition arrive : la carte se cadre sur ses routes.
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m || !mapReady || !data || !proposed.size) return;
+    const b = new m.g.maps.LatLngBounds();
+    data.routes.filter((r) => proposed.has(r.id)).forEach((r) => (r.hull || []).forEach(([a, c]) => b.extend({ lat: a, lng: c })));
+    if (!b.isEmpty()) m.map.fitBounds(b, 60);
+  }, [proposed, mapReady]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fitAll = useCallback(() => {
     const m = mapRef.current;
@@ -176,12 +205,34 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
     await load();
     dialog.alert(t('opener.campaign.recomputed', { routes: nf(r.routes), places: nf(r.places) }));
   });
+  // Aperçu : recalculé (sans rien publier) quand la sélection ou la semaine change.
+  const todoCount = data?.routes.filter((r) => r.status === 'todo').length ?? 0;
+  useEffect(() => {
+    if (!picked.length || !weekStart || !todoCount) { setProposal(null); return; }
+    let stale = false;
+    setProposalBusy(true);
+    const tm = window.setTimeout(() => {
+      api<{ openers: Proposal[] }>('/api/opener/campaign/plan-week', { method: 'POST', body: { openers: picked, weekStart, days: 5, preview: true } })
+        .then((r) => { if (!stale) setProposal(r.openers); })
+        .catch(() => { if (!stale) setProposal(null); })
+        .finally(() => { if (!stale) setProposalBusy(false); });
+    }, 300);
+    return () => { stale = true; window.clearTimeout(tm); };
+  }, [picked, weekStart, todoCount]);
+
+  const dropFromProposal = (routeId: number) =>
+    setProposal((p) => (p ? p.map((o) => ({ ...o, days: o.days.filter((d) => d.campaignRouteId !== routeId) })) : p));
+  const nProposed = (proposal || []).reduce((s, o) => s + o.days.length, 0);
+
   const planWeek = () => run('plan', async () => {
-    if (!picked.length) { dialog.alert(t('opener.campaign.pickOpeners')); return; }
-    if (!(await dialog.confirm(t('opener.campaign.planConfirm', { n: picked.length, date: fmtDay(weekStart) }), { confirmText: t('opener.campaign.planWeek') }))) return;
+    if (!proposal || !nProposed) { dialog.alert(t('opener.campaign.pickOpeners')); return; }
+    if (!(await dialog.confirm(t('opener.campaign.planConfirm', { n: proposal.filter((o) => o.days.length).length, routes: nProposed, date: fmtDay(weekStart) }), { confirmText: t('opener.campaign.publish') }))) return;
+    const assignments = proposal.map((o) => ({ openerEmail: o.openerEmail, ids: o.days.map((d) => d.campaignRouteId) }));
     const r = await api<{ openers: { openerName: string; days: { date: string; name: string }[]; emailSent: boolean }[] }>(
-      '/api/opener/campaign/plan-week', { method: 'POST', body: { openers: picked, weekStart, days: 5 } });
+      '/api/opener/campaign/plan-week', { method: 'POST', body: { openers: assignments.filter((a) => a.ids.length).map((a) => a.openerEmail), weekStart, days: 5, assignments } });
     setPlanResult(r.openers);
+    setProposal(null);
+    setPicked([]);
     await load();
   });
   const assignOne = () => run('assign', async () => {
@@ -433,10 +484,37 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
                   </label>
                 ))}
               </div>
-              <button onClick={planWeek} disabled={!!busy || !picked.length || !stats.todo}
+              {picked.length > 0 && (
+                <div className="mb-3 min-h-0 flex-1 overflow-y-auto rounded border border-stroke p-2 dark:border-strokedark">
+                  <p className="mb-1 flex items-center gap-1.5 px-1 text-[11px] font-bold uppercase tracking-[.06em] text-body dark:text-bodydark2">
+                    {t('opener.campaign.proposalTitle')}{proposalBusy && <Loader2 className="h-3 w-3 animate-spin" />}
+                  </p>
+                  {!proposalBusy && !nProposed && <p className="px-1 py-2 text-xs text-warning">{t('opener.campaign.noneLeft')}</p>}
+                  {(proposal || []).map((o, k) => (
+                    <div key={o.openerEmail} className="mb-2">
+                      <p className="flex items-center gap-1.5 px-1 py-1 text-sm font-semibold text-black dark:text-white">
+                        <span className="h-3 w-3 rounded-sm" style={{ background: OPENER_COLORS[k % OPENER_COLORS.length] }} />{o.openerName}
+                      </p>
+                      {o.days.map((d) => (
+                        <div key={d.campaignRouteId} className={`group flex items-center gap-2 rounded px-1.5 py-1 text-xs hover:bg-gray-2 dark:hover:bg-meta-4 ${selected === d.campaignRouteId ? 'bg-gray-2 dark:bg-meta-4' : ''}`}>
+                          <button onClick={() => setSelected(d.campaignRouteId)} className="min-w-0 flex-1 text-left">
+                            <p className="truncate font-medium text-black dark:text-white">{fmtDay(d.date)} — {d.name}</p>
+                            <p className="truncate text-[11px] text-body dark:text-bodydark">
+                              {t('opener.campaign.nStops', { n: d.stops })} · ~{fmtMinutes(d.minutes)} · {t(`opener.campaign.mode.${d.mode}`)}
+                            </p>
+                          </button>
+                          <button onClick={() => dropFromProposal(d.campaignRouteId)} title={t('opener.campaign.dropFromProposal') as string}
+                            className="shrink-0 rounded p-1 text-body opacity-60 hover:text-danger group-hover:opacity-100"><X className="h-3.5 w-3.5" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button onClick={planWeek} disabled={!!busy || proposalBusy || !nProposed}
                 className="mb-3 inline-flex items-center justify-center gap-1.5 rounded bg-primary px-3 py-2.5 text-sm font-bold text-white disabled:opacity-50">
                 {busy === 'plan' ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarPlus className="h-4 w-4" />}
-                {t('opener.campaign.planWeekN', { n: picked.length * 5 })}
+                {t('opener.campaign.publishN', { n: nProposed })}
               </button>
               {planResult && (
                 <div className="min-h-0 flex-1 space-y-2 overflow-y-auto rounded border border-success/40 bg-success/5 p-3 text-xs">
@@ -450,7 +528,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
                   ))}
                 </div>
               )}
-              {!planResult && <p className="text-xs text-body dark:text-bodydark">{t('opener.campaign.clickHint')}</p>}
+              {!planResult && !picked.length && <p className="text-xs text-body dark:text-bodydark">{t('opener.campaign.clickHint')}</p>}
             </>
           )}
         </div>

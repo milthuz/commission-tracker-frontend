@@ -6744,11 +6744,11 @@
       "restore": "Restore",
       "planWeek": "Plan the week",
       "planWeekN": "Plan {{n}} routes",
-      "planHelp": "Each checked opener gets 5 neighbouring routes (Monday to Friday), near where they last worked, and an email with their week.",
+      "planHelp": "Check the openers: their 5 routes for the week (Monday to Friday), neighbouring and near where each last worked, show up on the map, one colour per opener. Click a route to see its stops, remove one if needed, then publish.",
       "weekOf": "Week of",
       "openers": "Openers",
       "pickOpeners": "Check at least one opener.",
-      "planConfirm": "Plan the week of {{date}} for {{n}} opener(s)? Routes will be published and they will get an email.",
+      "planConfirm": "Publish {{routes}} routes for {{n}} opener(s), week of {{date}}? Each will see them in their app and get an email with their week.",
       "emailSent": "email sent",
       "noneLeft": "no free route",
       "clickHint": "Click a route on the map to see its stops, give it to an opener or exclude what isn't a restaurant.",
@@ -6761,7 +6761,11 @@
         "not_planned": "This route isn't planned.",
         "not_found": "Route not found.",
         "ids_required": "No route selected."
-      }
+      },
+      "proposalTitle": "Proposed routes (not published yet)",
+      "dropFromProposal": "Remove from proposal",
+      "publish": "Publish",
+      "publishN": "Publish these {{n}} routes"
     }
   },
   "hr": {

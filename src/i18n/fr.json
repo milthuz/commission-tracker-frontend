@@ -6744,11 +6744,11 @@
       "restore": "Rétablir",
       "planWeek": "Planifier la semaine",
       "planWeekN": "Planifier {{n}} routes",
-      "planHelp": "Chaque opener coché reçoit 5 routes voisines (lundi à vendredi), près de là où il a travaillé la dernière fois, et un courriel avec sa semaine.",
+      "planHelp": "Cochez les openers : leurs 5 routes de la semaine (lundi à vendredi), voisines et près de là où chacun a travaillé la dernière fois, apparaissent sur la carte, une couleur par opener. Cliquez une route pour voir ses arrêts, retirez-en une au besoin, puis publiez.",
       "weekOf": "Semaine du",
       "openers": "Openers",
       "pickOpeners": "Cochez au moins un opener.",
-      "planConfirm": "Planifier la semaine du {{date}} pour {{n}} opener(s) ? Les routes seront publiées et un courriel leur sera envoyé.",
+      "planConfirm": "Publier {{routes}} routes pour {{n}} opener(s), semaine du {{date}} ? Chacun les verra dans son application et recevra un courriel avec sa semaine.",
       "emailSent": "courriel envoyé",
       "noneLeft": "aucune route libre",
       "clickHint": "Cliquez une route sur la carte pour voir ses arrêts, la donner à un opener ou exclure ce qui n'est pas un restaurant.",
@@ -6761,7 +6761,11 @@
         "not_planned": "Cette route n'est pas planifiée.",
         "not_found": "Route introuvable.",
         "ids_required": "Aucune route choisie."
-      }
+      },
+      "proposalTitle": "Routes proposées (pas encore publiées)",
+      "dropFromProposal": "Retirer de la proposition",
+      "publish": "Publier",
+      "publishN": "Publier ces {{n}} routes"
     }
   },
   "hr": {
