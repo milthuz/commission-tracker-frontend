@@ -572,6 +572,14 @@ const LeadsAdmin = () => {
                 <label className={LABEL}>{t('admin.leads.zoho.methodPhone')}</label>
                 <input className={INPUT} value={settings.contactMethodPhone} onChange={(e) => set('contactMethodPhone', e.target.value)} />
               </div>
+              <div>
+                <label className={LABEL}>{t('admin.leads.zoho.sourceOpener')}</label>
+                <input className={INPUT} value={settings.leadSourceOpener} onChange={(e) => set('leadSourceOpener', e.target.value)} placeholder={t('admin.leads.zoho.openerFallback') as string} />
+              </div>
+              <div>
+                <label className={LABEL}>{t('admin.leads.zoho.methodOpener')}</label>
+                <input className={INPUT} value={settings.contactMethodOpener} onChange={(e) => set('contactMethodOpener', e.target.value)} placeholder={t('admin.leads.zoho.openerFallback') as string} />
+              </div>
             </div>
             <p className="mt-3 rounded-sm border border-warning/40 bg-warning/10 px-4 py-3 text-xs text-warning">
               {t('admin.leads.zoho.picklistWarning')}

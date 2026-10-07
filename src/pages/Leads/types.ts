@@ -5,7 +5,7 @@
 
 // 'support_ticket' : client existant, sa demande est devenue un billet Zoho Desk.
 export const LEAD_STATUSES = ['new', 'in_review', 'accepted', 'rejected', 'duplicate', 'support_ticket'] as const;
-export const LEAD_SOURCES = ['website', 'phone', 'walk_in', 'referral', 'event', 'other'] as const;
+export const LEAD_SOURCES = ['website', 'phone', 'walk_in', 'referral', 'event', 'other', 'opener'] as const;
 
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
 export type LeadSource = (typeof LEAD_SOURCES)[number];
@@ -141,6 +141,8 @@ export interface LeadSettings {
   reviewReminderHours: number;
   leadSourceWebsite: string;
   leadSourcePhone: string;
+  leadSourceOpener: string;
+  contactMethodOpener: string;
   contactMethodWebsite: string;
   contactMethodPhone: string;
   // Rattachement à un marchand existant : l'opportunité créée sur son compte.

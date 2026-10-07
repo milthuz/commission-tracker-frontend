@@ -3928,7 +3928,10 @@
         "methodWebsite": "Lead_Contact_Method — website",
         "methodPhone": "Lead_Contact_Method — phone",
         "leaveEmpty": "empty = don't write this field",
-        "picklistWarning": "These are picklists in Zoho: a value that is not in the list makes Zoho reject the WHOLE record, not just the field. Leave them empty unless you have copied the exact value from your Zoho setup. If a record is refused, Sales Hub retries once without these two fields rather than losing the lead."
+        "picklistWarning": "These are picklists in Zoho: a value that is not in the list makes Zoho reject the WHOLE record, not just the field. Leave them empty unless you have copied the exact value from your Zoho setup. If a record is refused, Sales Hub retries once without these two fields rather than losing the lead.",
+        "sourceOpener": "Lead_Source — opener (field)",
+        "methodOpener": "Lead_Contact_Method — opener (field)",
+        "openerFallback": "Empty = phone value"
       },
       "webflow": {
         "title": "Webflow site → Sales Hub",
@@ -4913,7 +4916,8 @@
       "walk_in": "Walk-in",
       "referral": "Referral",
       "event": "Event",
-      "other": "Other"
+      "other": "Other",
+      "opener": "Opener"
     },
     "interest": {
       "pos": "POS",
@@ -6592,7 +6596,7 @@
       "farConfirm": "You are {{dist}} from the restaurant. Save the check-in anyway?",
       "saveAnyway": "Save anyway",
       "newLead": "New lead",
-      "sourceDoor": "Source: Door-to-door",
+      "sourceDoor": "Source: Opener",
       "prefillNotice": "Prefilled from Google and the check-in. Check the contact before sending.",
       "section": {
         "business": "Business",
@@ -6700,7 +6704,8 @@
         "none": "No campaign route to show yet.",
         "simulated": "Demo: nothing was postponed.",
         "ended": "Demo finished. Nothing was saved."
-      }
+      },
+      "otherPosPh": "Which one? (e.g. Revel, Epos Now…)"
     },
     "kind": {
       "restaurant": "Restaurants",

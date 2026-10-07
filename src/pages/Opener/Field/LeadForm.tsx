@@ -8,7 +8,7 @@ import { api, uuid, type CheckinInput, type PlaceCard, type Service } from '../a
 import { dialog } from '../../../lib/dialog';
 
 // Écran 1e — nouvelle piste, depuis le terrain. Même chemin que la saisie interne : file de
-// révision, vérification des doublons Zoho, attribution. Source « walk_in ».
+// révision, vérification des doublons Zoho, attribution. Source « opener ».
 // `clientRef` est fixé à l'ouverture de l'écran : un double appui ou un renvoi après une coupure
 // ne crée jamais deux pistes.
 

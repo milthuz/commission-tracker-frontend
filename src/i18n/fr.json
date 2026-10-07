@@ -3928,7 +3928,10 @@
         "methodWebsite": "Lead_Contact_Method — site web",
         "methodPhone": "Lead_Contact_Method — téléphone",
         "leaveEmpty": "vide = ne pas écrire ce champ",
-        "picklistWarning": "Ce sont des listes de choix chez Zoho : une valeur absente de la liste fait rejeter TOUTE la fiche, pas seulement le champ. Laissez-les vides tant que vous n'avez pas copié la valeur exacte depuis votre configuration Zoho. Si une fiche est refusée, Sales Hub réessaie une fois sans ces deux champs plutôt que de perdre la piste."
+        "picklistWarning": "Ce sont des listes de choix chez Zoho : une valeur absente de la liste fait rejeter TOUTE la fiche, pas seulement le champ. Laissez-les vides tant que vous n'avez pas copié la valeur exacte depuis votre configuration Zoho. Si une fiche est refusée, Sales Hub réessaie une fois sans ces deux champs plutôt que de perdre la piste.",
+        "sourceOpener": "Lead_Source — opener (terrain)",
+        "methodOpener": "Lead_Contact_Method — opener (terrain)",
+        "openerFallback": "Vide = valeur « téléphone »"
       },
       "webflow": {
         "title": "Site Webflow → Sales Hub",
@@ -4913,7 +4916,8 @@
       "walk_in": "Sur place",
       "referral": "Référence",
       "event": "Événement",
-      "other": "Autre"
+      "other": "Autre",
+      "opener": "Opener"
     },
     "interest": {
       "pos": "Point de vente",
@@ -6592,7 +6596,7 @@
       "farConfirm": "Vous êtes à {{dist}} du restaurant. Enregistrer le check-in quand même ?",
       "saveAnyway": "Enregistrer quand même",
       "newLead": "Nouveau lead",
-      "sourceDoor": "Source : Porte-à-porte",
+      "sourceDoor": "Source : Opener",
       "prefillNotice": "Pré-rempli avec Google et le check-in. Vérifiez le contact avant d'envoyer.",
       "section": {
         "business": "Entreprise",
@@ -6700,7 +6704,8 @@
         "none": "Aucune route de campagne à montrer pour l'instant.",
         "simulated": "Démonstration : rien n'a été reporté.",
         "ended": "Démonstration terminée. Rien n'a été enregistré."
-      }
+      },
+      "otherPosPh": "Lequel ? (ex. Revel, Epos Now…)"
     },
     "kind": {
       "restaurant": "Restaurants",

@@ -16,7 +16,9 @@ import { dialog } from '../../../lib/dialog';
 // Le brouillon est gardé sur le téléphone ; l'envoi passe par la file (hors ligne compris).
 // À plus de 150 m du restaurant : avertissement, pas un refus.
 
-const POS = ['Lightspeed', 'Square', 'Toast', "Maitre'D", 'Veloce', 'Cluster', 'Aucun', 'Autre'];
+// « Autre » ouvre un champ texte : l'opener écrit le nom du POS (demande de David, 2026-10-08) ;
+// c'est ce nom qui est enregistré, pas « Autre ».
+const POS = ['Lightspeed', 'Square', 'Toast', 'Clover', "Maitre'D", 'Veloce', 'Auphan', 'Cluster', 'Aucun', 'Autre'];
 const FAR_M = 150;
 
 // Position FRAÎCHE au moment d'enregistrer (pas celle gardée en mémoire par la carte, qui peut
@@ -27,7 +29,7 @@ const freshPosition = () => new Promise<GeolocationPosition | null>((resolve) =>
 });
 
 interface Form {
-  id: string; currentPos: string | null; serviceType: ServiceType | null; terminals: number; onlineDelivery: boolean;
+  id: string; currentPos: string | null; otherPos?: string; serviceType: ServiceType | null; terminals: number; onlineDelivery: boolean;
   decisionMaker: 'yes' | 'no' | 'later' | null; interest: number; services: Service[]; notes: string; createLead: boolean;
   satisfaction?: number; paymentsBy?: PaymentsBy | null;
   // Arrivée au restaurant : l'ouverture de cet écran (heure + position). Gardée dans le brouillon.
@@ -85,7 +87,9 @@ export default function CheckIn() {
   if (!route || !stop) return <div className="p-8 text-center text-sm text-[var(--of-muted)]">{t('opener.field.stopNotFound')}</div>;
 
   const isClient = stop.status === 'client';
-  const missing = { pos: !form.currentPos, service: !form.serviceType, interest: !form.interest, satisfaction: isClient && !form.satisfaction };
+  const otherPos = (form.otherPos || '').trim();
+  const missing = { pos: !form.currentPos || (form.currentPos === 'Autre' && !otherPos), service: !form.serviceType, interest: !form.interest, satisfaction: isClient && !form.satisfaction };
+  const posValue = form.currentPos === 'Autre' ? otherPos.slice(0, 40) : form.currentPos;
   const valid = !missing.pos && !missing.service && !missing.interest && !missing.satisfaction;
   const dist = position && stop.lat != null ? haversine(position, [stop.lat, stop.lng!]) : null;
   const levels = ['', t('opener.field.level.1'), t('opener.field.level.2'), t('opener.field.level.3'), t('opener.field.level.4'), t('opener.field.level.5')];
@@ -106,7 +110,7 @@ export default function CheckIn() {
       id: form.id, placeId: stop.placeId, stopId: stop.id, at: new Date().toISOString(),
       startedAt: form.startedAt, startLat: form.startLat ?? null, startLng: form.startLng ?? null, startAccuracy: form.startAccuracy ?? null,
       lat: here?.[0] ?? null, lng: here?.[1] ?? null, accuracy: hereAcc ?? null,
-      currentPos: form.currentPos!, serviceType: form.serviceType!, terminals: form.terminals, onlineDelivery: form.onlineDelivery,
+      currentPos: posValue!, serviceType: form.serviceType!, terminals: form.terminals, onlineDelivery: form.onlineDelivery,
       decisionMaker: form.decisionMaker, interest: form.interest, services: form.services, notes: form.notes.trim(),
       satisfaction: isClient ? form.satisfaction || null : null, paymentsBy: isClient ? form.paymentsBy || null : null,
     };
@@ -116,7 +120,7 @@ export default function CheckIn() {
       await flush().catch(() => {});
     }
     clearDraft(draftKey);
-    markStop(stop.id, { outcome: 'done', doneAt: payload.at, checkin: { id: form.id, at: payload.at, interest: form.interest, leadId: null, decisionMaker: form.decisionMaker, currentPos: form.currentPos! } });
+    markStop(stop.id, { outcome: 'done', doneAt: payload.at, checkin: { id: form.id, at: payload.at, interest: form.interest, leadId: null, decisionMaker: form.decisionMaker, currentPos: posValue! } });
     setSending(false);
     if (form.createLead) {
       navigate(`/opener/stop/${stop.id}/lead`, { replace: true, state: { checkin: payload } });
@@ -176,7 +180,14 @@ export default function CheckIn() {
           <Segmented options={(['cluster', 'other', 'unknown'] as PaymentsBy[]).map((v) => ({ value: v, label: t(`opener.field.client.paymentsBy.${v}`) }))}
             value={form.paymentsBy || null} onChange={(v) => set('paymentsBy')(v as PaymentsBy)} />)}
         {q(t('opener.field.q.pos'), true, missing.pos,
-          <Chips options={POS.map((p) => ({ value: p, label: p === 'Aucun' ? t('opener.field.none') : p === 'Autre' ? t('opener.field.other') : p }))} value={form.currentPos} onChange={set('currentPos')} />)}
+          <div>
+            <Chips options={POS.map((p) => ({ value: p, label: p === 'Aucun' ? t('opener.field.none') : p === 'Autre' ? t('opener.field.other') : p }))} value={form.currentPos} onChange={set('currentPos')} />
+            {form.currentPos === 'Autre' && (
+              <input value={form.otherPos || ''} onChange={(e) => set('otherPos')(e.target.value)} maxLength={40} autoFocus
+                placeholder={t('opener.field.otherPosPh') as string} aria-label={t('opener.field.otherPosPh') as string}
+                className={`mt-2 h-11 w-full rounded-[10px] border bg-[var(--of-input)] px-3 text-sm text-[var(--of-text)] outline-none focus:border-primary ${tried && !otherPos ? 'border-[var(--of-bad)]' : 'border-[var(--of-input-stroke)]'}`} />
+            )}
+          </div>)}
         {q(t('opener.field.q.service'), true, missing.service,
           <Segmented options={(['tables', 'quick', 'both'] as ServiceType[]).map((v) => ({ value: v, label: t(`opener.service.${v}`) }))} value={form.serviceType} onChange={set('serviceType')} />)}
         {q(t('opener.field.q.terminals'), false, false,
