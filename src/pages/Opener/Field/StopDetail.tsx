@@ -49,6 +49,17 @@ export default function StopDetail() {
       navigate('/opener/list');
     } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); setSkipOpen(false); }
   };
+  // « Pas un restaurant » : l'arrêt est sauté ET le lieu exclu pour de bon (il ne revient plus
+  // dans les scans ni dans la campagne). Seul un manager peut le rétablir.
+  const excludeIt = async () => {
+    if (!(await dialog.confirm(t('opener.field.excludeConfirm'), { confirmText: t('opener.campaign.exclude'), danger: true }))) return;
+    setBusy(true);
+    try {
+      await api(`/api/opener/places/${encodeURIComponent(stop.placeId)}/exclude`, { method: 'POST', body: { reason: 'not_restaurant', stopId: stop.id } });
+      markStop(stop.id, { outcome: 'skipped', skipReason: 'excluded' });
+      navigate('/opener/list');
+    } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); setSkipOpen(false); }
+  };
   const unskip = async () => {
     setBusy(true);
     try {
@@ -153,6 +164,7 @@ export default function StopDetail() {
                 {(['closed', 'no_time', 'refused', 'other'] as SkipReason[]).map((r) => (
                   <button key={r} disabled={busy} onClick={() => skip(r)} className="h-11 rounded-[10px] border border-[var(--of-stroke)] bg-[var(--of-page)] text-[13px] font-semibold text-[var(--of-text)]">{t(`opener.skip.${r}`)}</button>
                 ))}
+                <button disabled={busy} onClick={excludeIt} className="col-span-2 h-11 rounded-[10px] border border-[var(--of-stroke)] bg-[var(--of-page)] text-[13px] font-semibold text-[var(--of-bad)]">{t('opener.campaign.notRestaurant')}</button>
               </div>
               <button onClick={() => setSkipOpen(false)} className="mt-2 w-full py-2 text-xs text-[var(--of-faint)]">{t('opener.field.cancel')}</button>
             </Card>
@@ -162,7 +174,7 @@ export default function StopDetail() {
             </button>
           )
         )}
-        {open && stop.outcome === 'skipped' && (
+        {open && stop.outcome === 'skipped' && stop.skipReason !== 'excluded' && (
           <button onClick={unskip} disabled={busy} className="flex w-full items-center justify-center gap-2 py-2 text-[13px] font-semibold text-primary">
             <Undo2 className="h-4 w-4" />{t('opener.field.unskip', { reason: t(`opener.skip.${stop.skipReason || 'other'}`) })}
           </button>

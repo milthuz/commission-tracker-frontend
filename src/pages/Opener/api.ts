@@ -6,7 +6,7 @@ export type PlaceStatus = 'client' | 'former' | 'prospect' | 'new';
 export type ServiceType = 'tables' | 'quick' | 'both';
 export type Version = 'v1' | 'v2';
 export type Service = 'payments' | 'pos' | 'beverage_control';
-export type SkipReason = 'closed' | 'no_time' | 'refused' | 'other' | 'postponed';
+export type SkipReason = 'closed' | 'no_time' | 'refused' | 'other' | 'postponed' | 'excluded';
 // Verdict d'une visite, d'après la position GPS au check-in (serveur : field.js, verdict()).
 export type Verdict = 'onsite' | 'far' | 'imprecise' | 'nogps';
 
@@ -113,6 +113,32 @@ export interface OverviewRoute {
 }
 
 export const VERDICT_COLOR: Record<Verdict, string> = { onsite: '#57D193', far: '#F87171', imprecise: '#F2B53C', nogps: '#94A3B8' };
+
+// Campagne de couverture (GET /api/opener/campaign).
+export type CampaignStatus = 'todo' | 'planned' | 'done';
+export interface CampaignRegion {
+  key: string; fr: string; en: string; polygon: [number, number][];
+  cells: { total: number; done: number };
+  places: { total: number; clients: number; visited: number };
+}
+export interface CampaignRoute {
+  id: number; seq: number; region: string; mode: 'walk' | 'car'; n: number; minutes: number; meters: number;
+  hull: [number, number][]; centroid: [number, number]; status: CampaignStatus; routeId: number | null;
+  date: string | null; openerEmail: string | null; openerName: string | null; visited: number;
+}
+export interface Campaign {
+  regions: CampaignRegion[];
+  excluded: number;
+  inventory: { running: boolean; progress: { done: number; total: number; cells?: number; places?: number } | null;
+    last: { at: string; calls: number; cells: number; places: number; stopped?: string } | null };
+  computed: { at: string; routes: number; places: number; walk: number; car: number } | null;
+  routes: CampaignRoute[];
+}
+export interface CampaignRouteDetail {
+  id: number; seq: number; region: string; mode: 'walk' | 'car'; minutes: number; meters: number; status: CampaignStatus; routeId: number | null;
+  stops: (ClusterInfo & { placeId: string; name: string | null; address: string | null; lat: number | null; lng: number | null; kind: string | null })[];
+}
+export const CAMPAIGN_COLOR: Record<CampaignStatus, string> = { todo: '#94A3B8', planned: '#3C50E0', done: '#10B981' };
 
 export interface CheckinInput {
   id: string; placeId: string; stopId?: number | null; at: string;

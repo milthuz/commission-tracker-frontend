@@ -23,7 +23,7 @@ const TEMPLATE_TYPES = [
   // RH. `hr_sign_request` et `hr_completed` partent au CANDIDAT, marque Cluster, unilingues.
   'hr_sign_request', 'hr_countersign', 'hr_completed', 'hr_declined',
   // Opener : la route publiée, à l'opener. Interne, bilingue.
-  'opener_route_published',
+  'opener_route_published', 'opener_week_published',
 ] as const;
 type TemplateType = (typeof TEMPLATE_TYPES)[number];
 

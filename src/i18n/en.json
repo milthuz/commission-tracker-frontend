@@ -421,11 +421,12 @@
     "revenueModeler": "Revenue Modeler",
     "credits": "Merchant Processor Credits",
     "icplusRates": "IC+ reference rates",
-    "openerMatch": "Cluster locations ↔ Google",
-    "openerRoutes": "Opener routes",
-    "openerField": "Opener (field)",
+    "openerMatch": "Cluster locations",
+    "openerRoutes": "Campaign & routes",
+    "openerField": "Field app",
     "hr": "Hiring (HR)",
-    "hrAdmin": "HR"
+    "hrAdmin": "HR",
+    "opener": "Opener"
   },
   "tour": {
     "skip": "Skip",
@@ -466,7 +467,7 @@
     "saasIncreaseBody": "Apply a SaaS price increase to a subscription. It takes effect at that subscription's own next renewal, never on a shared date.",
     "saasIncreaseLookupBody": "The support desk's reference when a merchant calls about their bill: search one account and read back the old price, the new price, the date and the exact notice they received.",
     "openerMatchBody": "Every Cluster customer restaurant linked to its Google listing, with its version: V2 (Kaizen) or V1 (Zoho Billing subscribers). Doubtful cases are confirmed here; this is what shows a restaurant as a \"customer\" on the openers' map.",
-    "openerRoutesBody": "Prepare door-to-door days: a neighbourhood and the time available are enough to get suggested routes, or draw a zone. Click a point for its card, publish the route to the opener. The Tracking tab shows progress and confirms each visit by the check-in location.",
+    "openerRoutesBody": "All door-to-door work in one place. \"Campaign & routes\": Montreal, Laval, the North Shore and South Shore already split into one-day routes, mapping progress, a finish estimate by number of openers, and one-click \"Plan the week\"; the Tracking tab confirms each visit by the check-in location. \"Field app\": the opener's phone app. \"Cluster locations\": our customers linked to their Google listing.",
     "openerFieldBody": "The opener's app, to open on their phone: the day's route on a map, each restaurant's card, check-in, lead creation and the day summary."
   },
   "proposals": {
@@ -3044,7 +3045,8 @@
         "hr_countersign": "HR — Candidate signed, countersignature needed",
         "hr_completed": "HR — Signed package sent to the new hire",
         "hr_declined": "HR — Offer declined",
-        "opener_route_published": "Opener — route published"
+        "opener_route_published": "Opener — route published",
+        "opener_week_published": "Opener — week planned"
       }
     },
     "recalculate": {
@@ -6383,7 +6385,8 @@
       "no_time": "Out of time",
       "refused": "Turned away",
       "other": "Other reason",
-      "postponed": "Postponed"
+      "postponed": "Postponed",
+      "excluded": "not a restaurant (excluded)"
     },
     "designer": {
       "newRoute": "+ New route",
@@ -6453,7 +6456,8 @@
       "scanFailed": "The zone scan failed: {{error}}",
       "tab": {
         "plan": "Plan",
-        "track": "Tracking"
+        "track": "Tracking",
+        "campaign": "Campaign"
       },
       "planTitle": "Plan automatically",
       "planHelp": "A neighbourhood or an address, the time available: Sales Hub suggests routes that fit in the day.",
@@ -6647,7 +6651,8 @@
       "locating": "Locating…",
       "visitTimer": "Visit duration",
       "arrivedAt": "Arrived at {{time}}",
-      "restartTimer": "Reset"
+      "restartTimer": "Reset",
+      "excludeConfirm": "Not a restaurant? It will be removed from the route and won't come back in future routes."
     },
     "kind": {
       "restaurant": "Restaurants",
@@ -6681,6 +6686,70 @@
       "lastCheckin": "Last check-in {{time}} · {{name}}",
       "openRoute": "Open the route",
       "visitTime": "{{time}} in visits"
+    },
+    "campaign": {
+      "mappingTitle": "Territory mapping",
+      "found": "{{n}} found",
+      "mappingRunning": "Mapping in progress: {{done}} / {{total}} Google searches…",
+      "mappingDone": "The whole territory is mapped. It is refreshed every night.",
+      "mappingNightly": "Mapping moves forward on its own every night (1,200 Google searches).",
+      "excludedCount": "{{n}} excluded",
+      "continueMapping": "Continue mapping now",
+      "recompute": "Recompute routes",
+      "recomputed": "{{routes}} routes recomputed for {{places}} restaurants to visit.",
+      "coverageTitle": "Coverage",
+      "status": {
+        "todo": "To do",
+        "planned": "Planned",
+        "done": "Done"
+      },
+      "placesLine": "{{places}} restaurants mapped · {{clients}} already customers · {{visited}} visited",
+      "withOpeners": "With this many openers (5 h × 5 days)",
+      "eta": "{{weeks}} week(s) — done around {{date}}",
+      "nothingLeft": "Nothing left to visit",
+      "toFinishIn": "To finish in",
+      "weeks": "weeks",
+      "openersNeeded": "you need {{n}} opener(s)",
+      "etaPartial": "Partial estimate: mapping isn't finished, more routes will be added.",
+      "showAll": "Show all",
+      "noRoutesYet": "Routes will show up here after the first night of mapping (or click \"Continue mapping now\").",
+      "mode": {
+        "walk": "On foot",
+        "car": "By car"
+      },
+      "nStops": "{{n}} stops",
+      "assignedTo": "{{name}} · {{date}} · {{visited}} / {{n}} visited",
+      "assign": "Give this route",
+      "openRoute": "Open route",
+      "unassign": "Take back from opener",
+      "stops": "Stops",
+      "exclude": "Exclude",
+      "notRestaurant": "Not a restaurant — exclude",
+      "excludeConfirm": "\"{{name}}\" is not a restaurant? It won't come back in scans or the campaign. You can restore it later.",
+      "excludedTitle": "Excluded places",
+      "excludedHelp": "They no longer appear in routes. Restore one excluded by mistake.",
+      "excludedNone": "No excluded places.",
+      "restore": "Restore",
+      "planWeek": "Plan the week",
+      "planWeekN": "Plan {{n}} routes",
+      "planHelp": "Each checked opener gets 5 neighbouring routes (Monday to Friday), near where they last worked, and an email with their week.",
+      "weekOf": "Week of",
+      "openers": "Openers",
+      "pickOpeners": "Check at least one opener.",
+      "planConfirm": "Plan the week of {{date}} for {{n}} opener(s)? Routes will be published and they will get an email.",
+      "emailSent": "email sent",
+      "noneLeft": "no free route",
+      "clickHint": "Click a route on the map to see its stops, give it to an opener or exclude what isn't a restaurant.",
+      "err": {
+        "already_running": "Mapping is already running.",
+        "openers_required": "Check at least one opener.",
+        "opener_required": "Pick an opener.",
+        "invalid_date": "Invalid date.",
+        "route_started": "This route has already started: it can't be taken back.",
+        "not_planned": "This route isn't planned.",
+        "not_found": "Route not found.",
+        "ids_required": "No route selected."
+      }
     }
   },
   "hr": {

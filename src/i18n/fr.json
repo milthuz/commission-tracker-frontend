@@ -421,11 +421,12 @@
     "revenueModeler": "Modélisateur de revenus",
     "credits": "Crédits processeur marchand",
     "icplusRates": "Taux de référence IC+",
-    "openerMatch": "Emplacements Cluster ↔ Google",
-    "openerRoutes": "Routes opener",
-    "openerField": "Opener (terrain)",
+    "openerMatch": "Emplacements Cluster",
+    "openerRoutes": "Campagne et routes",
+    "openerField": "Application terrain",
     "hr": "Embauches (RH)",
-    "hrAdmin": "RH"
+    "hrAdmin": "RH",
+    "opener": "Opener"
   },
   "tour": {
     "skip": "Passer",
@@ -466,7 +467,7 @@
     "saasIncreaseLookupBody": "La référence du soutien quand un marchand appelle au sujet de sa facture : cherchez un compte et lisez l'ancien prix, le nouveau, la date et l'avis exact qu'il a reçu.",
     "supportBody": "Rapports de haut niveau sur les billets Zoho Desk : volume, délais de résolution, types de problèmes, équipes, marchands, et billets croisés avec les revenus et le churn. Ce qui distingue les marchands qui partent, ce sont les billets qui traînent, pas leur nombre.",
     "openerMatchBody": "Chaque restaurant client de Cluster relié à sa fiche Google, avec sa version : V2 (Kaizen) ou V1 (abonnés Zoho Billing). Les cas douteux se confirment ici ; c'est ce qui fait apparaître un restaurant « client » sur la carte des openers.",
-    "openerRoutesBody": "Préparez les journées de porte-à-porte : un quartier et le temps disponible suffisent pour obtenir des routes suggérées, ou dessinez une zone. Cliquez un point pour sa fiche, publiez la route à l'opener. L'onglet Suivi montre l'avancement et confirme chaque visite par la position du check-in.",
+    "openerRoutesBody": "Tout le porte-à-porte au même endroit. « Campagne et routes » : Montréal, Laval, la Rive-Nord et la Rive-Sud déjà découpés en routes d'une journée, la progression de la cartographie, l'estimation de fin selon le nombre d'openers, et « Planifier la semaine » en un clic ; l'onglet Suivi confirme chaque visite par la position du check-in. « Application terrain » : l'application de l'opener, sur son téléphone. « Emplacements Cluster » : nos clients reliés à leur fiche Google.",
     "openerFieldBody": "L'application de l'opener, à ouvrir sur son téléphone : la route du jour sur une carte, la fiche de chaque restaurant, le check-in, la création de lead et le résumé de la journée."
   },
   "proposals": {
@@ -3044,7 +3045,8 @@
         "hr_countersign": "RH — Candidat signé, contresignature requise",
         "hr_completed": "RH — Dossier signé envoyé au nouvel employé",
         "hr_declined": "RH — Offre refusée",
-        "opener_route_published": "Opener — route publiée"
+        "opener_route_published": "Opener — route publiée",
+        "opener_week_published": "Opener — semaine planifiée"
       }
     },
     "recalculate": {
@@ -6383,7 +6385,8 @@
       "no_time": "Manque de temps",
       "refused": "Refus d'entrer",
       "other": "Autre raison",
-      "postponed": "Reporté"
+      "postponed": "Reporté",
+      "excluded": "pas un restaurant (exclu)"
     },
     "designer": {
       "newRoute": "+ Nouvelle route",
@@ -6453,7 +6456,8 @@
       "scanFailed": "Le balayage de la zone a échoué : {{error}}",
       "tab": {
         "plan": "Planifier",
-        "track": "Suivi"
+        "track": "Suivi",
+        "campaign": "Campagne"
       },
       "planTitle": "Planifier automatiquement",
       "planHelp": "Un quartier ou une adresse, le temps disponible : Sales Hub propose des routes qui tiennent dans la journée.",
@@ -6647,7 +6651,8 @@
       "locating": "Localisation…",
       "visitTimer": "Durée de la visite",
       "arrivedAt": "Arrivée à {{time}}",
-      "restartTimer": "Remettre à zéro"
+      "restartTimer": "Remettre à zéro",
+      "excludeConfirm": "Ce lieu n'est pas un restaurant ? Il sera retiré de la route et ne reviendra plus dans les prochaines routes."
     },
     "kind": {
       "restaurant": "Restaurants",
@@ -6681,6 +6686,70 @@
       "lastCheckin": "Dernier check-in {{time}} · {{name}}",
       "openRoute": "Ouvrir la route",
       "visitTime": "{{time}} en visite"
+    },
+    "campaign": {
+      "mappingTitle": "Cartographie du territoire",
+      "found": "{{n}} trouvés",
+      "mappingRunning": "Cartographie en cours : {{done}} / {{total}} recherches Google…",
+      "mappingDone": "Tout le territoire est cartographié. Il est revu chaque nuit.",
+      "mappingNightly": "La cartographie avance seule chaque nuit (1 200 recherches Google).",
+      "excludedCount": "{{n}} exclus",
+      "continueMapping": "Poursuivre la cartographie maintenant",
+      "recompute": "Recalculer les routes",
+      "recomputed": "{{routes}} routes recalculées pour {{places}} restaurants à visiter.",
+      "coverageTitle": "Couverture",
+      "status": {
+        "todo": "À faire",
+        "planned": "Planifiées",
+        "done": "Faites"
+      },
+      "placesLine": "{{places}} restaurants cartographiés · {{clients}} déjà clients · {{visited}} visités",
+      "withOpeners": "Avec ce nombre d'openers (5 h × 5 jours)",
+      "eta": "{{weeks}} semaine(s) — fin vers le {{date}}",
+      "nothingLeft": "Plus rien à visiter",
+      "toFinishIn": "Pour finir en",
+      "weeks": "semaines",
+      "openersNeeded": "il faut {{n}} opener(s)",
+      "etaPartial": "Estimation partielle : la cartographie n'est pas terminée, d'autres routes s'ajouteront.",
+      "showAll": "Tout voir",
+      "noRoutesYet": "Les routes apparaîtront ici dès la fin de la première nuit de cartographie (ou cliquez « Poursuivre la cartographie maintenant »).",
+      "mode": {
+        "walk": "À pied",
+        "car": "En voiture"
+      },
+      "nStops": "{{n}} arrêts",
+      "assignedTo": "{{name}} · {{date}} · {{visited}} / {{n}} visités",
+      "assign": "Donner cette route",
+      "openRoute": "Ouvrir la route",
+      "unassign": "Retirer à l'opener",
+      "stops": "Arrêts",
+      "exclude": "Exclure",
+      "notRestaurant": "Pas un restaurant — exclure",
+      "excludeConfirm": "« {{name}} » n'est pas un restaurant ? Il ne reviendra plus dans les balayages ni dans la campagne. On peut le rétablir plus tard.",
+      "excludedTitle": "Établissements exclus",
+      "excludedHelp": "Ils ne reviennent plus dans les routes. Rétablissez-en un exclu par erreur.",
+      "excludedNone": "Aucun établissement exclu.",
+      "restore": "Rétablir",
+      "planWeek": "Planifier la semaine",
+      "planWeekN": "Planifier {{n}} routes",
+      "planHelp": "Chaque opener coché reçoit 5 routes voisines (lundi à vendredi), près de là où il a travaillé la dernière fois, et un courriel avec sa semaine.",
+      "weekOf": "Semaine du",
+      "openers": "Openers",
+      "pickOpeners": "Cochez au moins un opener.",
+      "planConfirm": "Planifier la semaine du {{date}} pour {{n}} opener(s) ? Les routes seront publiées et un courriel leur sera envoyé.",
+      "emailSent": "courriel envoyé",
+      "noneLeft": "aucune route libre",
+      "clickHint": "Cliquez une route sur la carte pour voir ses arrêts, la donner à un opener ou exclure ce qui n'est pas un restaurant.",
+      "err": {
+        "already_running": "La cartographie est déjà en cours.",
+        "openers_required": "Cochez au moins un opener.",
+        "opener_required": "Choisissez un opener.",
+        "invalid_date": "Date invalide.",
+        "route_started": "Cette route est déjà commencée : impossible de la retirer.",
+        "not_planned": "Cette route n'est pas planifiée.",
+        "not_found": "Route introuvable.",
+        "ids_required": "Aucune route choisie."
+      }
     }
   },
   "hr": {

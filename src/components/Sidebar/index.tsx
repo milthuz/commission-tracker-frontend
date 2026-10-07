@@ -122,6 +122,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     pathname.includes('resources') || pathname === '/pricing-guide'
   );
 
+  // Opener submenu — campagne et routes, application terrain, emplacements (un seul menu).
+  const [openerMenuOpen, setOpenerMenuOpen] = useState(
+    pathname.startsWith('/opener') || pathname === '/admin/opener'
+  );
+
   // Partners submenu — clicking "Partners" itself lands on the Opportunity Queue dashboard;
   // "Manage Partners" (companies/logos/leads config) is the one sub-item, same idiom as Resources
   // above (user request 2026-07-2x: the queue should be the default view, not an equal tab).
@@ -145,7 +150,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     localStorage.setItem('sidebar-collapsed', String(collapsed));
     // Auto-close the admin/resources submenus when collapsing so they don't pop into the
     // narrow rail awkwardly.
-    if (collapsed) { setAdminMenuOpen(false); setResourcesMenuOpen(false); setAdminResourcesOpen(false); setPartnersMenuOpen(false); }
+    if (collapsed) { setAdminMenuOpen(false); setResourcesMenuOpen(false); setAdminResourcesOpen(false); setPartnersMenuOpen(false); setOpenerMenuOpen(false); }
   }, [collapsed]);
 
   // CSS helpers for collapsed mode — applied to every NavLink and the label spans.
@@ -730,59 +735,74 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </NavLink>
                 </li>
               )}
-              {/* <!-- Magasins Cluster ↔ Google (perm: opener:match) — module Opener, lot 0.
-                   Au premier niveau pour la même raison que les taux IC+ juste au-dessus : le
-                   sous-menu Admin est gardé par `isAdmin`. --> */}
-              {(isAdmin || can('opener:match')) && (
-                <li>
-                  <NavLink
-                    to="/admin/opener"
-                    className={navLinkCls(pathname === '/admin/opener')}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                    <span className={labelCls}>{t('sidebar.openerMatch')}</span>
-                    <NewBadge path="/admin/opener" collapsed={collapsed} />
-                    <RailTip label={t('sidebar.openerMatch') as string} />
-                  </NavLink>
-                </li>
-              )}
-              {/* <!-- Module Opener (lots 1 à 4). « Routes opener » : le manager conçoit et publie
-                   (opener:routes). « Opener (terrain) » : l'application plein écran du téléphone
-                   (opener:field) — elle quitte la mise en page de Sales Hub. --> */}
-              {(isAdmin || can('opener:routes')) && (
-                <li>
-                  <NavLink
-                    to="/opener-routes"
-                    className={navLinkCls(pathname.startsWith('/opener-routes'))}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="6" cy="19" r="2.5" /><circle cx="18" cy="5" r="2.5" />
-                      <path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5" />
-                    </svg>
-                    <span className={labelCls}>{t('sidebar.openerRoutes')}</span>
-                    <NewBadge path="/opener-routes" collapsed={collapsed} />
-                    <RailTip label={t('sidebar.openerRoutes') as string} />
-                  </NavLink>
-                </li>
-              )}
-              {(isAdmin || can('opener:field')) && (
-                <li>
-                  <NavLink
-                    to="/opener"
-                    className={navLinkCls(pathname === '/opener' || pathname.startsWith('/opener/'))}
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="6" y="2.5" width="12" height="19" rx="2.5" /><path d="M10.5 18.5h3" />
-                    </svg>
-                    <span className={labelCls}>{t('sidebar.openerField')}</span>
-                    <NewBadge path="/opener" collapsed={collapsed} />
-                    <RailTip label={t('sidebar.openerField') as string} />
-                  </NavLink>
-                </li>
-              )}
+              {/* <!-- Module Opener — UN menu dépliable (demande de David 2026-10-07 : « ça commence à
+                   faire beaucoup de menu à gauche »), même idiome que Ressources. Chaque entrée garde
+                   sa permission : opener:routes (campagne et routes du manager), opener:field
+                   (l'application plein écran du téléphone, hors mise en page Sales Hub),
+                   opener:match (emplacements Cluster ↔ Google). Au premier niveau et non sous Admin :
+                   le sous-menu Admin est gardé par `isAdmin`. --> */}
+              {(isAdmin || can('opener:routes') || can('opener:field') || can('opener:match')) && (() => {
+                const items = [
+                  { to: '/opener-routes', label: t('sidebar.openerRoutes'), ok: isAdmin || can('opener:routes'), active: pathname.startsWith('/opener-routes') },
+                  { to: '/opener', label: t('sidebar.openerField'), ok: isAdmin || can('opener:field'), active: pathname === '/opener' || pathname.startsWith('/opener/') },
+                  { to: '/admin/opener', label: t('sidebar.openerMatch'), ok: isAdmin || can('opener:match'), active: pathname === '/admin/opener' },
+                ].filter((i) => i.ok);
+                const anyActive = items.some((i) => i.active);
+                const icon = (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="6" cy="19" r="2.5" /><circle cx="18" cy="5" r="2.5" />
+                    <path d="M8.5 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.5" />
+                  </svg>
+                );
+                return (
+                  <li>
+                    {collapsed ? (
+                      <NavLink to={items[0].to} data-tour-route="/opener-routes" className={navLinkCls(anyActive)}>
+                        {icon}
+                        <span className={labelCls}>{t('sidebar.opener')}</span>
+                        {items.some((i) => anyDotUnder(i.to)) && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" aria-hidden />}
+                        <RailTip label={t('sidebar.opener') as string} />
+                      </NavLink>
+                    ) : (
+                      <button
+                        type="button"
+                        data-tour-route="/opener-routes"
+                        onClick={() => setOpenerMenuOpen((v) => !v)}
+                        aria-expanded={openerMenuOpen}
+                        className={`${navLinkCls(anyActive)} justify-between pr-2`}
+                      >
+                        <span className="flex items-center gap-2.5">
+                          {icon}
+                          <span className={labelCls}>{t('sidebar.opener')}</span>
+                          {!openerMenuOpen && items.some((i) => anyDotUnder(i.to)) && <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />}
+                        </span>
+                        <svg className={`fill-current transition-transform duration-200 ${openerMenuOpen ? 'rotate-180' : ''}`} width="12" height="8" viewBox="0 0 12 8">
+                          <path d="M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z" />
+                        </svg>
+                      </button>
+                    )}
+                    {!collapsed && (
+                      <ul
+                        className={`mt-1 ml-7 flex flex-col gap-0.5 border-l border-bodydark2/30 pl-4 overflow-hidden transition-all duration-200 ${
+                          openerMenuOpen ? 'max-h-[9rem] opacity-100' : 'max-h-0 opacity-0'
+                        }`}
+                      >
+                        {items.map((i) => (
+                          <li key={i.to}>
+                            <NavLink
+                              to={i.to}
+                              className={`flex items-center gap-2 rounded-sm py-1.5 px-3 text-sm font-medium text-bodydark2 duration-300 ease-in-out hover:text-white ${i.active ? 'text-white' : ''}`}
+                            >
+                              {i.label}
+                              <NewBadge path={i.to} />
+                            </NavLink>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })()}
               {/* <!-- Menu Item SaaS Increase (perm: saas_increase:manage) — moved out of the Admin
                    Panel submenu so the granular saas_increase:* permissions can be assigned to
                    non-admin users; AdminPanel/index.tsx gates its whole render on isAdmin, which

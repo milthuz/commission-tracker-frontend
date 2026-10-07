@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, GripVertical, Navigation, Pencil, Check, Loader2, Send, Undo2, Trash2, Star, Search, MapPin, Save, Sparkles, Phone, Clock, Globe, Info, Minus } from 'lucide-react';
+import { Plus, X, GripVertical, Navigation, Pencil, Check, Loader2, Send, Undo2, Trash2, Star, Search, MapPin, Save, Sparkles, Phone, Clock, Globe, Info, Minus, Ban } from 'lucide-react';
 import Select from '../../components/Select';
 import DateField from '../../components/DateField';
 import { ContentLoader } from '../../common/Loader';
@@ -12,9 +12,11 @@ import {
 import { GoogleMapView, getOpenerConfig, pinIcon, dotIcon, useIsDark } from './GoogleMap';
 import { optimize, pathM, circlePolygon, kindOf, suggestRoutes, type PlaceKind, type Suggestion, type LatLng } from './geo';
 import RouteTracking from './RouteTracking';
+import CampaignView from './CampaignView';
 
 // Écran 1g — conception des routes (manager). Permission opener:routes.
-// Deux onglets : « Planifier » (ci-dessous) et « Suivi » (RouteTracking : avancement des routes et
+// Trois onglets : « Campagne » (CampaignView, ouvert par défaut : le territoire déjà découpé en routes),
+// « Planifier » (ci-dessous) et « Suivi » (RouteTracking : avancement des routes et
 // vérification des visites par la position GPS du check-in).
 //
 // Planification automatique : un quartier ou une adresse + un rayon → zone balayée ; le temps
@@ -76,7 +78,7 @@ export default function RouteDesigner() {
   const [service, setService] = useState<'all' | 'tables' | 'quick'>('all');
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
-  const [tab, setTab] = useState<'plan' | 'track'>('plan');
+  const [tab, setTab] = useState<'campaign' | 'plan' | 'track'>('campaign');
   const [kinds, setKinds] = useState<PlaceKind[]>(ALL_KINDS);
   // Planification automatique
   const [planQ, setPlanQ] = useState('');
@@ -402,6 +404,18 @@ export default function RouteDesigner() {
 
   // ------------------------------------------------------------------ arrêts
   const removeStop = (i: number) => draft && patch({ stops: draft.stops.filter((_, k) => k !== i) });
+
+  // « Pas un restaurant » : exclu pour de bon (scans, campagne) ; rétablissable dans l'onglet Campagne.
+  const excludePlace = async (p: { placeId: string; name: string }) => {
+    if (!(await dialog.confirm(t('opener.campaign.excludeConfirm', { name: p.name || '—' }), { confirmText: t('opener.campaign.exclude'), danger: true }))) return;
+    try {
+      await api(`/api/opener/places/${encodeURIComponent(p.placeId)}/exclude`, { method: 'POST', body: { reason: 'not_restaurant' } });
+      setResults((rs) => rs.filter((x) => x.placeId !== p.placeId));
+      const d = draftRef.current;
+      if (d && d.status === 'draft' && d.stops.some((x) => x.placeId === p.placeId)) patch({ stops: d.stops.filter((x) => x.placeId !== p.placeId) });
+      setSelected(null);
+    } catch (e: any) { dialog.alert(e.message); }
+  };
   const moveStop = (from: number, to: number) => {
     if (!draft || from === to) return;
     const s = [...draft.stops];
@@ -478,14 +492,16 @@ export default function RouteDesigner() {
   return (
     <div className="space-y-4">
       <div className="inline-flex gap-1 rounded-xl border border-stroke bg-white p-1 dark:border-strokedark dark:bg-boxdark">
-        {(['plan', 'track'] as const).map((k) => (
+        {(['campaign', 'plan', 'track'] as const).map((k) => (
           <button key={k} onClick={() => setTab(k)}
             className={`h-9 rounded-[9px] px-4 text-sm font-semibold ${tab === k ? 'bg-primary text-white' : 'text-body dark:text-bodydark'}`}>
             {t(`opener.designer.tab.${k}`)}
           </button>
         ))}
       </div>
-      {tab === 'track' ? (
+      {tab === 'campaign' ? (
+        <CampaignView onOpenRoute={(id) => { setTab('plan'); openRoute(String(id)); }} />
+      ) : tab === 'track' ? (
         <RouteTracking onOpen={(id) => { setTab('plan'); openRoute(String(id)); }} />
       ) : (<>
       {/* En-tête : choix de la route + état d'enregistrement */}
@@ -750,6 +766,11 @@ export default function RouteDesigner() {
                   {detail?.placeId !== p.placeId && (
                     <button onClick={() => loadDetail(p.placeId)} disabled={detailLoading} className="inline-flex items-center gap-1 rounded border border-stroke px-3 py-1.5 text-xs font-medium text-black hover:border-primary dark:border-strokedark dark:text-white">
                       {detailLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Info className="h-3.5 w-3.5" />}{t('opener.designer.moreDetails')}
+                    </button>
+                  )}
+                  {p.status !== 'client' && p.status !== 'former' && (
+                    <button onClick={() => excludePlace(p)} className="inline-flex items-center gap-1 rounded border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:border-danger hover:text-danger dark:border-strokedark dark:text-bodydark">
+                      <Ban className="h-3.5 w-3.5" />{t('opener.campaign.notRestaurant')}
                     </button>
                   )}
                 </div>
