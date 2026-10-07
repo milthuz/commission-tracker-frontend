@@ -141,9 +141,16 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
       const on = selected === r.id;
       const poly = new g.maps.Polygon({ paths: r.hull.map(([a, b]) => ({ lat: a, lng: b })), map, zIndex: on ? 12 : prop ? 8 : 2,
         strokeColor: on ? '#1C2434' : col, strokeOpacity: 0.95, strokeWeight: on ? 3 : prop ? 2.5 : 1.2,
-        fillColor: col, fillOpacity: on ? 0.45 : prop ? 0.4 : r.status === 'todo' ? 0.12 : 0.28 });
+        fillColor: col, fillOpacity: on ? 0.5 : prop ? 0.45 : 0.3 });
       poly.addListener('click', () => setSelected((s) => (s === r.id ? null : r.id)));
       layers.current.push(poly);
+      // De loin, une route (~1 km²) n'est qu'un trait : un POINT de sa couleur la montre, et se
+      // clique. Remplacé par le contour et le numéro au zoom 13 (signalé par David, 2026-10-08).
+      const dot = new g.maps.Marker({ position: { lat: r.centroid[0], lng: r.centroid[1] }, map, zIndex: prop ? 35 : 15, title: `R${r.seq}`,
+        icon: { path: g.maps.SymbolPath.CIRCLE, scale: prop || on ? 7 : 5, fillColor: col, fillOpacity: 1, strokeColor: '#FFFFFF', strokeWeight: 1.5 } });
+      dot.addListener('click', () => setSelected((s) => (s === r.id ? null : r.id)));
+      (dot as any).__dot = true;
+      labels.current.push(dot);
       // Route proposée : « Hao · lun. » toujours visible ; les autres : « R12 » de près seulement.
       const lbl = new g.maps.Marker({ position: { lat: r.centroid[0], lng: r.centroid[1] }, map, clickable: false, zIndex: prop ? 40 : 20,
         icon: { path: g.maps.SymbolPath.CIRCLE, scale: 0 },
@@ -152,7 +159,10 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
       labels.current.push(lbl);
     }
     // Étiquettes seulement de près : de loin, des centaines de numéros seraient illisibles.
-    const toggle = () => { const z = map.getZoom(); labels.current.forEach((l) => l.setVisible((l as any).__always || z >= 13)); };
+    const toggle = () => {
+      const z = map.getZoom();
+      labels.current.forEach((l) => l.setVisible((l as any).__dot ? z < 13 : (l as any).__always || z >= 13));
+    };
     toggle();
     const lst = map.addListener('zoom_changed', toggle);
     // Arrêts de la route sélectionnée
@@ -183,9 +193,12 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
   const fitAll = useCallback(() => {
     const m = mapRef.current;
     if (!m || !data) return;
+    // Cadré sur les ROUTES (pas sur les régions entières, bien plus grandes que la partie déjà
+    // cartographiée) ; les régions seulement s'il n'y a encore aucune route.
     const b = new m.g.maps.LatLngBounds();
-    data.regions.forEach((r) => r.polygon.forEach(([a, c]) => b.extend({ lat: a, lng: c })));
-    m.map.fitBounds(b, 20);
+    data.routes.forEach((r) => (r.hull || []).forEach(([a, c]) => b.extend({ lat: a, lng: c })));
+    if (b.isEmpty()) data.regions.forEach((r) => r.polygon.forEach(([a, c]) => b.extend({ lat: a, lng: c })));
+    m.map.fitBounds(b, 30);
   }, [data]);
   const framed = useRef(false);
   useEffect(() => { if (mapReady && data && !framed.current) { framed.current = true; fitAll(); } }, [mapReady, data, fitAll]);
@@ -421,6 +434,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
               <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-black dark:text-bodydark1">
                 <span className="inline-flex items-center gap-1">{sel.mode === 'car' ? <Car className="h-3.5 w-3.5" /> : <Footprints className="h-3.5 w-3.5" />}{t(`opener.campaign.mode.${sel.mode}`)}</span>
                 <span>{t('opener.campaign.nStops', { n: sel.n })}</span>
+                {!!sel.clients && <span className="font-semibold text-success">{t('opener.campaign.nClients', { count: sel.clients })}</span>}
                 <span>~{fmtMinutes(sel.minutes)}</span>
                 <span>{fmtDistance(sel.meters, lng)}</span>
                 <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm" style={{ background: CAMPAIGN_COLOR[sel.status] }} />{t(`opener.campaign.status.${sel.status}`)}</span>
@@ -500,7 +514,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
                           <button onClick={() => setSelected(d.campaignRouteId)} className="min-w-0 flex-1 text-left">
                             <p className="truncate font-medium text-black dark:text-white">{fmtDay(d.date)} — {d.name}</p>
                             <p className="truncate text-[11px] text-body dark:text-bodydark">
-                              {t('opener.campaign.nStops', { n: d.stops })} · ~{fmtMinutes(d.minutes)} · {t(`opener.campaign.mode.${d.mode}`)}
+                              {t('opener.campaign.nStops', { n: d.stops })} · ~{fmtMinutes(d.minutes)} · {t(`opener.campaign.mode.${d.mode}`)}{(() => { const c = data.routes.find((x) => x.id === d.campaignRouteId)?.clients; return c ? ` · ${t('opener.campaign.nClients', { count: c })}` : ''; })()}
                             </p>
                           </button>
                           <button onClick={() => dropFromProposal(d.campaignRouteId)} title={t('opener.campaign.dropFromProposal') as string}

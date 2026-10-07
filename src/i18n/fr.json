@@ -6664,7 +6664,32 @@
       "visitTimer": "Durée de la visite",
       "arrivedAt": "Arrivée à {{time}}",
       "restartTimer": "Remettre à zéro",
-      "excludeConfirm": "Ce lieu n'est pas un restaurant ? Il sera retiré de la route et ne reviendra plus dans les prochaines routes."
+      "excludeConfirm": "Ce lieu n'est pas un restaurant ? Il sera retiré de la route et ne reviendra plus dans les prochaines routes.",
+      "client": {
+        "title": "Visite d'un client Cluster",
+        "goal": "Objectif : savoir s'il est satisfait de Cluster et, s'il ne traite pas ses paiements avec nous, lui proposer les paiements Cluster.",
+        "satisfaction": "Satisfaction avec Cluster",
+        "sat": {
+          "1": "Très insatisfait",
+          "2": "Insatisfait",
+          "3": "Correct",
+          "4": "Satisfait",
+          "5": "Très satisfait"
+        },
+        "satShort": "Satisfaction {{n}}/5",
+        "lastSatisfaction": "Satisfaction",
+        "unhappy": "Client insatisfait : notez ce qui ne va pas dans les notes. Le gestionnaire le verra sur la fiche.",
+        "payments": "Qui traite ses paiements ?",
+        "paymentsBy": {
+          "cluster": "Cluster",
+          "other": "Un autre",
+          "unknown": "Je ne sais pas"
+        },
+        "interest": "Intérêt pour les paiements Cluster",
+        "createLead": "Créer une occasion (paiements)",
+        "createLeadSub": "Envoie la demande dans la file des leads, préremplie avec ce client",
+        "requiredMissing": "Satisfaction, POS actuel, type de service et niveau d'intérêt sont obligatoires."
+      }
     },
     "kind": {
       "restaurant": "Restaurants",
@@ -6715,7 +6740,7 @@
         "planned": "Planifiées",
         "done": "Faites"
       },
-      "placesLine": "{{places}} restaurants cartographiés · {{clients}} déjà clients · {{visited}} visités",
+      "placesLine": "{{places}} restaurants cartographiés · {{clients}} clients Cluster (inclus, pour la satisfaction et les paiements) · {{visited}} visités",
       "withOpeners": "Avec ce nombre d'openers (5 h × 5 jours)",
       "eta": "{{weeks}} semaine(s) — fin vers le {{date}}",
       "nothingLeft": "Plus rien à visiter",
@@ -6765,7 +6790,9 @@
       "proposalTitle": "Routes proposées (pas encore publiées)",
       "dropFromProposal": "Retirer de la proposition",
       "publish": "Publier",
-      "publishN": "Publier ces {{n}} routes"
+      "publishN": "Publier ces {{n}} routes",
+      "nClients_one": "{{count}} client",
+      "nClients_other": "{{count}} clients"
     }
   },
   "hr": {

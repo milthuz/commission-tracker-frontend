@@ -9,6 +9,8 @@ export type Service = 'payments' | 'pos' | 'beverage_control';
 export type SkipReason = 'closed' | 'no_time' | 'refused' | 'other' | 'postponed' | 'excluded';
 // Verdict d'une visite, d'après la position GPS au check-in (serveur : field.js, verdict()).
 export type Verdict = 'onsite' | 'far' | 'imprecise' | 'nogps';
+// Visite d'un client Cluster : qui traite ses paiements.
+export type PaymentsBy = 'cluster' | 'other' | 'unknown';
 
 export interface ClusterInfo {
   status: PlaceStatus;
@@ -20,6 +22,8 @@ export interface ClusterInfo {
   competitorPos?: string | null;
   serviceTypeSeen?: ServiceType | null;
   lastInterest?: number | null;
+  lastSatisfaction?: number | null;
+  lastPaymentsBy?: PaymentsBy | null;
   lead?: { id: number; refCode: string; status: string } | null;
   visits?: number;
 }
@@ -88,6 +92,7 @@ export interface PlaceCard {
     id: string; at: string; by: string; currentPos: string; serviceType: ServiceType; terminals: number | null;
     decisionMaker: string | null; interest: number; services: Service[]; notes: string | null; leadRef: string | null;
     distanceM?: number | null; verdict?: Verdict; durationMin?: number | null;
+    satisfaction?: number | null; paymentsBy?: PaymentsBy | null;
   }[];
 }
 
@@ -124,7 +129,7 @@ export interface CampaignRegion {
 export interface CampaignRoute {
   id: number; seq: number; region: string; mode: 'walk' | 'car'; n: number; minutes: number; meters: number;
   hull: [number, number][]; centroid: [number, number]; status: CampaignStatus; routeId: number | null;
-  date: string | null; openerEmail: string | null; openerName: string | null; visited: number;
+  date: string | null; openerEmail: string | null; openerName: string | null; visited: number; clients?: number;
 }
 export interface Campaign {
   regions: CampaignRegion[];
@@ -138,7 +143,7 @@ export interface CampaignRouteDetail {
   id: number; seq: number; region: string; mode: 'walk' | 'car'; minutes: number; meters: number; status: CampaignStatus; routeId: number | null;
   stops: (ClusterInfo & { placeId: string; name: string | null; address: string | null; lat: number | null; lng: number | null; kind: string | null })[];
 }
-export const CAMPAIGN_COLOR: Record<CampaignStatus, string> = { todo: '#94A3B8', planned: '#3C50E0', done: '#10B981' };
+export const CAMPAIGN_COLOR: Record<CampaignStatus, string> = { todo: '#64748B', planned: '#3C50E0', done: '#10B981' };
 
 export interface CheckinInput {
   id: string; placeId: string; stopId?: number | null; at: string;
@@ -146,6 +151,7 @@ export interface CheckinInput {
   startedAt?: string | null; startLat?: number | null; startLng?: number | null; startAccuracy?: number | null;
   currentPos: string; serviceType: ServiceType; terminals: number; onlineDelivery: boolean;
   decisionMaker: 'yes' | 'no' | 'later' | null; interest: number; services: Service[]; notes: string;
+  satisfaction?: number | null; paymentsBy?: PaymentsBy | null;
 }
 
 export class ApiError extends Error {

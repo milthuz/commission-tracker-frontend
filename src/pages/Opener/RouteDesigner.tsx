@@ -735,6 +735,7 @@ export default function RouteDesigner() {
                   {p.competitorPos && <p>POS : {p.competitorPos}</p>}
                   {p.lead && <p>{t('opener.field.lead')} : {p.lead.refCode}</p>}
                   {p.clusterName && <p>{t('opener.field.clusterName')} : {p.clusterName}</p>}
+                  {p.status === 'client' && p.lastSatisfaction != null && <p className={p.lastSatisfaction <= 2 ? 'font-semibold text-danger' : ''}>{t('opener.field.client.lastSatisfaction')} : {p.lastSatisfaction}/5{p.lastPaymentsBy ? ` · ${t(`opener.field.client.paymentsBy.${p.lastPaymentsBy}`)}` : ''}</p>}
                   {g && (
                     <>
                       {g.openNow != null && <p className="flex items-center gap-1"><Clock className="h-3 w-3" /><span className={g.openNow ? 'text-success' : 'text-danger'}>{g.openNow ? t('opener.field.openNow') : t('opener.field.closedNow')}</span></p>}
@@ -747,7 +748,7 @@ export default function RouteDesigner() {
                       {detail.history.slice(0, 3).map((h) => (
                         <p key={h.id} className="flex items-center gap-1">
                           {h.verdict && <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[h.verdict] }} title={t(`opener.track.verdict.${h.verdict}`) as string} />}
-                          {new Date(h.at).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'short' })} · {h.by} · {t('opener.field.interestShort', { n: h.interest })}
+                          {new Date(h.at).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'short' })} · {h.by}{h.satisfaction ? ` · ${t('opener.field.client.satShort', { n: h.satisfaction })}` : ''} · {t('opener.field.interestShort', { n: h.interest })}
                         </p>
                       ))}
                     </div>

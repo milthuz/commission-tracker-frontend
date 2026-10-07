@@ -127,7 +127,11 @@ export default function StopDetail() {
             {kv(t('opener.field.competitorPos'), c.competitorPos || <span className="text-[var(--of-faint)]">—</span>)}
             {kv(t('opener.field.clusterName'), c.clusterName || <span className="text-[var(--of-faint)]">{t('opener.field.none')}</span>)}
             {kv(t('opener.field.serviceType'), (g?.serviceType || c.serviceTypeSeen) ? t(`opener.serviceShort.${g?.serviceType || c.serviceTypeSeen}`) : <span className="text-[var(--of-faint)]">—</span>)}
+            {status === 'client' && kv(t('opener.field.client.lastSatisfaction'), c.lastSatisfaction ? `${c.lastSatisfaction}/5` : <span className="text-[var(--of-faint)]">{t('opener.field.never')}</span>,
+              c.lastSatisfaction != null && c.lastSatisfaction <= 2 ? 'text-[var(--of-bad)]' : 'text-[var(--of-title)]')}
+            {status === 'client' && kv(t('opener.field.client.payments'), c.lastPaymentsBy ? t(`opener.field.client.paymentsBy.${c.lastPaymentsBy}`) : <span className="text-[var(--of-faint)]">—</span>)}
           </div>
+          {status === 'client' && <p className="mt-3 text-xs leading-relaxed text-[var(--of-muted)]">{t('opener.field.client.goal')}</p>}
         </Card>
 
         {/* Historique */}
@@ -144,7 +148,7 @@ export default function StopDetail() {
                   <div className="min-w-0 flex-1">
                     <p className="text-[13px] font-semibold text-[var(--of-title)]">{t('opener.field.checkinBy', { name: h.by })}</p>
                     <p className="text-xs leading-[1.4] text-[var(--of-muted)]">
-                      {[h.currentPos, t(`opener.serviceShort.${h.serviceType}`), t('opener.field.interestShort', { n: h.interest }), h.leadRef].filter(Boolean).join(' · ')}
+                      {[h.satisfaction ? t('opener.field.client.satShort', { n: h.satisfaction }) : null, h.currentPos, t(`opener.serviceShort.${h.serviceType}`), t('opener.field.interestShort', { n: h.interest }), h.leadRef].filter(Boolean).join(' · ')}
                       {h.notes ? <><br />{h.notes}</> : null}
                     </p>
                     <p className="text-[11px] text-[var(--of-faint)]">{fmtDate(h.at)}</p>

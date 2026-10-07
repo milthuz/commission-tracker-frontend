@@ -6664,7 +6664,32 @@
       "visitTimer": "Visit duration",
       "arrivedAt": "Arrived at {{time}}",
       "restartTimer": "Reset",
-      "excludeConfirm": "Not a restaurant? It will be removed from the route and won't come back in future routes."
+      "excludeConfirm": "Not a restaurant? It will be removed from the route and won't come back in future routes.",
+      "client": {
+        "title": "Visiting a Cluster customer",
+        "goal": "Goal: find out whether they are happy with Cluster and, if they don't process payments with us, offer Cluster payments.",
+        "satisfaction": "Satisfaction with Cluster",
+        "sat": {
+          "1": "Very unhappy",
+          "2": "Unhappy",
+          "3": "OK",
+          "4": "Happy",
+          "5": "Very happy"
+        },
+        "satShort": "Satisfaction {{n}}/5",
+        "lastSatisfaction": "Satisfaction",
+        "unhappy": "Unhappy customer: write what's wrong in the notes. Your manager will see it on the place card.",
+        "payments": "Who processes their payments?",
+        "paymentsBy": {
+          "cluster": "Cluster",
+          "other": "Someone else",
+          "unknown": "Don't know"
+        },
+        "interest": "Interest in Cluster payments",
+        "createLead": "Create an opportunity (payments)",
+        "createLeadSub": "Sends it to the leads queue, prefilled with this customer",
+        "requiredMissing": "Satisfaction, current POS, service type and interest level are required."
+      }
     },
     "kind": {
       "restaurant": "Restaurants",
@@ -6715,7 +6740,7 @@
         "planned": "Planned",
         "done": "Done"
       },
-      "placesLine": "{{places}} restaurants mapped · {{clients}} already customers · {{visited}} visited",
+      "placesLine": "{{places}} restaurants mapped · {{clients}} Cluster customers (included, for satisfaction and payments) · {{visited}} visited",
       "withOpeners": "With this many openers (5 h × 5 days)",
       "eta": "{{weeks}} week(s) — done around {{date}}",
       "nothingLeft": "Nothing left to visit",
@@ -6765,7 +6790,9 @@
       "proposalTitle": "Proposed routes (not published yet)",
       "dropFromProposal": "Remove from proposal",
       "publish": "Publish",
-      "publishN": "Publish these {{n}} routes"
+      "publishN": "Publish these {{n}} routes",
+      "nClients_one": "{{count}} customer",
+      "nClients_other": "{{count}} customers"
     }
   },
   "hr": {

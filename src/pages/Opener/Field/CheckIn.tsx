@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Clock, Check } from 'lucide-react';
+import { Clock, Check, HeartHandshake } from 'lucide-react';
 import { useField } from './index';
 import { Card, Chips, ScreenHeader, Segmented, Stepper, StickyCta, Toggle, btnPrimary } from './ui';
 import { enqueueCheckin, flush, loadDraft, saveDraft, clearDraft } from './outbox';
-import { haversine, fmtDistance, uuid, type Service, type ServiceType, type CheckinInput } from '../api';
+import { haversine, fmtDistance, uuid, type Service, type ServiceType, type CheckinInput, type PaymentsBy } from '../api';
 import { dialog } from '../../../lib/dialog';
 
 // Écran 1d — check-in.
 // Obligatoires : POS actuel, type de service, niveau d'intérêt. Le reste est facultatif.
+// Visite d'un CLIENT Cluster (2026-10-08) : on vient voir s'il est satisfait et proposer les
+// paiements. La satisfaction (1 à 5) devient obligatoire, on demande qui traite ses paiements,
+// et l'intérêt porte sur les paiements Cluster. Le POS est prérempli à « Cluster ».
 // Le brouillon est gardé sur le téléphone ; l'envoi passe par la file (hors ligne compris).
 // À plus de 150 m du restaurant : avertissement, pas un refus.
 
@@ -26,6 +29,7 @@ const freshPosition = () => new Promise<GeolocationPosition | null>((resolve) =>
 interface Form {
   id: string; currentPos: string | null; serviceType: ServiceType | null; terminals: number; onlineDelivery: boolean;
   decisionMaker: 'yes' | 'no' | 'later' | null; interest: number; services: Service[]; notes: string; createLead: boolean;
+  satisfaction?: number; paymentsBy?: PaymentsBy | null;
   // Arrivée au restaurant : l'ouverture de cet écran (heure + position). Gardée dans le brouillon.
   startedAt?: string; startLat?: number | null; startLng?: number | null; startAccuracy?: number | null;
 }
@@ -47,8 +51,8 @@ export default function CheckIn() {
   const draftKey = `stop_${stopId}`;
   const [form, setForm] = useState<Form>(() => {
     const d: Form = loadDraft<Form>(draftKey) || {
-      id: uuid(), currentPos: null, serviceType: null, terminals: 1, onlineDelivery: false,
-      decisionMaker: null, interest: 0, services: [], notes: '', createLead: false,
+      id: uuid(), currentPos: stop?.status === 'client' ? 'Cluster' : null, serviceType: null, terminals: 1, onlineDelivery: false,
+      decisionMaker: null, interest: 0, services: [], notes: '', createLead: false, satisfaction: 0, paymentsBy: null,
     };
     if (!d.startedAt || Date.now() - new Date(d.startedAt).getTime() > STALE_MS) {
       return { ...d, startedAt: new Date().toISOString(), startLat: null, startLng: null, startAccuracy: null };
@@ -80,8 +84,9 @@ export default function CheckIn() {
 
   if (!route || !stop) return <div className="p-8 text-center text-sm text-[var(--of-muted)]">{t('opener.field.stopNotFound')}</div>;
 
-  const missing = { pos: !form.currentPos, service: !form.serviceType, interest: !form.interest };
-  const valid = !missing.pos && !missing.service && !missing.interest;
+  const isClient = stop.status === 'client';
+  const missing = { pos: !form.currentPos, service: !form.serviceType, interest: !form.interest, satisfaction: isClient && !form.satisfaction };
+  const valid = !missing.pos && !missing.service && !missing.interest && !missing.satisfaction;
   const dist = position && stop.lat != null ? haversine(position, [stop.lat, stop.lng!]) : null;
   const levels = ['', t('opener.field.level.1'), t('opener.field.level.2'), t('opener.field.level.3'), t('opener.field.level.4'), t('opener.field.level.5')];
 
@@ -103,6 +108,7 @@ export default function CheckIn() {
       lat: here?.[0] ?? null, lng: here?.[1] ?? null, accuracy: hereAcc ?? null,
       currentPos: form.currentPos!, serviceType: form.serviceType!, terminals: form.terminals, onlineDelivery: form.onlineDelivery,
       decisionMaker: form.decisionMaker, interest: form.interest, services: form.services, notes: form.notes.trim(),
+      satisfaction: isClient ? form.satisfaction || null : null, paymentsBy: isClient ? form.paymentsBy || null : null,
     };
     enqueueCheckin(payload);
     await flush().catch(() => {});
@@ -138,6 +144,34 @@ export default function CheckIn() {
         {dist != null && dist > FAR_M && (
           <p className="rounded-[10px] border border-[rgba(245,131,70,.3)] bg-[rgba(245,131,70,.08)] p-3 text-xs text-[var(--of-warn)]">{t('opener.field.farNotice', { dist: fmtDistance(dist, lng) })}</p>
         )}
+        {isClient && (
+          <Card className="!border-[rgba(87,209,147,.45)]">
+            <p className="mb-1 flex items-center gap-2 text-sm font-bold text-[var(--of-title)]">
+              <HeartHandshake className="h-4 w-4 text-[var(--of-st-client)]" />{t('opener.field.client.title')}
+              {stop.version && <span className="text-xs font-semibold text-[var(--of-faint)]">{stop.version.toUpperCase()}</span>}
+            </p>
+            <p className="text-xs leading-relaxed text-[var(--of-muted)]">{t('opener.field.client.goal')}</p>
+          </Card>
+        )}
+        {isClient && q(t('opener.field.client.satisfaction'), true, missing.satisfaction, (
+          <div>
+            <div className="flex items-center gap-3">
+              <div className="grid flex-1 grid-cols-5 gap-1.5" role="radiogroup">
+                {[1, 2, 3, 4, 5].map((v) => (
+                  <button key={v} type="button" role="radio" aria-checked={form.satisfaction === v} onClick={() => set('satisfaction')(v)}
+                    className={`h-12 rounded-xl text-sm font-bold ${v <= (form.satisfaction || 0) ? 'bg-[#57D193] text-[#1C2434]' : 'border border-[var(--of-stroke)] bg-[var(--of-surface)] text-[var(--of-muted)]'}`}>{v}</button>
+                ))}
+              </div>
+              <span className="w-[68px] text-right text-xs font-semibold text-[var(--of-ok)]">{form.satisfaction ? t(`opener.field.client.sat.${form.satisfaction}`) : ''}</span>
+            </div>
+            {!!form.satisfaction && form.satisfaction <= 2 && (
+              <p className="mt-2 rounded-[10px] border border-[rgba(248,113,113,.35)] bg-[rgba(248,113,113,.08)] p-2.5 text-xs text-[var(--of-bad)]">{t('opener.field.client.unhappy')}</p>
+            )}
+          </div>
+        ))}
+        {isClient && q(t('opener.field.client.payments'), false, false,
+          <Segmented options={(['cluster', 'other', 'unknown'] as PaymentsBy[]).map((v) => ({ value: v, label: t(`opener.field.client.paymentsBy.${v}`) }))}
+            value={form.paymentsBy || null} onChange={(v) => set('paymentsBy')(v as PaymentsBy)} />)}
         {q(t('opener.field.q.pos'), true, missing.pos,
           <Chips options={POS.map((p) => ({ value: p, label: p === 'Aucun' ? t('opener.field.none') : p === 'Autre' ? t('opener.field.other') : p }))} value={form.currentPos} onChange={set('currentPos')} />)}
         {q(t('opener.field.q.service'), true, missing.service,
@@ -151,7 +185,7 @@ export default function CheckIn() {
         {q(t('opener.field.q.decision'), false, false,
           <Segmented options={[{ value: 'yes', label: t('opener.field.yes') }, { value: 'no', label: t('opener.field.no') }, { value: 'later', label: t('opener.field.later') }]}
             value={form.decisionMaker} onChange={(v) => set('decisionMaker')(v as Form['decisionMaker'])} />)}
-        {q(t('opener.field.q.interest'), true, missing.interest, (
+        {q(isClient ? t('opener.field.client.interest') : t('opener.field.q.interest'), true, missing.interest, (
           <div className="flex items-center gap-3">
             <div className="grid flex-1 grid-cols-5 gap-1.5" role="radiogroup">
               {[1, 2, 3, 4, 5].map((v) => (
@@ -172,10 +206,10 @@ export default function CheckIn() {
             <span className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md border ${form.createLead ? 'border-primary bg-primary' : 'border-[var(--of-input-stroke)]'}`}>
               {form.createLead && <Check className="h-4 w-4 text-[#1C2434]" />}
             </span>
-            <div><p className="text-sm font-semibold text-[var(--of-title)]">{t('opener.field.createLeadWith')}</p><p className="text-xs text-[var(--of-faint)]">{t('opener.field.createLeadWithSub')}</p></div>
+            <div><p className="text-sm font-semibold text-[var(--of-title)]">{isClient ? t('opener.field.client.createLead') : t('opener.field.createLeadWith')}</p><p className="text-xs text-[var(--of-faint)]">{isClient ? t('opener.field.client.createLeadSub') : t('opener.field.createLeadWithSub')}</p></div>
           </div>
         </Card>
-        {tried && !valid && <p className="text-xs text-[var(--of-bad)]">{t('opener.field.requiredMissing')}</p>}
+        {tried && !valid && <p className="text-xs text-[var(--of-bad)]">{t(isClient ? 'opener.field.client.requiredMissing' : 'opener.field.requiredMissing')}</p>}
         {/* Loi 25 : l'opener sait que sa position est recueillie, et pourquoi. */}
         <p className="text-[11px] leading-relaxed text-[var(--of-faint)]">{t('opener.field.gpsNotice')}</p>
       </div>
