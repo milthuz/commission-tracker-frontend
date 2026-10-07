@@ -6792,7 +6792,10 @@
       "publish": "Publish",
       "publishN": "Publish these {{n}} routes",
       "nClients_one": "{{count}} customer",
-      "nClients_other": "{{count}} customers"
+      "nClients_other": "{{count}} customers",
+      "legend": "Legend",
+      "legendProposal": "Week proposal",
+      "legendHint": "One dot = one day route. Hover to see its area, click for its stops."
     }
   },
   "hr": {

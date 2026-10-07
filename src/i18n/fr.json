@@ -6792,7 +6792,10 @@
       "publish": "Publier",
       "publishN": "Publier ces {{n}} routes",
       "nClients_one": "{{count}} client",
-      "nClients_other": "{{count}} clients"
+      "nClients_other": "{{count}} clients",
+      "legend": "Légende",
+      "legendProposal": "Proposition de la semaine",
+      "legendHint": "Une pastille = une route d'une journée. Survolez pour voir sa zone, cliquez pour ses arrêts."
     }
   },
   "hr": {

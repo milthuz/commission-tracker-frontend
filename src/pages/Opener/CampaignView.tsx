@@ -65,6 +65,8 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
   const [mapReady, setMapReady] = useState(false);
   const layers = useRef<any[]>([]);
   const labels = useRef<any[]>([]);
+  const hover = useRef<any>(null);
+  const [close, setClose] = useState(false);
   const fmtDay = (s: string) => new Date(`${s}T12:00:00Z`).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' });
   const fmtDayShort = (s: string) => new Date(`${s}T12:00:00Z`).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { timeZone: 'UTC', weekday: 'short' });
 
@@ -129,42 +131,42 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
     layers.current.forEach((l) => l.setMap(null));
     labels.current.forEach((l) => l.setMap(null));
     layers.current = []; labels.current = [];
-    // Contours des régions (pointillés)
+    hover.current?.setMap(null); hover.current = null;
+    // Contours des régions : discrets, juste pour situer.
     for (const reg of data.regions) {
       layers.current.push(new g.maps.Polyline({ path: [...reg.polygon, reg.polygon[0]].map(([a, b]) => ({ lat: a, lng: b })), map, clickable: false,
-        strokeOpacity: 0, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.5, strokeColor: dark ? '#8A99AF' : '#64748B', scale: 2 }, offset: '0', repeat: '8px' }] }));
+        strokeOpacity: 0, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.3, strokeColor: dark ? '#8A99AF' : '#64748B', scale: 1.5 }, offset: '0', repeat: '9px' }] }));
     }
+    // UNE PASTILLE par route, de la couleur de son statut (ou de l'opener, dans la proposition) ;
+    // le CONTOUR n'est dessiné que pour la proposition, la route choisie et celle survolée.
+    // Tous les contours à la fois se chevauchaient (une route en voiture couvre plusieurs km) et
+    // rendaient la carte illisible (David, 2026-10-08).
+    const hullOf = (r: typeof data.routes[number], col: string, strong: boolean) => new g.maps.Polygon({
+      paths: r.hull.map(([a, b]) => ({ lat: a, lng: b })), map, clickable: false, zIndex: strong ? 6 : 4,
+      strokeColor: col, strokeOpacity: 0.9, strokeWeight: strong ? 2.5 : 1.5, fillColor: col, fillOpacity: strong ? 0.22 : 0.12 });
     for (const r of data.routes) {
       if (!r.hull || r.hull.length < 3) continue;
       const prop = proposed.get(r.id);
       const col = prop ? prop.color : CAMPAIGN_COLOR[r.status];
       const on = selected === r.id;
-      const poly = new g.maps.Polygon({ paths: r.hull.map(([a, b]) => ({ lat: a, lng: b })), map, zIndex: on ? 12 : prop ? 8 : 2,
-        strokeColor: on ? '#1C2434' : col, strokeOpacity: 0.95, strokeWeight: on ? 3 : prop ? 2.5 : 1.2,
-        fillColor: col, fillOpacity: on ? 0.5 : prop ? 0.45 : 0.3 });
-      poly.addListener('click', () => setSelected((s) => (s === r.id ? null : r.id)));
-      layers.current.push(poly);
-      // De loin, une route (~1 km²) n'est qu'un trait : un POINT de sa couleur la montre, et se
-      // clique. Remplacé par le contour et le numéro au zoom 13 (signalé par David, 2026-10-08).
-      const dot = new g.maps.Marker({ position: { lat: r.centroid[0], lng: r.centroid[1] }, map, zIndex: prop ? 35 : 15, title: `R${r.seq}`,
-        icon: { path: g.maps.SymbolPath.CIRCLE, scale: prop || on ? 7 : 5, fillColor: col, fillOpacity: 1, strokeColor: '#FFFFFF', strokeWeight: 1.5 } });
-      dot.addListener('click', () => setSelected((s) => (s === r.id ? null : r.id)));
-      (dot as any).__dot = true;
-      labels.current.push(dot);
-      // Route proposée : « Hao · lun. » toujours visible ; les autres : « R12 » de près seulement.
-      const lbl = new g.maps.Marker({ position: { lat: r.centroid[0], lng: r.centroid[1] }, map, clickable: false, zIndex: prop ? 40 : 20,
-        icon: { path: g.maps.SymbolPath.CIRCLE, scale: 0 },
-        label: { text: prop ? `${prop.opener.split(' ')[0]} · ${fmtDayShort(prop.date)}` : `R${r.seq}`, color: dark ? '#FFFFFF' : '#1C2434', fontSize: prop ? '12px' : '11px', fontWeight: '700' } });
-      (lbl as any).__always = !!prop;
-      labels.current.push(lbl);
+      if (prop || on) layers.current.push(hullOf(r, col, true));
+      const big = !!prop || on || close;
+      const pin = new g.maps.Marker({
+        position: { lat: r.centroid[0], lng: r.centroid[1] }, map, zIndex: on ? 60 : prop ? 50 : r.status === 'todo' ? 20 : 30,
+        title: prop ? `R${r.seq} · ${prop.opener} · ${fmtDay(prop.date)}` : `R${r.seq}`,
+        icon: { path: g.maps.SymbolPath.CIRCLE, scale: prop ? 13 : big ? 11 : 5, fillColor: col, fillOpacity: 1,
+          strokeColor: on ? '#1C2434' : '#FFFFFF', strokeWeight: on ? 3 : 2 },
+        // Dans la pastille : le jour pour la proposition (« lun. »), le numéro de route de près.
+        label: prop ? { text: fmtDayShort(prop.date).replace('.', ''), color: '#FFFFFF', fontSize: '10px', fontWeight: '700' }
+          : big ? { text: String(r.seq), color: '#FFFFFF', fontSize: '10px', fontWeight: '700' } : undefined,
+      });
+      pin.addListener('click', () => setSelected((s) => (s === r.id ? null : r.id)));
+      // Survol : le contour apparaît le temps du survol.
+      pin.addListener('mouseover', () => { hover.current?.setMap(null); if (!prop && !on) hover.current = hullOf(r, col, false); });
+      pin.addListener('mouseout', () => { hover.current?.setMap(null); hover.current = null; });
+      labels.current.push(pin);
     }
-    // Étiquettes seulement de près : de loin, des centaines de numéros seraient illisibles.
-    const toggle = () => {
-      const z = map.getZoom();
-      labels.current.forEach((l) => l.setVisible((l as any).__dot ? z < 13 : (l as any).__always || z >= 13));
-    };
-    toggle();
-    const lst = map.addListener('zoom_changed', toggle);
+    const lst = map.addListener('zoom_changed', () => setClose(map.getZoom() >= 13));
     // Arrêts de la route sélectionnée
     if (detail) {
       for (const s of detail.stops) {
@@ -179,7 +181,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
       }
     }
     return () => lst.remove();
-  }, [data, mapReady, selected, detail, dark, proposed]);
+  }, [data, mapReady, selected, detail, dark, proposed, close]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // La proposition arrive : la carte se cadre sur ses routes.
   useEffect(() => {
@@ -378,12 +380,30 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
           <GoogleMapView lang={lng} dark={dark} className="absolute inset-0" center={MONTREAL} zoom={10}
             onReady={(g, map) => { mapRef.current = { g, map }; setMapReady(true); }}
             fallback={(err) => <div className="flex h-full items-center justify-center p-6 text-center text-sm text-body dark:text-bodydark">{err === 'no_maps_key' ? t('opener.noMapsKey') : t('opener.mapsFailed')}</div>} />
-          <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+          {/* Légende : ce que veut dire chaque couleur, avec les comptes ; pendant une proposition,
+              la couleur de chaque opener. */}
+          <div className="absolute left-3 top-3 w-[210px] rounded-lg border border-stroke bg-white/95 p-3 text-xs shadow-md backdrop-blur dark:border-strokedark dark:bg-boxdark/95">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[.08em] text-body dark:text-bodydark2">{t('opener.campaign.legend')}</p>
             {(['todo', 'planned', 'done'] as const).map((s) => (
-              <span key={s} className="inline-flex items-center gap-1 rounded-full border border-stroke bg-white px-2 py-1 text-[11px] font-semibold text-black shadow dark:border-strokedark dark:bg-boxdark dark:text-bodydark1">
-                <span className="h-2 w-2 rounded-sm" style={{ background: CAMPAIGN_COLOR[s] }} />{t(`opener.campaign.status.${s}`)}
-              </span>
+              <p key={s} className="flex items-center gap-2 py-0.5 text-black dark:text-bodydark1">
+                <span className="h-3 w-3 rounded-full ring-2 ring-white dark:ring-boxdark" style={{ background: CAMPAIGN_COLOR[s] }} />
+                <span className="flex-1">{t(`opener.campaign.status.${s}`)}</span>
+                <b className="tabular-nums">{nf(stats[s])}</b>
+              </p>
             ))}
+            {!!proposal?.some((o) => o.days.length) && (
+              <>
+                <p className="mb-1 mt-2.5 border-t border-stroke pt-2 text-[10px] font-bold uppercase tracking-[.08em] text-body dark:border-strokedark dark:text-bodydark2">{t('opener.campaign.legendProposal')}</p>
+                {proposal!.map((o, k) => o.days.length ? (
+                  <p key={o.openerEmail} className="flex items-center gap-2 py-0.5 text-black dark:text-bodydark1">
+                    <span className="h-3 w-3 rounded-full ring-2 ring-white dark:ring-boxdark" style={{ background: OPENER_COLORS[k % OPENER_COLORS.length] }} />
+                    <span className="min-w-0 flex-1 truncate">{o.openerName}</span>
+                    <span className="text-body dark:text-bodydark">{o.days.length}</span>
+                  </p>
+                ) : null)}
+              </>
+            )}
+            <p className="mt-2 text-[10px] leading-snug text-body dark:text-bodydark">{t('opener.campaign.legendHint')}</p>
           </div>
           <button onClick={fitAll} className="absolute right-3 top-3 rounded-full border border-stroke bg-white px-3 py-1.5 text-xs font-semibold text-black shadow dark:border-strokedark dark:bg-boxdark dark:text-bodydark1">
             {t('opener.campaign.showAll')}
