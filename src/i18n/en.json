@@ -6689,6 +6689,17 @@
         "createLead": "Create an opportunity (payments)",
         "createLeadSub": "Sends it to the leads queue, prefilled with this customer",
         "requiredMissing": "Satisfaction, current POS, service type and interest level are required."
+      },
+      "demo": {
+        "title": "See the app before assigning routes",
+        "help": "Loads a real campaign route (real restaurants, real Google cards). Nothing is saved: check-ins, leads and end of day are simulated.",
+        "start": "Try a demo route",
+        "banner": "Demo — nothing is saved",
+        "quit": "Quit",
+        "routeName": "Demo",
+        "none": "No campaign route to show yet.",
+        "simulated": "Demo: nothing was postponed.",
+        "ended": "Demo finished. Nothing was saved."
       }
     },
     "kind": {

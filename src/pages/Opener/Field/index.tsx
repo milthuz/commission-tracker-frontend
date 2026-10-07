@@ -1,11 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Routes, Route as R, NavLink, useLocation, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, List, Users, CalendarDays, WifiOff } from 'lucide-react';
+import { MapPin, List, Users, CalendarDays, WifiOff, FlaskConical, X } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import useColorMode from '../../../hooks/useColorMode';
 import './field.css';
-import { api, type Route } from '../api';
+import { api, type Route, type Campaign, type CampaignRouteDetail } from '../api';
 import { flush, onOutboxChange, pending } from './outbox';
 import { getOpenerConfig } from '../GoogleMap';
 import Home from './Home';
@@ -33,6 +33,13 @@ interface FieldCtx {
   outbox: number;
   online: boolean;
   markStop: (stopId: number, patch: Partial<Route['stops'][number]>) => void;
+  // Mode démonstration (manager) : une vraie route de la campagne chargée sur le téléphone, RIEN
+  // n'est enregistré (check-ins, leads, arrêts sautés, fin de journée simulés). Pour voir l'app
+  // avant d'assigner des routes (demande de David, 2026-10-08).
+  demo: boolean;
+  canDemo: boolean;
+  startDemo: () => Promise<void>;
+  endDemo: () => void;
 }
 const Ctx = createContext<FieldCtx | null>(null);
 export const useField = () => {
@@ -59,8 +66,14 @@ export default function FieldApp() {
   const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
 
   const allowed = !!user && (user.isAdmin || user.permissions?.includes('*') || user.permissions?.includes('opener:field') || user.permissions?.includes('opener:*'));
+  // La démo lit une route de la campagne : réservée à qui peut voir la campagne (opener:routes).
+  const canDemo = !!user && !!(user.isAdmin || user.permissions?.includes('*') || user.permissions?.includes('opener:routes') || user.permissions?.includes('opener:*'));
+  const [demo, setDemo] = useState(false);
+  const demoRef = useRef(false);
+  const realRoute = useRef<Route | null>(null);
 
   const reload = useCallback(async () => {
+    if (demoRef.current) return; // en démo, la route simulée reste à l'écran
     try {
       const cfg = await getOpenerConfig();
       const r = await api<{ date: string; route: Route | null }>(`/api/opener/today?date=${cfg.today}`);
@@ -107,8 +120,35 @@ export default function FieldApp() {
     setRoute((r) => (r ? { ...r, stops: r.stops.map((s) => (s.id === stopId ? { ...s, ...patch } : s)) } : r));
   }, []);
 
-  const value = useMemo<FieldCtx>(() => ({ lng, dark, setTheme: setColorMode, date, route, loading, error, reload, position, accuracy, outbox, online, markStop }),
-    [lng, dark, setColorMode, date, route, loading, error, reload, position, accuracy, outbox, online, markStop]);
+  // Démo : la première route « à faire » de la campagne qui compte un client (pour voir aussi la
+  // visite d'un client), sinon la première. Ses vrais restaurants, ses vraies fiches Google.
+  const startDemo = useCallback(async () => {
+    const c = await api<Campaign>('/api/opener/campaign');
+    const todo = c.routes.filter((r) => r.status === 'todo');
+    const pick = todo.find((r) => (r.clients || 0) > 0) || todo[0] || c.routes[0];
+    if (!pick) throw new Error(t('opener.field.demo.none') as string);
+    const d = await api<CampaignRouteDetail>(`/api/opener/campaign/routes/${pick.id}`);
+    realRoute.current = route;
+    demoRef.current = true;
+    setDemo(true);
+    setRoute({
+      id: -1, name: `${t('opener.field.demo.routeName')} · R${d.seq}`, date, openerEmail: user?.email || null, openerName: null,
+      status: 'published', zone: null, start: null, version: 1, publishedAt: null, publishedBy: null, updatedAt: new Date().toISOString(),
+      stops: d.stops.map((s, i) => ({
+        ...s, id: i + 1, placeId: s.placeId, position: i + 1, name: s.name || '—', address: s.address, lat: s.lat, lng: s.lng,
+        outcome: 'planned', skipReason: null, doneAt: null, checkin: null,
+      })),
+    });
+  }, [route, date, user?.email, t]);
+  const endDemo = useCallback(() => {
+    demoRef.current = false;
+    setDemo(false);
+    setRoute(realRoute.current);
+    reload();
+  }, [reload]);
+
+  const value = useMemo<FieldCtx>(() => ({ lng, dark, setTheme: setColorMode, date, route, loading, error, reload, position, accuracy, outbox, online, markStop, demo, canDemo, startDemo, endDemo }),
+    [lng, dark, setColorMode, date, route, loading, error, reload, position, accuracy, outbox, online, markStop, demo, canDemo, startDemo, endDemo]);
 
   if (!allowed) {
     return (
@@ -120,8 +160,17 @@ export default function FieldApp() {
 
   return (
     <Ctx.Provider value={value}>
-      <div className="opener-field min-h-screen font-satoshi">
+      <div className="opener-field min-h-screen font-satoshi"
+        // En démo, le bandeau (30 px) décale le haut de chaque écran.
+        style={{ ['--of-top' as any]: demo ? 'calc(env(safe-area-inset-top, 0px) + 30px)' : 'env(safe-area-inset-top, 0px)' }}>
         <div className="relative mx-auto min-h-screen max-w-[480px]">
+          {demo && (
+            <div className="fixed inset-x-0 top-0 z-50 mx-auto flex h-[calc(env(safe-area-inset-top,0px)+30px)] max-w-[480px] items-center justify-center gap-2 bg-[#8B5CF6] px-3 text-xs font-semibold text-white"
+              style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }} role="status">
+              <FlaskConical className="h-3.5 w-3.5" />{t('opener.field.demo.banner')}
+              <button onClick={endDemo} className="ml-1 inline-flex items-center gap-0.5 rounded-full bg-white/20 px-2 py-0.5"><X className="h-3 w-3" />{t('opener.field.demo.quit')}</button>
+            </div>
+          )}
           {(!online || outbox > 0) && (
             <div className="fixed inset-x-0 top-0 z-50 mx-auto flex max-w-[480px] items-center justify-center gap-2 bg-warning/90 px-3 py-1.5 text-xs font-semibold text-[#1C2434]"
               style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 6px)' }} role="status">

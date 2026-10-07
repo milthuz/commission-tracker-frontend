@@ -17,7 +17,7 @@ export default function StopDetail() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { stopId } = useParams();
-  const { lng, route, markStop } = useField();
+  const { lng, route, markStop, demo } = useField();
   const stop = route?.stops.find((s) => String(s.id) === stopId) || null;
   const [card, setCard] = useState<PlaceCard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,7 +44,7 @@ export default function StopDetail() {
   const skip = async (reason: SkipReason) => {
     setBusy(true);
     try {
-      await api(`/api/opener/stops/${stop.id}/skip`, { method: 'POST', body: { reason } });
+      if (!demo) await api(`/api/opener/stops/${stop.id}/skip`, { method: 'POST', body: { reason } });
       markStop(stop.id, { outcome: 'skipped', skipReason: reason });
       navigate('/opener/list');
     } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); setSkipOpen(false); }
@@ -55,7 +55,7 @@ export default function StopDetail() {
     if (!(await dialog.confirm(t('opener.field.excludeConfirm'), { confirmText: t('opener.campaign.exclude'), danger: true }))) return;
     setBusy(true);
     try {
-      await api(`/api/opener/places/${encodeURIComponent(stop.placeId)}/exclude`, { method: 'POST', body: { reason: 'not_restaurant', stopId: stop.id } });
+      if (!demo) await api(`/api/opener/places/${encodeURIComponent(stop.placeId)}/exclude`, { method: 'POST', body: { reason: 'not_restaurant', stopId: stop.id } });
       markStop(stop.id, { outcome: 'skipped', skipReason: 'excluded' });
       navigate('/opener/list');
     } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); setSkipOpen(false); }
@@ -63,7 +63,7 @@ export default function StopDetail() {
   const unskip = async () => {
     setBusy(true);
     try {
-      await api(`/api/opener/stops/${stop.id}/unskip`, { method: 'POST' });
+      if (!demo) await api(`/api/opener/stops/${stop.id}/unskip`, { method: 'POST' });
       markStop(stop.id, { outcome: 'planned', skipReason: null });
     } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); }
   };

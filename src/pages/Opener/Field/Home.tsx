@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Navigation, Check, ChevronRight, RefreshCw, Loader2 } from 'lucide-react';
+import { Navigation, Check, ChevronRight, RefreshCw, Loader2, FlaskConical } from 'lucide-react';
 import { useField, TabBar } from './index';
 import { Eyebrow, StatusBadge, btnPrimary, btnSecondary } from './ui';
 import { GoogleMapView, pinIcon } from '../GoogleMap';
+import { dialog } from '../../../lib/dialog';
 import { STATUS_COLOR, haversine, fmtDistance, fmtMinutes, walkMin, directionsUrl, type PlaceStatus, type Stop } from '../api';
 
 // Écrans 1a (carte) et 1b (liste) — la route du jour.
@@ -15,7 +16,7 @@ const MONTREAL: [number, number] = [45.5236, -73.5865];
 export default function Home({ view }: { view: 'map' | 'list' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { lng, dark, route, loading, error, reload, position, date } = useField();
+  const { lng, dark, route, loading, error, reload, position, date, canDemo, startDemo } = useField();
   const [filter, setFilter] = useState<Filter>('all');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -83,6 +84,8 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
   }, [stops, mapReady]);
 
   const refresh = async () => { setRefreshing(true); await reload(); setRefreshing(false); };
+  const [demoBusy, setDemoBusy] = useState(false);
+  const tryDemo = async () => { setDemoBusy(true); try { await startDemo(); } catch (e: any) { dialog.alert(e.message); } finally { setDemoBusy(false); } };
 
   if (loading) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
@@ -93,6 +96,15 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
         <p className="text-lg font-bold text-[var(--of-title)]">{t('opener.field.noRoute')}</p>
         <p className="text-sm text-[var(--of-faint)]">{error ? t('opener.field.loadError') : t('opener.field.noRouteHelp', { date: dayLabel })}</p>
         <button onClick={refresh} className={btnSecondary}>{refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}{t('opener.field.refresh')}</button>
+        {canDemo && (
+          <div className="mt-4 w-full rounded-[14px] border border-dashed border-[#8B5CF6]/60 p-4">
+            <p className="mb-1 text-sm font-semibold text-[var(--of-title)]">{t('opener.field.demo.title')}</p>
+            <p className="mb-3 text-xs text-[var(--of-faint)]">{t('opener.field.demo.help')}</p>
+            <button onClick={tryDemo} disabled={demoBusy} className={`${btnPrimary} w-full !bg-[#8B5CF6] !text-white`}>
+              {demoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FlaskConical className="h-4 w-4" />}{t('opener.field.demo.start')}
+            </button>
+          </div>
+        )}
         <TabBar />
       </div>
     );
@@ -147,7 +159,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
           onReady={(g, map) => { mapRef.current = { g, map }; setMapReady(true); }}
           fallback={(err) => <div className="flex h-full items-center justify-center p-8 text-center text-sm text-[var(--of-muted)]">{err === 'no_maps_key' ? t('opener.noMapsKey') : t('opener.mapsFailed')}</div>} />
         {/* Haut : route + compteur + filtres */}
-        <div className="absolute inset-x-0 top-0 z-10 px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
+        <div className="absolute inset-x-0 top-0 z-10 px-4" style={{ paddingTop: 'calc(var(--of-top, env(safe-area-inset-top, 0px)) + 16px)' }}>
           <div className="mb-2 flex items-center gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-[var(--of-stroke)] bg-[var(--of-surface)] py-2 pl-2.5 pr-3.5 shadow-[0_4px_10px_var(--of-shadow)]">
               <Navigation className="h-[18px] w-[18px] shrink-0 text-primary" />
@@ -180,7 +192,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
   const upcoming = stops.filter((s) => s.outcome === 'planned');
   const finished = stops.filter((s) => s.outcome !== 'planned');
   return (
-    <div className="px-4 pb-28" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}>
+    <div className="px-4 pb-28" style={{ paddingTop: 'calc(var(--of-top, env(safe-area-inset-top, 0px)) + 20px)' }}>
       <p className="text-xs font-medium capitalize text-[var(--of-faint)]">{dayLabel}</p>
       <div className="mb-3 flex items-end justify-between gap-3">
         <h1 className="truncate text-2xl font-bold tracking-[-0.01em] text-[var(--of-title)]">{route.name}</h1>

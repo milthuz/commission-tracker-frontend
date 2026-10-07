@@ -29,7 +29,7 @@ export function ScreenHeader({ eyebrow, title, right, back = -1 }: { eyebrow?: R
   const navigate = useNavigate();
   const { t } = useTranslation();
   return (
-    <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-[var(--of-stroke)] bg-[var(--of-page)] px-4 pb-3" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}>
+    <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-[var(--of-stroke)] bg-[var(--of-page)] px-4 pb-3" style={{ paddingTop: 'calc(var(--of-top, env(safe-area-inset-top, 0px)) + 12px)' }}>
       <button onClick={() => (typeof back === 'number' ? navigate(back) : navigate(back))} aria-label={t('opener.field.back') as string}
         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-[var(--of-stroke)] bg-[var(--of-surface)] text-[var(--of-text)]">
         <ChevronLeft className="h-5 w-5" />

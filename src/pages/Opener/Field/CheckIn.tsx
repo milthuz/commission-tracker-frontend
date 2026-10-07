@@ -46,7 +46,7 @@ export default function CheckIn() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { stopId } = useParams();
-  const { lng, route, position, accuracy, markStop } = useField();
+  const { lng, route, position, accuracy, markStop, demo } = useField();
   const stop = route?.stops.find((s) => String(s.id) === stopId) || null;
   const draftKey = `stop_${stopId}`;
   const [form, setForm] = useState<Form>(() => {
@@ -110,8 +110,11 @@ export default function CheckIn() {
       decisionMaker: form.decisionMaker, interest: form.interest, services: form.services, notes: form.notes.trim(),
       satisfaction: isClient ? form.satisfaction || null : null, paymentsBy: isClient ? form.paymentsBy || null : null,
     };
-    enqueueCheckin(payload);
-    await flush().catch(() => {});
+    // Démo : rien n'est envoyé, seul l'écran change.
+    if (!demo) {
+      enqueueCheckin(payload);
+      await flush().catch(() => {});
+    }
     clearDraft(draftKey);
     markStop(stop.id, { outcome: 'done', doneAt: payload.at, checkin: { id: form.id, at: payload.at, interest: form.interest, leadId: null, decisionMaker: form.decisionMaker, currentPos: form.currentPos! } });
     setSending(false);

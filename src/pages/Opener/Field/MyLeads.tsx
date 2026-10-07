@@ -22,7 +22,7 @@ export default function MyLeads() {
   }, []);
 
   return (
-    <div className="px-4 pb-28" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}>
+    <div className="px-4 pb-28" style={{ paddingTop: 'calc(var(--of-top, env(safe-area-inset-top, 0px)) + 20px)' }}>
       <Eyebrow>{t('opener.field.tabs.leads')}</Eyebrow>
       <h1 className="mb-4 text-2xl font-bold tracking-[-0.01em] text-[var(--of-title)]">{t('opener.field.myLeads')}</h1>
       {!leads && !error && <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>}

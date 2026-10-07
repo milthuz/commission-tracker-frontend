@@ -21,7 +21,7 @@ export default function LeadForm() {
   const { stopId } = useParams();
   const location = useLocation() as { state?: { checkin?: CheckinInput } };
   const checkin = location.state?.checkin || null;
-  const { lng, route, online, markStop } = useField();
+  const { lng, route, online, markStop, demo } = useField();
   const stop = route?.stops.find((s) => String(s.id) === stopId) || null;
   const clientRef = useRef(uuid());
   const [card, setCard] = useState<PlaceCard | null>(null);
@@ -58,6 +58,8 @@ export default function LeadForm() {
 
   const submit = async () => {
     if (!f.businessName.trim()) { dialog.alert(t('opener.field.nameRequired')); return; }
+    // Démo : aucun lead créé dans Zoho ni dans la file ; un faux numéro montre l'écran de fin.
+    if (demo) { markStop(stop.id, { outcome: 'done' }); setDone({ refCode: 'DEMO-0000' }); return; }
     if (!online) { dialog.alert(t('opener.field.leadNeedsNetwork')); return; }
     setSending(true);
     try {

@@ -6689,6 +6689,17 @@
         "createLead": "Créer une occasion (paiements)",
         "createLeadSub": "Envoie la demande dans la file des leads, préremplie avec ce client",
         "requiredMissing": "Satisfaction, POS actuel, type de service et niveau d'intérêt sont obligatoires."
+      },
+      "demo": {
+        "title": "Voir l'application avant d'assigner des routes",
+        "help": "Charge une vraie route de la campagne (vrais restaurants, vraies fiches Google). Rien n'est enregistré : check-ins, leads et fin de journée sont simulés.",
+        "start": "Essayer une route de démo",
+        "banner": "Démonstration — rien n'est enregistré",
+        "quit": "Quitter",
+        "routeName": "Démo",
+        "none": "Aucune route de campagne à montrer pour l'instant.",
+        "simulated": "Démonstration : rien n'a été reporté.",
+        "ended": "Démonstration terminée. Rien n'a été enregistré."
       }
     },
     "kind": {

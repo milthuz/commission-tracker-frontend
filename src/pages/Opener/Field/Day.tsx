@@ -14,16 +14,27 @@ import { dialog } from '../../../lib/dialog';
 export default function Day() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { lng, dark, setTheme, route, reload, outbox } = useField();
+  const { lng, dark, setTheme, route, reload, outbox, demo, endDemo, date } = useField();
   const [day, setDay] = useState<DaySummary | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => api<DaySummary>('/api/opener/day').then(setDay).catch(() => setDay(null)), []);
-  useEffect(() => { load(); }, [load, route]);
+  // Démo : le résumé est calculé sur le téléphone à partir de la route simulée.
+  useEffect(() => {
+    if (!demo || !route) return;
+    const done = route.stops.filter((s) => s.outcome === 'done');
+    setDay({ date: date || new Date().toISOString().slice(0, 10), route: { id: route.id, name: route.name, status: route.status },
+      stats: { stops: route.stops.length, done: done.length, skipped: route.stops.filter((s) => s.outcome === 'skipped').length,
+        checkins: done.length, leads: 0, decisionMakers: done.filter((s) => s.checkin?.decisionMaker === 'yes').length,
+        distanceM: 0, durationMin: 0, visitMinutes: 0, avgVisitMin: null },
+      leads: [], notVisited: route.stops.filter((s) => s.outcome !== 'done').map((s) => ({ id: s.id, name: s.name, status: (s.status || 'new'), outcome: s.outcome, skipReason: s.skipReason })) });
+  }, [demo, route, date]);
+  useEffect(() => { if (!demo) load(); }, [load, route, demo]);
 
   const postpone = async () => {
     if (!day?.route) return;
     if (!(await dialog.confirm(t('opener.field.postponeConfirm', { n: day.notVisited.length })))) return;
+    if (demo) { await dialog.alert(t('opener.field.demo.simulated')); return; }
     setBusy(true);
     try {
       const r = await api<{ moved: number; date: string }>(`/api/opener/routes/${day.route.id}/postpone`, { method: 'POST' });
@@ -36,6 +47,7 @@ export default function Day() {
     if (!day?.route) return;
     if (outbox > 0) { dialog.alert(t('opener.field.closeWaitOutbox', { n: outbox })); return; }
     if (!(await dialog.confirm(t('opener.field.closeConfirm'), { confirmText: t('opener.field.closeDay') }))) return;
+    if (demo) { await dialog.alert(t('opener.field.demo.ended')); endDemo(); navigate('/opener', { replace: true }); return; }
     setBusy(true);
     try {
       await api(`/api/opener/routes/${day.route.id}/close`, { method: 'POST' });
@@ -50,7 +62,7 @@ export default function Day() {
   const m = s ? s.durationMin % 60 : 0;
 
   return (
-    <div className="px-4 pb-44" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}>
+    <div className="px-4 pb-44" style={{ paddingTop: 'calc(var(--of-top, env(safe-area-inset-top, 0px)) + 20px)' }}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <Eyebrow>{t('opener.field.tabs.day')}</Eyebrow>
