@@ -3555,7 +3555,11 @@
         "commitDone": "{{count}} account(s) recorded — total {{total}}.",
         "committedInfo": "{{count}} account(s) already committed for this period ({{total}}).",
         "uncommit": "Undo commit",
-        "uncommitConfirm": "Undo the committed payout for this period? These accounts become eligible again."
+        "uncommitConfirm": "Undo the committed payout for this period? These accounts become eligible again.",
+        "settled": "Final",
+        "through": "(data through {{through}})",
+        "openHint": "{{n}} account(s) whose 6-month window has not closed: their amount can still go up or down.",
+        "openAccountHint": "Window still running — this amount is not final."
       },
       "reportYears": {
         "title": "Report Years",

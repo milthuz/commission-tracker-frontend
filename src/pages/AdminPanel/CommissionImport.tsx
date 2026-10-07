@@ -97,9 +97,12 @@ interface QuotaReviewRow {
   waived: boolean; waivedPercent: number | null;
 }
 
-interface ProcAccount { merchant_account_id: string; business_name: string; windowStart: string; windowEnd: string; avg: number; activeMonths: number; bonus: number; }
-interface ProcRep { rep: string; total: number; accounts: ProcAccount[]; }
-interface ProcData { year: number; month: number; grandTotal: number; reps: ProcRep[]; committed?: { count: number; total: number }; }
+interface ProcAccount { merchant_account_id: string; business_name: string; windowStart: string; windowEnd: string; avg: number; activeMonths: number; bonus: number; settled: boolean; }
+// `settledAmount` = la part dont la fenêtre de 6 mois est déjà couverte par les données de
+// revenus : elle ne bougera plus. C'est le chiffre que le représentant voit en gros sur son
+// tableau de bord — l'afficher ici aussi évite « pourquoi tu dis 3 846 et mon écran 2 521 ».
+interface ProcRep { rep: string; total: number; settledAmount: number; openAccounts: number; accounts: ProcAccount[]; }
+interface ProcData { year: number; month: number; dataThrough: string | null; grandTotal: number; grandSettledAmount: number; reps: ProcRep[]; committed?: { count: number; total: number }; }
 
 interface PayrollRep { rep: string; source: string; total: number; lineCount: number; bonusCount: number; sentAt?: string | null; payDate?: string | null; }
 // Une paie du calendrier bi-hebdomadaire : payDate = la date de DÉPÔT, dueBy = la date limite
@@ -2112,8 +2115,14 @@ const CommissionImport: React.FC = () => {
             </button>
             {procData && (
               <span className="text-sm text-body">
+                {t('admin.commissionImport.processing.settled')}:
+                <span className="ml-1 font-semibold text-black dark:text-white">{fmt(procData.grandSettledAmount)}</span>
+                <span className="mx-2 text-stroke dark:text-strokedark">|</span>
                 {t('admin.commissionImport.processing.total')}:
                 <span className="ml-1 font-semibold text-black dark:text-white">{fmt(procData.grandTotal)}</span>
+                {procData.grandTotal > procData.grandSettledAmount && procData.dataThrough && (
+                  <span className="ml-2 text-xs">{t('admin.commissionImport.processing.through', { through: procData.dataThrough })}</span>
+                )}
               </span>
             )}
             {procData && procData.reps.length > 0 && (
@@ -2150,6 +2159,7 @@ const CommissionImport: React.FC = () => {
                     <tr>
                       <th className="px-4 py-2 text-left font-medium">Rep</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.accounts')}</th>
+                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.settled')}</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.bonus')}</th>
                       {procData.committed && procData.committed.count > 0 && <th className="px-4 py-2"></th>}
                     </tr>
@@ -2162,7 +2172,15 @@ const CommissionImport: React.FC = () => {
                           className="cursor-pointer border-t border-stroke transition hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/30"
                         >
                           <td className="px-4 py-2 font-medium text-black dark:text-white">{procExpanded === r.rep ? '▾' : '▸'} {r.rep}</td>
-                          <td className="px-4 py-2 text-right text-body">{r.accounts.length}</td>
+                          <td className="px-4 py-2 text-right text-body">
+                            {r.accounts.length}
+                            {r.openAccounts > 0 && (
+                              <span className="ml-1 text-xs text-warning" title={t('admin.commissionImport.processing.openHint', { n: r.openAccounts }) as string}>
+                                ({r.openAccounts} ⏳)
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-2 text-right font-semibold text-black dark:text-white">{fmt(r.settledAmount)}</td>
                           <td className="px-4 py-2 text-right font-semibold text-success">{fmt(r.total)}</td>
                           {procData.committed && procData.committed.count > 0 && (
                             <td className="px-4 py-2 text-right" onClick={(e) => e.stopPropagation()}>
@@ -2175,8 +2193,15 @@ const CommissionImport: React.FC = () => {
                         </tr>
                         {procExpanded === r.rep && r.accounts.map((a) => (
                           <tr key={a.merchant_account_id} className="border-t border-stroke bg-gray-50 text-xs dark:border-strokedark dark:bg-meta-4/20">
-                            <td className="px-4 py-1.5 pl-8 text-black dark:text-white">{a.business_name}<span className="ml-2 text-body">({a.windowStart} → {a.windowEnd})</span></td>
+                            <td className="px-4 py-1.5 pl-8 text-black dark:text-white">
+                              {a.business_name}
+                              <span className="ml-2 text-body">({a.windowStart} → {a.windowEnd})</span>
+                              {!a.settled && (
+                                <span className="ml-2 text-warning" title={t('admin.commissionImport.processing.openAccountHint') as string}>⏳</span>
+                              )}
+                            </td>
                             <td className="px-4 py-1.5 text-right text-body">{a.activeMonths} mo · ~{fmt(a.avg)}/mo</td>
+                            <td className="px-4 py-1.5 text-right text-body">{a.settled ? fmt(a.bonus) : '—'}</td>
                             <td className="px-4 py-1.5 text-right text-body">{fmt(a.bonus)}</td>
                             {procData.committed && procData.committed.count > 0 && <td></td>}
                           </tr>

@@ -3555,7 +3555,11 @@
         "commitDone": "{{count}} compte(s) enregistré(s) — total {{total}}.",
         "committedInfo": "{{count}} compte(s) déjà engagé(s) pour cette période ({{total}}).",
         "uncommit": "Annuler le commit",
-        "uncommitConfirm": "Annuler le versement engagé pour cette période ? Ces comptes redeviendront admissibles."
+        "uncommitConfirm": "Annuler le versement engagé pour cette période ? Ces comptes redeviendront admissibles.",
+        "settled": "Définitif",
+        "through": "(données jusqu’à {{through}})",
+        "openHint": "{{n}} compte(s) dont la fenêtre de 6 mois n’est pas terminée : leur montant peut encore monter ou descendre.",
+        "openAccountHint": "Fenêtre encore en cours — ce montant n’est pas définitif."
       },
       "reportYears": {
         "title": "Années de rapport",
