@@ -6719,7 +6719,11 @@
         "simulated": "Demo: nothing was postponed.",
         "ended": "Demo finished. Nothing was saved."
       },
-      "otherPosPh": "Which one? (e.g. Revel, Epos Now…)"
+      "otherPosPh": "Which one? (e.g. Revel, Epos Now…)",
+      "lowInterestConfirm": "Low interest ({{n}}/5). A lead is only useful if the restaurant is interested. Create a lead anyway?",
+      "lowInterestCreate": "Create anyway",
+      "lowInterestSkip": "Finish without a lead",
+      "lowInterestHint": "Low interest ({{n}}/5): a lead is only useful if the restaurant is interested."
     },
     "kind": {
       "restaurant": "Restaurants",

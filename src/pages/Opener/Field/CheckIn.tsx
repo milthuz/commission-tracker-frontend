@@ -20,6 +20,8 @@ import { dialog } from '../../../lib/dialog';
 // c'est ce nom qui est enregistré, pas « Autre ».
 const POS = ['Lightspeed', 'Square', 'Toast', 'Clover', "Maitre'D", 'Veloce', 'Auphan', 'Cluster', 'Aucun', 'Autre'];
 const FAR_M = 150;
+// Intérêt « faible » (1 ou 2 sur 5) : créer un lead demande une confirmation.
+const LOW_INTEREST = 2;
 
 // Position FRAÎCHE au moment d'enregistrer (pas celle gardée en mémoire par la carte, qui peut
 // dater de l'arrivée dans le quartier) : c'est elle qui atteste la visite.
@@ -97,6 +99,14 @@ export default function CheckIn() {
   const submit = async () => {
     setTried(true);
     if (!valid) return;
+    // Garde-fou (2026-10-08) : le premier jour, l'opener créait un lead à CHAQUE visite, même à
+    // un intérêt de 1/5. Un lead n'a de sens que si le restaurant est intéressé : à 1 ou 2, on
+    // demande. « Terminer sans lead » garde le check-in tel quel.
+    let wantLead = form.createLead;
+    if (wantLead && form.interest > 0 && form.interest <= LOW_INTEREST) {
+      wantLead = await dialog.confirm(t('opener.field.lowInterestConfirm', { n: form.interest }),
+        { confirmText: t('opener.field.lowInterestCreate'), cancelText: t('opener.field.lowInterestSkip') });
+    }
     setSending(true);
     const fresh = await freshPosition();
     const here: [number, number] | null = fresh ? [fresh.coords.latitude, fresh.coords.longitude] : position;
@@ -122,7 +132,7 @@ export default function CheckIn() {
     clearDraft(draftKey);
     markStop(stop.id, { outcome: 'done', doneAt: payload.at, checkin: { id: form.id, at: payload.at, interest: form.interest, leadId: null, decisionMaker: form.decisionMaker, currentPos: posValue! } });
     setSending(false);
-    if (form.createLead) {
+    if (wantLead) {
       navigate(`/opener/stop/${stop.id}/lead`, { replace: true, state: { checkin: payload } });
     } else {
       navigate('/opener', { replace: true });
@@ -223,6 +233,9 @@ export default function CheckIn() {
             <div><p className="text-sm font-semibold text-[var(--of-title)]">{isClient ? t('opener.field.client.createLead') : t('opener.field.createLeadWith')}</p><p className="text-xs text-[var(--of-faint)]">{isClient ? t('opener.field.client.createLeadSub') : t('opener.field.createLeadWithSub')}</p></div>
           </div>
         </Card>
+        {form.createLead && form.interest > 0 && form.interest <= LOW_INTEREST && (
+          <p className="-mt-3 text-xs text-[var(--of-warn)]">{t('opener.field.lowInterestHint', { n: form.interest })}</p>
+        )}
         {tried && !valid && <p className="text-xs text-[var(--of-bad)]">{t(isClient ? 'opener.field.client.requiredMissing' : 'opener.field.requiredMissing')}</p>}
         {/* Loi 25 : l'opener sait que sa position est recueillie, et pourquoi. */}
         <p className="text-[11px] leading-relaxed text-[var(--of-faint)]">{t('opener.field.gpsNotice')}</p>

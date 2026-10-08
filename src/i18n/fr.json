@@ -6719,7 +6719,11 @@
         "simulated": "Démonstration : rien n'a été reporté.",
         "ended": "Démonstration terminée. Rien n'a été enregistré."
       },
-      "otherPosPh": "Lequel ? (ex. Revel, Epos Now…)"
+      "otherPosPh": "Lequel ? (ex. Revel, Epos Now…)",
+      "lowInterestConfirm": "Intérêt faible ({{n}}/5). Un lead n'est utile que si le restaurant est intéressé. Créer quand même un lead ?",
+      "lowInterestCreate": "Créer quand même",
+      "lowInterestSkip": "Terminer sans lead",
+      "lowInterestHint": "Intérêt faible ({{n}}/5) : un lead n'est utile que si le restaurant est intéressé."
     },
     "kind": {
       "restaurant": "Restaurants",
