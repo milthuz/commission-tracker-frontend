@@ -1192,10 +1192,20 @@ const AdminPanel = () => {
       setDeskStatus(r.data);
     } catch (e) { setDeskStatus({ connected: false }); }
   };
-  const connectDesk = async () => {
+  // Compte de SERVICE (le même que le CRM, épinglé dans Admin → Intégrations) : Desk écrit sous ce
+  // compte et non sous celui d'une personne (2026-10-08, David : « toujours le compte saleshub »).
+  // Le profil Desk « Supervisor » de david@ ne peut pas créer de contacts ; celui de l'agent
+  // SalesHub Automation (« Agent ») le peut.
+  const [serviceAccount, setServiceAccount] = useState<string | null>(null);
+  useEffect(() => {
+    axios.get(`${API_URL}/api/admin/zoho-system-account?service=crm`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+      .then((r) => setServiceAccount(r.data?.pinned || null)).catch(() => {});
+  }, []);
+  const connectDesk = async (asEmail?: string) => {
     try {
       setDeskConnecting(true);
-      const r = await axios.get(`${API_URL}/api/auth/zoho-desk`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      const q = typeof asEmail === 'string' && asEmail ? `?as=${encodeURIComponent(asEmail)}` : '';
+      const r = await axios.get(`${API_URL}/api/auth/zoho-desk${q}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       window.location.href = r.data.authUrl;
     } catch (e) { console.error('Failed to initiate Desk OAuth:', e); setDeskConnecting(false); }
   };
@@ -1953,7 +1963,7 @@ const AdminPanel = () => {
                           {deskStatus.account ? ` — ${deskStatus.account}` : ''}
                         </p>
                         <button
-                          onClick={connectDesk}
+                          onClick={() => connectDesk()}
                           disabled={deskConnecting}
                           className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 disabled:opacity-50"
                         >
@@ -1970,7 +1980,7 @@ const AdminPanel = () => {
                           <p className="mb-4 rounded-md bg-danger bg-opacity-10 px-3 py-2 text-sm text-danger">{deskStatus.error}</p>
                         )}
                         <button
-                          onClick={connectDesk}
+                          onClick={() => connectDesk()}
                           disabled={deskConnecting}
                           className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
                         >
@@ -1987,6 +1997,23 @@ const AdminPanel = () => {
                               {t('admin.desk.connect')}
                             </>
                           )}
+                        </button>
+                      </div>
+                    )}
+                    {/* Basculer Desk sur le compte de service (celui du CRM) : visible tant que Desk
+                        tourne sous un autre compte. Zoho ne force pas la reconnexion : il faut d'abord
+                        se déconnecter de Zoho (autre onglet) pour signer en tant que compte de service. */}
+                    {serviceAccount && deskStatus && (deskStatus.account || '').toLowerCase() !== serviceAccount.toLowerCase() && (
+                      <div className="mt-5 rounded-md border border-warning/50 bg-warning/5 p-4">
+                        <p className="text-sm font-semibold text-black dark:text-white">{t('admin.desk.svcTitle', { email: serviceAccount })}</p>
+                        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-body">
+                          <li>{t('admin.desk.svcStep1')} <a href="https://accounts.zoho.com/logout" target="_blank" rel="noreferrer" className="font-medium text-primary hover:underline">accounts.zoho.com</a></li>
+                          <li>{t('admin.desk.svcStep2')}</li>
+                          <li>{t('admin.desk.svcStep3', { email: serviceAccount })}</li>
+                        </ol>
+                        <button onClick={() => connectDesk(serviceAccount)} disabled={deskConnecting}
+                          className="mt-3 inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                          {t('admin.desk.svcButton', { email: serviceAccount })}
                         </button>
                       </div>
                     )}

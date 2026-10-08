@@ -2764,7 +2764,12 @@
       "checking": "Checking connection status...",
       "connect": "Connect Zoho Desk",
       "reconnect": "Reconnect Desk",
-      "redirecting": "Redirecting to Zoho..."
+      "redirecting": "Redirecting to Zoho...",
+      "svcTitle": "Have Desk write as the app account ({{email}})",
+      "svcStep1": "In another tab, sign out of Zoho:",
+      "svcStep2": "Come back here (Sales Hub stays signed in) and click the button below.",
+      "svcStep3": "When Zoho asks, sign in as {{email}} and accept the permissions.",
+      "svcButton": "Connect Desk as {{email}}"
     },
     "zentact": {
       "title": "Zentact Payment Integration",
