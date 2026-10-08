@@ -232,6 +232,9 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
         // ce qui a envoye David reconnecter un acces parfaitement valide. Un 403 veut dire que
         // le compte Desk de Sales Hub n'est pas agent du departement choisi.
         text: e?.data?.error === 'desk_scope' ? t('leads.ticket.scope')
+          // Le CONTACT n'a pas pu être créé dans Desk (client inconnu de Desk) : c'est le profil
+          // Desk du compte qui manque du droit « Contacts › Créer », pas le département.
+          : e?.data?.error === 'desk_contact_forbidden' ? t('leads.ticket.contactForbidden')
           : e?.data?.error === 'desk_forbidden'
             ? t('leads.ticket.forbidden', {
                 dept: (departments || []).find((d) => d.id === e?.data?.departmentId)?.name || deptId,

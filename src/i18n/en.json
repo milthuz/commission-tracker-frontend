@@ -5182,7 +5182,8 @@
       "label": "Zoho Desk ticket",
       "open": "open in Zoho Desk",
       "deptHidden": "{{n}} other department(s) are not offered: the Sales Hub Desk account is not an agent there, so Zoho would refuse. To open one up, add that account as an agent of the department in Zoho Desk.",
-      "forbidden": "Zoho Desk refused: the Sales Hub Desk account is not an agent of the “{{dept}}” department. Pick another department, or add the account as an agent of that one in Zoho Desk. Reconnecting Desk would not help."
+      "forbidden": "Zoho Desk refused: the Sales Hub Desk account is not an agent of the “{{dept}}” department. Pick another department, or add the account as an agent of that one in Zoho Desk. Reconnecting Desk would not help.",
+      "contactForbidden": "Desk refuses to create this customer as a new contact (they are not in Desk yet). In Zoho Desk → Setup → Profiles, give the Sales Hub account's profile the \"Contacts › Create\" permission, then try again."
     }
   },
   "csLookup": {
