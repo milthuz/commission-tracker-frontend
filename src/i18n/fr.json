@@ -3054,7 +3054,8 @@
         "hr_completed": "RH — Dossier signé envoyé au nouvel employé",
         "hr_declined": "RH — Offre refusée",
         "opener_route_published": "Opener — route publiée",
-        "opener_week_published": "Opener — semaine planifiée"
+        "opener_week_published": "Opener — semaine planifiée",
+        "role_request": "Demande de rôle"
       }
     },
     "recalculate": {
@@ -4008,6 +4009,13 @@
     "hr": {
       "title": "RH",
       "subtitle": "Réglages de la section Embauches : gestionnaires (« Relève de »), personnes en copie du dossier signé et employeurs nommés dans les contrats."
+    },
+    "roleRequests": {
+      "title_one": "{{count}} demande de rôle en attente",
+      "title_other": "{{count}} demandes de rôle en attente",
+      "help": "Ces usagers se sont connectés sans rôle. Attribuez-leur un rôle dans la liste ci-dessous : la demande disparaît d'elle-même.",
+      "dismiss": "Classer",
+      "dismissConfirm": "Classer la demande de {{name}} sans lui attribuer de rôle ?"
     }
   },
   "header": {
@@ -7300,5 +7308,15 @@
       "on": "pilote actif · dernière application le {{date}} · {{waiting}} en file",
       "onNoRun": "pilote actif · rien d'appliqué encore · {{waiting}} en file"
     }
+  },
+  "noRole": {
+    "title": "Bienvenue dans Sales Hub{{name}} !",
+    "body": "Votre compte n'a pas encore de rôle : c'est le rôle qui ouvre les sections dont vous avez besoin (commissions, pistes, application terrain…). Demandez votre accès ci-dessous ; un administrateur vous attribuera un rôle.",
+    "messageLabel": "Votre poste ou ce dont vous avez besoin (facultatif)",
+    "messagePh": "Ex. : je suis la nouvelle opener de l'équipe de Laval.",
+    "request": "Demander un rôle",
+    "pendingTitle": "Demande envoyée",
+    "pendingBody": "Envoyée le {{date}}. Vous aurez accès dès qu'un administrateur vous aura attribué un rôle.",
+    "check": "Vérifier si mon accès est prêt"
   }
 }

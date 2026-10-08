@@ -3054,7 +3054,8 @@
         "hr_completed": "HR — Signed package sent to the new hire",
         "hr_declined": "HR — Offer declined",
         "opener_route_published": "Opener — route published",
-        "opener_week_published": "Opener — week planned"
+        "opener_week_published": "Opener — week planned",
+        "role_request": "Role request"
       }
     },
     "recalculate": {
@@ -4008,6 +4009,13 @@
     "hr": {
       "title": "HR",
       "subtitle": "Settings for the Hiring section: managers (“Reports to”), who is copied on the signed package, and the employers named in the contracts."
+    },
+    "roleRequests": {
+      "title_one": "{{count}} pending role request",
+      "title_other": "{{count}} pending role requests",
+      "help": "These users signed in without a role. Assign them a role in the list below: the request disappears on its own.",
+      "dismiss": "Dismiss",
+      "dismissConfirm": "Dismiss {{name}}'s request without assigning a role?"
     }
   },
   "header": {
@@ -7300,5 +7308,15 @@
       "on": "autopilot on · last applied {{date}} · {{waiting}} queued",
       "onNoRun": "autopilot on · nothing applied yet · {{waiting}} queued"
     }
+  },
+  "noRole": {
+    "title": "Welcome to Sales Hub{{name}}!",
+    "body": "Your account doesn't have a role yet: a role opens the sections you need (commissions, leads, field app…). Request access below; an administrator will assign you a role.",
+    "messageLabel": "Your position or what you need (optional)",
+    "messagePh": "E.g. I'm the new opener on the Laval team.",
+    "request": "Request a role",
+    "pendingTitle": "Request sent",
+    "pendingBody": "Sent on {{date}}. You'll have access as soon as an administrator assigns you a role.",
+    "check": "Check whether my access is ready"
   }
 }

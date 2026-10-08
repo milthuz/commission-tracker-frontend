@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Header from '../components/Header/index';
 import Sidebar from '../components/Sidebar/index';
 import ImpersonationBanner from '../components/ImpersonationBanner';
@@ -12,6 +12,7 @@ import InvoicePreviewHost from '../components/InvoicePreviewHost';
 import { ContentLoader } from '../common/Loader';
 import { useAuth } from '../context/AuthContext';
 import { prefetchRoutes } from '../lib/routePrefetch';
+import NoRoleNotice from '../components/NoRoleNotice';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,6 +22,12 @@ const DefaultLayout: React.FC = () => {
   const { user } = useAuth();
   const perms = user?.permissions || [];
   const crmEnabled = perms.includes('*') || perms.some((p) => p.startsWith('assistant:crm'));
+  // Usager SANS rôle (aucune permission, pas admin) : l'écran « pas encore de rôle » remplace les
+  // pages, sauf le profil. Seulement quand les permissions sont CONNUES (tableau reçu de
+  // /api/auth/verify) — jamais pendant le chargement.
+  const { pathname } = useLocation();
+  const noRole = !!user && Array.isArray(user.permissions) && user.permissions.length === 0 && !user.isAdmin
+    && !pathname.startsWith('/profile');
 
   // La coquille est affichée : télécharger les autres sections au repos, pour que la première
   // visite de chacune n'attende plus son code (une seule fois par chargement de page).
@@ -55,7 +62,7 @@ const DefaultLayout: React.FC = () => {
                   changement de section, et l'impression d'un rechargement complet.
                   Ici, la coquille reste montée et seul le contenu se renouvelle. */}
               <Suspense fallback={<ContentLoader />}>
-                <Outlet />
+                {noRole ? <NoRoleNotice name={user?.name} /> : <Outlet />}
               </Suspense>
             </div>
           </main>

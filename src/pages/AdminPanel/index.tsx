@@ -26,6 +26,7 @@ import OpenerMatchAdmin from './OpenerMatchAdmin';
 import PartnersAdmin from './PartnersAdmin';
 import LeadsAdmin from './LeadsAdmin';
 import HrAdmin from './HrAdmin';
+import RoleRequests from './RoleRequests';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -3538,6 +3539,8 @@ Joker Pub,Jay Daoust,2024-04-01`}
             </>)}
 
             {usersSub === 'access' && (<>
+            {/* Demandes de rôle des nouveaux usagers sans rôle (2026-10-08). */}
+            {(can('users:role_requests') || can('admin:users')) && <RoleRequests />}
             <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
               {/* En-tête : titre et explication à gauche, compteurs à droite — une seule bande. */}
               <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stroke px-7 py-5 dark:border-strokedark">

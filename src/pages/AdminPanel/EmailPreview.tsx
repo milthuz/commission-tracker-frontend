@@ -24,6 +24,8 @@ const TEMPLATE_TYPES = [
   'hr_sign_request', 'hr_countersign', 'hr_completed', 'hr_declined',
   // Opener : la route publiée, à l'opener. Interne, bilingue.
   'opener_route_published', 'opener_week_published',
+  // Demande de rôle d'un usager qui n'en a pas (écran NoRoleNotice). Interne, bilingue.
+  'role_request',
 ] as const;
 type TemplateType = (typeof TEMPLATE_TYPES)[number];
 
