@@ -158,6 +158,13 @@ const AdminPanel = () => {
       fetchDeskStatus();
       window.history.replaceState({}, '', '/admin/sync');
     }
+    // Zoho a signé avec un AUTRE compte que celui demandé (session Zoho restée ouverte) : le serveur
+    // a refusé l'autorisation ; on dit pourquoi et comment recommencer.
+    if (params.get('desk') === 'mauvais_compte') {
+      dialog.alert(t('admin.desk.wrongAccount', { signed: params.get('signe') || '?', expected: params.get('attendu') || '?' }));
+      fetchDeskStatus();
+      window.history.replaceState({}, '', '/admin/sync');
+    }
   }, [location.search]);
 
   // Kaizen demo maintenance switch (Integrations → Connections). Fetched once isAdmin resolves.

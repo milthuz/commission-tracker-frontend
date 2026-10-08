@@ -2766,10 +2766,11 @@
       "reconnect": "Reconnect Desk",
       "redirecting": "Redirecting to Zoho...",
       "svcTitle": "Have Desk write as the app account ({{email}})",
-      "svcStep1": "In another tab, sign out of Zoho:",
-      "svcStep2": "Come back here (Sales Hub stays signed in) and click the button below.",
+      "svcStep1": "Open a PRIVATE browsing window, sign in to Sales Hub and come back to this page. In another tab of that same window, sign out of Zoho:",
+      "svcStep2": "Come back to this tab (Sales Hub stays signed in) and click the button below.",
       "svcStep3": "When Zoho asks, sign in as {{email}} and accept the permissions.",
-      "svcButton": "Connect Desk as {{email}}"
+      "svcButton": "Connect Desk as {{email}}",
+      "wrongAccount": "Zoho signed in as {{signed}} instead of {{expected}}: the authorization was refused and nothing changed. Open a private browsing window, sign in to Sales Hub, sign out of Zoho in another tab of that window (accounts.zoho.com), then try again and sign in to Zoho as {{expected}}."
     },
     "zentact": {
       "title": "Zentact Payment Integration",

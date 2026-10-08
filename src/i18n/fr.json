@@ -2766,10 +2766,11 @@
       "reconnect": "Reconnecter Desk",
       "redirecting": "Redirection vers Zoho...",
       "svcTitle": "Faire écrire Desk par le compte de l'application ({{email}})",
-      "svcStep1": "Dans un autre onglet, déconnectez-vous de Zoho :",
-      "svcStep2": "Revenez ici (Sales Hub reste connecté) et cliquez le bouton ci-dessous.",
+      "svcStep1": "Ouvrez une fenêtre de navigation PRIVÉE, connectez-vous à Sales Hub et revenez à cette page. Dans un autre onglet de cette même fenêtre, déconnectez-vous de Zoho :",
+      "svcStep2": "Revenez sur cet onglet (Sales Hub reste connecté) et cliquez le bouton ci-dessous.",
       "svcStep3": "Quand Zoho le demande, connectez-vous avec {{email}} et acceptez les autorisations.",
-      "svcButton": "Connecter Desk avec {{email}}"
+      "svcButton": "Connecter Desk avec {{email}}",
+      "wrongAccount": "Zoho a signé avec {{signed}} au lieu de {{expected}} : l'autorisation a été refusée, rien n'a changé. Ouvrez une fenêtre de navigation privée, connectez-vous à Sales Hub, déconnectez-vous de Zoho dans un autre onglet de cette fenêtre (accounts.zoho.com), puis recommencez et connectez-vous à Zoho avec {{expected}}."
     },
     "zentact": {
       "title": "Intégration paiement Zentact",
