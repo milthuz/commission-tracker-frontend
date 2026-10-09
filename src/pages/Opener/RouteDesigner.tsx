@@ -13,6 +13,8 @@ import { GoogleMapView, getOpenerConfig, pinIcon, dotIcon, useIsDark } from './G
 import { optimize, pathM, circlePolygon, kindOf, suggestRoutes, type PlaceKind, type Suggestion, type LatLng } from './geo';
 import RouteTracking from './RouteTracking';
 import CampaignView from './CampaignView';
+import OpenerReports from './OpenerReports';
+import { useAuth } from '../../context/AuthContext';
 
 // Écran 1g — conception des routes (manager). Permission opener:routes.
 // Trois onglets : « Campagne » (CampaignView, ouvert par défaut : le territoire déjà découpé en routes),
@@ -78,7 +80,10 @@ export default function RouteDesigner() {
   const [service, setService] = useState<'all' | 'tables' | 'quick'>('all');
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
-  const [tab, setTab] = useState<'campaign' | 'plan' | 'track'>('campaign');
+  const [tab, setTab] = useState<'campaign' | 'plan' | 'track' | 'reports'>('campaign');
+  // Onglet « Rapports » : permission opener:reports (le rapport quotidien des visites).
+  const { user } = useAuth();
+  const canReports = !!user && (!!user.isAdmin || !!user.permissions?.some((p) => p === '*' || p === 'opener:*' || p === 'opener:reports'));
   const [kinds, setKinds] = useState<PlaceKind[]>(ALL_KINDS);
   // Planification automatique
   const [planQ, setPlanQ] = useState('');
@@ -492,14 +497,16 @@ export default function RouteDesigner() {
   return (
     <div className="space-y-4">
       <div className="inline-flex gap-1 rounded-xl border border-stroke bg-white p-1 dark:border-strokedark dark:bg-boxdark">
-        {(['campaign', 'plan', 'track'] as const).map((k) => (
+        {(canReports ? (['campaign', 'plan', 'track', 'reports'] as const) : (['campaign', 'plan', 'track'] as const)).map((k) => (
           <button key={k} onClick={() => setTab(k)}
             className={`h-9 rounded-[9px] px-4 text-sm font-semibold ${tab === k ? 'bg-primary text-white' : 'text-body dark:text-bodydark'}`}>
             {t(`opener.designer.tab.${k}`)}
           </button>
         ))}
       </div>
-      {tab === 'campaign' ? (
+      {tab === 'reports' ? (
+        <OpenerReports />
+      ) : tab === 'campaign' ? (
         <CampaignView onOpenRoute={(id) => { setTab('plan'); openRoute(String(id)); }} />
       ) : tab === 'track' ? (
         <RouteTracking onOpen={(id) => { setTab('plan'); openRoute(String(id)); }} />

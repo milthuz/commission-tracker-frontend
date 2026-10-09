@@ -26,6 +26,8 @@ const TEMPLATE_TYPES = [
   'opener_route_published', 'opener_week_published',
   // Demande de rôle d'un usager qui n'en a pas (écran NoRoleNotice). Interne, bilingue.
   'role_request',
+  // Rapport quotidien des visites des openers (onglet Opener → Rapports). Interne, français.
+  'opener_daily_report',
 ] as const;
 type TemplateType = (typeof TEMPLATE_TYPES)[number];
 

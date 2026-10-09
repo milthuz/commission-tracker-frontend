@@ -3061,7 +3061,8 @@
         "hr_declined": "HR — Offer declined",
         "opener_route_published": "Opener — route published",
         "opener_week_published": "Opener — week planned",
-        "role_request": "Role request"
+        "role_request": "Role request",
+        "opener_daily_report": "Opener — daily visit report"
       }
     },
     "recalculate": {
@@ -6489,7 +6490,8 @@
       "tab": {
         "plan": "Plan",
         "track": "Tracking",
-        "campaign": "Campaign"
+        "campaign": "Campaign",
+        "reports": "Reports"
       },
       "planTitle": "Plan automatically",
       "planHelp": "A neighbourhood or an address, the time available: Sales Hub suggests routes that fit in the day.",
@@ -6843,7 +6845,33 @@
       "plannedTitle": "Planned routes",
       "today": "Today"
     },
-    "seasonal": "Seasonal"
+    "seasonal": "Seasonal",
+    "report": {
+      "title": "Daily visit report",
+      "help": "One email every business day with, for each opener, their visits (arrival, departure, duration, GPS check, POS, interest, customer satisfaction, leads, notes), unvisited stops and totals. Never on weekends or holidays.",
+      "enabled": "Send the report automatically",
+      "hour": "Send time (Montréal time)",
+      "recipients": "Recipients",
+      "noRecipientsYet": "No recipients: the report isn't sent.",
+      "pickUser": "Pick a user…",
+      "typeEmail": "or type an email",
+      "invalidEmail": "Invalid email.",
+      "openers": "Openers included",
+      "allOpeners": "All openers",
+      "someOpeners": "Only some",
+      "save": "Save",
+      "summaryOn": "Sent every business day at {{hour}}:00 to {{n}} recipient(s)",
+      "summaryOff": "Automatic sending is off",
+      "lastSent": "last sent: {{date}}",
+      "previewTitle": "Preview and send now",
+      "preview": "Preview",
+      "send": "Send now",
+      "previewHelp": "Pick a date and click \"Preview\" to see the report exactly as it will be sent.",
+      "saveFirst": "Save your changes first.",
+      "sendConfirm": "Send the report for {{date}} to {{n}} recipient(s)?",
+      "sent": "Report sent to {{n}} recipient(s) ({{openers}} opener(s)).",
+      "noRecipients": "Add at least one recipient and save."
+    }
   },
   "hr": {
     "title": "Hiring",

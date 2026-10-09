@@ -3061,7 +3061,8 @@
         "hr_declined": "RH — Offre refusée",
         "opener_route_published": "Opener — route publiée",
         "opener_week_published": "Opener — semaine planifiée",
-        "role_request": "Demande de rôle"
+        "role_request": "Demande de rôle",
+        "opener_daily_report": "Opener — rapport quotidien des visites"
       }
     },
     "recalculate": {
@@ -6489,7 +6490,8 @@
       "tab": {
         "plan": "Planifier",
         "track": "Suivi",
-        "campaign": "Campagne"
+        "campaign": "Campagne",
+        "reports": "Rapports"
       },
       "planTitle": "Planifier automatiquement",
       "planHelp": "Un quartier ou une adresse, le temps disponible : Sales Hub propose des routes qui tiennent dans la journée.",
@@ -6843,7 +6845,33 @@
       "plannedTitle": "Routes planifiées",
       "today": "Aujourd'hui"
     },
-    "seasonal": "Saisonnier"
+    "seasonal": "Saisonnier",
+    "report": {
+      "title": "Rapport quotidien des visites",
+      "help": "Un courriel chaque jour ouvrable avec, pour chaque opener, ses visites (arrivée, départ, durée, vérification GPS, POS, intérêt, satisfaction des clients, leads, notes), les arrêts non visités et les totaux. Jamais les fins de semaine ni les jours fériés.",
+      "enabled": "Envoyer le rapport automatiquement",
+      "hour": "Heure d'envoi (heure de Montréal)",
+      "recipients": "Destinataires",
+      "noRecipientsYet": "Aucun destinataire : le rapport ne part pas.",
+      "pickUser": "Choisir un usager…",
+      "typeEmail": "ou taper un courriel",
+      "invalidEmail": "Courriel invalide.",
+      "openers": "Openers inclus",
+      "allOpeners": "Tous les openers",
+      "someOpeners": "Seulement certains",
+      "save": "Enregistrer",
+      "summaryOn": "Envoyé chaque jour ouvrable à {{hour}} h à {{n}} destinataire(s)",
+      "summaryOff": "Envoi automatique désactivé",
+      "lastSent": "dernier envoi : {{date}}",
+      "previewTitle": "Aperçu et envoi immédiat",
+      "preview": "Aperçu",
+      "send": "Envoyer maintenant",
+      "previewHelp": "Choisissez une date et cliquez « Aperçu » pour voir le rapport tel qu'il sera envoyé.",
+      "saveFirst": "Enregistrez d'abord vos changements.",
+      "sendConfirm": "Envoyer le rapport du {{date}} à {{n}} destinataire(s) ?",
+      "sent": "Rapport envoyé à {{n}} destinataire(s) ({{openers}} opener(s)).",
+      "noRecipients": "Ajoutez au moins un destinataire et enregistrez."
+    }
   },
   "hr": {
     "title": "Embauches",
