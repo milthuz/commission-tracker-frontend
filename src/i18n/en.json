@@ -5138,7 +5138,11 @@
       "depositDate": "Deposit date",
       "reviewedBy": "Reviewed by",
       "history": "History",
-      "stepRepSms": "Text message to the rep"
+      "stepRepSms": "Text message to the rep",
+      "stepEventThanks": "Trade-show thank-you email sent to the visitor",
+      "eventResent": "resent ×{{n}} (last {{at}})",
+      "eventNoteOk": "note added in Zoho",
+      "eventNoteFailed": "Zoho note failed: {{error}}"
     },
     "kpi": {
       "waiting": "Waiting for review",

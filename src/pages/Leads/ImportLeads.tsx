@@ -347,6 +347,15 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
                             {done ? (
                               <span className="text-black dark:text-white">
                                 ✓ {r.lead!.refCode}{r.lead!.emailedAt ? ` · ${t('leads.import.emailed')}` : ''}
+                                {r.lead!.emailedAt && r.email && (
+                                  <>
+                                    {' · '}
+                                    <button type="button" disabled={!!busy} onClick={() => setConfirm({ kind: 'resend', row: r })}
+                                      className="font-medium text-primary hover:underline disabled:opacity-50">
+                                      {busy === `resend:${r.key}` ? '…' : t('leads.import.resend')}
+                                    </button>
+                                  </>
+                                )}
                                 {!!r.lead!.resendCount && <span className="text-bodydark2"> · {t('leads.import.resentCount', { n: r.lead!.resendCount })}</span>}
                                 {r.lead!.emailedAt && (
                                   <span className="mt-1 flex flex-wrap gap-1">
@@ -362,12 +371,6 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
                                   </span>
                                 )}
                                 {r.lead!.emailError && <span className="block text-danger">{r.lead!.emailError}</span>}
-                                {r.lead!.emailedAt && r.email && (
-                                  <button type="button" disabled={!!busy} onClick={() => setConfirm({ kind: 'resend', row: r })}
-                                    className="mt-1 block rounded border border-stroke px-2 py-0.5 text-xs font-medium text-black hover:bg-gray-2 disabled:opacity-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
-                                    {busy === `resend:${r.key}` ? '…' : t('leads.import.resend')}
-                                  </button>
-                                )}
                               </span>
                             ) : (
                               <>

@@ -702,12 +702,32 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
                         detail={auto.repSms.ok ? auto.repSms.to : auto.repSms.skipped ? t(`leads.detail.skip.${auto.repSms.skipped}`, { defaultValue: auto.repSms.skipped }) : auto.repSms.error}
                       />
                     )}
+                    {/* Piste de salon : le courriel au marchand, c'est le REMERCIEMENT (envoyé plus tard,
+                        depuis l'écran du lot), pas la bienvenue désactivée à l'acceptation. */}
+                    {auto.eventThanks ? (
+                      <StepLine
+                        ok={!!auto.eventThanks.ok}
+                        label={t('leads.detail.stepEventThanks')}
+                        detail={auto.eventThanks.ok
+                          ? [
+                              `${dt(auto.eventThanks.at)} · ${auto.eventThanks.to}${auto.eventThanks.from ? ` · ${auto.eventThanks.from}` : ''}`,
+                              auto.eventThanks.resendCount ? t('leads.detail.eventResent', { n: auto.eventThanks.resendCount, at: dt(auto.eventThanks.resentAt) }) : null,
+                              lead.eventThanks ? [
+                                lead.eventThanks.openCount ? t('leads.import.track.opened', { n: lead.eventThanks.openCount }) : t('leads.import.track.notOpened'),
+                                lead.eventThanks.linkOpenCount ? t('leads.import.track.link', { n: lead.eventThanks.linkOpenCount }) : null,
+                              ].filter(Boolean).join(' · ') : null,
+                              auto.eventThanks.zohoNote?.ok ? t('leads.detail.eventNoteOk') : auto.eventThanks.zohoNote?.error ? t('leads.detail.eventNoteFailed', { error: auto.eventThanks.zohoNote.error }) : null,
+                            ].filter(Boolean).join(' — ')
+                          : auto.eventThanks.error}
+                      />
+                    ) : (
                     <StepLine
                       ok={!!auto.merchantEmail?.ok}
                       skipped={auto.merchantEmail?.skipped}
                       label={t('leads.detail.stepMerchantEmail')}
                       detail={auto.merchantEmail?.ok ? `${auto.merchantEmail.to}${auto.merchantEmail.from ? ` · ${auto.merchantEmail.from}` : ''}` : auto.merchantEmail?.skipped ? t(`leads.detail.skip.${auto.merchantEmail.skipped}`, { defaultValue: auto.merchantEmail.skipped }) : auto.merchantEmail?.error}
                     />
+                    )}
                   </ul>
 
                   <div className="mt-4 border-t border-stroke pt-3 dark:border-strokedark">

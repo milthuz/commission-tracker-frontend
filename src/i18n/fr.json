@@ -5138,7 +5138,11 @@
       "depositDate": "Date de dépôt",
       "reviewedBy": "Examinée par",
       "history": "Historique",
-      "stepRepSms": "Texto au représentant"
+      "stepRepSms": "Texto au représentant",
+      "stepEventThanks": "Courriel de remerciement de salon envoyé au visiteur",
+      "eventResent": "renvoyé ×{{n}} (dernier {{at}})",
+      "eventNoteOk": "note ajoutée dans Zoho",
+      "eventNoteFailed": "note Zoho refusée : {{error}}"
     },
     "kpi": {
       "waiting": "En attente d'examen",
