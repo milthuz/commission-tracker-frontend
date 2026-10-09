@@ -5261,7 +5261,10 @@
         "not_accepted": "Acceptez d'abord le lot.",
         "not_found": "Lot introuvable.",
         "failed": "Une erreur est survenue.",
-        "bad_photo_type": "Utilisez une image JPEG, PNG ou WebP."
+        "bad_photo_type": "Utilisez une image JPEG, PNG ou WebP.",
+        "not_sent_yet": "Envoyez d'abord le lot : le renvoi sert à une personne qui l'a déjà reçu.",
+        "send_failed": "Le courriel n'a pas pu partir.",
+        "no_email": "Cette piste n'a pas d'adresse courriel."
       },
       "missing": "Pour accepter, remplissez :",
       "photoTitle": "Photo du kiosque (facultatif)",
@@ -5272,7 +5275,11 @@
       "replacePhoto": "Remplacer",
       "saveCaption": "Enregistrer la légende",
       "removePhoto": "Retirer",
-      "photoAfterSend": "Les courriels déjà envoyés affichent la photo actuelle : la remplacer ou la retirer les change aussi."
+      "photoAfterSend": "Les courriels déjà envoyés affichent la photo actuelle : la remplacer ou la retirer les change aussi.",
+      "resend": "Renvoyer",
+      "resent": "Courriel renvoyé à {{to}}.",
+      "resentCount": "renvoyé ×{{n}}",
+      "confirmResend": "Renvoyer le courriel de remerciement à {{email}} ? Il contient un nouveau lien de réservation : celui du courriel précédent ne fonctionnera plus."
     }
   },
   "csLookup": {

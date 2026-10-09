@@ -5261,7 +5261,10 @@
         "not_accepted": "Accept the batch first.",
         "not_found": "Batch not found.",
         "failed": "Something went wrong.",
-        "bad_photo_type": "Use a JPEG, PNG or WebP image."
+        "bad_photo_type": "Use a JPEG, PNG or WebP image.",
+        "not_sent_yet": "Send the batch first: resend is for someone who already received it.",
+        "send_failed": "The email could not be sent.",
+        "no_email": "No email address for this lead."
       },
       "missing": "To accept, fill in:",
       "photoTitle": "Booth photo (optional)",
@@ -5272,7 +5275,11 @@
       "replacePhoto": "Replace",
       "saveCaption": "Save caption",
       "removePhoto": "Remove",
-      "photoAfterSend": "Emails already sent show the current photo: replacing or removing it changes them too."
+      "photoAfterSend": "Emails already sent show the current photo: replacing or removing it changes them too.",
+      "resend": "Resend",
+      "resent": "Email resent to {{to}}.",
+      "resentCount": "resent ×{{n}}",
+      "confirmResend": "Resend the thank-you email to {{email}}? It carries a new booking link: the link in the previous email will stop working."
     }
   },
   "csLookup": {

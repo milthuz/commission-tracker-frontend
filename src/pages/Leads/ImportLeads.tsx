@@ -34,7 +34,7 @@ interface Row {
   repName?: string | null;
   crm?: { status: string; summary: string | null; matches: { module: string; name: string; owner: string | null; matchedOn: string | null }[] };
   existingLead?: { refCode: string; status: string; rep: string | null; source: string | null } | null;
-  lead?: { id: number; refCode: string; status: string; rep: string | null; crmLeadId: string | null; crmError: string | null; emailedAt: string | null; emailError: string | null } | null;
+  lead?: { id: number; refCode: string; status: string; rep: string | null; crmLeadId: string | null; crmError: string | null; emailedAt: string | null; resendCount?: number; emailError: string | null } | null;
 }
 interface Batch {
   id: number;
@@ -114,6 +114,18 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
       adopt(data.batch);
       if (preview) await loadPreview(previewLang);
     } catch (e) { setError((e as Error).message); } finally { setBusy(null); }
+  };
+
+  const resend = async (r: Row) => {
+    if (!window.confirm(t('leads.import.confirmResend', { email: r.email }) as string)) return;
+    setBusy(`resend:${r.key}`); setError(null); setNotice(null);
+    try {
+      const res = await fetch(`${API_URL}/api/leads/import/batches/${batch!.id}/resend/${r.lead!.id}`, { method: 'POST', headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) { setError(data.detail || errText(data.error || 'failed')); return; }
+      adopt(data.batch);
+      setNotice(t('leads.import.resent', { to: data.to }) as string);
+    } finally { setBusy(null); }
   };
 
   const removePhoto = async () => {
@@ -333,7 +345,14 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
                             {done ? (
                               <span className="text-black dark:text-white">
                                 ✓ {r.lead!.refCode}{r.lead!.emailedAt ? ` · ${t('leads.import.emailed')}` : ''}
+                                {!!r.lead!.resendCount && <span className="text-bodydark2"> · {t('leads.import.resentCount', { n: r.lead!.resendCount })}</span>}
                                 {r.lead!.emailError && <span className="block text-danger">{r.lead!.emailError}</span>}
+                                {r.lead!.emailedAt && r.email && (
+                                  <button type="button" disabled={!!busy} onClick={() => resend(r)}
+                                    className="mt-1 block rounded border border-stroke px-2 py-0.5 text-xs font-medium text-black hover:bg-gray-2 disabled:opacity-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                                    {busy === `resend:${r.key}` ? '…' : t('leads.import.resend')}
+                                  </button>
+                                )}
                               </span>
                             ) : (
                               <>
