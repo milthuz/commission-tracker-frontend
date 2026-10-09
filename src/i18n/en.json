@@ -4130,7 +4130,10 @@
       "wait": "Wait a minute before another test.",
       "notConfigured": "Text messages are not enabled on Sales Hub yet. Your number will be used as soon as they are.",
       "failed": "The text was not sent ({{reason}})."
-    }
+    },
+    "signatureRoleEn": "Title in English",
+    "signatureRoleEnPh": "e.g. Sales Representative",
+    "signatureRoleEnHint": "Used instead of your title in emails sent to English-speaking merchants."
   },
   "impersonation": {
     "banner": "You are impersonating: {{name}}",
@@ -5257,9 +5260,19 @@
         "no_rep": "Choose a rep for every selected lead.",
         "not_accepted": "Accept the batch first.",
         "not_found": "Batch not found.",
-        "failed": "Something went wrong."
+        "failed": "Something went wrong.",
+        "bad_photo_type": "Use a JPEG, PNG or WebP image."
       },
-      "missing": "To accept, fill in:"
+      "missing": "To accept, fill in:",
+      "photoTitle": "Booth photo (optional)",
+      "photoHint": "Shown under the thank-you line. It is shrunk before upload.",
+      "noPhoto": "No photo",
+      "captionPh": "Caption (optional), e.g. Sophie at our booth",
+      "addPhoto": "Add a photo",
+      "replacePhoto": "Replace",
+      "saveCaption": "Save caption",
+      "removePhoto": "Remove",
+      "photoAfterSend": "Emails already sent show the current photo: replacing or removing it changes them too."
     }
   },
   "csLookup": {

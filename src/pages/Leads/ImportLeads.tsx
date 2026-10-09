@@ -45,6 +45,9 @@ interface Batch {
   default_rep: string | null;
   status: string;
   rows: Row[];
+  photoUrl?: string | null;
+  photo_caption?: string | null;
+  emailed_at?: string | null;
   summary?: { results: { key: string; ok: boolean; error?: string; detail?: string | null }[]; repMails: { rep: string; to?: string; ok: boolean; error?: string | null }[] } | null;
 }
 interface BatchListItem { id: number; file_name: string; event_name: string | null; status: string; created_at: string; row_count: number; accepted_count: number; emailed_count: number }
@@ -67,6 +70,7 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
   const [notice, setNotice] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ subject: string; html: string; from: string | null; sampleLead: string } | null>(null);
   const [previewLang, setPreviewLang] = useState('en');
+  const [caption, setCaption] = useState('');
 
   const loadBatches = () => fetch(`${API_URL}/api/leads/import/batches`, { headers: authHeaders() })
     .then((r) => (r.ok ? r.json() : { batches: [] })).then((d) => setBatches(d.batches || [])).catch(() => {});
@@ -82,6 +86,43 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
     if (b.language) setLanguage(b.language);
     if (b.default_rep) setDefaultRep(b.default_rep);
     setPreviewLang(b.language || 'en');
+    setCaption(b.photo_caption || '');
+  };
+
+  // Une photo de téléphone fait ~4 Mo et 5700 px : réduite ICI à 1200 px de large en JPEG avant
+  // l'envoi. `createImageBitmap(..., { imageOrientation: 'from-image' })` applique la rotation
+  // EXIF — sinon une photo prise en portrait arriverait couchée.
+  const shrink = async (file: File): Promise<Blob> => {
+    const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' } as ImageBitmapOptions);
+    const scale = Math.min(1, 1200 / bmp.width);
+    const c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * scale);
+    c.height = Math.round(bmp.height * scale);
+    c.getContext('2d')!.drawImage(bmp, 0, 0, c.width, c.height);
+    return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('toBlob'))), 'image/jpeg', 0.82));
+  };
+
+  const savePhoto = async (file: File | null) => {
+    setBusy('photo'); setError(null);
+    try {
+      const fd = new FormData();
+      if (file) fd.append('photo', await shrink(file), 'photo.jpg');
+      fd.append('caption', caption);
+      const res = await fetch(`${API_URL}/api/leads/import/batches/${batch!.id}/photo`, { method: 'POST', headers: authHeaders(), body: fd });
+      const data = await res.json();
+      if (!res.ok) { setError(errText(data.error || 'failed')); return; }
+      adopt(data.batch);
+      if (preview) await loadPreview(previewLang);
+    } catch (e) { setError((e as Error).message); } finally { setBusy(null); }
+  };
+
+  const removePhoto = async () => {
+    setBusy('photo');
+    try {
+      const res = await fetch(`${API_URL}/api/leads/import/batches/${batch!.id}/photo`, { method: 'DELETE', headers: authHeaders() });
+      const data = await res.json();
+      if (res.ok) { adopt(data.batch); if (preview) await loadPreview(previewLang); }
+    } finally { setBusy(null); }
   };
 
   const reset = () => { setBatch(null); setRows([]); setPreview(null); setError(null); setNotice(null); setEventName(''); setDefaultRep(''); };
@@ -358,6 +399,32 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
                       <button type="button" className={BTN_PRIMARY} onClick={sendAll} disabled={!!busy || !preview || !toEmail.length}>
                         {busy === 'send' ? t('leads.import.sending') : t('leads.import.sendAll', { n: toEmail.length })}
                       </button>
+                    </div>
+                  </div>
+                  {/* La photo du kiosque */}
+                  <div className="mt-4 flex flex-wrap items-start gap-4 rounded border border-dashed border-stroke p-3 dark:border-strokedark">
+                    {batch.photoUrl
+                      ? <img src={batch.photoUrl} alt="" className="h-24 w-auto rounded" />
+                      : <div className="flex h-24 w-32 items-center justify-center rounded bg-gray-2 text-xs text-bodydark2 dark:bg-meta-4">{t('leads.import.noPhoto')}</div>}
+                    <div className="min-w-[240px] flex-1">
+                      <p className="text-sm font-medium text-black dark:text-white">{t('leads.import.photoTitle')}</p>
+                      <p className="mb-2 text-xs text-bodydark2">{t('leads.import.photoHint')}</p>
+                      <input className={INPUT} value={caption} onChange={(e) => setCaption(e.target.value)}
+                        placeholder={t('leads.import.captionPh') as string} />
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <label className={`${BTN} cursor-pointer`}>
+                          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" disabled={!!busy}
+                            onChange={(e) => { const f = e.target.files?.[0]; if (f) savePhoto(f); e.target.value = ''; }} />
+                          {busy === 'photo' ? '…' : batch.photoUrl ? t('leads.import.replacePhoto') : t('leads.import.addPhoto')}
+                        </label>
+                        {batch.photoUrl && (
+                          <>
+                            <button type="button" className={BTN} disabled={!!busy || caption === (batch.photo_caption || '')} onClick={() => savePhoto(null)}>{t('leads.import.saveCaption')}</button>
+                            <button type="button" className={BTN} disabled={!!busy} onClick={removePhoto}>{t('leads.import.removePhoto')}</button>
+                          </>
+                        )}
+                      </div>
+                      {batch.photoUrl && batch.emailed_at && <p className="mt-2 text-xs text-warning">{t('leads.import.photoAfterSend')}</p>}
                     </div>
                   </div>
                   {preview && (

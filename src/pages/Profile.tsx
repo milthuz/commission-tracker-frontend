@@ -26,6 +26,7 @@ interface UserProfile {
     commissionRate: number;
     signatureRole: string | null;
     signatureRole2: string | null;
+    signatureRoleEn?: string | null;
     signaturePhone: string | null;
   } | null;
   stats: {
@@ -90,6 +91,7 @@ const Profile = () => {
   // Email signature (self-service — appended to proposal emails once a role is set).
   const [sigRole, setSigRole] = useState('');
   const [sigRole2, setSigRole2] = useState('');
+  const [sigRoleEn, setSigRoleEn] = useState('');
   const [sigPhone, setSigPhone] = useState('');
   const [sigSaving, setSigSaving] = useState(false);
   const [sigSaved, setSigSaved] = useState(false);
@@ -193,6 +195,7 @@ const Profile = () => {
         if (res.data.salesperson) {
           setSigRole(res.data.salesperson.signatureRole || '');
           setSigRole2(res.data.salesperson.signatureRole2 || '');
+          setSigRoleEn(res.data.salesperson.signatureRoleEn || '');
           setSigPhone(res.data.salesperson.signaturePhone || '');
         }
         // Sync i18n language with saved preference
@@ -248,7 +251,7 @@ const Profile = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(`${API_URL}/api/user/signature`, {
-        signatureRole: sigRole, signatureRole2: sigRole2, signaturePhone: sigPhone,
+        signatureRole: sigRole, signatureRole2: sigRole2, signatureRoleEn: sigRoleEn, signaturePhone: sigPhone,
       }, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -627,6 +630,19 @@ const Profile = () => {
                       placeholder={t('profile.signatureRole2Ph') as string}
                       className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
                     />
+                  </div>
+                  <div>
+                    <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
+                      {t('profile.signatureRoleEn')}
+                    </label>
+                    <input
+                      type="text"
+                      value={sigRoleEn}
+                      onChange={(e) => setSigRoleEn(e.target.value)}
+                      placeholder={t('profile.signatureRoleEnPh') as string}
+                      className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                    />
+                    <p className="mt-1.5 text-xs text-bodydark2">{t('profile.signatureRoleEnHint')}</p>
                   </div>
                   <div>
                     <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">

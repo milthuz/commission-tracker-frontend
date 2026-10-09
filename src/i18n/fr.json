@@ -4130,7 +4130,10 @@
       "wait": "Attends une minute avant un autre essai.",
       "notConfigured": "Les textos ne sont pas encore activés sur Sales Hub. Ton numéro servira dès qu’ils le seront.",
       "failed": "Le texto n'est pas parti ({{reason}})."
-    }
+    },
+    "signatureRoleEn": "Titre en anglais",
+    "signatureRoleEnPh": "ex. Sales Representative",
+    "signatureRoleEnHint": "Remplace votre titre dans les courriels envoyés aux marchands anglophones."
   },
   "impersonation": {
     "banner": "Vous personnifiez : {{name}}",
@@ -5257,9 +5260,19 @@
         "no_rep": "Choisissez un représentant pour chaque piste cochée.",
         "not_accepted": "Acceptez d'abord le lot.",
         "not_found": "Lot introuvable.",
-        "failed": "Une erreur est survenue."
+        "failed": "Une erreur est survenue.",
+        "bad_photo_type": "Utilisez une image JPEG, PNG ou WebP."
       },
-      "missing": "Pour accepter, remplissez :"
+      "missing": "Pour accepter, remplissez :",
+      "photoTitle": "Photo du kiosque (facultatif)",
+      "photoHint": "Affichée sous le mot de remerciement. Elle est réduite avant l'envoi.",
+      "noPhoto": "Aucune photo",
+      "captionPh": "Légende (facultatif), ex. Sophie at our booth",
+      "addPhoto": "Ajouter une photo",
+      "replacePhoto": "Remplacer",
+      "saveCaption": "Enregistrer la légende",
+      "removePhoto": "Retirer",
+      "photoAfterSend": "Les courriels déjà envoyés affichent la photo actuelle : la remplacer ou la retirer les change aussi."
     }
   },
   "csLookup": {
