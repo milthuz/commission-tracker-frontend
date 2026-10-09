@@ -5,6 +5,7 @@ import Select from '../../components/Select';
 import IntakeForm from './IntakeForm';
 import LeadDetail from './LeadDetail';
 import { authHeaders, leadFullName, statusTone, LEAD_SOURCES, type Lead, type LeadRep } from './types';
+import { notifyLeadsChanged } from '../../lib/badgeEvents';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -394,9 +395,9 @@ const Leads = () => {
         </>
       )}
 
-      <IntakeForm open={intakeOpen} onClose={() => setIntakeOpen(false)} onCreated={load} />
+      <IntakeForm open={intakeOpen} onClose={() => setIntakeOpen(false)} onCreated={() => { load(); notifyLeadsChanged(); }} />
       {openId != null && (
-        <LeadDetail leadId={openId} reps={reps} onClose={() => setOpenId(null)} onChanged={load} />
+        <LeadDetail leadId={openId} reps={reps} onClose={() => setOpenId(null)} onChanged={() => { load(); notifyLeadsChanged(); }} />
       )}
     </>
   );
