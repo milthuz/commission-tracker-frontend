@@ -1208,6 +1208,8 @@ const AdminPanel = () => {
     axios.get(`${API_URL}/api/admin/zoho-system-account?service=crm`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
       .then((r) => setServiceAccount(r.data?.pinned || null)).catch(() => {});
   }, []);
+  // « Reconnecter » vise le compte DÉJÀ épinglé pour Desk (saleshub@), pas la personne qui clique :
+  // sinon un admin qui reconnecte signe pour l'application avec son propre compte (2026-10-09).
   const connectDesk = async (asEmail?: string) => {
     try {
       setDeskConnecting(true);
@@ -1970,7 +1972,7 @@ const AdminPanel = () => {
                           {deskStatus.account ? ` — ${deskStatus.account}` : ''}
                         </p>
                         <button
-                          onClick={() => connectDesk()}
+                          onClick={() => connectDesk(deskStatus?.account || undefined)}
                           disabled={deskConnecting}
                           className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 disabled:opacity-50"
                         >
@@ -1987,7 +1989,7 @@ const AdminPanel = () => {
                           <p className="mb-4 rounded-md bg-danger bg-opacity-10 px-3 py-2 text-sm text-danger">{deskStatus.error}</p>
                         )}
                         <button
-                          onClick={() => connectDesk()}
+                          onClick={() => connectDesk(deskStatus?.account || undefined)}
                           disabled={deskConnecting}
                           className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
                         >
