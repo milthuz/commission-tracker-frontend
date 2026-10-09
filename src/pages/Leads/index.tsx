@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import Select from '../../components/Select';
 import IntakeForm from './IntakeForm';
+import ImportLeads from './ImportLeads';
 import LeadDetail from './LeadDetail';
 import { authHeaders, leadFullName, statusTone, LEAD_SOURCES, type Lead, type LeadRep } from './types';
 import { notifyLeadsChanged } from '../../lib/badgeEvents';
@@ -39,7 +40,7 @@ const Leads = () => {
   const [tab, setTab] = useState<Tab>('queue');
   const [rows, setRows] = useState<Lead[] | null>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
-  const [can, setCan] = useState({ review: false, intake: false, viewAll: false, rules: false });
+  const [can, setCan] = useState({ review: false, intake: false, viewAll: false, rules: false, import: false });
   const [reps, setReps] = useState<LeadRep[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
 
@@ -48,6 +49,7 @@ const Leads = () => {
   const [q, setQ] = useState('');
   const [openId, setOpenId] = useState<number | null>(null);
   const [intakeOpen, setIntakeOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const dt = (iso?: string | null, withTime = true) =>
     iso ? new Date(iso).toLocaleString(fr ? 'fr-CA' : 'en-CA', {
@@ -65,7 +67,7 @@ const Leads = () => {
       const data = await res.json();
       setRows(data.leads || []);
       setCounts(data.counts || {});
-      setCan(data.can || { review: false, intake: false, viewAll: false, rules: false });
+      setCan(data.can || { review: false, intake: false, viewAll: false, rules: false, import: false });
     } catch { setRows([]); }
   };
 
@@ -134,6 +136,17 @@ const Leads = () => {
           <h2 className="text-title-md2 font-bold text-black dark:text-white">{t('leads.title')}</h2>
           <p className="mt-1 text-sm text-bodydark2">{t('leads.subtitle')}</p>
         </div>
+        <div className="flex flex-wrap gap-2">
+        {can.import && (
+          <button
+            type="button"
+            onClick={() => setImportOpen(true)}
+            className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-5 py-2.5 text-sm font-medium text-black shadow-sm hover:bg-gray-2 dark:border-strokedark dark:bg-boxdark dark:text-white dark:hover:bg-meta-4"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 21h14" /></svg>
+            {t('leads.import.button')}
+          </button>
+        )}
         {can.intake && (
           <button
             type="button"
@@ -144,6 +157,7 @@ const Leads = () => {
             {t('leads.newLead')}
           </button>
         )}
+        </div>
       </div>
 
       <div className="mb-5 inline-flex flex-wrap rounded-sm border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -395,6 +409,7 @@ const Leads = () => {
         </>
       )}
 
+      <ImportLeads open={importOpen} onClose={() => setImportOpen(false)} onChanged={() => { load(); notifyLeadsChanged(); }} />
       <IntakeForm open={intakeOpen} onClose={() => setIntakeOpen(false)} onCreated={() => { load(); notifyLeadsChanged(); }} />
       {openId != null && (
         <LeadDetail leadId={openId} reps={reps} onClose={() => setOpenId(null)} onChanged={() => { load(); notifyLeadsChanged(); }} />
