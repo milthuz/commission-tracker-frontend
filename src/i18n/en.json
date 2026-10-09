@@ -6871,6 +6871,34 @@
       "sendConfirm": "Send the report for {{date}} to {{n}} recipient(s)?",
       "sent": "Report sent to {{n}} recipient(s) ({{openers}} opener(s)).",
       "noRecipients": "Add at least one recipient and save."
+    },
+    "franchise": {
+      "badge": "Franchise",
+      "count": "{{n}} franchises set aside ({{brands}} brands)",
+      "title": "Franchises",
+      "help": "A franchise usually runs the same POS everywhere: its locations are kept off the routes. Recognized when the brand is a known chain or has {{n}} or more locations.",
+      "filter": {
+        "franchise": "Set aside",
+        "visit": "To visit",
+        "all": "All"
+      },
+      "search": "Search a brand…",
+      "none": "No brand here.",
+      "addresses_one": "{{count}} location",
+      "addresses_other": "{{count}} locations",
+      "clients_one": "{{count}} Cluster client",
+      "clients_other": "{{count}} Cluster clients",
+      "whyKnown": "known chain",
+      "whyCount": "{{n}} locations",
+      "whyManualSkip": "marked as a franchise manually",
+      "whyManualVisit": "visit anyway (manual choice)",
+      "visitAnyway": "Visit anyway",
+      "markFranchise": "Mark as franchise",
+      "auto": "Auto",
+      "autoHelp": "Back to the automatic rule",
+      "clientsKept": "Our clients within a franchise always stay on the routes. A change recomputes the campaign.",
+      "filterChip": "Franchises",
+      "filterHelp": "Same POS across the brand: hidden by default. Our clients stay visible."
     }
   },
   "hr": {

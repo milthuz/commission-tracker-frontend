@@ -11,6 +11,7 @@ import {
   type Campaign, type CampaignRouteDetail, type PlaceStatus,
 } from './api';
 import { GoogleMapView, getOpenerConfig, useIsDark } from './GoogleMap';
+import FranchisePanel from './FranchisePanel';
 
 // Onglet « Campagne » (manager, opener:routes) — ouvert par défaut.
 //
@@ -66,6 +67,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
   const [proposal, setProposal] = useState<Proposal[] | null>(null);
   const [proposalBusy, setProposalBusy] = useState(false);
   const [excludedList, setExcludedList] = useState<{ placeId: string; name: string | null; address: string | null; at: string; by: string | null; reason: string | null }[] | null>(null);
+  const [brandsOpen, setBrandsOpen] = useState(false);
   const proposed = useMemo(() => {
     const m = new Map<number, { color: string; opener: string; date: string; day: number }>();
     (proposal || []).forEach((o, k) => o.days.forEach((d, i) => m.set(d.campaignRouteId, { color: OPENER_COLORS[k % OPENER_COLORS.length], opener: o.openerName, date: d.date, day: i })));
@@ -318,7 +320,8 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
     return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], 'fr'));
   }, [data]);
 
-  const showExcluded = () => { setSelected(null); setExcludedList([]); api<{ excluded: NonNullable<typeof excludedList> }>('/api/opener/excluded').then((r) => setExcludedList(r.excluded)).catch((e) => { setExcludedList(null); dialog.alert(e.message); }); };
+  const showBrands = () => { setSelected(null); setExcludedList(null); setBrandsOpen(true); };
+  const showExcluded = () => { setSelected(null); setBrandsOpen(false); setExcludedList([]); api<{ excluded: NonNullable<typeof excludedList> }>('/api/opener/excluded').then((r) => setExcludedList(r.excluded)).catch((e) => { setExcludedList(null); dialog.alert(e.message); }); };
   const restore = (placeId: string) => run(`re:${placeId}`, async () => {
     await api(`/api/opener/places/${encodeURIComponent(placeId)}/exclude`, { method: 'DELETE' });
     setExcludedList((l) => (l ? l.filter((x) => x.placeId !== placeId) : l));
@@ -362,6 +365,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
               ? t('opener.campaign.mappingRunning', { done: data.inventory.progress?.done ?? 0, total: data.inventory.progress?.total ?? 0 })
               : stats.mapPct >= 100 ? t('opener.campaign.mappingDone') : t('opener.campaign.mappingNightly')}
             {data.excluded ? <> · <button onClick={showExcluded} className="font-semibold text-primary hover:underline">{t('opener.campaign.excludedCount', { n: data.excluded })}</button></> : null}
+            {data.franchises ? <> · <button onClick={showBrands} className="font-semibold text-[#8B5CF6] hover:underline">{t('opener.franchise.count', { n: nf(data.franchises.places), brands: nf(data.franchises.brands) })}</button></> : null}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {stats.mapPct < 100 && (
@@ -477,7 +481,9 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
         </div>
 
         <div className={`${card} flex min-h-0 flex-col p-4`}>
-          {excludedList && !sel ? (
+          {brandsOpen && !sel ? (
+            <FranchisePanel onClose={() => setBrandsOpen(false)} onChanged={() => { load().catch(() => {}); }} />
+          ) : excludedList && !sel ? (
             <>
               <div className="mb-2 flex items-start justify-between gap-2">
                 <div>

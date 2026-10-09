@@ -121,7 +121,7 @@ export default function StopDetail() {
             <span className="inline-flex items-center gap-1 text-[11px] text-[var(--of-ok)]"><span className="h-1.5 w-1.5 rounded-full bg-[#57D193]" />{t('opener.field.live')}</span>
           </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-3">
-            {kv(t('opener.field.status'), <>{t(`opener.status.${status}`)}{c.version ? ` · ${c.version.toUpperCase()}` : ''}{c.seasonal ? ` · ${t('opener.seasonal')}` : ''}</>, '')}
+            {kv(t('opener.field.status'), <>{t(`opener.status.${status}`)}{c.version ? ` · ${c.version.toUpperCase()}` : ''}{c.seasonal ? ` · ${t('opener.seasonal')}` : ''}{c.franchise ? ` · ${t('opener.franchise.badge')}${c.brand ? ` (${c.brand})` : ''}` : ''}</>, '')}
             {kv(t('opener.field.lead'), c.lead ? `${c.lead.refCode} · ${t(`leads.status.${c.lead.status}`, { defaultValue: c.lead.status })}` : <span className="text-[var(--of-faint)]">{t('opener.field.none')}</span>)}
             {kv(t('opener.field.lastVisit'), c.lastVisitAt ? `${fmtDate(c.lastVisitAt)}${c.lastVisitBy ? ` · ${c.lastVisitBy}` : ''}` : <span className="text-[var(--of-faint)]">{t('opener.field.never')}</span>)}
             {kv(t('opener.field.competitorPos'), c.competitorPos || <span className="text-[var(--of-faint)]">—</span>)}

@@ -6,7 +6,7 @@ import DateField from '../../components/DateField';
 import { ContentLoader } from '../../common/Loader';
 import { dialog } from '../../lib/dialog';
 import {
-  api, ApiError, fmtDistance, fmtMinutes, STATUS_COLOR, VERDICT_COLOR,
+  api, ApiError, fmtDistance, fmtMinutes, STATUS_COLOR, VERDICT_COLOR, FRANCHISE_COLOR,
   type Route, type RouteSummary, type ScannedPlace, type PlaceStatus, type Stop, type PlaceCard,
 } from './api';
 import { GoogleMapView, getOpenerConfig, pinIcon, dotIcon, useIsDark } from './GoogleMap';
@@ -85,6 +85,8 @@ export default function RouteDesigner() {
   const { user } = useAuth();
   const canReports = !!user && (!!user.isAdmin || !!user.permissions?.some((p) => p === '*' || p === 'opener:*' || p === 'opener:reports'));
   const [kinds, setKinds] = useState<PlaceKind[]>(ALL_KINDS);
+  // Franchises (même POS dans toute la bannière) : masquées par défaut, sauf nos clients.
+  const [showFranchises, setShowFranchises] = useState(false);
   // Planification automatique
   const [planQ, setPlanQ] = useState('');
   const [planRadius, setPlanRadius] = useState('800');
@@ -237,13 +239,13 @@ export default function RouteDesigner() {
     }
     // Points
     const want = new Map<string, ScannedPlace | DraftStop>();
-    results.forEach((p) => want.set(p.placeId, p));
+    results.forEach((p) => { if (showFranchises || !p.franchise || p.status === 'client') want.set(p.placeId, p); });
     (draft?.stops || []).forEach((s) => { if (!want.has(s.placeId)) want.set(s.placeId, s); });
     L.markers.forEach((mk, id) => { if (!want.has(id)) { mk.setMap(null); L.markers.delete(id); } });
     want.forEach((p, id) => {
       if (p.lat == null || p.lng == null) return;
       const n = inRoute.get(id);
-      const color = STATUS_COLOR[(p.status as PlaceStatus) || 'new'];
+      const color = p.franchise && p.status !== 'client' ? FRANCHISE_COLOR : STATUS_COLOR[(p.status as PlaceStatus) || 'new'];
       const icon = n ? pinIcon(g, color, n, { size: 26, active: selected === id }) : dotIcon(g, color, selected === id ? 14 : 10);
       let mk = L.markers.get(id);
       if (!mk) {
@@ -253,7 +255,7 @@ export default function RouteDesigner() {
         L.markers.set(id, mk);
       }
       mk.setIcon(icon);
-      mk.setTitle(`${p.name}${p.status ? ` · ${t(`opener.status.${p.status}`)}` : ''}`);
+      mk.setTitle(`${p.name}${p.status ? ` · ${t(`opener.status.${p.status}`)}` : ''}${p.franchise ? ` · ${t('opener.franchise.badge')}` : ''}`);
       mk.setZIndex(n ? 1000 + n : selected === id ? 900 : 1);
     });
     // Tracé de la route
@@ -275,7 +277,7 @@ export default function RouteDesigner() {
       poly.addListener('mouseout', () => setSugHover(null));
       L.sug.push(poly);
     });
-  }, [draft?.zone, draft?.stops, results, inRoute, selected, t, suggestions, sugHover]);
+  }, [draft?.zone, draft?.stops, results, inRoute, selected, t, suggestions, sugHover, showFranchises]);
 
   // Fiche : on oublie les détails Google d'un autre point.
   useEffect(() => { setDetail(null); }, [selected]);
@@ -311,13 +313,14 @@ export default function RouteDesigner() {
     const now = Date.now();
     const qq = q.trim().toLowerCase();
     return list.filter((p) => statuses.includes(p.status)
+      && (showFranchises || !p.franchise || p.status === 'client')
       && kinds.includes(kindOf(p.primaryType))
       && (!minDays || !p.lastVisitAt || (now - new Date(p.lastVisitAt).getTime()) / 86400000 >= minDays)
       && (!minR || (p.rating != null && p.rating >= minR))
       && (service === 'all' || p.serviceType === service || p.serviceType === 'both')
       && (!qq || p.name.toLowerCase().includes(qq) || p.address.toLowerCase().includes(qq)))
       .sort((a, b) => (b.rating || 0) - (a.rating || 0));
-  }, [statuses, kinds, lastVisitMin, minRating, service, q]);
+  }, [statuses, kinds, lastVisitMin, minRating, service, q, showFranchises]);
   const filtered = useMemo(() => applyFilters(results), [applyFilters, results]);
   const kindCounts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -816,6 +819,15 @@ export default function RouteDesigner() {
               );
             })}
           </div>
+          {results.some((p) => p.franchise && p.status !== 'client') && (
+            <div className="-mt-1.5 mb-3">
+              <button onClick={() => setShowFranchises((v) => !v)} title={t('opener.franchise.filterHelp') as string}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${showFranchises ? 'bg-primary text-white' : 'border border-stroke text-black dark:border-strokedark dark:text-bodydark1'}`}>
+                <span className="h-2 w-2 rounded-full" style={{ background: FRANCHISE_COLOR }} />
+                {t('opener.franchise.filterChip')} <span className="opacity-70">({results.filter((p) => p.franchise && p.status !== 'client').length})</span>
+              </button>
+            </div>
+          )}
           <p className="mb-1 text-xs font-medium text-black dark:text-white">{t('opener.designer.filterKind')}</p>
           <div className="mb-3 flex flex-wrap gap-1.5">
             {ALL_KINDS.filter((k) => kindCounts[k] || kinds.includes(k) === false).map((k) => {
@@ -905,9 +917,12 @@ export default function RouteDesigner() {
               return (
                 <div key={p.placeId} onClick={() => { setSelected(p.placeId); mapRef.current?.map.panTo({ lat: p.lat, lng: p.lng }); }}
                   className={`flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 ${selected === p.placeId ? 'bg-gray-2 dark:bg-meta-4' : ''}`}>
-                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: STATUS_COLOR[p.status] }} />
+                  <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: p.franchise && p.status !== 'client' ? FRANCHISE_COLOR : STATUS_COLOR[p.status] }} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-semibold text-black dark:text-white">{p.name}</p>
+                    <p className="truncate text-[13px] font-semibold text-black dark:text-white">
+                      {p.name}
+                      {p.franchise && <span className="ml-1.5 rounded bg-[#8B5CF6]/15 px-1.5 py-px align-middle text-[10px] font-bold uppercase text-[#7C3AED] dark:text-[#C4B5FD]">{t('opener.franchise.badge')}</span>}
+                    </p>
                     <p className="truncate text-[11px] text-body dark:text-bodydark2">
                       {p.rating != null && <><Star className="mb-0.5 inline h-3 w-3 fill-[#FDB022] text-[#FDB022]" /> {p.rating.toLocaleString(lng === 'fr' ? 'fr-CA' : 'en-CA')} · </>}
                       {t(`opener.status.${p.status}`)}{p.version ? ` ${p.version.toUpperCase()}` : ''}

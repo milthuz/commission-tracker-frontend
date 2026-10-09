@@ -6871,6 +6871,34 @@
       "sendConfirm": "Envoyer le rapport du {{date}} à {{n}} destinataire(s) ?",
       "sent": "Rapport envoyé à {{n}} destinataire(s) ({{openers}} opener(s)).",
       "noRecipients": "Ajoutez au moins un destinataire et enregistrez."
+    },
+    "franchise": {
+      "badge": "Franchise",
+      "count": "{{n}} franchises écartées ({{brands}} bannières)",
+      "title": "Franchises",
+      "help": "Une franchise utilise souvent le même POS partout : ses adresses sont écartées des routes. Reconnue si la bannière est connue ou compte {{n}} adresses et plus.",
+      "filter": {
+        "franchise": "Écartées",
+        "visit": "À visiter",
+        "all": "Toutes"
+      },
+      "search": "Chercher une bannière…",
+      "none": "Aucune bannière ici.",
+      "addresses_one": "{{count}} adresse",
+      "addresses_other": "{{count}} adresses",
+      "clients_one": "{{count}} client Cluster",
+      "clients_other": "{{count}} clients Cluster",
+      "whyKnown": "chaîne connue",
+      "whyCount": "{{n}} adresses",
+      "whyManualSkip": "classée franchise à la main",
+      "whyManualVisit": "à visiter quand même (choix manuel)",
+      "visitAnyway": "Visiter quand même",
+      "markFranchise": "Classer franchise",
+      "auto": "Auto",
+      "autoHelp": "Revenir à la règle automatique",
+      "clientsKept": "Nos clients d’une franchise restent toujours sur les routes. Un changement recalcule la campagne.",
+      "filterChip": "Franchises",
+      "filterHelp": "Même POS dans toute la bannière : masquées par défaut. Nos clients restent affichés."
     }
   },
   "hr": {

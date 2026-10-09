@@ -24,6 +24,9 @@ export interface ClusterInfo {
   lastInterest?: number | null;
   lastSatisfaction?: number | null;
   seasonal?: boolean;   // client dont tous les abonnements sont en pause
+  // Franchise (bannière connue ou à 3 adresses et plus) : même POS partout, écartée des routes.
+  franchise?: boolean;
+  brand?: string | null;
   lastPaymentsBy?: PaymentsBy | null;
   lead?: { id: number; refCode: string; status: string } | null;
   visits?: number;
@@ -135,6 +138,7 @@ export interface CampaignRoute {
 export interface Campaign {
   regions: CampaignRegion[];
   excluded: number;
+  franchises?: { places: number; brands: number };
   inventory: { running: boolean; progress: { done: number; total: number; cells?: number; places?: number } | null;
     last: { at: string; calls: number; cells: number; places: number; stopped?: string } | null };
   computed: { at: string; routes: number; places: number; walk: number; car: number } | null;
@@ -195,6 +199,8 @@ export const haversine = (a: [number, number], b: [number, number]) => {
 export const STATUS_COLOR: Record<PlaceStatus, string> = {
   client: '#57D193', former: '#7FA6C9', prospect: '#F58346', new: '#AEB7C0',
 };
+// Franchise écartée (violet) : distincte des quatre statuts et des couleurs de la campagne.
+export const FRANCHISE_COLOR = '#8B5CF6';
 // Texte par variable (field.css) : pastel en sombre, teinte foncée en clair.
 export const STATUS_BADGE: Record<PlaceStatus, string> = {
   client: 'bg-[rgba(87,209,147,.15)] text-[var(--of-st-client)]',
@@ -213,3 +219,6 @@ export const walkMin = (m: number) => Math.max(1, Math.round(m / 80));
 
 export const directionsUrl = (lat: number, lng: number, placeId?: string) =>
   `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}${placeId ? `&destination_place_id=${encodeURIComponent(placeId)}` : ''}&travelmode=walking`;
+
+// Bannières (franchises) : opener/brands. decision = skip (écartée), visit (à visiter quand même), null (règle auto).
+export interface Brand { key: string; label: string; known: boolean; n: number; clients: number; decision: 'skip' | 'visit' | null; decidedBy: string | null; decidedAt: string | null; franchise: boolean }
