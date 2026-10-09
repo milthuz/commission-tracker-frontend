@@ -1,4 +1,5 @@
 import { useEffect, useState, FormEvent } from 'react';
+import { dialog } from '../lib/dialog';
 import { useTranslation } from 'react-i18next';
 
 // Administration de la bibliothèque de contenu de La Passe (perm `pass:manage`).
@@ -73,7 +74,7 @@ const PassLibraryAdmin = () => {
   };
 
   const remove = async (r: Resource) => {
-    if (!window.confirm(t('passOps.lib.confirmDelete', { title: r.title_fr }))) return;
+    if (!(await dialog.confirm(t('passOps.lib.confirmDelete', { title: r.title_fr }), { danger: true }))) return;
     try {
       const res = await fetch(`${API_URL}/api/admin/pass/resources/${r.id}`, { method: 'DELETE', headers: auth() });
       if (!res.ok) throw new Error();

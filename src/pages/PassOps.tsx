@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { dialog } from '../lib/dialog';
 import Select from '../components/Select';
 import { useTranslation } from 'react-i18next';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
@@ -89,7 +90,7 @@ const PassOps = () => {
       next === 'live' ? t('passOps.confirmLive', { restaurant: r.restaurant.name, member })
       : next === 'not_qualified' ? t('passOps.confirmNotQualified', { restaurant: r.restaurant.name })
       : null;
-    if (ask && !window.confirm(ask)) return;
+    if (ask && !(await dialog.confirm(ask, next === 'not_qualified' ? { danger: true } : undefined))) return;
 
     setBusyId(r.id); setNotice(null);
     try {

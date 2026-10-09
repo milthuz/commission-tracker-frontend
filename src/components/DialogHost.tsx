@@ -30,7 +30,7 @@ const DialogHost: React.FC = () => {
   const cancelText = current.cancelText || t('common.cancel');
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[1000000] flex items-center justify-center p-4">
       {/* Backdrop — clicking it cancels (confirm) / closes (alert). */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -54,7 +54,7 @@ const DialogHost: React.FC = () => {
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-semibold text-black dark:text-white">{title}</h3>
-            <p className="mt-1 whitespace-pre-line text-sm text-body dark:text-gray-300">{current.message}</p>
+            <p className="mt-1 select-text whitespace-pre-line break-words text-sm text-body dark:text-gray-300">{current.message}</p>
           </div>
         </div>
 

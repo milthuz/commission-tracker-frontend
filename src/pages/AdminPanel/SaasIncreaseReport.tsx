@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { dialog } from '../../lib/dialog';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { X, Printer, AlertTriangle, Info, AlertOctagon } from 'lucide-react';
@@ -121,12 +122,12 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
         method: 'POST', headers: { ...authH(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ itemIds: ids, ...corps }),
       });
-      if (!r.ok) { setEnCours(false); window.alert(t('saasIncrease.error') as string); return; }
+      if (!r.ok) { setEnCours(false); dialog.alert(t('saasIncrease.error') as string); return; }
       const out = await r.json();
       // Une ligne deja poussee ou deja avisee n'est PAS modifiee : le dire, sinon on croit
       // avoir corrige un marchand qui a deja recu son avis.
       if (out.protected?.length) {
-        window.alert(t('saasIncrease.report.protectedRows', {
+        dialog.alert(t('saasIncrease.report.protectedRows', {
           count: out.protected.length,
           names: out.protected.slice(0, 5).map((x: { name: string }) => x.name).join(', '),
         }) as string);

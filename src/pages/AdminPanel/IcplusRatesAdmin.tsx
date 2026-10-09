@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { dialog } from '../../lib/dialog';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Save, AlertTriangle, Check, Upload, Loader2, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import Select from '../../components/Select';
@@ -117,8 +118,8 @@ export default function IcplusRatesAdmin() {
   // ⚠️ Ne touche pas à `wb` : la revue d'un classeur se fait table par table, donc
   // changer de table fait PARTIE du parcours. L'effacer ici obligerait à redéposer le
   // fichier entre chaque table.
-  function switchTable(name: string) {
-    if (dirty && !window.confirm(t('icplusRates.discardChanges') as string)) return;
+  async function switchTable(name: string) {
+    if (dirty && !(await dialog.confirm(t('icplusRates.discardChanges') as string))) return;
     setActive(name);
     setDraft((tables[name] || []).map((e) => ({ ...e })));
     setProblems([]);
@@ -268,10 +269,10 @@ export default function IcplusRatesAdmin() {
   // Verse les lignes cochées d'UNE table dans le brouillon de cette table, et y bascule.
   // L'enregistrement reste le bouton habituel : même validation serveur, même transaction,
   // même trace que la saisie à la main.
-  function loadWbTable(table: string) {
+  async function loadWbTable(table: string) {
     const picked = (wb?.proposals[table] || []).filter((p) => p.accept);
     if (!picked.length) return;
-    if (dirty && !window.confirm(t('icplusRates.discardChanges') as string)) return;
+    if (dirty && !(await dialog.confirm(t('icplusRates.discardChanges') as string))) return;
 
     const base = (tables[table] || []).map((e) => ({ ...e }));
     for (const p of picked) {

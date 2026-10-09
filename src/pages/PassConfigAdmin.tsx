@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { dialog } from '../lib/dialog';
 import { useTranslation } from 'react-i18next';
 
 // Configuration du programme La Passe (perm `pass:manage`) — montants, échelle de paliers,
@@ -98,10 +99,10 @@ const PassConfigAdmin = () => {
     }
   };
 
-  const toggleEnabled = () => {
+  const toggleEnabled = async () => {
     const next = !cfg.enabled;
     const ask = next ? t('passOps.cfg.confirmOpen') : t('passOps.cfg.confirmClose');
-    if (!window.confirm(ask)) return;
+    if (!(await dialog.confirm(ask))) return;
     setCfg({ ...cfg, enabled: next });
   };
 

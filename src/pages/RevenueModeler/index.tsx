@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { dialog } from '../../lib/dialog';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import ReactApexChart from 'react-apexcharts';
@@ -281,8 +282,8 @@ export default function RevenueModeler() {
     } finally { setBusy(false); }
   };
 
-  const open = (id: string) => {
-    if (dirty && !window.confirm(t('revenueModeler.discard') as string)) return;
+  const open = async (id: string) => {
+    if (dirty && !(await dialog.confirm(t('revenueModeler.discard') as string))) return;
     const s = scenarios.find((x) => x.id === id);
     if (!s) return;
     setActive(s);
@@ -293,7 +294,7 @@ export default function RevenueModeler() {
   };
 
   const remove = async () => {
-    if (!active || !window.confirm(t('revenueModeler.confirmDelete', { name: active.name }) as string)) return;
+    if (!active || !(await dialog.confirm(t('revenueModeler.confirmDelete', { name: active.name }) as string, { danger: true }))) return;
     setBusy(true);
     try {
       const r = await fetch(`${API_URL}/api/revenue-model/scenarios/${active.id}`, { method: 'DELETE', headers: authHeaders() });
@@ -305,8 +306,8 @@ export default function RevenueModeler() {
     } finally { setBusy(false); }
   };
 
-  const reset = () => {
-    if (!window.confirm(t('revenueModeler.confirmReset') as string)) return;
+  const reset = async () => {
+    if (!(await dialog.confirm(t('revenueModeler.confirmReset') as string))) return;
     setInputs(defaults);
     setActive(null);
     setSaveName('');
@@ -315,7 +316,7 @@ export default function RevenueModeler() {
 
   // Les saisies courantes deviennent le point de départ de TOUT nouveau modèle (revmodel:settings).
   const saveAsDefaults = async () => {
-    if (!window.confirm(t('revenueModeler.defaultsConfirm') as string)) return;
+    if (!(await dialog.confirm(t('revenueModeler.defaultsConfirm') as string))) return;
     setBusy(true);
     try {
       const r = await fetch(`${API_URL}/api/revenue-model/defaults`, {
@@ -337,7 +338,7 @@ export default function RevenueModeler() {
     if (!active) return;
     const url = `${window.location.origin}/revenue-modeler?scenario=${active.id}`;
     try { await navigator.clipboard.writeText(url); flash('ok', t('revenueModeler.linkCopied') as string); }
-    catch { window.prompt(t('revenueModeler.copyThis') as string, url); }
+    catch { dialog.alert(`${t('revenueModeler.copyThis')}\n${url}`); }
   };
 
   // ── Export CSV ──
