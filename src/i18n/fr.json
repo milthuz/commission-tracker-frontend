@@ -5279,7 +5279,17 @@
       "resend": "Renvoyer",
       "resent": "Courriel renvoyé à {{to}}.",
       "resentCount": "renvoyé ×{{n}}",
-      "confirmResend": "Renvoyer le courriel de remerciement à {{email}} ? Il contient un nouveau lien de réservation : celui du courriel précédent ne fonctionnera plus."
+      "confirmResend": "À {{email}}. Il contient un nouveau lien de réservation : celui du courriel précédent ne fonctionnera plus.",
+      "confirmSendTitle": "Envoyer le courriel de remerciement à {{n}} visiteurs ?",
+      "confirmResendTitle": "Renvoyer le courriel de remerciement ?",
+      "track": {
+        "opened": "Ouvert ×{{n}}",
+        "notOpened": "Pas encore ouvert",
+        "link": "Lien de réservation ×{{n}}",
+        "booked": "Rendez-vous pris",
+        "summary": "{{sent}} envoyés · {{opened}} ouverts · {{clicked}} ont ouvert le lien de réservation · {{booked}} rendez-vous.",
+        "caveat": "Les ouvertures sont sous-estimées (beaucoup de logiciels de courriel bloquent ou mettent en cache les images) ; le lien et les rendez-vous sont exacts."
+      }
     }
   },
   "csLookup": {

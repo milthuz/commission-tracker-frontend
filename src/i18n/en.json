@@ -5279,7 +5279,17 @@
       "resend": "Resend",
       "resent": "Email resent to {{to}}.",
       "resentCount": "resent ×{{n}}",
-      "confirmResend": "Resend the thank-you email to {{email}}? It carries a new booking link: the link in the previous email will stop working."
+      "confirmResend": "To {{email}}. It carries a new booking link: the link in the previous email will stop working.",
+      "confirmSendTitle": "Send the thank-you email to {{n}} visitors?",
+      "confirmResendTitle": "Resend the thank-you email?",
+      "track": {
+        "opened": "Opened ×{{n}}",
+        "notOpened": "Not opened yet",
+        "link": "Booking link ×{{n}}",
+        "booked": "Meeting booked",
+        "summary": "{{sent}} sent · {{opened}} opened · {{clicked}} opened the booking link · {{booked}} booked.",
+        "caveat": "Opens are under-counted (many mail apps block or cache images); the booking link and bookings are exact."
+      }
     }
   },
   "csLookup": {

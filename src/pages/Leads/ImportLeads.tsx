@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Select from '../../components/Select';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { authHeaders } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -34,7 +35,7 @@ interface Row {
   repName?: string | null;
   crm?: { status: string; summary: string | null; matches: { module: string; name: string; owner: string | null; matchedOn: string | null }[] };
   existingLead?: { refCode: string; status: string; rep: string | null; source: string | null } | null;
-  lead?: { id: number; refCode: string; status: string; rep: string | null; crmLeadId: string | null; crmError: string | null; emailedAt: string | null; resendCount?: number; emailError: string | null } | null;
+  lead?: { id: number; refCode: string; status: string; rep: string | null; crmLeadId: string | null; crmError: string | null; emailedAt: string | null; resendCount?: number; openedAt?: string | null; openCount?: number; linkOpenedAt?: string | null; linkOpenCount?: number; booked?: string | null; emailError: string | null } | null;
 }
 interface Batch {
   id: number;
@@ -71,6 +72,9 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
   const [preview, setPreview] = useState<{ subject: string; html: string; from: string | null; sampleLead: string } | null>(null);
   const [previewLang, setPreviewLang] = useState('en');
   const [caption, setCaption] = useState('');
+  // Confirmation à l'image de l'application (plus de confirm() de Chrome) : l'envoi au lot, ou le
+  // renvoi à une personne.
+  const [confirm, setConfirm] = useState<{ kind: 'send' } | { kind: 'resend'; row: Row } | null>(null);
 
   const loadBatches = () => fetch(`${API_URL}/api/leads/import/batches`, { headers: authHeaders() })
     .then((r) => (r.ok ? r.json() : { batches: [] })).then((d) => setBatches(d.batches || [])).catch(() => {});
@@ -117,7 +121,6 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
   };
 
   const resend = async (r: Row) => {
-    if (!window.confirm(t('leads.import.confirmResend', { email: r.email }) as string)) return;
     setBusy(`resend:${r.key}`); setError(null); setNotice(null);
     try {
       const res = await fetch(`${API_URL}/api/leads/import/batches/${batch!.id}/resend/${r.lead!.id}`, { method: 'POST', headers: authHeaders() });
@@ -125,7 +128,7 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
       if (!res.ok) { setError(data.detail || errText(data.error || 'failed')); return; }
       adopt(data.batch);
       setNotice(t('leads.import.resent', { to: data.to }) as string);
-    } finally { setBusy(null); }
+    } finally { setBusy(null); setConfirm(null); }
   };
 
   const removePhoto = async () => {
@@ -208,7 +211,6 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
   };
 
   const sendAll = async () => {
-    if (!window.confirm(t('leads.import.confirmSend', { n: toEmail.length }) as string)) return;
     setBusy('send'); setError(null); setNotice(null);
     try {
       const res = await fetch(`${API_URL}/api/leads/import/batches/${batch!.id}/send`, { method: 'POST', headers: authHeaders() });
@@ -217,7 +219,7 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
       adopt(data.batch);
       setNotice(t('leads.import.sentNotice', { n: data.sent, failed: data.failed.length }) as string);
       loadBatches();
-    } finally { setBusy(null); }
+    } finally { setBusy(null); setConfirm(null); }
   };
 
   const repOptions = useMemo(() => reps.map((r) => ({ value: r.name, label: r.email ? `${r.name} — ${r.email}` : `${r.name} — ${t('leads.import.noEmail')}` })), [reps, t]);
@@ -346,9 +348,22 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
                               <span className="text-black dark:text-white">
                                 ✓ {r.lead!.refCode}{r.lead!.emailedAt ? ` · ${t('leads.import.emailed')}` : ''}
                                 {!!r.lead!.resendCount && <span className="text-bodydark2"> · {t('leads.import.resentCount', { n: r.lead!.resendCount })}</span>}
+                                {r.lead!.emailedAt && (
+                                  <span className="mt-1 flex flex-wrap gap-1">
+                                    {r.lead!.booked
+                                      ? <span className="rounded-full bg-success/20 px-2 py-0.5 text-[11px] font-medium text-success" title={new Date(r.lead!.booked).toLocaleString(fr ? 'fr-CA' : 'en-CA')}>{t('leads.import.track.booked')}</span>
+                                      : null}
+                                    {r.lead!.linkOpenedAt
+                                      ? <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary" title={new Date(r.lead!.linkOpenedAt).toLocaleString(fr ? 'fr-CA' : 'en-CA')}>{t('leads.import.track.link', { n: r.lead!.linkOpenCount })}</span>
+                                      : null}
+                                    {r.lead!.openedAt
+                                      ? <span className="rounded-full bg-gray-2 px-2 py-0.5 text-[11px] font-medium text-black dark:bg-meta-4 dark:text-white" title={new Date(r.lead!.openedAt).toLocaleString(fr ? 'fr-CA' : 'en-CA')}>{t('leads.import.track.opened', { n: r.lead!.openCount })}</span>
+                                      : !r.lead!.linkOpenedAt && <span className="rounded-full border border-stroke px-2 py-0.5 text-[11px] text-bodydark2 dark:border-strokedark">{t('leads.import.track.notOpened')}</span>}
+                                  </span>
+                                )}
                                 {r.lead!.emailError && <span className="block text-danger">{r.lead!.emailError}</span>}
                                 {r.lead!.emailedAt && r.email && (
-                                  <button type="button" disabled={!!busy} onClick={() => resend(r)}
+                                  <button type="button" disabled={!!busy} onClick={() => setConfirm({ kind: 'resend', row: r })}
                                     className="mt-1 block rounded border border-stroke px-2 py-0.5 text-xs font-medium text-black hover:bg-gray-2 disabled:opacity-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
                                     {busy === `resend:${r.key}` ? '…' : t('leads.import.resend')}
                                   </button>
@@ -415,7 +430,7 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
                     <div className="flex flex-wrap gap-2">
                       <button type="button" className={BTN} onClick={() => loadPreview(previewLang)} disabled={!!busy}>{t('leads.import.preview')}</button>
                       <button type="button" className={BTN} onClick={sendTest} disabled={!!busy || !preview}>{busy === 'test' ? '…' : t('leads.import.sendTest')}</button>
-                      <button type="button" className={BTN_PRIMARY} onClick={sendAll} disabled={!!busy || !preview || !toEmail.length}>
+                      <button type="button" className={BTN_PRIMARY} onClick={() => setConfirm({ kind: 'send' })} disabled={!!busy || !preview || !toEmail.length}>
                         {busy === 'send' ? t('leads.import.sending') : t('leads.import.sendAll', { n: toEmail.length })}
                       </button>
                     </div>
@@ -464,12 +479,46 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
                       <p className="mt-2 text-xs text-bodydark2">{t('leads.import.previewNote')}</p>
                     </div>
                   )}
+                  {accepted.some((r) => r.lead?.emailedAt) && (
+                    <p className="mt-3 text-xs text-bodydark2">
+                      {t('leads.import.track.summary', {
+                        sent: accepted.filter((r) => r.lead?.emailedAt).length,
+                        opened: accepted.filter((r) => r.lead?.openedAt || r.lead?.linkOpenedAt).length,
+                        clicked: accepted.filter((r) => r.lead?.linkOpenedAt).length,
+                        booked: accepted.filter((r) => r.lead?.booked).length,
+                      })}{' '}{t('leads.import.track.caveat')}
+                    </p>
+                  )}
                 </div>
               )}
             </>
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!confirm}
+        busy={busy === 'send' || (confirm?.kind === 'resend' && busy === `resend:${confirm.row.key}`)}
+        title={confirm?.kind === 'resend' ? t('leads.import.confirmResendTitle') as string : t('leads.import.confirmSendTitle', { n: toEmail.length }) as string}
+        message={confirm?.kind === 'resend'
+          ? t('leads.import.confirmResend', { email: confirm.row.email })
+          : <>{t('leads.import.from')} <strong className="text-black dark:text-white">{preview?.from || '—'}</strong></>}
+        confirmLabel={confirm?.kind === 'resend' ? t('leads.import.resend') as string : t('leads.import.sendAll', { n: toEmail.length }) as string}
+        busyLabel={t('leads.import.sending') as string}
+        onClose={() => !busy && setConfirm(null)}
+        onConfirm={() => (confirm?.kind === 'resend' ? resend(confirm.row) : sendAll())}
+      >
+        {confirm?.kind === 'send' && (
+          <ul className="max-h-56 overflow-y-auto rounded border border-stroke text-sm dark:border-strokedark">
+            {toEmail.map((r) => (
+              <li key={r.key} className="flex justify-between gap-3 border-b border-stroke px-3 py-1.5 last:border-0 dark:border-strokedark">
+                <span className="truncate text-black dark:text-white">{r.businessName}</span>
+                <span className="truncate text-bodydark2">{r.email}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </ConfirmDialog>
     </div>
   );
 };
