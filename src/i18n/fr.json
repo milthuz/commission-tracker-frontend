@@ -6380,7 +6380,8 @@
         "twins": "Jumeaux V2",
         "matching": "Google"
       }
-    }
+    },
+    "seasonalHint": "Tous ses abonnements sont en pause : restaurant saisonnier, toujours client."
   },
   "opener": {
     "noMapsKey": "Carte indisponible : la clé navigateur Google Maps (GOOGLE_MAPS_BROWSER_KEY) n'est pas configurée sur le serveur.",
@@ -6841,7 +6842,8 @@
       },
       "plannedTitle": "Routes planifiées",
       "today": "Aujourd'hui"
-    }
+    },
+    "seasonal": "Saisonnier"
   },
   "hr": {
     "title": "Embauches",

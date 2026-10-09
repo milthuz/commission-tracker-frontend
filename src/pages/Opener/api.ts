@@ -23,6 +23,7 @@ export interface ClusterInfo {
   serviceTypeSeen?: ServiceType | null;
   lastInterest?: number | null;
   lastSatisfaction?: number | null;
+  seasonal?: boolean;   // client dont tous les abonnements sont en pause
   lastPaymentsBy?: PaymentsBy | null;
   lead?: { id: number; refCode: string; status: string } | null;
   visits?: number;

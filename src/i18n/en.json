@@ -6380,7 +6380,8 @@
         "twins": "V2 twins",
         "matching": "Google"
       }
-    }
+    },
+    "seasonalHint": "All their subscriptions are paused: a seasonal restaurant, still a customer."
   },
   "opener": {
     "noMapsKey": "Map unavailable: the Google Maps browser key (GOOGLE_MAPS_BROWSER_KEY) is not set on the server.",
@@ -6841,7 +6842,8 @@
       },
       "plannedTitle": "Planned routes",
       "today": "Today"
-    }
+    },
+    "seasonal": "Seasonal"
   },
   "hr": {
     "title": "Hiring",

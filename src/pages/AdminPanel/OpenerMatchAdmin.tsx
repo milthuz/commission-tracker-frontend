@@ -55,6 +55,7 @@ interface Loc {
   twin: { id: number; storeName: string | null } | null;
   plans: string[];
   activeSubs: number | null;
+  seasonal?: boolean;
   addressFrom: 'shipping' | 'billing' | null;
   missingSince: string | null;
   status: MatchStatus;
@@ -157,7 +158,9 @@ const OpenerMatchAdmin = () => {
   const [locs, setLocs] = useState<Loc[]>([]);
   const [total, setTotal] = useState(0);
   const [filter, setFilter] = useState<Filter>('todo');
-  const [active, setActive] = useState<'' | 'true' | 'false'>('');
+  // Clients seulement par défaut : les anciens clients restent dans la base (carte des openers,
+  // reconquête) mais sont masqués de la liste tant qu'on ne les demande pas (David, 2026-10-09).
+  const [active, setActive] = useState<'' | 'true' | 'false'>('true');
   const [version, setVersion] = useState<'' | Version>('');
   const [source, setSource] = useState<'' | 'kaizen' | 'billing'>('');
   const [q, setQ] = useState('');
@@ -469,6 +472,7 @@ const OpenerMatchAdmin = () => {
                   <p className="font-semibold text-black dark:text-white">{s.storeName}</p>
                   <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${TONE[s.status]}`}>{t(`openerMatch.status.${s.status}`)}</span>
                   {!s.active && <span className="rounded-full bg-stroke px-2 py-0.5 text-xs text-body dark:bg-meta-4 dark:text-bodydark">{t(s.source === 'billing' ? 'openerMatch.formerClient' : 'openerMatch.inactive')}</span>}
+                  {s.active && s.seasonal && <span className="rounded-full bg-[#7FA6C9]/20 px-2 py-0.5 text-xs font-semibold text-[#3B6B94] dark:text-[#B9D2E8]" title={t('openerMatch.seasonalHint') as string}>{t('opener.seasonal')}</span>}
                   {s.missingSince && <span className="rounded-full bg-danger/10 px-2 py-0.5 text-xs text-danger">{t('openerMatch.missingSince', { date: fmtDate(s.missingSince, lng) })}</span>}
                 </div>
                 <p className="mt-0.5 flex items-center gap-1 text-sm text-body dark:text-bodydark">
