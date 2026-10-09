@@ -5,6 +5,7 @@ import DateField from '../../components/DateField';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
 import { dialog } from '../../lib/dialog';
+import { isHoliday } from './holidays';
 import {
   api, ApiError, fmtMinutes, fmtDistance, STATUS_COLOR, CAMPAIGN_COLOR,
   type Campaign, type CampaignRouteDetail, type PlaceStatus,
@@ -25,10 +26,10 @@ const nextMonday = (today: string) => {
   d.setUTCDate(d.getUTCDate() + add);
   return d.toISOString().slice(0, 10);
 };
-// Prochain jour ouvrable après `today` (« Demain » ; un vendredi → lundi).
+// Prochain jour ouvrable après `today` (« Demain » ; un vendredi → lundi ; jours fériés sautés).
 const nextWorkday = (today: string) => {
   const d = new Date(`${today}T12:00:00Z`);
-  do d.setUTCDate(d.getUTCDate() + 1); while (d.getUTCDay() === 0 || d.getUTCDay() === 6);
+  do d.setUTCDate(d.getUTCDate() + 1); while (d.getUTCDay() === 0 || d.getUTCDay() === 6 || isHoliday(d.toISOString().slice(0, 10)));
   return d.toISOString().slice(0, 10);
 };
 // Une couleur par opener dans la proposition de la semaine (distinctes des couleurs de statut).
