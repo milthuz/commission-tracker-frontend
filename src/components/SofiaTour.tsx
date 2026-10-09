@@ -237,13 +237,25 @@ const SofiaTour: React.FC<SofiaTourProps> = ({
         </div>
 
         {/* Pinned footer: progress + navigation */}
-        <div className="flex items-center justify-between border-t border-stroke px-4 py-3 dark:border-strokedark">
-          <div className="flex items-center gap-1.5">
-            {steps.map((_, i) => (
-              <span key={i} className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-4 bg-primary' : 'w-1.5 bg-gray-300 dark:bg-meta-4'}`} />
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-3 border-t border-stroke px-4 py-3 dark:border-strokedark">
+          {/* Un point par étape tant qu'elles tiennent ; au-delà de 10 (le menu en compte plus de
+              20 depuis octobre 2026), une barre + « 3 / 23 » : la rangée de points poussait
+              « Passer » et « Suivant » hors de la carte. */}
+          {steps.length <= 10 ? (
+            <div className="flex min-w-0 items-center gap-1.5">
+              {steps.map((_, i) => (
+                <span key={i} className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-4 bg-primary' : 'w-1.5 bg-gray-300 dark:bg-meta-4'}`} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <div className="h-1.5 min-w-[40px] flex-1 overflow-hidden rounded-full bg-gray-300 dark:bg-meta-4">
+                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${((idx + 1) / steps.length) * 100}%` }} />
+              </div>
+              <span className="shrink-0 text-[11px] tabular-nums text-body">{idx + 1} / {steps.length}</span>
+            </div>
+          )}
+          <div className="flex shrink-0 items-center gap-2">
             <button onClick={finish} className="text-xs font-medium text-body hover:text-black dark:hover:text-white">{t(`${i18nPrefix}.skip`)}</button>
             {idx > 0 && (
               <button onClick={back} className="rounded-lg border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">{t(`${i18nPrefix}.back`)}</button>
