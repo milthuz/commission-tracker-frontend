@@ -292,7 +292,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto p-4 sm:p-8">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !busy && onClose()} />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !busy && onClose()} />
       <div role="dialog" aria-modal="true" className="relative my-auto w-full max-w-4xl rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         {!lead ? (
           <div className="px-6 py-16 text-center text-sm text-bodydark2">{t('common.loading')}</div>

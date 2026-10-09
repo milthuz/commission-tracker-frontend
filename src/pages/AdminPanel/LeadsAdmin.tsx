@@ -657,7 +657,7 @@ Content-Type: application/json
       {/* ── Éditeur de règle ───────────────────────────────────────────────── */}
       {editing && (
         <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto p-4 sm:p-8">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !saving && setEditing(null)} />
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !saving && setEditing(null)} />
           <div role="dialog" aria-modal="true" className="relative my-auto w-full max-w-2xl rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
               <h3 className="text-lg font-semibold text-black dark:text-white">

@@ -237,7 +237,7 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto p-4 sm:p-8">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={close} />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={close} />
       <div role="dialog" aria-modal="true" className="relative my-auto w-full max-w-6xl rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex items-start justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
           <div>

@@ -79,7 +79,7 @@ const IntakeForm = ({ open, onClose, onCreated }: {
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto p-4 sm:p-8">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !saving && close()} />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !saving && close()} />
       <div
         role="dialog"
         aria-modal="true"
