@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from 'react-router-dom';
 import axios from 'axios';
 import App from './App';
+import { installBadgeRefreshOnMutations } from './lib/badgeEvents';
 import './css/style.css';
 import './css/satoshi.css';
 import 'jsvectormap/dist/css/jsvectormap.css';
@@ -18,6 +19,9 @@ axios.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Les pastilles de la barre latérale se relisent après chaque action réussie (lib/badgeEvents).
+installBadgeRefreshOnMutations();
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>

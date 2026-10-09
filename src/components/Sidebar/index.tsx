@@ -6,7 +6,7 @@ import { useAppVersion } from '../../hooks/useAppVersion';
 import NewBadge from '../NewBadge';
 import { useNewFeatures } from '../../context/NewFeaturesContext';
 import { useAuth } from '../../context/AuthContext';
-import { LEADS_CHANGED } from '../../lib/badgeEvents';
+import { subscribeBadgeRefresh } from '../../lib/badgeEvents';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -60,7 +60,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     };
     load();
     const id = setInterval(load, 120000);
-    return () => { cancelled = true; clearInterval(id); };
+    // Relue aussi dès qu'une action réussit ailleurs dans l'application (lib/badgeEvents).
+    const off = subscribeBadgeRefresh(load);
+    return () => { cancelled = true; clearInterval(id); off(); };
   }, [canHealth]);
 
   // Same "needs attention" idiom as the data-health badge above, for pending Partner Portal
@@ -87,7 +89,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     };
     load();
     const id = setInterval(load, 120000);
-    return () => { cancelled = true; clearInterval(id); };
+    // Relue aussi dès qu'une action réussit ailleurs dans l'application (lib/badgeEvents).
+    const off = subscribeBadgeRefresh(load);
+    return () => { cancelled = true; clearInterval(id); off(); };
   }, [canPartners]);
 
   // Même idiome pour les pistes du site qui attendent un examen (Webflow, formulaires, saisie) :
@@ -109,12 +113,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     };
     load();
     const id = setInterval(load, 120000);
-    // Rechargement immédiat quand un écran signale un changement (attribution, refus, billet,
-    // saisie), et au retour sur l'onglet.
-    const onFocus = () => { if (document.visibilityState === 'visible') load(); };
-    window.addEventListener(LEADS_CHANGED, load);
-    document.addEventListener('visibilitychange', onFocus);
-    return () => { cancelled = true; clearInterval(id); window.removeEventListener(LEADS_CHANGED, load); document.removeEventListener('visibilitychange', onFocus); };
+    // Relue aussi dès qu'une action réussit ailleurs dans l'application (lib/badgeEvents).
+    const off = subscribeBadgeRefresh(load);
+    return () => { cancelled = true; clearInterval(id); off(); };
   }, [canReviewLeads]);
 
   const [adminMenuOpen, setAdminMenuOpen] = useState(pathname.includes('admin'));
