@@ -5258,7 +5258,8 @@
         "not_accepted": "Accept the batch first.",
         "not_found": "Batch not found.",
         "failed": "Something went wrong."
-      }
+      },
+      "missing": "To accept, fill in:"
     }
   },
   "csLookup": {

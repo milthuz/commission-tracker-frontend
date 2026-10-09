@@ -5258,7 +5258,8 @@
         "not_accepted": "Acceptez d'abord le lot.",
         "not_found": "Lot introuvable.",
         "failed": "Une erreur est survenue."
-      }
+      },
+      "missing": "Pour accepter, remplissez :"
     }
   },
   "csLookup": {

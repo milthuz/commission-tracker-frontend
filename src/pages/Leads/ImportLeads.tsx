@@ -169,6 +169,11 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
 
   const repOptions = useMemo(() => reps.map((r) => ({ value: r.name, label: r.email ? `${r.name} — ${r.email}` : `${r.name} — ${t('leads.import.noEmail')}` })), [reps, t]);
   const defaultRepInfo = reps.find((r) => r.name === defaultRep);
+  // Ce qui manque pour accepter, DIT à l'écran : un bouton gris sans raison laisse deviner.
+  const blockers = [
+    !eventName.trim() ? t('leads.import.eventName') as string : null,
+    !defaultRep && pending.some((r) => !r.repName) ? t('leads.import.defaultRep') as string : null,
+  ].filter((x): x is string => !!x);
   const setRow = (key: string, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
 
   if (!open) return null;
@@ -249,9 +254,9 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
               </div>
 
               {/* Les personnes */}
-              <div className="mt-5 max-h-[52vh] overflow-auto rounded border border-stroke dark:border-strokedark">
+              <div className="mt-5 overflow-x-auto rounded border border-stroke md:overflow-visible dark:border-strokedark">
                 <table className="w-full table-auto text-sm">
-                  <thead className="sticky top-0 z-10 bg-gray-2 text-left text-xs font-medium uppercase text-bodydark2 dark:bg-meta-4">
+                  <thead className="bg-gray-2 text-left text-xs font-medium uppercase text-bodydark2 dark:bg-meta-4">
                     <tr>
                       <th className="px-3 py-2.5">
                         <input type="checkbox" aria-label={t('leads.import.all') as string}
@@ -324,11 +329,16 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
               ) : null}
 
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-bodydark2">{t('leads.import.acceptHint')}</p>
+                <div className="max-w-2xl">
+                  {blockers.length > 0 && pending.length > 0 && (
+                    <p className="mb-1 text-sm font-medium text-danger">{t('leads.import.missing')} {blockers.join(' · ')}</p>
+                  )}
+                  <p className="text-sm text-bodydark2">{t('leads.import.acceptHint')}</p>
+                </div>
                 <div className="flex gap-2">
                   <button type="button" className={BTN} onClick={reset} disabled={!!busy}>{t('leads.import.back')}</button>
                   <button type="button" className={BTN_PRIMARY} onClick={accept}
-                    disabled={!!busy || !pending.length || !eventName.trim() || (!defaultRep && pending.some((r) => !r.repName))}>
+                    disabled={!!busy || !pending.length || blockers.length > 0}>
                     {busy === 'accept' ? t('leads.import.accepting') : t('leads.import.accept', { n: pending.length })}
                   </button>
                 </div>
