@@ -1017,8 +1017,8 @@ const CommissionReport = () => {
 
       {/* Missing-commission modal */}
       {missingModal.open && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
+          <div className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('commissionReport.missing.title')}</h3>
             <p className="mb-4 text-sm text-body">{t('commissionReport.missing.subtitle')}</p>
             <label className="mb-1 block text-xs font-medium text-body">{t('commissionReport.missing.invoiceLabel')}</label>
@@ -1676,8 +1676,8 @@ const CommissionReport = () => {
 
       {/* Email Modal */}
       {emailModal.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[99999] p-4" onClick={() => !emailModal.sending && setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })}>
-          <div className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-start overflow-y-auto justify-center z-[99999] p-4" onClick={() => !emailModal.sending && setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })}>
+          <div className="my-auto bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-stroke dark:border-strokedark">
               <div>
                 <h3 className="text-lg font-bold text-black dark:text-white">Email Invoice</h3>

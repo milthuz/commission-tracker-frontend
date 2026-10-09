@@ -344,9 +344,9 @@ const PassOps = () => {
         // Le serveur borne aussi : ceci n'est qu'un garde-fou de saisie, pas la règle.
         const invalid = !Number.isFinite(asked) || asked <= 0 || asked > ceiling;
         return (
-          <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4"
+          <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4"
             onMouseDown={(e) => { if (e.target === e.currentTarget) setCreditFor(null); }}>
-            <div className="w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
+            <div className="my-auto w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
               <p className="text-base font-bold text-black dark:text-white">{t('passOps.creditTitle')}</p>
               <p className="mt-1 text-sm text-body">
                 {creditFor.restaurant.name} — {creditFor.member.business || creditFor.member.email}

@@ -190,8 +190,8 @@ const ECommerce: React.FC = () => {
 
       {/* Per-org breakdown modal for a clicked billing tile */}
       {drillMetric && billing && (
-        <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4" onClick={() => setDrillMetric(null)}>
-          <div className="w-full max-w-md overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-999999 flex items-start overflow-y-auto justify-center bg-black/50 p-4" onClick={() => setDrillMetric(null)}>
+          <div className="my-auto w-full max-w-md overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
               <h3 className="text-lg font-semibold text-black dark:text-white">{billLabel(drillMetric as string)} · {t('dashboard.byOrg')}</h3>
               <button onClick={() => setDrillMetric(null)} className="text-body hover:text-black dark:hover:text-white">

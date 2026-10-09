@@ -659,8 +659,8 @@ const Resources: React.FC = () => {
 
       {/* Create folder modal */}
       {creatingFolder && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setCreatingFolder(false)}>
-          <div className="w-full max-w-sm rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4" onClick={() => setCreatingFolder(false)}>
+          <div className="my-auto w-full max-w-sm rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('resources.newFolder')}</h3>
             <p className="mb-4 text-xs text-gray-400">{openFolder ? `${t('resources.title')} / ${openFolder}` : t('resources.title')}{zone === 'personal' ? ` · ${t('resources.zonePersonal')}` : ''}</p>
             <input autoFocus value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder={t('resources.folderNamePlaceholder') as string}
@@ -676,8 +676,8 @@ const Resources: React.FC = () => {
 
       {/* Rename folder modal */}
       {renameTarget && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setRenameTarget(null)}>
-          <div className="w-full max-w-sm rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4" onClick={() => setRenameTarget(null)}>
+          <div className="my-auto w-full max-w-sm rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('resources.renameTitle')}</h3>
             <p className="mb-4 text-xs text-gray-400">{renameTarget.path}</p>
             <input autoFocus value={renameInput} onChange={(e) => setRenameInput(e.target.value)}
@@ -693,8 +693,8 @@ const Resources: React.FC = () => {
 
       {/* Add / edit modal */}
       {showModal && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
-          <div className="w-full max-w-lg rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
+          <div className="my-auto w-full max-w-lg rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-4 text-lg font-semibold text-black dark:text-white">{editing ? t('resources.editTitle') : t('resources.addTitle')}</h3>
             <div className="space-y-3">
               {/* File(s) first — multi-upload allowed when adding */}

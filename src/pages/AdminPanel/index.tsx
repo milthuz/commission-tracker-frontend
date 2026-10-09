@@ -2488,8 +2488,8 @@ Joker Pub,Jay Daoust,2024-04-01`}
             <>
             {/* Confirmation Modal */}
             {confirmModal?.show && (
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50">
-                <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark">
+              <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center p-4 bg-black bg-opacity-50">
+                <div className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning bg-opacity-10">
                       <svg className="h-5 w-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

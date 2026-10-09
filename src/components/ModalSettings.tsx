@@ -26,10 +26,10 @@ const ModalSettings: React.FC<ModalSettingsProps> = ({ closeModal, onSubmit, def
 
   return (
     <div
-      className="modal-overlay fixed inset-0 z-999999 flex items-center justify-center bg-black bg-opacity-50"
+      className="modal-overlay fixed inset-0 z-999999 flex items-start overflow-y-auto justify-center p-4 bg-black bg-opacity-50"
       onClick={handleOverlayClick}
     >
-      <div className="modal-content rounded-lg bg-white p-6 shadow-lg dark:bg-boxdark">
+      <div className="my-auto modal-content rounded-lg bg-white p-6 shadow-lg dark:bg-boxdark">
         <h2 className="mb-4 text-xl font-bold text-black dark:text-white">Edit Setting</h2>
         <form onSubmit={handleSubmit}>
           <input

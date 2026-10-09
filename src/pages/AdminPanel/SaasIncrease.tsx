@@ -2933,8 +2933,8 @@ const SaasIncrease: React.FC = () => {
       {suggestModalOpen && (() => {
         const preview = computeSuggestion(suggestProfile);
         return (
-          <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setSuggestModalOpen(false)}>
-            <div className={`w-full max-w-lg overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[999999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-60 p-4" onClick={() => setSuggestModalOpen(false)}>
+            <div className={`my-auto w-full max-w-lg overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
                 <p className={`font-semibold ${textPri}`}>{t('saasIncrease.suggest.title')}</p>
                 <button onClick={() => setSuggestModalOpen(false)} className={`${textSec} transition hover:text-red-500`}>
@@ -3003,8 +3003,8 @@ const SaasIncrease: React.FC = () => {
         const totalDelta = targetItems.reduce((sum, it) => sum + (it.newMonthly - it.currentMonthly), 0);
         const alreadyPushedCount = targetItems.filter(it => it.status === 'pushed').length;
         return (
-          <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => !pushModal.busy && setPushModal(null)}>
-            <div className={`w-full max-w-md overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-[999999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-60 p-4" onClick={() => !pushModal.busy && setPushModal(null)}>
+            <div className={`my-auto w-full max-w-md overflow-hidden rounded-lg shadow-xl ${card}`} onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-[#1B1B1B]">
                 <p className={`font-semibold ${textPri}`}>{t('saasIncrease.push.confirmTitle')}</p>
                 <button onClick={() => setPushModal(null)} className={`${textSec} transition hover:text-red-500`}>

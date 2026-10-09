@@ -409,10 +409,10 @@ const DataHealth: React.FC = () => {
 
       {resolveModal && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4"
+          className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4"
           onClick={() => resolving === null && setResolveModal(null)}
         >
-          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+          <div className="my-auto w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">
               {t('dataHealth.reports.resolveTitle')}
             </h3>

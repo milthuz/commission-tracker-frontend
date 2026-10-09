@@ -247,8 +247,8 @@ const PartnerProfile: React.FC = () => {
 
       {/* 2FA reset modal */}
       {resetOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => !resetBusy && closeReset()}>
-          <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !resetBusy && closeReset()}>
+          <div className="my-auto w-full max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             {resetStep === 'password' && (
               <>
                 <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.resetTitle')}</h3>

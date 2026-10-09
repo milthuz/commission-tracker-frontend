@@ -293,8 +293,8 @@ const CommissionTracker: React.FC = () => {
 
       {/* Missing points modal */}
       {missingModal.open && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
+          <div className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('commissionTracker.missing.title')}</h3>
             <p className="mb-4 text-sm text-body">{t('commissionTracker.missing.subtitle')}</p>
             <label className="mb-1 block text-xs font-medium text-body">{t('commissionTracker.missing.refLabel')}</label>

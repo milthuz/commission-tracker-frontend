@@ -901,8 +901,8 @@ const Profile = () => {
 
       {/* 2FA reset modal */}
       {resetOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => !resetBusy && closeReset()}>
-          <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !resetBusy && closeReset()}>
+          <div className="my-auto w-full max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             {resetStep === 'password' && (
               <>
                 <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('profile.twoFactor.resetTitle')}</h3>
@@ -976,8 +976,8 @@ const Profile = () => {
 
       {/* Request-a-feature modal */}
       {featureModal.open && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4" onClick={() => !featureModal.sending && setFeatureModal(m => ({ ...m, open: false }))}>
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !featureModal.sending && setFeatureModal(m => ({ ...m, open: false }))}>
+          <div className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('profile.requestFeature.title')}</h3>
             <p className="mb-4 text-sm text-body">{t('profile.requestFeature.subtitle')}</p>
             <textarea
