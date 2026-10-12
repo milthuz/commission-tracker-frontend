@@ -30,6 +30,10 @@ interface FieldCtx {
   reload: () => Promise<void>;
   position: [number, number] | null;
   accuracy: number | null;
+  // État de la localisation (2026-10-12 : le 11 octobre, aucun check-in de Hao n'avait de GPS et
+  // rien ne le lui disait). « denied » = refusée au navigateur ; « unavailable » = pas de signal.
+  gps: GpsState;
+  retryGps: () => void;
   outbox: number;
   online: boolean;
   markStop: (stopId: number, patch: Partial<Route['stops'][number]>) => void;
@@ -41,6 +45,7 @@ interface FieldCtx {
   startDemo: () => Promise<void>;
   endDemo: () => void;
 }
+export type GpsState = 'waiting' | 'ok' | 'denied' | 'unavailable' | 'unsupported';
 const Ctx = createContext<FieldCtx | null>(null);
 export const useField = () => {
   const c = useContext(Ctx);
@@ -62,6 +67,9 @@ export default function FieldApp() {
   const [error, setError] = useState<string | null>(null);
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [accuracy, setAccuracy] = useState<number | null>(null);
+  const [gps, setGps] = useState<GpsState>(typeof navigator !== 'undefined' && navigator.geolocation ? 'waiting' : 'unsupported');
+  const hasFix = useRef(false);
+  const [gpsTry, setGpsTry] = useState(0);
   const [outbox, setOutbox] = useState(pending().length);
   const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
 
@@ -94,15 +102,31 @@ export default function FieldApp() {
   useEffect(() => { if (allowed) reload(); else setLoading(false); }, [allowed, reload]);
 
   // Position GPS : suivie tant que l'application est ouverte. Refusée → l'application marche
-  // quand même (pas de distance au restaurant).
+  // quand même, mais un bandeau rouge le dit (sans position, aucune visite n'est confirmée).
+  // Un refus « précis » (dans un centre commercial…) n'est pas un refus : on repasse en position
+  // approximative (réseau, Wi-Fi) plutôt que de rester sans rien.
   useEffect(() => {
     if (!navigator.geolocation) return;
-    const id = navigator.geolocation.watchPosition(
-      (p) => { setPosition([p.coords.latitude, p.coords.longitude]); setAccuracy(p.coords.accuracy); },
-      () => { /* refus ou indisponible */ },
-      { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 });
-    return () => navigator.geolocation.clearWatch(id);
-  }, []);
+    const ok = (p: GeolocationPosition) => {
+      hasFix.current = true;
+      setPosition([p.coords.latitude, p.coords.longitude]); setAccuracy(p.coords.accuracy); setGps('ok');
+    };
+    const fail = (e: GeolocationPositionError) => {
+      if (e.code === 1) setGps('denied');
+      else if (!hasFix.current) setGps('unavailable');
+    };
+    const id = navigator.geolocation.watchPosition(ok, (e) => {
+      fail(e);
+      if (e.code !== 1 && !hasFix.current) navigator.geolocation.getCurrentPosition(ok, fail, { enableHighAccuracy: false, maximumAge: 120000, timeout: 15000 });
+    }, { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 });
+    // Le navigateur dit d'avance si la localisation est refusée, et quand ça change.
+    let perm: PermissionStatus | null = null;
+    const onPerm = () => { if (perm?.state === 'denied') setGps('denied'); else if (perm?.state === 'granted' && !hasFix.current) setGps('waiting'); };
+    navigator.permissions?.query({ name: 'geolocation' as PermissionName }).then((st) => { perm = st; onPerm(); st.addEventListener?.('change', onPerm); }).catch(() => {});
+    return () => { navigator.geolocation.clearWatch(id); perm?.removeEventListener?.('change', onPerm); };
+  }, [gpsTry]);
+  // « Réessayer » : redemande la position (et, si le navigateur le permet encore, l'autorisation).
+  const retryGps = useCallback(() => { hasFix.current = false; setGps('waiting'); setGpsTry((n) => n + 1); }, []);
 
   // File d'envoi : au retour du réseau, toutes les 30 s, et à chaque ajout.
   useEffect(() => {
@@ -147,8 +171,8 @@ export default function FieldApp() {
     reload();
   }, [reload]);
 
-  const value = useMemo<FieldCtx>(() => ({ lng, dark, setTheme: setColorMode, date, route, loading, error, reload, position, accuracy, outbox, online, markStop, demo, canDemo, startDemo, endDemo }),
-    [lng, dark, setColorMode, date, route, loading, error, reload, position, accuracy, outbox, online, markStop, demo, canDemo, startDemo, endDemo]);
+  const value = useMemo<FieldCtx>(() => ({ lng, dark, setTheme: setColorMode, date, route, loading, error, reload, position, accuracy, gps, retryGps, outbox, online, markStop, demo, canDemo, startDemo, endDemo }),
+    [lng, dark, setColorMode, date, route, loading, error, reload, position, accuracy, gps, retryGps, outbox, online, markStop, demo, canDemo, startDemo, endDemo]);
 
   if (!allowed) {
     return (

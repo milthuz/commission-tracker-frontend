@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Clock, Check, HeartHandshake, Loader2, MapPinOff, RotateCcw, DoorClosed, SearchX } from 'lucide-react';
+import { Clock, Check, HeartHandshake, Loader2, RotateCcw, DoorClosed, SearchX } from 'lucide-react';
 import { useField } from './index';
-import { Card, Chips, ScreenHeader, Segmented, Stepper, StickyCta, Toggle, btnPrimary } from './ui';
+import { Card, Chips, GpsBanner, ScreenHeader, Segmented, Stepper, StickyCta, Toggle, btnPrimary } from './ui';
 import { enqueueCheckin, flush, loadDraft, saveDraft, clearDraft } from './outbox';
 import { api, haversine, fmtDistance, uuid, type Service, type ServiceType, type CheckinInput, type PaymentsBy, type Version } from '../api';
 import { dialog } from '../../../lib/dialog';
@@ -32,9 +32,14 @@ const LOW_INTEREST = 2;
 
 // Position FRAÎCHE au moment d'enregistrer (pas celle gardée en mémoire par la carte, qui peut
 // dater de l'arrivée dans le quartier) : c'est elle qui atteste la visite.
+// Si la position précise n'arrive pas (dans un centre commercial, sous un toit), on se contente
+// d'une position approximative récente plutôt que de rien.
 const freshPosition = () => new Promise<GeolocationPosition | null>((resolve) => {
   if (!navigator.geolocation) return resolve(null);
-  navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+  navigator.geolocation.getCurrentPosition(resolve, (e) => {
+    if (e.code === 1) return resolve(null);
+    navigator.geolocation.getCurrentPosition(resolve, () => resolve(null), { enableHighAccuracy: false, maximumAge: 120000, timeout: 8000 });
+  }, { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
 });
 
 interface Form {
@@ -71,7 +76,7 @@ function NewCheckIn() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { stopId } = useParams();
-  const { lng, route, position, accuracy, markStop, demo, reload } = useField();
+  const { lng, route, position, accuracy, markStop, demo, reload, gps, retryGps } = useField();
   const stop = route?.stops.find((s) => String(s.id) === stopId) || null;
   const draftKey = `stop_${stopId}`;
   const [form, setForm] = useState<Form>(() => {
@@ -167,7 +172,8 @@ function NewCheckIn() {
           <Clock className="h-3.5 w-3.5" />{fmtElapsed(tick - new Date(form.startedAt || tick).getTime())}</span>} />}
       top={<>
         <QuickActions title={t('opener.field.quick.title')} busy={busy} onPick={noVisit} />
-        {gpsMissing && <GpsWarning />}
+        {/* Le bandeau suit l'état réel ; « pas de position à l'arrivée » le montre même si le navigateur n'a rien signalé. */}
+        <GpsBanner gps={gps === 'ok' && gpsMissing ? 'unavailable' : gps} onRetry={() => { retryGps(); restart(); }} />
         <p className="flex flex-wrap items-center gap-x-2 text-xs text-[var(--of-faint)]">
           {t('opener.field.arrivedAt', { time: new Date(form.startedAt || tick).toLocaleTimeString(lng === 'fr' ? 'fr-CA' : 'en-CA', { hour: '2-digit', minute: '2-digit' }) })}
           <span>·</span>
@@ -272,16 +278,6 @@ function QuickActions({ title, busy, onPick }: { title: string; busy: string | n
         ))}
       </div>
     </Card>
-  );
-}
-
-function GpsWarning() {
-  const { t } = useTranslation();
-  return (
-    <div className="flex gap-2.5 rounded-[10px] border border-[rgba(248,113,113,.45)] bg-[rgba(248,113,113,.1)] p-3 text-xs text-[var(--of-bad)]">
-      <MapPinOff className="mt-0.5 h-4 w-4 shrink-0" />
-      <div><p className="font-semibold">{t('opener.field.gpsOff.title')}</p><p className="mt-0.5 leading-relaxed">{t('opener.field.gpsOff.body')}</p></div>
-    </div>
   );
 }
 

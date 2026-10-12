@@ -6840,8 +6840,13 @@
         "notFoundConfirm": "Ce restaurant n’existe pas (ou plus) à cette adresse ? Il sera retiré de la route et ne reviendra sur aucune autre."
       },
       "gpsOff": {
-        "title": "Localisation désactivée",
-        "body": "Votre position n’a pas pu être lue : la visite ne pourra pas être confirmée. Activez la localisation du téléphone et autorisez-la pour ce site dans le navigateur (Safari ou Chrome), puis rouvrez le check-in."
+        "title": "Position introuvable",
+        "deniedTitle": "Localisation refusée",
+        "unsupportedTitle": "Ce navigateur ne donne pas la position",
+        "howIos": "Sans position, vos visites ne sont pas confirmées. iPhone : Réglages › Confidentialité et sécurité › Service de localisation (activé), puis Safari (ou Chrome) › « Lorsque l’app est active ». Dans Safari, touchez aA › Réglages du site web › Localisation › Autoriser. Puis « Réessayer ».",
+        "howAndroid": "Sans position, vos visites ne sont pas confirmées. Activez la Position du téléphone (menu du haut), puis dans Chrome : ⋮ › Paramètres › Paramètres des sites › Position › autorisez saleshub.clusterpos.com. Puis « Réessayer ».",
+        "weak": "Le téléphone ne trouve pas votre position (signal faible, intérieur). Sortez quelques secondes à découvert, vérifiez que la localisation du téléphone est activée, puis « Réessayer ».",
+        "retry": "Réessayer"
       },
       "edit": {
         "eyebrow": "Modifier le check-in",

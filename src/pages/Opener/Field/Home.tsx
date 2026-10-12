@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Navigation, Check, ChevronRight, RefreshCw, Loader2, FlaskConical } from 'lucide-react';
 import { useField, TabBar } from './index';
-import { Eyebrow, StatusBadge, btnPrimary, btnSecondary } from './ui';
+import { Eyebrow, StatusBadge, GpsBanner, btnPrimary, btnSecondary } from './ui';
 import { GoogleMapView, pinIcon } from '../GoogleMap';
 import { dialog } from '../../../lib/dialog';
 import { STATUS_COLOR, haversine, fmtDistance, fmtMinutes, walkMin, directionsUrl, type PlaceStatus, type Stop } from '../api';
@@ -16,7 +16,7 @@ const MONTREAL: [number, number] = [45.5236, -73.5865];
 export default function Home({ view }: { view: 'map' | 'list' }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { lng, dark, route, loading, error, reload, position, date, canDemo, startDemo } = useField();
+  const { lng, dark, route, loading, error, reload, position, date, canDemo, startDemo, gps, retryGps } = useField();
   const [filter, setFilter] = useState<Filter>('all');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -181,6 +181,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
               </button>
             ))}
           </div>
+          <GpsBanner gps={gps} onRetry={retryGps} className="mt-2" />
         </div>
         <div className="absolute inset-x-0 z-10" style={{ bottom: 'calc(58px + env(safe-area-inset-bottom, 0px))' }}>{sheet}</div>
         <TabBar />
@@ -198,6 +199,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
         <h1 className="truncate text-2xl font-bold tracking-[-0.01em] text-[var(--of-title)]">{route.name}</h1>
         <p className="shrink-0"><span className="text-[22px] font-bold text-[var(--of-ok)]">{done}</span><span className="text-sm text-[var(--of-faint)]"> / {stops.length}</span></p>
       </div>
+      <GpsBanner gps={gps} onRetry={retryGps} className="mb-3" />
       <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-[var(--of-surface)]">
         <div className="h-full rounded-full bg-[#57D193] transition-all" style={{ width: `${stops.length ? (done / stops.length) * 100 : 0}%` }} />
       </div>

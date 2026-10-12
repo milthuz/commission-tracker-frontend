@@ -6840,8 +6840,13 @@
         "notFoundConfirm": "This restaurant doesn’t exist (anymore) at this address? It will be removed from the route and won’t come back on any other."
       },
       "gpsOff": {
-        "title": "Location is off",
-        "body": "Your position couldn’t be read, so the visit can’t be confirmed. Turn on location on your phone and allow it for this site in the browser (Safari or Chrome), then reopen the check-in."
+        "title": "Location not found",
+        "deniedTitle": "Location blocked",
+        "unsupportedTitle": "This browser doesn’t provide location",
+        "howIos": "Without your location, visits aren’t confirmed. iPhone: Settings › Privacy & Security › Location Services (on), then Safari (or Chrome) › “While Using the App”. In Safari, tap aA › Website Settings › Location › Allow. Then “Try again”.",
+        "howAndroid": "Without your location, visits aren’t confirmed. Turn on the phone’s Location (top menu), then in Chrome: ⋮ › Settings › Site settings › Location › allow saleshub.clusterpos.com. Then “Try again”.",
+        "weak": "The phone can’t find your location (weak signal, indoors). Step outside for a few seconds, check that location is on, then “Try again”.",
+        "retry": "Try again"
       },
       "edit": {
         "eyebrow": "Edit check-in",

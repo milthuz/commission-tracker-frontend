@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, Minus, Plus } from 'lucide-react';
+import { ChevronLeft, Minus, Plus, MapPinOff, RefreshCw } from 'lucide-react';
 import { STATUS_BADGE, STATUS_COLOR, type PlaceStatus, type Version } from '../api';
 
 // Éléments d'interface du module terrain (thème sombre du brief, indépendant du thème choisi
@@ -114,3 +114,24 @@ export const btnPrimary = 'inline-flex h-12 items-center justify-center gap-2 ro
 export const btnSecondary = 'inline-flex h-12 items-center justify-center gap-2 rounded-[10px] border border-[var(--of-input-stroke)] bg-[var(--of-raised)] px-4 text-[15px] font-semibold text-[var(--of-title)] disabled:opacity-50';
 export const inputCls = 'h-11 w-full rounded-[10px] border border-[var(--of-input-stroke)] bg-[var(--of-input)] px-3 text-sm text-[var(--of-text)] outline-none placeholder:text-[var(--of-faint)] focus:border-primary';
 export const labelCls = 'mb-1 block text-xs font-medium text-[var(--of-text)]';
+
+// Localisation refusée ou introuvable : bandeau rouge, avec la marche à suivre selon le téléphone
+// et un bouton pour réessayer. Sans position, aucune visite ne peut être confirmée.
+export function GpsBanner({ gps, onRetry, className = '' }: { gps: string; onRetry: () => void; className?: string }) {
+  const { t } = useTranslation();
+  if (gps === 'ok' || gps === 'waiting') return null;
+  const ios = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  return (
+    <div className={`rounded-[12px] border border-[rgba(248,113,113,.45)] bg-[var(--of-surface)] p-3 text-xs text-[var(--of-text)] shadow-[0_4px_10px_var(--of-shadow)] ${className}`}>
+      <p className="mb-1 flex items-center gap-1.5 text-[13px] font-bold text-[var(--of-bad)]">
+        <MapPinOff className="h-4 w-4 shrink-0" />{t(gps === 'denied' ? 'opener.field.gpsOff.deniedTitle' : gps === 'unsupported' ? 'opener.field.gpsOff.unsupportedTitle' : 'opener.field.gpsOff.title')}
+      </p>
+      <p className="leading-relaxed text-[var(--of-muted)]">{t(gps === 'denied' ? (ios ? 'opener.field.gpsOff.howIos' : 'opener.field.gpsOff.howAndroid') : 'opener.field.gpsOff.weak')}</p>
+      {gps !== 'unsupported' && (
+        <button type="button" onClick={onRetry} className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-[#1C2434]">
+          <RefreshCw className="h-3.5 w-3.5" />{t('opener.field.gpsOff.retry')}
+        </button>
+      )}
+    </div>
+  );
+}
