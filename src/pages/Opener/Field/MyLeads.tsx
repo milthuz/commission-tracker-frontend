@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Loader2, Users, Pencil } from 'lucide-react';
 import { TabBar, useField } from './index';
 import { Card, Eyebrow } from './ui';
 import { api } from '../api';
@@ -14,6 +15,7 @@ interface MyLead { id: number; refCode: string; businessName: string; status: Le
 export default function MyLeads() {
   const { t } = useTranslation();
   const { lng } = useField();
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<MyLead[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +46,10 @@ export default function MyLeads() {
               </div>
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusTone[l.status] || ''}`}>{t(`leads.status.${l.status}`, { defaultValue: l.status })}</span>
             </div>
+            {/* Corrigeable tant que personne ne l'a révisée (demande de Hao, 2026-10-12). */}
+            {(l.status === 'new' || l.status === 'in_review') && (
+              <button onClick={() => navigate(`/opener/leads/${l.id}/edit`)} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary"><Pencil className="h-3 w-3" />{t('opener.field.editLead.cta')}</button>
+            )}
           </Card>
         ))}
       </div>

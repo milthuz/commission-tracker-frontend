@@ -184,6 +184,8 @@ export default function FieldApp() {
             <R path="stop/:stopId" element={<StopDetail />} />
             <R path="stop/:stopId/checkin" element={<CheckIn />} />
             <R path="stop/:stopId/lead" element={<LeadForm />} />
+            <R path="checkin/:checkinId/edit" element={<CheckIn />} />
+            <R path="leads/:leadId/edit" element={<LeadForm />} />
             <R path="leads" element={<MyLeads />} />
             <R path="day" element={<Day />} />
             <R path="*" element={<Navigate to="/opener" replace />} />

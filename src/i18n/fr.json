@@ -6830,7 +6830,44 @@
       "lowInterestConfirm": "Intérêt faible ({{n}}/5). Un lead n'est utile que si le restaurant est intéressé. Créer quand même un lead ?",
       "lowInterestCreate": "Créer quand même",
       "lowInterestSkip": "Terminer sans lead",
-      "lowInterestHint": "Intérêt faible ({{n}}/5) : un lead n'est utile que si le restaurant est intéressé."
+      "lowInterestHint": "Intérêt faible ({{n}}/5) : un lead n'est utile que si le restaurant est intéressé.",
+      "quick": {
+        "title": "Pas de visite possible ? Un appui, rien à remplir :",
+        "later": "Revenir plus tard",
+        "laterLong": "Revenir plus tard aujourd’hui (fin de route)",
+        "closed": "Fermé",
+        "notFound": "N’existe pas",
+        "notFoundConfirm": "Ce restaurant n’existe pas (ou plus) à cette adresse ? Il sera retiré de la route et ne reviendra sur aucune autre."
+      },
+      "gpsOff": {
+        "title": "Localisation désactivée",
+        "body": "Votre position n’a pas pu être lue : la visite ne pourra pas être confirmée. Activez la localisation du téléphone et autorisez-la pour ce site dans le navigateur (Safari ou Chrome), puis rouvrez le check-in."
+      },
+      "edit": {
+        "eyebrow": "Modifier le check-in",
+        "cta": "Modifier",
+        "ctaLong": "Modifier le check-in",
+        "help": "Check-in du {{date}}. Vous pouvez corriger vos réponses ; l’heure et la position de la visite ne changent pas.",
+        "save": "Enregistrer les corrections",
+        "saved": "Check-in corrigé.",
+        "tooOld": "Ce check-in a plus de 7 jours : il ne peut plus être modifié. Demandez à votre gestionnaire.",
+        "voidTitle": "Ce n’était pas une visite ? Annulez le check-in :",
+        "voidCta": "Annuler le check-in",
+        "voidConfirm": {
+          "later": "Annuler ce check-in ? Le restaurant revient à la fin de votre route pour y retourner plus tard.",
+          "closed": "Annuler ce check-in ? Le restaurant est marqué « fermé à l’arrivée » et reviendra dans une prochaine route.",
+          "not_found": "Annuler ce check-in ? Le restaurant n’existe pas : il est retiré pour de bon de toutes les routes."
+        },
+        "hasLead": "Ce check-in a créé un lead : il ne peut pas être annulé. Corrigez-le plutôt, ou demandez à votre gestionnaire."
+      },
+      "editLead": {
+        "cta": "Modifier",
+        "eyebrow": "Modifier le lead {{ref}}",
+        "notice": "Vous pouvez corriger ce lead tant qu’il n’a pas été révisé par votre gestionnaire.",
+        "save": "Enregistrer les corrections",
+        "saved": "Lead {{ref}} corrigé.",
+        "locked": "Ce lead a déjà été révisé : il ne peut plus être modifié ici. Demandez à votre gestionnaire."
+      }
     },
     "kind": {
       "restaurant": "Restaurants",

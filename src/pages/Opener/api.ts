@@ -96,7 +96,7 @@ export interface PlaceCard {
     id: string; at: string; by: string; currentPos: string; serviceType: ServiceType; terminals: number | null;
     decisionMaker: string | null; interest: number; services: Service[]; notes: string | null; leadRef: string | null;
     distanceM?: number | null; verdict?: Verdict; durationMin?: number | null;
-    satisfaction?: number | null; paymentsBy?: PaymentsBy | null;
+    satisfaction?: number | null; paymentsBy?: PaymentsBy | null; editable?: boolean; hasLead?: boolean;
   }[];
 }
 

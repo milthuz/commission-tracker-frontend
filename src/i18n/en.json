@@ -6830,7 +6830,44 @@
       "lowInterestConfirm": "Low interest ({{n}}/5). A lead is only useful if the restaurant is interested. Create a lead anyway?",
       "lowInterestCreate": "Create anyway",
       "lowInterestSkip": "Finish without a lead",
-      "lowInterestHint": "Low interest ({{n}}/5): a lead is only useful if the restaurant is interested."
+      "lowInterestHint": "Low interest ({{n}}/5): a lead is only useful if the restaurant is interested.",
+      "quick": {
+        "title": "Can’t visit? One tap, nothing to fill in:",
+        "later": "Come back later",
+        "laterLong": "Come back later today (end of route)",
+        "closed": "Closed",
+        "notFound": "Doesn’t exist",
+        "notFoundConfirm": "This restaurant doesn’t exist (anymore) at this address? It will be removed from the route and won’t come back on any other."
+      },
+      "gpsOff": {
+        "title": "Location is off",
+        "body": "Your position couldn’t be read, so the visit can’t be confirmed. Turn on location on your phone and allow it for this site in the browser (Safari or Chrome), then reopen the check-in."
+      },
+      "edit": {
+        "eyebrow": "Edit check-in",
+        "cta": "Edit",
+        "ctaLong": "Edit check-in",
+        "help": "Check-in of {{date}}. You can correct your answers; the visit’s time and location don’t change.",
+        "save": "Save corrections",
+        "saved": "Check-in updated.",
+        "tooOld": "This check-in is more than 7 days old and can no longer be edited. Ask your manager.",
+        "voidTitle": "Wasn’t a real visit? Cancel the check-in:",
+        "voidCta": "Cancel check-in",
+        "voidConfirm": {
+          "later": "Cancel this check-in? The restaurant goes back to the end of your route so you can return later.",
+          "closed": "Cancel this check-in? The restaurant is marked “closed on arrival” and will come back on a future route.",
+          "not_found": "Cancel this check-in? The restaurant doesn’t exist: it is permanently removed from all routes."
+        },
+        "hasLead": "This check-in created a lead, so it can’t be cancelled. Edit it instead, or ask your manager."
+      },
+      "editLead": {
+        "cta": "Edit",
+        "eyebrow": "Edit lead {{ref}}",
+        "notice": "You can correct this lead until your manager has reviewed it.",
+        "save": "Save corrections",
+        "saved": "Lead {{ref}} updated.",
+        "locked": "This lead has already been reviewed and can no longer be edited here. Ask your manager."
+      }
     },
     "kind": {
       "restaurant": "Restaurants",

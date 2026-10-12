@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, CheckCircle2, Loader2 } from 'lucide-react';
+import { Plus, CheckCircle2, Loader2, Save } from 'lucide-react';
 import { useField } from './index';
 import { Chips, Eyebrow, ScreenHeader, Segmented, StickyCta, btnPrimary, inputCls, labelCls } from './ui';
 import { api, uuid, type CheckinInput, type PlaceCard, type Service } from '../api';
@@ -11,6 +11,8 @@ import { dialog } from '../../../lib/dialog';
 // révision, vérification des doublons Zoho, attribution. Source « opener ».
 // `clientRef` est fixé à l'ouverture de l'écran : un double appui ou un renvoi après une coupure
 // ne crée jamais deux pistes.
+// /opener/leads/:leadId/edit (demande de Hao, 2026-10-12) : l'opener corrige SA piste tant qu'elle
+// n'est pas révisée (nouvelle ou en révision). Après, elle vit dans Zoho.
 
 const TIMELINES = ['lt1', '1to3', '3to6', 'unknown'] as const;
 const BUSINESS_TYPES = ['restaurant', 'cafe', 'bar', 'bakery', 'quick_service', 'other'] as const;
@@ -18,7 +20,7 @@ const BUSINESS_TYPES = ['restaurant', 'cafe', 'bar', 'bakery', 'quick_service', 
 export default function LeadForm() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { stopId } = useParams();
+  const { stopId, leadId } = useParams();
   const location = useLocation() as { state?: { checkin?: CheckinInput } };
   const checkin = location.state?.checkin || null;
   const { lng, route, online, markStop, demo } = useField();
@@ -33,11 +35,29 @@ export default function LeadForm() {
   });
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState<{ refCode: string } | null>(null);
+  const [edit, setEdit] = useState<{ id: number; refCode: string; editable: boolean; website: string | null } | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  // Le libellé enregistré (« Restaurant », « 1 à 3 mois »…) → la clé du formulaire, en FR ou en EN.
+  const keyOf = <T extends string>(keys: readonly T[], prefix: string, label: string | null, fallback: T): T =>
+    keys.find((k) => [t(`${prefix}.${k}`, { lng: 'fr' }), t(`${prefix}.${k}`, { lng: 'en' })].includes(label || '')) || fallback;
+  useEffect(() => {
+    if (!leadId) return;
+    api<{ lead: any }>(`/api/opener/leads/${leadId}`).then(({ lead: l }) => {
+      setEdit({ id: l.id, refCode: l.refCode, editable: l.editable, website: l.website });
+      setF({
+        businessName: l.businessName, businessType: keyOf(BUSINESS_TYPES, 'opener.field.businessType', l.businessType, 'restaurant'), phone: l.phone,
+        address: l.address, city: l.city, province: l.province || 'QC', postalCode: l.postalCode, firstName: l.firstName, lastName: l.lastName,
+        title: l.title, language: l.language, email: l.email, interest: l.interest, currentPos: l.currentPos,
+        locationsCount: l.locationsCount === '' || l.locationsCount == null ? '' : String(l.locationsCount),
+        timeline: keyOf(TIMELINES, 'opener.field.timeline', l.timeline, 'unknown'), notes: l.notes,
+      });
+    }).catch((e) => setEditError(e.message));
+  }, [leadId]); // eslint-disable-line react-hooks/exhaustive-deps
   const set = (k: keyof typeof f) => (v: any) => setF((x) => ({ ...x, [k]: v }));
 
   // Préremplissage par la fiche Google (sans écraser ce que l'opener a déjà tapé).
   useEffect(() => {
-    if (!stop) return;
+    if (!stop || leadId) return;
     api<PlaceCard>(`/api/opener/place/${encodeURIComponent(stop.placeId)}?lang=${lng}`).then((c) => {
       setCard(c);
       const g = c.google;
@@ -54,9 +74,31 @@ export default function LeadForm() {
     }).catch(() => {});
   }, [stop?.placeId, lng]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!route || !stop) return <div className="p-8 text-center text-sm text-[var(--of-muted)]">{t('opener.field.stopNotFound')}</div>;
+  if (leadId && editError) return <div className="p-8 text-center text-sm text-[var(--of-bad)]"><ScreenHeader title="—" back="/opener/leads" />{editError}</div>;
+  if (leadId && !edit) return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  if (!leadId && (!route || !stop)) return <div className="p-8 text-center text-sm text-[var(--of-muted)]">{t('opener.field.stopNotFound')}</div>;
+
+  const saveEdit = async () => {
+    if (!edit) return;
+    if (!f.businessName.trim()) { dialog.alert(t('opener.field.nameRequired')); return; }
+    setSending(true);
+    try {
+      await api(`/api/opener/leads/${edit.id}`, { method: 'PUT', body: {
+        businessName: f.businessName.trim(), businessType: t(`opener.field.businessType.${f.businessType}`), phone: f.phone,
+        address: f.address, city: f.city, province: f.province, postalCode: f.postalCode, website: edit.website,
+        firstName: f.firstName, lastName: f.lastName, title: f.title, language: f.language, email: f.email,
+        interest: f.interest, currentPos: f.currentPos, locationsCount: f.locationsCount || null,
+        timeline: f.timeline === 'unknown' ? null : t(`opener.field.timeline.${f.timeline}`), notes: f.notes,
+      } });
+      dialog.alert(t('opener.field.editLead.saved', { ref: edit.refCode }));
+      navigate('/opener/leads', { replace: true });
+    } catch (e: any) {
+      dialog.alert(e?.body?.error === 'lead_locked' ? t('opener.field.editLead.locked') : e.message);
+    } finally { setSending(false); }
+  };
 
   const submit = async () => {
+    if (!stop) return;
     if (!f.businessName.trim()) { dialog.alert(t('opener.field.nameRequired')); return; }
     // Démo : aucun lead créé dans Zoho ni dans la file ; un faux numéro montre l'écran de fin.
     if (demo) { markStop(stop.id, { outcome: 'done' }); setDone({ refCode: 'DEMO-0000' }); return; }
@@ -98,10 +140,12 @@ export default function LeadForm() {
 
   return (
     <div className="pb-40">
-      <ScreenHeader eyebrow={t('opener.field.newLead')} title={stop.name}
+      <ScreenHeader eyebrow={edit ? t('opener.field.editLead.eyebrow', { ref: edit.refCode }) : t('opener.field.newLead')} title={stop?.name || f.businessName} back={edit ? '/opener/leads' : undefined}
         right={<span className="rounded-full bg-[rgba(183,240,209,.12)] px-2 py-1 text-[11px] font-semibold text-[var(--of-ok)]">{t('opener.field.sourceDoor')}</span>} />
       <div className="space-y-5 px-4 pt-4">
-        <p className="rounded-[10px] border border-[rgba(245,131,70,.3)] bg-[rgba(245,131,70,.08)] p-3 text-xs text-[var(--of-warn)]">{t('opener.field.prefillNotice')}</p>
+        {edit && !edit.editable
+          ? <p className="rounded-[10px] border border-[rgba(248,113,113,.35)] bg-[rgba(248,113,113,.08)] p-3 text-xs text-[var(--of-bad)]">{t('opener.field.editLead.locked')}</p>
+          : <p className="rounded-[10px] border border-[rgba(245,131,70,.3)] bg-[rgba(245,131,70,.08)] p-3 text-xs text-[var(--of-warn)]">{edit ? t('opener.field.editLead.notice') : t('opener.field.prefillNotice')}</p>}
 
         <div>
           <Eyebrow className="mb-2">{t('opener.field.section.business')}</Eyebrow>
@@ -147,10 +191,18 @@ export default function LeadForm() {
       </div>
       <StickyCta>
         <div className="w-full">
-          <button onClick={submit} disabled={sending} className={`${btnPrimary} w-full`}>
-            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}{t('opener.field.createLeadCta')}
-          </button>
-          <p className="mt-2 text-center text-[11px] text-[var(--of-faint)]">{t('opener.field.dupNotice')}</p>
+          {edit ? (
+            <button onClick={saveEdit} disabled={sending || !edit.editable} className={`${btnPrimary} w-full`}>
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{t('opener.field.editLead.save')}
+            </button>
+          ) : (
+            <>
+              <button onClick={submit} disabled={sending} className={`${btnPrimary} w-full`}>
+                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}{t('opener.field.createLeadCta')}
+              </button>
+              <p className="mt-2 text-center text-[11px] text-[var(--of-faint)]">{t('opener.field.dupNotice')}</p>
+            </>
+          )}
         </div>
       </StickyCta>
     </div>

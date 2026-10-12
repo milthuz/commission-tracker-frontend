@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Star, MapPin, Clock, Phone, Globe, Plus, Loader2, Ban, Undo2 } from 'lucide-react';
+import { Star, MapPin, Clock, Phone, Globe, Plus, Loader2, Ban, Undo2, RotateCcw, Pencil } from 'lucide-react';
 import { useField } from './index';
 import { Card, Eyebrow, ScreenHeader, StatusBadge, StickyCta, btnPrimary, btnSecondary } from './ui';
 import { api, type PlaceCard, type PlaceStatus, type SkipReason } from '../api';
@@ -17,7 +17,7 @@ export default function StopDetail() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { stopId } = useParams();
-  const { lng, route, markStop, demo } = useField();
+  const { lng, route, markStop, demo, reload } = useField();
   const stop = route?.stops.find((s) => String(s.id) === stopId) || null;
   const [card, setCard] = useState<PlaceCard | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,6 +57,14 @@ export default function StopDetail() {
     try {
       if (!demo) await api(`/api/opener/places/${encodeURIComponent(stop.placeId)}/exclude`, { method: 'POST', body: { reason: 'not_restaurant', stopId: stop.id } });
       markStop(stop.id, { outcome: 'skipped', skipReason: 'excluded' });
+      navigate('/opener/list');
+    } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); setSkipOpen(false); }
+  };
+  // Revenir plus tard (demande de Hao, 2026-10-12) : l'arrêt reste à faire, en fin de route.
+  const later = async () => {
+    setBusy(true);
+    try {
+      if (!demo) { await api(`/api/opener/stops/${stop.id}/later`, { method: 'POST' }); await reload(); }
       navigate('/opener/list');
     } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); setSkipOpen(false); }
   };
@@ -151,7 +159,9 @@ export default function StopDetail() {
                       {[h.satisfaction ? t('opener.field.client.satShort', { n: h.satisfaction }) : null, h.currentPos, t(`opener.serviceShort.${h.serviceType}`), t('opener.field.interestShort', { n: h.interest }), h.leadRef].filter(Boolean).join(' · ')}
                       {h.notes ? <><br />{h.notes}</> : null}
                     </p>
-                    <p className="text-[11px] text-[var(--of-faint)]">{fmtDate(h.at)}</p>
+                    <p className="text-[11px] text-[var(--of-faint)]">{fmtDate(h.at)}
+                      {h.editable && <button onClick={() => navigate(`/opener/checkin/${h.id}/edit`)} className="ml-2 inline-flex items-center gap-1 font-semibold text-primary"><Pencil className="h-3 w-3" />{t('opener.field.edit.cta')}</button>}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -165,6 +175,7 @@ export default function StopDetail() {
             <Card>
               <p className="mb-2 text-sm font-semibold text-[var(--of-title)]">{t('opener.field.skipWhy')}</p>
               <div className="grid grid-cols-2 gap-2">
+                <button disabled={busy} onClick={later} className="col-span-2 flex h-11 items-center justify-center gap-2 rounded-[10px] border border-primary bg-[rgba(245,131,70,.08)] text-[13px] font-semibold text-primary"><RotateCcw className="h-4 w-4" />{t('opener.field.quick.laterLong')}</button>
                 {(['closed', 'no_time', 'refused', 'other'] as SkipReason[]).map((r) => (
                   <button key={r} disabled={busy} onClick={() => skip(r)} className="h-11 rounded-[10px] border border-[var(--of-stroke)] bg-[var(--of-page)] text-[13px] font-semibold text-[var(--of-text)]">{t(`opener.skip.${r}`)}</button>
                 ))}
@@ -189,6 +200,7 @@ export default function StopDetail() {
         <StickyCta>
           <button onClick={() => navigate(`/opener/stop/${stop.id}/lead`)} className={`${btnSecondary} flex-1`}><Plus className="h-4 w-4" />{t('opener.field.createLead')}</button>
           {stop.outcome !== 'done' && <button onClick={() => navigate(`/opener/stop/${stop.id}/checkin`)} className={`${btnPrimary} flex-[1.2]`}>{t('opener.field.checkin')}</button>}
+          {stop.outcome === 'done' && stop.checkin?.id && !demo && <button onClick={() => navigate(`/opener/checkin/${stop.checkin!.id}/edit`)} className={`${btnPrimary} flex-[1.2]`}><Pencil className="h-4 w-4" />{t('opener.field.edit.ctaLong')}</button>}
         </StickyCta>
       )}
     </div>
