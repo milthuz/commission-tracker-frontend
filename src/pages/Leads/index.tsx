@@ -41,7 +41,7 @@ const Leads = () => {
   const [tab, setTab] = useState<Tab>('queue');
   const [rows, setRows] = useState<Lead[] | null>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
-  const [can, setCan] = useState({ review: false, intake: false, viewAll: false, rules: false, import: false });
+  const [can, setCan] = useState({ review: false, intake: false, viewAll: false, rules: false, import: false, export: false });
   const [reps, setReps] = useState<LeadRep[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsQuery, setStatsQuery] = useState<StatsQuery | null>(null);
@@ -69,7 +69,7 @@ const Leads = () => {
       const data = await res.json();
       setRows(data.leads || []);
       setCounts(data.counts || {});
-      setCan(data.can || { review: false, intake: false, viewAll: false, rules: false, import: false });
+      setCan(data.can || { review: false, intake: false, viewAll: false, rules: false, import: false, export: false });
     } catch { setRows([]); }
   };
 
@@ -191,7 +191,7 @@ const Leads = () => {
 
       {tab === 'stats' ? (
         <>
-          <StatsFilters onChange={setStatsQuery} />
+          <StatsFilters onChange={setStatsQuery} canExport={can.export} />
           {!!kpis.length && (
             <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {kpis.map((k) => (

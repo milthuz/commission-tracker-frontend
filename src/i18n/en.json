@@ -5191,7 +5191,11 @@
         "from": "From",
         "to": "To",
         "invalid": "The start date is after the end date."
-      }
+      },
+      "export": "Export to Excel",
+      "exporting": "Exporting…",
+      "exportFailed": "The export failed.",
+      "exportDemo": "Export is not available in demo mode."
     },
     "existing": {
       "title": "This contact is already a customer",

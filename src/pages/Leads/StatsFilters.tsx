@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Select from '../../components/Select';
-import { LEAD_SOURCES } from './types';
+import { LEAD_SOURCES, authHeaders } from './types';
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Filtres du rapport des pistes (2026-10-13, demande de David) : source + période. La période se
 // choisit en mots (cette semaine, mois dernier…) ou se fixe précisément (une semaine, un mois, une
@@ -45,7 +47,7 @@ export function rangeFor(p: Preset, opts: { weekDay: string; month: number; year
 const SELECT_BTN = 'rounded border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4';
 const INPUT = 'rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4 dark:text-white';
 
-const StatsFilters = ({ onChange }: { onChange: (q: StatsQuery) => void }) => {
+const StatsFilters = ({ onChange, canExport = false }: { onChange: (q: StatsQuery) => void; canExport?: boolean }) => {
   const { t, i18n } = useTranslation();
   const fr = !!i18n.language?.startsWith('fr');
   const now = new Date();
@@ -57,6 +59,9 @@ const StatsFilters = ({ onChange }: { onChange: (q: StatsQuery) => void }) => {
   const [from, setFrom] = useState(ymd(new Date(now.getFullYear(), now.getMonth(), 1)));
   const [to, setTo] = useState(ymd(now));
 
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
   const range = useMemo(() => rangeFor(preset, { weekDay, month, year, from, to }), [preset, weekDay, month, year, from, to]);
   const valid = !!range.from && !!range.to && range.from <= range.to;
 
@@ -64,6 +69,29 @@ const StatsFilters = ({ onChange }: { onChange: (q: StatsQuery) => void }) => {
     if (valid) onChange({ from: range.from, to: range.to, source });
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [range.from, range.to, source, valid]);
+
+  // L'export : les MÊMES filtres que l'écran, dans la langue de l'interface. Téléchargé par fetch
+  // (le jeton part dans l'en-tête, jamais dans l'adresse), puis remis au navigateur.
+  const exportXlsx = async () => {
+    if (!valid) return;
+    setExporting(true); setExportError(null);
+    try {
+      const qs = new URLSearchParams({ from: range.from, to: range.to, lang: fr ? 'fr' : 'en' });
+      if (source) qs.set('source', source);
+      const res = await fetch(`${API_URL}/api/leads/stats/export?${qs}`, { headers: authHeaders() });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setExportError(d.error === 'demo_mode' ? t('leads.stats.exportDemo') as string : (d.error || t('leads.stats.exportFailed') as string));
+        return;
+      }
+      const name = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') || '')?.[1] || 'leads-report.xlsx';
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) { setExportError((e as Error).message); } finally { setExporting(false); }
+  };
 
   // Les salons et le portail partenaire existent depuis 2023 (migration du portail).
   const years = Array.from({ length: now.getFullYear() - 2022 }, (_, i) => now.getFullYear() - i);
@@ -106,7 +134,15 @@ const StatsFilters = ({ onChange }: { onChange: (q: StatsQuery) => void }) => {
         <span className={`ml-auto text-sm ${valid ? 'text-bodydark2' : 'text-danger'}`}>
           {valid ? `${label(range.from)} → ${label(range.to)}` : t('leads.stats.period.invalid')}
         </span>
+        {canExport && (
+          <button type="button" onClick={exportXlsx} disabled={!valid || exporting}
+            className="inline-flex items-center gap-2 rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14" /></svg>
+            {exporting ? t('leads.stats.exporting') : t('leads.stats.export')}
+          </button>
+        )}
       </div>
+      {exportError && <p className="mt-2 text-sm text-danger">{exportError}</p>}
     </div>
   );
 };
