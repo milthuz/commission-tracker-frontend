@@ -51,7 +51,7 @@ const StatsFilters = ({ onChange, canExport = false }: { onChange: (q: StatsQuer
   const { t, i18n } = useTranslation();
   const fr = !!i18n.language?.startsWith('fr');
   const now = new Date();
-  const [preset, setPreset] = useState<Preset>('last_6m');
+  const [preset, setPreset] = useState<Preset>('this_month');
   const [source, setSource] = useState('');
   const [weekDay, setWeekDay] = useState(ymd(now));
   const [month, setMonth] = useState(now.getMonth());
