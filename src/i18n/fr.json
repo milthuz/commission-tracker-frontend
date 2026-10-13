@@ -5171,7 +5171,27 @@
       "winRate": "Taux de réussite",
       "noData": "Aucune donnée.",
       "ofWhichPartner": "Dont partenaires",
-      "byRepNote": "Comprend les pistes soumises par les partenaires dans le portail, comptées pour le représentant qui en est propriétaire dans Zoho."
+      "byRepNote": "Comprend les pistes soumises par les partenaires dans le portail, comptées pour le représentant qui en est propriétaire dans Zoho.",
+      "period": {
+        "this_week": "Cette semaine",
+        "last_week": "Semaine dernière",
+        "week": "Une semaine précise",
+        "this_month": "Ce mois-ci",
+        "last_month": "Mois dernier",
+        "month": "Un mois précis",
+        "this_quarter": "Ce trimestre",
+        "this_year": "Cette année",
+        "last_year": "Année dernière",
+        "year": "Une année précise",
+        "last_3m": "3 derniers mois",
+        "last_6m": "6 derniers mois",
+        "last_12m": "12 derniers mois",
+        "custom": "Dates au choix",
+        "weekOf": "Semaine du",
+        "from": "Du",
+        "to": "Au",
+        "invalid": "La date de début est après la date de fin."
+      }
     },
     "existing": {
       "title": "Ce contact est déjà client",

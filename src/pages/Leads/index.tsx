@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import Select from '../../components/Select';
 import IntakeForm from './IntakeForm';
 import ImportLeads from './ImportLeads';
+import StatsFilters, { type StatsQuery } from './StatsFilters';
 import LeadDetail from './LeadDetail';
 import { authHeaders, leadFullName, statusTone, LEAD_SOURCES, type Lead, type LeadRep } from './types';
 import { notifyLeadsChanged } from '../../lib/badgeEvents';
@@ -43,6 +44,7 @@ const Leads = () => {
   const [can, setCan] = useState({ review: false, intake: false, viewAll: false, rules: false, import: false });
   const [reps, setReps] = useState<LeadRep[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [statsQuery, setStatsQuery] = useState<StatsQuery | null>(null);
 
   const [source, setSource] = useState('');
   const [rep, setRep] = useState('');
@@ -89,12 +91,18 @@ const Leads = () => {
   // Le rapport n'est demandé que par ceux qui y ont droit : un représentant qui ne voit que ses
   // propres pistes recevrait un 403, et un 403 dans la console ressemble à une panne.
   useEffect(() => {
-    if (tab !== 'stats' || (!can.viewAll && !can.review)) return;
-    fetch(`${API_URL}/api/leads/stats`, { headers: authHeaders() })
+    if (tab !== 'stats' || (!can.viewAll && !can.review) || !statsQuery) return;
+    const qs = new URLSearchParams({ from: statsQuery.from, to: statsQuery.to });
+    if (statsQuery.source) qs.set('source', statsQuery.source);
+    // Une réponse plus ancienne qui arrive en retard ne doit pas écraser la période choisie ensuite.
+    let stale = false;
+    setStats(null);
+    fetch(`${API_URL}/api/leads/stats?${qs}`, { headers: authHeaders() })
       .then((r) => (r.ok ? r.json() : null))
-      .then(setStats)
+      .then((d) => { if (!stale) setStats(d); })
       .catch(() => {});
-  }, [tab, can.viewAll, can.review]);
+    return () => { stale = true; };
+  }, [tab, can.viewAll, can.review, statsQuery]);
 
   // Lien profond « ?ref=L-00042 » : le courriel envoyé au représentant pointe ici quand la piste
   // n'a pas encore d'identifiant Zoho.
@@ -183,6 +191,7 @@ const Leads = () => {
 
       {tab === 'stats' ? (
         <>
+          <StatsFilters onChange={setStatsQuery} />
           {!!kpis.length && (
             <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {kpis.map((k) => (

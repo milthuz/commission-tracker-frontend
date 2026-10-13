@@ -5171,7 +5171,27 @@
       "winRate": "Win rate",
       "noData": "No data yet.",
       "ofWhichPartner": "Of which partners",
-      "byRepNote": "Includes the leads partners submit through the partner portal, counted for the rep who owns them in Zoho."
+      "byRepNote": "Includes the leads partners submit through the partner portal, counted for the rep who owns them in Zoho.",
+      "period": {
+        "this_week": "This week",
+        "last_week": "Last week",
+        "week": "A specific week",
+        "this_month": "This month",
+        "last_month": "Last month",
+        "month": "A specific month",
+        "this_quarter": "This quarter",
+        "this_year": "This year",
+        "last_year": "Last year",
+        "year": "A specific year",
+        "last_3m": "Last 3 months",
+        "last_6m": "Last 6 months",
+        "last_12m": "Last 12 months",
+        "custom": "Custom dates",
+        "weekOf": "Week of",
+        "from": "From",
+        "to": "To",
+        "invalid": "The start date is after the end date."
+      }
     },
     "existing": {
       "title": "This contact is already a customer",
