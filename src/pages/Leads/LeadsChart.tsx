@@ -53,7 +53,11 @@ export function useIsDark() {
   return dark;
 }
 
-const LeadsChart = ({ chart, from, to }: { chart: { week: ChartPoint[]; month: ChartPoint[] } | undefined; from: string; to: string }) => {
+const LeadsChart = ({ chart, from, to, hidden, onHiddenChange }: {
+  chart: { week: ChartPoint[]; month: ChartPoint[] } | undefined; from: string; to: string;
+  // Les sources décochées vivent dans la PAGE : le bouton d'export les applique aux graphiques Excel.
+  hidden: Set<string>; onHiddenChange: (h: Set<string>) => void;
+}) => {
   const { t, i18n } = useTranslation();
   const loc = i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA';
   const [unit, setUnit] = useState<'month' | 'week'>('month');
@@ -61,7 +65,6 @@ const LeadsChart = ({ chart, from, to }: { chart: { week: ChartPoint[]; month: C
   // Le filtre PROPRE au graphique (David, 2026-10-13) : les sources décochées sortent des colonnes,
   // de la bulle et du tableau. Gardé en passant mois ↔ semaine ; le filtre de la barre du haut,
   // lui, restreint déjà ce que le serveur renvoie.
-  const [hidden, setHidden] = useState<Set<string>>(new Set());
   const dark = useIsDark();
 
   const data = useMemo(() => {
@@ -76,11 +79,11 @@ const LeadsChart = ({ chart, from, to }: { chart: { week: ChartPoint[]; month: C
     const totals = cats.map((_, i) => series.reduce((a, x) => a + x.data[i], 0));
     return { cats, series, totals, sources };
   }, [chart, unit, from, to, hidden]);
-  const toggle = (k: string) => setHidden((h) => {
-    const n = new Set(h);
+  const toggle = (k: string) => {
+    const n = new Set(hidden);
     if (n.has(k)) n.delete(k); else n.add(k);
-    return n;
-  });
+    onHiddenChange(n);
+  };
 
   const label = (p: string) => (unit === 'month'
     ? parse(p).toLocaleDateString(loc, { month: 'short', year: 'numeric' })
@@ -162,7 +165,7 @@ const LeadsChart = ({ chart, from, to }: { chart: { week: ChartPoint[]; month: C
             );
           })}
           {hidden.size > 0 && (
-            <button type="button" onClick={() => setHidden(new Set())} className="text-xs font-medium text-primary hover:underline">
+            <button type="button" onClick={() => onHiddenChange(new Set())} className="text-xs font-medium text-primary hover:underline">
               {t('leads.stats.chart.allSources')}
             </button>
           )}

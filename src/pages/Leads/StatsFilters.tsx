@@ -47,7 +47,7 @@ export function rangeFor(p: Preset, opts: { weekDay: string; month: number; year
 const SELECT_BTN = 'rounded border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4';
 const INPUT = 'rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4 dark:text-white';
 
-const StatsFilters = ({ onChange, canExport = false }: { onChange: (q: StatsQuery) => void; canExport?: boolean }) => {
+const StatsFilters = ({ onChange, canExport = false, chartHidden }: { onChange: (q: StatsQuery) => void; canExport?: boolean; chartHidden?: Set<string> }) => {
   const { t, i18n } = useTranslation();
   const fr = !!i18n.language?.startsWith('fr');
   const now = new Date();
@@ -78,6 +78,8 @@ const StatsFilters = ({ onChange, canExport = false }: { onChange: (q: StatsQuer
     try {
       const qs = new URLSearchParams({ from: range.from, to: range.to, lang: fr ? 'fr' : 'en' });
       if (source) qs.set('source', source);
+      // Les sources décochées dans le graphique sortent aussi des graphiques du classeur.
+      if (chartHidden?.size) qs.set('chartHide', [...chartHidden].join(','));
       const res = await fetch(`${API_URL}/api/leads/stats/export?${qs}`, { headers: authHeaders() });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));

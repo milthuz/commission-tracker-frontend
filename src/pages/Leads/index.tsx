@@ -47,6 +47,7 @@ const Leads = () => {
   const [reps, setReps] = useState<LeadRep[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsQuery, setStatsQuery] = useState<StatsQuery | null>(null);
+  const [chartHidden, setChartHidden] = useState<Set<string>>(new Set());
   const dark = useIsDark();
   // Les sources présentes chez au moins un représentant, dans l'ordre fixe du graphique.
   const repSources = useMemo(() => {
@@ -199,7 +200,7 @@ const Leads = () => {
 
       {tab === 'stats' ? (
         <>
-          <StatsFilters onChange={setStatsQuery} canExport={can.export} />
+          <StatsFilters onChange={setStatsQuery} canExport={can.export} chartHidden={chartHidden} />
           {!!kpis.length && (
             <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {kpis.map((k) => (
@@ -217,7 +218,7 @@ const Leads = () => {
             </div>
           ) : (
             <div className="grid gap-5 lg:grid-cols-2">
-              {statsQuery && <LeadsChart chart={stats.chart} from={statsQuery.from} to={statsQuery.to} />}
+              {statsQuery && <LeadsChart chart={stats.chart} from={statsQuery.from} to={statsQuery.to} hidden={chartHidden} onHiddenChange={setChartHidden} />}
               {/* L'entonnoir est la seule vue qui relie une piste à de l'argent réel : l'étape
                   « gagnée » vient de la date de dépôt du Deal Zoho, rafraîchie chaque heure. */}
               <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
