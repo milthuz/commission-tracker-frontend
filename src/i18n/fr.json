@@ -5195,7 +5195,20 @@
       "export": "Exporter en Excel",
       "exporting": "Export…",
       "exportFailed": "L'export a échoué.",
-      "exportDemo": "L'export n'est pas offert en mode démo."
+      "exportDemo": "L'export n'est pas offert en mode démo.",
+      "chart": {
+        "title": "Pistes reçues",
+        "subtitle": "Par source — pistes directes et du portail partenaire.",
+        "byMonth": "Par mois",
+        "byWeek": "Par semaine",
+        "graph": "Graphique",
+        "table": "Tableau",
+        "weekOf": "Semaine du {{date}}",
+        "total": "{{n}} pistes",
+        "totalCol": "Total",
+        "month": "Mois",
+        "week": "Semaine"
+      }
     },
     "existing": {
       "title": "Ce contact est déjà client",

@@ -5,6 +5,7 @@ import Select from '../../components/Select';
 import IntakeForm from './IntakeForm';
 import ImportLeads from './ImportLeads';
 import StatsFilters, { type StatsQuery } from './StatsFilters';
+import LeadsChart, { type ChartPoint } from './LeadsChart';
 import LeadDetail from './LeadDetail';
 import { authHeaders, leadFullName, statusTone, LEAD_SOURCES, type Lead, type LeadRep } from './types';
 import { notifyLeadsChanged } from '../../lib/badgeEvents';
@@ -31,6 +32,7 @@ interface Stats {
   funnel: { received: number; accepted: number; converted: number; won: number };
   queue: { waiting: number; over_4h: number; over_24h: number; oldest: string | null };
   speed: { avg_hours: number | null; median_hours: number | null };
+  chart?: { week: ChartPoint[]; month: ChartPoint[] };
 }
 
 const Leads = () => {
@@ -209,6 +211,7 @@ const Leads = () => {
             </div>
           ) : (
             <div className="grid gap-5 lg:grid-cols-2">
+              {statsQuery && <LeadsChart chart={stats.chart} from={statsQuery.from} to={statsQuery.to} />}
               {/* L'entonnoir est la seule vue qui relie une piste à de l'argent réel : l'étape
                   « gagnée » vient de la date de dépôt du Deal Zoho, rafraîchie chaque heure. */}
               <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">

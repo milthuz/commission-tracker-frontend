@@ -5195,7 +5195,20 @@
       "export": "Export to Excel",
       "exporting": "Exporting…",
       "exportFailed": "The export failed.",
-      "exportDemo": "Export is not available in demo mode."
+      "exportDemo": "Export is not available in demo mode.",
+      "chart": {
+        "title": "Leads received",
+        "subtitle": "By source — direct and partner-portal leads.",
+        "byMonth": "By month",
+        "byWeek": "By week",
+        "graph": "Chart",
+        "table": "Table",
+        "weekOf": "Week of {{date}}",
+        "total": "{{n}} leads",
+        "totalCol": "Total",
+        "month": "Month",
+        "week": "Week"
+      }
     },
     "existing": {
       "title": "This contact is already a customer",
