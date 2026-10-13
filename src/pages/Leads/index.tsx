@@ -26,7 +26,7 @@ interface Stats {
   byStatus: Record<string, number>;
   bySource: { source: string; n: number; accepted: number }[];
   byMonth: { month: string; n: number; accepted: number; rejected: number }[];
-  byRep: { rep: string; n: number; converted: number; won: number }[];
+  byRep: { rep: string; n: number; partner?: number; converted: number; won: number }[];
   funnel: { received: number; accepted: number; converted: number; won: number };
   queue: { waiting: number; over_4h: number; over_24h: number; oldest: string | null };
   speed: { avg_hours: number | null; median_hours: number | null };
@@ -246,13 +246,15 @@ const Leads = () => {
               </div>
 
               <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark lg:col-span-2">
-                <h3 className="mb-4 text-sm font-medium text-black dark:text-white">{t('leads.stats.byRep')}</h3>
+                <h3 className="mb-1 text-sm font-medium text-black dark:text-white">{t('leads.stats.byRep')}</h3>
+                <p className="mb-4 text-xs text-bodydark2">{t('leads.stats.byRepNote')}</p>
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[520px] table-auto">
                     <thead>
                       <tr className="text-left text-xs text-bodydark2">
                         <th className="pb-2 font-medium">{t('leads.columns.rep')}</th>
                         <th className="pb-2 text-right font-medium">{t('leads.stats.assigned')}</th>
+                        <th className="pb-2 text-right font-medium">{t('leads.stats.ofWhichPartner')}</th>
                         <th className="pb-2 text-right font-medium">{t('leads.stats.converted')}</th>
                         <th className="pb-2 text-right font-medium">{t('leads.stats.won')}</th>
                         <th className="pb-2 text-right font-medium">{t('leads.stats.winRate')}</th>
@@ -263,12 +265,13 @@ const Leads = () => {
                         <tr key={r.rep} className="border-t border-stroke dark:border-strokedark">
                           <td className="py-2 text-sm text-black dark:text-white">{r.rep}</td>
                           <td className="py-2 text-right text-sm text-black dark:text-white">{r.n}</td>
+                          <td className="py-2 text-right text-sm text-bodydark2">{r.partner || 0}</td>
                           <td className="py-2 text-right text-sm text-black dark:text-white">{r.converted}</td>
                           <td className="py-2 text-right text-sm text-black dark:text-white">{r.won}</td>
                           <td className="py-2 text-right text-sm text-black dark:text-white">{r.n ? Math.round((r.won / r.n) * 100) : 0}%</td>
                         </tr>
                       ))}
-                      {!stats.byRep.length && <tr><td colSpan={5} className="py-6 text-center text-sm text-bodydark2">{t('leads.stats.noData')}</td></tr>}
+                      {!stats.byRep.length && <tr><td colSpan={6} className="py-6 text-center text-sm text-bodydark2">{t('leads.stats.noData')}</td></tr>}
                     </tbody>
                   </table>
                 </div>

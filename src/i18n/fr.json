@@ -4937,7 +4937,8 @@
       "referral": "Référence",
       "event": "Événement",
       "other": "Autre",
-      "opener": "Opener"
+      "opener": "Opener",
+      "partner": "Portail partenaire"
     },
     "interest": {
       "pos": "Point de vente",
@@ -5168,7 +5169,9 @@
       "converted": "Converties",
       "won": "Gagnées",
       "winRate": "Taux de réussite",
-      "noData": "Aucune donnée."
+      "noData": "Aucune donnée.",
+      "ofWhichPartner": "Dont partenaires",
+      "byRepNote": "Comprend les pistes soumises par les partenaires dans le portail, comptées pour le représentant qui en est propriétaire dans Zoho."
     },
     "existing": {
       "title": "Ce contact est déjà client",

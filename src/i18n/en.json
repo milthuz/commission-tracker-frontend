@@ -4937,7 +4937,8 @@
       "referral": "Referral",
       "event": "Event",
       "other": "Other",
-      "opener": "Opener"
+      "opener": "Opener",
+      "partner": "Partner portal"
     },
     "interest": {
       "pos": "POS",
@@ -5168,7 +5169,9 @@
       "converted": "Converted",
       "won": "Won",
       "winRate": "Win rate",
-      "noData": "No data yet."
+      "noData": "No data yet.",
+      "ofWhichPartner": "Of which partners",
+      "byRepNote": "Includes the leads partners submit through the partner portal, counted for the rep who owns them in Zoho."
     },
     "existing": {
       "title": "This contact is already a customer",
