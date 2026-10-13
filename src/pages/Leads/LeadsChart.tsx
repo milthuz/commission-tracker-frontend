@@ -18,6 +18,9 @@ export interface ChartPoint { period: string; source: string; n: number }
 const ORDER = ['partner', 'website', 'event', 'phone', 'opener', 'referral', 'walk_in', 'other'];
 const LIGHT = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
 const DARK = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#008300', '#9085e9', '#e66767'];
+// Partagés avec le tableau « par représentant » : une source a la MÊME couleur partout.
+export const SOURCE_ORDER = ORDER;
+export const sourceColor = (source: string, dark: boolean) => (dark ? DARK : LIGHT)[Math.max(0, ORDER.indexOf(source)) % 8];
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -39,7 +42,7 @@ function periods(unit: 'month' | 'week', from: string, to: string): string[] {
 
 // Le thème suit la classe `dark` de <html> EN DIRECT : un état local figé au montage resterait clair
 // après la bascule (le piège de useColorMode décrit dans ClusterWordmark).
-function useIsDark() {
+export function useIsDark() {
   const get = () => document.documentElement.classList.contains('dark');
   const [dark, setDark] = useState(get);
   useEffect(() => {

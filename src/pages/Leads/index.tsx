@@ -5,7 +5,7 @@ import Select from '../../components/Select';
 import IntakeForm from './IntakeForm';
 import ImportLeads from './ImportLeads';
 import StatsFilters, { type StatsQuery } from './StatsFilters';
-import LeadsChart, { type ChartPoint } from './LeadsChart';
+import LeadsChart, { type ChartPoint, SOURCE_ORDER, sourceColor, useIsDark } from './LeadsChart';
 import LeadDetail from './LeadDetail';
 import { authHeaders, leadFullName, statusTone, LEAD_SOURCES, type Lead, type LeadRep } from './types';
 import { notifyLeadsChanged } from '../../lib/badgeEvents';
@@ -28,7 +28,7 @@ interface Stats {
   byStatus: Record<string, number>;
   bySource: { source: string; n: number; accepted: number }[];
   byMonth: { month: string; n: number; accepted: number; rejected: number }[];
-  byRep: { rep: string; n: number; partner?: number; converted: number; won: number }[];
+  byRep: { rep: string; n: number; partner?: number; converted: number; won: number; sources?: Record<string, number> }[];
   funnel: { received: number; accepted: number; converted: number; won: number };
   queue: { waiting: number; over_4h: number; over_24h: number; oldest: string | null };
   speed: { avg_hours: number | null; median_hours: number | null };
@@ -47,6 +47,12 @@ const Leads = () => {
   const [reps, setReps] = useState<LeadRep[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsQuery, setStatsQuery] = useState<StatsQuery | null>(null);
+  const dark = useIsDark();
+  // Les sources présentes chez au moins un représentant, dans l'ordre fixe du graphique.
+  const repSources = useMemo(() => {
+    const seen = new Set((stats?.byRep || []).flatMap((r) => Object.keys(r.sources || {})));
+    return [...SOURCE_ORDER.filter((k) => seen.has(k)), ...[...seen].filter((k) => !SOURCE_ORDER.includes(k))];
+  }, [stats]);
 
   const [source, setSource] = useState('');
   const [rep, setRep] = useState('');
@@ -266,7 +272,12 @@ const Leads = () => {
                       <tr className="text-left text-xs text-bodydark2">
                         <th className="pb-2 font-medium">{t('leads.columns.rep')}</th>
                         <th className="pb-2 text-right font-medium">{t('leads.stats.assigned')}</th>
-                        <th className="pb-2 text-right font-medium">{t('leads.stats.ofWhichPartner')}</th>
+                        {repSources.map((k) => (
+                          <th key={k} className="whitespace-nowrap pb-2 pl-3 text-right font-medium">
+                            <span className="mr-1.5 inline-block h-2 w-2 rounded-full align-middle" style={{ background: sourceColor(k, dark) }} />
+                            {t(`leads.source.${k}`, { defaultValue: k })}
+                          </th>
+                        ))}
                         <th className="pb-2 text-right font-medium">{t('leads.stats.converted')}</th>
                         <th className="pb-2 text-right font-medium">{t('leads.stats.won')}</th>
                         <th className="pb-2 text-right font-medium">{t('leads.stats.winRate')}</th>
@@ -277,13 +288,16 @@ const Leads = () => {
                         <tr key={r.rep} className="border-t border-stroke dark:border-strokedark">
                           <td className="py-2 text-sm text-black dark:text-white">{r.rep}</td>
                           <td className="py-2 text-right text-sm text-black dark:text-white">{r.n}</td>
-                          <td className="py-2 text-right text-sm text-bodydark2">{r.partner || 0}</td>
+                          {repSources.map((k) => {
+                            const v = r.sources?.[k] || 0;
+                            return <td key={k} className={`py-2 pl-3 text-right text-sm ${v ? 'text-black dark:text-white' : 'text-bodydark2'}`}>{v || '—'}</td>;
+                          })}
                           <td className="py-2 text-right text-sm text-black dark:text-white">{r.converted}</td>
                           <td className="py-2 text-right text-sm text-black dark:text-white">{r.won}</td>
                           <td className="py-2 text-right text-sm text-black dark:text-white">{r.n ? Math.round((r.won / r.n) * 100) : 0}%</td>
                         </tr>
                       ))}
-                      {!stats.byRep.length && <tr><td colSpan={6} className="py-6 text-center text-sm text-bodydark2">{t('leads.stats.noData')}</td></tr>}
+                      {!stats.byRep.length && <tr><td colSpan={5 + repSources.length} className="py-6 text-center text-sm text-bodydark2">{t('leads.stats.noData')}</td></tr>}
                     </tbody>
                   </table>
                 </div>
