@@ -5207,7 +5207,10 @@
         "total": "{{n}} pistes",
         "totalCol": "Total",
         "month": "Mois",
-        "week": "Semaine"
+        "week": "Semaine",
+        "filterSources": "Filtrer le graphique par source",
+        "allSources": "Toutes les sources",
+        "allHidden": "Toutes les sources sont décochées — cochez-en une ci-dessus."
       }
     },
     "existing": {

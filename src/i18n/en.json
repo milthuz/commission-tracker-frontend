@@ -5207,7 +5207,10 @@
         "total": "{{n}} leads",
         "totalCol": "Total",
         "month": "Month",
-        "week": "Week"
+        "week": "Week",
+        "filterSources": "Filter the chart by source",
+        "allSources": "All sources",
+        "allHidden": "Every source is unchecked — tick one above."
       }
     },
     "existing": {

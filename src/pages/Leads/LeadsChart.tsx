@@ -58,6 +58,10 @@ const LeadsChart = ({ chart, from, to }: { chart: { week: ChartPoint[]; month: C
   const loc = i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA';
   const [unit, setUnit] = useState<'month' | 'week'>('month');
   const [asTable, setAsTable] = useState(false);
+  // Le filtre PROPRE au graphique (David, 2026-10-13) : les sources décochées sortent des colonnes,
+  // de la bulle et du tableau. Gardé en passant mois ↔ semaine ; le filtre de la barre du haut,
+  // lui, restreint déjà ce que le serveur renvoie.
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
   const dark = useIsDark();
 
   const data = useMemo(() => {
@@ -67,10 +71,16 @@ const LeadsChart = ({ chart, from, to }: { chart: { week: ChartPoint[]; month: C
     const extra = [...new Set(rows.map((r) => r.source))].filter((s) => !ORDER.includes(s));
     const sources = [...present, ...extra];
     const at = new Map(rows.map((r) => [`${r.period}|${r.source}`, r.n]));
-    const series = sources.map((s) => ({ source: s, data: cats.map((p) => at.get(`${p}|${s}`) || 0) }));
+    const series = sources.filter((s) => !hidden.has(s))
+      .map((s) => ({ source: s, data: cats.map((p) => at.get(`${p}|${s}`) || 0) }));
     const totals = cats.map((_, i) => series.reduce((a, x) => a + x.data[i], 0));
-    return { cats, series, totals };
-  }, [chart, unit, from, to]);
+    return { cats, series, totals, sources };
+  }, [chart, unit, from, to, hidden]);
+  const toggle = (k: string) => setHidden((h) => {
+    const n = new Set(h);
+    if (n.has(k)) n.delete(k); else n.add(k);
+    return n;
+  });
 
   const label = (p: string) => (unit === 'month'
     ? parse(p).toLocaleDateString(loc, { month: 'short', year: 'numeric' })
@@ -94,7 +104,8 @@ const LeadsChart = ({ chart, from, to }: { chart: { week: ChartPoint[]; month: C
     stroke: { show: true, width: 2, colors: [surface] },
     plotOptions: { bar: { columnWidth: data.cats.length > 30 ? '85%' : '60%', borderRadius: 4, borderRadiusApplication: 'end', borderRadiusWhenStacked: 'last' } },
     grid: { borderColor: dark ? '#2E3A47' : '#E2E8F0', strokeDashArray: 4, xaxis: { lines: { show: false } } },
-    legend: { position: 'top', horizontalAlign: 'left', fontSize: '12px', labels: { colors: ink }, markers: { size: 6, shape: 'circle' } as never },
+    // La légende, ce sont les pastilles de source au-dessus (elles filtrent en plus).
+    legend: { show: false },
     xaxis: {
       // Au plus ~12 étiquettes : sur 26 semaines elles se chevaucheraient. La bulle donne la date complète.
       categories: data.cats.map((p, i) => (i % Math.max(1, Math.ceil(data.cats.length / 12)) === 0 ? label(p) : '')),
@@ -116,6 +127,7 @@ const LeadsChart = ({ chart, from, to }: { chart: { week: ChartPoint[]; month: C
 
   const BTN = (on: boolean) => `rounded px-3 py-1 text-xs font-medium ${on ? 'bg-primary text-white' : 'text-bodydark2 hover:text-black dark:hover:text-white'}`;
   const empty = !data.series.length;
+  const nothingAtAll = !data.sources.length;
 
   return (
     <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark lg:col-span-2">
@@ -136,8 +148,29 @@ const LeadsChart = ({ chart, from, to }: { chart: { week: ChartPoint[]; month: C
         </div>
       </div>
 
+      {!nothingAtAll && (
+        <div className="mb-2 flex flex-wrap items-center gap-2" role="group" aria-label={t('leads.stats.chart.filterSources') as string}>
+          {data.sources.map((k) => {
+            const on = !hidden.has(k);
+            return (
+              <button key={k} type="button" aria-pressed={on} onClick={() => toggle(k)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition ${
+                  on ? 'border-stroke text-black dark:border-strokedark dark:text-white' : 'border-dashed border-stroke text-bodydark2 line-through dark:border-strokedark'}`}>
+                <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: on ? colorOf(k) : 'transparent', boxShadow: on ? 'none' : `inset 0 0 0 1.5px ${colorOf(k)}` }} />
+                {srcName(k)}
+              </button>
+            );
+          })}
+          {hidden.size > 0 && (
+            <button type="button" onClick={() => setHidden(new Set())} className="text-xs font-medium text-primary hover:underline">
+              {t('leads.stats.chart.allSources')}
+            </button>
+          )}
+        </div>
+      )}
+
       {empty ? (
-        <p className="py-12 text-center text-sm text-bodydark2">{t('leads.stats.noData')}</p>
+        <p className="py-12 text-center text-sm text-bodydark2">{nothingAtAll ? t('leads.stats.noData') : t('leads.stats.chart.allHidden')}</p>
       ) : asTable ? (
         <div className="max-h-[360px] overflow-auto">
           <table className="w-full min-w-[520px] table-auto text-sm">
