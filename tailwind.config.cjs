@@ -73,6 +73,12 @@ module.exports = {
         primary: '#F58345',
         secondary: '#D8CDFF',
         stroke: '#E4E4E7',
+        // Bordure appuyée (menus, champs de fenêtre, boutons secondaires) : clair / sombre = graydark.
+        strokestrong: '#D4D4D8',
+        // Texte orange lisible (4.5:1) : sur fond clair / sur fond sombre. L'orange plein `primary`
+        // reste réservé aux FONDS (boutons, pastilles) avec du texte #141414 dessus.
+        'accent-ink': '#B5521F',
+        'accent-ink-dark': '#F79C6A',
         gray: {
           ...colors.gray,
           DEFAULT: '#ECECEE',

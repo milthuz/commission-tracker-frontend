@@ -7690,5 +7690,35 @@
     "title": "Cette page n'existe pas",
     "body": "Rien dans Sales Hub à cette adresse :",
     "home": "Retour au tableau de bord"
+  },
+  "ui": {
+    "modal": {
+      "unsavedNotice": "Des changements ne sont pas enregistrés. Fermer maintenant demandera une confirmation.",
+      "discardTitle": "Fermer sans enregistrer ?",
+      "discardBody": "Les changements faits dans cette fenêtre seront perdus.",
+      "discardYes": "Fermer sans enregistrer",
+      "keepEditing": "Continuer la saisie"
+    },
+    "table": {
+      "actions": "Actions",
+      "results_one": "{{count}} résultat",
+      "results_other": "{{count}} résultats",
+      "range": "{{from}} à {{to}} sur {{total}}",
+      "previous": "Précédent",
+      "next": "Suivant"
+    },
+    "state": {
+      "empty": "État vide",
+      "loading": "Chargement",
+      "error": "Erreur",
+      "emptyTitle": "Rien à afficher"
+    },
+    "filter": {
+      "search": "Rechercher",
+      "searchPlaceholder": "Rechercher…",
+      "export": "Exporter",
+      "removeFilter": "Retirer le filtre",
+      "clearAll": "Tout effacer"
+    }
   }
 }

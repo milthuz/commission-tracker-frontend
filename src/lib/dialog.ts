@@ -20,6 +20,8 @@ export interface DialogOptions {
   // Heavy, hard-to-undo actions: the confirm button stays disabled until the user
   // types this exact text (case and extra spaces ignored), e.g. a partner's name.
   typeToConfirm?: string;
+  // What else the action takes with it, listed under the message (« Elle supprime aussi : »).
+  details?: string[];
 }
 
 // Same comparison the host uses: case, accents and extra spaces ignored

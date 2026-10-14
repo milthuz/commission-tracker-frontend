@@ -20,6 +20,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NewFeaturesProvider } from './context/NewFeaturesContext';
 import DialogHost from './components/DialogHost';
+import ToastHost from './components/ui/ToastHost';
 import AppErrorBoundary from './components/AppErrorBoundary';
 import { PartnerAuthProvider } from './context/PartnerAuthContext';
 import { PassAuthProvider } from './context/PassAuthContext';
@@ -633,6 +634,7 @@ function App() {
           <NewFeaturesProvider>
             <AppContent />
             <DialogHost />
+            <ToastHost />
           </NewFeaturesProvider>
         </PassAuthProvider>
       </PartnerAuthProvider>

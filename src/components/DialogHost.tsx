@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { subscribe, answer, typedMatches, DialogRequest } from '../lib/dialog';
+import Button from './ui/Button';
 
 // Mounted once at the app root. Renders the front-most queued dialog (confirm/alert)
 // as a styled in-app modal, replacing the browser's native confirm()/alert().
@@ -35,65 +36,65 @@ const DialogHost: React.FC = () => {
   const cancelText = current.cancelText || t('common.cancel');
 
   return (
-    <div className="fixed inset-0 z-[1000000] flex items-center justify-center p-4">
+    <div data-dialog-host className="fixed inset-0 z-[1000000] flex items-start justify-center overflow-y-auto p-4">
       {/* Backdrop — clicking it cancels (confirm) / closes (alert). */}
+      <div className="fixed inset-0 bg-black/40" onClick={() => answer(current.id, false)} />
+      {/* Kaizen « ConfirmDanger » (planche « Fenêtres et confirmations ») : tuile d'icône, la
+          question en titre, ce qui part avec, le nom à taper pour l'irréversible. */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={() => answer(current.id, false)}
-      />
-      <div
-        role="dialog"
+        role={current.danger ? 'alertdialog' : 'dialog'}
         aria-modal="true"
-        className="relative w-full max-w-md scale-100 rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark"
+        aria-labelledby={`dlg-${current.id}-title`}
+        className="relative my-auto w-full max-w-[480px] rounded-[20px] border border-strokestrong bg-white shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)] dark:border-graydark dark:bg-boxdark"
       >
-        <div className="flex items-start gap-4">
-          {/* Icon */}
-          <div className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full ${current.danger ? 'bg-danger/10 text-danger' : 'bg-primary/10 text-primary'}`}>
+        <div className="flex flex-col gap-2.5 px-5 pt-5">
+          <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+            current.danger ? 'bg-[rgba(244,96,96,0.12)] text-[#D92D20] dark:bg-[rgba(244,96,96,0.16)] dark:text-[#F46060]'
+            : 'bg-[rgba(245,131,69,0.14)] text-accent-ink dark:bg-[rgba(245,131,69,0.16)] dark:text-accent-ink-dark'}`}>
             {current.danger ? (
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 00-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" /></svg>
             ) : isConfirm ? (
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01" /></svg>
             ) : (
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 16v-4M12 8h.01" /></svg>
             )}
           </div>
-          <div className="min-w-0 flex-1">
-            <h3 className="text-base font-semibold text-black dark:text-white">{title}</h3>
-            <p className="mt-1 select-text whitespace-pre-line break-words text-sm text-body dark:text-gray-300">{current.message}</p>
-            {mustType && (
-              <label className="mt-4 block text-sm text-body dark:text-gray-300">
-                {t('safety.typeToConfirm')}{' '}
-                <span className="select-text font-semibold text-black dark:text-white">{current.typeToConfirm}</span>
-                <input
-                  autoFocus
-                  value={typed}
-                  onChange={(e) => setTyped(e.target.value)}
-                  autoComplete="off"
-                  spellCheck={false}
-                  className="mt-2 w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-danger dark:border-strokedark dark:text-white"
-                />
-              </label>
-            )}
-          </div>
+          <h2 id={`dlg-${current.id}-title`} className="m-0 text-lg font-bold text-black dark:text-white">{title}</h2>
+          <p className="m-0 select-text whitespace-pre-line break-words text-sm leading-[1.45] text-[#424242] dark:text-bodydark">{current.message}</p>
+          {!!current.details?.length && (
+            <ul className="m-0 list-disc pl-[18px] text-sm leading-[1.6] text-[#424242] dark:text-bodydark">
+              {current.details.map((d, i) => <li key={i}>{d}</li>)}
+            </ul>
+          )}
+          {mustType && (
+            <label className="flex flex-col gap-1.5 pt-1.5 text-[13px] font-bold text-[#424242] dark:text-bodydark">
+              <span>{t('safety.typeToConfirm')} <span className="select-text text-black dark:text-white">{current.typeToConfirm}</span></span>
+              <input
+                autoFocus
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
+                placeholder={current.typeToConfirm}
+                autoComplete="off"
+                spellCheck={false}
+                className="h-11 rounded-xl border border-stroke bg-white px-3 text-[15px] font-medium text-black outline-none placeholder:opacity-60 focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+              />
+            </label>
+          )}
         </div>
 
-        <div className="mt-6 flex justify-end gap-3">
+        <div className="flex flex-wrap justify-end gap-2 px-5 pb-5 pt-[18px]">
           {isConfirm && (
-            <button
-              onClick={() => answer(current.id, false)}
-              className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body transition hover:bg-gray-1 dark:border-strokedark dark:text-gray-300 dark:hover:bg-meta-4"
-            >
-              {cancelText}
-            </button>
+            <Button variant="secondary" size="md" onClick={() => answer(current.id, false)}>{cancelText}</Button>
           )}
-          <button
+          <Button
             autoFocus={!mustType}
+            size="md"
+            variant={current.danger ? 'danger' : 'primary'}
             disabled={!canConfirm}
             onClick={() => answer(current.id, true)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-40 ${current.danger ? 'bg-danger' : 'bg-primary'}`}
           >
             {confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
