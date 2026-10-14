@@ -1882,7 +1882,7 @@
     "v2": {
       "loadError": "Ton tableau de bord n'a pas pu être chargé",
       "newLead": "Nouvelle piste",
-      "payTitle": "Ta paie de {{month}} · prévision",
+      "payTitle": "Ta paie du mois · {{month}} · prévision",
       "partCommission": "Commissions Books",
       "partMonthlyBonus": "Bonus mensuel",
       "partActivations_one": "Activations ({{count}})",
@@ -1915,7 +1915,7 @@
       "check": "Vérifier",
       "see": "Voir",
       "leaderboard": "Classement · {{month}}",
-      "salesTitle": "Ventes de {{month}}",
+      "salesTitle": "Ventes du mois · {{month}}",
       "seeTracker": "Voir le suivi des points",
       "colClient": "Client",
       "colSource": "Source",
@@ -2134,7 +2134,7 @@
       "discrepancyHint": "Payé = montant du fichier importé. Calc. app = commission calculée par l'app ; ⚠ signale un écart.",
       "committedHint": "Confirmé par l'app quand cette période a été marquée payée — les montants sont figés et ne changeront pas au prochain recalcul.",
       "generatedHint": "Généré à partir du modèle de l'app : commissions débloquées NON payées de la période + paiements de signup.",
-      "committedToPayroll": "✓ {{count}} facture(s) marquée(s) payée(s) — ajouté à la paie de {{month}}. Va dans Commissions → Paie pour l'envoyer.",
+      "committedToPayroll": "✓ {{count}} facture(s) marquée(s) payée(s) — ajouté à la paie du mois ({{month}}). Va dans Commissions → Paie pour l'envoyer.",
       "uncommit": "Annuler le paiement",
       "uncommitConfirm": "Annuler le paiement de {{rep}} — {{period}} ? Les commissions de la période redeviendront NON payées (en attente).",
       "uncommitDone": "✓ Paiement annulé — {{count}} facture(s) remise(s) en attente.",
@@ -2350,7 +2350,7 @@
       "downloadPdf": "Télécharger le PDF",
       "sendEmail": "Envoyer par courriel",
       "payStubPickMonth": "Choisissez un mois pour ouvrir son talon de paie.",
-      "payStubFor": "Talon de paie de {{month}}",
+      "payStubFor": "Talon de paie · {{month}}",
       "tabsLabel": "Sections du rapport",
       "tabOverview": "Aperçu",
       "tabMonths": "Par mois",
@@ -3525,7 +3525,7 @@
         "sugReason": "Raison",
         "sugApply": "Appliquer",
         "sugIgnore": "Ignorer",
-        "sugApplyConfirm": "Appliquer cet ajustement ? {{rep}} — {{amount}} ({{reason}}), sur le bulletin de {{month}}.",
+        "sugApplyConfirm": "Appliquer cet ajustement ? {{rep}} — {{amount}} ({{reason}}), sur le bulletin du mois ({{month}}).",
         "sugTargetLabel": "Appliquer au mois :",
         "sugType": {
           "over_activation": "Activation — client existant",
@@ -3674,7 +3674,7 @@
         "histRecipients": "Destinataires",
         "histSentBy": "Par",
         "histDelete": "Supprimer cette entrée",
-        "histDeleteConfirm": "Supprimer l'envoi de {{month}} {{year}} de l'historique? Cela retire seulement l'entrée d'historique — le courriel déjà envoyé n'est pas annulé."
+        "histDeleteConfirm": "Supprimer l'envoi du mois ({{month}} {{year}}) de l'historique? Cela retire seulement l'entrée d'historique — le courriel déjà envoyé n'est pas annulé."
       },
       "bonusPayroll": {
         "title": "Envoyer le bonus bi-annuel (distinct de la paie mensuelle)",
@@ -3810,7 +3810,7 @@
       "filterMonth": "Mois de l'avis",
       "allMonths": "Tous les mois",
       "approveOn": "Approuver sur la paie de",
-      "monthMismatchHint": "Cet avis date d'un autre mois : il sera approuvé sur la paie de {{month}}",
+      "monthMismatchHint": "Cet avis date d'un autre mois : il sera approuvé sur la paie du mois ({{month}})",
       "payPeriod": "Mois de paie",
       "approvedTotal": "Total approuvé",
       "none": "Aucun avis.",
