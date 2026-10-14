@@ -12,6 +12,8 @@ import ProbationBadge from '../components/ProbationBadge';
 import { dialog } from '../lib/dialog';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { ContentLoader } from '../common/Loader';
+import { Button, FilterBar, RowMenu, StateCard, StatusPill, Tabs, useUrlTab } from '../components/ui';
+import type { MenuItem, StatusFamily } from '../components/ui';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -37,19 +39,19 @@ interface DrillInvoice {
 }
 
 // Map commission_status → { i18n key, color classes }
-const COMMISSION_STATUS_STYLES: Record<string, { key: string; cls: string }> = {
-  hardware:         { key: 'commissionReport.csHardware',       cls: 'bg-primary bg-opacity-10 text-primary' },
-  saas_first:       { key: 'commissionReport.csSaasFirst',      cls: 'bg-success bg-opacity-10 text-success' },
-  saas_annual:      { key: 'commissionReport.csSaasAnnual',     cls: 'bg-success bg-opacity-10 text-success' },
-  saas_renewal:     { key: 'commissionReport.csSaasRenewal',    cls: 'bg-gray-200 text-body dark:bg-meta-4' },
-  pending_saas:     { key: 'commissionReport.csPendingSaas',    cls: 'bg-warning bg-opacity-10 text-warning' },
-  pending_payment:  { key: 'commissionReport.csPendingPayment', cls: 'bg-warning bg-opacity-10 text-warning' },
-  too_late:         { key: 'commissionReport.csTooLate',        cls: 'bg-danger bg-opacity-10 text-danger' },
-  quota_not_met:    { key: 'commissionReport.csQuotaNotMet',    cls: 'bg-danger bg-opacity-10 text-danger' },
-  quota_partial:    { key: 'commissionReport.csQuotaPartial',   cls: 'bg-warning bg-opacity-10 text-warning' },
-  rep_inactive:     { key: 'commissionReport.csRepInactive',    cls: 'bg-gray-200 text-body dark:bg-meta-4' },
-  not_eligible:     { key: 'commissionReport.csNotEligible',    cls: 'bg-gray-200 text-body dark:bg-meta-4' },
-  excluded:         { key: 'commissionReport.csExcluded',       cls: 'bg-danger bg-opacity-10 text-danger' },
+const COMMISSION_STATUS_STYLES: Record<string, { key: string; family: StatusFamily }> = {
+  hardware:         { key: 'commissionReport.csHardware',       family: 'new' },
+  saas_first:       { key: 'commissionReport.csSaasFirst',      family: 'new' },
+  saas_annual:      { key: 'commissionReport.csSaasAnnual',     family: 'new' },
+  saas_renewal:     { key: 'commissionReport.csSaasRenewal',    family: 'neutral' },
+  pending_saas:     { key: 'commissionReport.csPendingSaas',    family: 'wait' },
+  pending_payment:  { key: 'commissionReport.csPendingPayment', family: 'wait' },
+  too_late:         { key: 'commissionReport.csTooLate',        family: 'err' },
+  quota_not_met:    { key: 'commissionReport.csQuotaNotMet',    family: 'wait' },
+  quota_partial:    { key: 'commissionReport.csQuotaPartial',   family: 'wait' },
+  rep_inactive:     { key: 'commissionReport.csRepInactive',    family: 'neutral' },
+  not_eligible:     { key: 'commissionReport.csNotEligible',    family: 'neutral' },
+  excluded:         { key: 'commissionReport.csExcluded',       family: 'neutral' },
 };
 
 interface MonthData {
@@ -130,6 +132,8 @@ const CommissionReport = () => {
   useAuth();
   // Short month names in the user's language (was a fixed English array).
   const MONTH_NAMES = appMonthNames();
+  // Onglet actif dans l'adresse (?onglet=) : un lien vers « Rapport › Factures » se partage.
+  const [tab, setTab] = useUrlTab<'apercu' | 'mois' | 'factures' | 'paiements'>('apercu', ['apercu', 'mois', 'factures', 'paiements']);
   const [report, setReport] = useState<ReportData | null>(null);
   const [pointsData, setPointsData] = useState<PointsAnnualData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -548,12 +552,7 @@ const CommissionReport = () => {
   };
 
   // Drill-down: fetch invoices for a month
-  const toggleMonthDrill = async (month: number) => {
-    if (expandedMonth === month) {
-      setExpandedMonth(null);
-      setDrillInvoices([]);
-      return;
-    }
+  const openMonth = async (month: number) => {
     setExpandedMonth(month);
     setLoadingDrill(true);
     try {
@@ -570,6 +569,13 @@ const CommissionReport = () => {
       setLoadingDrill(false);
     }
   };
+
+  useEffect(() => {
+    if ((tab === 'mois' || tab === 'factures') && report && expandedMonth == null) {
+      openMonth(selectedMonth !== 'all' ? parseInt(selectedMonth) : new Date().getMonth() + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, report, expandedMonth]);
 
   // Refuse / restore commission on ONE invoice (admin).
   const toggleExcludeCommission = async (invoiceNumber: string, currentlyExcluded: boolean) => {
@@ -798,23 +804,11 @@ const CommissionReport = () => {
               {inv.commissionPayableDate ? fmtDateOnly(inv.commissionPayableDate) : '—'}
             </td>
             <td className="px-3 py-2.5 text-center">
-              {cs ? (
-                <span className={`inline-flex whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold ${cs.cls}`}>
-                  {t(cs.key)}
-                </span>
-              ) : <span className="text-xs text-body">—</span>}
+              {cs ? <StatusPill family={cs.family}>{t(cs.key)}</StatusPill> : <span className="text-xs text-body">—</span>}
             </td>
             <td className="px-3 py-2.5 text-xs text-right text-body">{formatCurrency(inv.total)}</td>
             <td className="px-3 py-2.5 text-xs text-right font-medium text-black dark:text-white">{formatCurrency(inv.commission)}</td>
-            <td className="px-3 py-2.5 text-center">
-              {inv.approvalStatus === 'paid' ? (
-                <span className="inline-flex rounded-full bg-success bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-success" title={inv.payoutPaidAt ? t('commissionReport.paidOn', { date: fmtDateOnly(inv.payoutPaidAt) }) as string : ''}>{t('commissionReport.paidBadge').toUpperCase()}</span>
-              ) : inv.approvalStatus === 'approved' ? (
-                <span className="inline-flex rounded-full bg-primary bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-primary" title={inv.approvedAt ? t('commissionReport.approvedOn', { date: fmtDateOnly(inv.approvedAt) }) as string : ''}>{t('commissionReport.approvedBadge').toUpperCase()}</span>
-              ) : (
-                <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-warning">{t('commissionReport.pending').toUpperCase()}</span>
-              )}
-            </td>
+            <td className="px-3 py-2.5 text-center">{approvalPill(inv)}</td>
             <td className="px-3 py-2.5">
               <div className="flex items-center justify-center gap-2">
                 <button onClick={() => handlePreview(inv.invoiceNumber)} className="text-primary hover:text-primary/70 transition" title={t('common.preview') as string}>
@@ -882,25 +876,25 @@ const CommissionReport = () => {
     },
     colors: report.months.map((_, i) => {
       const highlightMonth = selectedMonth !== 'all' ? parseInt(selectedMonth) - 1 : currentMonthIndex;
-      return i === highlightMonth ? '#8B5CF6' : '#C4B5FD';
+      return i === highlightMonth ? '#F58345' : '#FBCDB5';
     }),
     dataLabels: { enabled: false },
     legend: { show: false },
     xaxis: {
       categories: MONTH_NAMES,
-      labels: { style: { colors: '#64748B', fontSize: '12px' } },
+      labels: { style: { colors: '#999AA7', fontSize: '12px' } },
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
     yaxis: {
       labels: {
-        style: { colors: '#64748B', fontSize: '12px' },
+        style: { colors: '#999AA7', fontSize: '12px' },
         formatter: (v: number) => (appLocale().startsWith('fr') ? `${fmtNumber(v / 1000, 0)} k$` : `$${fmtNumber(v / 1000, 0)}k`),
       },
     },
     grid: {
       strokeDashArray: 3,
-      borderColor: '#e5e7eb',
+      borderColor: 'rgba(153,154,167,0.25)',
       xaxis: { lines: { show: false } },
     },
     tooltip: {
@@ -916,109 +910,110 @@ const CommissionReport = () => {
     data: report.months.map(m => m.commission),
   }];
 
-  // Compute display stats based on month filter
-  const displayStats = (() => {
-    if (selectedMonth === 'all') {
-      return {
-        commission: report.summary.ytd.commission,
-        revenue: report.summary.ytd.revenue,
-        invoices: report.summary.ytd.invoices,
-        label: t('commissionReport.ytd'),
-      };
-    }
-    const m = report.months.find(m => m.month === parseInt(selectedMonth));
-    return {
-      commission: m?.paidCommission || 0,
-      revenue: m?.paidRevenue || 0,
-      invoices: m?.invoices || 0,
-      label: MONTH_NAMES[parseInt(selectedMonth) - 1],
-    };
-  })();
+  // ── Refonte UI (P2, planche DeskRapport) ─────────────────────────────────────────────
+  // Quatre onglets dont l'actif est dans l'adresse (?onglet=) : Aperçu, Par mois (tableau +
+  // panneau de détail du mois), Factures (tableau complet, sélection, approbation),
+  // Paiements (marchands Zentact). Les actions et leurs règles sont INCHANGÉES : seul
+  // l'affichage est réorganisé.
+  const curYear = new Date().getFullYear().toString();
+  const isCurrentMonth = (m: number) => m - 1 === currentMonthIndex && selectedYear === curYear;
+  const panelMonth = expandedMonth ?? (selectedMonth !== 'all' ? parseInt(selectedMonth) : currentMonthIndex + 1);
+  const panelData = report.months.find((m) => m.month === panelMonth);
+  const panelPts = getMonthPoints(panelMonth);
+  const yearBonus = pointsData ? pointsData.months.reduce((s, m) => s + m.monthlyBonus + m.zentactBonus, 0) : 0;
+  const monthStatus = (m?: MonthData): { family: StatusFamily; label: string } | null => {
+    if (!m || !m.commissionQualifyingCount) return null;
+    if (m.commissionPaidCount === m.commissionQualifyingCount) return { family: 'ok', label: t('commissionReport.paidBadge') };
+    if (m.commissionApprovedCount + m.commissionPaidCount === m.commissionQualifyingCount) return { family: 'new', label: t('commissionReport.approvedBadge') };
+    return { family: 'neutral', label: t('commissionReport.v2.inProgress') };
+  };
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const approvalPill = (inv: DrillInvoice) => inv.approvalStatus === 'paid'
+    ? <StatusPill family="ok" title={inv.payoutPaidAt ? t('commissionReport.paidOn', { date: fmtDateOnly(inv.payoutPaidAt) }) as string : undefined}>{t('commissionReport.paidBadge')}</StatusPill>
+    : inv.approvalStatus === 'approved'
+      ? <StatusPill family="new" title={inv.approvedAt ? t('commissionReport.approvedOn', { date: fmtDateOnly(inv.approvedAt) }) as string : undefined}>{t('commissionReport.approvedBadge')}</StatusPill>
+      : <StatusPill family="neutral">{cap(t('commissionReport.pending'))}</StatusPill>;
+  const invoiceMenu = (inv: DrillInvoice): MenuItem[] => [
+    { label: t('common.preview'), onSelect: () => handlePreview(inv.invoiceNumber) },
+    { label: t('commissionReport.v2.downloadPdf'), onSelect: () => handleDownload(inv.invoiceNumber) },
+    { label: t('commissionReport.v2.sendEmail'), onSelect: () => handleEmail(inv.invoiceNumber) },
+    { label: t('common.print'), onSelect: () => handlePrint(inv.invoiceNumber) },
+    ...(canMarkPaid && inv.approvalStatus !== 'paid'
+      ? [inv.commissionStatus === 'excluded'
+        ? { label: t('commissionReport.exclude.restore'), onSelect: () => toggleExcludeCommission(inv.invoiceNumber, true), separated: true }
+        : { label: `${t('commissionReport.exclude.refuse')}…`, onSelect: () => toggleExcludeCommission(inv.invoiceNumber, false), danger: true, separated: true }]
+      : []),
+  ];
+  const openMissing = (invoiceNumber = '') => setMissingModal({ open: true, invoiceNumber, message: '', sending: false });
+  const selectCls = 'w-full rounded-xl border border-stroke bg-white px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white md:w-auto';
+  const kpi = (label: string, value: React.ReactNode, sub?: React.ReactNode, subCls = '') => (
+    <div className="flex flex-col gap-1.5 rounded-2xl border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
+      <span className="text-[13px] text-body dark:text-bodydark2">{label}</span>
+      <span className="text-[26px] font-bold tracking-[-0.01em] text-black dark:text-white">{value}</span>
+      {sub && <span className={`text-xs ${subCls || 'text-body dark:text-bodydark2'}`}>{sub}</span>}
+    </div>
+  );
 
   return (
-    <div>
-      {/* Header: title block, then a full-width anchored filter bar below it */}
-      <div className="mb-6 flex flex-col gap-4">
-        <div>
-          <h2 className="text-title-md2 font-semibold text-black dark:text-white">
-            {t('commissionReport.title')}
-          </h2>
-          <p className="flex flex-wrap items-center gap-2 text-sm text-body">
-            <span>{report.repName} · {t('commissionReport.rateLine', { rate: fmtNumber(report.commissionRate) })} · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ` : ''}{selectedYear}</span>
-            <ProbationBadge probation={report.probation} />
-          </p>
-          {/* Missing commission — discreet link (any rep viewing their own report can flag a gap) */}
-          <button
-            onClick={() => setMissingModal({ open: true, invoiceNumber: '', message: '', sending: false })}
-            className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-body transition hover:text-primary"
-          >
-            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.33 16a2 2 0 001.74 3z" />
-            </svg>
-            {t('commissionReport.missing.button')}
-          </button>
-        </div>
-
-        {/* Filter bar: one anchored card row — selectors left, search stretches, action right */}
-        <div className="flex flex-col gap-2 rounded-lg border border-stroke bg-white p-3 shadow-default dark:border-strokedark dark:bg-boxdark md:flex-row md:items-center">
-          {/* Rep Selector (Admin only) */}
-          {canViewOthers && salespeople.length > 0 && (
-            <Select value={selectedRep} onChange={(v) => setSelectedRep(v)} options={[...(isSalesperson ? [{ value: '', label: t('commissionReport.myReport') as string }] : []), ...salespeople.map((rep) => ({ value: rep, label: rep }))]} buttonClassName={'w-full rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:w-52'} />
-          )}
-
-          <div className="flex gap-2">
-            {/* Month Selector */}
-            <Select value={selectedMonth} onChange={(v) => setSelectedMonth(v)} options={[{ value: 'all', label: t('commissionReport.allMonths') as string }, ...MONTH_NAMES.map((name, i) => ({ value: String(i + 1), label: name }))]} buttonClassName={'flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:flex-none'} />
-
-            {/* Year Selector */}
-            <Select value={selectedYear} onChange={(v) => setSelectedYear(v)} options={Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i).filter((y) => !disabledYears.includes(y)).map((y) => ({ value: String(y), label: String(y) }))} buttonClassName={'flex-1 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white md:flex-none'} />
+    <div className="flex flex-col gap-5">
+      {/* En-tête : titre, puis la barre de filtres pleine largeur, puis les onglets. */}
+      <header className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[13px] text-body dark:text-bodydark2">{t('sidebar.sections.pay')}</span>
+            <h1 className="m-0 text-2xl font-bold leading-tight tracking-[-0.01em] text-black dark:text-white">{t('commissionReport.title')}</h1>
+            <p className="m-0 flex flex-wrap items-center gap-2 text-[13px] text-body dark:text-bodydark2">
+              <span>{report.repName} · {t('commissionReport.rateLine', { rate: fmtNumber(report.commissionRate) })}</span>
+              <ProbationBadge probation={report.probation} />
+            </p>
           </div>
-
-          {/* Client / invoice search — stretches to fill the bar */}
-          <div className="relative w-full md:min-w-[180px] md:flex-1">
-            <button
-              onClick={runSearch}
-              title={t('commissionReport.search') as string}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-body transition hover:text-primary"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" /></svg>
-            </button>
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') runSearch(); }}
-              placeholder={t('commissionReport.searchPlaceholder') as string}
-              className="w-full rounded-md border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm font-medium outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-            />
-          </div>
-
-          {/* Pay Stub — per month; disabled on "All Months" */}
           {canViewPaystub && (
-            <button
+            <Button
+              variant="primary"
+              size="md"
               onClick={openPayStub}
-              disabled={selectedMonth === 'all' || loadingStub}
-              title={selectedMonth === 'all' ? (t('commissionReport.payStub.open') as string) : undefined}
-              className="inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-primary bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={loadingStub}
+              disabledReason={selectedMonth === 'all' ? t('commissionReport.v2.payStubPickMonth') : undefined}
             >
-              {loadingStub ? (
-                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              ) : (
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11a2 2 0 01-2 2z" />
-                </svg>
-              )}
-              {t('commissionReport.payStub.open')}
-            </button>
+              {loadingStub ? '…' : selectedMonth === 'all'
+                ? t('commissionReport.payStub.open')
+                : t('commissionReport.v2.payStubFor', { month: fmtMonth(parseInt(selectedYear), parseInt(selectedMonth)) })}
+            </Button>
           )}
         </div>
-      </div>
+
+        <FilterBar search={searchInput} onSearch={setSearchInput} searchPlaceholder={t('commissionReport.searchPlaceholder') as string}>
+          {canViewOthers && salespeople.length > 0 && (
+            <Select value={selectedRep} onChange={(v) => setSelectedRep(v)} options={[...(isSalesperson ? [{ value: '', label: t('commissionReport.myReport') as string }] : []), ...salespeople.map((rep) => ({ value: rep, label: rep }))]} buttonClassName={`${selectCls} md:w-52`} />
+          )}
+          <Select value={selectedMonth} onChange={(v) => setSelectedMonth(v)} options={[{ value: 'all', label: t('commissionReport.allMonths') as string }, ...MONTH_NAMES.map((name, i) => ({ value: String(i + 1), label: name }))]} buttonClassName={selectCls} />
+          <Select value={selectedYear} onChange={(v) => setSelectedYear(v)} options={Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i).filter((y) => !disabledYears.includes(y)).map((y) => ({ value: String(y), label: String(y) }))} buttonClassName={selectCls} />
+          <Button size="sm" onClick={runSearch} disabled={!searchInput.trim()}>{t('commissionReport.search')}</Button>
+        </FilterBar>
+
+        <Tabs
+          ariaLabel={t('commissionReport.v2.tabsLabel') as string}
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { id: 'apercu', label: t('commissionReport.v2.tabOverview') },
+            { id: 'mois', label: t('commissionReport.v2.tabMonths') },
+            { id: 'factures', label: t('commissionReport.v2.tabInvoices') },
+            { id: 'paiements', label: t('commissionReport.v2.tabPayments') },
+          ]}
+          right={
+            <button type="button" onClick={() => openMissing()} className="inline-flex items-center gap-1.5 py-2 text-[13px] font-bold text-accent-ink hover:underline dark:text-accent-ink-dark">
+              {t('commissionReport.missing.button')}
+            </button>
+          }
+        />
+      </header>
 
       {/* Missing-commission modal */}
       {missingModal.open && (
         <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
-          <div className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('commissionReport.missing.title')}</h3>
+          <div className="my-auto w-full max-w-md rounded-[20px] border border-strokestrong bg-white p-6 shadow-xl dark:border-graydark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-1 text-lg font-bold text-black dark:text-white">{t('commissionReport.missing.title')}</h3>
             <p className="mb-4 text-sm text-body">{t('commissionReport.missing.subtitle')}</p>
             <label className="mb-1 block text-xs font-medium text-body">{t('commissionReport.missing.invoiceLabel')}</label>
             <input
@@ -1026,7 +1021,7 @@ const CommissionReport = () => {
               value={missingModal.invoiceNumber}
               onChange={(e) => setMissingModal(m => ({ ...m, invoiceNumber: e.target.value }))}
               placeholder="INV-012345"
-              className="mb-3 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+              className="mb-3 w-full rounded-xl border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
             />
             <label className="mb-1 block text-xs font-medium text-body">{t('commissionReport.missing.messageLabel')}</label>
             <textarea
@@ -1034,17 +1029,13 @@ const CommissionReport = () => {
               onChange={(e) => setMissingModal(m => ({ ...m, message: e.target.value }))}
               rows={4}
               placeholder={t('commissionReport.missing.messagePlaceholder') as string}
-              className="mb-4 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+              className="mb-4 w-full rounded-xl border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
             />
             <div className="flex justify-end gap-2">
-              <button onClick={() => setMissingModal(m => ({ ...m, open: false }))} disabled={missingModal.sending}
-                className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark">
-                {t('common.cancel')}
-              </button>
-              <button onClick={submitMissing} disabled={missingModal.sending || !missingModal.message.trim()}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+              <Button size="md" onClick={() => setMissingModal(m => ({ ...m, open: false }))} disabled={missingModal.sending}>{t('common.cancel')}</Button>
+              <Button size="md" variant="primary" onClick={submitMissing} disabled={missingModal.sending || !missingModal.message.trim()}>
                 {missingModal.sending ? t('commissionReport.missing.sending') : t('commissionReport.missing.send')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -1053,19 +1044,19 @@ const CommissionReport = () => {
       {/* Client / invoice search results */}
       {searchModal.open && (
         <div className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black bg-opacity-50 p-4 pt-16" onClick={() => setSearchModal(s => ({ ...s, open: false }))}>
-          <div className="w-full max-w-4xl rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-4xl rounded-[20px] border border-strokestrong bg-white shadow-xl dark:border-graydark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
               <div>
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.searchResultsTitle')}</h3>
+                <h3 className="text-lg font-bold text-black dark:text-white">{t('commissionReport.searchResultsTitle')}</h3>
                 <p className="text-sm text-body">
                   {searchModal.loading ? t('commissionReport.loadingInvoices') : t('commissionReport.searchResultsCount', { count: searchModal.results.length, q: searchModal.q, year: selectedYear })}
                 </p>
               </div>
-              <button onClick={() => setSearchModal(s => ({ ...s, open: false }))} className="text-body hover:text-black dark:hover:text-white"><X className="h-5 w-5" /></button>
+              <button onClick={() => setSearchModal(s => ({ ...s, open: false }))} aria-label={t('common.close') as string} className="text-body hover:text-black dark:hover:text-white"><X className="h-5 w-5" /></button>
             </div>
             <div className="max-h-[70vh] overflow-auto p-4">
               {searchModal.loading ? (
-                <div className="flex items-center justify-center py-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+                <StateCard kind="loading" />
               ) : searchModal.results.length === 0 ? (
                 <p className="py-6 text-center text-sm text-body">{t('commissionReport.searchNoResults')}</p>
               ) : (
@@ -1088,549 +1079,339 @@ const CommissionReport = () => {
         onAdjusted={canMarkPaid ? refreshReport : undefined}
       />
 
-      {/* Total Compensation — GAGNE A CE JOUR : salaire de base accumule par periode de paie
-          (26 periodes de 14 jours par an) + commissions de l'annee + bonus.
-          L'accumulation part de la DATE D'EMBAUCHE quand elle tombe apres le 1er janvier :
-          compter depuis le 1er janvier creditait un nouvel employe d'un salaire jamais gagne
-          — 29 423 $ affiches pour quelqu'un arrive depuis un mois. */}
-      {report.canViewSalary !== false && (() => {
-        const PAY_PERIODS = 26;
-        const annualSalary = report.baseSalary || 0;
-        const now = new Date();
-        const yearNum = parseInt(selectedYear);
-        const yearStart = new Date(yearNum, 0, 1);
-        const yearEnd = new Date(yearNum, 11, 31, 23, 59, 59);
-        const hire = report.hireDate ? new Date(`${report.hireDate}T00:00:00`) : null;
-        // Depart de l'accumulation : l'embauche si elle tombe APRES le 1er janvier de l'annee
-        // affichee, sinon le 1er janvier. Vaut aussi pour les annees passees — un vendeur
-        // embauche en juillet 2025 n'a pas gagne 26 periodes en 2025.
-        const hiredMidYear = !!hire && hire > yearStart;
-        const accrualStart = hiredMidYear ? hire : yearStart;
-        const accrualEnd = now < yearEnd ? now : yearEnd;
-        const daysElapsed = Math.floor((accrualEnd.getTime() - accrualStart.getTime()) / 86400000);
-        const periodsElapsed = Math.min(PAY_PERIODS, Math.max(0, Math.floor(daysElapsed / 14)));
-        const pct = Math.round((periodsElapsed / PAY_PERIODS) * 100);
-        const baseSalaryEarned = annualSalary * (periodsElapsed / PAY_PERIODS);
-        const ytdComm = report.summary.ytd.commission || 0;
-        const annualBonus = pointsData?.annual?.annualBonus || 0;
-        const signupPay = pointsData?.annual?.zentactBonus || 0;
-        const totalComp = baseSalaryEarned + ytdComm + annualBonus + signupPay;
-        const money = (value: number) => salaryHidden ? '••••••' : formatCurrency(value);
-        const part = (label: string, value: number) => (
-          <div>
-            <p className="whitespace-nowrap text-xs text-body">{label}</p>
-            <p className="mt-0.5 whitespace-nowrap text-lg font-semibold text-black dark:text-white">{money(value)}</p>
+      {/* ═══ Aperçu ═══════════════════════════════════════════════════════════════════ */}
+      {tab === 'apercu' && (
+        <>
+          {/* Quatre indicateurs, sans doublon (avant : le cumul annuel apparaissait trois fois). */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {kpi(t('commissionReport.v2.kpiCommission', { year: selectedYear }), formatCurrency(report.summary.ytd.commission),
+              t('commissionReport.v2.kpiInvoices', { count: report.summary.ytd.invoices }))}
+            {kpi(t('commissionReport.v2.kpiBonus', { year: selectedYear }), bonusMoney(yearBonus), t('commissionReport.v2.kpiBonusSub'))}
+            {kpi(t('commissionReport.pendingTitle'), formatCurrency(report.summary.pending?.commission || 0),
+              t('commissionReport.v2.kpiPendingSub', { count: report.summary.pending?.count || 0 }),
+              (report.summary.pending?.commission || 0) > 0 ? 'font-bold text-warning' : '')}
+            {pointsData && kpi(t('commissionReport.v2.kpiPoints', { year: selectedYear }),
+              <>{pointsData.annual.totalPoints}{pointsData.annual.nextTier && <span className="text-[15px] font-medium text-body dark:text-bodydark2"> / {pointsData.annual.nextTier.points}</span>}</>,
+              t('commissionReport.v2.kpiQuotaMonths', { met: pointsData.months.filter((m) => m.quotaMet).length, total: pointsData.months.filter((m) => m.totalPoints > 0 || m.quotaMet).length }))}
           </div>
-        );
-        const op = (sym: string) => (
-          <span className="hidden select-none text-xl font-light text-bodydark2 sm:block">{sym}</span>
-        );
-        return (
-          <div className="mb-6 rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="mb-4 flex items-center gap-2">
-              <p className="text-sm font-medium text-body">
-                {t('commissionReport.totalComp')} ({selectedYear})
-              </p>
-              <button
-                onClick={toggleSalaryHidden}
-                title={salaryHidden ? t('commissionReport.salaryShow') as string : t('commissionReport.salaryHide') as string}
-                aria-label={salaryHidden ? t('commissionReport.salaryShow') as string : t('commissionReport.salaryHide') as string}
-                className="text-body transition hover:text-primary"
-              >
-                {salaryHidden ? (
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243L9.88 9.88" /></svg>
-                ) : (
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                )}
-              </button>
-            </div>
-            {/* Visual equation flowing left: salary + commission + bonus + signup = total.
-                ONE wrap container — no justify-between, so no dead gap inside the equation;
-                leftover space sits naturally after the total box. */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-4">
-                {/* Base salary — with its own pay-period progress (stacked to stay narrow) */}
-                <div>
-                  <p className="whitespace-nowrap text-xs text-body">{t('commissionReport.compBase')}</p>
-                  <p className="mt-0.5 whitespace-nowrap text-lg font-semibold text-black dark:text-white">{money(baseSalaryEarned)}</p>
-                  <div className="mt-1.5 h-1 w-28 overflow-hidden rounded-full bg-gray-200 dark:bg-meta-4">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
-                  </div>
-                  <p className="mt-1 whitespace-nowrap text-[11px] text-body">
-                    {t('commissionReport.payPeriodsProgress', { done: periodsElapsed, total: PAY_PERIODS, pct })}
-                  </p>
-                  <p className="whitespace-nowrap text-[11px] text-body">{t('commissionReport.compBaseOf', { amount: money(annualSalary) })}</p>
-                  {/* Sans cette ligne, « 2/26 » ressemble a une erreur pour un nouvel employe.
-                      Elle dit d'ou part le compte. */}
-                  {hiredMidYear && (
-                    <p className="whitespace-nowrap text-[11px] italic text-body">
-                      {t('commissionReport.compSinceHire', {
-                        date: fmtDate(hire, { year: 'numeric', month: 'long', day: 'numeric' }) })}
-                    </p>
-                  )}
-                </div>
-                {/* Each '+' is welded to its card so wrapping keeps "+ <card>" together */}
-                <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compCommission'), ytdComm)}</div>
-                <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compAnnualBonus'), annualBonus)}</div>
-                <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compSignup'), signupPay)}</div>
-                {/* Total — '=' + result box, flows right after the components (no dead gap) */}
-                <div className="flex shrink-0 items-center gap-3 lg:border-l lg:border-stroke lg:pl-5 lg:dark:border-strokedark">
-                  {op('=')}
-                  <div className="rounded-lg border border-primary border-opacity-25 bg-primary bg-opacity-[0.06] px-5 py-3">
-                    <p className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-primary">{t('commissionReport.earnedToDate')}</p>
-                    <p className="mt-0.5 whitespace-nowrap text-2xl font-bold text-black dark:text-white">{money(totalComp)}</p>
-                  </div>
-                </div>
-            </div>
-            <p className="mt-3 text-[11px] italic text-body">{t('commissionReport.grossDisclaimer')}</p>
-          </div>
-        );
-      })()}
 
-      {/* Summary Cards */}
-      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
-        {/* Period Commission */}
-        <div className="rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: '#8B5CF620' }}>
-              <svg className="h-5 w-5" style={{ color: '#8B5CF6' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </span>
-            <p className="text-sm font-medium text-body">{displayStats.label} {t('commissionReport.commission')}</p>
-          </div>
-          <h4 className="text-2xl font-bold text-black dark:text-white">
-            {formatCurrency(displayStats.commission)}
-          </h4>
-          <p className="text-xs text-body mt-1">{displayStats.invoices} {t('commissionReport.paidInvoices')}</p>
-        </div>
-
-        {/* Period Revenue */}
-        <div className="rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: '#3B82F620' }}>
-              <svg className="h-5 w-5" style={{ color: '#3B82F6' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
-              </svg>
-            </span>
-            <p className="text-sm font-medium text-body">{displayStats.label} {t('commissionReport.revenue')}</p>
-          </div>
-          <h4 className="text-2xl font-bold text-black dark:text-white">
-            {formatCurrency(displayStats.revenue)}
-          </h4>
-          <p className="text-xs text-body mt-1">{t('commissionReport.paidInvoicesCount')}</p>
-        </div>
-
-        {/* YTD Commission (always show for context) */}
-        <div className="rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: '#10B98120' }}>
-              <svg className="h-5 w-5" style={{ color: '#10B981' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </span>
-            <p className="text-sm font-medium text-body">{t('commissionReport.ytdCommission')}</p>
-          </div>
-          <h4 className="text-2xl font-bold text-black dark:text-white">
-            {formatCurrency(report.summary.ytd.commission)}
-          </h4>
-          <p className="text-xs text-body mt-1">{report.summary.ytd.invoices} {t('commissionReport.totalInvoices')}</p>
-        </div>
-
-        {/* Commission Rate */}
-        <div className="rounded-sm border border-stroke bg-white px-6 py-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: '#F59E0B20' }}>
-              <svg className="h-5 w-5" style={{ color: '#F59E0B' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
-              </svg>
-            </span>
-            <p className="text-sm font-medium text-body">{t('commissionReport.commissionRate')}</p>
-          </div>
-          <h4 className="text-2xl font-bold text-black dark:text-white">
-            {report.commissionRate}%
-          </h4>
-          <p className="text-xs text-body mt-1">{report.commissionRate !== 10 ? t('commissionReport.standardRate') : t('commissionReport.standardRate')}</p>
-        </div>
-      </div>
-
-      {/* Points & Bonus Summary */}
-      {pointsData && (
-        <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.pointsBonuses')}</h3>
-              <p className="text-sm text-body">{t('commissionReport.pointsBonusesSubtitle')}</p>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 gap-6">
-
-              {/* Left — selected month or current month points */}
-              {(() => {
-                const mNum = selectedMonth !== 'all' ? parseInt(selectedMonth) : new Date().getMonth() + 1;
-                const mp = getMonthPoints(mNum);
-                const label = MONTH_NAMES[mNum - 1];
-                const quota = mp?.quota ?? MONTHLY_QUOTA;
-                const quotaPct = quota > 0 ? Math.min(100, ((mp?.totalPoints ?? 0) / quota) * 100) : 100;
-                return (
-                  <div>
-                    <p className="mb-3 text-sm font-semibold text-black dark:text-white">
-                      {label} {selectedYear} — {t('commissionReport.monthlyPoints')}
-                    </p>
-                    <div className="flex flex-wrap gap-4">
-                      {/* Points */}
-                      <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
-                        <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.totalPoints')}</p>
-                        <p className="text-2xl font-bold text-black dark:text-white">{mp?.totalPoints ?? 0}</p>
-                        {(mp?.zentactPoints ?? 0) > 0 && (
-                          <p className="text-xs text-[#6366F1] mt-1">
-                            {mp!.crmPoints} CRM + {mp!.zentactPoints} 💳
-                          </p>
-                        )}
-                      </div>
-                      {/* Quota */}
-                      <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
-                        <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.quota')}</p>
-                        <div className="flex items-baseline gap-1">
-                          <p className="text-2xl font-bold text-black dark:text-white">{mp?.totalPoints ?? 0}</p>
-                          <p className="text-sm text-body">/ {quota}</p>
-                        </div>
-                        {mp?.quotaMet ? (
-                          <p className="text-xs text-success font-semibold mt-1">✓ {t('commissionReport.quotaMet')}</p>
-                        ) : (
-                          <p className="text-xs text-danger mt-1">{quota - (mp?.totalPoints ?? 0)} {t('commissionReport.ptsNeeded')}</p>
-                        )}
-                      </div>
-                      {/* Monthly bonus */}
-                      <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
-                        <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.monthlyBonus')}</p>
-                        <p className={`text-2xl font-bold ${(mp?.monthlyBonus ?? 0) > 0 ? 'text-success' : 'text-black dark:text-white'}`}>
-                          {bonusMoney(mp?.monthlyBonus ?? 0)}
-                        </p>
-                        {(mp?.zentactBonus ?? 0) > 0 && (
-                          <p className="text-xs text-[#6366F1] mt-1">+{bonusMoney(mp!.zentactBonus)} {t('commissionReport.zentactBonus')}</p>
-                        )}
-                      </div>
-                    </div>
-                    {/* Quota progress bar */}
-                    {mp && (
-                      <div className="mt-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-body">{t('commissionReport.quotaProgress')}</span>
-                          <span className="text-xs font-medium text-black dark:text-white">
-                            {Math.round(quotaPct)}%
-                          </span>
-                        </div>
-                        <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">
-                          <div
-                            className={`h-2 rounded-full transition-all ${mp.quotaMet ? 'bg-success' : quotaPct >= 200 / 3 ? 'bg-warning' : 'bg-danger'}`}
-                            style={{ width: `${quotaPct}%` }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Pending Commissions */}
-      {report.summary.pending && report.summary.pending.commission > 0 && (
-        <div className="mb-6 rounded-sm border border-warning border-opacity-40 bg-warning bg-opacity-5 px-6 py-5 dark:bg-warning dark:bg-opacity-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-warning bg-opacity-15">
-                <svg className="h-5 w-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </span>
+          {/* Total Compensation — GAGNE A CE JOUR : salaire de base accumule par periode de paie
+              (26 periodes de 14 jours par an) + commissions de l'annee + bonus.
+              L'accumulation part de la DATE D'EMBAUCHE quand elle tombe apres le 1er janvier :
+              compter depuis le 1er janvier creditait un nouvel employe d'un salaire jamais gagne
+              — 29 423 $ affiches pour quelqu'un arrive depuis un mois. */}
+          {report.canViewSalary !== false && (() => {
+            const PAY_PERIODS = 26;
+            const annualSalary = report.baseSalary || 0;
+            const now = new Date();
+            const yearNum = parseInt(selectedYear);
+            const yearStart = new Date(yearNum, 0, 1);
+            const yearEnd = new Date(yearNum, 11, 31, 23, 59, 59);
+            const hire = report.hireDate ? new Date(`${report.hireDate}T00:00:00`) : null;
+            // Depart de l'accumulation : l'embauche si elle tombe APRES le 1er janvier de l'annee
+            // affichee, sinon le 1er janvier. Vaut aussi pour les annees passees — un vendeur
+            // embauche en juillet 2025 n'a pas gagne 26 periodes en 2025.
+            const hiredMidYear = !!hire && hire > yearStart;
+            const accrualStart = hiredMidYear ? hire : yearStart;
+            const accrualEnd = now < yearEnd ? now : yearEnd;
+            const daysElapsed = Math.floor((accrualEnd.getTime() - accrualStart.getTime()) / 86400000);
+            const periodsElapsed = Math.min(PAY_PERIODS, Math.max(0, Math.floor(daysElapsed / 14)));
+            const pct = Math.round((periodsElapsed / PAY_PERIODS) * 100);
+            const baseSalaryEarned = annualSalary * (periodsElapsed / PAY_PERIODS);
+            const ytdComm = report.summary.ytd.commission || 0;
+            const annualBonus = pointsData?.annual?.annualBonus || 0;
+            const signupPay = pointsData?.annual?.zentactBonus || 0;
+            const totalComp = baseSalaryEarned + ytdComm + annualBonus + signupPay;
+            const money = (value: number) => salaryHidden ? '••••••' : formatCurrency(value);
+            const part = (label: string, value: number) => (
               <div>
-                <h4 className="text-base font-semibold text-black dark:text-white">{t('commissionReport.pendingTitle')}</h4>
-                <p className="text-xs text-body">{t('commissionReport.pendingSubtitle')} — {t('commissionReport.pendingHelp')}</p>
+                <p className="whitespace-nowrap text-xs text-body dark:text-bodydark2">{label}</p>
+                <p className="mt-0.5 whitespace-nowrap text-lg font-bold text-black dark:text-white">{money(value)}</p>
               </div>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-warning">{formatCurrency(report.summary.pending.commission)}</p>
-              <p className="text-xs text-body">{report.summary.pending.count} {t('commissionReport.invoiceCount').toLowerCase()}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Monthly Commission Chart */}
-      <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.monthlyCommission')}</h3>
-          <p className="text-sm text-body">{t('commissionReport.monthlyCommissionByUnlock')}</p>
-        </div>
-        <div className="p-6">
-          <ReactApexChart options={chartOptions} series={chartSeries} type="bar" height={320} />
-        </div>
-      </div>
-
-      {/* Monthly Table + Top Customers — full width stacked (the breakdown + its expandable
-          invoice detail is too wide for a half-width column) */}
-      <div className="grid grid-cols-1 gap-6 min-w-0">
-        {/* Monthly Breakdown Table */}
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark min-w-0 overflow-hidden">
-          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.monthlyBreakdown')}</h3>
-          </div>
-          <div className="p-6 overflow-x-auto">
-            <table className="w-full table-fixed">
-              <thead>
-                <tr className="border-b-2 border-stroke text-left dark:border-strokedark">
-                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide whitespace-nowrap text-body w-[22%]">{t('commissionReport.unlockMonth')}</th>
-                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-body">{t('commissionReport.revenue')}</th>
-                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-body">{t('commissionReport.commission')}</th>
-                  <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-body">{t('commissionReport.invoiceCount')}</th>
-                  {pointsData && <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-[#8B5CF6]">{t('commissionReport.pts')}</th>}
-                  {pointsData && <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-right whitespace-nowrap text-[#8B5CF6]">{t('commissionReport.bonus')}</th>}
-                  {(canApprove || canMarkPaid) && <th className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-center whitespace-nowrap text-body">{t('commissionReport.status')}</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {report.months.map((m) => {
-                  const isHighlighted = selectedMonth !== 'all'
-                    ? m.month === parseInt(selectedMonth)
-                    : m.month - 1 === currentMonthIndex && selectedYear === new Date().getFullYear().toString();
-                  const isExpanded = expandedMonth === m.month;
-                  return (
-                  <React.Fragment key={m.month}>
-                  <tr
-                    className={`border-b border-stroke dark:border-strokedark cursor-pointer hover:bg-gray-50 dark:hover:bg-meta-4/30 transition ${
-                      isHighlighted ? 'bg-[#8B5CF6] bg-opacity-5' : ''
-                    } ${isExpanded ? 'bg-[#8B5CF6] bg-opacity-5' : ''}`}
-                    onClick={() => m.commission > 0 && toggleMonthDrill(m.month)}
+            );
+            const op = (sym: string) => (
+              <span className="hidden select-none text-xl font-light text-bodydark2 sm:block">{sym}</span>
+            );
+            return (
+              <section className="rounded-[20px] border border-stroke bg-white px-6 py-5 dark:border-strokedark dark:bg-boxdark">
+                <div className="mb-4 flex items-center gap-2">
+                  <h2 className="m-0 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">
+                    {t('commissionReport.totalComp')} ({selectedYear})
+                  </h2>
+                  <button
+                    onClick={toggleSalaryHidden}
+                    title={salaryHidden ? t('commissionReport.salaryShow') as string : t('commissionReport.salaryHide') as string}
+                    aria-label={salaryHidden ? t('commissionReport.salaryShow') as string : t('commissionReport.salaryHide') as string}
+                    className="text-body transition hover:text-black dark:hover:text-white"
                   >
-                    <td className="px-3 py-3.5">
-                      <div className="flex items-center gap-2">
-                        {m.commission > 0 && (
-                          <svg className={`h-3.5 w-3.5 text-body transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                          </svg>
-                        )}
-                        <span className="text-sm font-medium text-black dark:text-white">
-                          {MONTH_NAMES[m.month - 1]}
-                        </span>
-                        {m.month - 1 === currentMonthIndex && selectedYear === new Date().getFullYear().toString() && (
-                          <span className="inline-flex rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-[10px] font-bold text-[#8B5CF6]">{t('commissionReport.now')}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3.5 text-right text-sm text-body">
-                      {m.paidRevenue > 0 ? formatCurrency(m.paidRevenue) : '—'}
-                    </td>
-                    <td className="px-3 py-3.5 text-right text-sm font-medium text-black dark:text-white">
-                      {m.commission > 0 ? (
-                        formatCurrency(m.commission)
-                      ) : m.quotaForfeited > 0.005 ? (
-                        <span className="inline-flex items-center gap-1 text-danger" title={t('commissionReport.quotaForfeitedHint', { amount: formatCurrency(m.quotaForfeited) }) as string}>
-                          <span aria-hidden>⛔</span>
-                          <span className="text-xs font-semibold">{t('commissionReport.quotaForfeitedBadge')}</span>
-                        </span>
-                      ) : '—'}
-                    </td>
-                    <td className="px-3 py-3.5 text-right text-sm text-body">
-                      {m.invoices > 0 ? m.invoices : '—'}
-                    </td>
-                    {pointsData && (() => {
-                      const mp = getMonthPoints(m.month);
-                      return (
-                        <>
-                          <td className="px-3 py-3.5 text-right text-sm">
-                            {mp && mp.totalPoints > 0 ? (
-                              <span className={`font-semibold ${mp.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>
-                                {mp.totalPoints}
-                              </span>
-                            ) : <span className="text-body">—</span>}
-                          </td>
-                          <td className="px-3 py-3.5 text-right text-sm">
-                            {mp && mp.monthlyBonus > 0 ? (
-                              <span className="font-semibold text-success">{bonusMoney(mp.monthlyBonus)}</span>
-                            ) : mp && mp.zentactBonus > 0 ? (
-                              <span className="font-semibold text-[#6366F1]">{bonusMoney(mp.zentactBonus)}</span>
-                            ) : <span className="text-body">—</span>}
-                          </td>
-                        </>
-                      );
-                    })()}
-                    {(canApprove || canMarkPaid) && (
-                      <td className="px-3 py-3.5 text-center">
-                        {(() => {
-                          const qualifying = m.commissionQualifyingCount;
-                          const approved   = m.commissionApprovedCount;
-                          const paid       = m.commissionPaidCount;
-                          const pending    = Math.max(0, qualifying - approved - paid);
-                          const busy = approvingMonth === m.month || markingPaidMonth === m.month;
-
-                          if (qualifying === 0) {
-                            return <span className="text-xs text-body">—</span>;
-                          }
-                          // All paid
-                          if (paid === qualifying) {
-                            return (
-                              <div className="flex items-center justify-center gap-1.5">
-                                <span className="inline-flex items-center gap-1 rounded-full bg-success bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-success">
-                                  ✓ {t('commissionReport.paidBadge')}
-                                </span>
-                                {canApprove && (
-                                  <button onClick={(e) => { e.stopPropagation(); unapproveMonth(m.month); }} disabled={busy} className="text-xs text-body hover:text-danger transition" title={t('commissionReport.undoApproval') as string}>↩</button>
-                                )}
-                              </div>
-                            );
-                          }
-                          // All approved (none paid yet) — show Mark Paid
-                          if (approved === qualifying && paid === 0) {
-                            return (
-                              <div className="flex items-center justify-center gap-1.5">
-                                <span className="inline-flex rounded-full bg-primary bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                                  ✓ {t('commissionReport.approvedBadge')}
-                                </span>
-                                {canMarkPaid && (
-                                  <button onClick={(e) => { e.stopPropagation(); markPaidMonth(m.month); }} disabled={busy} className="text-xs font-medium text-success hover:underline">
-                                    {markingPaidMonth === m.month ? '...' : t('commissionReport.markPaid')}
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          }
-                          // Mixed state — show counts + Approve rest
-                          if (approved > 0 || paid > 0) {
-                            return (
-                              <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                                <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-warning" title={t('commissionReport.countsTitle', { pending, approved, paid }) as string}>
-                                  {pending}/{approved}/{paid}
-                                </span>
-                                {canApprove && pending > 0 && (
-                                  <button onClick={(e) => { e.stopPropagation(); approveMonth(m.month); }} disabled={busy} className="text-xs font-medium text-primary hover:underline">
-                                    {approvingMonth === m.month ? '...' : t('commissionReport.approveRest')}
-                                  </button>
-                                )}
-                                {canMarkPaid && approved > 0 && (
-                                  <button onClick={(e) => { e.stopPropagation(); markPaidMonth(m.month); }} disabled={busy} className="text-xs font-medium text-success hover:underline">
-                                    {markingPaidMonth === m.month ? '...' : t('commissionReport.markPaid')}
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          }
-                          // All pending — show Approve button
-                          return canApprove ? (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); approveMonth(m.month); }}
-                              disabled={busy}
-                              className="inline-flex items-center gap-1 rounded-md border border-stroke px-3 py-1 text-xs font-medium text-body hover:bg-gray-50 hover:text-primary dark:border-strokedark dark:hover:bg-meta-4 transition disabled:opacity-50"
-                            >
-                              {approvingMonth === m.month ? (
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                              ) : t('commissionReport.approve')}
-                            </button>
-                          ) : (
-                            <span className="text-xs text-body">{qualifying} {t('commissionReport.pending')}</span>
-                          );
-                        })()}
-                      </td>
+                    {salaryHidden ? (
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.243 4.243L9.88 9.88" /></svg>
+                    ) : (
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     )}
-                  </tr>
-                  {/* Expanded invoice drill-down */}
-                  {isExpanded && (
-                    <tr>
-                      <td colSpan={4 + (pointsData ? 2 : 0) + ((canApprove || canMarkPaid) ? 1 : 0)} className="p-0">
-                        <div className="bg-[#8B5CF6] bg-opacity-[0.03] border-b border-[#8B5CF6] border-opacity-20 px-4 py-3 overflow-x-auto">
-                          {loadingDrill ? (
-                            <div className="flex items-center justify-center py-4">
-                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                              <span className="ml-2 text-xs text-body">{t('commissionReport.loadingInvoices')}</span>
-                            </div>
-                          ) : drillInvoices.length === 0 ? (
-                            <p className="text-xs text-body py-2">{t('commissionReport.noQualifyingInvoices')}</p>
-                          ) : (
-                            renderInvoiceTable(drillInvoices)
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                  </React.Fragment>
-                  );
-                })}
-                {/* Totals Row */}
-                <tr className="border-t-2 border-stroke dark:border-strokedark">
-                  <td className="px-3 py-3.5 text-sm font-bold text-black dark:text-white">{t('commissionReport.total')}</td>
-                  <td className="px-3 py-3.5 text-right text-sm font-bold text-black dark:text-white">
-                    {formatCurrency(report.summary.ytd.revenue)}
-                  </td>
-                  <td className="px-3 py-3.5 text-right text-sm font-bold text-[#8B5CF6]">
-                    {formatCurrency(report.summary.ytd.commission)}
-                  </td>
-                  <td className="px-3 py-3.5 text-right text-sm font-bold text-black dark:text-white">
-                    {report.summary.ytd.invoices}
-                  </td>
-                  {pointsData && (
-                    <td className="px-3 py-3.5 text-right text-sm font-bold text-[#8B5CF6]">
-                      {pointsData.months.reduce((s, m) => s + m.totalPoints, 0)}
-                    </td>
-                  )}
-                  {pointsData && (
-                    <td className="px-3 py-3.5 text-right text-sm font-bold text-success">
-                      {(() => {
-                        const total = pointsData.months.reduce((s, m) => s + m.monthlyBonus + m.zentactBonus, 0);
-                        return total > 0 ? bonusMoney(total) : '—';
-                      })()}
-                    </td>
-                  )}
-                  {(canApprove || canMarkPaid) && <td></td>}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+                  </button>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-4">
+                  <div>
+                    <p className="whitespace-nowrap text-xs text-body dark:text-bodydark2">{t('commissionReport.compBase')}</p>
+                    <p className="mt-0.5 whitespace-nowrap text-lg font-bold text-black dark:text-white">{money(baseSalaryEarned)}</p>
+                    <div className="mt-1.5 h-1 w-28 overflow-hidden rounded-full bg-stroke dark:bg-strokedark">
+                      <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                    </div>
+                    <p className="mt-1 whitespace-nowrap text-[11px] text-body dark:text-bodydark2">
+                      {t('commissionReport.payPeriodsProgress', { done: periodsElapsed, total: PAY_PERIODS, pct })}
+                    </p>
+                    <p className="whitespace-nowrap text-[11px] text-body dark:text-bodydark2">{t('commissionReport.compBaseOf', { amount: money(annualSalary) })}</p>
+                    {/* Sans cette ligne, « 2/26 » ressemble a une erreur pour un nouvel employe. */}
+                    {hiredMidYear && (
+                      <p className="whitespace-nowrap text-[11px] italic text-body dark:text-bodydark2">
+                        {t('commissionReport.compSinceHire', { date: fmtDate(hire, { year: 'numeric', month: 'long', day: 'numeric' }) })}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compCommission'), ytdComm)}</div>
+                  <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compAnnualBonus'), annualBonus)}</div>
+                  <div className="flex items-center gap-x-3">{op('+')}{part(t('commissionReport.compSignup'), signupPay)}</div>
+                  <div className="flex shrink-0 items-center gap-3 lg:border-l lg:border-stroke lg:pl-5 lg:dark:border-strokedark">
+                    {op('=')}
+                    <div className="rounded-xl bg-[rgba(245,131,69,0.14)] px-5 py-3 dark:bg-[rgba(245,131,69,0.16)]">
+                      <p className="whitespace-nowrap text-xs font-bold uppercase tracking-wide text-accent-ink dark:text-accent-ink-dark">{t('commissionReport.earnedToDate')}</p>
+                      <p className="mt-0.5 whitespace-nowrap text-2xl font-bold text-black dark:text-white">{money(totalComp)}</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-3 text-[11px] italic text-body dark:text-bodydark2">{t('commissionReport.grossDisclaimer')}</p>
+              </section>
+            );
+          })()}
 
-        {/* My payment (Zentact) merchants + processing-bonus commission paid */}
-        {processing && processing.merchants.length > 0 && (
-          <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          {/* Monthly Commission Chart */}
+          <section className="rounded-[20px] border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-              <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.processing.title')}</h3>
-              <p className="text-sm text-body">{t('commissionReport.processing.subtitle')}</p>
+              <h2 className="m-0 text-lg font-bold text-black dark:text-white">{t('commissionReport.monthlyCommission')}</h2>
+              <p className="m-0 text-sm text-body dark:text-bodydark2">{t('commissionReport.monthlyCommissionByUnlock')}</p>
             </div>
             <div className="p-6">
-              <div className="mb-4 flex flex-wrap gap-4">
-                <div className="rounded-md border border-stroke px-4 py-3 dark:border-strokedark">
-                  <p className="text-xs uppercase text-body">{t('commissionReport.processing.totalBonus')}</p>
-                  <p className="text-xl font-bold text-success">{formatCurrency(processing.totals.bonus)}</p>
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[600px] text-sm">
-                  <thead>
-                    <tr className="border-b border-stroke dark:border-strokedark">
-                      <th className="px-3 py-2 text-left text-xs font-medium text-body">{t('commissionReport.processing.merchant')}</th>
-                      <th className="px-3 py-2 text-right text-xs font-medium text-body">{t('commissionReport.processing.bonus')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {processing.merchants.map(m => (
-                      <tr key={m.merchantId} className="border-b border-stroke/50 dark:border-strokedark/50">
-                        <td className="px-3 py-2.5 font-medium text-black dark:text-white">{m.name}</td>
-                        <td className="px-3 py-2.5 text-right">
-                          {m.bonusPaid
-                            ? <span className="font-semibold text-success">{formatCurrency(m.bonusAmount)}{m.bonusDate ? ` · ${fmtDateOnly(m.bonusDate)}` : ''}</span>
-                            : <span className="text-xs text-body">{t('commissionReport.processing.notPaid')}</span>}
+              <ReactApexChart options={chartOptions} series={chartSeries} type="bar" height={320} />
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* ═══ Par mois : tableau + panneau de détail du mois ═══════════════════════════ */}
+      {tab === 'mois' && (
+        <div className="flex flex-wrap items-start gap-5">
+          <section className="min-w-0 flex-[999_1_520px]">
+            <div className="overflow-x-auto rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+              <table className="w-full min-w-[600px] border-collapse text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-body dark:text-bodydark2">
+                    <th className="border-b border-stroke px-4 py-3 font-bold dark:border-strokedark">{t('commissionReport.unlockMonth')}</th>
+                    {pointsData && <th className="border-b border-stroke px-4 py-3 text-right font-bold dark:border-strokedark">{t('commissionReport.pts')}</th>}
+                    <th className="border-b border-stroke px-4 py-3 text-right font-bold dark:border-strokedark">{t('commissionReport.revenue')}</th>
+                    <th className="border-b border-stroke px-4 py-3 text-right font-bold dark:border-strokedark">{t('commissionReport.commission')}</th>
+                    {pointsData && <th className="border-b border-stroke px-4 py-3 text-right font-bold dark:border-strokedark">{t('commissionReport.bonus')}</th>}
+                    <th className="border-b border-stroke px-4 py-3 font-bold dark:border-strokedark">{t('commissionReport.status')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.months.map((m) => {
+                    const sel = m.month === panelMonth;
+                    const mp = getMonthPoints(m.month);
+                    const st = monthStatus(m);
+                    return (
+                      <tr key={m.month} onClick={() => openMonth(m.month)} className={`cursor-pointer ${sel ? 'bg-[rgba(245,131,69,0.08)]' : 'hover:bg-gray-2 dark:hover:bg-[#1B1B1B]'}`}>
+                        <td className="border-b border-stroke p-0 dark:border-strokedark">
+                          <button type="button" aria-pressed={sel} onClick={(e) => { e.stopPropagation(); openMonth(m.month); }} className="flex w-full items-center gap-2 px-4 py-3 text-left font-bold text-black dark:text-white">
+                            {MONTH_NAMES[m.month - 1]}
+                            {isCurrentMonth(m.month) && <StatusPill family="new">{t('commissionReport.now')}</StatusPill>}
+                          </button>
+                        </td>
+                        {pointsData && (
+                          <td className={`border-b border-stroke px-4 py-3 text-right font-bold dark:border-strokedark ${mp && mp.totalPoints > 0 && !mp.quotaMet ? 'text-warning' : 'text-black dark:text-white'}`}>
+                            {mp && mp.totalPoints > 0 ? mp.totalPoints : '—'}
+                          </td>
+                        )}
+                        <td className="border-b border-stroke px-4 py-3 text-right text-[#424242] dark:border-strokedark dark:text-bodydark">{m.paidRevenue > 0 ? formatCurrency(m.paidRevenue) : '—'}</td>
+                        <td className="border-b border-stroke px-4 py-3 text-right font-bold text-black dark:border-strokedark dark:text-white">
+                          {m.commission > 0 ? formatCurrency(m.commission) : m.quotaForfeited > 0.005
+                            ? <StatusPill family="wait" title={t('commissionReport.quotaForfeitedHint', { amount: formatCurrency(m.quotaForfeited) }) as string}>{t('commissionReport.quotaForfeitedBadge')}</StatusPill>
+                            : '—'}
+                        </td>
+                        {pointsData && (
+                          <td className="border-b border-stroke px-4 py-3 text-right dark:border-strokedark">
+                            {mp && mp.monthlyBonus + mp.zentactBonus > 0 ? <span className="font-bold text-success">{bonusMoney(mp.monthlyBonus + mp.zentactBonus)}</span> : <span className="text-body">—</span>}
+                          </td>
+                        )}
+                        <td className="border-b border-stroke px-4 py-3 dark:border-strokedark">
+                          {st ? <StatusPill family={st.family}>{st.label}</StatusPill> : <span className="text-body">—</span>}
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    );
+                  })}
+                  <tr>
+                    <td className="px-4 py-3 font-bold text-black dark:text-white">{t('commissionReport.total')}</td>
+                    {pointsData && <td className="px-4 py-3 text-right font-bold text-black dark:text-white">{pointsData.months.reduce((s, m) => s + m.totalPoints, 0)}</td>}
+                    <td className="px-4 py-3 text-right font-bold text-black dark:text-white">{formatCurrency(report.summary.ytd.revenue)}</td>
+                    <td className="px-4 py-3 text-right font-bold text-black dark:text-white">{formatCurrency(report.summary.ytd.commission)}</td>
+                    {pointsData && <td className="px-4 py-3 text-right font-bold text-success">{yearBonus > 0 ? bonusMoney(yearBonus) : '—'}</td>}
+                    <td />
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* Panneau : le détail du mois choisi, ses actions et ses factures. */}
+          <aside aria-labelledby="month-panel-h" className="flex min-w-0 flex-[1_1_340px] flex-col gap-3.5 rounded-2xl border border-stroke bg-white p-[18px] dark:border-strokedark dark:bg-boxdark">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-body dark:text-bodydark2">{t('commissionReport.v2.monthDetail')}</span>
+                <h2 id="month-panel-h" className="m-0 text-xl font-bold capitalize text-black dark:text-white">{fmtMonth(parseInt(selectedYear), panelMonth)}</h2>
+              </div>
+              {(() => { const st = monthStatus(panelData); return st ? <StatusPill family={st.family}>{st.label}</StatusPill> : null; })()}
+            </div>
+
+            <dl className="m-0 flex flex-col gap-2 text-sm">
+              <div className="flex justify-between"><dt className="text-body dark:text-bodydark2">{t('commissionReport.commission')}</dt><dd className="m-0 font-medium text-black dark:text-white">{formatCurrency(panelData?.commission || 0)}</dd></div>
+              <div className="flex justify-between"><dt className="text-body dark:text-bodydark2">{t('commissionReport.monthlyBonus')}</dt><dd className="m-0 font-medium text-black dark:text-white">{bonusMoney(panelPts?.monthlyBonus || 0)}</dd></div>
+              <div className="flex justify-between"><dt className="text-body dark:text-bodydark2">{t('commissionReport.zentactBonus')}</dt><dd className="m-0 font-medium text-black dark:text-white">{bonusMoney(panelPts?.zentactBonus || 0)}</dd></div>
+              <div className="flex justify-between border-t border-stroke pt-2 dark:border-strokedark"><dt className="font-bold text-black dark:text-white">{t('commissionReport.total')}</dt><dd className="m-0 font-bold text-black dark:text-white">{formatCurrency((panelData?.commission || 0) + (panelPts?.monthlyBonus || 0) + (panelPts?.zentactBonus || 0))}</dd></div>
+              {(panelData?.quotaForfeited || 0) > 0.005 && (
+                <p className="m-0 rounded-xl bg-[rgba(253,176,34,0.18)] px-3 py-2 text-[13px] font-medium text-[#B54708] dark:bg-[rgba(253,176,34,0.16)] dark:text-[#FDB022]">
+                  {t('commissionReport.quotaForfeitedHint', { amount: formatCurrency(panelData!.quotaForfeited) })}
+                </p>
+              )}
+              {panelPts && (
+                <p className="m-0 text-[13px] text-body dark:text-bodydark2">
+                  {t('commissionReport.v2.pointsLine', { pts: panelPts.totalPoints, quota: panelPts.quota ?? MONTHLY_QUOTA })}
+                  {panelPts.quotaMet ? ` · ✓ ${t('commissionReport.quotaMet')}` : ''}
+                </p>
+              )}
+            </dl>
+
+            {/* Actions du mois (approuver / marquer payé / annuler) — mêmes règles qu'avant. */}
+            {(canApprove || canMarkPaid) && panelData && panelData.commissionQualifyingCount > 0 && (() => {
+              const m = panelData;
+              const qualifying = m.commissionQualifyingCount, approved = m.commissionApprovedCount, paid = m.commissionPaidCount;
+              const pending = Math.max(0, qualifying - approved - paid);
+              const busy = approvingMonth === m.month || markingPaidMonth === m.month;
+              return (
+                <div className="flex flex-wrap items-center gap-2 border-t border-stroke pt-3 dark:border-strokedark">
+                  <span className="mr-auto text-xs text-body dark:text-bodydark2" title={t('commissionReport.countsTitle', { pending, approved, paid }) as string}>
+                    {t('commissionReport.v2.counts', { pending, approved, paid })}
+                  </span>
+                  {canApprove && pending > 0 && (
+                    <Button size="xs" onClick={() => approveMonth(m.month)} disabled={busy}>{approvingMonth === m.month ? '…' : (approved > 0 || paid > 0 ? t('commissionReport.approveRest') : t('commissionReport.approve'))}</Button>
+                  )}
+                  {canMarkPaid && approved > 0 && (
+                    <Button size="xs" variant="primary" onClick={() => markPaidMonth(m.month)} disabled={busy}>{markingPaidMonth === m.month ? '…' : t('commissionReport.markPaid')}</Button>
+                  )}
+                  {canApprove && paid === qualifying && (
+                    <Button size="xs" variant="ghost" onClick={() => unapproveMonth(m.month)} disabled={busy}>{t('commissionReport.undoApproval')}</Button>
+                  )}
+                </div>
+              );
+            })()}
+
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">
+                {t('commissionReport.v2.invoicesCount', { count: drillInvoices.length })}
+              </span>
+              {loadingDrill ? (
+                <StateCard kind="loading" />
+              ) : drillInvoices.length === 0 ? (
+                <p className="m-0 py-4 text-sm text-body dark:text-bodydark2">{t('commissionReport.noQualifyingInvoices')}</p>
+              ) : (
+                <ul className="m-0 flex list-none flex-col p-0">
+                  {drillInvoices.map((inv) => {
+                    const cs = inv.commissionStatus ? COMMISSION_STATUS_STYLES[inv.commissionStatus] : null;
+                    return (
+                      <li key={inv.invoiceNumber} className="flex items-center gap-2.5 border-b border-stroke py-2.5 last:border-b-0 dark:border-strokedark">
+                        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <span className="truncate text-sm font-medium text-black dark:text-white">{inv.customerName}</span>
+                          <span className="flex flex-wrap items-center gap-1.5 text-xs text-body dark:text-bodydark2">
+                            <button type="button" onClick={() => handlePreview(inv.invoiceNumber)} className="hover:underline">{inv.invoiceNumber}</button>
+                            {cs && <StatusPill family={cs.family}>{t(cs.key)}</StatusPill>}
+                            {approvalPill(inv)}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-black dark:text-white">{formatCurrency(inv.commission)}</span>
+                        <RowMenu items={invoiceMenu(inv)} label={t('commissionReport.v2.invoiceActions', { number: inv.invoiceNumber }) as string} />
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+            {(canApprove || canMarkPaid) && drillInvoices.some(selectionnable) && (
+              <Button size="sm" onClick={() => setTab('factures')}>{t('commissionReport.v2.selectInvoices')}</Button>
+            )}
+            <Button size="md" variant="secondary" className="text-accent-ink dark:text-accent-ink-dark" onClick={() => openMissing()}>{t('commissionReport.missing.button')}</Button>
+          </aside>
+        </div>
+      )}
+
+      {/* ═══ Factures : tableau complet du mois, sélection et approbation ═════════════ */}
+      {tab === 'factures' && (
+        <section className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="m-0 mr-auto text-lg font-bold capitalize text-black dark:text-white">
+              {t('commissionReport.v2.invoicesOf', { month: fmtMonth(parseInt(selectedYear), panelMonth) })}
+            </h2>
+            <Select value={String(panelMonth)} onChange={(v) => openMonth(parseInt(v))} options={MONTH_NAMES.map((name, i) => ({ value: String(i + 1), label: name }))} buttonClassName={selectCls} />
+          </div>
+          <div className="overflow-x-auto rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+            {loadingDrill ? <StateCard kind="loading" />
+              : drillInvoices.length === 0 ? <StateCard kind="empty" title={t('commissionReport.noQualifyingInvoices')} />
+              : renderInvoiceTable(drillInvoices)}
+          </div>
+        </section>
+      )}
+
+      {/* ═══ Paiements : marchands Zentact et prime de traitement ═════════════════════ */}
+      {tab === 'paiements' && (
+        !processing || processing.merchants.length === 0 ? (
+          <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+            <StateCard kind="empty" title={t('commissionReport.v2.noPayments')} />
+          </div>
+        ) : (
+          <section className="rounded-[20px] border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
+              <div>
+                <h2 className="m-0 text-lg font-bold text-black dark:text-white">{t('commissionReport.processing.title')}</h2>
+                <p className="m-0 text-sm text-body dark:text-bodydark2">{t('commissionReport.processing.subtitle')}</p>
+              </div>
+              <div className="text-right">
+                <p className="m-0 text-xs uppercase text-body dark:text-bodydark2">{t('commissionReport.processing.totalBonus')}</p>
+                <p className="m-0 text-xl font-bold text-success">{formatCurrency(processing.totals.bonus)}</p>
               </div>
             </div>
-          </div>
-        )}
-
-      </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px] border-collapse text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-body dark:text-bodydark2">
+                    <th className="border-b border-stroke px-4 py-3 font-bold dark:border-strokedark">{t('commissionReport.processing.merchant')}</th>
+                    <th className="border-b border-stroke px-4 py-3 text-right font-bold dark:border-strokedark">{t('commissionReport.processing.bonus')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {processing.merchants.map((m) => (
+                    <tr key={m.merchantId}>
+                      <td className="border-b border-stroke px-4 py-3 font-medium text-black dark:border-strokedark dark:text-white">{m.name}</td>
+                      <td className="border-b border-stroke px-4 py-3 text-right dark:border-strokedark">
+                        {m.bonusPaid
+                          ? <span className="font-bold text-success">{formatCurrency(m.bonusAmount)}{m.bonusDate ? ` · ${fmtDateOnly(m.bonusDate)}` : ''}</span>
+                          : <StatusPill family="neutral">{t('commissionReport.processing.notPaid')}</StatusPill>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )
+      )}
 
       {/* Preview Modal */}
       {previewModal.isOpen && (
