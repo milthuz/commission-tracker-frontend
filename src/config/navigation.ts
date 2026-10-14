@@ -59,7 +59,8 @@ export const NAV: NavSection[] = [
         children: [
           { id: 'rateCalculator', label: 'sidebar.rateCalculator', to: '/rate-calculator', visible: (c) => any(c, 'icplus:use'), keywords: 'ic+ taux relevé statement' },
           { id: 'revenueModeler', label: 'sidebar.revenueModeler', to: '/revenue-modeler', visible: (c) => any(c, 'revmodel:use'), keywords: 'p&l scénario chaîne' },
-          { id: 'pricingGuide', label: 'sidebar.pricingGuide', to: '/pricing-guide', visible: (c) => any(c, 'hardware:view', 'pricing:view'), keywords: 'prix matériel price hardware' },
+          { id: 'pricingGuide', label: 'sidebar.pricingGuide', to: '/pricing-guide', // Same rule as the old menu, where the guide sat under Ressources: resources:view AND one of the two.
+          visible: (c) => any(c, 'resources:view') && any(c, 'hardware:view', 'pricing:view'), keywords: 'prix matériel price hardware' },
           { id: 'kaizenDemo', label: 'sidebar.kaizenDemo', to: '/kaizen-demo', visible: (c) => any(c, 'demo:kaizen'), keywords: 'appstream démo' },
         ],
       },
