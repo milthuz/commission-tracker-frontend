@@ -86,6 +86,8 @@ export interface Lead {
   // Journal par étape écrit à l'acceptation : { crm, callback, repEmail, merchantEmail }.
   // Chaque entrée porte `ok` et, en cas d'échec, `error` ou `skipped`.
   automation: Record<string, any>;
+  possibleMerge?: boolean;
+  mergedInto?: number | null;
   eventThanks?: { openedAt: string | null; openCount: number; linkOpenedAt: string | null; linkOpenCount: number } | null;
   // Client existant : contacts Zoho Books (3 organisations) et Desk, par courriel. null = pas
   // encore vérifié. Masqué à qui n'examine pas (comme le doublon).

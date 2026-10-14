@@ -5337,6 +5337,47 @@
         "summary": "{{sent}} envoyés · {{opened}} ouverts · {{clicked}} ont ouvert le lien de réservation · {{booked}} rendez-vous.",
         "caveat": "Les ouvertures sont sous-estimées (beaucoup de logiciels de courriel bloquent ou mettent en cache les images) ; le lien et les rendez-vous sont exacts."
       }
+    },
+    "merge": {
+      "badge": "Doublon possible",
+      "badgeHint": "Ressemble à une autre demande récente (même courriel, téléphone ou commerce). Ouvrez-la pour fusionner.",
+      "likelyTitle": "Même demande probable ({{n}}) — fusionnez pour ne garder qu'une piste :",
+      "pickTitle": "Fusionner avec une autre piste",
+      "pickLink": "Fusionner avec une autre piste…",
+      "searchPh": "Numéro (L-00041), commerce ou courriel…",
+      "noneFound": "Aucune piste trouvée.",
+      "sameDay": "même jour",
+      "alreadyAccepted": "déjà acceptée ({{rep}})",
+      "matchedOn": "Même",
+      "on": {
+        "email": "courriel",
+        "phone": "téléphone",
+        "business": "commerce"
+      },
+      "mergeBtn": "Fusionner",
+      "confirmTitle": "Fusionner ces deux pistes ?",
+      "confirmBody": "Choisissez la piste à garder. Elle reçoit ce qui lui manquait ; ce qui diffère et le message de l'autre vont dans ses notes. L'autre devient un doublon relié à elle.",
+      "keep": "Garder {{ref}}",
+      "thisOne": "celle-ci",
+      "inZoho": "déjà dans Zoho",
+      "acceptedKept": "La piste acceptée est gardée : elle existe déjà dans Zoho, et les nouvelles informations y sont ajoutées en note.",
+      "confirmBtn": "Fusionner",
+      "merging": "Fusion…",
+      "done": "{{gone}} fusionnée dans {{keep}}.",
+      "addedN": "{{n}} information(s) ajoutée(s).",
+      "zohoNoted": "Une note a été ajoutée dans Zoho.",
+      "zohoNoteFailed": "La note Zoho n'a pas pu être ajoutée.",
+      "mergedInto": "Cette piste a été fusionnée dans {{ref}}.",
+      "open": "Ouvrir {{ref}}",
+      "mergedFrom": "Fusionnée avec :",
+      "err": {
+        "already_merged": "L'une des deux pistes a déjà été fusionnée.",
+        "absorbed_not_pending": "Seule une piste encore en examen peut être fusionnée dans une autre.",
+        "keep_closed": "La piste à garder est rejetée ou fermée.",
+        "bad_target": "Choisissez deux pistes différentes.",
+        "not_found": "Piste introuvable.",
+        "failed": "La fusion a échoué."
+      }
     }
   },
   "csLookup": {

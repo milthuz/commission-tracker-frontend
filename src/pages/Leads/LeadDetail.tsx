@@ -4,6 +4,7 @@ import { LifeBuoy } from 'lucide-react';
 import Select from '../../components/Select';
 import TelephoneCopiable from '../../components/TelephoneCopiable';
 import { authHeaders, leadFullName, statusTone, type DuplicateRecord, type Lead, type LeadRep } from './types';
+import MergePanel from './MergePanel';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -45,11 +46,13 @@ const StepLine = ({ ok, skipped, label, detail }: { ok: boolean; skipped?: strin
   </li>
 );
 
-const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
+const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
   leadId: number;
   reps: LeadRep[];
   onClose: () => void;
   onChanged: () => void;
+  // Ouvre une AUTRE piste dans la même fiche (liens de fusion).
+  onOpenLead?: (id: number) => void;
 }) => {
   const { t, i18n } = useTranslation();
   const fr = !!i18n.language?.startsWith('fr');
@@ -74,6 +77,8 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
   // 2026-10-05). Un Lead Zoho n'a aucun champ « compte » : rattacher veut donc dire creer une
   // OPPORTUNITE sur le compte existant, pas une seconde fiche qui deviendrait un second compte.
   const [canAttach, setCanAttach] = useState(false);
+  // Fusion de deux demandes du même marchand (permission `leads:merge`, 2026-10-14).
+  const [canMerge, setCanMerge] = useState(false);
   const [attachTo, setAttachTo] = useState<DuplicateRecord | null>(null);
   const [ticketOpen, setTicketOpen] = useState(false);
   const [departments, setDepartments] = useState<{ id: string; name: string }[] | null>(null);
@@ -101,6 +106,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
       setCanDelete(!!data.can?.delete);
       setCanTicket(!!data.can?.toTicket);
       setCanAttach(!!data.can?.attachExisting);
+      setCanMerge(!!data.can?.merge);
       setRep(data.lead?.assigned?.repName || data.lead?.suggested?.repName || '');
     } catch {
       setNotice({ tone: 'error', text: t('leads.detail.loadFailed') });
@@ -317,6 +323,18 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged }: {
             </div>
 
             <div className="max-h-[72vh] overflow-y-auto px-6 py-5">
+              <MergePanel
+                lead={lead}
+                canMerge={canMerge}
+                onOpenLead={onOpenLead}
+                onMerged={async (keepId, message) => {
+                  onChanged();
+                  // La piste ouverte a été absorbée : on montre celle qu'on a gardée.
+                  if (keepId !== leadId && onOpenLead) onOpenLead(keepId);
+                  else await load();
+                  setNotice({ tone: 'ok', text: message });
+                }}
+              />
               {notice && (
                 <div role="status" className={`mb-5 rounded-sm border px-4 py-3 text-sm ${
                   notice.tone === 'ok' ? 'border-success/40 bg-success/10 text-success'

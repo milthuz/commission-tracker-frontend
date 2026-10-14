@@ -5337,6 +5337,47 @@
         "summary": "{{sent}} sent · {{opened}} opened · {{clicked}} opened the booking link · {{booked}} booked.",
         "caveat": "Opens are under-counted (many mail apps block or cache images); the booking link and bookings are exact."
       }
+    },
+    "merge": {
+      "badge": "Possible duplicate",
+      "badgeHint": "Looks like another recent request (same email, phone or business). Open it to merge.",
+      "likelyTitle": "Same request likely ({{n}}) — merge to keep a single lead:",
+      "pickTitle": "Merge with another lead",
+      "pickLink": "Merge with another lead…",
+      "searchPh": "Reference (L-00041), business or email…",
+      "noneFound": "No matching lead.",
+      "sameDay": "same day",
+      "alreadyAccepted": "already accepted ({{rep}})",
+      "matchedOn": "Same",
+      "on": {
+        "email": "email",
+        "phone": "phone",
+        "business": "business"
+      },
+      "mergeBtn": "Merge",
+      "confirmTitle": "Merge these two leads?",
+      "confirmBody": "Choose the lead to keep. It takes the details it was missing; anything that differs and the other lead's message go into its notes. The other lead becomes a duplicate linked to it.",
+      "keep": "Keep {{ref}}",
+      "thisOne": "this one",
+      "inZoho": "already in Zoho",
+      "acceptedKept": "The accepted lead is kept: it already exists in Zoho, and the new details are added to it as a note.",
+      "confirmBtn": "Merge",
+      "merging": "Merging…",
+      "done": "{{gone}} merged into {{keep}}.",
+      "addedN": "{{n}} detail(s) added.",
+      "zohoNoted": "A note was added in Zoho.",
+      "zohoNoteFailed": "The Zoho note could not be added.",
+      "mergedInto": "This lead was merged into {{ref}}.",
+      "open": "Open {{ref}}",
+      "mergedFrom": "Merged with:",
+      "err": {
+        "already_merged": "One of the two leads was already merged.",
+        "absorbed_not_pending": "Only a lead still in review can be merged into another.",
+        "keep_closed": "The lead to keep is rejected or closed.",
+        "bad_target": "Choose two different leads.",
+        "not_found": "Lead not found.",
+        "failed": "The merge failed."
+      }
     }
   },
   "csLookup": {

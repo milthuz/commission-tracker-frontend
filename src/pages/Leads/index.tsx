@@ -365,7 +365,14 @@ const Leads = () => {
                     return (
                       <tr key={l.id} className="border-t border-stroke dark:border-strokedark">
                         <td className="px-4 py-4">
-                          <p className="font-medium text-black dark:text-white">{l.businessName}</p>
+                          <p className="font-medium text-black dark:text-white">
+                            {l.businessName}
+                            {l.possibleMerge && (
+                              <span className="ml-2 inline-flex rounded-full bg-warning/15 px-2 py-0.5 align-middle text-[11px] font-medium text-warning" title={t('leads.merge.badgeHint') as string}>
+                                {t('leads.merge.badge')}
+                              </span>
+                            )}
+                          </p>
                           <p className="mt-0.5 text-xs text-bodydark2">
                             {l.refCode}
                             {[l.city, l.province].filter(Boolean).length ? ` · ${[l.city, l.province].filter(Boolean).join(', ')}` : ''}
@@ -442,7 +449,7 @@ const Leads = () => {
       <ImportLeads open={importOpen} onClose={() => setImportOpen(false)} onChanged={() => { load(); notifyLeadsChanged(); }} />
       <IntakeForm open={intakeOpen} onClose={() => setIntakeOpen(false)} onCreated={() => { load(); notifyLeadsChanged(); }} />
       {openId != null && (
-        <LeadDetail leadId={openId} reps={reps} onClose={() => setOpenId(null)} onChanged={() => { load(); notifyLeadsChanged(); }} />
+        <LeadDetail leadId={openId} reps={reps} onClose={() => setOpenId(null)} onChanged={() => { load(); notifyLeadsChanged(); }} onOpenLead={setOpenId} />
       )}
     </>
   );
