@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import axios from 'axios';
 import { ContentLoader } from '../common/Loader';
 import { Outlet } from 'react-router-dom';
@@ -9,6 +9,7 @@ import PartnerDropdownNotification from '../components/PartnerHeader/PartnerDrop
 import PartnerChatAssistant from '../components/PartnerHeader/PartnerChatAssistant';
 import PartnerSofiaTour from '../components/PartnerHeader/PartnerSofiaTour';
 import { useClusterFavicon } from '../hooks/useClusterFavicon';
+import { useTheme } from '../lib/theme';
 
 // Mirrors layout/DefaultLayout.tsx's Sidebar + Header + content-area split (user decision
 // 2026-07-2x: the Partner Portal should act like Sales Hub, not a stripped-down shell) — the
@@ -37,24 +38,9 @@ const PartnerLayout: React.FC = () => {
       .catch(() => {});
   };
 
-  // Shares the same 'darkMode' localStorage key as the internal Header — a device-level
-  // preference, not a per-account setting, so both apps should agree on it.
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    if (saved !== null) return saved === 'true';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
-
-  useEffect(() => {
-    if (darkMode) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
-  }, [darkMode]);
-
-  const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    localStorage.setItem('darkMode', String(newMode));
-  };
+  // Same device-level theme setting as the internal app (lib/theme).
+  const [theme, , toggleDarkMode] = useTheme();
+  const darkMode = theme === 'dark';
 
   return (
     <div className="dark:bg-boxdark-2 dark:text-bodydark">

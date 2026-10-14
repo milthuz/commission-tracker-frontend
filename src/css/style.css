@@ -4,7 +4,7 @@
 
 @layer base {
   /* Texte `success` (tailwind.config.cjs, textColor) : vert foncé sur fond clair, le pastel de la
-     palette sur fond sombre. `.dark` est posée sur le body ; les descendants héritent de la
+     palette sur fond sombre. `.dark` est posée sur <html> ; les descendants héritent de la
      variable, donc pas de piège de sélecteur descendant ici. */
   :root { --color-success-text: 4 120 87; }      /* emerald-700 #047857 */
   .dark { --color-success-text: 183 240 209; }   /* pastel d'origine #B7F0D1 */
@@ -23,11 +23,8 @@
     @apply font-satoshi font-normal text-base text-body bg-whiten relative z-1;
   }
 
-  /* ⚠️ Écrit en CSS direct, PAS avec la variante `dark:` : `darkMode: 'class'` génère un
-     sélecteur DESCENDANT (`.dark .dark\:bg-…`), or la classe `dark` est posée sur le body
-     lui-même — un élément n'est pas son propre descendant, donc `dark:bg-boxdark-2` sur le
-     body ne s'applique jamais. Essayé, vérifié, sans effet. */
-  body.dark {
+  /* La classe `dark` est sur <html> (lib/theme) : le body est donc son descendant. */
+  .dark body {
     @apply bg-boxdark-2;
   }
 

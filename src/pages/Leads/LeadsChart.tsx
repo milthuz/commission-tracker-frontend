@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactApexChart from 'react-apexcharts';
 import type { ApexOptions } from 'apexcharts';
@@ -40,18 +40,9 @@ function periods(unit: 'month' | 'week', from: string, to: string): string[] {
   return out;
 }
 
-// Le thème suit la classe `dark` de <html> EN DIRECT : un état local figé au montage resterait clair
-// après la bascule (le piège de useColorMode décrit dans ClusterWordmark).
-export function useIsDark() {
-  const get = () => document.documentElement.classList.contains('dark');
-  const [dark, setDark] = useState(get);
-  useEffect(() => {
-    const mo = new MutationObserver(() => setDark(get()));
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => mo.disconnect();
-  }, []);
-  return dark;
-}
+// Le thème suit le réglage unique de l'app EN DIRECT (lib/theme).
+import { useIsDark } from '../../lib/theme';
+export { useIsDark };
 
 const LeadsChart = ({ chart, from, to, hidden, onHiddenChange }: {
   chart: { week: ChartPoint[]; month: ChartPoint[] } | undefined; from: string; to: string;

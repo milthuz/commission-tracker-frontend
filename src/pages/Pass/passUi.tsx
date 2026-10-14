@@ -141,7 +141,7 @@ export const PassLangToggle = () => {
 
 /**
  * Bascule clair/sombre. Branchée sur `useColorMode` — le MÊME réglage que Sales Hub
- * (`color-theme` dans localStorage, classe `dark` sur le body), décision utilisateur du
+ * (clé `theme` de lib/theme, classe `dark` sur <html>), décision utilisateur du
  * 2026-08-03. Elle est exposée ici parce qu'un marchand membre ne voit jamais la barre
  * latérale de Sales Hub : sans cette bascule, il hériterait d'un réglage sans pouvoir le
  * changer.

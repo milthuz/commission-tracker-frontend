@@ -1,19 +1,10 @@
-import { useEffect } from 'react';
-import useLocalStorage from './useLocalStorage';
+import { useTheme } from '../lib/theme';
 
+// Kept for its callers (opener field app, La Passe toggle); now a thin wrapper over the single
+// app-wide theme setting in lib/theme — it used to keep its own key and its own <body> class.
 const useColorMode = () => {
-  const [colorMode, setColorMode] = useLocalStorage('color-theme', 'light');
-
-  useEffect(() => {
-    const className = 'dark';
-    const bodyClass = window.document.body.classList;
-
-    colorMode === 'dark'
-      ? bodyClass.add(className)
-      : bodyClass.remove(className);
-  }, [colorMode]);
-
-  return [colorMode, setColorMode];
+  const [theme, setTheme] = useTheme();
+  return [theme, (v: string) => setTheme(v === 'dark' ? 'dark' : 'light')] as const;
 };
 
 export default useColorMode;

@@ -6,6 +6,10 @@ import App from './App';
 import { installBadgeRefreshOnMutations } from './lib/badgeEvents';
 import './css/style.css';
 import './css/satoshi.css';
+import { applyTheme, readTheme } from './lib/theme';
+
+// index.html already set the class before first paint; this also clears the old <body> class.
+applyTheme(readTheme());
 
 // Global axios interceptor: if admin has set an impersonation target in
 // localStorage, attach it as X-Impersonate-As on every request.

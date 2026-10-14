@@ -1,5 +1,5 @@
 /* Palette de l'application de terrain de l'opener — suit le thème de Sales Hub (classe `dark`
-   posée sur le body par useColorMode). Les écrans n'emploient QUE ces variables : aucune
+   posée sur <html> par lib/theme). Les écrans n'emploient QUE ces variables : aucune
    couleur de surface ou de texte n'y est codée en dur.
 
    Thème clair : les mêmes rôles que Sales Hub en clair (fond whiten, cartes blanches, bordure

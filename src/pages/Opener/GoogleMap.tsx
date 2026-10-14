@@ -1,17 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Thème de Sales Hub (classe `dark` sur le body), suivi EN DIRECT : basculer le thème
-// recolore la carte sans la recharger.
-export function useIsDark() {
-  const read = () => typeof document !== 'undefined' && document.body.classList.contains('dark');
-  const [dark, setDark] = useState(read);
-  useEffect(() => {
-    const obs = new MutationObserver(() => setDark(read()));
-    obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-    return () => obs.disconnect();
-  }, []);
-  return dark;
-}
+// Thème de Sales Hub suivi EN DIRECT (lib/theme) : basculer le thème recolore la carte sans la recharger.
+import { useIsDark } from '../../lib/theme';
+export { useIsDark };
 import { api } from './api';
 
 // Carte Google Maps du module Opener.

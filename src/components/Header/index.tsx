@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useTheme } from '../../lib/theme';
 import { useTranslation } from 'react-i18next';
 import DropdownNotification from './DropdownNotification';
 import DropdownUser from './DropdownUser';
@@ -11,30 +11,9 @@ const Header = (props: {
 }) => {
   const { i18n } = useTranslation();
   const setLang = (l: 'en' | 'fr') => { i18n.changeLanguage(l); localStorage.setItem('language', l); };
-  const [darkMode, setDarkMode] = useState(() => {
-    // Check localStorage and system preference
-    const saved = localStorage.getItem('darkMode');
-    if (saved !== null) {
-      return saved === 'true';
-    }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
-
-  // Apply dark mode on mount and when it changes
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  // Toggle dark mode
-  const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    localStorage.setItem('darkMode', String(newMode));
-  };
+  // Single theme setting shared by the whole app (lib/theme).
+  const [theme, , toggleDarkMode] = useTheme();
+  const darkMode = theme === 'dark';
 
   return (
     <header className="sticky top-0 z-999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">

@@ -13,25 +13,21 @@
   </head>
   <body>
     <!--
-      Le thème est posé AVANT le premier affichage. `useColorMode` l'applique dans un
-      `useEffect`, donc après le premier rendu : toute page s'affichait en clair une
-      fraction de seconde puis basculait en sombre. Ce clignotement existait depuis
-      toujours, mais il est devenu criant quand les écrans de La Passe se sont mis à
-      suivre le thème (2026-08-03) — le logo, qui rend ses deux variantes et laisse le CSS
-      choisir, changeait visiblement d'image à chaque chargement.
-
-      Script bloquant et minuscule, volontairement AVANT le bundle : il doit s'exécuter
-      pendant l'analyse du document, pas après. `useColorMode` posera ensuite la même
-      classe, sans effet visible puisqu'elle y sera déjà.
-
-      La valeur est écrite par `useLocalStorage`, donc en JSON — d'où les guillemets.
-      Toute lecture qui échoue laisse simplement le thème clair.
+      Thème posé AVANT le premier affichage, sur <html> (jamais le body), pour éviter le flash
+      clair en thème sombre. Même règle que readTheme() dans src/lib/theme.ts — les garder
+      identiques : clé `theme` ('dark' | 'light'), sinon les deux anciennes clés (`darkMode`
+      'true'/'false', `color-theme` en JSON), sinon la préférence du système.
     -->
     <script>
       try {
-        if (JSON.parse(localStorage.getItem('color-theme')) === 'dark') {
-          document.body.classList.add('dark');
+        var t = localStorage.getItem('theme');
+        if (t !== 'dark' && t !== 'light') {
+          var a = localStorage.getItem('darkMode'), b = localStorage.getItem('color-theme');
+          t = a !== null ? (a === 'true' ? 'dark' : 'light')
+            : b !== null ? (JSON.parse(b) === 'dark' ? 'dark' : 'light')
+            : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         }
+        if (t === 'dark') document.documentElement.classList.add('dark');
       } catch (e) {}
     </script>
     <div id="root"></div>
