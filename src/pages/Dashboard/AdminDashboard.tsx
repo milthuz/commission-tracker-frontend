@@ -36,7 +36,7 @@ const formatCurrencyFull = (val: number) => {
   return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(val);
 };
 
-const ECommerce: React.FC = () => {
+const AdminDashboard: React.FC = () => {
   const { t } = useTranslation();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -331,4 +331,4 @@ const ECommerce: React.FC = () => {
   );
 };
 
-export default ECommerce;
+export default AdminDashboard;

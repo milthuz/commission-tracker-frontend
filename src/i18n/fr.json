@@ -7684,5 +7684,11 @@
     "bulkImport": "Réimporter TOUTES les factures de Zoho Books ? L'opération se fait en arrière-plan et prend de 10 à 20 minutes.",
     "bulkImportButton": "Tout réimporter",
     "bulkImportWord": "RÉIMPORTER"
+  },
+  "notFound": {
+    "eyebrow": "Erreur 404",
+    "title": "Cette page n'existe pas",
+    "body": "Rien dans Sales Hub à cette adresse :",
+    "home": "Retour au tableau de bord"
   }
 }

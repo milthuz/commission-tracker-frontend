@@ -68,7 +68,8 @@ function lazyRoute<T extends { default: React.ComponentType<any> }>(factory: () 
 //
 // Kept EAGER on purpose: ZohoLogin / the auth + legal pages (first paint for a signed-out user),
 // RepDashboard (the landing page for most users), Profile, Versions, and the layout/route guards.
-const ECommerce = lazyRoute(() => import('./pages/Dashboard/ECommerce'), true);
+const AdminDashboard = lazyRoute(() => import('./pages/Dashboard/AdminDashboard'), true);
+const NotFound = lazyRoute(() => import('./pages/NotFound'));
 const ManagerDashboard = lazyRoute(() => import('./pages/Dashboard/ManagerDashboard'), true);
 const CommissionTracker = lazyRoute(() => import('./pages/CommissionTracker'), true);
 const CommissionReport = lazyRoute(() => import('./pages/CommissionReport'), true);
@@ -117,7 +118,7 @@ function HomeRoute() {
   const isManager = perms.includes('report:view_others') || perms.includes('tracker:view_all_details');
   const canRepDash = perms.includes('dashboard:view_own');
   let body;
-  if (isAdmin) body = <ECommerce />;
+  if (isAdmin) body = <AdminDashboard />;
   else if (isManager) body = <ManagerDashboard />;
   else if (canRepDash) body = <RepDashboard />;
   // No dashboard permission → send them to a page they can use.
@@ -605,19 +606,19 @@ function AppContent() {
               </>
             }
           />
+          {/* Unknown address: signed in → a real 404 inside the app; signed out →
+              ProtectedRoute sends to login and brings them back here afterwards. */}
+          <Route
+            path="*"
+            element={
+              <>
+                <PageTitle title="404 | Sales Hub" />
+                <NotFound />
+              </>
+            }
+          />
         </Route>
       </Route>
-
-      {/* Catch all - redirect to login if not authenticated */}
-      <Route
-        path="*"
-        element={
-          <>
-            <PageTitle title="404 | Sales Hub" />
-            <ZohoLogin />
-          </>
-        }
-      />
     </Routes>
     </Suspense>
     </AppErrorBoundary>

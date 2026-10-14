@@ -7684,5 +7684,11 @@
     "bulkImport": "Re-import ALL invoices from Zoho Books? It runs in the background and takes 10 to 20 minutes.",
     "bulkImportButton": "Re-import everything",
     "bulkImportWord": "REIMPORT"
+  },
+  "notFound": {
+    "eyebrow": "Error 404",
+    "title": "This page doesn't exist",
+    "body": "Nothing in Sales Hub at this address:",
+    "home": "Back to the dashboard"
   }
 }

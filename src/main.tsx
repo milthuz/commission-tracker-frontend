@@ -6,8 +6,6 @@ import App from './App';
 import { installBadgeRefreshOnMutations } from './lib/badgeEvents';
 import './css/style.css';
 import './css/satoshi.css';
-import 'jsvectormap/dist/css/jsvectormap.css';
-import 'flatpickr/dist/flatpickr.min.css';
 
 // Global axios interceptor: if admin has set an impersonation target in
 // localStorage, attach it as X-Impersonate-As on every request.
