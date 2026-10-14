@@ -6454,13 +6454,16 @@
       "v2": "V2 (Kaizen)",
       "v2Sub": "{{kaizen}} Kaizen stores · {{twins}} of them also Billing subscribers",
       "v1": "V1",
-      "v1Sub": "Billing subscribers with no Kaizen store",
+      "v1Sub": "PAYING subscribers with no Kaizen store",
       "matched": "Matched",
       "matchedSub": "{{auto}} automatic · {{manual}} manual",
       "toReview": "To handle",
       "toReviewSub": "{{review}} to confirm · {{none}} not found · {{noAddr}} no address",
       "pending": "Pending",
-      "pendingSub": "{{ignored}} ignored · {{missing}} gone from their source"
+      "pendingSub": "{{ignored}} ignored · {{missing}} gone from their source",
+      "v1SubFormer": "former clients (subscription ended)",
+      "former": "Former clients",
+      "formerSub": "subscription ended · click to view"
     },
     "syncError": "Kaizen sync failed: {{error}}",
     "matchError": "Matching failed: {{error}}",
@@ -6569,7 +6572,8 @@
         "matching": "Google"
       }
     },
-    "seasonalHint": "All their subscriptions are paused: a seasonal restaurant, still a customer."
+    "seasonalHint": "All their subscriptions are paused: a seasonal restaurant, still a customer.",
+    "parkPaying": "{{total}} paying clients ({{seasonal}} seasonal) · {{former}} former clients not counted (“Inactive only” filter)"
   },
   "opener": {
     "noMapsKey": "Map unavailable: the Google Maps browser key (GOOGLE_MAPS_BROWSER_KEY) is not set on the server.",

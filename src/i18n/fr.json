@@ -6454,13 +6454,16 @@
       "v2": "V2 (Kaizen)",
       "v2Sub": "{{kaizen}} magasins Kaizen · dont {{twins}} aussi abonnés Billing",
       "v1": "V1",
-      "v1Sub": "abonnés Billing sans magasin Kaizen",
+      "v1Sub": "abonnés PAYANTS sans magasin Kaizen",
       "matched": "Appariés",
       "matchedSub": "{{auto}} automatiques · {{manual}} manuels",
       "toReview": "À traiter",
       "toReviewSub": "{{review}} à confirmer · {{none}} non trouvés · {{noAddr}} sans adresse",
       "pending": "En attente",
-      "pendingSub": "{{ignored}} ignorés · {{missing}} disparus de leur source"
+      "pendingSub": "{{ignored}} ignorés · {{missing}} disparus de leur source",
+      "v1SubFormer": "anciens clients (abonnement terminé)",
+      "former": "Anciens clients",
+      "formerSub": "abonnement terminé · cliquer pour les voir"
     },
     "syncError": "Synchro Kaizen en échec : {{error}}",
     "matchError": "Appariement en échec : {{error}}",
@@ -6569,7 +6572,8 @@
         "matching": "Google"
       }
     },
-    "seasonalHint": "Tous ses abonnements sont en pause : restaurant saisonnier, toujours client."
+    "seasonalHint": "Tous ses abonnements sont en pause : restaurant saisonnier, toujours client.",
+    "parkPaying": "{{total}} clients payants (dont {{seasonal}} saisonniers) · {{former}} anciens clients non comptés (filtre « Inactifs seulement »)"
   },
   "opener": {
     "noMapsKey": "Carte indisponible : la clé navigateur Google Maps (GOOGLE_MAPS_BROWSER_KEY) n'est pas configurée sur le serveur.",

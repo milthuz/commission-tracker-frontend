@@ -93,7 +93,7 @@ interface Status {
   progress: Progress | null;
   lastRun: RunInfo | null;
   counts: Record<MatchStatus, number>;
-  totals: { active: number; inactive: number; missing: number; kaizen: number; billing: number; v1: number; v2: number; twins: number };
+  totals: { active: number; inactive: number; seasonal?: number; missing: number; kaizen: number; billing: number; v1: number; v2: number; twins: number };
 }
 
 const FILTERS = ['todo', 'review', 'none', 'no_address', 'pending', 'auto', 'manual', 'ignored', 'missing', 'all'] as const;
@@ -180,12 +180,13 @@ const OpenerMatchAdmin = () => {
   useEffect(() => { setOffset(0); }, [filter, active, version, source, qDebounced]);
 
   const loadStatus = useCallback(async () => {
-    const r = await fetch(`${API_URL}/api/opener/locations/status`, { headers: authHeaders() });
+    // Les tuiles suivent le filtre « Clients actifs / anciens / tous » (actifs par défaut).
+    const r = await fetch(`${API_URL}/api/opener/locations/status?active=${active || 'all'}`, { headers: authHeaders() });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`);
     const s: Status = await r.json();
     setStatus(s);
     return s;
-  }, []);
+  }, [active]);
 
   const loadLocs = useCallback(async () => {
     setListLoading(true);
@@ -329,10 +330,14 @@ const OpenerMatchAdmin = () => {
 
   const tiles = [
     { label: t('openerMatch.tiles.v2'), value: tt.v2, sub: t('openerMatch.tiles.v2Sub', { kaizen: nf(tt.kaizen), twins: nf(tt.twins) }), tone: 'text-primary' },
-    { label: t('openerMatch.tiles.v1'), value: tt.v1, sub: t('openerMatch.tiles.v1Sub') },
+    { label: t('openerMatch.tiles.v1'), value: tt.v1, sub: active === 'false' ? t('openerMatch.tiles.v1SubFormer') : t('openerMatch.tiles.v1Sub') },
     { label: t('openerMatch.tiles.matched'), value: matched, sub: t('openerMatch.tiles.matchedSub', { auto: nf(c.auto), manual: nf(c.manual) }), tone: 'text-success' },
     { label: t('openerMatch.tiles.toReview'), value: c.review + c.none + c.no_address, sub: t('openerMatch.tiles.toReviewSub', { review: nf(c.review), none: nf(c.none), noAddr: nf(c.no_address) }), tone: 'text-warning' },
     { label: t('openerMatch.tiles.pending'), value: c.pending, sub: t('openerMatch.tiles.pendingSub', { ignored: nf(c.ignored), missing: nf(tt.missing) }) },
+    // Anciens clients (abonnement terminé) : gardés, mais dans leur propre catégorie — jamais
+    // comptés avec les clients payants (David, 2026-10-14). Un clic les affiche.
+    { label: t('openerMatch.tiles.former'), value: tt.inactive, sub: t('openerMatch.tiles.formerSub'), tone: 'text-[#7FA6C9]',
+      onClick: () => setActive(active === 'false' ? 'true' : 'false'), on: active === 'false' },
   ];
 
   return (
@@ -355,7 +360,9 @@ const OpenerMatchAdmin = () => {
             <h3 className="font-semibold text-black dark:text-white">{t('openerMatch.parkTitle')}</h3>
             <p className="text-xs text-body dark:text-bodydark">
               {run ? t('openerMatch.lastRun', { date: fmtDate(run.at, lng), source: run.source.startsWith('manual') ? t('openerMatch.sourceManual') : t('openerMatch.sourceScheduled') }) : t('openerMatch.neverRun')}
-              {' · '}{t('openerMatch.parkSources', { total: nf(live) })}
+              {' · '}{active === 'true'
+                ? t('openerMatch.parkPaying', { total: nf(live), seasonal: nf(tt.seasonal || 0), former: nf(tt.inactive) })
+                : t('openerMatch.parkSources', { total: nf(live) })}
             </p>
           </div>
           <button onClick={runSync} disabled={status.running || !status.configured.kaizen}
@@ -365,9 +372,10 @@ const OpenerMatchAdmin = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
-          {tiles.map((tile) => (
-            <div key={tile.label} className="rounded border border-stroke p-3 dark:border-strokedark">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+          {tiles.map((tile: { label: string; value: number; sub: string; tone?: string; onClick?: () => void; on?: boolean }) => (
+            <div key={tile.label} onClick={tile.onClick} role={tile.onClick ? 'button' : undefined}
+              className={`rounded border p-3 ${tile.on ? 'border-primary bg-primary/5' : 'border-stroke dark:border-strokedark'} ${tile.onClick ? 'cursor-pointer hover:border-primary' : ''}`}>
               <p className="text-xs font-medium text-body dark:text-bodydark">{tile.label}</p>
               <p className={`text-2xl font-bold tracking-tight ${tile.tone || 'text-black dark:text-white'}`}>{nf(tile.value)}</p>
               <p className="text-xs text-body dark:text-bodydark">{tile.sub}</p>
