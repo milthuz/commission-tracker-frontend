@@ -6675,8 +6675,8 @@
       "budgetExhausted": "Le budget mensuel de recherches Google est atteint. Il se renouvelle le 1er du mois.",
       "scanFailed": "Le balayage de la zone a échoué : {{error}}",
       "tab": {
-        "plan": "Planifier",
-        "track": "Suivi",
+        "plan": "Créer une route",
+        "track": "Suivi des visites",
         "campaign": "Campagne",
         "reports": "Rapports"
       },
@@ -6709,7 +6709,13 @@
       "useSuggestion": "Utiliser",
       "showOnMap": "Voir sur la carte",
       "createAll": "Créer {{n}} brouillons (un par jour ouvrable)",
-      "createAllHelp": "À partir de la date de la route en cours, pour l'opener choisi. Rien n'est publié."
+      "createAllHelp": "À partir de la date de la route en cours, pour l'opener choisi. Rien n'est publié.",
+      "tabHelp": {
+        "track": "Ce que chaque opener a fait, jour par jour, et le résultat de chaque visite",
+        "campaign": "Le territoire découpé en routes ; planifier les journées des openers",
+        "plan": "Dessiner une route à la main sur la carte",
+        "reports": "Le rapport quotidien des visites par courriel"
+      }
     },
     "field": {
       "noAccess": "Cette application est réservée aux openers (permission opener:field).",
@@ -6990,7 +6996,45 @@
       "empty": "Aucune route sur cette période.",
       "lastCheckin": "Dernier check-in {{time}} · {{name}}",
       "openRoute": "Ouvrir la route",
-      "visitTime": "{{time}} en visite"
+      "visitTime": "{{time}} en visite",
+      "system": "Système",
+      "unknown": "Inconnu",
+      "prevDay": "Jour précédent",
+      "nextDay": "Jour suivant",
+      "backToday": "Revenir à aujourd’hui",
+      "emptyDay": "Aucune route ce jour-là.",
+      "pickOpener": "Choisissez un opener pour voir sa route et le résultat de chaque visite.",
+      "allOpeners": "Tous les openers",
+      "notStarted": "Pas encore commencée",
+      "legend": "Résultat de la visite",
+      "gpsWarn": "Visite loin du resto ou sans GPS",
+      "kpi": {
+        "visits": "Visites",
+        "leads": "Leads",
+        "skipped": "Non visités"
+      },
+      "result": {
+        "lead": "Lead créé",
+        "hot": "Intéressé",
+        "warm": "Tiède",
+        "cold": "Pas intéressé",
+        "client": "Client visité",
+        "skipped": "Non visité",
+        "todo": "À faire"
+      },
+      "card": {
+        "why": "Raison",
+        "notYet": "Pas encore visité par {{name}}.",
+        "when": "Visite",
+        "gps": "Position",
+        "service": "Service",
+        "terminals": "{{n}} terminaux",
+        "delivery": "livraison en ligne",
+        "interest": "Intérêt",
+        "decision": "Décideur",
+        "services": "Intéressé par",
+        "pastVisits": "{{n}} visite(s) au total à ce restaurant."
+      }
     },
     "campaign": {
       "mappingTitle": "Cartographie du territoire",

@@ -110,12 +110,23 @@ export interface DaySummary {
 }
 
 // Vue de suivi (GET /api/opener/routes-overview).
+// Un arrêt vu par le gestionnaire (Suivi des visites) : où, quand, le contrôle GPS, et le RÉSULTAT.
+export interface OverviewStop {
+  id: number; placeId: string; name: string; address: string | null; lat: number | null; lng: number | null;
+  outcome: Stop['outcome']; skipReason: SkipReason | null; doneAt: string | null;
+  checkin: { at: string; lat: number | null; lng: number | null; distanceM: number | null; accuracyM: number | null; verdict: Verdict;
+    startedAt: string | null; durationMin: number | null; endDistanceM: number | null } | null;
+  place?: { status: PlaceStatus; version?: Version | null; competitorPos?: string | null; franchise?: boolean; brand?: string | null;
+    seasonal?: boolean; lastSatisfaction?: number | null; visits?: number };
+  result?: { checkinId: string; currentPos: string | null; serviceType: ServiceType | null; interest: number | null;
+    decisionMaker: 'yes' | 'no' | 'later' | null; satisfaction: number | null; paymentsBy: PaymentsBy | null; services: Service[];
+    notes: string | null; terminals: number | null; onlineDelivery: boolean | null;
+    lead: { id: number; refCode: string; status: string } | null } | null;
+}
 export interface OverviewRoute {
   id: number; name: string; date: string; status: Route['status']; openerEmail: string | null; openerName: string | null;
   zone: [number, number][] | null; total: number; done: number; skipped: number;
-  stops: { id: number; name: string; lat: number | null; lng: number | null; outcome: Stop['outcome']; skipReason: SkipReason | null; doneAt: string | null;
-    checkin: { at: string; lat: number | null; lng: number | null; distanceM: number | null; accuracyM: number | null; verdict: Verdict;
-      startedAt: string | null; durationMin: number | null; endDistanceM: number | null } | null }[];
+  stops: OverviewStop[];
   verdicts: Partial<Record<Verdict, number>>;
   visitMinutes: number;
   lastCheckin: { at: string; lat: number | null; lng: number | null; stopName: string; distanceM: number | null } | null;

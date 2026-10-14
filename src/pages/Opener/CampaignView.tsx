@@ -208,8 +208,14 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
           `<b style="font-size:13px">${i + 1}. ${esc(s.name || '—')}</b>`,
           s.address ? esc(s.address) : '',
           `<span style="color:${STATUS_COLOR[st]};font-weight:700">● </span>${t(`opener.status.${st}`)}${s.version ? ` ${String(s.version).toUpperCase()}` : ''}${s.kind ? ` · ${t(`opener.kind.${s.kind}`, { defaultValue: s.kind })}` : ''}`,
+          // Le système en place : Cluster pour un client, sinon le POS noté à la dernière visite.
+          `${t('opener.track.system')} : <b>${esc(st === 'client' ? `Cluster${s.version ? ` ${String(s.version).toUpperCase()}` : ''}` : s.competitorPos || t('opener.track.unknown'))}</b>`,
+          s.franchise ? `${t('opener.franchise.badge')}${s.brand ? ` (${esc(s.brand)})` : ''}` : '',
           s.lastSatisfaction ? `${t('opener.field.client.satShort', { n: s.lastSatisfaction })}` : '',
-          s.lastVisitAt ? `${t('opener.field.lastVisit')} : ${esc(new Date(s.lastVisitAt).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA'))}` : '',
+          s.lastVisitAt
+            ? `${t('opener.field.lastVisit')} : ${esc(new Date(s.lastVisitAt).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'short', year: 'numeric' }))}${s.lastVisitBy ? ` · ${esc(s.lastVisitBy)}` : ''}${s.lastInterest ? ` · ${t('opener.field.interestShort', { n: s.lastInterest })}` : ''}`
+            : t('opener.field.neverVisited'),
+          s.lead ? `${t('opener.field.lead')} : ${esc(s.lead.refCode)}` : '',
         ].filter(Boolean).join('<br/>');
         mk.addListener('mouseover', () => showTip(mk, html));
         mk.addListener('mouseout', hideTip);

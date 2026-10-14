@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, GripVertical, Navigation, Pencil, Check, Loader2, Send, Undo2, Trash2, Star, Search, MapPin, Save, Sparkles, Phone, Clock, Globe, Info, Minus, Ban } from 'lucide-react';
+import { Plus, X, GripVertical, Navigation, Pencil, Check, Loader2, Send, Undo2, Trash2, Star, Search, MapPin, Save, Sparkles, Phone, Clock, Globe, Info, Minus, Ban, Activity, Map as MapIcon, PenLine, Mail } from 'lucide-react';
 import Select from '../../components/Select';
 import DateField from '../../components/DateField';
 import { ContentLoader } from '../../common/Loader';
@@ -80,7 +80,14 @@ export default function RouteDesigner() {
   const [service, setService] = useState<'all' | 'tables' | 'quick'>('all');
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
-  const [tab, setTab] = useState<'campaign' | 'plan' | 'track' | 'reports'>('campaign');
+  // Onglet : le dernier choisi est gardé ; par défaut, le suivi des visites (l'usage de tous les
+  // jours d'un gestionnaire — demande de David, 2026-10-14).
+  type Tab = 'track' | 'campaign' | 'plan' | 'reports';
+  const [tab, setTabState] = useState<Tab>(() => {
+    try { const v = localStorage.getItem('opener_manager_tab'); if (v === 'track' || v === 'campaign' || v === 'plan' || v === 'reports') return v; } catch { /* rien */ }
+    return 'track';
+  });
+  const setTab = (v: Tab) => { setTabState(v); try { localStorage.setItem('opener_manager_tab', v); } catch { /* rien */ } };
   // Onglet « Rapports » : permission opener:reports (le rapport quotidien des visites).
   const { user } = useAuth();
   const canReports = !!user && (!!user.isAdmin || !!user.permissions?.some((p) => p === '*' || p === 'opener:*' || p === 'opener:reports'));
@@ -499,13 +506,21 @@ export default function RouteDesigner() {
 
   return (
     <div className="space-y-4">
-      <div className="inline-flex gap-1 rounded-xl border border-stroke bg-white p-1 dark:border-strokedark dark:bg-boxdark">
-        {(canReports ? (['campaign', 'plan', 'track', 'reports'] as const) : (['campaign', 'plan', 'track'] as const)).map((k) => (
-          <button key={k} onClick={() => setTab(k)}
-            className={`h-9 rounded-[9px] px-4 text-sm font-semibold ${tab === k ? 'bg-primary text-white' : 'text-body dark:text-bodydark'}`}>
-            {t(`opener.designer.tab.${k}`)}
-          </button>
-        ))}
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        {(canReports ? (['track', 'campaign', 'plan', 'reports'] as const) : (['track', 'campaign', 'plan'] as const)).map((k) => {
+          const Icon = { track: Activity, campaign: MapIcon, plan: PenLine, reports: Mail }[k];
+          const on = tab === k;
+          return (
+            <button key={k} onClick={() => setTab(k)}
+              className={`flex items-start gap-3 rounded-lg border p-3 text-left transition ${on ? 'border-primary bg-primary/10 shadow-sm' : 'border-stroke bg-white hover:border-primary/60 dark:border-strokedark dark:bg-boxdark'}`}>
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${on ? 'bg-primary text-white' : 'bg-gray-2 text-primary dark:bg-meta-4'}`}><Icon className="h-[18px] w-[18px]" /></span>
+              <span className="min-w-0">
+                <span className={`block text-sm font-bold ${on ? 'text-primary' : 'text-black dark:text-white'}`}>{t(`opener.designer.tab.${k}`)}</span>
+                <span className="block text-[11px] leading-snug text-body dark:text-bodydark">{t(`opener.designer.tabHelp.${k}`)}</span>
+              </span>
+            </button>
+          );
+        })}
       </div>
       {tab === 'reports' ? (
         <OpenerReports />

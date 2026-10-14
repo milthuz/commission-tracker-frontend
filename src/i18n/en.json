@@ -6675,8 +6675,8 @@
       "budgetExhausted": "The monthly Google search budget is used up. It resets on the 1st of the month.",
       "scanFailed": "The zone scan failed: {{error}}",
       "tab": {
-        "plan": "Plan",
-        "track": "Tracking",
+        "plan": "Build a route",
+        "track": "Visit tracking",
         "campaign": "Campaign",
         "reports": "Reports"
       },
@@ -6709,7 +6709,13 @@
       "useSuggestion": "Use",
       "showOnMap": "Show on map",
       "createAll": "Create {{n}} drafts (one per business day)",
-      "createAllHelp": "Starting from the current route's date, for the chosen opener. Nothing is published."
+      "createAllHelp": "Starting from the current route's date, for the chosen opener. Nothing is published.",
+      "tabHelp": {
+        "track": "What each opener did, day by day, and the result of every visit",
+        "campaign": "The territory split into routes; plan the openers’ days",
+        "plan": "Draw a route by hand on the map",
+        "reports": "The daily visit report by email"
+      }
     },
     "field": {
       "noAccess": "This app is for openers (opener:field permission).",
@@ -6990,7 +6996,45 @@
       "empty": "No route in this period.",
       "lastCheckin": "Last check-in {{time}} · {{name}}",
       "openRoute": "Open the route",
-      "visitTime": "{{time}} in visits"
+      "visitTime": "{{time}} in visits",
+      "system": "System",
+      "unknown": "Unknown",
+      "prevDay": "Previous day",
+      "nextDay": "Next day",
+      "backToday": "Back to today",
+      "emptyDay": "No route that day.",
+      "pickOpener": "Pick an opener to see their route and the result of every visit.",
+      "allOpeners": "All openers",
+      "notStarted": "Not started yet",
+      "legend": "Visit result",
+      "gpsWarn": "Visit far from the place or without GPS",
+      "kpi": {
+        "visits": "Visits",
+        "leads": "Leads",
+        "skipped": "Not visited"
+      },
+      "result": {
+        "lead": "Lead created",
+        "hot": "Interested",
+        "warm": "Lukewarm",
+        "cold": "Not interested",
+        "client": "Client visited",
+        "skipped": "Not visited",
+        "todo": "To do"
+      },
+      "card": {
+        "why": "Reason",
+        "notYet": "Not visited yet by {{name}}.",
+        "when": "Visit",
+        "gps": "Location",
+        "service": "Service",
+        "terminals": "{{n}} terminals",
+        "delivery": "online delivery",
+        "interest": "Interest",
+        "decision": "Decision maker",
+        "services": "Interested in",
+        "pastVisits": "{{n}} visit(s) in total at this place."
+      }
     },
     "campaign": {
       "mappingTitle": "Territory mapping",
