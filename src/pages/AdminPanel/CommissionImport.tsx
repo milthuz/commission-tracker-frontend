@@ -376,7 +376,8 @@ const CommissionImport: React.FC = () => {
     } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to add'); }
   };
 
-  const deleteManualBonus = async (id: number) => {
+  const deleteManualBonus = async (id: number, rep: string, amount: string) => {
+    if (!(await dialog.confirm(t('safety.deleteManualBonus', { rep, amount }), { danger: true, confirmText: t('common.delete') }))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/commissions/manual-bonus/${id}`, { headers: { Authorization: `Bearer ${token}` } });
@@ -418,7 +419,8 @@ const CommissionImport: React.FC = () => {
     finally { setMaAdding(false); }
   };
 
-  const deleteManualActivation = async (merchantAccountId: string) => {
+  const deleteManualActivation = async (merchantAccountId: string, merchant: string, rep: string) => {
+    if (!(await dialog.confirm(t('safety.deleteManualActivation', { merchant, rep }), { danger: true, confirmText: t('common.delete') }))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/zentact/merchants/manual/${merchantAccountId}`, { headers: { Authorization: `Bearer ${token}` } });
@@ -2277,7 +2279,7 @@ const CommissionImport: React.FC = () => {
                         <td className="px-4 py-2 text-body">{m.description || '—'}</td>
                         <td className="px-4 py-2 text-right font-semibold text-success whitespace-nowrap">{fmt(m.amount)}</td>
                         <td className="px-4 py-2 text-right">
-                          <button onClick={() => deleteManualBonus(m.id)} className="whitespace-nowrap text-xs text-danger hover:underline">{t('common.delete')}</button>
+                          <button onClick={() => deleteManualBonus(m.id, m.rep_name, fmt(m.amount))} className="whitespace-nowrap text-xs text-danger hover:underline">{t('common.delete')}</button>
                         </td>
                       </tr>
                     ))}
@@ -2355,7 +2357,7 @@ const CommissionImport: React.FC = () => {
                         <td className="px-4 py-2 text-right text-body">{m.points}</td>
                         <td className="px-4 py-2 text-right font-semibold text-success whitespace-nowrap">{fmt(m.bonus_amount)}</td>
                         <td className="px-4 py-2 text-right">
-                          <button onClick={() => deleteManualActivation(m.merchant_account_id)} className="whitespace-nowrap text-xs text-danger hover:underline">{t('common.delete')}</button>
+                          <button onClick={() => deleteManualActivation(m.merchant_account_id, m.business_name, m.sales_rep_name)} className="whitespace-nowrap text-xs text-danger hover:underline">{t('common.delete')}</button>
                         </td>
                       </tr>
                     ))}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { subscribe, answer, DialogRequest } from '../lib/dialog';
+import { subscribe, answer, typedMatches, DialogRequest } from '../lib/dialog';
 
 // Mounted once at the app root. Renders the front-most queued dialog (confirm/alert)
 // as a styled in-app modal, replacing the browser's native confirm()/alert().
@@ -10,17 +10,22 @@ const DialogHost: React.FC = () => {
   useEffect(() => subscribe(setQueue), []);
 
   const current = queue[0];
+  const [typed, setTyped] = useState('');
+  useEffect(() => setTyped(''), [current?.id]);
 
-  // ESC = cancel/close the front-most dialog.
+  const mustType = current?.kind === 'confirm' && !!current.typeToConfirm;
+  const canConfirm = !mustType || typedMatches(typed, current!.typeToConfirm!);
+
+  // ESC = cancel/close the front-most dialog. Enter confirms only once the typed text matches.
   useEffect(() => {
     if (!current) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') answer(current.id, false);
-      if (e.key === 'Enter') answer(current.id, true);
+      if (e.key === 'Enter' && canConfirm) answer(current.id, true);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [current]);
+  }, [current, canConfirm]);
 
   if (!current) return null;
 
@@ -55,6 +60,20 @@ const DialogHost: React.FC = () => {
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-semibold text-black dark:text-white">{title}</h3>
             <p className="mt-1 select-text whitespace-pre-line break-words text-sm text-body dark:text-gray-300">{current.message}</p>
+            {mustType && (
+              <label className="mt-4 block text-sm text-body dark:text-gray-300">
+                {t('safety.typeToConfirm')}{' '}
+                <span className="select-text font-semibold text-black dark:text-white">{current.typeToConfirm}</span>
+                <input
+                  autoFocus
+                  value={typed}
+                  onChange={(e) => setTyped(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="mt-2 w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-danger dark:border-strokedark dark:text-white"
+                />
+              </label>
+            )}
           </div>
         </div>
 
@@ -68,9 +87,10 @@ const DialogHost: React.FC = () => {
             </button>
           )}
           <button
-            autoFocus
+            autoFocus={!mustType}
+            disabled={!canConfirm}
             onClick={() => answer(current.id, true)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:bg-opacity-90 ${current.danger ? 'bg-danger' : 'bg-primary'}`}
+            className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:bg-opacity-90 disabled:cursor-not-allowed disabled:opacity-40 ${current.danger ? 'bg-danger' : 'bg-primary'}`}
           >
             {confirmText}
           </button>

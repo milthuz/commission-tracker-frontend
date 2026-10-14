@@ -554,7 +554,10 @@
     "statusExpired": "Expirée",
     "viewedOn": "vue le",
     "acceptedOn": "acceptée le",
-    "deleteConfirm": "Retirer du tableau la proposition envoyée à {{customer}} ? (Le devis Zoho n'est pas touché.)"
+    "deleteConfirm": "Retirer du tableau la proposition envoyée à {{customer}} ? (Le devis Zoho n'est pas touché.)",
+    "replaceEditedEmail": "Vous avez modifié l'objet ou le texte du courriel. Le remplacer par le courriel qui vient d'être généré (langue et client actuels), ou garder votre version ?",
+    "replaceEditedEmailYes": "Remplacer",
+    "replaceEditedEmailNo": "Garder ma version"
   },
   "hardware": {
     "eyebrow": "Matériel",
@@ -4993,8 +4996,8 @@
     },
     "dup": {
       "ownedBy": "propriétaire : {{name}}",
-      "assignToOwner": "Assigner à {{name}}",
-      "assignedToOwner": "déjà attribuée à cette personne",
+      "assignToOwner": "Choisir {{name}}",
+      "assignedToOwner": "choisie — attribuée à l'acceptation",
       "ownerNotRep": "pas dans la liste des représentants",
       "sameOwner": "Ce marchand appartient déjà à {{name}} dans Zoho.",
       "noMatch": "Vérifié dans Zoho : aucune fiche existante pour ce nom, ce courriel ou ce téléphone.",
@@ -5143,7 +5146,8 @@
       "stepEventThanks": "Courriel de remerciement de salon envoyé au visiteur",
       "eventResent": "renvoyé ×{{n}} (dernier {{at}})",
       "eventNoteOk": "note ajoutée dans Zoho",
-      "eventNoteFailed": "note Zoho refusée : {{error}}"
+      "eventNoteFailed": "note Zoho refusée : {{error}}",
+      "assignOnAccept": "Rien n'est encore enregistré : le représentant est attribué seulement quand vous cliquez Accepter."
     },
     "kpi": {
       "waiting": "En attente d'examen",
@@ -7665,5 +7669,20 @@
     "pendingTitle": "Demande envoyée",
     "pendingBody": "Envoyée le {{date}}. Vous aurez accès dès qu'un administrateur vous aura attribué un rôle.",
     "check": "Vérifier si mon accès est prêt"
+  },
+  "safety": {
+    "typeToConfirm": "Pour confirmer, tapez :",
+    "deleteDealPoints": "Supprimer la règle de points de la source « {{source}} » ? Les deals de cette source reviendront aux points par défaut.",
+    "reincludeCustomer": "Remettre « {{name}} » dans le classement des clients ?",
+    "reinclude": "Réinclure",
+    "deleteManualBonus": "Supprimer le bonus manuel de {{amount}} pour {{rep}} ? Il n'apparaîtra plus sur le talon de paie.",
+    "deleteManualActivation": "Supprimer l'activation manuelle de « {{merchant}} » ({{rep}}) ? Ses points et son bonus seront retirés.",
+    "removeImage": "Retirer cette image ? Il faudra la téléverser de nouveau pour la récupérer.",
+    "removeAttachment": "Retirer la pièce jointe « {{name}} » ?",
+    "deleteRole": "Supprimer le rôle « {{name}} » ? Les utilisateurs qui l'ont perdront ses permissions.",
+    "pushRelease": "Publier la version {{version}} ? Cela change le numéro de version, crée l'étiquette git et la publication GitHub, et lance le déploiement.",
+    "bulkImport": "Réimporter TOUTES les factures de Zoho Books ? L'opération se fait en arrière-plan et prend de 10 à 20 minutes.",
+    "bulkImportButton": "Tout réimporter",
+    "bulkImportWord": "RÉIMPORTER"
   }
 }

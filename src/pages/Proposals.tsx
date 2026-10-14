@@ -71,6 +71,9 @@ const Proposals: React.FC = () => {
   // editable email
   const [to, setTo] = useState(''); const [cc, setCc] = useState('');
   const [subject, setSubject] = useState(''); const [body, setBody] = useState('');
+  // Last email the server generated. A field that differs from it was edited by the rep, and a
+  // re-prepare (new language, client name, logo…) must not wipe that edit silently.
+  const generatedEmail = useRef({ to: '', subject: '', body: '' });
   const [sending, setSending] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [emailPreview, setEmailPreview] = useState<{ html: string; loading: boolean } | null>(null);
@@ -132,6 +135,7 @@ const Proposals: React.FC = () => {
     setSel(e); setBuilderOpen(true); setBlankClientName('');
     setLang(i18n.language?.startsWith('en') ? 'en' : 'fr'); setTitle(''); setLogo(null);
     setPrepared(null); setTo(''); setCc(''); setSubject(''); setBody('');
+    generatedEmail.current = { to: '', subject: '', body: '' };
     setOrder([]); setExcludedPages([]); setBranding('name');
     setChainMode(false); setChain(null);
   };
@@ -186,7 +190,19 @@ const Proposals: React.FC = () => {
       const total = p.presentationPageCount + p.estimatePageCount;
       setOrder(Array.from({ length: total }, (_, i) => i + 1));
       setExcludedPages([]);
-      setTo(p.email?.to || ''); setSubject(p.email?.subject || ''); setBody(p.email?.body || '');
+      const fresh = { to: p.email?.to || '', subject: p.email?.subject || '', body: p.email?.body || '' };
+      const prev = generatedEmail.current;
+      generatedEmail.current = fresh;
+      // The recipient the rep typed always wins. For the text, ask — the new template may be in
+      // the other language, so keeping the old text is not always right either. Escape = keep.
+      if (to === prev.to) setTo(fresh.to);
+      const textEdited = subject !== prev.subject || body !== prev.body;
+      if (!textEdited || (await dialog.confirm(t('proposals.replaceEditedEmail') as string, {
+        confirmText: t('proposals.replaceEditedEmailYes') as string,
+        cancelText: t('proposals.replaceEditedEmailNo') as string,
+      }))) {
+        setSubject(fresh.subject); setBody(fresh.body);
+      }
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('proposals.prepareError')); }
     finally { setPreparing(false); }
   };

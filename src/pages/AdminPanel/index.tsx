@@ -598,6 +598,7 @@ const AdminPanel = () => {
   };
 
   const deleteDealPoints = async (sourceGroup: string) => {
+    if (!(await dialog.confirm(t('safety.deleteDealPoints', { source: sourceGroup }), { danger: true, confirmText: t('common.delete') }))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/deal-source-points/${encodeURIComponent(sourceGroup)}`, { headers: { Authorization: `Bearer ${token}` } });
@@ -665,7 +666,7 @@ const AdminPanel = () => {
   };
 
   const deleteRole = async (role: Role) => {
-    if (!(await dialog.confirm(`Delete role "${role.name}"? Users assigned to this role will lose its permissions.`))) return;
+    if (!(await dialog.confirm(t('safety.deleteRole', { name: role.name }), { danger: true, confirmText: t('common.delete'), typeToConfirm: role.name }))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/roles/${role.id}`, { headers: { Authorization: `Bearer ${token}` } });
@@ -861,7 +862,8 @@ const AdminPanel = () => {
   };
 
   // Re-include a customer
-  const reincludeCustomer = async (id: number) => {
+  const reincludeCustomer = async (id: number, name: string) => {
+    if (!(await dialog.confirm(t('safety.reincludeCustomer', { name }), { confirmText: t('safety.reinclude') }))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/excluded-customers/${id}`, {
@@ -953,7 +955,7 @@ const AdminPanel = () => {
       dialog.alert('Please enter a version number and release notes.');
       return;
     }
-    if (!(await dialog.confirm(`Push release v${newVersion}? This will:\n\n• Bump package.json to v${newVersion}\n• Create a git tag\n• Create a GitHub Release\n• Trigger Netlify deployment\n\nContinue?`))) return;
+    if (!(await dialog.confirm(t('safety.pushRelease', { version: newVersion }), { danger: true, confirmText: t('admin.releases.pushRelease'), typeToConfirm: newVersion.trim() }))) return;
 
     try {
       setReleaseStatus('pushing');
@@ -1304,7 +1306,7 @@ const AdminPanel = () => {
 
   // Full bulk import
   const triggerBulkImport = async () => {
-    if (!(await dialog.confirm('This will re-import ALL invoices from Zoho Books. This runs in the background and may take 10-20 minutes. Continue?'))) return;
+    if (!(await dialog.confirm(t('safety.bulkImport'), { danger: true, confirmText: t('safety.bulkImportButton'), typeToConfirm: t('safety.bulkImportWord') }))) return;
     try {
       setSyncStatus('bulk_importing');
       const token = localStorage.getItem('token');
@@ -3275,7 +3277,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                             </div>
                           </div>
                           <button
-                            onClick={() => reincludeCustomer(customer.id)}
+                            onClick={() => reincludeCustomer(customer.id, customer.customer_name)}
                             className="inline-flex items-center gap-1 rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-50 hover:text-success dark:border-strokedark dark:hover:bg-meta-4"
                           >
                             {t('admin.customers.reinclude')}

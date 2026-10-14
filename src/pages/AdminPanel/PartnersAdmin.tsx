@@ -527,7 +527,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
           opportunities: c.opportunities || 0,
           invoices: c.invoices || 0,
           runs: c.payout_runs || 0,
-        }) as string);
+        }) as string, { danger: true, confirmText: t('common.delete') as string, typeToConfirm: d.name || p.name });
         if (!ok) { setDeletingPartnerId(null); return; }
         try {
           await axios.delete(`${API_URL}/api/admin/partners/${p.id}?force=1`, { headers: authHeaders() });

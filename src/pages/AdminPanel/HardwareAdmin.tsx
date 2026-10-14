@@ -199,6 +199,7 @@ const HardwareAdmin: React.FC = () => {
   };
   const removeImage = async () => {
     if (!formId) return;
+    if (!(await dialog.confirm(t('safety.removeImage'), { danger: true, confirmText: t('common.remove') }))) return;
     try {
       await axios.delete(`${API_URL}/api/hardware/${formId}/image`, { headers: authHeaders() });
       setForm((f) => (f ? { ...f, hasImage: false } : f));

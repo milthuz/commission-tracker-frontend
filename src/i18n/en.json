@@ -554,7 +554,10 @@
     "statusExpired": "Expired",
     "viewedOn": "viewed",
     "acceptedOn": "accepted",
-    "deleteConfirm": "Remove the sent proposal for {{customer}} from the board? (The Zoho quote is not affected.)"
+    "deleteConfirm": "Remove the sent proposal for {{customer}} from the board? (The Zoho quote is not affected.)",
+    "replaceEditedEmail": "You edited the email's subject or text. Replace it with the newly generated email (current language and client), or keep your version?",
+    "replaceEditedEmailYes": "Replace",
+    "replaceEditedEmailNo": "Keep my version"
   },
   "hardware": {
     "eyebrow": "Hardware",
@@ -4993,8 +4996,8 @@
     },
     "dup": {
       "ownedBy": "owner: {{name}}",
-      "assignToOwner": "Assign to {{name}}",
-      "assignedToOwner": "already assigned to them",
+      "assignToOwner": "Choose {{name}}",
+      "assignedToOwner": "chosen — assigned on Accept",
       "ownerNotRep": "not in the rep list",
       "sameOwner": "This merchant already belongs to {{name}} in Zoho.",
       "noMatch": "Checked in Zoho: no existing record for this name, email or phone.",
@@ -5143,7 +5146,8 @@
       "stepEventThanks": "Trade-show thank-you email sent to the visitor",
       "eventResent": "resent ×{{n}} (last {{at}})",
       "eventNoteOk": "note added in Zoho",
-      "eventNoteFailed": "Zoho note failed: {{error}}"
+      "eventNoteFailed": "Zoho note failed: {{error}}",
+      "assignOnAccept": "Nothing is saved yet: the rep is assigned only when you click Accept."
     },
     "kpi": {
       "waiting": "Waiting for review",
@@ -7665,5 +7669,20 @@
     "pendingTitle": "Request sent",
     "pendingBody": "Sent on {{date}}. You'll have access as soon as an administrator assigns you a role.",
     "check": "Check whether my access is ready"
+  },
+  "safety": {
+    "typeToConfirm": "To confirm, type:",
+    "deleteDealPoints": "Delete the points rule for the source \"{{source}}\"? Deals from this source will fall back to the default points.",
+    "reincludeCustomer": "Put \"{{name}}\" back in the customer rankings?",
+    "reinclude": "Re-include",
+    "deleteManualBonus": "Delete the manual bonus of {{amount}} for {{rep}}? It will no longer appear on the pay stub.",
+    "deleteManualActivation": "Delete the manual activation of \"{{merchant}}\" ({{rep}})? Its points and bonus will be removed.",
+    "removeImage": "Remove this image? You will have to upload it again to get it back.",
+    "removeAttachment": "Remove the attachment \"{{name}}\"?",
+    "deleteRole": "Delete the role \"{{name}}\"? Users who have it will lose its permissions.",
+    "pushRelease": "Publish version {{version}}? This bumps the version, creates the git tag and the GitHub release, and triggers the deployment.",
+    "bulkImport": "Re-import ALL invoices from Zoho Books? It runs in the background and takes 10 to 20 minutes.",
+    "bulkImportButton": "Re-import everything",
+    "bulkImportWord": "REIMPORT"
   }
 }

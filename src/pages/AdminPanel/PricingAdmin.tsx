@@ -186,6 +186,7 @@ const PricingAdmin: React.FC = () => {
   const removeLogo = async () => {
     const id = form?.editingId;
     if (!id) return;
+    if (!(await dialog.confirm(t('safety.removeImage'), { danger: true, confirmText: t('common.remove') }))) return;
     try {
       await axios.delete(`${API_URL}/api/pricing/${id}/image`, { headers: authHeaders() });
       setForm((f) => (f ? { ...f, hasImage: false } : f));

@@ -73,6 +73,7 @@ interface MonthPoints {
   zentactActivations: number;
   zentactBonus: number;
   totalPoints: number;
+  quota?: number;
   quotaMet: boolean;
   monthlyBonus: number;
 }
@@ -122,6 +123,7 @@ interface ReportData {
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+// Fallback only: the rep's own quota comes back on each month from /api/crm/points/annual.
 const MONTHLY_QUOTA = 15;
 
 const CommissionReport = () => {
@@ -1272,6 +1274,8 @@ const CommissionReport = () => {
                 const mNum = selectedMonth !== 'all' ? parseInt(selectedMonth) : new Date().getMonth() + 1;
                 const mp = getMonthPoints(mNum);
                 const label = monthNames[mNum - 1];
+                const quota = mp?.quota ?? MONTHLY_QUOTA;
+                const quotaPct = quota > 0 ? Math.min(100, ((mp?.totalPoints ?? 0) / quota) * 100) : 100;
                 return (
                   <div>
                     <p className="mb-3 text-sm font-semibold text-black dark:text-white">
@@ -1293,12 +1297,12 @@ const CommissionReport = () => {
                         <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.quota')}</p>
                         <div className="flex items-baseline gap-1">
                           <p className="text-2xl font-bold text-black dark:text-white">{mp?.totalPoints ?? 0}</p>
-                          <p className="text-sm text-body">/ {MONTHLY_QUOTA}</p>
+                          <p className="text-sm text-body">/ {quota}</p>
                         </div>
                         {mp?.quotaMet ? (
                           <p className="text-xs text-success font-semibold mt-1">✓ {t('commissionReport.quotaMet')}</p>
                         ) : (
-                          <p className="text-xs text-danger mt-1">{MONTHLY_QUOTA - (mp?.totalPoints ?? 0)} {t('commissionReport.ptsNeeded')}</p>
+                          <p className="text-xs text-danger mt-1">{quota - (mp?.totalPoints ?? 0)} {t('commissionReport.ptsNeeded')}</p>
                         )}
                       </div>
                       {/* Monthly bonus */}
@@ -1318,13 +1322,13 @@ const CommissionReport = () => {
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs text-body">{t('commissionReport.quotaProgress')}</span>
                           <span className="text-xs font-medium text-black dark:text-white">
-                            {Math.min(100, Math.round((mp.totalPoints / MONTHLY_QUOTA) * 100))}%
+                            {Math.round(quotaPct)}%
                           </span>
                         </div>
                         <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">
                           <div
-                            className={`h-2 rounded-full transition-all ${mp.quotaMet ? 'bg-success' : mp.totalPoints >= 10 ? 'bg-warning' : 'bg-danger'}`}
-                            style={{ width: `${Math.min(100, (mp.totalPoints / MONTHLY_QUOTA) * 100)}%` }}
+                            className={`h-2 rounded-full transition-all ${mp.quotaMet ? 'bg-success' : quotaPct >= 200 / 3 ? 'bg-warning' : 'bg-danger'}`}
+                            style={{ width: `${quotaPct}%` }}
                           />
                         </div>
                       </div>

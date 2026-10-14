@@ -4,6 +4,7 @@
 //   import { dialog } from '../../lib/dialog';
 //   if (!(await dialog.confirm('Delete this?'))) return;   // returns Promise<boolean>
 //   dialog.alert('Saved.');                                 // fire-and-forget, styled toast-modal
+//   await dialog.confirm('Delete partner X?', { danger: true, typeToConfirm: 'X' }); // must type "X"
 //
 // A single <DialogHost /> mounted at the app root subscribes to this service and
 // renders one dialog at a time (extra requests queue). Labels/title fall back to
@@ -16,7 +17,15 @@ export interface DialogOptions {
   confirmText?: string;
   cancelText?: string;
   danger?: boolean;        // red confirm button (destructive action)
+  // Heavy, hard-to-undo actions: the confirm button stays disabled until the user
+  // types this exact text (case and extra spaces ignored), e.g. a partner's name.
+  typeToConfirm?: string;
 }
+
+// Same comparison the host uses: case, accents and extra spaces ignored
+// (so "reimporter" matches "RÉIMPORTER").
+const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().replace(/\s+/g, ' ').toLowerCase();
+export const typedMatches = (typed: string, expected: string): boolean => norm(typed) === norm(expected);
 
 export interface DialogRequest extends DialogOptions {
   id: number;

@@ -126,7 +126,8 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
     if (fileInput.current) fileInput.current.value = '';
   };
 
-  const removeAttachment = async (aid: number) => {
+  const removeAttachment = async (aid: number, filename: string) => {
+    if (!(await dialog.confirm(t('safety.removeAttachment', { name: filename }), { danger: true, confirmText: t('common.remove') }))) return;
     const data = await call(`att-${aid}`, `/attachments/${aid}`, { method: 'DELETE' });
     if (data) onChanged(data);
   };
@@ -302,7 +303,7 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
                   <span className="flex gap-3">
                     <button type="button" className="text-sm font-medium text-primary hover:underline" onClick={() => pdf(`att-${a.id}`, a.filename)}>{t('hr.detail.open')}</button>
                     {isDraft && canManage && (
-                      <button type="button" className="text-sm font-medium text-danger hover:underline" disabled={!!busy} onClick={() => removeAttachment(a.id)}>{t('common.remove')}</button>
+                      <button type="button" className="text-sm font-medium text-danger hover:underline" disabled={!!busy} onClick={() => removeAttachment(a.id, a.filename)}>{t('common.remove')}</button>
                     )}
                   </span>
                 </li>

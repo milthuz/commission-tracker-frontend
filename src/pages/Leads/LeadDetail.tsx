@@ -142,12 +142,10 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
     return data;
   };
 
-  const doAssign = async (name: string) => {
-    setRep(name); setBusy('assign'); setNotice(null);
-    try { await call('/assign', { repName: name }); await load(); onChanged(); }
-    catch { setNotice({ tone: 'error', text: t('leads.detail.assignFailed') }); }
-    finally { setBusy(null); }
-  };
+  // Choisir un représentant ne fait que préparer la décision : rien n'est enregistré avant
+  // « Accepter », qui envoie ce choix (audit UX, P0). Avant, chaque choix dans la liste
+  // assignait la piste sur-le-champ — et le représentant la voyait déjà dans sa liste.
+  const chooseRep = (name: string) => setRep(name);
 
   const doAccept = async (confirmed = false, attach: DuplicateRecord | null = null) => {
     // Rattacher EST la reconnaissance du doublon — et la bonne reponse : ce chemin n'a rien de
@@ -393,7 +391,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
                             {t('leads.dup.sameOwner', { name: owners[0] })}
                             {!ownerRep && <span className="text-bodydark2"> ({t('leads.dup.ownerNotRep')})</span>}
                             {pending && canReview && ownerRep && ownerRep.name !== rep && (
-                              <button type="button" onClick={() => doAssign(ownerRep.name)} disabled={!!busy}
+                              <button type="button" onClick={() => chooseRep(ownerRep.name)} disabled={!!busy}
                                 className="ml-2 rounded border border-primary/40 px-2 py-0.5 text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-60">
                                 {t('leads.dup.assignToOwner', { name: ownerRep.name })}
                               </button>
@@ -418,7 +416,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
                                 </span>
                               )}
                               {owners.length > 1 && pending && canReview && ownerRep && ownerRep.name !== rep && (
-                                <button type="button" onClick={() => doAssign(ownerRep.name)} disabled={!!busy}
+                                <button type="button" onClick={() => chooseRep(ownerRep.name)} disabled={!!busy}
                                   className="ml-2 rounded border border-primary/40 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/10 disabled:opacity-60">
                                   {t('leads.dup.assignToOwner', { name: ownerRep.name })}
                                 </button>
@@ -516,13 +514,14 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
                       <Select
                         buttonClassName={SELECT_CLS}
                         value={rep}
-                        onChange={doAssign}
+                        onChange={chooseRep}
                         placeholder={t('leads.detail.pickRep') as string}
                         options={reps.map((r) => ({
                           value: r.name,
                           label: r.name + (r.away_until ? ` — ${t('leads.detail.away')}` : r.in_rotation ? '' : ` — ${t('leads.detail.notInRotation')}`),
                         }))}
                       />
+                      <p className="mt-1.5 text-xs text-bodydark2">{t('leads.detail.assignOnAccept')}</p>
                       {lead.suggested && (
                         <p className="mt-1.5 text-xs text-bodydark2">
                           {t('leads.detail.suggestion')}: <strong className="text-black dark:text-white">{lead.suggested.repName}</strong>
