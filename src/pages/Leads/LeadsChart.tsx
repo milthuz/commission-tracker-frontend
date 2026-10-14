@@ -86,7 +86,7 @@ const LeadsChart = ({ chart, from, to, hidden, onHiddenChange }: {
   const colorOf = (s: string) => (dark ? DARK : LIGHT)[Math.max(0, ORDER.indexOf(s)) % 8];
 
   const ink = dark ? '#AEB7C0' : '#64748B';
-  const surface = dark ? '#24303F' : '#FFFFFF';
+  const surface = dark ? '#141414' : '#FFFFFF';
   const options: ApexOptions = {
     chart: { type: 'bar', stacked: true, fontFamily: 'Satoshi, sans-serif', toolbar: { show: false }, zoom: { enabled: false }, background: 'transparent', animations: { enabled: false } },
     theme: { mode: dark ? 'dark' : 'light' },
@@ -97,7 +97,7 @@ const LeadsChart = ({ chart, from, to, hidden, onHiddenChange }: {
     // Un fin liseré de la couleur de la surface sépare les segments empilés.
     stroke: { show: true, width: 2, colors: [surface] },
     plotOptions: { bar: { columnWidth: data.cats.length > 30 ? '85%' : '60%', borderRadius: 4, borderRadiusApplication: 'end', borderRadiusWhenStacked: 'last' } },
-    grid: { borderColor: dark ? '#2E3A47' : '#E2E8F0', strokeDashArray: 4, xaxis: { lines: { show: false } } },
+    grid: { borderColor: dark ? '#26272B' : '#E2E8F0', strokeDashArray: 4, xaxis: { lines: { show: false } } },
     // La légende, ce sont les pastilles de source au-dessus (elles filtrent en plus).
     legend: { show: false },
     xaxis: {

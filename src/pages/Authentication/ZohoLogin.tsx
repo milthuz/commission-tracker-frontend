@@ -110,7 +110,7 @@ const ZohoLogin = () => {
   return (
     <div className="flex min-h-screen">
       {/* Left — brand panel */}
-      <div className="relative hidden w-1/2 flex-col bg-[#0f1722] lg:flex">
+      <div className="relative hidden w-1/2 flex-col bg-[#0F0F10] lg:flex">
         <div className="px-12 py-10">
           <SalesHubLogo variant="lockup" textClassName="text-white" />
         </div>
@@ -130,7 +130,7 @@ const ZohoLogin = () => {
       {/* Right — form panel */}
       <div className="flex w-full flex-col items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2 lg:w-1/2">
         {/* Mobile-only logo */}
-        <div className="mb-8 rounded-xl bg-[#0f1722] px-6 py-5 lg:hidden">
+        <div className="mb-8 rounded-xl bg-[#0F0F10] px-6 py-5 lg:hidden">
           <SalesHubLogo variant="lockup" textClassName="text-white" />
         </div>
 

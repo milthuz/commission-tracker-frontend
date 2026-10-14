@@ -164,7 +164,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
         <div className="flex gap-1">
           {(['billed', 'ramp', 'resellers', 'chains', 'checks'] as const).map(o => (
             <button key={o} onClick={() => setOnglet(o)}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${onglet === o ? 'bg-[#1c2434] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${onglet === o ? 'bg-[#141414] text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
               {t(`saasIncrease.report.tab.${o}`)}
               {o === 'checks' && critiques > 0 && (
                 <span className="ml-2 rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">{critiques}</span>
@@ -185,8 +185,8 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
 
       {d && (
         <div className="mx-auto max-w-5xl px-8 py-8">
-          <header className="mb-8 border-b-4 border-[#fe6523] pb-5">
-            <h1 className="text-2xl font-bold text-[#1c2434]">{t('saasIncrease.report.title')}</h1>
+          <header className="mb-8 border-b-4 border-[#F58345] pb-5">
+            <h1 className="text-2xl font-bold text-[#141414]">{t('saasIncrease.report.title')}</h1>
             <p className="mt-1 text-sm text-slate-500">
               {d.scenario.name} · {d.totals.items} {t('saasIncrease.report.subscriptions')} ·{' '}
               {new Date(d.generatedAt).toLocaleString('fr-CA')}
@@ -249,7 +249,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                  budget se construit sur ce qui est REELLEMENT facture, avec ses pics. ── */}
           {onglet === 'billed' && (
             <section>
-              <p className="mb-5 rounded-lg border border-[#1c2434] bg-slate-50 px-4 py-3 text-sm text-[#1c2434]">
+              <p className="mb-5 rounded-lg border border-[#141414] bg-slate-50 px-4 py-3 text-sm text-[#141414]">
                 {t('saasIncrease.report.billedIntro')}
               </p>
               <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -263,7 +263,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
               {/* Le taux est AFFICHE et modifiable : un chiffre net dont on ne voit pas
                   l'hypothese est un chiffre qu'on ne peut pas defendre en reunion. */}
               <div className="no-print mb-5 flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
-                <span className="font-medium text-[#1c2434]">{t('saasIncrease.report.churnLabel')}</span>
+                <span className="font-medium text-[#141414]">{t('saasIncrease.report.churnLabel')}</span>
                 <input type="number" step="0.01" min="0" max="20"
                   value={churnPct !== '' ? churnPct : (d.churn.monthlyRate * 100).toFixed(2)}
                   onChange={e => setChurnPct(e.target.value)}
@@ -273,7 +273,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                 <span className="text-slate-500">% /mois</span>
                 {churnPct !== '' && (
                   <button onClick={() => { setChurnPct(''); recharger(''); }}
-                    className="text-xs text-[#fe6523] hover:underline">{t('saasIncrease.report.churnReset')}</button>
+                    className="text-xs text-[#F58345] hover:underline">{t('saasIncrease.report.churnReset')}</button>
                 )}
                 <span className="flex-1" />
                 <span className="text-xs text-slate-500">
@@ -300,11 +300,11 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                 <tbody>
                   {d.billedByMonth.map(b => (
                     <tr key={b.month} className="border-b border-slate-100">
-                      <td className="py-1.5 font-medium text-[#1c2434]">{moisLong(b.month)}</td>
+                      <td className="py-1.5 font-medium text-[#141414]">{moisLong(b.month)}</td>
                       <td className="py-1.5 text-right text-slate-500">{b.billings || '—'}</td>
                       <td className="py-1.5 text-right text-slate-400">{money2(b.amount)}</td>
                       <td className="py-1.5 text-right text-slate-400">{b.survivalPct} %</td>
-                      <td className="py-1.5 text-right font-semibold text-[#1c2434]">{money2(b.amountNet)}</td>
+                      <td className="py-1.5 text-right font-semibold text-[#141414]">{money2(b.amountNet)}</td>
                       <td className="py-1.5 text-right text-slate-600">{money2(b.cumulativeNet)}</td>
                     </tr>
                   ))}
@@ -344,13 +344,13 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                     const part = d.totals.mrrAdd > 0 ? (r.cumulativeMrr / d.totals.mrrAdd) * 100 : 0;
                     return (
                       <tr key={r.month} className="border-b border-slate-100">
-                        <td className="py-2 font-medium text-[#1c2434]">{moisLong(r.month)}</td>
+                        <td className="py-2 font-medium text-[#141414]">{moisLong(r.month)}</td>
                         <td className="py-2 text-right text-slate-600">{r.count}</td>
                         <td className="py-2 text-right text-slate-600">{money2(r.mrrAdded)}</td>
-                        <td className="py-2 text-right font-semibold text-[#1c2434]">{money2(r.cumulativeMrr)}</td>
+                        <td className="py-2 text-right font-semibold text-[#141414]">{money2(r.cumulativeMrr)}</td>
                         <td className="py-2 pl-4">
                           <div className="h-2.5 w-full rounded-full bg-slate-100">
-                            <div className="h-full rounded-full bg-[#fe6523]" style={{ width: `${part}%` }} />
+                            <div className="h-full rounded-full bg-[#F58345]" style={{ width: `${part}%` }} />
                           </div>
                         </td>
                       </tr>
@@ -387,13 +387,13 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                   <button onClick={() => setOuvert(o => ({ ...o, ['r-' + r.name]: !o['r-' + r.name] }))}
                     className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-slate-50">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold text-[#1c2434]">{r.name}</p>
+                      <p className="truncate font-semibold text-[#141414]">{r.name}</p>
                       <p className="mt-0.5 text-xs text-slate-500">
                         {r.merchants} {t('saasIncrease.report.merchants')} · {r.orgs.join(', ')} ·{' '}
                         {t('saasIncrease.report.matchBreakdown', { attr: r.byAttribute, name: r.byName })}
                       </p>
                     </div>
-                    <span className="shrink-0 text-right text-sm font-semibold text-[#1c2434]">
+                    <span className="shrink-0 text-right text-sm font-semibold text-[#141414]">
                       {money2(r.mrrAdd)}<span className="text-xs font-normal text-slate-400">/mois</span>
                     </span>
                   </button>
@@ -442,7 +442,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                   <button onClick={() => setOuvert(o => ({ ...o, [c.key]: !o[c.key] }))}
                     className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left hover:bg-slate-50">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold text-[#1c2434]">{c.label}</p>
+                      <p className="truncate font-semibold text-[#141414]">{c.label}</p>
                       <p className="mt-0.5 text-xs text-slate-500">
                         {c.locations} {t('saasIncrease.report.locations')} · {c.orgs.join(', ')} · {c.rates.join(' / ')}
                       </p>
@@ -458,7 +458,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                           {t('saasIncrease.report.samePlanConflict')}
                         </span>
                       )}
-                      <span className="text-right text-sm font-semibold text-[#1c2434]">{money2(c.mrrAdd)}<span className="text-xs font-normal text-slate-400">/mois</span></span>
+                      <span className="text-right text-sm font-semibold text-[#141414]">{money2(c.mrrAdd)}<span className="text-xs font-normal text-slate-400">/mois</span></span>
                     </div>
                   </button>
                   {ouvert[c.key] && (
@@ -526,12 +526,12 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                             <span className="flex-1" />
                             <button disabled={!(coches[c.code] || new Set()).size || enCours}
                               onClick={() => ajuster(c.code, { skipped: true })}
-                              className="rounded bg-[#1c2434] px-3 py-1 text-xs font-semibold text-white disabled:opacity-40">
+                              className="rounded bg-[#141414] px-3 py-1 text-xs font-semibold text-white disabled:opacity-40">
                               {t('saasIncrease.report.actionSkip')}
                             </button>
                             <button disabled={!(coches[c.code] || new Set()).size || enCours}
                               onClick={() => setTaux({ code: c.code, type: 'percent', valeur: '' })}
-                              className="rounded border border-[#fe6523] px-3 py-1 text-xs font-semibold text-[#fe6523] disabled:opacity-40">
+                              className="rounded border border-[#F58345] px-3 py-1 text-xs font-semibold text-[#F58345] disabled:opacity-40">
                               {t('saasIncrease.report.actionRate')}
                             </button>
                           </div>
@@ -550,7 +550,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                               className="w-24 rounded border border-slate-300 px-2 py-1 text-xs" />
                             <button disabled={enCours || taux.valeur === '' || !isFinite(Number(taux.valeur))}
                               onClick={() => ajuster(c.code, { increaseType: taux.type, increaseValue: Number(taux.valeur) })}
-                              className="rounded bg-[#fe6523] px-3 py-1 text-xs font-semibold text-white disabled:opacity-40">
+                              className="rounded bg-[#F58345] px-3 py-1 text-xs font-semibold text-white disabled:opacity-40">
                               {t('saasIncrease.report.apply')}
                             </button>
                             <button onClick={() => setTaux(null)} className="text-xs text-slate-500 hover:underline">
@@ -577,7 +577,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
                                   {r.id != null && (
                                     <input type="checkbox" checked={(coches[c.code] || new Set()).has(r.id)}
                                       onChange={() => basculer(c.code, r.id as number)}
-                                      className="h-3.5 w-3.5 cursor-pointer accent-[#fe6523]" />
+                                      className="h-3.5 w-3.5 cursor-pointer accent-[#F58345]" />
                                   )}
                                 </td>
                                 <td className="px-4 py-1.5 text-slate-700">{r.name} <span className="text-slate-400">{r.sub}</span></td>
@@ -621,13 +621,13 @@ function Avancement({ titre, fait, total, mrrFait, detail, quand }:
         <p className="text-xs uppercase tracking-wide text-slate-500">{titre}</p>
         <p className="text-xs text-slate-400">{pct} %</p>
       </div>
-      <p className="mt-1 text-2xl font-bold text-[#1c2434]">
+      <p className="mt-1 text-2xl font-bold text-[#141414]">
         {fait.toLocaleString('fr-CA')} <span className="text-base font-normal text-slate-400">/ {total.toLocaleString('fr-CA')}</span>
       </p>
       <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-        <div className="h-full rounded-full bg-[#fe6523]" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-[#F58345]" style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-2 text-sm font-semibold text-[#1c2434]">{money2(mrrFait)} /mois</p>
+      <p className="mt-2 text-sm font-semibold text-[#141414]">{money2(mrrFait)} /mois</p>
       {detail.map((x, i) => <p key={i} className="mt-0.5 text-xs text-slate-500">{x}</p>)}
       {quand && <p className="mt-1 text-xs text-slate-400">{new Date(quand).toLocaleString('fr-CA')}</p>}
     </div>
@@ -636,9 +636,9 @@ function Avancement({ titre, fait, total, mrrFait, detail, quand }:
 
 function Tuile({ libelle, valeur, note, accent }: { libelle: string; valeur: string; note?: string; accent?: boolean }) {
   return (
-    <div className={`rounded-lg border p-4 ${accent ? 'border-[#fe6523] bg-orange-50' : 'border-slate-200'}`}>
+    <div className={`rounded-lg border p-4 ${accent ? 'border-[#F58345] bg-orange-50' : 'border-slate-200'}`}>
       <p className="text-xs uppercase tracking-wide text-slate-500">{libelle}</p>
-      <p className="mt-1 text-2xl font-bold text-[#1c2434]">{valeur}</p>
+      <p className="mt-1 text-2xl font-bold text-[#141414]">{valeur}</p>
       {note && <p className="mt-1 text-xs text-slate-500">{note}</p>}
     </div>
   );

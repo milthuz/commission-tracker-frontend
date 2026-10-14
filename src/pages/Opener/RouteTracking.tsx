@@ -21,7 +21,7 @@ import { convexHull, type LatLng } from './geo';
 
 export type ResultKind = 'lead' | 'hot' | 'warm' | 'cold' | 'client' | 'skipped' | 'todo';
 export const RESULT_COLOR: Record<ResultKind, string> = {
-  lead: '#F58346', hot: '#22C55E', warm: '#EAB308', cold: '#EF4444', client: '#0EA5E9', skipped: '#94A3B8', todo: '#CBD5E1',
+  lead: '#F58345', hot: '#22C55E', warm: '#EAB308', cold: '#EF4444', client: '#0EA5E9', skipped: '#94A3B8', todo: '#CBD5E1',
 };
 const RESULT_ORDER: ResultKind[] = ['lead', 'hot', 'warm', 'cold', 'client', 'skipped', 'todo'];
 export const resultOf = (s: OverviewStop): ResultKind => {
@@ -107,8 +107,8 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
       const zone = r.zone && r.zone.length >= 3 ? r.zone : pts.length >= 3 ? convexHull(pts) : null;
       if (zone) {
         const poly = new g.maps.Polygon({ paths: zone.map(([a, b]) => ({ lat: a, lng: b })), map, zIndex: 1,
-          strokeColor: r.id === selected ? '#F58346' : '#64748B', strokeOpacity: focus ? 0.8 : 0.25, strokeWeight: r.id === selected ? 3 : 1.5,
-          fillColor: r.id === selected ? '#F58346' : '#64748B', fillOpacity: r.id === selected ? 0.07 : focus ? 0.05 : 0.02 });
+          strokeColor: r.id === selected ? '#F58345' : '#64748B', strokeOpacity: focus ? 0.8 : 0.25, strokeWeight: r.id === selected ? 3 : 1.5,
+          fillColor: r.id === selected ? '#F58345' : '#64748B', fillOpacity: r.id === selected ? 0.07 : focus ? 0.05 : 0.02 });
         poly.addListener('click', () => { setSelected(r.id); setStopSel(null); });
         layers.current.push(poly);
       }
@@ -116,8 +116,8 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
       if (r.id === selected) {
         const path = visitOrder(r.stops).filter((s) => s.outcome === 'done' && s.lat != null).map((s) => ({ lat: s.lat!, lng: s.lng! }));
         if (path.length > 1) {
-          layers.current.push(new g.maps.Polyline({ path, map, zIndex: 20, clickable: false, strokeColor: '#F58346', strokeOpacity: 0.9, strokeWeight: 3,
-            icons: [{ icon: { path: g.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 2.6, strokeColor: '#F58346', fillColor: '#F58346', fillOpacity: 1 }, offset: '50%', repeat: '90px' }] }));
+          layers.current.push(new g.maps.Polyline({ path, map, zIndex: 20, clickable: false, strokeColor: '#F58345', strokeOpacity: 0.9, strokeWeight: 3,
+            icons: [{ icon: { path: g.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 2.6, strokeColor: '#F58345', fillColor: '#F58345', fillOpacity: 1 }, offset: '50%', repeat: '90px' }] }));
         }
       }
       const order = visitOrder(r.stops);
@@ -330,7 +330,7 @@ function StopCard({ s, r, onClose, fmtTime, loc, lng }: { s: OverviewStop; r: Ov
         <button onClick={onClose} className="rounded p-1 text-body hover:text-black dark:hover:text-white" aria-label={t('opener.designer.close') as string}><X className="h-4 w-4" /></button>
       </div>
       <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
-        <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-bold text-[#1C2434]" style={{ background: RESULT_COLOR[k] }}>
+        <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-bold text-[#141414]" style={{ background: RESULT_COLOR[k] }}>
           {k === 'lead' && <Star className="h-3 w-3" />}{t(`opener.track.result.${k}`)}
         </span>
         <span className="inline-flex items-center gap-1 rounded-full bg-gray-2 px-2 py-0.5 font-semibold text-black dark:bg-meta-4 dark:text-white">

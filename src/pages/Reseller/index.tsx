@@ -20,7 +20,7 @@ const filtersEqual = (a: Filter, b: Filter) =>
   a.year === b.year && a.month === b.month && a.reseller === b.reseller && a.search === b.search;
 
 // Distinct colors for the stacked-by-reseller chart series.
-const CHART_PALETTE = ['#3C50E0', '#80CAEE', '#0FADCF', '#F58346', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#6366F1', '#22C55E'];
+const CHART_PALETTE = ['#3C50E0', '#80CAEE', '#0FADCF', '#F58345', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#6366F1', '#22C55E'];
 
 // ---------------------------------------------------------------------------
 // Small presentational helpers

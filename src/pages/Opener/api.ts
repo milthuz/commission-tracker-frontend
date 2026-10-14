@@ -208,7 +208,7 @@ export const haversine = (a: [number, number], b: [number, number]) => {
 
 // Couleurs de statut du brief de design (pins, points, badges).
 export const STATUS_COLOR: Record<PlaceStatus, string> = {
-  client: '#57D193', former: '#7FA6C9', prospect: '#F58346', new: '#AEB7C0',
+  client: '#57D193', former: '#7FA6C9', prospect: '#F58345', new: '#AEB7C0',
 };
 // Franchise écartée (violet) : distincte des quatre statuts et des couleurs de la campagne.
 export const FRANCHISE_COLOR = '#8B5CF6';

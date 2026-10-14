@@ -43,7 +43,7 @@ const MONTREAL: [number, number] = [45.5236, -73.5865];
 const ALL_STATUSES: PlaceStatus[] = ['new', 'prospect', 'former', 'client'];
 const ALL_KINDS: PlaceKind[] = ['restaurant', 'takeout', 'cafe', 'bar', 'bakery', 'other'];
 // Couleurs des routes suggérées (une par route, sur la carte et dans la liste).
-const SUG_COLORS = ['#F58346', '#3C50E0', '#10B981', '#E85D9B', '#8B5CF6', '#F2B53C', '#22B8CF', '#64748B'];
+const SUG_COLORS = ['#F58345', '#3C50E0', '#10B981', '#E85D9B', '#8B5CF6', '#F2B53C', '#22B8CF', '#64748B'];
 // Prochain jour ouvrable (lundi à vendredi) à partir d'une date AAAA-MM-JJ, incluse.
 const weekdaysFrom = (ymd: string, n: number) => {
   const out: string[] = [];
@@ -241,8 +241,8 @@ export default function RouteDesigner() {
     // Zone
     if (L.poly) { L.poly.setMap(null); L.poly = null; }
     if (draft?.zone) {
-      L.poly = new g.maps.Polygon({ paths: draft.zone.map(([a, b]) => ({ lat: a, lng: b })), strokeColor: '#F58346', strokeOpacity: 0.9,
-        strokeWeight: 2, fillColor: '#F58346', fillOpacity: 0.06, clickable: false, map });
+      L.poly = new g.maps.Polygon({ paths: draft.zone.map(([a, b]) => ({ lat: a, lng: b })), strokeColor: '#F58345', strokeOpacity: 0.9,
+        strokeWeight: 2, fillColor: '#F58345', fillOpacity: 0.06, clickable: false, map });
     }
     // Points
     const want = new Map<string, ScannedPlace | DraftStop>();
@@ -269,7 +269,7 @@ export default function RouteDesigner() {
     if (L.line) { L.line.setMap(null); L.line = null; }
     const path = (draft?.stops || []).filter((s) => s.lat != null).map((s) => ({ lat: s.lat!, lng: s.lng! }));
     if (path.length > 1) {
-      L.line = new g.maps.Polyline({ path, map, strokeOpacity: 0, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.85, strokeColor: '#F58346', scale: 3 }, offset: '0', repeat: '10px' }], clickable: false });
+      L.line = new g.maps.Polyline({ path, map, strokeOpacity: 0, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.85, strokeColor: '#F58345', scale: 3 }, offset: '0', repeat: '10px' }], clickable: false });
     }
     // Routes suggérées : un secteur coloré par route.
     L.sug.forEach((x) => x.setMap(null));
@@ -300,7 +300,7 @@ export default function RouteDesigner() {
     if (!drawing) return;
     L.clickL = m.map.addListener('click', (e: any) => setDrawPts((pts) => [...pts, [e.latLng.lat(), e.latLng.lng()]]));
     if (drawPts.length) {
-      L.drawLine = new m.g.maps.Polyline({ path: drawPts.map(([a, b]) => ({ lat: a, lng: b })), map: m.map, strokeColor: '#F58346', strokeWeight: 2, clickable: false });
+      L.drawLine = new m.g.maps.Polyline({ path: drawPts.map(([a, b]) => ({ lat: a, lng: b })), map: m.map, strokeColor: '#F58345', strokeWeight: 2, clickable: false });
     }
   }, [drawing, drawPts]);
 
@@ -627,7 +627,7 @@ export default function RouteDesigner() {
                   onClick={() => { setSelected(s.placeId); if (s.lat != null) mapRef.current?.map.panTo({ lat: s.lat, lng: s.lng }); }}
                   className={`flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 ${selected === s.placeId ? 'bg-gray-2 dark:bg-meta-4' : 'hover:bg-gray-2 dark:hover:bg-meta-4/60'} ${dragIdx === i ? 'opacity-50' : ''}`}>
                   {editable && <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-body" />}
-                  <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full text-xs font-bold text-[#1C2434]" style={{ background: STATUS_COLOR[st] }}>
+                  <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full text-xs font-bold text-[#141414]" style={{ background: STATUS_COLOR[st] }}>
                     {s.outcome === 'done' ? <Check className="h-3.5 w-3.5" /> : i + 1}
                   </span>
                   <div className="min-w-0 flex-1">

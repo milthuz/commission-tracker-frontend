@@ -52,46 +52,51 @@ module.exports = {
         current: 'currentColor',
         transparent: 'transparent',
         white: '#FFFFFF',
+        // Palette Kaizen (refonte UI, décision de David du 2026-10-14) : les NOMS de jetons du gabarit
+        // sont gardés pour ne pas réécrire ~1 000 classes ; leurs VALEURS suivent le design system
+        // Cluster Kaizen (planches « Sales Hub — refonte UI »). Clair / sombre :
+        //   fond whiten #F2F2F3 / boxdark-2 #0A0A0A · cartes white / boxdark #141414
+        //   bordure stroke #E4E4E7 / strokedark #26272B · neutre gray #ECECEE / meta-4 #232323
         black: {
           ...colors.black,
-          DEFAULT: '#1C2434',
+          DEFAULT: '#141414',
           2: '#010101',
         },
         red: {
           ...colors.red,
           DEFAULT: '#FB5454',
         },
-        body: '#64748B',
-        bodydark: '#AEB7C0',
-        bodydark1: '#DEE4EE',
-        bodydark2: '#8A99AF',
-        primary: '#F58346',
+        body: '#575A61',
+        bodydark: '#D1D1D1',
+        bodydark1: '#E8E8EA',
+        bodydark2: '#999AA7',
+        primary: '#F58345',
         secondary: '#D8CDFF',
-        stroke: '#E2E8F0',
+        stroke: '#E4E4E7',
         gray: {
           ...colors.gray,
-          DEFAULT: '#EFF4FB',
-          2: '#F7F9FC',
+          DEFAULT: '#ECECEE',
+          2: '#F7F7F8',
           3: '#FAFAFA',
         },
-        graydark: '#333A48',
-        whiten: '#F1F5F9',
-        whiter: '#F5F7FD',
-        boxdark: '#24303F',
-        'boxdark-2': '#1A222C',
-        strokedark: '#2E3A47',
-        'form-strokedark': '#3d4d60',
-        'form-input': '#1d2a39',
+        graydark: '#323439',
+        whiten: '#F2F2F3',
+        whiter: '#F7F7F8',
+        boxdark: '#141414',
+        'boxdark-2': '#0A0A0A',
+        strokedark: '#26272B',
+        'form-strokedark': '#323439',
+        'form-input': '#1B1B1B',
         meta: {
-          1: '#F58346',
+          1: '#F58345',
           2: '#FBCDB5',
           3: '#B7F0D1',
           // meta-4 is used throughout (incl. TailAdmin base components) as the DARK-mode
           // surface/hover color via `dark:bg-meta-4`, so it must be a dark slate — not a
           // light accent. (For the lavender accent use meta-7 / #D8CDFF instead.)
-          4: '#313D4A',
+          4: '#232323',
           5: '#FFD1E4',
-          6: '#F58346',
+          6: '#F58345',
           7: '#D8CDFF',
           8: '#B7F0D1',
           9: '#FBCDB5',
@@ -101,7 +106,7 @@ module.exports = {
         // `danger` était #F58346 — la MÊME couleur que `primary` : un bouton « Supprimer » avait
         // l'air d'un bouton « Enregistrer », et le texte blanc y tombait à 2,6:1. Rouge franc
         // (red-600) depuis le 2026-09-28 : blanc lisible dessus (4,8:1), teintes /10 rosées.
-        danger: '#DC2626',
+        danger: '#D92D20',
         warning: '#FBCDB5',
       },
       // Le pastel `success` (#B7F0D1) est une couleur de FOND : en texte sur fond clair, il était
@@ -289,11 +294,11 @@ module.exports = {
         4: '0px 4px 10px rgba(0, 0, 0, 0.12)',
         5: '0px 1px 1px rgba(0, 0, 0, 0.15)',
         6: '0px 3px 15px rgba(0, 0, 0, 0.1)',
-        7: '-5px 0 0 #313D4A, 5px 0 0 #313D4A',
-        8: '1px 0 0 #313D4A, -1px 0 0 #313D4A, 0 1px 0 #313D4A, 0 -1px 0 #313D4A, 0 3px 13px rgb(0 0 0 / 8%)',
+        7: '-5px 0 0 #232323, 5px 0 0 #232323',
+        8: '1px 0 0 #232323, -1px 0 0 #232323, 0 1px 0 #232323, 0 -1px 0 #232323, 0 3px 13px rgb(0 0 0 / 8%)',
       },
       dropShadow: {
-        1: '0px 1px 0px #E2E8F0',
+        1: '0px 1px 0px #E4E4E7',
         2: '0px 1px 4px rgba(0, 0, 0, 0.12)',
       },
       keyframes: {

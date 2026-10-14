@@ -31,7 +31,7 @@ interface Props {
 }
 
 const YEAR_NUMS = Array.from({ length: YEARS }, (_, k) => k + 1);
-const ORANGE = '#FE6523';
+const ORANGE = '#F58345';
 
 export default function BoardView({ inputs, model, t, locale, money, compact, num, chart, onClose }: Props) {
   useEffect(() => {
@@ -170,7 +170,7 @@ export default function BoardView({ inputs, model, t, locale, money, compact, nu
           {/* ── Les grands chiffres ── */}
           <section className="rm-board-block mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
             {stats.map((s) => (
-              <div key={s.label} className={`${card} p-5 ${s.accent ? 'ring-2 ring-[#FE6523]/40' : ''}`}>
+              <div key={s.label} className={`${card} p-5 ${s.accent ? 'ring-2 ring-[#F58345]/40' : ''}`}>
                 <div className={eyebrow}>{s.label}</div>
                 <div className={`mt-2 font-semibold tabular-nums ${s.accent ? 'text-[34px]' : 'text-[26px]'}`}
                   style={{ color: s.accent ? ORANGE : undefined }}>{s.value}</div>

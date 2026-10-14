@@ -348,7 +348,7 @@ function QuestionForm({ subject, form, setForm, onSubmit, mode, header, top, pos
               <div className="grid flex-1 grid-cols-5 gap-1.5" role="radiogroup">
                 {[1, 2, 3, 4, 5].map((v) => (
                   <button key={v} type="button" role="radio" aria-checked={form.satisfaction === v} onClick={() => set('satisfaction')(v)}
-                    className={`h-12 rounded-xl text-sm font-bold ${v <= (form.satisfaction || 0) ? 'bg-[#57D193] text-[#1C2434]' : 'border border-[var(--of-stroke)] bg-[var(--of-surface)] text-[var(--of-muted)]'}`}>{v}</button>
+                    className={`h-12 rounded-xl text-sm font-bold ${v <= (form.satisfaction || 0) ? 'bg-[#57D193] text-[#141414]' : 'border border-[var(--of-stroke)] bg-[var(--of-surface)] text-[var(--of-muted)]'}`}>{v}</button>
                 ))}
               </div>
               <span className="w-[68px] text-right text-xs font-semibold text-[var(--of-ok)]">{form.satisfaction ? t(`opener.field.client.sat.${form.satisfaction}`) : ''}</span>
@@ -387,7 +387,7 @@ function QuestionForm({ subject, form, setForm, onSubmit, mode, header, top, pos
             <div className="grid flex-1 grid-cols-5 gap-1.5" role="radiogroup">
               {[1, 2, 3, 4, 5].map((v) => (
                 <button key={v} type="button" role="radio" aria-checked={form.interest === v} onClick={() => set('interest')(v)}
-                  className={`h-12 rounded-xl text-sm font-bold ${v <= form.interest ? 'bg-primary text-[#1C2434]' : 'border border-[var(--of-stroke)] bg-[var(--of-surface)] text-[var(--of-muted)]'}`}>{v}</button>
+                  className={`h-12 rounded-xl text-sm font-bold ${v <= form.interest ? 'bg-primary text-[#141414]' : 'border border-[var(--of-stroke)] bg-[var(--of-surface)] text-[var(--of-muted)]'}`}>{v}</button>
               ))}
             </div>
             <span className="w-[68px] text-right text-xs font-semibold text-[var(--of-warn)]">{levels[form.interest] || ''}</span>
@@ -402,7 +402,7 @@ function QuestionForm({ subject, form, setForm, onSubmit, mode, header, top, pos
           <Card onClick={() => set('createLead')(!form.createLead)} className={form.createLead ? '!border-primary' : ''}>
             <div className="flex items-center gap-3">
               <span className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md border ${form.createLead ? 'border-primary bg-primary' : 'border-[var(--of-input-stroke)]'}`}>
-                {form.createLead && <Check className="h-4 w-4 text-[#1C2434]" />}
+                {form.createLead && <Check className="h-4 w-4 text-[#141414]" />}
               </span>
               <div><p className="text-sm font-semibold text-[var(--of-title)]">{isClient ? t('opener.field.client.createLead') : t('opener.field.createLeadWith')}</p><p className="text-xs text-[var(--of-faint)]">{isClient ? t('opener.field.client.createLeadSub') : t('opener.field.createLeadWithSub')}</p></div>
             </div>

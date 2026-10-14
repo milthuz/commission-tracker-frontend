@@ -72,10 +72,10 @@ const ProcessingBonusStatementModal: React.FC<{
 <style>
   @page { margin: 14mm; }
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { margin: 0; font-family: 'Segoe UI', -apple-system, Arial, sans-serif; color: #1c2434; background: #fff; }
+  body { margin: 0; font-family: 'Segoe UI', -apple-system, Arial, sans-serif; color: #141414; background: #fff; }
   .wrap { max-width: 740px; margin: 0 auto; }
   .accent { height: 6px; background: #f2682c; }
-  .band { display: flex; justify-content: space-between; align-items: flex-end; background: #1c2434; color: #fff; padding: 26px 34px; }
+  .band { display: flex; justify-content: space-between; align-items: flex-end; background: #141414; color: #fff; padding: 26px 34px; }
   .brand { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
   .brand img { height: 36px; width: 36px; }
   .brand small { display: block; font-size: 11px; font-weight: 400; color: #8a99af; letter-spacing: .04em; margin-top: 2px; }
@@ -89,7 +89,7 @@ const ProcessingBonusStatementModal: React.FC<{
   h2 { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #f2682c; margin: 26px 0 8px; display: flex; align-items: center; gap: 10px; }
   h2:after { content: ''; flex: 1; height: 1px; background: #eef2f7; }
   table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  thead th { text-align: left; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #64748b; padding: 7px 10px; border-bottom: 2px solid #1c2434; }
+  thead th { text-align: left; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #64748b; padding: 7px 10px; border-bottom: 2px solid #141414; }
   thead th.num { text-align: right; }
   td { padding: 8px 10px; border-bottom: 1px solid #eef2f7; vertical-align: top; }
   tr.alt td { background: #fafbfd; }

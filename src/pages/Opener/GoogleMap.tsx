@@ -45,11 +45,11 @@ export function loadGoogleMaps(lang: string): Promise<any> {
 export const DARK_STYLE = [
   { elementType: 'geometry', stylers: [{ color: '#1d2733' }] },
   { elementType: 'labels.text.fill', stylers: [{ color: '#8A99AF' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#1A222C' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#0A0A0A' }] },
   { featureType: 'poi', stylers: [{ visibility: 'off' }] },
   { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2E3A47' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#24303F' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#26272B' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#141414' }] },
   { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#3d4d60' }] },
   { featureType: 'road', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
   { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#121a23' }] },
@@ -72,17 +72,17 @@ export function pinIcon(g: any, color: string, label: string | number | null, op
   const r = size / 2;
   const halo = opts.active ? `<circle cx="${r + 6}" cy="${r + 6}" r="${r + 5}" fill="rgba(245,131,70,.35)"/>` : '';
   const body = opts.done
-    ? `<circle cx="${r + 6}" cy="${r + 6}" r="${r - 1}" fill="${opts.surface || '#24303F'}" stroke="${color}" stroke-width="2"/>`
+    ? `<circle cx="${r + 6}" cy="${r + 6}" r="${r - 1}" fill="${opts.surface || '#141414'}" stroke="${color}" stroke-width="2"/>`
       + `<path d="M${r + 6 - 5} ${r + 6} l3.5 3.5 l6.5 -7" stroke="${color}" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`
-    : `<circle cx="${r + 6}" cy="${r + 6}" r="${r}" fill="${color}" stroke="#1A222C" stroke-width="1.5"/>`
-      + (label != null ? `<text x="${r + 6}" y="${r + 6 + 4}" text-anchor="middle" font-family="Satoshi,Arial,sans-serif" font-size="12" font-weight="700" fill="#1C2434">${label}</text>` : '');
+    : `<circle cx="${r + 6}" cy="${r + 6}" r="${r}" fill="${color}" stroke="#0A0A0A" stroke-width="1.5"/>`
+      + (label != null ? `<text x="${r + 6}" y="${r + 6 + 4}" text-anchor="middle" font-family="Satoshi,Arial,sans-serif" font-size="12" font-weight="700" fill="#141414">${label}</text>` : '');
   const w = size + 12;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${w}">${halo}${body}</svg>`;
   return { url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`, scaledSize: new g.maps.Size(w, w), anchor: new g.maps.Point(w / 2, w / 2) };
 }
 
 export function dotIcon(g: any, color: string, size = 10) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size + 4}" height="${size + 4}"><circle cx="${(size + 4) / 2}" cy="${(size + 4) / 2}" r="${size / 2}" fill="${color}" stroke="#1C2434" stroke-opacity=".55" stroke-width="1.5"/></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size + 4}" height="${size + 4}"><circle cx="${(size + 4) / 2}" cy="${(size + 4) / 2}" r="${size / 2}" fill="${color}" stroke="#141414" stroke-opacity=".55" stroke-width="1.5"/></svg>`;
   return { url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`, scaledSize: new g.maps.Size(size + 4, size + 4), anchor: new g.maps.Point((size + 4) / 2, (size + 4) / 2) };
 }
 
@@ -96,7 +96,7 @@ export function GoogleMapView({ lang, className, center, zoom = 15, onReady, int
   const done = useRef(false);
   const mapObj = useRef<any>(null);
   useEffect(() => {
-    mapObj.current?.setOptions({ styles: styleFor(dark), backgroundColor: dark ? '#1A222C' : '#F1F5F9' });
+    mapObj.current?.setOptions({ styles: styleFor(dark), backgroundColor: dark ? '#0A0A0A' : '#F1F5F9' });
   }, [dark]);
   useEffect(() => {
     let cancelled = false;
@@ -104,7 +104,7 @@ export function GoogleMapView({ lang, className, center, zoom = 15, onReady, int
       if (cancelled || !el.current || done.current) return;
       done.current = true;
       const map = new g.maps.Map(el.current, {
-        center: { lat: center[0], lng: center[1] }, zoom, styles: styleFor(dark), backgroundColor: dark ? '#1A222C' : '#F1F5F9',
+        center: { lat: center[0], lng: center[1] }, zoom, styles: styleFor(dark), backgroundColor: dark ? '#0A0A0A' : '#F1F5F9',
         disableDefaultUI: true, clickableIcons: false, gestureHandling: interactive ? 'greedy' : 'none',
         keyboardShortcuts: interactive, zoomControl: false,
       });

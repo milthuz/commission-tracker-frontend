@@ -13,7 +13,7 @@
   --of-stroke: #E2E8F0;
   --of-input: #FFFFFF;
   --of-input-stroke: #CBD5E1;
-  --of-title: #1C2434;
+  --of-title: #141414;
   --of-text: #334155;
   --of-muted: #475569;
   --of-faint: #64748B;
@@ -30,10 +30,10 @@
   color-scheme: light;
 }
 .dark .opener-field {
-  --of-page: #1A222C;
-  --of-surface: #24303F;
-  --of-raised: #313D4A;
-  --of-stroke: #2E3A47;
+  --of-page: #0A0A0A;
+  --of-surface: #141414;
+  --of-raised: #232323;
+  --of-stroke: #26272B;
   --of-input: #1D2A39;
   --of-input-stroke: #3D4D60;
   --of-title: #FFFFFF;

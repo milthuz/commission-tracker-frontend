@@ -273,7 +273,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
             : 'h-[min(620px,calc(100vh-8rem))] w-[min(420px,calc(100vw-2rem))]'
         }`}>
           {/* Header */}
-          <div className="flex items-center justify-between bg-[#1c2434] px-5 py-4">
+          <div className="flex items-center justify-between bg-[#141414] px-5 py-4">
             <div className="flex items-center gap-3">
               <SofiaAvatar className="h-9 w-9" ring />
               <div>
@@ -531,7 +531,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
         className="group fixed bottom-6 right-4 z-[9990] flex h-12 w-12 items-center justify-center rounded-full shadow-default transition-transform duration-200 hover:scale-110"
       >
         {open ? (
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1c2434]">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#141414]">
             <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
             </svg>

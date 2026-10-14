@@ -46,7 +46,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
       const n = stops.indexOf(s) + 1;
       const color = STATUS_COLOR[s.status as PlaceStatus] || STATUS_COLOR.new;
       const active = selected?.id === s.id;
-      const icon = pinIcon(g, color, n, { size: active ? 36 : 28, done: s.outcome === 'done', active, surface: dark ? '#24303F' : '#FFFFFF' });
+      const icon = pinIcon(g, color, n, { size: active ? 36 : 28, done: s.outcome === 'done', active, surface: dark ? '#141414' : '#FFFFFF' });
       let mk = L.markers.get(s.id);
       if (!mk) {
         mk = new g.maps.Marker({ position: { lat: s.lat, lng: s.lng }, map });
@@ -59,7 +59,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
     if (L.line) L.line.setMap(null);
     const path = stops.filter((s) => s.lat != null).map((s) => ({ lat: s.lat!, lng: s.lng! }));
     L.line = path.length > 1 ? new g.maps.Polyline({ path, map, strokeOpacity: 0, clickable: false,
-      icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.85, strokeColor: '#F58346', scale: 3 }, offset: '0', repeat: '10px' }] }) : null;
+      icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.85, strokeColor: '#F58345', scale: 3 }, offset: '0', repeat: '10px' }] }) : null;
   }, [shown, stops, selected?.id, mapReady, dark]);
 
   // Position de l'opener.
@@ -118,7 +118,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
         {distTo(selected) != null && <span className="text-xs font-medium text-[var(--of-faint)]">{fmtDistance(distTo(selected)!, lng)} · {walkMin(distTo(selected)!)} min</span>}
       </div>
       <button onClick={() => navigate(`/opener/stop/${selected.id}`)} className="mb-3 flex w-full items-start gap-3 text-left">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-[#1C2434]" style={{ background: STATUS_COLOR[selected.status as PlaceStatus] }}>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-[#141414]" style={{ background: STATUS_COLOR[selected.status as PlaceStatus] }}>
           {selected.outcome === 'done' ? <Check className="h-5 w-5" /> : stops.indexOf(selected) + 1}
         </span>
         <div className="min-w-0 flex-1">
@@ -175,7 +175,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
           <div className="flex gap-1.5 overflow-x-auto pb-1">
             {(['all', 'client', 'prospect', 'new'] as Filter[]).map((f) => (
               <button key={f} onClick={() => setFilter(f)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow ${filter === f ? 'bg-primary text-[#1C2434]' : 'border border-[var(--of-stroke)] bg-[var(--of-surface)] text-[var(--of-text)]'}`}>
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold shadow ${filter === f ? 'bg-primary text-[#141414]' : 'border border-[var(--of-stroke)] bg-[var(--of-surface)] text-[var(--of-text)]'}`}>
                 {f !== 'all' && <span className="h-2 w-2 rounded-full" style={{ background: STATUS_COLOR[f as PlaceStatus] }} />}
                 {t(`opener.field.filter.${f}`)}
               </button>
@@ -212,7 +212,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
           return (
             <button key={s.id} onClick={() => navigate(`/opener/stop/${s.id}`)}
               className={`flex w-full items-center gap-3 rounded-[14px] border bg-[var(--of-surface)] px-3.5 py-3 text-left ${s.id === next?.id ? 'border-primary' : 'border-[var(--of-stroke)]'}`}>
-              <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full text-sm font-bold text-[#1C2434]" style={{ background: STATUS_COLOR[s.status as PlaceStatus] }}>{stops.indexOf(s) + 1}</span>
+              <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full text-sm font-bold text-[#141414]" style={{ background: STATUS_COLOR[s.status as PlaceStatus] }}>{stops.indexOf(s) + 1}</span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2"><p className="truncate text-[15px] font-bold text-[var(--of-title)]">{s.name}</p><StatusBadge status={s.status as PlaceStatus} version={s.version} /></div>
                 <p className="truncate text-xs text-[var(--of-faint)]">{s.address || '—'}{d != null ? ` · ${fmtDistance(d, lng)}` : ''}</p>

@@ -34,7 +34,7 @@ const nextWorkday = (today: string) => {
   return d.toISOString().slice(0, 10);
 };
 // Une couleur par opener dans la proposition de la semaine (distinctes des couleurs de statut).
-const OPENER_COLORS = ['#F58346', '#8B5CF6', '#0EA5E9', '#EC4899', '#14B8A6', '#EAB308', '#EF4444', '#6366F1'];
+const OPENER_COLORS = ['#F58345', '#8B5CF6', '#0EA5E9', '#EC4899', '#14B8A6', '#EAB308', '#EF4444', '#6366F1'];
 interface Proposal {
   openerEmail: string; openerName: string;
   days: { date: string; campaignRouteId: number; seq: number; region: string; name: string; stops: number; minutes: number; mode: 'walk' | 'car' }[];
@@ -148,7 +148,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
     // Fiche au survol (ou au toucher) : une seule bulle partagée, refermée en quittant le point.
     if (!tip.current) tip.current = new g.maps.InfoWindow({ disableAutoPan: true });
     tip.current.close();
-    const showTip = (anchor: any, html: string) => { tip.current.setContent(`<div style="font:12px/1.45 Satoshi,system-ui,sans-serif;color:#1C2434;max-width:240px">${html}</div>`); tip.current.open({ anchor, map, shouldFocus: false }); };
+    const showTip = (anchor: any, html: string) => { tip.current.setContent(`<div style="font:12px/1.45 Satoshi,system-ui,sans-serif;color:#141414;max-width:240px">${html}</div>`); tip.current.open({ anchor, map, shouldFocus: false }); };
     const hideTip = () => tip.current?.close();
     // Contours des régions : discrets, juste pour situer.
     for (const reg of data.regions) {
@@ -173,7 +173,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
         position: { lat: r.centroid[0], lng: r.centroid[1] }, map, zIndex: on ? 60 : prop ? 50 : r.status === 'todo' ? 20 : 30,
         // (pas de title : la fiche au survol le remplace)
         icon: { path: g.maps.SymbolPath.CIRCLE, scale: prop ? 13 : big ? 11 : 5, fillColor: col, fillOpacity: 1,
-          strokeColor: on ? '#1C2434' : '#FFFFFF', strokeWeight: on ? 3 : 2 },
+          strokeColor: on ? '#141414' : '#FFFFFF', strokeWeight: on ? 3 : 2 },
         // Dans la pastille : le jour pour la proposition (« lun. »), le numéro de route de près.
         label: prop ? { text: fmtDayShort(prop.date).replace('.', ''), color: '#FFFFFF', fontSize: '10px', fontWeight: '700' }
           : big ? { text: String(r.seq), color: '#FFFFFF', fontSize: '10px', fontWeight: '700' } : undefined,
@@ -203,7 +203,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
         const st = (s.status as PlaceStatus) || 'new';
         const mk = new g.maps.Marker({ position: { lat: s.lat, lng: s.lng }, map, zIndex: 70 + i,
           icon: { path: g.maps.SymbolPath.CIRCLE, scale: 8, fillColor: STATUS_COLOR[st], fillOpacity: 1, strokeColor: '#FFFFFF', strokeWeight: 1.5 },
-          label: { text: String(i + 1), color: '#1C2434', fontSize: '9px', fontWeight: '700' } });
+          label: { text: String(i + 1), color: '#141414', fontSize: '9px', fontWeight: '700' } });
         const html = [
           `<b style="font-size:13px">${i + 1}. ${esc(s.name || '—')}</b>`,
           s.address ? esc(s.address) : '',
@@ -225,7 +225,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
       const path = detail.stops.filter((s) => s.lat != null).map((s) => ({ lat: s.lat!, lng: s.lng! }));
       if (path.length > 1) {
         layers.current.push(new g.maps.Polyline({ path, map, zIndex: 25, clickable: false, strokeOpacity: 0,
-          icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.9, strokeColor: '#F58346', scale: 3 }, offset: '0', repeat: '10px' }] }));
+          icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.9, strokeColor: '#F58345', scale: 3 }, offset: '0', repeat: '10px' }] }));
       }
     }
     return () => lst.remove();
@@ -353,7 +353,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
             <p className="font-semibold text-black dark:text-white">{t('opener.campaign.mappingTitle')}</p>
             <span className="text-sm font-bold text-primary">{stats.mapPct} %</span>
           </div>
-          {bar([{ v: stats.cellsDone, c: '#F58346' }], stats.cellsTotal)}
+          {bar([{ v: stats.cellsDone, c: '#F58345' }], stats.cellsTotal)}
           <div className="mt-3 space-y-2">
             {data.regions.map((r) => {
               const pct = r.cells.total ? Math.round((r.cells.done / r.cells.total) * 100) : 0;
@@ -627,7 +627,7 @@ export default function CampaignView({ onOpenRoute }: { onOpenRoute: (routeId: n
                 {!openers.length && <p className="text-xs text-warning">{t('opener.designer.noOpeners')}</p>}
                 {openers.map((o) => (
                   <label key={o.email} className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm text-black hover:bg-gray-2 dark:text-white dark:hover:bg-meta-4">
-                    <input type="checkbox" checked={picked.includes(o.email)} onChange={(e) => setPicked((p) => (e.target.checked ? [...p, o.email] : p.filter((x) => x !== o.email)))} className="h-4 w-4 accent-[#F58346]" />
+                    <input type="checkbox" checked={picked.includes(o.email)} onChange={(e) => setPicked((p) => (e.target.checked ? [...p, o.email] : p.filter((x) => x !== o.email)))} className="h-4 w-4 accent-[#F58345]" />
                     {o.name}
                   </label>
                 ))}

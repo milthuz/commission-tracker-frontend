@@ -106,7 +106,7 @@ const PartnerLogin = () => {
 
   return (
     <div className="flex min-h-screen">
-      <div className="relative hidden w-1/2 flex-col bg-[#0f1722] lg:flex">
+      <div className="relative hidden w-1/2 flex-col bg-[#0F0F10] lg:flex">
         <div className="px-12 py-10">
           <ClusterWordmark tone="dark" className="h-8 w-auto" />
         </div>
@@ -124,7 +124,7 @@ const PartnerLogin = () => {
       </div>
 
       <div className="flex w-full flex-col items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2 lg:w-1/2">
-        <div className="mb-8 rounded-xl bg-[#0f1722] px-6 py-5 lg:hidden">
+        <div className="mb-8 rounded-xl bg-[#0F0F10] px-6 py-5 lg:hidden">
           <ClusterWordmark tone="dark" className="h-8 w-auto" />
         </div>
 

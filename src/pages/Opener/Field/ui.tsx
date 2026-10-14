@@ -56,7 +56,7 @@ export function Chips<T extends string>({ options, value, onChange, multi = fals
             const cur = value as T[];
             onChange(cur.includes(o.value) ? cur.filter((x) => x !== o.value) : [...cur, o.value]);
           }}
-          className={`rounded-full px-3.5 py-[9px] text-[13px] font-semibold ${isOn(o.value) ? 'bg-primary text-[#1C2434]' : 'border border-[var(--of-stroke)] bg-[var(--of-surface)] text-[var(--of-text)]'}`}>
+          className={`rounded-full px-3.5 py-[9px] text-[13px] font-semibold ${isOn(o.value) ? 'bg-primary text-[#141414]' : 'border border-[var(--of-stroke)] bg-[var(--of-surface)] text-[var(--of-text)]'}`}>
           {o.label}
         </button>
       ))}
@@ -71,7 +71,7 @@ export function Segmented<T extends string>({ options, value, onChange, label }:
     <div className="grid gap-1 rounded-xl border border-[var(--of-stroke)] bg-[var(--of-surface)] p-1" style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0,1fr))` }} role="radiogroup" aria-label={label}>
       {options.map((o) => (
         <button key={o.value} type="button" role="radio" aria-checked={value === o.value} onClick={() => onChange(o.value)}
-          className={`h-10 rounded-[9px] px-1 text-xs font-semibold ${value === o.value ? 'bg-primary text-[#1C2434]' : 'text-[var(--of-muted)]'}`}>
+          className={`h-10 rounded-[9px] px-1 text-xs font-semibold ${value === o.value ? 'bg-primary text-[#141414]' : 'text-[var(--of-muted)]'}`}>
           {o.label}
         </button>
       ))}
@@ -110,7 +110,7 @@ export const StickyCta = ({ children, withTabBar = false }: { children: ReactNod
   </div>
 );
 
-export const btnPrimary = 'inline-flex h-12 items-center justify-center gap-2 rounded-[10px] bg-primary px-4 text-[15px] font-bold text-[#1C2434] disabled:opacity-50';
+export const btnPrimary = 'inline-flex h-12 items-center justify-center gap-2 rounded-[10px] bg-primary px-4 text-[15px] font-bold text-[#141414] disabled:opacity-50';
 export const btnSecondary = 'inline-flex h-12 items-center justify-center gap-2 rounded-[10px] border border-[var(--of-input-stroke)] bg-[var(--of-raised)] px-4 text-[15px] font-semibold text-[var(--of-title)] disabled:opacity-50';
 export const inputCls = 'h-11 w-full rounded-[10px] border border-[var(--of-input-stroke)] bg-[var(--of-input)] px-3 text-sm text-[var(--of-text)] outline-none placeholder:text-[var(--of-faint)] focus:border-primary';
 export const labelCls = 'mb-1 block text-xs font-medium text-[var(--of-text)]';
@@ -128,7 +128,7 @@ export function GpsBanner({ gps, onRetry, className = '' }: { gps: string; onRet
       </p>
       <p className="leading-relaxed text-[var(--of-muted)]">{t(gps === 'denied' ? (ios ? 'opener.field.gpsOff.howIos' : 'opener.field.gpsOff.howAndroid') : 'opener.field.gpsOff.weak')}</p>
       {gps !== 'unsupported' && (
-        <button type="button" onClick={onRetry} className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-[#1C2434]">
+        <button type="button" onClick={onRetry} className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-[#141414]">
           <RefreshCw className="h-3.5 w-3.5" />{t('opener.field.gpsOff.retry')}
         </button>
       )}

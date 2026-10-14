@@ -32,8 +32,8 @@ const authHeaders = () => ({
 interface Scenario { id: string; name: string; inputs: Inputs; mine: boolean; owner: string; ownerName?: string; updatedAt: string }
 
 const CARD = 'rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark';
-const ORANGE = '#FE6523';
-const INPUT_CLS = 'w-full rounded border border-stroke bg-transparent px-2.5 py-1.5 text-sm text-black outline-none transition focus:border-[#FE6523] focus:ring-2 focus:ring-[#FE6523]/15 dark:border-strokedark dark:bg-form-input dark:text-white';
+const ORANGE = '#F58345';
+const INPUT_CLS = 'w-full rounded border border-stroke bg-transparent px-2.5 py-1.5 text-sm text-black outline-none transition focus:border-[#F58345] focus:ring-2 focus:ring-[#F58345]/15 dark:border-strokedark dark:bg-form-input dark:text-white';
 
 // ── Saisie numérique ─────────────────────────────────────────────────────────────────────
 // Champ texte et non `type=number` : ce dernier refuse la virgule décimale selon la langue du
@@ -57,15 +57,15 @@ function NumField({ label, value, onChange, unit, decimals = 0, locale, highligh
   const [focused, setFocused] = useState(false);
   useEffect(() => { if (!focused) setDraft(show(value)); }, [value, focused, locale]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <label className={`block ${highlight ? 'rounded border-l-2 border-[#FE6523] bg-[#FE6523]/5 py-1 pl-2' : ''}`}>
+    <label className={`block ${highlight ? 'rounded border-l-2 border-[#F58345] bg-[#F58345]/5 py-1 pl-2' : ''}`}>
       <span className="mb-1 flex items-baseline justify-between gap-2 text-xs text-body dark:text-bodydark">
         <span>{label}</span>
-        {highlight && <span className="text-[10px] font-semibold uppercase tracking-wide text-[#FE6523]">{highlight}</span>}
+        {highlight && <span className="text-[10px] font-semibold uppercase tracking-wide text-[#F58345]">{highlight}</span>}
       </span>
       {/* L'unité est un SUFFIXE dans le flux, pas une étiquette posée par-dessus le champ : une
           marge fixe (pr-12) laissait « months » ou « $/mois » chevaucher le chiffre. Ici le
           champ rétrécit de la largeur réelle de l'unité, quelle que soit la langue. */}
-      <div className="flex items-center rounded border border-stroke transition focus-within:border-[#FE6523] focus-within:ring-2 focus-within:ring-[#FE6523]/15 dark:border-strokedark dark:bg-form-input">
+      <div className="flex items-center rounded border border-stroke transition focus-within:border-[#F58345] focus-within:ring-2 focus-within:ring-[#F58345]/15 dark:border-strokedark dark:bg-form-input">
         <input
           type="text" inputMode="decimal" value={draft}
           onFocus={() => setFocused(true)}
@@ -118,7 +118,7 @@ function LogoField({ value, onChange, t }: { value?: string; onChange: (v: strin
           {value ? <img src={value} alt="" className="max-h-full max-w-full object-contain" /> : <span className="text-[10px] text-body">{t('revenueModeler.logo.none')}</span>}
         </div>
         <div className="flex flex-col gap-1">
-          <label className="cursor-pointer text-xs font-medium text-[#FE6523] hover:underline">
+          <label className="cursor-pointer text-xs font-medium text-[#F58345] hover:underline">
             {value ? t('revenueModeler.logo.change') : t('revenueModeler.logo.add')}
             <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
               onChange={async (e) => {
@@ -484,7 +484,7 @@ export default function RevenueModeler() {
             className={INPUT_CLS} />
         </div>
         <button type="button" onClick={save} disabled={busy}
-          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-[#FE6523] px-3.5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-[#F58345] px-3.5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
           <Save className="h-4 w-4" />{t('revenueModeler.save')}
         </button>
         {active?.mine && (
@@ -514,7 +514,7 @@ export default function RevenueModeler() {
           </button>
           {canEditTiers && (
             <button type="button" onClick={saveAsDefaults} disabled={busy} title={t('revenueModeler.defaultsHint') as string}
-              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-[#FE6523]/50 px-3 py-2 text-sm text-[#FE6523] hover:bg-[#FE6523]/5 disabled:opacity-60">
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-[#F58345]/50 px-3 py-2 text-sm text-[#F58345] hover:bg-[#F58345]/5 disabled:opacity-60">
               <Settings2 className="h-4 w-4" />{t('revenueModeler.saveAsDefaults')}
             </button>
           )}
@@ -559,8 +559,8 @@ export default function RevenueModeler() {
                 {tiers.map((p) => (
                   <button key={p} type="button" onClick={() => set('saasPerLoc')(p)}
                     className={`rounded py-1.5 text-sm font-medium transition ${inputs.saasPerLoc === p
-                      ? 'bg-[#FE6523] text-white'
-                      : 'border border-stroke text-black hover:border-[#FE6523] dark:border-strokedark dark:text-white'}`}>
+                      ? 'bg-[#F58345] text-white'
+                      : 'border border-stroke text-black hover:border-[#F58345] dark:border-strokedark dark:text-white'}`}>
                     {money(p)}
                   </button>
                 ))}
@@ -573,7 +573,7 @@ export default function RevenueModeler() {
                     if (!tierDraft) { setTierDraft([...tiers]); setTierErr(null); }
                     window.setTimeout(() => document.getElementById('rm-tiers')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0);
                   }}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-[#FE6523] hover:underline">
+                  className="inline-flex items-center gap-1 text-xs font-medium text-[#F58345] hover:underline">
                   <Settings2 className="h-3.5 w-3.5" />{t('revenueModeler.tiers.edit')}
                 </button>
               )}
@@ -590,8 +590,8 @@ export default function RevenueModeler() {
                       <button key={pm} type="button" role="radio" aria-checked={on}
                         onClick={() => setInputs((p) => (p ? { ...p, pricingModel: pm } : p))}
                         className={`rounded py-1.5 text-sm font-medium transition ${on
-                          ? 'bg-[#FE6523] text-white'
-                          : 'border border-stroke text-black hover:border-[#FE6523] dark:border-strokedark dark:text-white'}`}>
+                          ? 'bg-[#F58345] text-white'
+                          : 'border border-stroke text-black hover:border-[#F58345] dark:border-strokedark dark:text-white'}`}>
                         {t(`revenueModeler.pricing.${pm}`)}
                       </button>
                     );
@@ -686,7 +686,7 @@ export default function RevenueModeler() {
             <div className="min-w-0 flex-1">
             <input value={inputs.merchantName} maxLength={120} aria-label={t('revenueModeler.in.merchantName') as string}
               onChange={(e) => setInputs({ ...inputs, merchantName: e.target.value })}
-              className="w-full bg-transparent text-xl font-bold text-black outline-none focus:underline focus:decoration-[#FE6523] dark:text-white" />
+              className="w-full bg-transparent text-xl font-bold text-black outline-none focus:underline focus:decoration-[#F58345] dark:text-white" />
             <div className="mt-2 flex flex-wrap gap-2 text-xs">
               {[
                 t('revenueModeler.badge.locs', { n: num(inputs.numLocs) }),
@@ -722,7 +722,7 @@ export default function RevenueModeler() {
               { k: 'total', label: t('revenueModeler.pl.col.total', { n: YEARS }), v: model.totalProfit, sub: t('revenueModeler.summary.total') },
               { k: 'avg', label: t('revenueModeler.summary.avgTitle'), v: model.totalProfit / YEARS, sub: t('revenueModeler.summary.avg', { n: YEARS }) },
             ]).map(({ k, label, v, sub }) => (
-              <div key={k} className={`${CARD} p-4 ${k === 'total' ? 'ring-1 ring-[#FE6523]/40' : ''}`}>
+              <div key={k} className={`${CARD} p-4 ${k === 'total' ? 'ring-1 ring-[#F58345]/40' : ''}`}>
                 <div className="text-[11px] uppercase tracking-wide text-body dark:text-bodydark">{label}</div>
                 <div className={`mt-1 text-xl font-bold tabular-nums ${v < 0 ? 'text-danger' : ''}`} style={v >= 0 ? { color: k === 'total' ? ORANGE : undefined } : undefined}>{money(v)}</div>
                 <div className="mt-0.5 text-[11px] text-body dark:text-bodydark">{sub}</div>
@@ -742,7 +742,7 @@ export default function RevenueModeler() {
             </div>
             <p className="mb-3 text-xs text-body dark:text-bodydark">{t('revenueModeler.tiers.hint')}</p>
             {tierDraft && (
-              <div className="rm-no-print mb-4 rounded-sm border border-[#FE6523]/30 bg-[#FE6523]/5 p-3">
+              <div className="rm-no-print mb-4 rounded-sm border border-[#F58345]/30 bg-[#F58345]/5 p-3">
                 <p className="mb-3 text-xs text-black dark:text-white">{t('revenueModeler.tiers.editHint')}</p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   {tierDraft.map((v, idx) => (
@@ -754,7 +754,7 @@ export default function RevenueModeler() {
                 {tierErr && <p className="mt-2 text-xs text-danger">{tierErr}</p>}
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button type="button" onClick={saveTiers} disabled={tierBusy}
-                    className="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-[#FE6523] px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-[#F58345] px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
                     <Save className="h-3.5 w-3.5" />{t('revenueModeler.tiers.saveTiers')}
                   </button>
                   <button type="button" onClick={() => { setTierDraft(null); setTierErr(null); }} disabled={tierBusy}
@@ -770,7 +770,7 @@ export default function RevenueModeler() {
                   <tr className="border-b border-stroke text-left text-xs text-body dark:border-strokedark dark:text-bodydark">
                     <th className="py-2 pr-3 font-medium" />
                     {tierModels.map(({ price }, idx) => (
-                      <th key={price} className={`px-3 py-2 text-right font-semibold ${inputs.saasPerLoc === price ? 'text-[#FE6523]' : 'text-black dark:text-white'}`}>
+                      <th key={price} className={`px-3 py-2 text-right font-semibold ${inputs.saasPerLoc === price ? 'text-[#F58345]' : 'text-black dark:text-white'}`}>
                         {t(`revenueModeler.tiers.name${idx}`, { defaultValue: '' })} {money(price)}
                       </th>
                     ))}
@@ -824,7 +824,7 @@ function PLTable({ rows, money, t }: { rows: Row[]; money: (n: number) => string
     section: 'bg-gray-2 dark:bg-meta-4',
     rev: '',
     cost: 'bg-red-50/60 dark:bg-red-500/5',
-    newcost: 'bg-[#FE6523]/5',
+    newcost: 'bg-[#F58345]/5',
     comm: 'bg-red-50 dark:bg-red-500/10',
     subtotal: 'bg-gray-2/70 font-semibold dark:bg-meta-4/60 border-y border-stroke dark:border-strokedark',
     total: 'border-t-[3px] border-double border-stroke dark:border-strokedark text-[15px] font-bold',
@@ -833,13 +833,13 @@ function PLTable({ rows, money, t }: { rows: Row[]; money: (n: number) => string
     section: 'text-[10px] font-bold uppercase tracking-wider text-black dark:text-white',
     rev: 'text-black dark:text-white',
     cost: 'pl-7 text-red-700 dark:text-red-400',
-    newcost: 'pl-7 border-l-2 border-[#FE6523] text-[#C2410C] dark:text-[#FE8A55]',
+    newcost: 'pl-7 border-l-2 border-[#F58345] text-[#C2410C] dark:text-[#FE8A55]',
     comm: 'pl-7 font-medium text-red-800 dark:text-red-300',
     subtotal: 'text-black dark:text-white',
     total: 'text-black dark:text-white',
   };
   const valCls = (r: Row, v: number) => {
-    if (r.kind === 'total') return v < 0 ? 'text-danger' : 'text-[#FE6523]';
+    if (r.kind === 'total') return v < 0 ? 'text-danger' : 'text-[#F58345]';
     if (r.kind === 'cost' || r.kind === 'comm' || r.kind === 'newcost') return v === 0 ? 'text-body/60' : 'text-red-700 dark:text-red-400';
     if (v < 0) return 'text-danger';
     return v === 0 ? 'text-body/60' : 'text-black dark:text-white';
@@ -869,7 +869,7 @@ function PLTable({ rows, money, t }: { rows: Row[]; money: (n: number) => string
             }
             const total = sum(r.y);
             return (
-              <tr key={i} className={`${rowCls[r.kind]} transition-colors hover:bg-[#FE6523]/[0.04]`}>
+              <tr key={i} className={`${rowCls[r.kind]} transition-colors hover:bg-[#F58345]/[0.04]`}>
                 <td className={`px-4 py-1.5 ${labelCls[r.kind]}`}>
                   {arrow(r.kind)}{r.label}
                   {r.oneTime && (

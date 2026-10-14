@@ -6,12 +6,13 @@
   /* Texte `success` (tailwind.config.cjs, textColor) : vert foncé sur fond clair, le pastel de la
      palette sur fond sombre. `.dark` est posée sur <html> ; les descendants héritent de la
      variable, donc pas de piège de sélecteur descendant ici. */
-  :root { --color-success-text: 4 120 87; }      /* emerald-700 #047857 */
-  .dark { --color-success-text: 183 240 209; }   /* pastel d'origine #B7F0D1 */
-  :root { --color-warning-text: 194 65 12; }      /* orange-700 #C2410C */
-  .dark { --color-warning-text: 251 205 181; }   /* pastel d'origine #FBCDB5 */
-  :root { --color-danger-text: 185 28 28; }       /* red-700 #B91C1C */
-  .dark { --color-danger-text: 248 113 113; }    /* red-400 #F87171 */
+  /* Valeurs Kaizen (refonte UI 2026-10) : texte de statut clair / sombre des planches. */
+  :root { --color-success-text: 6 118 71; }      /* #067647 */
+  .dark { --color-success-text: 87 209 147; }    /* #57D193 */
+  :root { --color-warning-text: 181 71 8; }      /* #B54708 */
+  .dark { --color-warning-text: 253 176 34; }    /* #FDB022 */
+  :root { --color-danger-text: 217 45 32; }      /* #D92D20 */
+  .dark { --color-danger-text: 244 96 96; }      /* #F46060 */
   /* Le fond SOMBRE manquait sur le body : seule la div de DefaultLayout le portait
      (`dark:bg-boxdark-2`). Tant que React n'avait rien affiché — au chargement, entre
      deux routes chargées à la demande, ou pendant une erreur — c'est le gris clair du
@@ -34,10 +35,10 @@
      explicit option colors so the popup is readable in BOTH themes. */
   select option {
     background-color: #ffffff;
-    color: #1c2434;
+    color: #141414;
   }
   .dark select option {
-    background-color: #24303f; /* boxdark */
+    background-color: #1b1b1b; /* form-input */
     color: #ffffff;
   }
 }
@@ -180,5 +181,5 @@
 .bg-primary.text-white,
 .hover\:bg-primary.hover\:text-white:hover,
 .dark .dark\:bg-primary.text-white {
-  color: #1C2434;
+  color: #141414; /* Kaizen : texte sur l'orange toujours #141414 */
 }

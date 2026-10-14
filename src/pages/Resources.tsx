@@ -622,7 +622,7 @@ const Resources: React.FC = () => {
                         <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8a2 2 0 100-4 2 2 0 000 4zm0 2a2 2 0 100 4 2 2 0 000-4zm0 6a2 2 0 100 4 2 2 0 000-4z" /></svg>
                       </button>
                     )}
-                    <svg className="h-10 w-10 text-[#fe6523]" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" /></svg>
+                    <svg className="h-10 w-10 text-[#F58345]" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" /></svg>
                     <span className="mt-2 w-full truncate text-sm font-medium text-black dark:text-white">{f.name}</span>
                     <span className="text-xs text-gray-400">{t('resources.fileCount', { count: f.count })}</span>
                   </div>

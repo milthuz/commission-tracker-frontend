@@ -33,7 +33,7 @@ const storeName = (s: Store) => {
 };
 type Filter = { month: string; search: string };
 
-const CHART_PALETTE = ['#3C50E0', '#80CAEE', '#0FADCF', '#F58346', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#6366F1', '#22C55E'];
+const CHART_PALETTE = ['#3C50E0', '#80CAEE', '#0FADCF', '#F58345', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#6366F1', '#22C55E'];
 const money = (n: number) => '$' + (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 // Compact for large headline numbers (e.g. volume): $2.87M, $9.6K. Exact value goes in a tooltip.
 const moneyCompact = (n: number) =>

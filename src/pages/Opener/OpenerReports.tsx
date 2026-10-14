@@ -81,7 +81,7 @@ export default function OpenerReports() {
         <p className="mb-4 text-sm text-body dark:text-bodydark">{t('opener.report.help')}</p>
 
         <label className="mb-4 flex cursor-pointer items-center gap-3">
-          <input type="checkbox" checked={s.enabled} onChange={(e) => patch({ enabled: e.target.checked })} className="h-4 w-4 accent-[#F58346]" />
+          <input type="checkbox" checked={s.enabled} onChange={(e) => patch({ enabled: e.target.checked })} className="h-4 w-4 accent-[#F58345]" />
           <span className="text-sm font-medium text-black dark:text-white">{t('opener.report.enabled')}</span>
         </label>
 
@@ -113,16 +113,16 @@ export default function OpenerReports() {
 
         <p className={label}>{t('opener.report.openers')}</p>
         <label className="mb-1 flex cursor-pointer items-center gap-2 text-sm text-black dark:text-white">
-          <input type="radio" checked={allOpeners} onChange={() => patch({ openers: [] })} className="accent-[#F58346]" />{t('opener.report.allOpeners')}
+          <input type="radio" checked={allOpeners} onChange={() => patch({ openers: [] })} className="accent-[#F58345]" />{t('opener.report.allOpeners')}
         </label>
         <label className="mb-1 flex cursor-pointer items-center gap-2 text-sm text-black dark:text-white">
-          <input type="radio" checked={!allOpeners} onChange={() => patch({ openers: data.openers.slice(0, 1).map((o) => o.email) })} className="accent-[#F58346]" />{t('opener.report.someOpeners')}
+          <input type="radio" checked={!allOpeners} onChange={() => patch({ openers: data.openers.slice(0, 1).map((o) => o.email) })} className="accent-[#F58345]" />{t('opener.report.someOpeners')}
         </label>
         {!allOpeners && (
           <div className="mb-2 ml-6 space-y-1">
             {data.openers.map((o) => (
               <label key={o.email} className="flex cursor-pointer items-center gap-2 text-sm text-black dark:text-white">
-                <input type="checkbox" checked={s.openers.includes(o.email)} className="h-4 w-4 accent-[#F58346]"
+                <input type="checkbox" checked={s.openers.includes(o.email)} className="h-4 w-4 accent-[#F58345]"
                   onChange={(e) => patch({ openers: e.target.checked ? [...s.openers, o.email] : s.openers.filter((x) => x !== o.email) })} />
                 {o.name}
               </label>

@@ -109,7 +109,7 @@ const PartnerOrganization: React.FC = () => {
           {logoOk && (
             <div className="mt-6 border-t border-stroke pt-6 dark:border-strokedark">
               <p className="mb-3 text-xs font-medium text-body">{t('partnerPortal.organization.previewLabel')}</p>
-              <div className="inline-block rounded-lg bg-[#0f1722] p-4">
+              <div className="inline-block rounded-lg bg-[#0F0F10] p-4">
                 <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#8a99af]">
                   {t('partnerPortal.sidebar.partneredWith')}
                 </p>

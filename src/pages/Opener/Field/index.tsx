@@ -196,7 +196,7 @@ export default function FieldApp() {
             </div>
           )}
           {(!online || outbox > 0) && (
-            <div className="fixed inset-x-0 top-0 z-50 mx-auto flex max-w-[480px] items-center justify-center gap-2 bg-warning/90 px-3 py-1.5 text-xs font-semibold text-[#1C2434]"
+            <div className="fixed inset-x-0 top-0 z-50 mx-auto flex max-w-[480px] items-center justify-center gap-2 bg-warning/90 px-3 py-1.5 text-xs font-semibold text-[#141414]"
               style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 6px)' }} role="status">
               {!online && <WifiOff className="h-3.5 w-3.5" />}
               {!online ? t('opener.field.offline', { n: outbox }) : t('opener.field.sending', { n: outbox })}

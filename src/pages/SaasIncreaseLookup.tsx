@@ -878,10 +878,10 @@ export default function SaasIncreaseLookup() {
             const d = deal[h.subscriptionNumber];
             const retirer = () => setDeal(z => { const n = { ...z }; delete n[h.subscriptionNumber]; return n; });
             return (
-            <div className="mt-4 rounded-lg border border-[#fe6523]/30 bg-[#fe6523]/[0.07] px-3 py-2.5 text-sm">
+            <div className="mt-4 rounded-lg border border-[#F58345]/30 bg-[#F58345]/[0.07] px-3 py-2.5 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
                 <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
-                  <CreditCard className="h-4 w-4 shrink-0 text-[#fe6523]" />
+                  <CreditCard className="h-4 w-4 shrink-0 text-[#F58345]" />
                   <span className="font-semibold text-[#c44d18] dark:text-[#fe8f5c]">
                     {t('csLookup.pay.opportunity')}
                   </span>
@@ -914,7 +914,7 @@ export default function SaasIncreaseLookup() {
                   )}
                   {!d && !h.dealCreated && (
                     <button onClick={() => creerOpportunite(h)}
-                      className="rounded-lg bg-[#fe6523] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#e2571c]">
+                      className="rounded-lg bg-[#F58345] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#e2571c]">
                       {t('csLookup.pay.createDeal')}
                     </button>
                   )}
@@ -942,7 +942,7 @@ export default function SaasIncreaseLookup() {
                   a converge, et restent a la demande au-dela. */}
               {!fr && (
                 <button onClick={() => chargerFrais(h)}
-                  className="mt-2 rounded border border-[#fe6523]/40 px-2 py-0.5 text-xs font-medium text-[#c44d18] hover:bg-[#fe6523]/10 dark:text-[#fe8f5c]">
+                  className="mt-2 rounded border border-[#F58345]/40 px-2 py-0.5 text-xs font-medium text-[#c44d18] hover:bg-[#F58345]/10 dark:text-[#fe8f5c]">
                   {t('csLookup.pay.checkFees')}
                 </button>
               )}
@@ -960,7 +960,7 @@ export default function SaasIncreaseLookup() {
                     2. LE CHEMIN DES PRIX, trois paliers flechés, le dernier encadre en vert ;
                     3. LE DETAIL, en pied discret, pour repondre a « d'ou sort ce chiffre ? ». */}
               {f && f.paymentFees.length > 0 && (
-                <div className="mt-2.5 border-t border-[#fe6523]/20 pt-3">
+                <div className="mt-2.5 border-t border-[#F58345]/20 pt-3">
                   <div className="flex flex-wrap items-start gap-x-6 gap-y-3">
                     <div className="shrink-0">
                       <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
@@ -982,7 +982,7 @@ export default function SaasIncreaseLookup() {
                         {/* Le trait ne survit pas au repliement en colonne : sur un ecran
                             etroit les deux blocs s'empilent et un filet vertical n'y a plus
                             de sens. */}
-                        <div className="hidden w-px self-stretch bg-[#fe6523]/20 sm:block" />
+                        <div className="hidden w-px self-stretch bg-[#F58345]/20 sm:block" />
                         <div className="min-w-0 flex-1">
                           <div className={`text-[10px] font-semibold uppercase tracking-wider ${textQuat}`}>
                             {t('csLookup.pay.invoiceEachMonth')}
@@ -1021,7 +1021,7 @@ export default function SaasIncreaseLookup() {
                     )}
                   </div>
 
-                  <div className="mt-3 border-t border-[#fe6523]/15 pt-2 text-[11px] leading-relaxed">
+                  <div className="mt-3 border-t border-[#F58345]/15 pt-2 text-[11px] leading-relaxed">
                     <div className="flex gap-2">
                       <span className={`w-[104px] shrink-0 ${textQuat}`}>{t('csLookup.pay.goesAway')}</span>
                       {/* La QUANTITE change tout : Club de golf de Chicoutimi paie 80 $ parce

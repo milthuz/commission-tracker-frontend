@@ -270,10 +270,10 @@ const PayStubModal: React.FC<{
 <style>
   @page { margin: 14mm; }
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { margin: 0; font-family: 'Segoe UI', -apple-system, Arial, sans-serif; color: #1c2434; background: #fff; }
+  body { margin: 0; font-family: 'Segoe UI', -apple-system, Arial, sans-serif; color: #141414; background: #fff; }
   .wrap { max-width: 740px; margin: 0 auto; }
   .accent { height: 6px; background: #f2682c; }
-  .band { display: flex; justify-content: space-between; align-items: flex-end; background: #1c2434; color: #fff; padding: 26px 34px; }
+  .band { display: flex; justify-content: space-between; align-items: flex-end; background: #141414; color: #fff; padding: 26px 34px; }
   .brand { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
   .brand img { height: 36px; width: 36px; }
   .brand small { display: block; font-size: 11px; font-weight: 400; color: #8a99af; letter-spacing: .04em; margin-top: 2px; }
@@ -287,16 +287,16 @@ const PayStubModal: React.FC<{
   h2 { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #f2682c; margin: 26px 0 8px; display: flex; align-items: center; gap: 10px; }
   h2:after { content: ''; flex: 1; height: 1px; background: #eef2f7; }
   table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  thead th { text-align: left; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #64748b; padding: 7px 10px; border-bottom: 2px solid #1c2434; }
+  thead th { text-align: left; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #64748b; padding: 7px 10px; border-bottom: 2px solid #141414; }
   thead th.num { text-align: right; }
   td { padding: 8px 10px; border-bottom: 1px solid #eef2f7; vertical-align: top; }
   tr.alt td { background: #fafbfd; }
   .mono { font-family: 'Consolas', 'Courier New', monospace; font-size: 11.5px; color: #3b4a63; }
   .num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .num.neg { color: #d34053; }
-  tfoot td { border-top: 2px solid #1c2434; border-bottom: none; background: #fafbfd; }
+  tfoot td { border-top: 2px solid #141414; border-bottom: none; background: #fafbfd; }
   tfoot td.sub { text-align: right; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #64748b; font-weight: 700; }
-  tfoot td.num { font-weight: 800; color: #1c2434; }
+  tfoot td.num { font-weight: 800; color: #141414; }
   .cap { text-transform: capitalize; }
   .cat { display: inline-block; font-size: 9.5px; font-weight: 700; border-radius: 99px; padding: 1px 8px; white-space: nowrap; }
   .cat-saas { background: #eff6ff; color: #1d4ed8; }
@@ -306,7 +306,7 @@ const PayStubModal: React.FC<{
   .totals { margin-top: 26px; display: flex; justify-content: flex-end; }
   .totals .box { min-width: 290px; }
   .trow { display: flex; justify-content: space-between; padding: 5px 12px; font-size: 12.5px; color: #475569; }
-  .trow b { font-variant-numeric: tabular-nums; color: #1c2434; }
+  .trow b { font-variant-numeric: tabular-nums; color: #141414; }
   .grand { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding: 13px 16px; background: #fff4ec; border: 1px solid #f7c8ab; border-radius: 10px; }
   .grand span { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: #f2682c; font-weight: 700; }
   .grand b { font-size: 21px; font-variant-numeric: tabular-nums; }
