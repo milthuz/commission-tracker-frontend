@@ -61,6 +61,10 @@ const Leads = () => {
   const [openId, setOpenId] = useState<number | null>(null);
   const [intakeOpen, setIntakeOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  // « /leads?nouvelle=1 » (bouton « Nouvelle piste » du tableau de bord) ouvre la saisie,
+  // une fois la permission connue — jamais pour qui n'a pas leads:intake.
+  const wantsNew = new URLSearchParams(location.search).get('nouvelle') === '1';
+  useEffect(() => { if (wantsNew && can.intake) setIntakeOpen(true); }, [wantsNew, can.intake]);
 
   const dt = (iso?: string | null, withTime = true) =>
     iso ? new Date(iso).toLocaleString(fr ? 'fr-CA' : 'en-CA', {
