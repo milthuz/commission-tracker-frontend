@@ -4,6 +4,7 @@ import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useTranslation } from 'react-i18next';
+import { fmtMoney, fmtNumber, appLocale, monthNames } from '../../lib/format';
 import AdminActionItems from './AdminActionItems';
 import { ContentLoader } from '../../common/Loader';
 const API_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -26,14 +27,19 @@ interface DashboardData {
   year: number;
 }
 
+// Compact for axes/tiles ($1.2M / 1,2 M$), in the user's language.
 const formatCurrency = (val: number) => {
-  if (val >= 1000000) return `$${(val / 1000000).toFixed(1)}M`;
-  if (val >= 1000) return `$${(val / 1000).toFixed(1)}K`;
-  return `$${val.toFixed(2)}`;
+  if (val >= 1000) {
+    return new Intl.NumberFormat(appLocale(), {
+      style: 'currency', currency: 'CAD', currencyDisplay: 'narrowSymbol',
+      notation: 'compact', minimumFractionDigits: 1, maximumFractionDigits: 1,
+    }).format(val);
+  }
+  return fmtMoney(val);
 };
 
 const formatCurrencyFull = (val: number) => {
-  return new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(val);
+  return fmtMoney(val);
 };
 
 const AdminDashboard: React.FC = () => {
@@ -58,8 +64,8 @@ const AdminDashboard: React.FC = () => {
   // Shared label + formatter for a billing metric (used by the tiles and the per-org modal).
   const billLabel = (key: string) => (({ mrr: t('dashboard.mrr'), activeSubs: t('dashboard.activeSubscriptions'), arpu: 'ARPU', churnRate: t('dashboard.churnRate'), ltv: 'LTV' } as Record<string, string>)[key] || key);
   const billFmt = (key: string, n: number) => {
-    if (key === 'activeSubs') return Number(n).toLocaleString();
-    if (key === 'churnRate') return Number(n).toFixed(2) + '%';
+    if (key === 'activeSubs') return fmtNumber(Number(n));
+    if (key === 'churnRate') return new Intl.NumberFormat(appLocale(), { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n) / 100);
     if (key === 'arpu' || key === 'ltv') return formatCurrencyFull(n);
     return formatCurrency(n); // mrr / arr
   };
@@ -79,7 +85,7 @@ const AdminDashboard: React.FC = () => {
       setError('');
     } catch (err: any) {
       console.error('Dashboard error:', err);
-      setError(err.response?.data?.error || 'Failed to load dashboard');
+      setError(err.response?.data?.error || t('errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -96,7 +102,7 @@ const AdminDashboard: React.FC = () => {
       gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05, stops: [0, 95, 100] },
     },
     xaxis: {
-      categories: data?.monthlyTrend.map(m => m.month) || [],
+      categories: data?.monthlyTrend.map((m, i) => monthNames()[i] || m.month) || [],
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
@@ -129,7 +135,7 @@ const AdminDashboard: React.FC = () => {
             onClick={fetchDashboard}
             className="rounded-lg bg-primary px-5 py-2.5 text-white hover:bg-opacity-90"
           >
-            Retry
+            {t('common.retry')}
           </button>
         </div>
       </div>

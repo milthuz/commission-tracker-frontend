@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import LeadsWebflowCard from './LeadsWebflowCard';
 import { useTranslation } from 'react-i18next';
+import { fmtDate, fmtDateTime } from '../../lib/format';
 import Select from '../../components/Select';
 import { dialog } from '../../lib/dialog';
 import type { LeadRule, LeadRep, LeadSettings } from '../Leads/types';
@@ -89,7 +90,7 @@ const LeadsAdmin = () => {
       });
       const d = await r.json().catch(() => ({}));
       setGcalTest(d.ok
-        ? { ok: true, text: t('admin.leads.booking.testOk', { busy: d.busyBlocks, free: d.freeSlots, first: d.firstFree ? new Date(d.firstFree).toLocaleString() : '—' }) as string }
+        ? { ok: true, text: t('admin.leads.booking.testOk', { busy: d.busyBlocks, free: d.freeSlots, first: d.firstFree ? fmtDateTime(d.firstFree) : '—' }) as string }
         : { ok: false, text: t('admin.leads.booking.testFail', { error: d.error || r.status }) as string });
     } catch (e: any) {
       setGcalTest({ ok: false, text: t('admin.leads.booking.testFail', { error: e?.message || 'network' }) as string });
@@ -377,7 +378,7 @@ const LeadsAdmin = () => {
                       />
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-bodydark2">
-                      {r.last_assigned_at ? new Date(r.last_assigned_at).toLocaleDateString() : '—'}
+                      {r.last_assigned_at ? fmtDate(r.last_assigned_at) : '—'}
                     </td>
                     <td className="px-4 py-3 text-right text-sm text-black dark:text-white">{r.assigned_count}</td>
                   </tr>
@@ -425,7 +426,7 @@ const LeadsAdmin = () => {
             )}
             {meta?.exampleCallback && settings.callbackEnabled && (
               <p className="mb-4 ml-12 text-xs text-body">
-                {t('admin.leads.automation.example', { when: new Date(meta.exampleCallback).toLocaleString() })}
+                {t('admin.leads.automation.example', { when: fmtDateTime(meta.exampleCallback) })}
               </p>
             )}
 

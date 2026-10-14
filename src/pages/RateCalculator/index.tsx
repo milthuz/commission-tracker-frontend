@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { fmtPeriod } from '../../lib/format';
 import { Upload, FileText, Download, AlertTriangle, ClipboardPaste, Loader2, ScanLine } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
@@ -338,7 +339,7 @@ export default function RateCalculator() {
             <h4 className="mb-1 font-medium text-black dark:text-white">
               {t('icplus.scanTitle', {
                 processor: scan.processorName || t('icplus.scanUnknownProcessor'),
-                period: scan.period || '—',
+                period: fmtPeriod(scan.period),
               })}
             </h4>
 

@@ -63,7 +63,7 @@ const PartnerLogin = () => {
       // `partner_inactive` est un code, pas une phrase : le montrer tel quel a un partenaire
       // ne lui apprend rien. Et le message doit se distinguer d'un mot de passe refuse —
       // sinon la personne cherche indefiniment une erreur de saisie qui n'existe pas.
-      if (!r.ok) { setError(portalError(d.error, t, 'Login failed')); return; }
+      if (!r.ok) { setError(portalError(d.error, t, t('partnerPortal.serverError.loginFailed') as string)); return; }
       if (d.mfaRequired) { setMfaToken(d.mfaToken); setCode(''); setStep('mfa'); }
       else if (d.token) { await finishLogin(d.token); } // trusted device — MFA skipped
     } catch {
@@ -80,7 +80,7 @@ const PartnerLogin = () => {
         body: JSON.stringify({ mfaToken, code, rememberDevice }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(portalError(d.error, t, 'Invalid code')); return; }
+      if (!r.ok) { setError(portalError(d.error, t, t('partnerPortal.profile.twoFactor.invalidCode') as string)); return; }
       if (d.deviceToken) storeDeviceToken(DEVICE_TOKEN_PREFIX, email, d.deviceToken);
       await finishLogin(d.token);
     } catch {

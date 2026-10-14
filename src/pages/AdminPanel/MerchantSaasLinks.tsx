@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { fmtDateOnly, fmtMoney } from '../../lib/format';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const money = (n: number) => '$' + (Number(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = (n: number) => fmtMoney(Number(n) || 0);
 
 type Row = {
   merchantAccountId: string; businessName: string; active: string; activatedAt: string | null;
@@ -63,7 +64,7 @@ export default function MerchantSaasLinks() {
     try {
       await axios.put(`${API_URL}/api/admin/merchant-links/${encodeURIComponent(merchantId)}`, body, { headers: headers() });
       await load();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); } finally { setBusyId(null); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.failed')); } finally { setBusyId(null); }
   };
 
   const openLink = (row: Row) => { setLinking(row); setCustQuery(row.businessName); setCustResults([]); };
@@ -172,7 +173,7 @@ export default function MerchantSaasLinks() {
                   {r.linkedCustomer && <div className="text-xs text-body">→ {r.linkedCustomer}{r.linkedSubscription ? ` · ${r.linkedSubscription}` : ''}</div>}
                 </td>
                 <td className="px-4 py-3">{badge(r.status)}</td>
-                <td className="px-4 py-3 whitespace-nowrap text-body">{r.activatedAt ? new Date(r.activatedAt).toLocaleDateString() : '—'}</td>
+                <td className="px-4 py-3 whitespace-nowrap text-body">{r.activatedAt ? fmtDateOnly(r.activatedAt) : '—'}</td>
                 <td className="px-4 py-3 text-right text-body">{money(r.processingMonthly)}</td>
                 <td className="px-4 py-3 text-right text-body">{money(r.saasMonthly)}</td>
                 <td className="px-4 py-3 text-right font-semibold text-primary">{money(r.combinedMonthly)}</td>

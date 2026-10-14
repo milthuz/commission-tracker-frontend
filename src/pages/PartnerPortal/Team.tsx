@@ -102,7 +102,7 @@ const PartnerTeam: React.FC = () => {
       if (ok && onDisableInstead) await onDisableInstead();
       return;
     }
-    dialog.alert(d?.error || e?.message || 'Action failed');
+    dialog.alert(d?.error || e?.message || (t('errors.generic') as string));
   };
   const patchMember = async (tu: TeamUser, body: any, confirmMsg: string) => {
     if (!(await dialog.confirm(confirmMsg))) return;

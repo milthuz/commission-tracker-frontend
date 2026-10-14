@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { appLocale } from '../../lib/format';
 import { UserPlus, X, Loader2 } from 'lucide-react';
 import { dialog } from '../../lib/dialog';
 
@@ -11,7 +12,7 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 interface Req { id: number; email: string; name: string | null; message: string | null; createdAt: string }
 
 export default function RoleRequests() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [list, setList] = useState<Req[] | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
   const headers = { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' };
@@ -35,7 +36,7 @@ export default function RoleRequests() {
   };
 
   if (!list || !list.length) return null;
-  const fmt = (s: string) => new Date(s).toLocaleString(i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA', { dateStyle: 'medium', timeStyle: 'short' });
+  const fmt = (s: string) => new Date(s).toLocaleString(appLocale(), { dateStyle: 'medium', timeStyle: 'short' });
 
   return (
     <div className="mb-6 rounded-sm border border-warning/50 bg-white shadow-default dark:border-warning/40 dark:bg-boxdark">

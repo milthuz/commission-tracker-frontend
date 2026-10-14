@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { appLocale, fmtDateOnly, fmtPeriod } from '../../lib/format';
 import PayStubModal, { PayStubData } from '../../components/PayStubModal';
 import ProcessingBonusStatementModal, { BonusStatementData } from '../../components/ProcessingBonusStatementModal';
 import SendConfirmModal from '../../components/SendConfirmModal';
@@ -139,7 +140,7 @@ const CommissionImport: React.FC = () => {
   const { t, i18n } = useTranslation();
   // Month name in the current locale (e.g. "May" / "mai"), capitalized.
   const monthName = (m: number) => {
-    const s = new Date(2000, m - 1, 1).toLocaleString(i18n.language, { month: 'long' });
+    const s = new Date(2000, m - 1, 1).toLocaleString(appLocale(), { month: 'long' });
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -185,7 +186,7 @@ const CommissionImport: React.FC = () => {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/commissions/payroll/sends`, { headers: { Authorization: `Bearer ${token}` }, data: { ids: s.ids } });
       fetchPaySends();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
   };
 
   const fetchPayRecipients = async () => {
@@ -208,7 +209,7 @@ const CommissionImport: React.FC = () => {
       setPayRecipients(res.data.recipients || []);
       setSelectedReps(new Set((res.data.reps || []).map((r: { rep: string }) => r.rep))); // default: all
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to load payroll preview');
+      dialog.alert(e?.response?.data?.error || t('admin.errors.loadPayrollPreview'));
     } finally { setPayLoading(false); }
   };
 
@@ -218,7 +219,7 @@ const CommissionImport: React.FC = () => {
       const token = localStorage.getItem('token');
       const res = await axios.put(`${API_URL}/api/commissions/payroll/recipients`, { emails }, { headers: { Authorization: `Bearer ${token}` } });
       setPayRecipients(res.data.recipients || emails);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save recipients'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.saveRecipients')); }
     finally { setSavingRecipients(false); }
   };
   const addRecipient = async () => {
@@ -265,7 +266,7 @@ const CommissionImport: React.FC = () => {
       // `error` CONTIENT deja `details` depuis que le serveur le concatene : tester l'egalite ne
       // suffisait pas, le motif s'affichait deux fois de suite dans la meme phrase.
       const d = e?.response?.data;
-      const principal = d?.error || 'Failed to send';
+      const principal = d?.error || t('errors.sendFailed');
       dialog.alert(d?.details && !principal.includes(d.details) ? `${principal} — ${d.details}` : principal);
     }
     finally { setPaySending(false); }
@@ -296,7 +297,7 @@ const CommissionImport: React.FC = () => {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/commissions/processing-bonus/sends`, { headers: { Authorization: `Bearer ${token}` }, data: { ids: s.ids } });
       fetchBonusSends();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
   };
 
   const fetchBonusCommitted = async () => {
@@ -309,7 +310,7 @@ const CommissionImport: React.FC = () => {
       setBonusSendData(res.data);
       setBonusSelectedReps(new Set((res.data.reps || []).map((r: { rep: string }) => r.rep))); // default: all
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to load bonus preview');
+      dialog.alert(e?.response?.data?.error || t('admin.errors.loadBonusPreview'));
     } finally { setBonusSendLoading(false); }
   };
 
@@ -339,7 +340,7 @@ const CommissionImport: React.FC = () => {
       dialog.alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
       await fetchBonusCommitted();  // refresh so the sent reps show the "Sent" badge
       fetchBonusSends();            // refresh the send history
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to send'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.sendFailed')); }
     finally { setBonusSending(false); }
   };
 
@@ -373,7 +374,7 @@ const CommissionImport: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } });
       setMbAmount(''); setMbDesc('');
       fetchManualBonuses();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to add'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.addFailed')); }
   };
 
   const deleteManualBonus = async (id: number, rep: string, amount: string) => {
@@ -382,7 +383,7 @@ const CommissionImport: React.FC = () => {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/commissions/manual-bonus/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchManualBonuses();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
   };
 
   // Manual payment activation — stop-gap for when Zentact itself is limited/down. Creates a
@@ -415,7 +416,7 @@ const CommissionImport: React.FC = () => {
       }, { headers: { Authorization: `Bearer ${token}` } });
       setMaBusiness(''); setMaBonus('100'); setMaPoints('1');
       fetchManualActivations();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to add'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.addFailed')); }
     finally { setMaAdding(false); }
   };
 
@@ -425,7 +426,7 @@ const CommissionImport: React.FC = () => {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/zentact/merchants/manual/${merchantAccountId}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchManualActivations();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
   };
 
   // ── Commission adjustments (carry an unpaid commission forward to a target month) ──
@@ -483,7 +484,7 @@ const CommissionImport: React.FC = () => {
       setAdjDesc('');
       await fetchAdjUnpaid(adjRep);
       await fetchAdjustments();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to create adjustment'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.createAdjustment')); }
     finally { setAdjBusy(false); }
   };
   // Reconciliation-driven suggestions (overpaid activations, void-but-paid, double-paid,
@@ -504,14 +505,14 @@ const CommissionImport: React.FC = () => {
     const d = s.detail || {};
     if (s.type === 'over_activation' && d.firstSaasDate) {
       lines.push(t('admin.commissionImport.adjustments.sugDetail.clientSince',
-        { date: new Date(d.firstSaasDate).toLocaleDateString() }) as string);
+        { date: fmtDateOnly(d.firstSaasDate) }) as string);
     }
     if (s.type === 'over_void' && d.invoiceStatus) {
       lines.push(t('admin.commissionImport.adjustments.sugDetail.invoiceStatus', { status: d.invoiceStatus }) as string);
     }
     if (s.type === 'double_paid' && d.payments?.length) {
       lines.push(t('admin.commissionImport.adjustments.sugDetail.paidIn') as string);
-      for (const p of d.payments) lines.push(`  • ${p.period} — ${p.file}: ${fmt(p.amount)}`);
+      for (const p of d.payments) lines.push(`  • ${fmtPeriod(p.period)} — ${p.file}: ${fmt(p.amount)}`);
       if (d.totalPaid != null) lines.push(t('admin.commissionImport.adjustments.sugDetail.totalPaid', { total: fmt(d.totalPaid) }) as string);
     }
     return lines.join('\n');
@@ -557,7 +558,7 @@ const CommissionImport: React.FC = () => {
       setSuggestions(prev => prev.filter(x => x.key !== s.key));
       await Promise.all([fetchSuggestions(), fetchAdjustments()]);
       if (adjRep) await fetchAdjUnpaid(adjRep);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to apply suggestion'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.applySuggestion')); }
     finally { setSugBusy(null); }
   };
   const dismissSuggestion = async (s: AdjSuggestion) => {
@@ -596,7 +597,7 @@ const CommissionImport: React.FC = () => {
     const tr = (k: string) => t(`admin.commissionImport.reconciliation.${k}`);
     const rows: string[] = [];
     rows.push(`<tr><th colspan="5" style="text-align:left">${esc(tr('title'))} — ${recon.year}</th></tr>`);
-    rows.push(`<tr><th>Rep</th><th>${esc(tr('month'))}</th><th>${esc(tr('paid'))}</th><th>${esc(tr('calculated'))}</th><th>${esc(tr('delta'))}</th></tr>`);
+    rows.push(`<tr><th>${esc(t('admin.commissionImport.colRep'))}</th><th>${esc(tr('month'))}</th><th>${esc(tr('paid'))}</th><th>${esc(tr('calculated'))}</th><th>${esc(tr('delta'))}</th></tr>`);
     for (const r of recon.reps) {
       for (const m of r.months) {
         rows.push(`<tr><td>${esc(r.rep)}</td><td>${recon.year}-${String(m.month).padStart(2, '0')}</td><td>${m.paid}</td><td>${m.calculated}</td><td>${m.delta}</td></tr>`);
@@ -641,7 +642,7 @@ const CommissionImport: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } });
       setFreeAdjAmount(''); setFreeAdjDesc(''); setFreeAdjSourceYm('');
       await fetchAdjustments();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to create adjustment'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.createAdjustment')); }
     finally { setFreeAdjBusy(false); }
   };
 
@@ -699,7 +700,7 @@ const CommissionImport: React.FC = () => {
       await axios.delete(`${API_URL}/api/commissions/adjustments/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       await fetchAdjustments();
       if (adjRep) await fetchAdjUnpaid(adjRep);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
   };
   const toggleAdjSel = (num: string) => setAdjSelected(prev => {
     const n = new Set(prev); n.has(num) ? n.delete(num) : n.add(num); return n;
@@ -736,7 +737,7 @@ const CommissionImport: React.FC = () => {
       setEditingAdjId(null);
       setEditingAdjDesc('');
       await fetchAdjustments();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.saveFailed')); }
     finally { setEditAdjBusy(false); }
   };
 
@@ -796,7 +797,7 @@ const CommissionImport: React.FC = () => {
       dialog.alert(t('admin.commissionImport.quotaReview.uncommitDone', { count: res.data.reverted }) as string);
       await openPeriodStub(stub.repName, stub.period);
       await Promise.all([fetchCoverage(), fetchQuotaReview(quotaShowHistory)]);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to undo pay stub'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.undoPayStub')); }
     finally { setStubBusy(false); }
   };
 
@@ -812,7 +813,7 @@ const CommissionImport: React.FC = () => {
       setStub(null);
       dialog.alert(t('commissionReport.payStub.quotaWaiveStarted') as string);
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to update quota waiver');
+      dialog.alert(e?.response?.data?.error || t('admin.errors.updateQuotaWaiver'));
     }
   };
 
@@ -826,7 +827,7 @@ const CommissionImport: React.FC = () => {
       });
       setProcData(res.data);
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to load processing bonus');
+      dialog.alert(e?.response?.data?.error || t('admin.errors.loadProcessingBonus'));
     } finally {
       setProcLoading(false);
     }
@@ -844,7 +845,7 @@ const CommissionImport: React.FC = () => {
       dialog.alert(t('admin.commissionImport.processing.commitDone', { count: res.data.accounts, total: fmt(res.data.total) }) as string);
       await fetchProcessing();
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to commit');
+      dialog.alert(e?.response?.data?.error || t('admin.errors.commit'));
     } finally { setProcCommitting(false); }
   };
 
@@ -857,7 +858,7 @@ const CommissionImport: React.FC = () => {
         { year: procYear, month: procMonth }, { headers: { Authorization: `Bearer ${token}` } });
       await fetchProcessing();
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to uncommit');
+      dialog.alert(e?.response?.data?.error || t('admin.errors.uncommit'));
     } finally { setProcCommitting(false); }
   };
 
@@ -872,7 +873,7 @@ const CommissionImport: React.FC = () => {
       });
       setBonusStatement(res.data);
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to load statement');
+      dialog.alert(e?.response?.data?.error || t('admin.errors.loadStatement'));
     }
   };
 
@@ -943,7 +944,7 @@ const CommissionImport: React.FC = () => {
       dialog.alert(t('admin.commissionImport.quotaReview.payAnywayStarted') as string);
       await fetchQuotaReview(quotaShowHistory);
       if (quotaLog !== null) fetchQuotaLog();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.failed')); }
     finally { setQuotaBusy(null); }
   };
   const quotaAcknowledge = async (r: QuotaReviewRow) => {
@@ -954,7 +955,7 @@ const CommissionImport: React.FC = () => {
         { repName: r.rep, year: r.year, month: r.month },
         { headers: { Authorization: `Bearer ${token}` } });
       await Promise.all([fetchQuotaReview(quotaShowHistory), fetchCoverage()]);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.failed')); }
     finally { setQuotaBusy(null); }
   };
   const quotaUnacknowledge = async (r: QuotaReviewRow) => {
@@ -964,7 +965,7 @@ const CommissionImport: React.FC = () => {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/api/commissions/quota-review/acknowledge/${r.ackId}`, { headers: { Authorization: `Bearer ${token}` } });
       await Promise.all([fetchQuotaReview(quotaShowHistory), fetchCoverage()]);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.failed')); }
     finally { setQuotaBusy(null); }
   };
 
@@ -1037,7 +1038,7 @@ const CommissionImport: React.FC = () => {
       });
       updateEntry(entry.id, { status: 'previewed', preview: res.data });
     } catch (e: any) {
-      updateEntry(entry.id, { status: 'error', error: e?.response?.data?.error || e?.message || 'Preview failed' });
+      updateEntry(entry.id, { status: 'error', error: e?.response?.data?.error || e?.message || t('errors.previewFailed') });
     }
   };
 
@@ -1070,7 +1071,7 @@ const CommissionImport: React.FC = () => {
       updateEntry(entry.id, { status: 'done', result });
       return result;
     } catch (e: any) {
-      updateEntry(entry.id, { status: 'error', error: e?.response?.data?.error || e?.message || 'Commit failed' });
+      updateEntry(entry.id, { status: 'error', error: e?.response?.data?.error || e?.message || t('errors.commitFailed') });
       return null;
     }
   };
@@ -1105,12 +1106,12 @@ const CommissionImport: React.FC = () => {
   };
 
   const fmt = (val: number) =>
-    val.toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', {
+    val.toLocaleString(appLocale(), {
       style: 'currency', currency: 'CAD', minimumFractionDigits: 2,
     });
 
   const fmtDate = (iso: string) => {
-    try { return new Date(iso).toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA'); }
+    try { return new Date(iso).toLocaleDateString(appLocale()); }
     catch { return iso; }
   };
   // « vendredi 11 septembre 2026 » — une date de paie ('YYYY-MM-DD') formatée en UTC, sinon un
@@ -1118,13 +1119,13 @@ const CommissionImport: React.FC = () => {
   const fmtPayRun = (d?: string | null, weekday = true) => {
     if (!d) return '';
     try {
-      return new Date(`${d}T00:00:00Z`).toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA',
+      return new Date(`${d}T00:00:00Z`).toLocaleDateString(appLocale(),
         { ...(weekday ? { weekday: 'long' as const } : {}), year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
     } catch { return d; }
   };
   const fmtDateTime = (iso: string) => {
     try {
-      return new Date(iso).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA',
+      return new Date(iso).toLocaleString(appLocale(),
         { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     } catch { return iso; }
   };
@@ -1284,10 +1285,10 @@ const CommissionImport: React.FC = () => {
                     <p className="text-sm font-medium text-black dark:text-white truncate">{e.file.name}</p>
                     {e.preview && (
                       <p className="text-xs text-body">
-                        {e.preview.summary.rep_name} · {e.preview.summary.paid_for_period.substring(0, 7)} ·
-                        {' '}{e.preview.summary.invoices_to_mark} inv · {fmt(e.preview.summary.total_to_pay)}
+                        {e.preview.summary.rep_name} · {fmtPeriod(e.preview.summary.paid_for_period)} ·
+                        {' '}{t('admin.commissionImport.invCount', { count: e.preview.summary.invoices_to_mark })} · {fmt(e.preview.summary.total_to_pay)}
                         {e.preview.summary.invoices_not_found > 0 && (
-                          <span className="text-danger"> · ⚠ {e.preview.summary.invoices_not_found} not found</span>
+                          <span className="text-danger"> · ⚠ {t('admin.commissionImport.notFoundCount', { count: e.preview.summary.invoices_not_found })}</span>
                         )}
                       </p>
                     )}
@@ -1319,10 +1320,10 @@ const CommissionImport: React.FC = () => {
                         <table className="w-full text-xs">
                           <thead className="bg-gray-50 dark:bg-meta-4 sticky top-0">
                             <tr>
-                              <th className="px-2 py-1 text-left">Invoice</th>
-                              <th className="px-2 py-1 text-left">Customer</th>
+                              <th className="px-2 py-1 text-left">{t('admin.commissionImport.payStub.invoice')}</th>
+                              <th className="px-2 py-1 text-left">{t('common.customer')}</th>
                               <th className="px-2 py-1 text-right">$</th>
-                              <th className="px-2 py-1 text-center">Status</th>
+                              <th className="px-2 py-1 text-center">{t('common.status')}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1427,7 +1428,7 @@ const CommissionImport: React.FC = () => {
               <thead className="bg-gray-50 dark:bg-meta-4 sticky top-0">
                 <tr>
                   <th className="px-3 py-2 text-left">{t('admin.commissionImport.filename')}</th>
-                  <th className="px-3 py-2 text-left">Rep</th>
+                  <th className="px-3 py-2 text-left">{t('admin.commissionImport.colRep')}</th>
                   <th className="px-3 py-2 text-left">{t('admin.commissionImport.period')}</th>
                   <th className="px-3 py-2 text-right">{t('admin.commissionImport.invoicesToMark')}</th>
                   <th className="px-3 py-2 text-right">{t('admin.commissionImport.signupBonuses')}</th>
@@ -1440,7 +1441,7 @@ const CommissionImport: React.FC = () => {
                   <tr key={h.id} onClick={() => openStub(h.id)} className="cursor-pointer border-t border-stroke transition hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/30">
                     <td className="px-3 py-1.5 truncate max-w-[280px] text-primary">{h.filename}</td>
                     <td className="px-3 py-1.5">{h.rep_name}</td>
-                    <td className="px-3 py-1.5">{h.paid_for_period?.substring(0, 7)}</td>
+                    <td className="px-3 py-1.5">{h.paid_for_period ? fmtPeriod(h.paid_for_period) : ''}</td>
                     <td className="px-3 py-1.5 text-right">{h.invoices_marked}</td>
                     <td className="px-3 py-1.5 text-right">{h.signup_bonuses_count} ({fmt(h.signup_bonuses_amount)})</td>
                     <td className="px-3 py-1.5 text-right font-semibold">{fmt(h.total_amount)}</td>
@@ -1487,7 +1488,7 @@ const CommissionImport: React.FC = () => {
                 <table className="w-full min-w-[560px] text-sm">
                   <thead className="bg-gray-2 dark:bg-meta-4">
                     <tr>
-                      <th className="px-3 py-2 text-left font-medium">Rep</th>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
                       <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.month')}</th>
                       <th className="px-3 py-2 text-right font-medium">%</th>
                       <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.quotaReview.logAction')}</th>
@@ -1507,7 +1508,7 @@ const CommissionImport: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-3 py-2 text-body whitespace-nowrap">{l.created_by}</td>
-                        <td className="px-3 py-2 text-body whitespace-nowrap">{new Date(l.created_at).toLocaleString()}</td>
+                        <td className="px-3 py-2 text-body whitespace-nowrap">{fmtDateTime(l.created_at)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1530,7 +1531,7 @@ const CommissionImport: React.FC = () => {
               <table className="w-full min-w-[560px] text-sm">
                 <thead className="bg-gray-2 dark:bg-meta-4">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium">Rep</th>
+                    <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
                     <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.month')}</th>
                     <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
                     <th className="px-3 py-2 text-right font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.forfeited')}</th>
@@ -1561,7 +1562,7 @@ const CommissionImport: React.FC = () => {
                         <td className="px-3 py-2 text-right whitespace-nowrap">
                           {r.acknowledged ? (
                             <span className="inline-flex items-center gap-2">
-                              <span className="text-xs italic text-body" title={r.ackAt ? new Date(r.ackAt).toLocaleString() : ''}>
+                              <span className="text-xs italic text-body" title={r.ackAt ? fmtDateTime(r.ackAt) : ''}>
                                 {t('admin.commissionImport.quotaReview.ackedBy', { who: r.ackBy || '—' })}
                               </span>
                               <button onClick={() => quotaUnacknowledge(r)} disabled={busy}
@@ -1627,7 +1628,7 @@ const CommissionImport: React.FC = () => {
             <table className="w-full text-xs">
               <thead className="bg-gray-50 dark:bg-meta-4">
                 <tr>
-                  <th className="sticky left-0 z-10 bg-gray-50 px-3 py-2 text-left dark:bg-meta-4">Rep</th>
+                  <th className="sticky left-0 z-10 bg-gray-50 px-3 py-2 text-left dark:bg-meta-4">{t('admin.commissionImport.colRep')}</th>
                   {coverage.months.map(ym => (
                     <th key={ym} className="whitespace-nowrap px-2 py-2 text-center font-medium">{ym}</th>
                   ))}
@@ -1788,9 +1789,9 @@ const CommissionImport: React.FC = () => {
                             <input type="checkbox" checked={selectedReps.size === payData.reps.length && payData.reps.length > 0}
                               onChange={toggleAllReps} title={t('admin.commissionImport.payroll.selectAll') as string} />
                           </th>
-                          <th className="px-4 py-2 text-left font-medium">Rep</th>
+                          <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
                           <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.status')}</th>
-                          <th className="px-4 py-2 text-right font-medium">Total</th></tr>
+                          <th className="px-4 py-2 text-right font-medium">{t('common.total')}</th></tr>
                       </thead>
                       <tbody>
                         {payData.reps.map(r => (
@@ -1967,10 +1968,10 @@ const CommissionImport: React.FC = () => {
                             <input type="checkbox" checked={bonusSelectedReps.size === bonusSendData.reps.length && bonusSendData.reps.length > 0}
                               onChange={toggleAllBonusReps} title={t('admin.commissionImport.payroll.selectAll') as string} />
                           </th>
-                          <th className="px-4 py-2 text-left font-medium">Rep</th>
+                          <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
                           <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.status')}</th>
                           <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.processing.accounts')}</th>
-                          <th className="px-4 py-2 text-right font-medium">Total</th></tr>
+                          <th className="px-4 py-2 text-right font-medium">{t('common.total')}</th></tr>
                       </thead>
                       <tbody>
                         {bonusSendData.reps.map(r => (
@@ -2159,7 +2160,7 @@ const CommissionImport: React.FC = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-2 dark:bg-meta-4">
                     <tr>
-                      <th className="px-4 py-2 text-left font-medium">Rep</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.accounts')}</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.settled')}</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.bonus')}</th>
@@ -2227,7 +2228,7 @@ const CommissionImport: React.FC = () => {
         <div className="px-6 py-4">
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">Rep</label>
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.colRep')}</label>
               <Select value={mbRep} onChange={(v) => setMbRep(v)} options={reps.map((r) => ({ value: r, label: r }))} placeholder={t('admin.commissionImport.manualBonus.selectRep') as string} className="w-48" />
             </div>
             <div>
@@ -2264,7 +2265,7 @@ const CommissionImport: React.FC = () => {
                     <tr>
                       <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.manualBonus.date')}</th>
                       <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.manualBonus.period')}</th>
-                      <th className="px-4 py-2 text-left font-medium">Rep</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
                       <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.manualBonus.description')}</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
                       <th className="px-4 py-2"></th>
@@ -2301,7 +2302,7 @@ const CommissionImport: React.FC = () => {
         <div className="px-6 py-4">
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">Rep</label>
+              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.colRep')}</label>
               <Select value={maRep} onChange={(v) => setMaRep(v)} options={reps.map((r) => ({ value: r, label: r }))} placeholder={t('admin.commissionImport.manualBonus.selectRep') as string} className="w-48" />
             </div>
             <div className="flex-1 min-w-[220px]">
@@ -2341,7 +2342,7 @@ const CommissionImport: React.FC = () => {
                   <thead className="bg-gray-2 dark:bg-meta-4">
                     <tr>
                       <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.manualActivation.activationDate')}</th>
-                      <th className="px-4 py-2 text-left font-medium">Rep</th>
+                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
                       <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.manualActivation.businessName')}</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualActivation.points')}</th>
                       <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualActivation.bonusAmount')}</th>
@@ -2418,7 +2419,7 @@ const CommissionImport: React.FC = () => {
                   <thead className="bg-gray-2 dark:bg-meta-4">
                     <tr>
                       <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugReason')}</th>
-                      <th className="px-3 py-2 text-left font-medium">Rep</th>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
                       <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugInvoiceClient')}</th>
                       <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
                       <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
@@ -2482,7 +2483,7 @@ const CommissionImport: React.FC = () => {
             {/* Shared: who + which pay month it lands on */}
             <div className="flex flex-wrap items-end gap-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-body">Rep</label>
+                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.colRep')}</label>
                 <Select value={adjRep} onChange={(v) => { setAdjRep(v); fetchAdjUnpaid(v); }} options={reps.map((r) => ({ value: r, label: r }))} placeholder={t('admin.commissionImport.manualBonus.selectRep') as string} className="w-48" />
               </div>
               <div>
@@ -2554,7 +2555,7 @@ const CommissionImport: React.FC = () => {
                           <th className="px-3 py-2 w-8"></th>
                           <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
                           <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.manualBonus.period')}</th>
-                          <th className="px-3 py-2 text-left font-medium">Client</th>
+                          <th className="px-3 py-2 text-left font-medium">{t('common.customer')}</th>
                           <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
                         </tr>
                       </thead>
@@ -2669,7 +2670,7 @@ const CommissionImport: React.FC = () => {
                   <thead className="bg-gray-2 dark:bg-meta-4">
                     <tr>
                       <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.targetMonth')}</th>
-                      <th className="px-3 py-2 text-left font-medium">Rep</th>
+                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
                       <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
                       <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
                       <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
@@ -2759,7 +2760,7 @@ const CommissionImport: React.FC = () => {
               <table className="w-full min-w-[560px] text-sm">
                 <thead className="bg-gray-2 dark:bg-meta-4">
                   <tr>
-                    <th className="px-4 py-2 text-left font-medium">Rep</th>
+                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
                     <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.reconciliation.paid')}</th>
                     <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.reconciliation.calculated')}</th>
                     <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.reconciliation.delta')}</th>

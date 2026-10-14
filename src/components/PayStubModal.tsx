@@ -5,6 +5,7 @@ import axios from 'axios';
 import { dialog } from '../lib/dialog';
 import ProbationBadge from './ProbationBadge';
 import ActivityTimeline from './ActivityTimeline';
+import { fmtMoney, fmtPeriod, fmtDate, fmtDateOnly, fmtDateTime } from '../lib/format';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -100,10 +101,9 @@ const PayStubModal: React.FC<{
   const bonusRows = data.bonuses.filter(b => b.bonus_type !== 'adjustment');
   const adjRows = data.bonuses.filter(b => b.bonus_type === 'adjustment');
 
-  const fmt = (val: number) =>
-    val.toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', {
-      style: 'currency', currency: 'CAD', minimumFractionDigits: 2,
-    });
+  const fmt = (val: number) => fmtMoney(val);
+  // « 2026-08 » → « août 2026 » for everything a person reads (files/CSV keep the raw period).
+  const periodLabel = fmtPeriod(data.period);
 
   // Friendly label per bonus type (avoids the bare "signup"/"Bonus" ambiguity).
   const bonusLabel = (type: string): string => {
@@ -139,7 +139,7 @@ const PayStubModal: React.FC<{
       onAdjusted?.();
       onClose();
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to create adjustment');
+      dialog.alert(e?.response?.data?.error || t('commissionReport.payStub.adjustFailed'));
     } finally { setAdjBusy(false); }
   };
 
@@ -162,7 +162,7 @@ const PayStubModal: React.FC<{
     if (!data) return;
     const esc = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const rows: string[] = [];
-    rows.push(`<tr><th colspan="4" style="text-align:left">${esc(tp('title'))} — ${esc(data.repName)} · ${esc(data.period)}</th></tr>`);
+    rows.push(`<tr><th colspan="4" style="text-align:left">${esc(tp('title'))} — ${esc(data.repName)} · ${esc(periodLabel)}</th></tr>`);
     if (data.payDate) rows.push(`<tr><td colspan="4">${esc(tp('payRun'))}: ${esc(payDateLabel(data.payDate))}</td></tr>`);
     rows.push(`<tr><th>${esc(tp('invoice'))}</th><th>${esc(tp('customer'))}</th><th>${esc(tp('category'))}</th><th>${esc(tp('amount'))}</th></tr>`);
     data.lines.forEach(l => rows.push(`<tr><td>${esc(l.invoice_number)}</td><td>${esc(l.customer)}</td><td>${esc(categoryLabel(l.category))}</td><td>${l.paid_amount}</td></tr>`));
@@ -206,7 +206,7 @@ const PayStubModal: React.FC<{
       setEmailOpen(false); setEmailTo('');
       dialog.alert(tp('emailSent'));
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to send');
+      dialog.alert(e?.response?.data?.error || t('errors.sendFailed'));
     } finally {
       setEmailSending(false);
     }
@@ -222,16 +222,14 @@ const PayStubModal: React.FC<{
   // « vendredi 11 septembre 2026 ». Formaté en UTC : la date arrive en 'YYYY-MM-DD' et un
   // fuseau à l'ouest de Greenwich la ferait reculer d'un jour à l'affichage.
   const payDateLabel = (d?: string | null) => d
-    ? new Date(`${d}T00:00:00Z`).toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA',
-        { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
+    ? fmtDateOnly(d, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
     : '';
 
   // Branded, print-optimized pay-stub document (opens in a new window, auto-prints).
   const printStub = () => {
     const esc = (s: string | null | undefined) =>
       String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const locale = i18n.language === 'fr' ? 'fr-CA' : 'en-CA';
-    const issued = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
+    const issued = fmtDate(new Date(), { year: 'numeric', month: 'long', day: 'numeric' });
     const linesSum = data.lines.reduce((a, l) => a + l.paid_amount, 0);
     const bonusSum = bonusRows.reduce((a, b) => a + b.amount, 0);
     const adjSum = adjRows.reduce((a, b) => a + b.amount, 0);
@@ -266,7 +264,7 @@ const PayStubModal: React.FC<{
     const w = window.open('', '_blank', 'width=860,height=980');
     if (!w) return;
     w.document.write(`<!doctype html><html><head><meta charset="utf-8">
-<title>${tp('title')} — ${esc(data.repName)} — ${esc(data.period)}</title>
+<title>${tp('title')} — ${esc(data.repName)} — ${esc(periodLabel)}</title>
 <style>
   @page { margin: 14mm; }
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -316,12 +314,12 @@ const PayStubModal: React.FC<{
 <div class="wrap">
   <div class="accent"></div>
   <div class="band">
-    <div class="brand"><img src="${window.location.origin}/saleshub-mark-dark.svg" alt=""><span>Sales Hub<small>by Cluster Systems</small></span></div>
-    <div class="doc"><div class="t">${tp('title')}</div><div class="p">${esc(data.period)}</div></div>
+    <div class="brand"><img src="${window.location.origin}/saleshub-mark-dark.svg" alt=""><span>Sales Hub<small>${esc(t('brand.by'))} Cluster Systems</small></span></div>
+    <div class="doc"><div class="t">${tp('title')}</div><div class="p">${esc(periodLabel)}</div></div>
   </div>
   <div class="meta">
     <div><span>${tp('repLabel')}</span><b>${esc(data.repName)}</b></div>
-    <div><span>${tp('period')}</span><b>${esc(data.period)}</b></div>
+    <div><span>${tp('period')}</span><b>${esc(periodLabel)}</b></div>
     ${data.payDate ? `<div><span>${tp('payRun')}</span><b>${esc(payDateLabel(data.payDate))}</b></div>` : ''}
     <div><span>${tp('sourceLabel')}</span><b>${sourceLabel}</b></div>
     <div><span>${tp('issuedOn')}</span><b>${issued}</b></div>
@@ -380,7 +378,7 @@ const PayStubModal: React.FC<{
           <div>
             <h3 className="text-lg font-semibold text-black dark:text-white">{tp('title')} — {data.repName}</h3>
             <p className="text-sm text-body">
-              {tp('period')}: {data.period}{data.subtitle ? ` · ${data.subtitle}` : ''}
+              {tp('period')}: {periodLabel}{data.subtitle ? ` · ${data.subtitle}` : ''}
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               {/* Approval status — clear for the rep: pending approval → paid */}
@@ -402,7 +400,7 @@ const PayStubModal: React.FC<{
                   bulletin marqué « 2026-08 ». Absente tant que rien n'a été envoyé à la paye. */}
               {data.payDate && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-primary bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-primary"
-                      title={data.paySentAt ? `${tp('paySentOn')} ${new Date(data.paySentAt).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA')}` : undefined}>
+                      title={data.paySentAt ? `${tp('paySentOn')} ${fmtDateTime(data.paySentAt)}` : undefined}>
                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                   {tp('payRun')}: {payDateLabel(data.payDate)}
                 </span>
@@ -848,7 +846,7 @@ const PayStubModal: React.FC<{
                   <iframe
                     src={`${API_URL}/api/invoices/${invPreview.num}/preview?token=${localStorage.getItem('token')}`}
                     className="h-full w-full border-0"
-                    title="Invoice preview"
+                    title={t('commissionReport.invoicePreview') as string}
                     onLoad={() => setInvPreview(p => (p ? { ...p, loading: false } : p))}
                   />
                 </>

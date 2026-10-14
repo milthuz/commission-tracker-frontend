@@ -80,7 +80,7 @@ const HardwareAdmin: React.FC = () => {
       const r = await axios.get(`${API_URL}/api/hardware`, { headers: authHeaders() });
       setCategories(r.data.categories || []);
       setProducts(r.data.products || []);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to load hardware catalog'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.loadHardwareCatalog')); }
     finally { setLoading(false); }
   };
   useEffect(() => { fetchAll(); }, []);
@@ -182,7 +182,7 @@ const HardwareAdmin: React.FC = () => {
       revertAll();
       await fetchAll();
       dialog.alert(t('admin.hardware.published') as string);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to publish'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.publishFailed')); }
     finally { setPublishing(false); }
   };
 
@@ -194,7 +194,7 @@ const HardwareAdmin: React.FC = () => {
       await axios.post(`${API_URL}/api/hardware/${formId}/image`, fd, { headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' } });
       setForm((f) => (f ? { ...f, hasImage: true } : f));
       setProducts((ps) => ps.map((p) => (p.id === formId ? { ...p, hasImage: true } : p)));
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Upload failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.uploadFailed')); }
     finally { setUploadingImg(false); }
   };
   const removeImage = async () => {
@@ -204,7 +204,7 @@ const HardwareAdmin: React.FC = () => {
       await axios.delete(`${API_URL}/api/hardware/${formId}/image`, { headers: authHeaders() });
       setForm((f) => (f ? { ...f, hasImage: false } : f));
       setProducts((ps) => ps.map((p) => (p.id === formId ? { ...p, hasImage: false } : p)));
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to remove image'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.removeImage')); }
   };
 
   const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';

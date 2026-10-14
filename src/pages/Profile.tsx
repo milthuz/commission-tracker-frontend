@@ -3,6 +3,7 @@ import PasswordInput from '../components/PasswordInput';
 import Select from '../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { fmtMoney, fmtNumber, fmtDate } from '../lib/format';
 import { useAuth } from '../context/AuthContext';
 import { dialog } from '../lib/dialog';
 
@@ -57,14 +58,15 @@ const DATE_FORMATS = [
 ];
 
 const TIMEZONES = [
-  { code: 'America/Toronto', label: 'Eastern Time (Toronto)' },
-  { code: 'America/Chicago', label: 'Central Time (Chicago)' },
-  { code: 'America/Denver', label: 'Mountain Time (Denver)' },
-  { code: 'America/Los_Angeles', label: 'Pacific Time (Los Angeles)' },
-  { code: 'America/Vancouver', label: 'Pacific Time (Vancouver)' },
-  { code: 'America/Montreal', label: 'Eastern Time (Montreal)' },
-  { code: 'Europe/London', label: 'GMT (London)' },
-  { code: 'Europe/Paris', label: 'CET (Paris)' },
+  // Labels translated at render time: profile.tz.<key>
+  { code: 'America/Toronto', key: 'toronto' },
+  { code: 'America/Chicago', key: 'chicago' },
+  { code: 'America/Denver', key: 'denver' },
+  { code: 'America/Los_Angeles', key: 'losAngeles' },
+  { code: 'America/Vancouver', key: 'vancouver' },
+  { code: 'America/Montreal', key: 'montreal' },
+  { code: 'Europe/London', key: 'london' },
+  { code: 'Europe/Paris', key: 'paris' },
 ];
 
 const PREF_SELECT =
@@ -175,7 +177,7 @@ const Profile = () => {
       dialog.alert(t('profile.requestFeature.sent'));
     } catch (e: any) {
       setFeatureModal(m => ({ ...m, sending: false }));
-      dialog.alert(e?.response?.data?.error || 'Failed to send');
+      dialog.alert(e?.response?.data?.error || t('errors.sendFailed'));
     }
   };
 
@@ -240,7 +242,7 @@ const Profile = () => {
       setTimeout(() => setSaved(false), 3000);
     } catch (e) {
       console.error('Error saving preferences:', e);
-      dialog.alert('Failed to save preferences');
+      dialog.alert(t('errors.saveFailed') as string);
     } finally {
       setSaving(false);
     }
@@ -258,7 +260,7 @@ const Profile = () => {
       setSigSaved(true);
       setTimeout(() => setSigSaved(false), 3000);
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to save signature');
+      dialog.alert(e?.response?.data?.error || t('errors.saveFailed'));
     } finally {
       setSigSaving(false);
     }
@@ -327,9 +329,7 @@ const Profile = () => {
 
   const closeReset = () => { setResetOpen(false); setQr(''); setSecret(''); setSetupToken(''); setCode(''); };
 
-  const formatCurrency = (val: number) => {
-    return val.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  };
+  const formatCurrency = (val: number) => fmtMoney(val, { decimals: 0 });
 
   if (loading) {
     return (
@@ -421,7 +421,7 @@ const Profile = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-2xl font-bold text-black dark:text-white">
-                    {profile.stats.paidInvoices.toLocaleString()}
+                    {fmtNumber(profile.stats.paidInvoices)}
                   </p>
                   <p className="text-xs text-body">{t('profile.paidInvoices')}</p>
                 </div>
@@ -444,7 +444,7 @@ const Profile = () => {
               {/* Member Since */}
               {profile.memberSince && (
                 <p className="mt-5 text-xs text-body">
-                  {t('profile.memberSince')} {new Date(profile.memberSince).toLocaleDateString('en-CA', { year: 'numeric', month: 'long' })}
+                  {t('profile.memberSince')} {fmtDate(profile.memberSince, { year: 'numeric', month: 'long' })}
                 </p>
               )}
             </div>
@@ -563,7 +563,7 @@ const Profile = () => {
                   <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">
                     {t('profile.timezone')}
                   </label>
-                  <Select value={timezone} onChange={setTimezone} options={TIMEZONES.map((o) => ({ value: o.code, label: o.label }))} buttonClassName={PREF_SELECT} />
+                  <Select value={timezone} onChange={setTimezone} options={TIMEZONES.map((o) => ({ value: o.code, label: t(`profile.tz.${o.key}`) as string }))} buttonClassName={PREF_SELECT} />
                 </div>
               </div>
 
@@ -935,7 +935,7 @@ const Profile = () => {
                 <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('profile.twoFactor.resetTitle')}</h3>
                 <p className="mb-4 text-sm text-body">{t('profile.twoFactor.resetSubtitle')}</p>
                 <div className="mb-4 flex justify-center">
-                  {qr && <img src={qr} alt="QR code" className="rounded-lg border border-stroke dark:border-strokedark" />}
+                  {qr && <img src={qr} alt={t('profile.qrAlt') as string} className="rounded-lg border border-stroke dark:border-strokedark" />}
                 </div>
                 <p className="mb-4 text-center text-xs text-body">
                   {t('profile.twoFactor.manualKey')}<br />

@@ -230,6 +230,14 @@
       "merchant": "Marchand",
       "status": "Statut",
       "activatedAt": "Activé le"
+    },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "closed": "Fermé",
+      "pending": "En attente",
+      "suspended": "Suspendu",
+      "cancelled": "Annulé"
     }
   },
   "revenue": {
@@ -573,7 +581,10 @@
     "deleteConfirm": "Retirer du tableau la proposition envoyée à {{customer}} ? (Le devis Zoho n'est pas touché.)",
     "replaceEditedEmail": "Vous avez modifié l'objet ou le texte du courriel. Le remplacer par le courriel qui vient d'être généré (langue et client actuels), ou garder votre version ?",
     "replaceEditedEmailYes": "Remplacer",
-    "replaceEditedEmailNo": "Garder ma version"
+    "replaceEditedEmailNo": "Garder ma version",
+    "downloadFailed": "Impossible de télécharger le PDF.",
+    "previewFailed": "Impossible de générer l'aperçu.",
+    "estimatePreview": "Aperçu de l'estimation"
   },
   "hardware": {
     "eyebrow": "Matériel",
@@ -923,7 +934,8 @@
       "disabled": "Désactivé"
     },
     "serverError": {
-      "partnerInactive": "Votre organisation n’a plus accès au portail. Ce n’est pas un problème de mot de passe : vos identifiants sont valides. Contactez votre responsable Cluster pour rétablir l’accès."
+      "partnerInactive": "Votre organisation n’a plus accès au portail. Ce n’est pas un problème de mot de passe : vos identifiants sont valides. Contactez votre responsable Cluster pour rétablir l’accès.",
+      "loginFailed": "Échec de la connexion. Vérifiez votre courriel et votre mot de passe."
     },
     "signup": {
       "title": "Créer mon compte",
@@ -1221,7 +1233,9 @@
       "date": "Date",
       "commission": "Commission",
       "export": "Exporter vers Excel",
-      "exporting": "Exportation…"
+      "exporting": "Exportation…",
+      "suggestedRep": "Vendeur suggéré",
+      "source": "Source"
     }
   },
   "saasIncrease": {
@@ -1734,7 +1748,9 @@
     "bulkKeepOpen": "Ne ferme pas cette page tant que la barre avance — l'opération se poursuit par tranches.",
     "campaignBanner": "{{pushed}} sur {{raised}} appliqués · {{realized}}/mois réellement facturés",
     "campaignChurn": "{{count}} annulation(s) depuis",
-    "campaignOpen": "Ouvrir le suivi"
+    "campaignOpen": "Ouvrir le suivi",
+    "emailPreviewTitle": "Aperçu du courriel",
+    "englishLabel": "Anglais"
   },
   "resources": {
     "title": "Ressources",
@@ -1998,7 +2014,8 @@
     "ytdZentact": "{{count}} activation(s) · {{amount}} $ de prime",
     "assignTo": "Assigner à",
     "selectRep": "Choisir un vendeur...",
-    "restrictedDetails": "Détails restreints — visibles uniquement par les admins ou pour votre propre ligne"
+    "restrictedDetails": "Détails restreints — visibles uniquement par les admins ou pour votre propre ligne",
+    "assignRepFailed": "Impossible d'assigner le représentant."
   },
   "commissionReport": {
     "missing": {
@@ -2099,7 +2116,13 @@
       "reconstructedBanner": "Cet import est antérieur au stockage par facture : le détail ci-dessous est reconstruit depuis les données de l'app. Le total du fichier fait foi. Ré-importez le fichier pour stocker les montants exacts payés.",
       "carrySelected": "{{n}} ligne(s) cochée(s) — {{total}}",
       "carrySelectAll": "Tout cocher",
-      "carryClear": "tout décocher"
+      "carryClear": "tout décocher",
+      "loadFailed": "Impossible de charger le bulletin de paie.",
+      "quotaWaiveFailed": "Impossible de modifier l'exception de quota.",
+      "commitConfirm": "Marquer {{rep}} — {{period}} comme payé ? Les commissions débloquées de la période seront marquées payées et le bulletin de paie sera enregistré.",
+      "commitFailed": "Impossible de marquer le bulletin de paie comme payé.",
+      "uncommitFailed": "Impossible d'annuler le paiement.",
+      "adjustFailed": "Impossible de créer l'ajustement."
     },
     "bonusStatement": {
       "title": "Relevé du bonus de volume bi-annuel",
@@ -2227,7 +2250,8 @@
       "refuse": "Refuser la commission",
       "restore": "Réintégrer la commission",
       "confirm": "Refuser la commission sur {{invoice}} ? Elle passera à 0 $ (réversible).",
-      "restored": "Commission réintégrée — recalcul en cours (~1-3 min)."
+      "restored": "Commission réintégrée — recalcul en cours (~1-3 min).",
+      "failed": "Impossible de modifier l'exclusion de la commission."
     },
     "type": "Type",
     "approve": "Approuver",
@@ -2248,6 +2272,34 @@
       "confirmPay": "Marquer PAYÉE la commission de {{n}} facture(s) pour {{rep}} — {{total}} ?\n\nUne commission payée est gelée : un changement de règle ne la touchera plus. Le bulletin de paie du mois est reconstruit en conséquence.",
       "done": "✓ {{n}} facture(s) mise(s) à jour.",
       "failed": "L’opération a échoué. Rien n’a été modifié."
+    },
+    "approveConfirm": "Approuver la commission de {{rep}} — {{period}} ? Toutes les factures admissibles seront marquées commission payée.",
+    "approveDone_one": "✓ Approuvée ! {{count}} facture marquée commission payée.",
+    "approveDone_other": "✓ Approuvée ! {{count}} factures marquées commission payée.",
+    "approveFailed": "Impossible d'approuver la commission.",
+    "markPaidConfirm": "Marquer comme payées les commissions approuvées de {{rep}} — {{period}} ? Le versement final sera enregistré.",
+    "markPaidDone_one": "✓ Marquée payée ! {{count}} facture.",
+    "markPaidDone_other": "✓ Marquées payées ! {{count}} factures.",
+    "markPaidFailed": "Impossible de marquer les commissions comme payées.",
+    "unapproveConfirm": "Annuler l'approbation de {{rep}} — {{period}} ? Le statut « commission payée » sera retiré.",
+    "unapproveDone_one": "↩ Annulé ! {{count}} facture démarquée.",
+    "unapproveDone_other": "↩ Annulé ! {{count}} factures démarquées.",
+    "unapproveFailed": "Impossible d'annuler l'approbation.",
+    "printFailed": "Impossible d'imprimer la facture.",
+    "downloadFailed": "Impossible de télécharger le PDF.",
+    "paidOn": "Payée le {{date}}",
+    "approvedOn": "Approuvée le {{date}}",
+    "rateLine": "taux de {{rate}} %",
+    "countsTitle": "{{pending}} en attente · {{approved}} approuvée(s) · {{paid}} payée(s)",
+    "previewTitle": "Facture {{number}}",
+    "invoicePreview": "Aperçu de la facture",
+    "emailInvoice": {
+      "title": "Envoyer la facture par courriel",
+      "recipient": "Courriel du destinataire",
+      "send": "Envoyer le courriel",
+      "sending": "Envoi…",
+      "invalid": "Entrez une adresse courriel valide.",
+      "sent": "Facture {{number}} envoyée à {{email}}"
     }
   },
   "admin": {
@@ -2691,7 +2743,9 @@
       "srcRole": "via le rôle",
       "libraryCapOnly": "Limite globale seulement",
       "noUsers": "Aucun utilisateur trouvé.",
-      "perUserHint": "Videz le champ (ou 0) pour retirer la limite personnalisée et revenir à celle du rôle."
+      "perUserHint": "Videz le champ (ou 0) pour retirer la limite personnalisée et revenir à celle du rôle.",
+      "unitMB": "{{n}} Mo",
+      "unitGB": "{{n}} Go"
     },
     "integrations": {
       "title": "Intégrations",
@@ -2813,7 +2867,14 @@
       "importCsv": "Importer assignations historiques (CSV)",
       "csvHint": "Téléversez un fichier CSV avec les colonnes : merchant, sales_rep, activated_at. Les noms de marchands doivent correspondre exactement à ceux dans Zentact. Format de date : AAAA-MM-JJ ou MM/JJ/AAAA.",
       "preview": "Aperçu",
-      "apply": "Appliquer"
+      "apply": "Appliquer",
+      "csvEmpty": "Le CSV doit contenir une ligne d’en-tête et au moins une ligne de données.",
+      "csvMissingMerchant": "Colonne « merchant » introuvable. Colonnes trouvées : {{found}}",
+      "csvParsed_one": "{{count}} ligne lue. Cliquez sur « Aperçu » pour la rapprocher de la base de données.",
+      "csvParsed_other": "{{count}} lignes lues. Cliquez sur « Aperçu » pour les rapprocher de la base de données.",
+      "csvApplied": "Appliqué : {{updated}} marchands mis à jour, {{unmatched}} non jumelés",
+      "csvPreviewResult": "Aperçu : {{matched}} seront mis à jour, {{unmatched}} non jumelés",
+      "csvMatched": "jumelé"
     },
     "enrich": {
       "title": "Enrichissement des factures",
@@ -3250,7 +3311,9 @@
       "releaseFailed": "✕ Le processus de publication a échoué. Consultez GitHub Actions pour les détails.",
       "previousReleases": "Versions précédentes",
       "noReleases": "Aucune version trouvée",
-      "view": "Voir →"
+      "view": "Voir →",
+      "versionPlaceholder": "p. ex. 0.2.6",
+      "generatingNotes": "Récupération des commits et rédaction des notes…"
     },
     "impersonate": {
       "title": "Personnification d'un utilisateur",
@@ -3628,7 +3691,12 @@
       },
       "filename": "Fichier",
       "period": "Période",
-      "importedAt": "Importé"
+      "importedAt": "Importé",
+      "colRep": "Vendeur",
+      "notFoundCount_one": "{{count}} introuvable",
+      "notFoundCount_other": "{{count}} introuvables",
+      "invCount_one": "{{count}} fact.",
+      "invCount_other": "{{count}} fact."
     },
     "reviews": {
       "placeTitle": "Fiche Google",
@@ -3707,7 +3775,9 @@
       "moreCount": "+{{count}} de plus",
       "descAdmin": "Accès complet à tout",
       "descManager": "Gestionnaire d'équipe — visibilité complète de l'équipe, peut approuver les commissions",
-      "descSalesRep": "Vendeur standard — voit uniquement ses propres données"
+      "descSalesRep": "Vendeur standard — voit uniquement ses propres données",
+      "namePlaceholder": "p. ex. Chef d’équipe",
+      "descriptionPlaceholder": "À quoi sert ce rôle ?"
     },
     "usersSection": {
       "title": "Gestion des utilisateurs",
@@ -4044,6 +4114,66 @@
       "help": "Ces usagers se sont connectés sans rôle. Attribuez-leur un rôle dans la liste ci-dessous : la demande disparaît d'elle-même.",
       "dismiss": "Classer",
       "dismissConfirm": "Classer la demande de {{name}} sans lui attribuer de rôle ?"
+    },
+    "errors": {
+      "loadPayrollPreview": "Impossible de charger l’aperçu de la paie.",
+      "saveRecipients": "Impossible d’enregistrer les destinataires.",
+      "loadBonusPreview": "Impossible de charger l’aperçu de la prime.",
+      "createAdjustment": "Impossible de créer l’ajustement.",
+      "applySuggestion": "Impossible d’appliquer la suggestion.",
+      "undoPayStub": "Impossible d’annuler le bulletin de paie.",
+      "updateQuotaWaiver": "Impossible de mettre à jour l’exemption de quota.",
+      "loadProcessingBonus": "Impossible de charger la prime de traitement.",
+      "commit": "Impossible de valider.",
+      "uncommit": "Impossible d’annuler la validation.",
+      "loadStatement": "Impossible de charger le relevé.",
+      "loadReviews": "Impossible de charger les avis.",
+      "recordReview": "Impossible d’enregistrer l’avis.",
+      "loadHardwareCatalog": "Impossible de charger le catalogue de matériel.",
+      "removeImage": "Impossible de retirer l’image.",
+      "loadPartnerStats": "Impossible de charger les statistiques des partenaires.",
+      "loadPartners": "Impossible de charger les partenaires.",
+      "createPartner": "Impossible de créer le partenaire.",
+      "updatePartner": "Impossible de mettre à jour le partenaire.",
+      "generateCode": "Impossible de générer le code.",
+      "sendInvite": "Impossible d’envoyer l’invitation.",
+      "loadOpportunityQueue": "Impossible de charger la file des occasions.",
+      "updateOpportunity": "Impossible de mettre à jour l’occasion.",
+      "loadZohoReps": "Impossible de charger les représentants de Zoho CRM.",
+      "deleteOpportunity": "Impossible de supprimer l’occasion.",
+      "checkZoho": "Impossible de vérifier Zoho CRM.",
+      "linkCustomer": "Impossible de relier le client.",
+      "loadPayouts": "Impossible de charger les versements.",
+      "createPayoutRun": "Impossible de créer le lot de versements.",
+      "finalizeRun": "Impossible de finaliser le lot.",
+      "cancelRun": "Impossible d’annuler le lot.",
+      "loadPricingGuide": "Impossible de charger le guide de prix.",
+      "saveCategory": "Impossible d’enregistrer la catégorie.",
+      "removeLogo": "Impossible de retirer le logo.",
+      "updateKaizenDemo": "Impossible de mettre à jour les réglages de la démo Kaizen.",
+      "saveTiers": "Impossible d’enregistrer les paliers.",
+      "addSalesperson": "Impossible d’ajouter le représentant.",
+      "createTeam": "Impossible de créer l’équipe.",
+      "updateTeam": "Impossible de mettre à jour l’équipe.",
+      "deleteTeam": "Impossible de supprimer l’équipe.",
+      "updateEmail": "Impossible de mettre à jour le courriel.",
+      "updateHireDate": "Impossible de mettre à jour la date d’embauche.",
+      "updateQuotaGate": "Impossible de mettre à jour le seuil de quota.",
+      "updateProcessingBonus": "Impossible de mettre à jour la prime de traitement.",
+      "updateAnnualBonus": "Impossible de mettre à jour la prime annuelle.",
+      "updateQuota": "Impossible de mettre à jour le quota.",
+      "assignTeam": "Impossible d’assigner l’équipe.",
+      "savePoints": "Impossible d’enregistrer les points.",
+      "saveRole": "Impossible d’enregistrer le rôle.",
+      "deleteRole": "Impossible de supprimer le rôle.",
+      "saveUserRoles": "Impossible d’enregistrer les rôles de l’usager.",
+      "createRelease": "Impossible de créer la version.",
+      "assignRep": "Impossible d’assigner le représentant.",
+      "updateSalespersonStatus": "Impossible de mettre à jour le statut du représentant.",
+      "updateCommissionRate": "Impossible de mettre à jour le taux de commission.",
+      "updateReviewBonus": "Impossible de mettre à jour la prime d’avis.",
+      "updateAliases": "Impossible de mettre à jour les alias.",
+      "releaseMissingFields": "Veuillez saisir un numéro de version et les notes de version."
     }
   },
   "header": {
@@ -4152,7 +4282,19 @@
     },
     "signatureRoleEn": "Titre en anglais",
     "signatureRoleEnPh": "ex. Sales Representative",
-    "signatureRoleEnHint": "Remplace votre titre dans les courriels envoyés aux marchands anglophones."
+    "signatureRoleEnHint": "Remplace votre titre dans les courriels envoyés aux marchands anglophones.",
+    "tz": {
+      "toronto": "Heure de l'Est (Toronto)",
+      "chicago": "Heure du Centre (Chicago)",
+      "denver": "Heure des Rocheuses (Denver)",
+      "losAngeles": "Heure du Pacifique (Los Angeles)",
+      "vancouver": "Heure du Pacifique (Vancouver)",
+      "montreal": "Heure de l'Est (Montréal)",
+      "london": "GMT (Londres)",
+      "paris": "HEC (Paris)"
+    },
+    "qrAlt": "Code QR",
+    "currentPassword": "Mot de passe actuel"
   },
   "impersonation": {
     "banner": "Vous personnifiez : {{name}}",
@@ -7743,5 +7885,37 @@
     "actions": "Actions",
     "toggleTheme": "Basculer le thème clair / sombre",
     "switchLanguage": "Switch to English"
+  },
+  "pageTitle": {
+    "signIn": "Connexion",
+    "authenticating": "Connexion en cours",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité",
+    "invitation": "Invitation",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "partnerTeam": "Équipe",
+    "partnerOrganization": "Organisation",
+    "saasLookup": "Référence hausse SaaS",
+    "saasCampaign": "Suivi de campagne hausse SaaS"
+  },
+  "errors": {
+    "failed": "Une erreur est survenue. Veuillez réessayer.",
+    "deleteFailed": "Impossible de supprimer.",
+    "saveFailed": "Impossible d'enregistrer.",
+    "sendFailed": "Impossible d'envoyer.",
+    "addFailed": "Impossible d’ajouter.",
+    "updateFailed": "Impossible de mettre à jour.",
+    "fetchFailed": "Impossible de récupérer les données.",
+    "publishFailed": "Impossible de publier.",
+    "uploadFailed": "Le téléversement a échoué.",
+    "actionFailed": "L’action a échoué.",
+    "importFailed": "L’importation a échoué.",
+    "previewFailed": "L’aperçu a échoué.",
+    "commitFailed": "La validation a échoué.",
+    "inviteFailed": "L’invitation a échoué.",
+    "retryFailed": "La nouvelle tentative a échoué.",
+    "migrationFailed": "La migration a échoué.",
+    "loadFailed": "Impossible de charger les données.",
+    "generic": "Une erreur est survenue. Réessayez."
   }
 }

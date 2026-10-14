@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
+import { fmtMoney, appLocale } from '../../lib/format';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import axios from 'axios';
@@ -34,10 +35,10 @@ const storeName = (s: Store) => {
 type Filter = { month: string; search: string };
 
 const CHART_PALETTE = ['#3C50E0', '#80CAEE', '#0FADCF', '#F58345', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#6366F1', '#22C55E'];
-const money = (n: number) => '$' + (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = (n: number) => fmtMoney(n || 0);
 // Compact for large headline numbers (e.g. volume): $2.87M, $9.6K. Exact value goes in a tooltip.
 const moneyCompact = (n: number) =>
-  '$' + new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 }).format(n || 0);
+  new Intl.NumberFormat(appLocale(), { style: 'currency', currency: 'CAD', currencyDisplay: 'narrowSymbol', notation: 'compact', maximumFractionDigits: 2 }).format(n || 0);
 
 function Icon({ d, className = 'h-5 w-5' }: { d: string; className?: string }) {
   return (
@@ -117,7 +118,7 @@ function YearChart({ points, title }: { points: { month: number; key: string; va
     plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 3, borderRadiusApplication: 'end', borderRadiusWhenStacked: 'last' } },
     dataLabels: { enabled: false },
     xaxis: { categories: monthLabels },
-    yaxis: { labels: { formatter: (v: number) => '$' + Math.round(v).toLocaleString() } },
+    yaxis: { labels: { formatter: (v: number) => fmtMoney(Math.round(v), { decimals: 0 }) } },
     legend: { position: 'top', horizontalAlign: 'left', fontFamily: 'Satoshi', fontWeight: 500, fontSize: '13px', markers: { radius: 99 } },
     fill: { opacity: 1 },
     tooltip: { y: { formatter: (v: number) => money(v) } },
@@ -430,7 +431,7 @@ export default function Revenue() {
                     className="w-56 rounded-md border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
                   />
                 </div>
-                <button onClick={() => setDrill(null)} className="text-body hover:text-black dark:hover:text-white" aria-label="Close">
+                <button onClick={() => setDrill(null)} className="text-body hover:text-black dark:hover:text-white" aria-label={t('common.close') as string}>
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>

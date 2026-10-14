@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { appLocale, fmtPeriod } from '../../lib/format';
 import Select from '../../components/Select';
 import { dialog } from '../../lib/dialog';
 
@@ -36,7 +37,7 @@ interface Opener { name: string; amount: number }
 interface RepCfg { name: string; enabled: boolean; amount: number }
 
 const GoogleReviewsAdmin: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const tr = (k: string, o?: Record<string, unknown>) => t(`admin.reviews.${k}`, o as never) as unknown as string;
 
   const [rows, setRows] = useState<Review[]>([]);
@@ -68,7 +69,7 @@ const GoogleReviewsAdmin: React.FC = () => {
   const [fetching, setFetching] = useState(false);
 
   const fmt = (v: number | null) =>
-    (v ?? 0).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD' });
+    (v ?? 0).toLocaleString(appLocale(), { style: 'currency', currency: 'CAD' });
 
   const load = async () => {
     setLoading(true);
@@ -82,7 +83,7 @@ const GoogleReviewsAdmin: React.FC = () => {
       setOpeners(res.data.openers || []);
       setReps(res.data.reps || []);
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to load reviews');
+      dialog.alert(e?.response?.data?.error || t('admin.errors.loadReviews'));
     } finally { setLoading(false); }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [status]);
@@ -102,7 +103,7 @@ const GoogleReviewsAdmin: React.FC = () => {
       await axios.put(`${API_URL}/api/reviews/place`, { placeId: placeDraft.trim() },
         { headers: { Authorization: `Bearer ${token}` } });
       loadPlace();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.saveFailed')); }
   };
 
   const fetchNow = async () => {
@@ -113,7 +114,7 @@ const GoogleReviewsAdmin: React.FC = () => {
       dialog.alert(tr('fetched', { seen: res.data.seen, inserted: res.data.inserted }));
       loadPlace(); load();
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to fetch');
+      dialog.alert(e?.response?.data?.error || t('errors.fetchFailed'));
     } finally { setFetching(false); }
   };
 
@@ -132,7 +133,7 @@ const GoogleReviewsAdmin: React.FC = () => {
         if (await dialog.confirm(tr('dupConfirm'))) return add(true);
         return;
       }
-      dialog.alert(e?.response?.data?.error || 'Failed to record review');
+      dialog.alert(e?.response?.data?.error || t('admin.errors.recordReview'));
     }
   };
 
@@ -143,7 +144,7 @@ const GoogleReviewsAdmin: React.FC = () => {
       await axios.patch(`${API_URL}/api/reviews/${id}`, body, { headers: { Authorization: `Bearer ${token}` } });
       load();
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to update');
+      dialog.alert(e?.response?.data?.error || t('errors.updateFailed'));
     } finally { setBusy(null); }
   };
 
@@ -155,7 +156,7 @@ const GoogleReviewsAdmin: React.FC = () => {
       await axios.delete(`${API_URL}/api/reviews/${r.id}`, { headers: { Authorization: `Bearer ${token}` } });
       load();
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to delete');
+      dialog.alert(e?.response?.data?.error || t('errors.deleteFailed'));
     } finally { setBusy(null); }
   };
 
@@ -168,7 +169,7 @@ const GoogleReviewsAdmin: React.FC = () => {
       setDraft(d => { const n = { ...d }; delete n[name]; return n; });
       load();
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to save');
+      dialog.alert(e?.response?.data?.error || t('errors.saveFailed'));
     }
   };
 
@@ -235,7 +236,7 @@ const GoogleReviewsAdmin: React.FC = () => {
             {place && !place.hasKey && <p className="text-danger">{tr('noKey')}</p>}
             {place?.lastSync && (
               <p className="text-body">
-                {tr('lastSync')}: {new Date(place.lastSync.at).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA')}
+                {tr('lastSync')}: {new Date(place.lastSync.at).toLocaleString(appLocale())}
                 {' — '}{tr('lastSyncCounts', { seen: place.lastSync.seen, inserted: place.lastSync.inserted })}
               </p>
             )}
@@ -431,7 +432,7 @@ const GoogleReviewsAdmin: React.FC = () => {
                             <span className="text-black dark:text-white">
                               {r.rep_name}
                               <span className="ml-1.5 font-semibold">{fmt(r.amount)}</span>
-                              <span className="ml-1 text-xs text-body">({r.period})</span>
+                              <span className="ml-1 text-xs text-body">({fmtPeriod(r.period)})</span>
                             </span>
                           )
                           : (

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { appLocale } from '../../lib/format';
 import { RefreshCw, Loader2, Search, Check, X, RotateCcw, ExternalLink, AlertTriangle, MapPin, Link2 } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
@@ -116,7 +117,7 @@ const VERSION_TONE: Record<Version, string> = {
 };
 
 const mapsUrl = (placeId: string) => `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}`;
-const fmtDate = (s: string | null | undefined, lng: string) => (s ? new Date(s).toLocaleString(lng === 'fr' ? 'fr-CA' : 'en-CA', { dateStyle: 'medium', timeStyle: 'short' }) : '—');
+const fmtDate = (s: string | null | undefined, _lng: string) => (s ? new Date(s).toLocaleString(appLocale(), { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
 // Barre de progression de la synchro : l'étape (n sur 5), son libellé, et l'avancement quand
 // l'étape a un total connu (adresses Zoho lues, recherches Google faites). Sans total : barre
@@ -153,7 +154,7 @@ const SyncProgress = ({ p }: { p: Progress | null }) => {
 const OpenerMatchAdmin = () => {
   const { t, i18n } = useTranslation();
   const lng = i18n.language?.startsWith('fr') ? 'fr' : 'en';
-  const nf = (n: number) => n.toLocaleString(lng === 'fr' ? 'fr-CA' : 'en-CA');
+  const nf = (n: number) => n.toLocaleString(appLocale());
   const [status, setStatus] = useState<Status | null>(null);
   const [locs, setLocs] = useState<Loc[]>([]);
   const [total, setTotal] = useState(0);

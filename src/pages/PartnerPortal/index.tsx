@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import { dialog } from '../../lib/dialog';
+import { fmtMoney, fmtDate } from '../../lib/format';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('partnerToken')}` });
@@ -56,7 +57,7 @@ const PAYOUT_BADGE: Record<string, string> = {
 };
 
 const PartnerPortal: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user } = usePartnerAuth();
 
   const [tab, setTab] = useState<'list' | 'submit' | 'payouts'>('list');
@@ -319,7 +320,7 @@ const PartnerPortal: React.FC = () => {
                         {/* Date compactee et alignee a droite : `8/5/2026` etait ambigu en FR comme
                             en EN, `05/08/26` suit la langue choisie dans l'app. */}
                         <td className="whitespace-nowrap px-2.5 py-2 text-right tabular-nums text-body">
-                          {new Date(o.createdAt).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                          {fmtDate(o.createdAt, { day: '2-digit', month: '2-digit', year: '2-digit' })}
                         </td>
                       </tr>
                     ))}
@@ -382,7 +383,7 @@ const PartnerPortal: React.FC = () => {
               {payoutRuns.map((r) => (
                 <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
                   <div>
-                    <div className="font-semibold text-black dark:text-white">{r.periodLabel} — ${r.totalAmount.toFixed(2)}</div>
+                    <div className="font-semibold text-black dark:text-white">{r.periodLabel} — {fmtMoney(r.totalAmount)}</div>
                     <div className="text-xs text-gray-400">{t('partnerPortal.payouts.opportunityCount', { count: r.opportunityCount })}</div>
                   </div>
                   {r.hasInvoice ? (
@@ -407,7 +408,7 @@ const PartnerPortal: React.FC = () => {
                 {myInvoices.map((inv) => (
                   <div key={inv.id} className="flex items-center justify-between text-xs text-body">
                     <span>{inv.fileName}</span>
-                    <span className="text-gray-400">{new Date(inv.uploadedAt).toLocaleDateString()}</span>
+                    <span className="text-gray-400">{fmtDate(inv.uploadedAt)}</span>
                   </div>
                 ))}
               </div>

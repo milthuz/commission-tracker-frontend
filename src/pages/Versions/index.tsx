@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { fmtDate } from '../../lib/format';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -31,7 +32,7 @@ interface DisplayRelease {
 }
 
 const Versions: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const location = useLocation();
   const [releases, setReleases] = useState<DisplayRelease[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,13 +98,7 @@ const Versions: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const locale = i18n.language === 'fr' ? 'fr-CA' : 'en-US';
-    return date.toLocaleDateString(locale, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    return fmtDate(dateString, { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const parseReleaseBody = (body: string) => {

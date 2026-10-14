@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { dialog } from '../../lib/dialog';
 import { useTranslation } from 'react-i18next';
+import { fmtDate, fmtNumber } from '../../lib/format';
 import { Plus, Trash2, Save, AlertTriangle, Check, Upload, Loader2, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
@@ -521,7 +522,7 @@ export default function IcplusRatesAdmin() {
                       <input type="checkbox" checked={p.accept} onChange={() => toggleProposal(i)} />
                     </td>
                     <td className="py-1.5 text-black dark:text-white">{p.cat}</td>
-                    <td className="py-1.5 text-right">{(p.rate * 100).toFixed(4)}</td>
+                    <td className="py-1.5 text-right">{fmtNumber(p.rate * 100, 4)}</td>
                     {/* Le taux tel qu'imprimé sur la carte, pour que la conversion soit verifiable d'un coup d'oeil. */}
                     <td className="py-1.5 text-right text-body">{p.printedAs || '—'}</td>
                     <td className="py-1.5 text-xs">
@@ -610,7 +611,7 @@ export default function IcplusRatesAdmin() {
                     <Select value={e.src || ''} onChange={(v) => update(i, { src: v })} options={sourceOptions} />
                   </td>
                   <td className="py-1.5 text-xs text-body">
-                    {e.updated_by ? `${e.updated_by}${e.updated_at ? ` · ${String(e.updated_at).slice(0, 10)}` : ''}` : '—'}
+                    {e.updated_by ? `${e.updated_by}${e.updated_at ? ` · ${fmtDate(e.updated_at)}` : ''}` : '—'}
                   </td>
                   <td className="py-1.5 text-right">
                     <button onClick={() => removeRow(i)} className="rounded p-1 text-body hover:text-danger">

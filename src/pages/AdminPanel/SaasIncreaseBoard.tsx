@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { appLocale, fmtMoney, fmtNumber } from '../../lib/format';
 import { X, Printer } from 'lucide-react';
 
 // A scenario, presented for a decision rather than for editing. Deliberately a separate file and
@@ -32,9 +33,9 @@ interface Props {
   onClose: () => void;
 }
 
-const money0 = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n || 0);
-const money2 = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n || 0);
-const pct1 = (n: number) => `${n >= 0 ? '' : '−'}${Math.abs(n).toFixed(1)}%`;
+const money0 = (n: number) => fmtMoney(n || 0, { decimals: 0 });
+const money2 = (n: number) => fmtMoney(n || 0);
+const pct1 = (n: number) => `${n >= 0 ? '' : '−'}${fmtNumber(Math.abs(n), 1)}%`;
 
 const monthlyDeltaOf = (r: BoardRow) => (r.newPeriod - r.currentPeriod) / r.periodMonths;
 const monthlyNowOf = (r: BoardRow) => r.currentPeriod / r.periodMonths;
@@ -53,7 +54,7 @@ const monthsUntilRenewal = (raw: string | null): number => {
 };
 
 export default function SaasIncreaseBoard({ scenarioName, targetMrr, rows, onClose }: Props) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const raised = rows.filter(r => r.raised);
   const skipped = rows.filter(r => r.skipped);
@@ -110,9 +111,9 @@ export default function SaasIncreaseBoard({ scenarioName, targetMrr, rows, onClo
     const d = new Date();
     d.setDate(1);
     d.setMonth(d.getMonth() + offset);
-    return d.toLocaleDateString(i18n.language, { month: 'short' });
+    return d.toLocaleDateString(appLocale(), { month: 'short' });
   };
-  const today = new Date().toLocaleDateString(i18n.language, { year: 'numeric', month: 'long', day: 'numeric' });
+  const today = new Date().toLocaleDateString(appLocale(), { year: 'numeric', month: 'long', day: 'numeric' });
 
   // The browser's own print-to-PDF is the export: it produces real vector text at the exact
   // layout above, with no second implementation of this document to keep in sync. Chrome takes

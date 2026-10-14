@@ -3,6 +3,7 @@ import PasswordInput from '../../components/PasswordInput';
 import Select from '../../components/Select';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { appLocale, fmtDateTime, fmtMoney, fmtNumber } from '../../lib/format';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
 import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban, Presentation, AlertTriangle, RotateCcw, FileBarChart } from 'lucide-react';
@@ -87,7 +88,7 @@ const fmtDate = (raw?: string | null) => {
   if (!raw) return '—';
   const ymd = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(raw));
   const d = ymd ? new Date(Number(ymd[1]), Number(ymd[2]) - 1, Number(ymd[3])) : new Date(raw);
-  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString(appLocale());
 };
 // How many months one billing period spans. Used ONLY to turn a per-period delta into a monthly
 // one for the MRR totals — never to compute a price.
@@ -108,7 +109,7 @@ const periodSuffix = (s: { interval?: number | null; intervalUnit?: string | nul
   if (u.startsWith('day')) return iv === 1 ? '/day' : `/${iv}d`;
   return iv === 1 ? '/mo' : `/${iv}mo`;
 };
-const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n || 0);
+const money = (n: number) => fmtMoney(n || 0);
 
 // i18next's own interpolation syntax is also {{token}} — the placeholderHint string below
 // contains literal {{customerName}} etc. as text to show the admin, so those tokens must be
@@ -832,7 +833,7 @@ const SaasIncrease: React.FC = () => {
         // A 'target' price below what they pay today is a price CUT dressed as an increase.
         if (next < cur - 0.005) {
           out.push({ sub, segKey, kind: 'decrease', severity: 'high',
-            detail: `${money(cur)} → ${money(next)} ${per} (${pct.toFixed(1)}%)` });
+            detail: `${money(cur)} → ${money(next)} ${per} (${fmtNumber(pct, 1)}%)` });
         } else if (Math.abs(next - cur) < 0.005) {
           // An increase is set, and it changes nothing. Usually a target typed equal to the
           // current price — the merchant gets a notice about a change that never happens.
@@ -840,19 +841,19 @@ const SaasIncrease: React.FC = () => {
             detail: `${money(cur)} → ${money(next)} ${per}` });
         } else if (pct > EXTREME_PCT) {
           out.push({ sub, segKey, kind: 'extreme', severity: 'high',
-            detail: `+${pct.toFixed(1)}% · ${money(cur)} → ${money(next)} ${per}` });
+            detail: `+${fmtNumber(pct, 1)}% · ${money(cur)} → ${money(next)} ${per}` });
         }
         // A flat amount on an annual plan is per YEAR. "+$10" on a $1,285/yr plan is almost
         // certainly $10 a month intended — the mistake the per-period model made possible.
         if (e?.increaseType === 'flat' && periodMonths(sub) >= 12 && (e.increaseValue || 0) < cur * 0.02) {
           out.push({ sub, segKey, kind: 'annualFlat', severity: 'medium',
-            detail: t('saasIncrease.audit.detail.annualFlat', { amount: money(e.increaseValue || 0), pct: pct.toFixed(1) }) as string });
+            detail: t('saasIncrease.audit.detail.annualFlat', { amount: money(e.increaseValue || 0), pct: fmtNumber(pct, 1) }) as string });
         }
         // Different from the rest of its own segment. Not wrong by itself — exceptions are
         // legitimate — but worth a second look before thousands of them go out.
         if (raised.length >= OUTLIER_MIN_ROWS && Math.abs(pct - median) > OUTLIER_GAP_PCT && next > cur) {
           out.push({ sub, segKey, kind: 'outlier', severity: 'medium',
-            detail: t('saasIncrease.audit.detail.outlier', { pct: pct.toFixed(1), median: median.toFixed(1) }) as string });
+            detail: t('saasIncrease.audit.detail.outlier', { pct: fmtNumber(pct, 1), median: fmtNumber(median, 1) }) as string });
         }
       }
     }
@@ -1793,7 +1794,7 @@ const SaasIncrease: React.FC = () => {
                   </button>
                 )}
               </div>
-              <div className={`mt-1.5 text-sm ${textSec}`}>{t('saasIncrease.projectedAdd')} · <span className={textPri + ' font-medium'}>{pct.toFixed(1)}%</span> {t('saasIncrease.ofTarget')}</div>
+              <div className={`mt-1.5 text-sm ${textSec}`}>{t('saasIncrease.projectedAdd')} · <span className={textPri + ' font-medium'}>{fmtNumber(pct, 1)}%</span> {t('saasIncrease.ofTarget')}</div>
             </div>
             <div>
               <div className="h-3 overflow-hidden rounded-full border border-gray-200 bg-gray-100 dark:border-[#242424] dark:bg-[#0A0A0A]">
@@ -1822,7 +1823,7 @@ const SaasIncrease: React.FC = () => {
             </div>
             <div className={`${raised} min-w-0 p-4`}>
               <div className={`flex items-center gap-1.5 text-xs ${textTer}`}><Percent className="h-3.5 w-3.5 shrink-0" /> {t('saasIncrease.statAvgIncrease')}</div>
-              <div className={`mt-2 break-words text-[22px] font-semibold leading-tight tracking-tight ${textPri}`}>{includedCount ? `${avgIncreasePct.toFixed(1)}%` : '—'}</div>
+              <div className={`mt-2 break-words text-[22px] font-semibold leading-tight tracking-tight ${textPri}`}>{includedCount ? `${fmtNumber(avgIncreasePct, 1)}%` : '—'}</div>
               <div className={`mt-0.5 text-[11px] ${textQuat}`}>{t('saasIncrease.statOnIncluded')}</div>
             </div>
             <div className={`${raised} min-w-0 p-4`}>
@@ -3088,7 +3089,7 @@ const SaasIncrease: React.FC = () => {
                   <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
               ) : (
-                <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title="Email preview" />
+                <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title={t('saasIncrease.emailPreviewTitle')} />
               )}
             </div>
           </div>
@@ -3123,7 +3124,7 @@ const SaasIncrease: React.FC = () => {
                   />
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <p className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>English</p>
+                      <p className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>{t('saasIncrease.englishLabel')}</p>
                       <input value={templateDraft.subjectEn} onChange={(e) => setTemplateDraft(d => ({ ...d, subjectEn: e.target.value }))} placeholder={t('saasIncrease.notify.subject') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
                       <input value={templateDraft.headingEn} onChange={(e) => setTemplateDraft(d => ({ ...d, headingEn: e.target.value }))} placeholder={t('saasIncrease.templates.heading') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
                       <textarea value={templateDraft.bodyEn} onChange={(e) => setTemplateDraft(d => ({ ...d, bodyEn: e.target.value }))} rows={6} placeholder={t('saasIncrease.notify.body') as string} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
@@ -3166,7 +3167,7 @@ const SaasIncrease: React.FC = () => {
                         />
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                           <div className="space-y-2">
-                            <p className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>English</p>
+                            <p className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>{t('saasIncrease.englishLabel')}</p>
                             <input value={templateDraft.subjectEn} onChange={(e) => setTemplateDraft(d => ({ ...d, subjectEn: e.target.value }))} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
                             <textarea value={templateDraft.bodyEn} onChange={(e) => setTemplateDraft(d => ({ ...d, bodyEn: e.target.value }))} rows={6} className={`w-full ${chipInput} px-3 py-2 text-sm focus:border-primary focus:outline-none`} />
                           </div>
@@ -3221,13 +3222,13 @@ const SaasIncrease: React.FC = () => {
               ) : (
                 <>
                   <p className={`mb-3 text-xs ${textQuat}`}>
-                    {t('saasIncrease.calibration.computedAt', { date: new Date(calibration.computedAt).toLocaleString() })}
+                    {t('saasIncrease.calibration.computedAt', { date: fmtDateTime(calibration.computedAt) })}
                     {' · '}{t('saasIncrease.calibration.minSample', { n: calibration.minSample })}
                   </p>
                   <div className={`mb-4 rounded-lg border p-3 ${chipInput}`}>
                     <div className={`text-xs font-semibold uppercase tracking-wide ${textQuat}`}>{t('saasIncrease.calibration.baseline')}</div>
                     <div className={`mt-1 text-sm ${textPri}`}>
-                      {calibration.baseline.observedRate != null ? `${(calibration.baseline.observedRate * 100).toFixed(1)}%` : '—'}
+                      {calibration.baseline.observedRate != null ? `${fmtNumber(calibration.baseline.observedRate * 100, 1)}%` : '—'}
                       <span className={`ml-2 text-xs ${textTer}`}>
                         {t('saasIncrease.calibration.sampleSize', { n: calibration.baseline.n })}
                         {calibration.baseline.insufficientData && ` · ${t('saasIncrease.calibration.insufficientData')}`}
@@ -3249,7 +3250,7 @@ const SaasIncrease: React.FC = () => {
                           <tr key={`${b.sizeBucket}|${b.tenureBucket}`} className={`border-t ${divider}`}>
                             <td className={`py-2 pr-3 ${textSec}`}>{b.sizeBucket}%</td>
                             <td className={`py-2 pr-3 ${textSec}`}>{b.tenureBucket} {t('saasIncrease.calibration.months')}</td>
-                            <td className={`py-2 pr-3 text-right font-medium ${textPri}`}>{b.observedRate != null ? `${(b.observedRate * 100).toFixed(1)}%` : '—'}</td>
+                            <td className={`py-2 pr-3 text-right font-medium ${textPri}`}>{b.observedRate != null ? `${fmtNumber(b.observedRate * 100, 1)}%` : '—'}</td>
                             <td className={`py-2 text-right text-xs ${b.insufficientData ? 'text-amber-600 dark:text-amber-400' : textTer}`}>
                               {b.n} {b.insufficientData && `· ${t('saasIncrease.calibration.insufficientData')}`}
                             </td>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { appLocale, fmtMoney, fmtNumber } from '../../lib/format';
 
 const AUDIT_SELECT =
   'w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white';
@@ -36,7 +37,7 @@ const RANGES = ['today', '7d', '30d'] as const;
 // see server.js touchSession), and (2) a filterable/paginated feed over the shared activity_log
 // table across every domain (invoices, proposals, rep pay, auth, user management).
 const Audit: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [subTab, setSubTab] = useState<SubTab>('dashboard');
 
   // Dashboard
@@ -90,7 +91,7 @@ const Audit: React.FC = () => {
   const applyFilters = () => { setPage(1); loadLogs(); };
   const resetFilters = () => { setActor(''); setEntityType(''); setEventType(''); setQ(''); setFrom(''); setTo(''); setPage(1); setTimeout(loadLogs, 0); };
 
-  const fmtDt = (s: string) => new Date(s).toLocaleString(i18n.language, { dateStyle: 'short', timeStyle: 'short' });
+  const fmtDt = (s: string) => new Date(s).toLocaleString(appLocale(), { dateStyle: 'short', timeStyle: 'short' });
   const totalPages = Math.max(1, Math.ceil(logsTotal / pageSize));
 
   return (
@@ -132,7 +133,7 @@ const Audit: React.FC = () => {
                 </div>
                 <div className="rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
                   <p className="text-sm text-body">{t('admin.audit.totalHours')}</p>
-                  <p className="mt-1 text-2xl font-bold text-black dark:text-white">{sessions.totalHours.toFixed(1)}h</p>
+                  <p className="mt-1 text-2xl font-bold text-black dark:text-white">{fmtNumber(sessions.totalHours, 1)}h</p>
                 </div>
               </div>
 
@@ -164,7 +165,7 @@ const Audit: React.FC = () => {
                                 {u.online ? t('admin.audit.online') : t('admin.audit.offline')}
                               </span>
                             </td>
-                            <td className="px-4 py-2.5 text-right text-body">{u.hours.toFixed(1)}h</td>
+                            <td className="px-4 py-2.5 text-right text-body">{fmtNumber(u.hours, 1)}h</td>
                             <td className="px-4 py-2.5 text-right text-body">{u.sessionCount}</td>
                             <td className="px-4 py-2.5 whitespace-nowrap text-body">{fmtDt(u.lastSeenAt)}</td>
                           </tr>
@@ -248,7 +249,7 @@ const Audit: React.FC = () => {
                         </td>
                         <td className="px-4 py-2.5 text-black dark:text-white">{r.description}</td>
                         <td className={`whitespace-nowrap px-4 py-2.5 text-right font-medium ${r.amount != null && r.amount < 0 ? 'text-danger' : 'text-body'}`}>
-                          {r.amount != null ? `${r.amount < 0 ? '-' : ''}$${Math.abs(r.amount).toFixed(2)}` : '—'}
+                          {r.amount != null ? fmtMoney(r.amount) : '—'}
                         </td>
                       </tr>
                     ))}

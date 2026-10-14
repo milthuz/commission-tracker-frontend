@@ -3,6 +3,7 @@ import axios from 'axios';
 import Select from '../../components/Select';
 import TelephoneCopiable from '../../components/TelephoneCopiable';
 import { useTranslation } from 'react-i18next';
+import { appLocale, fmtMoney, fmtNumber } from '../../lib/format';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { dialog } from '../../lib/dialog';
 import PartnerStats from './PartnerStats';
@@ -261,7 +262,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
       if (ok && onDisableInstead) await onDisableInstead();
       return;
     }
-    dialog.alert(d?.error || e?.message || 'Action failed');
+    dialog.alert(d?.error || e?.message || t('errors.actionFailed'));
   };
   const refreshUsers = async () => {
     const r = await axios.get(`${API_URL}/api/admin/partner-invites`, { headers: authHeaders() });
@@ -335,7 +336,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
         ? '\n\n' + total.failed.slice(0, 10).map((f) => `· ${f.email} — ${f.why}`).join('\n')
         : ''));
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || e?.message || 'Invite failed');
+      dialog.alert(e?.response?.data?.error || e?.message || t('errors.inviteFailed'));
     } finally { setInviteProgress(null); }
   };
 
@@ -359,7 +360,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
       else { setPaySimulatedFor(''); await fetchPayouts(); await fetchQueue(); await fetchDataImports(); }
     } catch (e: any) {
       const d = e?.response?.data;
-      dialog.alert(d?.error || e?.message || 'Import failed');
+      dialog.alert(d?.error || e?.message || t('errors.importFailed'));
       if (d?.report) setPayReport(d.report);
     } finally { setPayBusy(''); }
   };
@@ -398,7 +399,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
       dialog.alert(t('admin.partners.clear2faDone', { email: iv.email }) as string);
       refreshUsers();
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Erreur');
+      dialog.alert(e?.response?.data?.error || t('errors.failed'));
     } finally { setBusyUserId(null); }
   };
 
@@ -444,7 +445,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
       const code = e?.response?.data?.error;
       dialog.alert(code === 'lead_already_exists' ? t('admin.partners.crm.retryAlready') as string
         : code === 'not_approved' ? t('admin.partners.crm.retryNotApproved') as string
-        : code || e?.message || 'Retry failed');
+        : code || e?.message || t('errors.retryFailed'));
       await fetchQueue();
     } finally { setRetryingLead(null); }
   };
@@ -464,7 +465,7 @@ const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canSt
   // Format court : « 5 aout 2026 » reservait 88 px par colonne de date, sur TROIS colonnes, ce qui
   // suffisait a faire deborder le tableau et a faire apparaitre une barre de defilement.
   const fmtDate = (d: string | null) =>
-    d ? new Date(d).toLocaleDateString(i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA',
+    d ? new Date(d).toLocaleDateString(appLocale(),
           { year: '2-digit', month: '2-digit', day: '2-digit' }) : null;
   // Les trois etapes d'une invitation tenaient dans TROIS colonnes, dont deux vides la plupart
   // du temps, plus une quatrieme pour l'auteur : c'est ce qui poussait le tableau hors du champ
@@ -553,7 +554,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
     try {
       const r = await axios.get(`${API_URL}/api/admin/partners`, { headers: authHeaders() });
       setPartners(r.data.partners || []);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to load partners'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.loadPartners')); }
     finally { setLoadingPartners(false); }
   };
   useEffect(() => { fetchPartners(); }, []);
@@ -566,7 +567,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       await axios.post(`${API_URL}/api/admin/partners`, { name: newPartnerName.trim() }, { headers: authHeaders() });
       setNewPartnerName('');
       await fetchPartners();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to create partner'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.createPartner')); }
     finally { setCreating(false); }
   };
 
@@ -580,7 +581,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
     try {
       await axios.put(`${API_URL}/api/admin/partners/${p.id}`, { name: p.name, active: !p.active }, { headers: authHeaders() });
       await fetchPartners();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to update partner'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.updatePartner')); }
   };
 
   // Partner-manager-configurable Lead Source + Billing/Business contact info (user request
@@ -613,7 +614,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       setJoinCode(r.data.joinCode);
       await fetchPartners();
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to generate the code');
+      dialog.alert(e?.response?.data?.error || t('admin.errors.generateCode'));
     } finally { setRotating(false); }
   };
 
@@ -644,7 +645,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       }, { headers: authHeaders() });
       setEditingPartner(null);
       await fetchPartners();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to update partner'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.updatePartner')); }
     finally { setSavingEdit(false); }
   };
 
@@ -662,7 +663,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       // et on ne sait pas si le geste a porte.
       await Promise.all([fetchPartners(), refreshUsers()]);
       dialog.alert(t('admin.partners.inviteUserDone', { email: quiEtait }) as string);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to send invite'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.sendInvite')); }
     finally { setInviting(false); }
   };
 
@@ -679,7 +680,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
     try {
       const r = await axios.get(`${API_URL}/api/admin/partner-opportunities`, { headers: authHeaders() });
       setAllOpportunities(r.data.opportunities || []);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to load the opportunity queue'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.loadOpportunityQueue')); }
     finally { setLoadingQueue(false); }
   };
   const queueStats = {
@@ -975,7 +976,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
           <div className="flex flex-wrap items-center gap-1">
             <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold ${PAYOUT_BADGE[o.payoutStatus]}`}
               title={(o.crmDepositDate
-                ? t('admin.partners.payout.depositOn', { date: new Date(o.crmDepositDate).toLocaleDateString(i18n.language) })
+                ? t('admin.partners.payout.depositOn', { date: new Date(o.crmDepositDate).toLocaleDateString(appLocale()) })
                 : t('admin.partners.payout.awaitingDeposit')) as string}>
               {t(`admin.partners.payout.status.${o.payoutStatus}`)}
             </span>
@@ -1030,7 +1031,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
         return (
           <div className="leading-tight">
             <div className="whitespace-nowrap tabular-nums text-body">
-              {new Date(o.createdAt).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit' })}
+              {new Date(o.createdAt).toLocaleDateString(appLocale(), { day: '2-digit', month: '2-digit', year: '2-digit' })}
             </div>
             {/* Le reviseur sortait de la colonne « Actions », ou il n'etait pas une action. */}
             {o.status !== 'pending' && o.reviewedBy && (
@@ -1067,7 +1068,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       dialog.alert(
         code === 'partner_inactive' ? t('admin.partners.manual.partnerInactive') as string
         : code === 'partner_not_found' ? t('admin.partners.manual.partnerMissing') as string
-        : code || e?.message || 'Failed');
+        : code || e?.message || t('errors.failed'));
     } finally { setManualBusy(false); }
   };
 
@@ -1092,7 +1093,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       if (status === 'approved' && r.data?.crmLead?.error) {
         dialog.alert(t('admin.partners.crm.leadFailedAlert', { error: r.data.crmLead.error }) as string);
       }
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to update the opportunity'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.updateOpportunity')); }
     finally { setReviewing(false); }
   };
 
@@ -1114,7 +1115,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       try {
         const r = await axios.get(`${API_URL}/api/admin/partner-opportunities/crm-reps`, { headers: authHeaders() });
         setCrmReps(r.data.reps || []);
-      } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to load Zoho CRM reps'); }
+      } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.loadZohoReps')); }
       finally { setLoadingReps(false); }
     }
   };
@@ -1138,7 +1139,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       if (r.data?.crmDeleteError) {
         dialog.alert(t('admin.partners.crm.deleteFailedAlert', { error: r.data.crmDeleteError }) as string);
       }
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete the opportunity'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.deleteOpportunity')); }
     finally { setDeletingId(null); }
   };
 
@@ -1151,7 +1152,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       // Les fenêtres ouvertes sur cette opportunité suivent aussi.
       setApproving((a) => (a && a.id === o.id ? { ...a, ...fresh } : a));
       setViewingMatches((v) => (v && v.id === o.id ? { ...v, ...fresh } : v));
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to check Zoho CRM'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.checkZoho')); }
     finally { setCheckingCrmId(null); }
   };
 
@@ -1189,7 +1190,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
         ? { ...x, linkedCustomerName: r.data.linkedCustomerName, payoutStatus: r.data.payoutStatus }
         : x));
       setLinkingFor(null);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to link customer'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.linkCustomer')); }
     finally { setSavingLink(false); }
   };
 
@@ -1207,7 +1208,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       ]);
       setPendingPartners(pendingRes.data.partners || []);
       setRuns(runsRes.data.runs || []);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to load payouts'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.loadPayouts')); }
     finally { setLoadingPayouts(false); }
   };
   useEffect(() => { if (sub === 'payouts') fetchPayouts(); }, [sub]);
@@ -1240,18 +1241,18 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       }, { headers: authHeaders() });
       setCreatingRunFor(null);
       await fetchPayouts();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to create payout run'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.createPayoutRun')); }
     finally { setSavingRun(false); }
   };
 
   const [runningActionId, setRunningActionId] = useState<number | null>(null);
   const finalizeRun = async (run: PayoutRun) => {
-    if (!(await dialog.confirm(t('admin.partners.payout.finalizeConfirm', { period: run.periodLabel, amount: run.totalAmount.toFixed(2) }) as string))) return;
+    if (!(await dialog.confirm(t('admin.partners.payout.finalizeConfirm', { period: run.periodLabel, amount: fmtNumber(run.totalAmount, 2) }) as string))) return;
     setRunningActionId(run.id);
     try {
       await axios.post(`${API_URL}/api/admin/partner-payouts/runs/${run.id}/finalize`, {}, { headers: authHeaders() });
       await fetchPayouts();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to finalize run'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.finalizeRun')); }
     finally { setRunningActionId(null); }
   };
   const cancelRun = async (run: PayoutRun) => {
@@ -1260,7 +1261,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
     try {
       await axios.delete(`${API_URL}/api/admin/partner-payouts/runs/${run.id}`, { headers: authHeaders() });
       await fetchPayouts();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to cancel run'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.cancelRun')); }
     finally { setRunningActionId(null); }
   };
 
@@ -1289,7 +1290,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       else { setMigSimulatedFor(''); await fetchPartners(); await fetchQueue(); await fetchDataImports(); }
     } catch (e: any) {
       const d = e?.response?.data;
-      dialog.alert(d?.error || e?.message || 'Migration failed');
+      dialog.alert(d?.error || e?.message || t('errors.migrationFailed'));
       if (d?.report) setMigReport(d.report);
     } finally { setMigBusy(''); }
   };
@@ -1868,7 +1869,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                         <React.Fragment key={imp.id}>
                           <tr className="border-b border-stroke last:border-0 dark:border-strokedark">
                             <td className="whitespace-nowrap px-3 py-2 tabular-nums text-body">
-                              {new Date(imp.importedAt).toLocaleString(i18n.language, {
+                              {new Date(imp.importedAt).toLocaleString(appLocale(), {
                                 day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}
                             </td>
                             <td className="whitespace-nowrap px-3 py-2">
@@ -2179,11 +2180,11 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                               <span className="text-xs font-medium text-warning">{t('admin.partners.payout.noRateWarning')}</span>
                             ) : (
                               <div className="text-right">
-                                <div className="font-bold text-black dark:text-white">${p.suggestedAmount?.toFixed(2)}</div>
+                                <div className="font-bold text-black dark:text-white">{fmtMoney(p.suggestedAmount)}</div>
                                 {/* Le calcul, pas seulement son résultat : un total qu'on ne peut pas
                                     refaire de tête ne se vérifie pas. */}
                                 <div className="text-[11px] text-gray-400">
-                                  {t('admin.partners.payout.calc', { count: p.opportunities.length, rate: p.payoutRate.toFixed(2) })}
+                                  {t('admin.partners.payout.calc', { count: p.opportunities.length, rate: fmtNumber(p.payoutRate, 2) })}
                                 </div>
                               </div>
                             )}
@@ -2229,7 +2230,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                                           {o.invoicePaidDate && (
                                             <span className="text-gray-400">
                                               {' · '}{t('admin.partners.payout.paidOn', {
-                                                date: new Date(o.invoicePaidDate).toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: '2-digit' }) })}
+                                                date: new Date(o.invoicePaidDate).toLocaleDateString(appLocale(), { day: '2-digit', month: '2-digit', year: '2-digit' }) })}
                                             </span>
                                           )}
                                         </span>
@@ -2238,7 +2239,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                                       )}
                                     </td>
                                     <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums text-body">
-                                      {p.payoutRate !== null ? '$' + p.payoutRate.toFixed(2) : '—'}
+                                      {p.payoutRate !== null ? fmtMoney(p.payoutRate) : '—'}
                                     </td>
                                   </tr>
                                 ))}
@@ -2277,7 +2278,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                             <td className="px-4 py-3 font-medium text-black dark:text-white">{r.partnerName}</td>
                             <td className="px-4 py-3 text-body">{r.periodLabel}</td>
                             <td className="px-4 py-3 text-body">{r.opportunityCount}</td>
-                            <td className="px-4 py-3 text-body">${r.totalAmount.toFixed(2)}</td>
+                            <td className="px-4 py-3 text-body">{fmtMoney(r.totalAmount)}</td>
                             <td className="px-4 py-3">
                               <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${r.status === 'finalized' ? 'bg-success/15 text-green-700 dark:text-success' : 'bg-warning/15 text-warning'}`}>
                                 {t(`admin.partners.payout.runStatus.${r.status}`)}
@@ -2725,7 +2726,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 <p className="mt-0.5 text-xs text-body">
                   {details.partnerName}
                   {' · '}
-                  {new Date(details.createdAt).toLocaleString(i18n.language)}
+                  {new Date(details.createdAt).toLocaleString(appLocale())}
                 </p>
               </div>
               <button onClick={() => setDetails(null)}

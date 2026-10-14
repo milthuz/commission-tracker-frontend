@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { fmtNumber } from '../../lib/format';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import axios from 'axios';
@@ -82,7 +83,7 @@ function Classement({ lignes, cle, valeur, couleur = SERIE_CREES, vide }:
               style={{ width: `${Math.max(2, (100 * (Number(l[valeur]) || 0)) / max)}%`, background: couleur }} />
           </span>
           <span className="w-14 shrink-0 text-right text-sm font-medium tabular-nums text-black dark:text-white">
-            {(Number(l[valeur]) || 0).toLocaleString()}
+            {fmtNumber(Number(l[valeur]) || 0)}
           </span>
         </li>
       ))}
@@ -112,7 +113,7 @@ export default function Support() {
       const r = await axios.get(`${API_URL}/api/support/overview?months=${mois}&department=${dept}`, jeton());
       setData(r.data);
     } catch (e: any) {
-      setErreur(e?.response?.data?.error || 'Erreur');
+      setErreur(e?.response?.data?.error || t('errors.loadFailed'));
     } finally { setChargement(false); }
   };
 
@@ -160,8 +161,8 @@ export default function Support() {
     if (!h && h !== 0) return '—';
     if (!isFinite(v)) return '—';
     if (v < 1) return `${Math.round(v * 60)} min`;
-    if (v < 48) return `${v.toFixed(1)} h`;
-    return `${(v / 24).toFixed(1)} ${t('support.jours')}`;
+    if (v < 48) return `${fmtNumber(v, 1)} h`;
+    return `${fmtNumber(v / 24, 1)} ${t('support.jours')}`;
   };
 
   const commun: ApexOptions = {
@@ -178,7 +179,7 @@ export default function Support() {
 
   const optionsDept = useMemo(() => [
     { value: 'all', label: t('support.tousDept') as string },
-    ...(data?.departements || []).map((d) => ({ value: d.id, label: `${d.name} (${d.n.toLocaleString()})` })),
+    ...(data?.departements || []).map((d) => ({ value: d.id, label: `${d.name} (${fmtNumber(d.n)})` })),
   ], [data?.departements, i18n.language]);
 
   const ongletBtn = (id: Onglet, libelle: string) => (
@@ -220,7 +221,7 @@ export default function Support() {
                 <span className="text-xs text-body">
                   {synchro.enCours
                     ? `${t('support.synchroEnCours')} ${synchro.avancement || ''}`
-                    : `${(synchro.billets || 0).toLocaleString()} ${t('support.billetsCopies')}`}
+                    : `${fmtNumber(synchro.billets || 0)} ${t('support.billetsCopies')}`}
                 </span>
               )}
               <button onClick={lancerRattrapage} disabled={lance || synchro?.enCours}
@@ -253,16 +254,16 @@ export default function Support() {
       {!chargement && !erreur && data && data.total > 0 && (
         <>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-            <Tuile libelle={t('support.kpi.total') as string} valeur={data.total.toLocaleString()}
+            <Tuile libelle={t('support.kpi.total') as string} valeur={fmtNumber(data.total)}
               note={`${(data.total / Math.max(1, data.parMois.length)).toFixed(0)} ${t('support.kpi.parMois')}`} />
-            <Tuile libelle={t('support.kpi.resolus') as string} valeur={data.resolus.toLocaleString()}
+            <Tuile libelle={t('support.kpi.resolus') as string} valeur={fmtNumber(data.resolus)}
               note={`${((100 * data.resolus) / data.total).toFixed(0)} %`} />
-            <Tuile libelle={t('support.kpi.ouverts') as string} valeur={data.ouverts.toLocaleString()} />
+            <Tuile libelle={t('support.kpi.ouverts') as string} valeur={fmtNumber(data.ouverts)} />
             <Tuile libelle={t('support.kpi.mediane') as string} valeur={duree(data.medianeH)}
               note={t('support.kpi.medianeNote') as string} />
             <Tuile libelle={t('support.kpi.p90') as string} valeur={duree(data.p90H)}
               note={t('support.kpi.p90Note') as string} />
-            <Tuile libelle={t('support.kpi.marchands') as string} valeur={data.marchands.toLocaleString()} />
+            <Tuile libelle={t('support.kpi.marchands') as string} valeur={fmtNumber(data.marchands)} />
           </div>
 
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -350,7 +351,7 @@ export default function Support() {
                             {data.parType.map((l, i) => (
                               <tr key={i} className="border-t border-stroke dark:border-strokedark">
                                 <td className="py-2 pr-4 text-black dark:text-white">{l.type}</td>
-                                <td className="py-2 pr-4 text-right tabular-nums">{Number(l.n).toLocaleString()}</td>
+                                <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(Number(l.n))}</td>
                                 <td className="py-2 text-right tabular-nums">{duree(l.mediane_h)}</td>
                               </tr>
                             ))}
@@ -400,8 +401,8 @@ export default function Support() {
                           {data.parDepartement.map((l, i) => (
                             <tr key={i} className="border-t border-stroke dark:border-strokedark">
                               <td className="py-2 pr-4 text-black dark:text-white">{l.nom}</td>
-                              <td className="py-2 pr-4 text-right tabular-nums">{Number(l.n).toLocaleString()}</td>
-                              <td className="py-2 pr-4 text-right tabular-nums">{Number(l.ouverts).toLocaleString()}</td>
+                              <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(Number(l.n))}</td>
+                              <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(Number(l.ouverts))}</td>
                               <td className="py-2 text-right tabular-nums">{duree(l.mediane_h)}</td>
                             </tr>
                           ))}
@@ -426,9 +427,9 @@ export default function Support() {
                           {data.parAgent.map((l, i) => (
                             <tr key={i} className="border-t border-stroke dark:border-strokedark">
                               <td className="py-2 pr-4 text-black dark:text-white">{l.nom}</td>
-                              <td className="py-2 pr-4 text-right tabular-nums">{Number(l.n).toLocaleString()}</td>
-                              <td className="py-2 pr-4 text-right tabular-nums">{Number(l.resolus).toLocaleString()}</td>
-                              <td className="py-2 pr-4 text-right tabular-nums">{Number(l.ouverts).toLocaleString()}</td>
+                              <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(Number(l.n))}</td>
+                              <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(Number(l.resolus))}</td>
+                              <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(Number(l.ouverts))}</td>
                               <td className="py-2 text-right tabular-nums">{duree(l.mediane_h)}</td>
                             </tr>
                           ))}
@@ -456,8 +457,8 @@ export default function Support() {
                         {data.parMarchand.map((l, i) => (
                           <tr key={i} className="border-t border-stroke dark:border-strokedark">
                             <td className="py-2 pr-4 text-black dark:text-white">{l.nom}</td>
-                            <td className="py-2 pr-4 text-right tabular-nums">{Number(l.n).toLocaleString()}</td>
-                            <td className="py-2 pr-4 text-right tabular-nums">{Number(l.ouverts).toLocaleString()}</td>
+                            <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(Number(l.n))}</td>
+                            <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(Number(l.ouverts))}</td>
                             <td className="py-2 pr-4 text-right tabular-nums">{duree(l.mediane_h)}</td>
                             <td className="py-2 text-right text-body">{dateCourte(l.dernier)}</td>
                           </tr>
@@ -477,7 +478,7 @@ export default function Support() {
           <div className="rounded-sm border border-stroke bg-white px-5 py-4 text-xs text-body shadow-default dark:border-strokedark dark:bg-boxdark">
             <p>
               {t('support.note.copie', {
-                n: data.copie.billets.toLocaleString(),
+                n: fmtNumber(data.copie.billets),
                 de: dateCourte(data.copie.plusAncien),
                 a: dateCourte(data.copie.plusRecent),
                 synchro: data.copie.derniereSynchro

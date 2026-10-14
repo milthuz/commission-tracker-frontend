@@ -2,11 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { appLocale, fmtDate, fmtDateOnly, fmtDateTime, fmtMoney, fmtNumber } from '../../lib/format';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import packageJson from '../../../package.json';
 import { useAppVersion } from '../../hooks/useAppVersion';
-import { formatDateOnly } from '../../utils/date';
 import ZohoSystemAccount from './ZohoSystemAccount';
 import CommissionImport from './CommissionImport';
 import ExternalUsers from './ExternalUsers';
@@ -29,6 +29,9 @@ import HrAdmin from './HrAdmin';
 import RoleRequests from './RoleRequests';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
+
+// Whole amounts stay whole ("$1,200"), cents are shown when there are some — like the old toLocaleString().
+const money = (v: number) => fmtMoney(v, { decimals: Number.isInteger(Number(v)) ? 0 : 2 });
 
 const API_URL = import.meta.env.VITE_API_URL;
 const DEFAULT_QUOTA = 15;
@@ -183,7 +186,7 @@ const AdminPanel = () => {
       await axios.put(`${API_URL}/api/admin/kaizen-demo-settings`, next, { headers: { Authorization: `Bearer ${token}` } });
       setKaizenSettings(next);
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to update the Kaizen demo settings');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.updateKaizenDemo'));
     } finally { setKaizenSaving(false); }
   };
 
@@ -194,16 +197,16 @@ const AdminPanel = () => {
   // "What's New" menu tags chosen at publish time → drive the sidebar dot/badge + banner.
   const [newFeatureTags, setNewFeatureTags] = useState<{ path: string; title: string; description: string; days: number }[]>([]);
   const RESELLER_MENU_ITEMS = [
-    { path: '/', label: 'Dashboard' },
-    { path: '/commission-tracker', label: 'Commission Tracker' },
-    { path: '/commission-report', label: 'Commission Report' },
-    { path: '/reseller', label: 'Reseller' },
-    { path: '/admin/sync', label: 'Admin → Integrations' },
-    { path: '/admin/salespeople', label: 'Admin → Salespeople' },
-    { path: '/admin/customers', label: 'Admin → Customers' },
-    { path: '/admin/releases', label: 'Admin → Releases' },
-    { path: '/admin/roles', label: 'Admin → Roles & Permissions' },
-    { path: '/admin/import-payments', label: 'Admin → Import Commissions' },
+    { path: '/', label: t('sidebar.dashboard') },
+    { path: '/commission-tracker', label: t('sidebar.commissionTracker') },
+    { path: '/commission-report', label: t('sidebar.commissionReport') },
+    { path: '/reseller', label: t('sidebar.reseller') },
+    { path: '/admin/sync', label: `${t('sidebar.adminPanel')} → ${t('sidebar.zohoSync')}` },
+    { path: '/admin/salespeople', label: `${t('sidebar.adminPanel')} → ${t('sidebar.salespeople')}` },
+    { path: '/admin/customers', label: `${t('sidebar.adminPanel')} → ${t('sidebar.customers')}` },
+    { path: '/admin/releases', label: `${t('sidebar.adminPanel')} → ${t('sidebar.releases')}` },
+    { path: '/admin/roles', label: `${t('sidebar.adminPanel')} → ${t('sidebar.roles')}` },
+    { path: '/admin/import-payments', label: `${t('sidebar.adminPanel')} → ${t('sidebar.importPayments')}` },
   ];
   const [releaseStatus, setReleaseStatus] = useState<string | null>(null);
   const [_workflowStatus, setWorkflowStatus] = useState<any>(null);
@@ -266,7 +269,7 @@ const AdminPanel = () => {
       await axios.put(`${API_URL}/api/bonus-tiers`, payload, { headers: { Authorization: `Bearer ${token}` } });
       await fetchBonusTiers();
       dialog.alert(t('admin.bonusTiers.saved') as string);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save tiers'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.saveTiers')); }
     finally { setSavingTiers(false); }
   };
   const setTier = (kind: 'monthly' | 'annual', i: number, field: 'points' | 'bonus', value: number) =>
@@ -411,7 +414,7 @@ const AdminPanel = () => {
       await fetchSalespeople();
       if (r.data && r.data.created === false) dialog.alert(t('admin.salespeople.alreadyExists', { name }) as string);
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to add salesperson');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.addSalesperson'));
     }
   };
 
@@ -424,7 +427,7 @@ const AdminPanel = () => {
       setNewTeamName('');
       fetchTeams();
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to create team');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.createTeam'));
     }
   };
 
@@ -445,7 +448,7 @@ const AdminPanel = () => {
       );
       setTeams(prev => prev.map(t => t.id === team.id ? merged : t));
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to update team');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.updateTeam'));
       fetchTeams();
     }
   };
@@ -472,7 +475,7 @@ const AdminPanel = () => {
       fetchTeams();
       fetchSalespeople();
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to delete team');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.deleteTeam'));
     }
   };
 
@@ -486,7 +489,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, email: email || null } : p));
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to update email');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.updateEmail'));
     }
   };
 
@@ -500,7 +503,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, hireDate: hireDate || null } : p));
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to update hire date');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.updateHireDate'));
     }
   };
 
@@ -514,7 +517,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, quotaGateEnabled: enabled } : p));
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to update quota gate');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.updateQuotaGate'));
     }
   };
 
@@ -528,7 +531,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, processingBonusEnabled: enabled } : p));
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to update processing bonus');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.updateProcessingBonus'));
     }
   };
 
@@ -542,7 +545,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, annualBonusEnabled: enabled } : p));
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to update annual bonus');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.updateAnnualBonus'));
     }
   };
 
@@ -556,7 +559,7 @@ const AdminPanel = () => {
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, monthlyQuota: quota } : p));
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to update quota');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.updateQuota'));
     }
   };
 
@@ -572,7 +575,7 @@ const AdminPanel = () => {
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, teamId, teamName } : p));
       fetchTeams(); // refresh member counts
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to assign team');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.assignTeam'));
     }
   };
 
@@ -593,7 +596,7 @@ const AdminPanel = () => {
       await axios.put(`${API_URL}/api/deal-source-points`, { sourceGroup, points }, { headers: { Authorization: `Bearer ${token}` } });
       fetchDealPoints();
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to save points');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.savePoints'));
     }
   };
 
@@ -604,7 +607,7 @@ const AdminPanel = () => {
       await axios.delete(`${API_URL}/api/deal-source-points/${encodeURIComponent(sourceGroup)}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchDealPoints();
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to delete');
+      dialog.alert(error?.response?.data?.error || t('errors.deleteFailed'));
     }
   };
 
@@ -659,7 +662,7 @@ const AdminPanel = () => {
       setShowNewRole(false);
       fetchRoles();
     } catch (e: any) {
-      dialog.alert(e.response?.data?.error || 'Failed to save role');
+      dialog.alert(e.response?.data?.error || t('admin.errors.saveRole'));
     } finally {
       setSavingRole(false);
     }
@@ -672,7 +675,7 @@ const AdminPanel = () => {
       await axios.delete(`${API_URL}/api/roles/${role.id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchRoles();
     } catch (e: any) {
-      dialog.alert(e.response?.data?.error || 'Failed to delete role');
+      dialog.alert(e.response?.data?.error || t('admin.errors.deleteRole'));
     }
   };
 
@@ -685,7 +688,7 @@ const AdminPanel = () => {
       setEditingUserRoles(null);
       fetchAdminUsers();
     } catch (e: any) {
-      dialog.alert(e.response?.data?.error || 'Failed to save user roles');
+      dialog.alert(e.response?.data?.error || t('admin.errors.saveUserRoles'));
     }
   };
 
@@ -952,7 +955,7 @@ const AdminPanel = () => {
   // Push a new release
   const pushRelease = async () => {
     if (!newVersion.trim() || !releaseNotes.trim()) {
-      dialog.alert('Please enter a version number and release notes.');
+      dialog.alert(t('admin.errors.releaseMissingFields'));
       return;
     }
     if (!(await dialog.confirm(t('safety.pushRelease', { version: newVersion }), { danger: true, confirmText: t('admin.releases.pushRelease'), typeToConfirm: newVersion.trim() }))) return;
@@ -992,7 +995,7 @@ const AdminPanel = () => {
     } catch (err: any) {
       console.error('Release error:', err);
       setReleaseStatus('error');
-      dialog.alert(err.response?.data?.error || 'Failed to create release');
+      dialog.alert(err.response?.data?.error || t('admin.errors.createRelease'));
       setTimeout(() => setReleaseStatus(null), 5000);
     }
   };
@@ -1070,7 +1073,7 @@ const AdminPanel = () => {
       setUnassignedMerchants(prev => prev.filter(m => m.merchant_account_id !== merchantId));
     } catch (e) {
       console.error('Failed to assign rep:', e);
-      dialog.alert('Failed to assign rep');
+      dialog.alert(t('admin.errors.assignRep'));
     }
   };
 
@@ -1080,7 +1083,7 @@ const AdminPanel = () => {
     const text = await file.text();
     const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
     if (lines.length < 2) {
-      setCsvImport(prev => ({ ...prev, message: 'CSV must have header + at least one row' }));
+      setCsvImport(prev => ({ ...prev, message: t('admin.zentact.csvEmpty') }));
       return;
     }
     const splitLine = (line: string) => {
@@ -1102,7 +1105,7 @@ const AdminPanel = () => {
     const repIdx      = headers.findIndex(h => ['sales_rep', 'salesrep', 'rep', 'sales rep', 'vendeur', 'representant'].includes(h));
     const dateIdx     = headers.findIndex(h => ['activated_at', 'activated', 'date', 'activation_date', 'activation date', 'boarded', 'boarded_at'].includes(h));
     if (merchantIdx === -1) {
-      setCsvImport(prev => ({ ...prev, message: `Missing 'merchant' column. Found: ${headers.join(', ')}` }));
+      setCsvImport(prev => ({ ...prev, message: t('admin.zentact.csvMissingMerchant', { found: headers.join(', ') }) }));
       return;
     }
     const rows = lines.slice(1).map(line => {
@@ -1113,7 +1116,7 @@ const AdminPanel = () => {
         activatedAt: dateIdx !== -1 ? normalizeDate(cells[dateIdx] || '') : '',
       };
     }).filter(r => r.merchant);
-    setCsvImport(prev => ({ ...prev, rows, message: `Parsed ${rows.length} rows. Click 'Preview' to match against the database.` }));
+    setCsvImport(prev => ({ ...prev, rows, message: t('admin.zentact.csvParsed', { count: rows.length }) }));
   };
 
   const normalizeDate = (s: string): string => {
@@ -1147,8 +1150,8 @@ const AdminPanel = () => {
         applying: false,
         preview: res.data,
         message: apply
-          ? `✓ Applied: ${res.data.updated} merchants updated, ${res.data.unmatched.length} unmatched`
-          : `Preview: ${res.data.matched.length} will be updated, ${res.data.unmatched.length} unmatched`,
+          ? `✓ ${t('admin.zentact.csvApplied', { updated: res.data.updated, unmatched: res.data.unmatched.length })}`
+          : t('admin.zentact.csvPreviewResult', { matched: res.data.matched.length, unmatched: res.data.unmatched.length }),
       }));
       if (apply) fetchZentactStatus();
     } catch (e: any) {
@@ -1354,8 +1357,7 @@ const AdminPanel = () => {
   // Format date helper
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return t('common.never');
-    const d = new Date(dateStr);
-    return d.toLocaleString();
+    return fmtDateTime(dateStr);
   };
 
   // Helper: a job is "active" while running or in the process of stopping.
@@ -1503,7 +1505,7 @@ const AdminPanel = () => {
       );
     } catch (error) {
       console.error('Error updating salesperson status:', error);
-      dialog.alert('Failed to update salesperson status');
+      dialog.alert(t('admin.errors.updateSalespersonStatus'));
     }
   };
 
@@ -1529,7 +1531,7 @@ const AdminPanel = () => {
       setUnlockedFields(prev => ({ ...prev, [`${name}_commission`]: false }));
     } catch (error) {
       console.error('Error updating commission rate:', error);
-      dialog.alert('Failed to update commission rate');
+      dialog.alert(t('admin.errors.updateCommissionRate'));
     }
   };
 
@@ -1613,7 +1615,7 @@ const AdminPanel = () => {
       );
       setUnlockedFields(prev => ({ ...prev, [`${name}_review`]: false }));
     } catch (error: any) {
-      dialog.alert(error?.response?.data?.error || 'Failed to update review bonus');
+      dialog.alert(error?.response?.data?.error || t('admin.errors.updateReviewBonus'));
     }
   };
 
@@ -1632,7 +1634,7 @@ const AdminPanel = () => {
       setUnlockedFields(prev => ({ ...prev, [`${name}_aliases`]: false }));
     } catch (error) {
       console.error('Error updating aliases:', error);
-      dialog.alert('Failed to update aliases');
+      dialog.alert(t('admin.errors.updateAliases'));
     }
   };
 
@@ -1769,7 +1771,7 @@ const AdminPanel = () => {
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
                     <p className="text-xs font-medium uppercase text-body">{t('admin.zohoSync.invoicesInDb')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
-                      {syncInfo?.totalInvoicesInDb?.toLocaleString() || '—'}
+                      {syncInfo?.totalInvoicesInDb != null ? fmtNumber(syncInfo.totalInvoicesInDb) : '—'}
                     </p>
                   </div>
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
@@ -2076,13 +2078,13 @@ const AdminPanel = () => {
                           </div>
                           <div>
                             <p className="text-xs uppercase text-body font-medium">{t('admin.zentact.totalBonus')}</p>
-                            <p className="text-2xl font-bold text-[#6366F1]">${(zentactStatus.active * 100).toLocaleString()}</p>
+                            <p className="text-2xl font-bold text-[#6366F1]">{money(zentactStatus.active * 100)}</p>
                           </div>
                           <div>
                             <p className="text-xs uppercase text-body font-medium">{t('admin.zohoSync.lastSync')}</p>
                             <p className="text-sm font-semibold text-black dark:text-white">
                               {zentactStatus.lastSync
-                                ? new Date(zentactStatus.lastSync).toLocaleDateString()
+                                ? fmtDate(zentactStatus.lastSync)
                                 : t('common.never')}
                             </p>
                           </div>
@@ -2185,7 +2187,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                           <td className="px-3 py-1.5 text-black dark:text-white">{m.merchant}</td>
                                           <td className="px-3 py-1.5 text-body">{m.newSalesRep || '—'}</td>
                                           <td className="px-3 py-1.5 text-body">{m.newActivatedAt || '—'}</td>
-                                          <td className="px-3 py-1.5"><span className="rounded-full bg-success bg-opacity-10 px-2 py-0.5 text-xs font-medium text-success">✓ matched</span></td>
+                                          <td className="px-3 py-1.5"><span className="rounded-full bg-success bg-opacity-10 px-2 py-0.5 text-xs font-medium text-success">✓ {t('admin.zentact.csvMatched')}</span></td>
                                         </tr>
                                       ))}
                                       {csvImport.preview.unmatched?.map((m: any, i: number) => (
@@ -2244,7 +2246,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                             <td className="px-3 py-2 text-black dark:text-white">{m.business_name}</td>
                                             <td className="px-3 py-2 text-body">{zRep}</td>
                                             <td className="px-3 py-2 text-body">
-                                              {formatDateOnly(m.activated_at)}
+                                              {fmtDateOnly(m.activated_at)}
                                             </td>
                                             <td className="px-3 py-2">
                                               <Select value="" onChange={(v) => assignMerchantRep(m.merchant_account_id, v)} options={salespeople.filter(sp => sp.isActive).map((sp) => ({ value: sp.name, label: sp.name }))} placeholder={t('admin.zentact.selectRep') as string} buttonClassName={'rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white'} />
@@ -2341,7 +2343,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       {jobActive(enrichStatus) ? (
                         <span className="inline-flex items-center gap-1.5 text-warning">
                           <span className="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
-                          {t('admin.enrich.enriching')}{enrichStatus?.total ? ` (${(enrichStatus.processed || 0).toLocaleString()} / ${enrichStatus.total.toLocaleString()})` : ''}
+                          {t('admin.enrich.enriching')}{enrichStatus?.total ? ` (${fmtNumber(enrichStatus.processed || 0)} / ${fmtNumber(enrichStatus.total)})` : ''}
                         </span>
                       ) : (
                         <span className="text-success">{t('common.idle')}</span>
@@ -2365,7 +2367,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     <svg className={`h-4 w-4 ${enrichPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    {enrichPolling ? `${t('admin.enrich.enriching')}... ${(enrichStatus?.processed || 0).toLocaleString()} / ${(enrichStatus?.total || 0).toLocaleString()}` : t('admin.enrich.enrichAll')}
+                    {enrichPolling ? `${t('admin.enrich.enriching')}... ${fmtNumber(enrichStatus?.processed || 0)} / ${fmtNumber(enrichStatus?.total || 0)}` : t('admin.enrich.enrichAll')}
                   </button>
                   {enrichPolling && (
                     <button
@@ -2406,7 +2408,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       {jobActive(recalcStatus) ? (
                         <span className="inline-flex items-center gap-1.5 text-warning">
                           <span className="h-2 w-2 rounded-full bg-warning animate-pulse"></span>
-                          {t('admin.recalculate.recalculating')} ({(recalcStatus?.processed || 0).toLocaleString()} / {(recalcStatus?.total || 0).toLocaleString()})
+                          {t('admin.recalculate.recalculating')} ({fmtNumber(recalcStatus?.processed || 0)} / {fmtNumber(recalcStatus?.total || 0)})
                         </span>
                       ) : (
                         <span className="text-success">{t('common.idle')}</span>
@@ -2422,7 +2424,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <div className="rounded-md border border-stroke p-4 dark:border-strokedark">
                     <p className="text-xs font-medium uppercase text-body">{t('admin.recalculate.totalCommission')}</p>
                     <p className="mt-1 text-sm font-semibold text-black dark:text-white">
-                      {recalcStatus?.stats?.total_commission != null ? `$${Number(recalcStatus.stats.total_commission).toLocaleString()}` : '—'}
+                      {recalcStatus?.stats?.total_commission != null ? money(Number(recalcStatus.stats.total_commission)) : '—'}
                     </p>
                   </div>
                 </div>
@@ -2437,7 +2439,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     <svg className={`h-4 w-4 ${recalcPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
-                    {recalcPolling ? `${t('admin.recalculate.recalculating')}... ${(recalcStatus?.processed || 0).toLocaleString()} / ${(recalcStatus?.total || 0).toLocaleString()}` : t('admin.recalculate.recalculateAll')}
+                    {recalcPolling ? `${t('admin.recalculate.recalculating')}... ${fmtNumber(recalcStatus?.processed || 0)} / ${fmtNumber(recalcStatus?.total || 0)}` : t('admin.recalculate.recalculateAll')}
                   </button>
                   {recalcPolling && (
                     <button
@@ -2468,7 +2470,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                         </span>
                       </div>
                       <span className="text-xs font-medium text-body">
-                        {(recalcStatus?.processed || 0).toLocaleString()} / {(recalcStatus?.total || 0).toLocaleString()}
+                        {fmtNumber(recalcStatus?.processed || 0)} / {fmtNumber(recalcStatus?.total || 0)}
                         {recalcStatus?.total > 0 && ` (${Math.round((recalcStatus.processed || 0) / recalcStatus.total * 100)}%)`}
                       </span>
                     </div>
@@ -2507,13 +2509,13 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     <p className="text-sm text-body mb-2">{confirmModal.field}</p>
                     <div className="flex items-center gap-3">
                       <span className="text-lg font-bold text-danger line-through">
-                        {confirmModal.field.includes('%') ? `${confirmModal.oldValue}%` : `$${confirmModal.oldValue.toLocaleString()}`}
+                        {confirmModal.field.includes('%') ? `${confirmModal.oldValue}%` : money(confirmModal.oldValue)}
                       </span>
                       <svg className="h-4 w-4 text-body" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
                       <span className="text-lg font-bold text-success">
-                        {confirmModal.field.includes('%') ? `${confirmModal.newValue}%` : `$${confirmModal.newValue.toLocaleString()}`}
+                        {confirmModal.field.includes('%') ? `${confirmModal.newValue}%` : money(confirmModal.newValue)}
                       </span>
                     </div>
                   </div>
@@ -2962,7 +2964,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                     className="group flex items-center gap-2 rounded-md border border-stroke px-3 py-1.5 text-sm transition hover:border-primary dark:border-strokedark"
                                   >
                                     <span className={`font-medium ${(person.baseSalary || 0) > 0 ? 'text-primary' : 'text-black dark:text-white'}`}>
-                                      ${(person.baseSalary || 0).toLocaleString()}
+                                      {money(person.baseSalary || 0)}
                                     </span>
                                     <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -3085,7 +3087,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                       className="group flex items-center gap-1.5 rounded-md border border-stroke px-2.5 py-1.5 text-sm transition hover:border-primary dark:border-strokedark"
                                     >
                                       <span className={`font-medium ${(person.signupBonusAmount ?? 100) !== 100 ? 'text-[#8B5CF6]' : 'text-black dark:text-white'}`}>
-                                        ${(person.signupBonusAmount ?? 100).toLocaleString()}
+                                        {money(person.signupBonusAmount ?? 100)}
                                       </span>
                                       <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -3134,7 +3136,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                       onClick={() => setUnlockedFields(prev => ({ ...prev, [`${person.name}_review`]: true }))}
                                       className="group flex items-center gap-1.5 rounded-md border border-stroke px-2.5 py-1.5 text-sm transition hover:border-primary dark:border-strokedark"
                                     >
-                                      <span className="font-medium text-[#8B5CF6]">${(person.reviewBonusAmount || 0).toLocaleString()}</span>
+                                      <span className="font-medium text-[#8B5CF6]">{money(person.reviewBonusAmount || 0)}</span>
                                       <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                       </svg>
@@ -3242,7 +3244,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                         >
                           <div>
                             <p className="text-sm font-medium text-black dark:text-white">{customer.name}</p>
-                            <p className="text-xs text-body">{customer.invoiceCount} {t('common.invoices').toLowerCase()} · ${customer.totalSpent.toLocaleString('en-CA', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-xs text-body">{customer.invoiceCount} {t('common.invoices').toLowerCase()} · {fmtMoney(customer.totalSpent)}</p>
                           </div>
                           <span className="text-xs font-medium text-danger">{t('admin.customers.exclude')}</span>
                         </div>
@@ -3273,7 +3275,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                             </span>
                             <div>
                               <p className="text-sm font-medium text-black dark:text-white">{customer.customer_name}</p>
-                              <p className="text-xs text-body">{t('admin.customers.excluded')} {new Date(customer.created_at).toLocaleDateString('en-CA')}</p>
+                              <p className="text-xs text-body">{t('admin.customers.excluded')} {fmtDate(customer.created_at)}</p>
                             </div>
                           </div>
                           <button
@@ -3328,7 +3330,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                         type="text"
                         value={newVersion}
                         onChange={(e) => setNewVersion(e.target.value)}
-                        placeholder="e.g. 0.2.6"
+                        placeholder={t('admin.releases.versionPlaceholder')}
                         className="w-full max-w-xs rounded border-[1.5px] border-stroke bg-transparent px-4 py-2.5 text-sm font-medium outline-none transition focus:border-[#8B5CF6] dark:border-form-strokedark dark:bg-form-input"
                       />
                     </div>
@@ -3358,7 +3360,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                         <div className="flex items-center justify-center py-8 rounded border-[1.5px] border-stroke dark:border-form-strokedark">
                           <div className="flex items-center gap-3">
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                            <span className="text-sm text-body">Fetching commits and generating notes...</span>
+                            <span className="text-sm text-body">{t('admin.releases.generatingNotes')}</span>
                           </div>
                         </div>
                       ) : (
@@ -3412,7 +3414,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                             type="button"
                             onClick={() => setNewFeatureTags(newFeatureTags.filter((_, j) => j !== i))}
                             className="text-sm font-bold text-danger sm:col-span-1"
-                            aria-label="Remove"
+                            aria-label={t('common.remove')}
                           >
                             ✕
                           </button>
@@ -3468,7 +3470,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                 {release.version}
                               </span>
                               <span className="text-xs text-body">
-                                {new Date(release.date).toLocaleDateString('en-CA', {
+                                {new Date(release.date).toLocaleDateString(appLocale(), {
                                   year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                                 })}
                               </span>
@@ -3711,7 +3713,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                             </td>
                             <td className="px-4 py-5">
                               <p className="text-sm text-body">
-                                {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('en-CA', {
+                                {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString(appLocale(), {
                                   year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
                                 }) : t('common.never')}
                               </p>
@@ -3937,7 +3939,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     type="text"
                     value={editingRole.name}
                     onChange={(e) => setEditingRole({ ...editingRole, name: e.target.value })}
-                    placeholder="e.g. Team Lead"
+                    placeholder={t('admin.roles.namePlaceholder')}
                     className="w-full mb-4 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white"
                   />
                   <label className="block text-sm font-medium text-black dark:text-white mb-1">{t('admin.roles.descField')}</label>
@@ -3945,7 +3947,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     type="text"
                     value={editingRole.description}
                     onChange={(e) => setEditingRole({ ...editingRole, description: e.target.value })}
-                    placeholder="What is this role for?"
+                    placeholder={t('admin.roles.descriptionPlaceholder')}
                     className="w-full mb-4 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white"
                   />
 

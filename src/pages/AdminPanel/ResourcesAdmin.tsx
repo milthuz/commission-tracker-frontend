@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { fmtNumber } from '../../lib/format';
+import i18n from '../../i18n';
 import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const GB = 1073741824;
-const fmtUsed = (b: number) => (b < 0.1 * GB ? `${(b / 1048576).toFixed(0)} MB` : `${(b / GB).toFixed(2)} GB`);
+const fmtUsed = (b: number) => (b < 0.1 * GB ? i18n.t('admin.resources.unitMB', { n: fmtNumber(b / 1048576, 0) }) : i18n.t('admin.resources.unitGB', { n: fmtNumber(b / GB, 2) }));
 const gbStr = (bytes: number | null) => (bytes ? String(Math.round((bytes / GB) * 100) / 100) : '');
 
 interface RoleRow { id: number; name: string; isSystem: boolean; limit: number | null; }
@@ -51,13 +53,13 @@ const ResourcesAdmin: React.FC = () => {
     const gb = parseFloat(globalInput);
     const limitBytes = (!globalInput || isNaN(gb) || gb <= 0) ? 0 : Math.round(gb * GB);
     try { await axios.put(`${API_URL}/api/resources/storage`, { limitBytes }, { headers: headers() }); loadGlobal(); dialog.alert(t('admin.resources.saved')); }
-    catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.failed')); }
   };
   const saveRole = async (roleId: number, gbStr: string) => {
     const gb = parseFloat(gbStr);
     const limitBytes = (!gbStr || isNaN(gb) || gb <= 0) ? 0 : Math.round(gb * GB);
     try { await axios.put(`${API_URL}/api/resources/role-storage`, { roleId, limitBytes }, { headers: headers() }); await loadRoles(); await loadUsers(); }
-    catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.failed')); }
   };
   const saveUser = async (email: string, gbStr: string) => {
     const gb = parseFloat(gbStr);
@@ -65,7 +67,7 @@ const ResourcesAdmin: React.FC = () => {
     try {
       await axios.put(`${API_URL}/api/resources/user-storage`, { email, limitBytes }, { headers: headers() });
       setEditEmail(null); await loadUsers();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.failed')); }
   };
 
   const beginEdit = (u: UserRow) => { setEditEmail(u.email); setEditDraft(gbStr(u.userLimit)); };
@@ -78,7 +80,7 @@ const ResourcesAdmin: React.FC = () => {
   // How a user's effective limit reads in the table.
   const effLabel = (u: UserRow) => {
     if (u.effectiveLimit == null) return <span className="text-gray-400">{t('admin.resources.libraryCapOnly')}</span>;
-    const val = `${(u.effectiveLimit / GB).toFixed(u.effectiveLimit % GB === 0 ? 0 : 2)} GB`;
+    const val = t('admin.resources.unitGB', { n: fmtNumber(u.effectiveLimit / GB, u.effectiveLimit % GB === 0 ? 0 : 2) });
     const tag = u.source === 'user' ? t('admin.resources.srcCustom') : t('admin.resources.srcRole');
     const over = u.used > u.effectiveLimit;
     return (
@@ -96,7 +98,7 @@ const ResourcesAdmin: React.FC = () => {
         <p className="mb-4 text-sm text-body">{t('admin.resources.globalSubtitle')}</p>
         <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="font-medium text-black dark:text-white">{t('admin.resources.used')}</span>
-          <span className="text-gray-500">{fmtUsed(used)}{limit ? ` / ${(limit / GB).toFixed(0)} GB (${pct}%)` : ` · ${t('admin.resources.unlimited')}`}</span>
+          <span className="text-gray-500">{fmtUsed(used)}{limit ? ` / ${t('admin.resources.unitGB', { n: fmtNumber(limit / GB, 0) })} (${pct}%)` : ` · ${t('admin.resources.unlimited')}`}</span>
         </div>
         {limit != null && (
           <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { fmtMoney } from '../../lib/format';
 import { Link } from 'react-router-dom';
 import { formatDateOnly } from '../../utils/date';
 import ProbationBadge from '../../components/ProbationBadge';
@@ -93,9 +94,9 @@ const RepDashboard: React.FC = () => {
   };
 
   const fmt = (v: number) =>
-    (Number(v) || 0).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    fmtMoney(Number(v) || 0, { decimals: 0 });
   const fmt2 = (v: number) =>
-    (Number(v) || 0).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    fmtMoney(Number(v) || 0);
 
   // Projection de la prime semestrielle. Chargée à part : la permission
   // `report:bonus_forecast` n'est pas donnée à tout le monde, et un 403 ne doit pas faire
@@ -131,7 +132,7 @@ const RepDashboard: React.FC = () => {
           } catch { /* annual optional */ }
         }
       } catch (e: any) {
-        setError(e?.response?.data?.error || 'Failed to load dashboard');
+        setError(e?.response?.data?.error || t('errors.loadFailed'));
       } finally { setLoading(false); }
     };
     fetchAll();

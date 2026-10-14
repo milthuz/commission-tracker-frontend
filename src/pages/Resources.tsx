@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Select from '../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { appLocale, fmtNumber, fmtDate, fmtDateOnly } from '../lib/format';
 import { dialog } from '../lib/dialog';
-import { formatDateOnly } from '../utils/date';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -19,9 +19,10 @@ interface AuditEvent {
 
 const fmtSize = (b: number) => {
   if (!b) return '';
-  if (b >= 1024 * 1024) return `${(b / 1024 / 1024).toFixed(1)} MB`;
-  if (b >= 1024) return `${Math.round(b / 1024)} KB`;
-  return `${b} B`;
+  const fr = appLocale().startsWith('fr');
+  if (b >= 1024 * 1024) return `${fmtNumber(b / 1024 / 1024, 1)} ${fr ? 'Mo' : 'MB'}`;
+  if (b >= 1024) return `${fmtNumber(Math.round(b / 1024))} ${fr ? 'Ko' : 'KB'}`;
+  return `${b} ${fr ? 'o' : 'B'}`;
 };
 // Per-type label + brand-ish colour for the document icon.
 const fileMeta = (name: string, mime: string) => {
@@ -65,7 +66,7 @@ const FileIcon: React.FC<{ name: string; mime: string; className?: string }> = (
 };
 
 const Resources: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [resources, setResources] = useState<Resource[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [q, setQ] = useState('');
@@ -172,7 +173,7 @@ const Resources: React.FC = () => {
       setShowModal(false);
       fetchResources();
       if (showJournal) fetchAudit();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.saveFailed')); }
     finally { setSaving(false); }
   };
 
@@ -264,7 +265,7 @@ const Resources: React.FC = () => {
       setShowCats(false); setOpenFolder(null);
       fetchResources(); if (showJournal) fetchAudit();
       await dialog.alert(t('resources.deleteAllDone'));
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
   };
 
   const remove = async (r: Resource) => {
@@ -272,13 +273,13 @@ const Resources: React.FC = () => {
     try {
       await axios.delete(`${API_URL}/api/resources/${r.id}`, { headers: authHeaders() });
       fetchResources(); if (showJournal) fetchAudit();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to delete'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
   };
 
   const addCategory = async () => {
     const name = newCat.trim(); if (!name) return;
     try { await axios.post(`${API_URL}/api/resource-categories`, { name }, { headers: authHeaders() }); setNewCat(''); fetchResources(); }
-    catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.saveFailed')); }
   };
   const removeCategory = async (name: string) => {
     // categories list is names; we need ids — refetch the managed list to find the id
@@ -289,7 +290,7 @@ const Resources: React.FC = () => {
       if (!(await dialog.confirm(t('resources.catDeleteConfirm', { name }) as string))) return;
       await axios.delete(`${API_URL}/api/resource-categories/${cat.id}`, { headers: authHeaders() });
       fetchResources();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
   };
 
   const toggleJournal = () => { const n = !showJournal; setShowJournal(n); if (n) fetchAudit(); };
@@ -308,7 +309,7 @@ const Resources: React.FC = () => {
       await axios.post(`${API_URL}/api/resources/folder/create`, { zone, path: openFolder || '', name }, { headers: authHeaders() });
       setCreatingFolder(false); setNewFolderName('');
       fetchResources(); if (showJournal) fetchAudit();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.saveFailed')); }
   };
   const renameFolder = async () => {
     if (!renameTarget) return;
@@ -318,7 +319,7 @@ const Resources: React.FC = () => {
       await axios.post(`${API_URL}/api/resources/folder/rename`, { zone, path: renameTarget.path, newName }, { headers: authHeaders() });
       setRenameTarget(null);
       fetchResources(); if (showJournal) fetchAudit();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.saveFailed')); }
   };
   const deleteFolder = async (path: string, count: number) => {
     setMenu(null);
@@ -327,7 +328,7 @@ const Resources: React.FC = () => {
     try {
       await axios.post(`${API_URL}/api/resources/folder/delete`, { zone, path }, { headers: authHeaders() });
       fetchResources(); if (showJournal) fetchAudit();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
   };
   // Can `src` be dropped into `dest` ('' = root)? Not itself, not its own parent (no-op), not a descendant.
   const canDrop = (src: string, dest: string) =>
@@ -337,7 +338,7 @@ const Resources: React.FC = () => {
     try {
       await axios.post(`${API_URL}/api/resources/folder/move`, { zone, path: src, destParent: dest }, { headers: authHeaders() });
       fetchResources(); if (showJournal) fetchAudit();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.generic')); }
   };
 
   // --- Folder/file derivation (Drive-style, NESTED) ---
@@ -391,7 +392,7 @@ const Resources: React.FC = () => {
           <FileIcon name={r.file_name} mime={r.mime_type} className="h-11 w-auto" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-black dark:text-white">{r.title}</p>
-            <p className="text-xs text-gray-400">{fmtSize(r.file_size)} · {formatDateOnly(r.updated_at, i18n.language)}</p>
+            <p className="text-xs text-gray-400">{fmtSize(r.file_size)} · {fmtDateOnly(r.updated_at)}</p>
             {showCat && r.category && <p className="mt-0.5 truncate text-[11px] text-body">{r.category}</p>}
           </div>
         </button>
@@ -420,7 +421,7 @@ const Resources: React.FC = () => {
           {showCat && r.category && <span className="block truncate text-xs text-gray-400">{r.category}</span>}
         </button>
         <span className="hidden w-16 shrink-0 text-right text-xs text-gray-400 sm:block">{fmtSize(r.file_size)}</span>
-        <span className="hidden w-24 shrink-0 text-right text-xs text-gray-400 md:block">{formatDateOnly(r.updated_at, i18n.language)}</span>
+        <span className="hidden w-24 shrink-0 text-right text-xs text-gray-400 md:block">{fmtDateOnly(r.updated_at)}</span>
         <button onClick={() => openResource(r)} title={t('resources.open') as string} className="rounded-lg p-1.5 text-primary hover:bg-primary/10"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></button>
         {canEditFiles && <button onClick={() => openEdit(r)} title={t('common.edit') as string} className="rounded-lg p-1.5 text-body hover:text-primary"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>}
         {canDeleteFiles && <button onClick={() => remove(r)} title={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>}
@@ -513,7 +514,7 @@ const Resources: React.FC = () => {
                   <span className={`shrink-0 rounded px-1.5 py-0.5 font-semibold ${e.action.includes('delete') ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success'}`}>{t(`resources.action_${e.action}`)}</span>
                   <span className="min-w-0 flex-1 truncate text-black dark:text-white">{e.title} <span className="text-gray-400">· {e.file_name}</span></span>
                   <span className="shrink-0 text-gray-400">{e.actor}</span>
-                  <span className="shrink-0 text-gray-400">{new Date(e.created_at).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="shrink-0 text-gray-400">{fmtDate(e.created_at, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               ))}
             </div>

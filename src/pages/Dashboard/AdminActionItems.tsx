@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { fmtMoney } from '../../lib/format';
 import { Link } from 'react-router-dom';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -20,7 +21,7 @@ const AdminActionItems: React.FC = () => {
   const [status, setStatus] = useState<AllStatus | null>(null);
 
   const fmt = (v: number) =>
-    (Number(v) || 0).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    fmtMoney(Number(v) || 0, { decimals: 0 });
 
   useEffect(() => {
     const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };

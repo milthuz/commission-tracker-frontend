@@ -126,7 +126,7 @@ const Proposals: React.FC = () => {
   const deleteSent = async (r: SentRow) => {
     if (!(await dialog.confirm(t('proposals.deleteConfirm', { customer: r.customerName }) as string, { danger: true, confirmText: t('common.delete') as string }))) return;
     try { await axios.delete(`${API_URL}/api/proposals/sent/${r.id}`, { headers: authHeaders() }); fetchSent(); }
-    catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed'); }
+    catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
   };
 
   // Pass an estimate to build a proposal from it, or null to start a presentation-only proposal
@@ -242,7 +242,7 @@ const Proposals: React.FC = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = r.data.fileName || 'proposition.pdf';
       document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Download failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('proposals.downloadFailed')); }
     finally { setDownloading(false); }
   };
 
@@ -257,7 +257,7 @@ const Proposals: React.FC = () => {
       setEmailPreview({ html: r.data.html, loading: false });
     } catch (e: any) {
       setEmailPreview(null);
-      dialog.alert(e?.response?.data?.error || 'Preview failed');
+      dialog.alert(e?.response?.data?.error || t('proposals.previewFailed'));
     }
   };
 
@@ -497,7 +497,7 @@ const Proposals: React.FC = () => {
               <iframe
                 src={`${API_URL}/api/proposals/estimate/${estPreview.estimateId}/preview?token=${localStorage.getItem('token')}`}
                 className="h-full w-full border-0"
-                title="Estimate preview"
+                title={t('proposals.estimatePreview') as string}
                 onLoad={() => setEstPreview((p) => (p ? { ...p, loading: false } : p))}
               />
             </div>
@@ -521,7 +521,7 @@ const Proposals: React.FC = () => {
                   <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
                 </div>
               ) : (
-                <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title="Email preview" />
+                <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title={t('proposals.previewEmail') as string} />
               )}
             </div>
           </div>

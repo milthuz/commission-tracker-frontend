@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { fmtDate } from '../../lib/format';
 import axios from 'axios';
 import ClickOutside from '../ClickOutside';
 import { useUnseenRelease } from '../../hooks/useUnseenRelease';
@@ -40,7 +41,7 @@ function previewLine(body: string): string {
 }
 
 const DropdownNotification = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [releases, setReleases] = useState<ReleaseDisplay[]>([]);
@@ -71,9 +72,7 @@ const DropdownNotification = () => {
 
   const formatDate = (iso: string) => {
     try {
-      return new Date(iso).toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-US', {
-        year: 'numeric', month: 'short', day: 'numeric',
-      });
+      return fmtDate(iso, { year: 'numeric', month: 'short', day: 'numeric' });
     } catch { return iso; }
   };
 

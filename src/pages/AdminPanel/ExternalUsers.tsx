@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { appLocale } from '../../lib/format';
 import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -20,7 +21,7 @@ interface LocalUser {
 // Admin card: external (non-Zoho) users — invite by email, manage status.
 // They log in with email+password+TOTP; permissions via Admin → Roles (by email).
 const ExternalUsers: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [users, setUsers] = useState<LocalUser[]>([]);
   const [smtpConfigured, setSmtpConfigured] = useState(true);
   const [invEmail, setInvEmail] = useState('');
@@ -50,7 +51,7 @@ const ExternalUsers: React.FC = () => {
       setInvEmail(''); setInvName('');
       await load();
     } catch (e: any) {
-      setNotice({ type: 'error', msg: e?.response?.data?.error || 'Failed' });
+      setNotice({ type: 'error', msg: e?.response?.data?.error || t('errors.failed') });
     } finally { setBusy(false); }
   };
 
@@ -63,7 +64,7 @@ const ExternalUsers: React.FC = () => {
         : { type: 'success', msg: t('admin.externalUsers.inviteNotSent') as string, link: r.data.inviteUrl });
       await load();
     } catch (e: any) {
-      setNotice({ type: 'error', msg: e?.response?.data?.error || 'Failed' });
+      setNotice({ type: 'error', msg: e?.response?.data?.error || t('errors.failed') });
     } finally { setBusy(false); }
   };
 
@@ -72,7 +73,7 @@ const ExternalUsers: React.FC = () => {
       await axios.put(`${API_URL}/api/admin/local-users/${u.id}/status`, { status }, hdrs());
       await load();
     } catch (e: any) {
-      setNotice({ type: 'error', msg: e?.response?.data?.error || 'Failed' });
+      setNotice({ type: 'error', msg: e?.response?.data?.error || t('errors.failed') });
     }
   };
 
@@ -84,7 +85,7 @@ const ExternalUsers: React.FC = () => {
         ? { type: 'success', msg: t('admin.externalUsers.testSent', { email: r.data.to }) as string }
         : { type: 'error', msg: t('admin.externalUsers.testFailed', { error: r.data.error || '?' }) as string });
     } catch (e: any) {
-      setNotice({ type: 'error', msg: e?.response?.data?.error || 'Failed' });
+      setNotice({ type: 'error', msg: e?.response?.data?.error || t('errors.failed') });
     } finally { setBusy(false); }
   };
 
@@ -94,13 +95,13 @@ const ExternalUsers: React.FC = () => {
       await axios.delete(`${API_URL}/api/admin/local-users/${u.id}`, hdrs());
       await load();
     } catch (e: any) {
-      setNotice({ type: 'error', msg: e?.response?.data?.error || 'Failed' });
+      setNotice({ type: 'error', msg: e?.response?.data?.error || t('errors.failed') });
     }
   };
 
   const fmtDate = (iso: string | null) => {
     if (!iso) return '—';
-    try { return new Date(iso).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', { dateStyle: 'medium', timeStyle: 'short' }); }
+    try { return new Date(iso).toLocaleString(appLocale(), { dateStyle: 'medium', timeStyle: 'short' }); }
     catch { return iso; }
   };
 

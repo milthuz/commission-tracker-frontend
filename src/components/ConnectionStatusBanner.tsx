@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { fmtDateTime } from '../lib/format';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -21,7 +22,7 @@ interface ConnectionsResponse {
 // revoked). Provides a one-click reconnect via the existing OAuth start URL.
 // Polls /api/auth/connections-status every 60s while the page is visible.
 const ConnectionStatusBanner = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [status, setStatus] = useState<ConnectionsResponse | null>(null);
   const [dismissed, setDismissed] = useState<Record<string, boolean>>(
     () => JSON.parse(sessionStorage.getItem('conn-banner-dismissed') || '{}')
@@ -78,9 +79,7 @@ const ConnectionStatusBanner = () => {
   const fmt = (iso: string | null) => {
     if (!iso) return '';
     try {
-      return new Date(iso).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', {
-        dateStyle: 'medium', timeStyle: 'short',
-      });
+      return fmtDateTime(iso);
     } catch { return iso; }
   };
 
@@ -126,7 +125,7 @@ const BannerRow = ({ service, status, onReconnect, onDismiss, fmt, t }: any) => 
     <button
       onClick={onDismiss}
       className="text-white hover:opacity-80 flex-shrink-0"
-      aria-label="Dismiss"
+      aria-label={t('connectionBanner.dismiss') as string}
       title={t('connectionBanner.dismiss') as string}
     >
       <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">

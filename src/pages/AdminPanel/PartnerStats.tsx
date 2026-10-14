@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { appLocale } from '../../lib/format';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 
@@ -40,7 +41,7 @@ interface Dormant { email: string; name: string | null; partner: string; role: s
 interface TopUser { email: string; name: string | null; partner: string; lastLoginAt: string | null; logins: number; submissions: number }
 
 export default function PartnerStats() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [funnel, setFunnel] = useState<Funnel[]>([]);
@@ -62,12 +63,12 @@ export default function PartnerStats() {
         setPipeline(r.data.pipeline || []); setByMonth(r.data.byMonth || []);
         setByStage(r.data.byStage || []);
       })
-      .catch((e) => setError(e?.response?.data?.error || 'Failed to load partner statistics'))
+      .catch((e) => setError(e?.response?.data?.error || t('admin.errors.loadPartnerStats')))
       .finally(() => setLoading(false));
   }, []);
 
   const fmt = (d: string | null) => (d
-    ? new Date(d).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })
+    ? new Date(d).toLocaleDateString(appLocale(), { year: 'numeric', month: 'short', day: 'numeric' })
     : '—');
 
   // Les totaux sont recalculés à partir des lignes plutôt que demandés au serveur : une seule
@@ -120,7 +121,7 @@ export default function PartnerStats() {
   const libelleMois = (m: string) => {
     const [a, mo] = m.split('-');
     return new Date(Number(a), Number(mo) - 1, 1)
-      .toLocaleDateString(i18n.language, { month: 'short', year: '2-digit' });
+      .toLocaleDateString(appLocale(), { month: 'short', year: '2-digit' });
   };
 
   const commun: ApexOptions = {

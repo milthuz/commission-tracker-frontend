@@ -32,7 +32,7 @@ const PartnerResetPassword = () => {
         body: JSON.stringify({ token, password: pw1 }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || 'Failed'); return; }
+      if (!r.ok) { setError(d.error || (t('errors.generic') as string)); return; }
       setDone(true);
     } catch {
       setError(t('auth.networkError') as string);

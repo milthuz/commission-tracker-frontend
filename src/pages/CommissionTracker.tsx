@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Select from '../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { formatDateOnly } from '../utils/date';
+import { fmtDateOnly, fmtMoney, fmtNumber, monthNames } from '../lib/format';
 import { dialog } from '../lib/dialog';
 import ProbationBadge from '../components/ProbationBadge';
 import { ContentLoader } from '../common/Loader';
@@ -90,7 +90,7 @@ interface PointsData {
 }
 
 const CommissionTracker: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [data, setData] = useState<PointsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -116,14 +116,12 @@ const CommissionTracker: React.FC = () => {
       dialog.alert(t('commissionTracker.missing.sent') as string);
     } catch (e: any) {
       setMissingModal(m => ({ ...m, sending: false }));
-      dialog.alert(e?.response?.data?.error || 'Failed to send');
+      dialog.alert(e?.response?.data?.error || t('errors.sendFailed'));
     }
   };
 
   // Locale-aware month names (short), e.g. "Jan" / "Jan." / "janv."
-  const MONTH_NAMES = Array.from({ length: 12 }, (_, i) =>
-    new Intl.DateTimeFormat(i18n.language, { month: 'short' }).format(new Date(2000, i, 1))
-  );
+  const MONTH_NAMES = monthNames();
 
   // Admin status from the EFFECTIVE identity (/api/auth/verify), not the raw JWT —
   // the JWT stays admin while impersonating, which would expose admin-only controls.
@@ -164,7 +162,7 @@ const CommissionTracker: React.FC = () => {
       fetchPoints(); // refresh totals
     } catch (e) {
       console.error('Failed to assign rep', e);
-      dialog.alert('Failed to assign rep');
+      dialog.alert(t('commissionTracker.assignRepFailed') as string);
     }
   };
 
@@ -183,7 +181,7 @@ const CommissionTracker: React.FC = () => {
       });
       setData(res.data);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load points data');
+      setError(err.response?.data?.error || t('errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -480,12 +478,12 @@ const CommissionTracker: React.FC = () => {
                       )}
                       {rep.bonusTier && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-[#F59E0B] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#F59E0B]">
-                          🎯 {t('commissionTracker.monthlyBonus', { amount: rep.monthlyBonus.toLocaleString() })}
+                          🎯 {t('commissionTracker.monthlyBonus', { amount: fmtNumber(rep.monthlyBonus) })}
                         </span>
                       )}
                       {rep.zentactActivations > 0 && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-[#6366F1] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#6366F1] dark:text-[#a5b4fc]">
-                          {t('commissionTracker.zentactBonusBadge', { count: rep.zentactActivations, amount: rep.zentactBonus.toLocaleString() })}
+                          {t('commissionTracker.zentactBonusBadge', { count: rep.zentactActivations, amount: fmtNumber(rep.zentactBonus) })}
                         </span>
                       )}
                     </div>
@@ -588,7 +586,7 @@ const CommissionTracker: React.FC = () => {
                               )}
                             </td>
                             <td className="px-6 py-3 text-sm text-body">
-                              {formatDateOnly(deal.close_date, i18n.language)}
+                              {fmtDateOnly(deal.close_date)}
                             </td>
                             <td className="px-6 py-3 text-right">
                               <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${rep.includeDeals === false ? 'bg-gray-200 text-gray-400 line-through dark:bg-meta-4 dark:text-gray-500' : 'bg-[#8B5CF6] text-white'}`}
@@ -636,12 +634,12 @@ const CommissionTracker: React.FC = () => {
                                 )}
                               </td>
                               <td className="px-6 py-3 text-sm text-body">
-                                {formatDateOnly(m.activated_at, i18n.language)}
+                                {fmtDateOnly(m.activated_at)}
                               </td>
                               <td className="px-6 py-3">
                                 {m.bonus_amount > 0 ? (
                                   <span className="inline-flex items-center rounded-full bg-[#6366F1] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#6366F1] dark:text-[#a5b4fc]">
-                                    ${m.bonus_amount.toLocaleString()}
+                                    {fmtMoney(m.bonus_amount, { decimals: Number.isInteger(m.bonus_amount) ? 0 : 2 })}
                                   </span>
                                 ) : (
                                   <span className="text-xs text-body">—</span>
@@ -671,7 +669,7 @@ const CommissionTracker: React.FC = () => {
                     <div className="flex items-center gap-3">
                       {rep.zentactBonus > 0 && (
                         <span className="text-xs font-semibold text-[#6366F1] dark:text-[#a5b4fc]">
-                          +${rep.zentactBonus.toLocaleString()} {t('commissionTracker.zentactBonusLabel')}
+                          +{fmtMoney(rep.zentactBonus, { decimals: Number.isInteger(rep.zentactBonus) ? 0 : 2 })} {t('commissionTracker.zentactBonusLabel')}
                         </span>
                       )}
                       <span className="inline-flex h-7 w-auto min-w-7 items-center justify-center rounded-full bg-[#8B5CF6] px-2 text-xs font-bold text-white">

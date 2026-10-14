@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { appLocale } from '../../lib/format';
 import Select from '../../components/Select';
 import { authHeaders } from '../Leads/types';
 
@@ -89,7 +90,7 @@ const LeadsWebflowCard = () => {
     { value: 'extra', label: t('admin.leads.webflow.target.extra') as string },
     { value: 'ignore', label: t('admin.leads.webflow.target.ignore') as string },
   ], [st, i18n.language]);
-  const dt = (iso: string | null) => (iso ? new Date(iso).toLocaleString(i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA') : '—');
+  const dt = (iso: string | null) => (iso ? new Date(iso).toLocaleString(appLocale()) : '—');
 
   if (!st) return null;
   return (

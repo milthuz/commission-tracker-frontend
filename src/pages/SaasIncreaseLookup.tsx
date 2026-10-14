@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Select from '../components/Select';
 import { useTranslation } from 'react-i18next';
+import { fmtMoney } from '../lib/format';
 import { useAuth } from '../context/AuthContext';
 import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard, Snowflake,
          MessageSquareQuote, ArrowRight } from 'lucide-react';
@@ -90,7 +91,7 @@ type Fees = {
 };
 
 const money = (n: number | null) =>
-  n == null ? '—' : new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n);
+  fmtMoney(n);
 
 // Parsed into local parts: new Date('2026-09-17') is UTC midnight and renders as the 16th in every
 // North American timezone — the same off-by-one that once put the wrong date in customer emails.

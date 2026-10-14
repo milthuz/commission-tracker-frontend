@@ -158,7 +158,7 @@ function AppContent() {
         path="/auth/zoho-login"
         element={
           <>
-            <PageTitle title="Sign In | Sales Hub" />
+            <PageTitle titleKey="pageTitle.signIn" />
             <ZohoLogin />
           </>
         }
@@ -167,7 +167,7 @@ function AppContent() {
         path="/auth/zoho/callback"
         element={
           <>
-            <PageTitle title="Authenticating | Sales Hub" />
+            <PageTitle titleKey="pageTitle.authenticating" />
             <ZohoCallback />
           </>
         }
@@ -176,7 +176,7 @@ function AppContent() {
         path="/terms"
         element={
           <>
-            <PageTitle title="Terms of Service | Sales Hub" />
+            <PageTitle titleKey="pageTitle.terms" />
             <TermsOfService />
           </>
         }
@@ -185,7 +185,7 @@ function AppContent() {
         path="/privacy"
         element={
           <>
-            <PageTitle title="Privacy Policy | Sales Hub" />
+            <PageTitle titleKey="pageTitle.privacy" />
             <PrivacyPolicy />
           </>
         }
@@ -194,7 +194,7 @@ function AppContent() {
         path="/accept-invite"
         element={
           <>
-            <PageTitle title="Invitation | Sales Hub" />
+            <PageTitle titleKey="pageTitle.invitation" />
             <AcceptInvite />
           </>
         }
@@ -208,7 +208,7 @@ function AppContent() {
         path="/reset-password"
         element={
           <>
-            <PageTitle title="Reset Password | Sales Hub" />
+            <PageTitle titleKey="pageTitle.resetPassword" />
             <ResetPassword />
           </>
         }
@@ -343,7 +343,7 @@ function AppContent() {
             path="/partner-portal/profile"
             element={
               <>
-                <PageTitle title="Profile | Sales Hub" />
+                <PageTitle titleKey="sidebar.profile" />
                 <PartnerProfile />
               </>
             }
@@ -352,7 +352,7 @@ function AppContent() {
             path="/partner-portal/team"
             element={
               <>
-                <PageTitle title="Team | Sales Hub" />
+                <PageTitle titleKey="pageTitle.partnerTeam" suffix="Cluster" />
                 <PartnerTeam />
               </>
             }
@@ -361,7 +361,7 @@ function AppContent() {
             path="/partner-portal/organization"
             element={
               <>
-                <PageTitle title="Organization | Sales Hub" />
+                <PageTitle titleKey="pageTitle.partnerOrganization" suffix="Cluster" />
                 <PartnerOrganization />
               </>
             }
@@ -377,7 +377,7 @@ function AppContent() {
           path="/opener/*"
           element={
             <>
-              <PageTitle title="Opener | Sales Hub" />
+              <PageTitle titleKey="sidebar.openerField" />
               <OpenerField />
             </>
           }
@@ -391,7 +391,7 @@ function AppContent() {
             path="/commission-tracker"
             element={
               <>
-                <PageTitle title="Commission Tracker" />
+                <PageTitle titleKey="sidebar.commissionTracker" />
                 <CommissionTracker />
               </>
             }
@@ -400,7 +400,7 @@ function AppContent() {
             path="/commission-report"
             element={
               <>
-                <PageTitle title="Commission Report" />
+                <PageTitle titleKey="sidebar.commissionReport" />
                 <CommissionReport />
               </>
             }
@@ -409,7 +409,7 @@ function AppContent() {
             path="/profile"
             element={
               <>
-                <PageTitle title="Profile | Sales Hub" />
+                <PageTitle titleKey="sidebar.profile" />
                 <Profile />
               </>
             }
@@ -422,7 +422,7 @@ function AppContent() {
             path="/versions"
             element={
               <>
-                <PageTitle title="Versions | Sales Hub" />
+                <PageTitle titleKey="sidebar.releases" />
                 <Versions />
               </>
             }
@@ -433,7 +433,7 @@ function AppContent() {
             path="/support"
             element={
               <>
-                <PageTitle title="Support | Sales Hub" />
+                <PageTitle titleKey="sidebar.support" />
                 <Support />
               </>
             }
@@ -442,7 +442,7 @@ function AppContent() {
             path="/reseller"
             element={
               <>
-                <PageTitle title="Reseller | Sales Hub" />
+                <PageTitle titleKey="sidebar.reseller" />
                 <Reseller />
               </>
             }
@@ -453,7 +453,7 @@ function AppContent() {
             path="/hr"
             element={
               <>
-                <PageTitle title="RH | Sales Hub" />
+                <PageTitle titleKey="sidebar.hr" />
                 <HR />
               </>
             }
@@ -462,7 +462,7 @@ function AppContent() {
             path="/leads"
             element={
               <>
-                <PageTitle title="Leads | Sales Hub" />
+                <PageTitle titleKey="sidebar.leads" />
                 <Leads />
               </>
             }
@@ -474,7 +474,7 @@ function AppContent() {
             path="/pass-referrals"
             element={
               <>
-                <PageTitle title="The Pass | Sales Hub" />
+                <PageTitle titleKey="sidebar.passOps" />
                 <PassOps />
               </>
             }
@@ -483,7 +483,7 @@ function AppContent() {
             path="/revenue"
             element={
               <>
-                <PageTitle title="Processing Revenue | Sales Hub" />
+                <PageTitle titleKey="sidebar.revenue" />
                 <Revenue />
               </>
             }
@@ -492,7 +492,7 @@ function AppContent() {
             path="/resources"
             element={
               <>
-                <PageTitle title="Resources | Sales Hub" />
+                <PageTitle titleKey="sidebar.resources" />
                 <Resources />
               </>
             }
@@ -501,7 +501,7 @@ function AppContent() {
             path="/credits"
             element={
               <>
-                <PageTitle title="Crédits processeur marchand | Sales Hub" />
+                <PageTitle titleKey="sidebar.credits" />
                 <Credits />
               </>
             }
@@ -511,7 +511,7 @@ function AppContent() {
             path="/pricing-guide"
             element={
               <>
-                <PageTitle title="Hardware & Service Guide | Sales Hub" />
+                <PageTitle titleKey="sidebar.pricingGuide" />
                 <PricingGuide />
               </>
             }
@@ -520,7 +520,7 @@ function AppContent() {
             path="/kaizen-demo"
             element={
               <>
-                <PageTitle title="Kaizen DEMO | Sales Hub" />
+                <PageTitle titleKey="sidebar.kaizenDemo" />
                 <KaizenDemo />
               </>
             }
@@ -529,7 +529,7 @@ function AppContent() {
             path="/proposals"
             element={
               <>
-                <PageTitle title="Propositions | Sales Hub" />
+                <PageTitle titleKey="sidebar.proposals" />
                 <Proposals />
               </>
             }
@@ -539,7 +539,7 @@ function AppContent() {
             path="/opener-routes"
             element={
               <>
-                <PageTitle title="Routes opener | Sales Hub" />
+                <PageTitle titleKey="sidebar.openerRoutes" />
                 <OpenerRoutes />
               </>
             }
@@ -548,7 +548,7 @@ function AppContent() {
             path="/rate-calculator"
             element={
               <>
-                <PageTitle title="Calculateur IC+ | Sales Hub" />
+                <PageTitle titleKey="sidebar.rateCalculator" />
                 <RateCalculator />
               </>
             }
@@ -557,7 +557,7 @@ function AppContent() {
             path="/revenue-modeler"
             element={
               <>
-                <PageTitle title="Modélisateur de revenus | Sales Hub" />
+                <PageTitle titleKey="sidebar.revenueModeler" />
                 <RevenueModeler />
               </>
             }
@@ -566,7 +566,7 @@ function AppContent() {
             path="/saas-increase"
             element={
               <>
-                <PageTitle title="SaaS Increase | Sales Hub" />
+                <PageTitle titleKey="sidebar.saasGroup" />
                 <SaasIncrease />
               </>
             }
@@ -575,7 +575,7 @@ function AppContent() {
             path="/saas-increase/lookup"
             element={
               <>
-                <PageTitle title="Référence hausse SaaS | Sales Hub" />
+                <PageTitle titleKey="pageTitle.saasLookup" />
                 <SaasIncreaseLookup />
               </>
             }
@@ -584,7 +584,7 @@ function AppContent() {
             path="/saas-increase/campaign"
             element={
               <>
-                <PageTitle title="Suivi de campagne | Sales Hub" />
+                <PageTitle titleKey="pageTitle.saasCampaign" />
                 <SaasIncreaseCampaign />
               </>
             }
@@ -593,7 +593,7 @@ function AppContent() {
             path="/admin"
             element={
               <>
-                <PageTitle title="Admin Panel | Sales Hub" />
+                <PageTitle fromNav />
                 <AdminPanel />
               </>
             }
@@ -602,7 +602,7 @@ function AppContent() {
             path="/admin/:section"
             element={
               <>
-                <PageTitle title="Admin Panel | Sales Hub" />
+                <PageTitle fromNav />
                 <AdminPanel />
               </>
             }
@@ -613,7 +613,7 @@ function AppContent() {
             path="*"
             element={
               <>
-                <PageTitle title="404 | Sales Hub" />
+                <PageTitle titleKey="notFound.title" />
                 <NotFound />
               </>
             }

@@ -42,7 +42,7 @@ const ManagerDashboard: React.FC = () => {
         const p = await axios.get(`${API_URL}/api/crm/points`, { headers, params: { year: now.getFullYear(), month: now.getMonth() + 1 } });
         setPoints(p.data);
       } catch (e: any) {
-        setError(e?.response?.data?.error || 'Failed to load dashboard');
+        setError(e?.response?.data?.error || t('errors.loadFailed'));
       } finally { setLoading(false); }
     };
     run();

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { dialog } from '../../lib/dialog';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { fmtDateTime, fmtMoney, fmtNumber, fmtPeriod } from '../../lib/format';
 import { X, Printer, AlertTriangle, Info, AlertOctagon } from 'lucide-react';
 
 // Trois lectures d'une campagne, dans un document qu'on imprime et qu'on envoie.
@@ -67,12 +68,11 @@ type Report = {
   checks: Check[];
 };
 
-const money0 = (n: number) => new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n || 0);
-const money2 = (n: number) => new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' }).format(n || 0);
+const money0 = (n: number) => fmtMoney(n || 0, { decimals: 0 });
+const money2 = (n: number) => fmtMoney(n || 0);
 
 const moisLong = (ym: string) => {
-  const [y, m] = ym.split('-').map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString('fr-CA', { month: 'long', year: 'numeric' });
+  return fmtPeriod(ym);
 };
 
 const ICONE = { critical: AlertOctagon, warning: AlertTriangle, info: Info };
@@ -189,7 +189,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
             <h1 className="text-2xl font-bold text-[#141414]">{t('saasIncrease.report.title')}</h1>
             <p className="mt-1 text-sm text-slate-500">
               {d.scenario.name} · {d.totals.items} {t('saasIncrease.report.subscriptions')} ·{' '}
-              {new Date(d.generatedAt).toLocaleString('fr-CA')}
+              {fmtDateTime(d.generatedAt)}
             </p>
           </header>
 
@@ -622,14 +622,14 @@ function Avancement({ titre, fait, total, mrrFait, detail, quand }:
         <p className="text-xs text-slate-400">{pct} %</p>
       </div>
       <p className="mt-1 text-2xl font-bold text-[#141414]">
-        {fait.toLocaleString('fr-CA')} <span className="text-base font-normal text-slate-400">/ {total.toLocaleString('fr-CA')}</span>
+        {fmtNumber(fait)} <span className="text-base font-normal text-slate-400">/ {fmtNumber(total)}</span>
       </p>
       <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
         <div className="h-full rounded-full bg-[#F58345]" style={{ width: `${pct}%` }} />
       </div>
       <p className="mt-2 text-sm font-semibold text-[#141414]">{money2(mrrFait)} /mois</p>
       {detail.map((x, i) => <p key={i} className="mt-0.5 text-xs text-slate-500">{x}</p>)}
-      {quand && <p className="mt-1 text-xs text-slate-400">{new Date(quand).toLocaleString('fr-CA')}</p>}
+      {quand && <p className="mt-1 text-xs text-slate-400">{fmtDateTime(quand)}</p>}
     </div>
   );
 }

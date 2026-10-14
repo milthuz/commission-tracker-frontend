@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { fmtDate } from '../lib/format';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -28,7 +29,7 @@ const sinceLabel = (iso: string | null) => {
 };
 
 const CapacityPanel: React.FC<{ cap: Capacity | null; loading: boolean; err: string | null; onRefresh: () => void }> = ({ cap, loading, err, onRefresh }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const fleetState = cap?.fleet.state || 'UNKNOWN';
   const stateColor =
     fleetState === 'RUNNING' ? 'bg-success/15 text-success'
@@ -75,7 +76,7 @@ const CapacityPanel: React.FC<{ cap: Capacity | null; loading: boolean; err: str
             <p className="mt-3 text-xs text-body">
               {t('kaizenDemo.sessions.image')}:{' '}
               <span className="font-medium text-black dark:text-white">{cap.fleet.imageName}</span>
-              {cap.fleet.imageBuiltAt && ` · ${t('kaizenDemo.sessions.imageBuilt')} ${new Date(cap.fleet.imageBuiltAt).toLocaleDateString(i18n.language)}`}
+              {cap.fleet.imageBuiltAt && ` · ${t('kaizenDemo.sessions.imageBuilt')} ${fmtDate(cap.fleet.imageBuiltAt)}`}
             </p>
           )}
 

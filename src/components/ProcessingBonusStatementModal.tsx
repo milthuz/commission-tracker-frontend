@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../lib/dialog';
+import { fmtMoney, fmtPeriod, fmtDate } from '../lib/format';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -24,17 +25,15 @@ const ProcessingBonusStatementModal: React.FC<{
   data: BonusStatementData | null;
   onClose: () => void;
 }> = ({ data, onClose }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [emailOpen, setEmailOpen] = useState(false);
   const [emailTo, setEmailTo] = useState('');
   const [emailSending, setEmailSending] = useState(false);
   if (!data) return null;
 
   const tp = (k: string) => t(`commissionReport.bonusStatement.${k}`);
-  const fmt = (val: number) =>
-    val.toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA', {
-      style: 'currency', currency: 'CAD', minimumFractionDigits: 2,
-    });
+  const fmt = (val: number) => fmtMoney(val);
+  const periodLabel = fmtPeriod(data.period);
 
   const sendEmail = async () => {
     if (!data || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailTo.trim())) return;
@@ -48,7 +47,7 @@ const ProcessingBonusStatementModal: React.FC<{
       setEmailOpen(false); setEmailTo('');
       dialog.alert(tp('emailSent'));
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to send');
+      dialog.alert(e?.response?.data?.error || t('errors.sendFailed'));
     } finally {
       setEmailSending(false);
     }
@@ -57,8 +56,7 @@ const ProcessingBonusStatementModal: React.FC<{
   const printStatement = () => {
     const esc = (s: string | null | undefined) =>
       String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const locale = i18n.language === 'fr' ? 'fr-CA' : 'en-CA';
-    const issued = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' });
+    const issued = fmtDate(new Date(), { year: 'numeric', month: 'long', day: 'numeric' });
     const rowsHtml = data.accounts.map((a, i) => `
       <tr${i % 2 ? ' class="alt"' : ''}>
         <td>${esc(a.merchantName) || '—'}</td>
@@ -68,7 +66,7 @@ const ProcessingBonusStatementModal: React.FC<{
     const w = window.open('', '_blank', 'width=860,height=980');
     if (!w) return;
     w.document.write(`<!doctype html><html><head><meta charset="utf-8">
-<title>${tp('title')} — ${esc(data.repName)} — ${esc(data.period)}</title>
+<title>${tp('title')} — ${esc(data.repName)} — ${esc(periodLabel)}</title>
 <style>
   @page { margin: 14mm; }
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -105,12 +103,12 @@ const ProcessingBonusStatementModal: React.FC<{
 <div class="wrap">
   <div class="accent"></div>
   <div class="band">
-    <div class="brand"><img src="${window.location.origin}/saleshub-mark-dark.svg" alt=""><span>Sales Hub<small>by Cluster Systems</small></span></div>
-    <div class="doc"><div class="t">${tp('title')}</div><div class="p">${esc(data.period)}</div></div>
+    <div class="brand"><img src="${window.location.origin}/saleshub-mark-dark.svg" alt=""><span>Sales Hub<small>${esc(t('brand.by'))} Cluster Systems</small></span></div>
+    <div class="doc"><div class="t">${tp('title')}</div><div class="p">${esc(periodLabel)}</div></div>
   </div>
   <div class="meta">
     <div><span>${tp('repLabel')}</span><b>${esc(data.repName)}</b></div>
-    <div><span>${tp('period')}</span><b>${esc(data.period)}</b></div>
+    <div><span>${tp('period')}</span><b>${esc(periodLabel)}</b></div>
     <div><span>${tp('issuedOn')}</span><b>${issued}</b></div>
   </div>
   <div class="content">
@@ -148,7 +146,7 @@ const ProcessingBonusStatementModal: React.FC<{
           <div className="flex items-start justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
             <div>
               <h3 className="text-lg font-semibold text-black dark:text-white">{tp('title')} — {data.repName}</h3>
-              <p className="text-sm text-body">{tp('period')}: {data.period}</p>
+              <p className="text-sm text-body">{tp('period')}: {periodLabel}</p>
             </div>
             <div className="flex flex-col items-end gap-2">
               <div className="flex flex-wrap items-center gap-2">

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { appLocale } from '../../lib/format';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -28,7 +29,7 @@ interface SofiaAction {
 // Reads are not listed here on purpose — a rep asking "what's my pipeline" ten
 // times a day would bury the writes, and the writes are the point.
 const SofiaGovernance: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [actions, setActions] = useState<SofiaAction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +67,7 @@ const SofiaGovernance: React.FC = () => {
   };
 
   const fmt = (iso: string) =>
-    new Date(iso).toLocaleString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA',
+    new Date(iso).toLocaleString(appLocale(),
       { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 
   const scopeBadge = (lvl?: string) => {

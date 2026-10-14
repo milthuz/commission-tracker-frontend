@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { fmtDate } from '../lib/format';
 import { UserCog, Send, Loader2, Clock, RefreshCw } from 'lucide-react';
 import { ContentLoader } from '../common/Loader';
 
@@ -12,7 +13,7 @@ const API_URL = import.meta.env.VITE_API_URL || '';
 interface RoleRequest { id: number; message: string | null; createdAt: string }
 
 export default function NoRoleNotice({ name }: { name?: string | null }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [request, setRequest] = useState<RoleRequest | null>(null);
   const [message, setMessage] = useState('');
@@ -45,7 +46,7 @@ export default function NoRoleNotice({ name }: { name?: string | null }) {
   };
 
   if (loading) return <ContentLoader />;
-  const fmt = (s: string) => new Date(s).toLocaleString(i18n.language?.startsWith('fr') ? 'fr-CA' : 'en-CA', { dateStyle: 'long', timeStyle: 'short' });
+  const fmt = (s: string) => fmtDate(s, { dateStyle: 'long', timeStyle: 'short' });
 
   return (
     <div className="mx-auto mt-6 max-w-xl rounded-sm border border-stroke bg-white p-8 shadow-default dark:border-strokedark dark:bg-boxdark">

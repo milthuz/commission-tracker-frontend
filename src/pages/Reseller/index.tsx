@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
+import { fmtMoney, fmtNumber, fmtDate, fmtDateOnly, appLocale } from '../../lib/format';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import axios from 'axios';
@@ -44,8 +45,9 @@ const ICONS = {
   profit: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1m0-9a9 9 0 110 0z',
 };
 
-const money = (n: number) => '$' + (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const moneyCompact = (n: number) => '$' + new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 }).format(n || 0);
+const money = (n: number) => fmtMoney(n || 0);
+const moneyCompact = (n: number) =>
+  new Intl.NumberFormat(appLocale(), { style: 'currency', currency: 'CAD', currencyDisplay: 'narrowSymbol', notation: 'compact', maximumFractionDigits: 2 }).format(n || 0);
 
 function KpiCard({ label, value, color, iconD, title }: { label: string; value: number | string; color: string; iconD: string; title?: string }) {
   return (
@@ -56,7 +58,7 @@ function KpiCard({ label, value, color, iconD, title }: { label: string; value: 
         </span>
         <div className="min-w-0">
           <p title={title || String(value)} className="truncate text-xl font-bold leading-tight text-black dark:text-white">
-            {typeof value === 'number' ? value.toLocaleString() : value}
+            {typeof value === 'number' ? fmtNumber(value) : value}
           </p>
           <p className="text-sm font-medium text-body">{label}</p>
         </div>
@@ -66,6 +68,7 @@ function KpiCard({ label, value, color, iconD, title }: { label: string; value: 
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const active = (status || '').toUpperCase() === 'ACTIVE';
   return (
     <span
@@ -73,7 +76,8 @@ function StatusBadge({ status }: { status: string }) {
         active ? 'bg-success bg-opacity-10 text-success' : 'bg-body bg-opacity-10 text-body'
       }`}
     >
-      {status || '—'}
+      {/* Display only — the stored status stays as the API sends it. */}
+      {status ? t(`reseller.status.${status.toLowerCase()}`, { defaultValue: status }) : '—'}
     </span>
   );
 }
@@ -398,7 +402,7 @@ function ActivationsTab({
                   <td className="px-4 py-3 text-body">{a.customer_name || '—'}</td>
                   <td className="px-4 py-3 text-right text-body">{a.quantity}</td>
                   <td className="px-4 py-3 text-body">
-                    {a.submitted_at ? new Date(a.submitted_at).toLocaleDateString() : '—'}
+                    {a.submitted_at ? fmtDate(a.submitted_at) : '—'}
                   </td>
                 </tr>
               ))}
@@ -507,7 +511,7 @@ function PaymentsTab({
                   <td className="px-4 py-3 text-right font-semibold text-primary">{money(Number(s.transaction_profit) || 0)}</td>
                   <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
                   <td className="px-4 py-3 text-body">
-                    {s.activated_at ? new Date(s.activated_at).toLocaleDateString() : '—'}
+                    {s.activated_at ? fmtDateOnly(s.activated_at) : '—'}
                   </td>
                 </tr>
               ))}

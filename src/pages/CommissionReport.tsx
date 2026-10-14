@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { Eye, Download, X } from 'lucide-react';
-import { formatDateOnly } from '../utils/date';
+import { fmtMoney, fmtMonth, fmtDate, fmtDateOnly, fmtNumber, appLocale, monthNames as appMonthNames } from '../lib/format';
 import PayStubModal, { PayStubData } from '../components/PayStubModal';
 import ProbationBadge from '../components/ProbationBadge';
 import { dialog } from '../lib/dialog';
@@ -121,14 +121,15 @@ interface ReportData {
   groupBy?: string;
 }
 
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 // Fallback only: the rep's own quota comes back on each month from /api/crm/points/annual.
 const MONTHLY_QUOTA = 15;
 
 const CommissionReport = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   useAuth();
+  // Short month names in the user's language (was a fixed English array).
+  const MONTH_NAMES = appMonthNames();
   const [report, setReport] = useState<ReportData | null>(null);
   const [pointsData, setPointsData] = useState<PointsAnnualData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -240,7 +241,7 @@ const CommissionReport = () => {
       setNotification({ show: true, type: 'success', message: t('commissionReport.missing.sent') as string });
     } catch (e: any) {
       setMissingModal(m => ({ ...m, sending: false }));
-      dialog.alert(e?.response?.data?.error || 'Failed to send');
+      dialog.alert(e?.response?.data?.error || t('errors.sendFailed'));
     }
   };
 
@@ -376,8 +377,8 @@ const CommissionReport = () => {
 
   const approveMonth = async (month: number) => {
     if (!report) return;
-    const monthName = MONTH_NAMES[month - 1];
-    if (!(await dialog.confirm(`Approve commission for ${report.repName} — ${monthName} ${selectedYear}? This marks all qualifying invoices as commission paid.`))) return;
+    const period = fmtMonth(Number(selectedYear), month);
+    if (!(await dialog.confirm(t('commissionReport.approveConfirm', { rep: report.repName, period }) as string))) return;
     
     setApprovingMonth(month);
     try {
@@ -388,11 +389,11 @@ const CommissionReport = () => {
         month,
       }, { headers: { Authorization: `Bearer ${token}` } });
       
-      dialog.alert(`✓ Approved! ${res.data.invoicesUpdated} invoices marked as commission paid.`);
+      dialog.alert(t('commissionReport.approveDone', { count: res.data.invoicesUpdated }) as string);
       await refreshReport();
     } catch (e) {
       console.error('Error approving:', e);
-      dialog.alert('Failed to approve commission');
+      dialog.alert(t('commissionReport.approveFailed') as string);
     } finally {
       setApprovingMonth(null);
     }
@@ -400,8 +401,8 @@ const CommissionReport = () => {
 
   const markPaidMonth = async (month: number) => {
     if (!report) return;
-    const monthName = MONTH_NAMES[month - 1];
-    if (!(await dialog.confirm(`Mark approved commissions as paid for ${report.repName} — ${monthName} ${selectedYear}? This records the final payout.`))) return;
+    const period = fmtMonth(Number(selectedYear), month);
+    if (!(await dialog.confirm(t('commissionReport.markPaidConfirm', { rep: report.repName, period }) as string))) return;
 
     setMarkingPaidMonth(month);
     try {
@@ -412,11 +413,11 @@ const CommissionReport = () => {
         month,
       }, { headers: { Authorization: `Bearer ${token}` } });
 
-      dialog.alert(`✓ Marked paid! ${res.data.invoicesUpdated} invoices.`);
+      dialog.alert(t('commissionReport.markPaidDone', { count: res.data.invoicesUpdated }) as string);
       await refreshReport();
     } catch (e) {
       console.error('Error marking paid:', e);
-      dialog.alert('Failed to mark commissions as paid');
+      dialog.alert(t('commissionReport.markPaidFailed') as string);
     } finally {
       setMarkingPaidMonth(null);
     }
@@ -424,8 +425,8 @@ const CommissionReport = () => {
 
   const unapproveMonth = async (month: number) => {
     if (!report) return;
-    const monthName = MONTH_NAMES[month - 1];
-    if (!(await dialog.confirm(`Undo approval for ${report.repName} — ${monthName} ${selectedYear}? This will revert commission paid status.`))) return;
+    const period = fmtMonth(Number(selectedYear), month);
+    if (!(await dialog.confirm(t('commissionReport.unapproveConfirm', { rep: report.repName, period }) as string))) return;
     
     setApprovingMonth(month);
     try {
@@ -436,11 +437,11 @@ const CommissionReport = () => {
         month,
       }, { headers: { Authorization: `Bearer ${token}` } });
       
-      dialog.alert(`↩ Reverted! ${res.data.invoicesUpdated} invoices unmarked.`);
+      dialog.alert(t('commissionReport.unapproveDone', { count: res.data.invoicesUpdated }) as string);
       await refreshReport();
     } catch (e) {
       console.error('Error unapproving:', e);
-      dialog.alert('Failed to unapprove commission');
+      dialog.alert(t('commissionReport.unapproveFailed') as string);
     } finally {
       setApprovingMonth(null);
     }
@@ -479,7 +480,7 @@ const CommissionReport = () => {
       });
     } catch (e) {
       console.error('Error loading pay stub:', e);
-      dialog.alert('Failed to load pay stub');
+      dialog.alert(t('commissionReport.payStub.loadFailed') as string);
     } finally {
       setLoadingStub(false);
     }
@@ -497,7 +498,7 @@ const CommissionReport = () => {
       setPayStub(null);
       setNotification({ show: true, type: 'success', message: t('commissionReport.payStub.quotaWaiveStarted') as string });
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to update quota waiver');
+      dialog.alert(e?.response?.data?.error || t('commissionReport.payStub.quotaWaiveFailed'));
     }
   };
 
@@ -505,8 +506,8 @@ const CommissionReport = () => {
   // and record the stub. Admin / report:mark_paid only (button only wired for them).
   const commitPayStub = async () => {
     if (!payStub || payStub.source !== 'generated' || selectedMonth === 'all') return;
-    const monthName = MONTH_NAMES[parseInt(selectedMonth) - 1];
-    if (!(await dialog.confirm(`Mark ${payStub.repName} — ${monthName} ${selectedYear} paid? This marks the period's unlocked commissions as paid and records the pay stub.`))) return;
+    const period = fmtMonth(Number(selectedYear), parseInt(selectedMonth));
+    if (!(await dialog.confirm(t('commissionReport.payStub.commitConfirm', { rep: payStub.repName, period }) as string))) return;
     setCommittingStub(true);
     try {
       const token = localStorage.getItem('token');
@@ -515,12 +516,12 @@ const CommissionReport = () => {
         year: selectedYear,
         month: selectedMonth,
       }, { headers: { Authorization: `Bearer ${token}` } });
-      dialog.alert(t('commissionReport.payStub.committedToPayroll', { count: res.data.invoicesMarked, month: `${monthName} ${selectedYear}` }));
+      dialog.alert(t('commissionReport.payStub.committedToPayroll', { count: res.data.invoicesMarked, month: period }));
       await openPayStub();     // re-open → now an 'imported' (app-generated) stub
       await refreshReport();   // reflect new paid status in the report
     } catch (e: any) {
       console.error('Error committing pay stub:', e);
-      dialog.alert(e?.response?.data?.error || 'Failed to commit pay stub');
+      dialog.alert(e?.response?.data?.error || t('commissionReport.payStub.commitFailed'));
     } finally {
       setCommittingStub(false);
     }
@@ -528,8 +529,8 @@ const CommissionReport = () => {
 
   const uncommitPayStub = async () => {
     if (!payStub || selectedMonth === 'all') return;
-    const monthName = MONTH_NAMES[parseInt(selectedMonth) - 1];
-    if (!(await dialog.confirm(t('commissionReport.payStub.uncommitConfirm', { rep: payStub.repName, period: `${monthName} ${selectedYear}` }) as string))) return;
+    const period = fmtMonth(Number(selectedYear), parseInt(selectedMonth));
+    if (!(await dialog.confirm(t('commissionReport.payStub.uncommitConfirm', { rep: payStub.repName, period }) as string))) return;
     setCommittingStub(true);
     try {
       const token = localStorage.getItem('token');
@@ -540,7 +541,7 @@ const CommissionReport = () => {
       await openPayStub();      // re-open → back to a 'generated' stub
       await refreshReport();    // reflect pending status in the report
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to undo pay stub');
+      dialog.alert(e?.response?.data?.error || t('commissionReport.payStub.uncommitFailed'));
     } finally {
       setCommittingStub(false);
     }
@@ -590,7 +591,7 @@ const CommissionReport = () => {
       refreshReport();
       if (!excluded && res.data.note) dialog.alert(t('commissionReport.exclude.restored') as string);
     } catch (e: any) {
-      dialog.alert(e?.response?.data?.error || 'Failed to update commission exclusion');
+      dialog.alert(e?.response?.data?.error || t('commissionReport.exclude.failed'));
     }
   };
 
@@ -616,7 +617,7 @@ const CommissionReport = () => {
       const printWindow = window.open(url, '_blank');
       if (printWindow) printWindow.onload = () => printWindow.print();
     } catch (_e) {
-      dialog.alert('Failed to print invoice.');
+      dialog.alert(t('commissionReport.printFailed') as string);
     }
   };
 
@@ -635,7 +636,7 @@ const CommissionReport = () => {
       link.click();
       link.remove();
     } catch (_e) {
-      dialog.alert('Failed to download PDF.');
+      dialog.alert(t('commissionReport.downloadFailed') as string);
     }
   };
 
@@ -646,7 +647,7 @@ const CommissionReport = () => {
   const handleSendEmail = async () => {
     const { invoiceNumber, email } = emailModal;
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setNotification({ show: true, message: 'Please enter a valid email', type: 'error' });
+      setNotification({ show: true, message: t('commissionReport.emailInvoice.invalid') as string, type: 'error' });
       setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
       return;
     }
@@ -658,11 +659,11 @@ const CommissionReport = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false });
-      setNotification({ show: true, message: `Invoice ${invoiceNumber} sent to ${email}`, type: 'success' });
+      setNotification({ show: true, message: t('commissionReport.emailInvoice.sent', { number: invoiceNumber, email }) as string, type: 'success' });
       setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 4000);
     } catch (e: any) {
       setEmailModal(prev => ({ ...prev, sending: false }));
-      const msg = e?.response?.data?.error || e?.response?.data?.details || 'Failed to send email';
+      const msg = e?.response?.data?.error || e?.response?.data?.details || t('errors.sendFailed');
       setNotification({ show: true, message: String(msg), type: 'error' });
       setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 5000);
     }
@@ -769,7 +770,7 @@ const CommissionReport = () => {
           <th className="px-3 py-2 text-xs font-medium text-body text-right">{t('commissionReport.total')}</th>
           <th className="px-3 py-2 text-xs font-medium text-body text-right">{t('commissionReport.commission')}</th>
           <th className="px-3 py-2 text-xs font-medium text-body text-center">{t('commissionReport.commStatus')}</th>
-          <th className="px-3 py-2 text-xs font-medium text-body text-center">Actions</th>
+          <th className="px-3 py-2 text-xs font-medium text-body text-center">{t('common.actions')}</th>
         </tr>
       </thead>
       <tbody>
@@ -792,9 +793,9 @@ const CommissionReport = () => {
               <button onClick={() => handlePreview(inv.invoiceNumber)} className="font-medium text-primary hover:underline">{inv.invoiceNumber}</button>
             </td>
             <td className="px-3 py-2.5 text-xs text-black dark:text-white truncate max-w-[160px]">{inv.customerName}</td>
-            <td className="px-3 py-2.5 text-xs text-body">{formatDateOnly(inv.date, i18n.language)}</td>
+            <td className="px-3 py-2.5 text-xs text-body">{fmtDateOnly(inv.date)}</td>
             <td className="px-3 py-2.5 text-xs text-body">
-              {inv.commissionPayableDate ? formatDateOnly(inv.commissionPayableDate, i18n.language) : '—'}
+              {inv.commissionPayableDate ? fmtDateOnly(inv.commissionPayableDate) : '—'}
             </td>
             <td className="px-3 py-2.5 text-center">
               {cs ? (
@@ -807,25 +808,25 @@ const CommissionReport = () => {
             <td className="px-3 py-2.5 text-xs text-right font-medium text-black dark:text-white">{formatCurrency(inv.commission)}</td>
             <td className="px-3 py-2.5 text-center">
               {inv.approvalStatus === 'paid' ? (
-                <span className="inline-flex rounded-full bg-success bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-success" title={inv.payoutPaidAt ? `Paid ${formatDateOnly(inv.payoutPaidAt, i18n.language)}` : ''}>PAID</span>
+                <span className="inline-flex rounded-full bg-success bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-success" title={inv.payoutPaidAt ? t('commissionReport.paidOn', { date: fmtDateOnly(inv.payoutPaidAt) }) as string : ''}>{t('commissionReport.paidBadge').toUpperCase()}</span>
               ) : inv.approvalStatus === 'approved' ? (
-                <span className="inline-flex rounded-full bg-primary bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-primary" title={inv.approvedAt ? `Approved ${formatDateOnly(inv.approvedAt, i18n.language)}` : ''}>APPROVED</span>
+                <span className="inline-flex rounded-full bg-primary bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-primary" title={inv.approvedAt ? t('commissionReport.approvedOn', { date: fmtDateOnly(inv.approvedAt) }) as string : ''}>{t('commissionReport.approvedBadge').toUpperCase()}</span>
               ) : (
-                <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-warning">PENDING</span>
+                <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-1.5 py-0.5 text-[9px] font-bold text-warning">{t('commissionReport.pending').toUpperCase()}</span>
               )}
             </td>
             <td className="px-3 py-2.5">
               <div className="flex items-center justify-center gap-2">
-                <button onClick={() => handlePreview(inv.invoiceNumber)} className="text-primary hover:text-primary/70 transition" title="Preview">
+                <button onClick={() => handlePreview(inv.invoiceNumber)} className="text-primary hover:text-primary/70 transition" title={t('common.preview') as string}>
                   <Eye className="h-4 w-4" />
                 </button>
-                <button onClick={() => handleDownload(inv.invoiceNumber)} className="text-success hover:text-success/70 transition" title="Download">
+                <button onClick={() => handleDownload(inv.invoiceNumber)} className="text-success hover:text-success/70 transition" title={t('common.download') as string}>
                   <Download className="h-4 w-4" />
                 </button>
-                <button onClick={() => handleEmail(inv.invoiceNumber)} className="text-body hover:text-primary transition" title="Email">
+                <button onClick={() => handleEmail(inv.invoiceNumber)} className="text-body hover:text-primary transition" title={t('common.email') as string}>
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                 </button>
-                <button onClick={() => handlePrint(inv.invoiceNumber)} className="text-body hover:text-primary transition" title="Print">
+                <button onClick={() => handlePrint(inv.invoiceNumber)} className="text-body hover:text-primary transition" title={t('common.print') as string}>
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                 </button>
                 {canMarkPaid && inv.approvalStatus !== 'paid' && (
@@ -850,16 +851,12 @@ const CommissionReport = () => {
     );
   };
 
-  const formatCurrency = (val: number) => {
-    return val.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
+  const formatCurrency = (val: number) => fmtMoney(val);
+  // Bonus amounts are whole dollars; show cents only when there are some.
+  const bonusMoney = (val: number) => fmtMoney(val, { decimals: Number.isInteger(val) ? 0 : 2 });
 
   const currentMonthIndex = new Date().getMonth();
 
-  // Locale-aware short month names
-  const monthNames = Array.from({ length: 12 }, (_, i) =>
-    new Intl.DateTimeFormat(i18n.language, { month: 'short' }).format(new Date(2000, i, 1))
-  );
 
   // Look up points for a given month number (1-based)
   const getMonthPoints = (month: number): MonthPoints | null =>
@@ -898,7 +895,7 @@ const CommissionReport = () => {
     yaxis: {
       labels: {
         style: { colors: '#64748B', fontSize: '12px' },
-        formatter: (v: number) => `$${(v / 1000).toFixed(0)}k`,
+        formatter: (v: number) => (appLocale().startsWith('fr') ? `${fmtNumber(v / 1000, 0)} k$` : `$${fmtNumber(v / 1000, 0)}k`),
       },
     },
     grid: {
@@ -909,13 +906,13 @@ const CommissionReport = () => {
     tooltip: {
       theme: 'dark',
       y: {
-        formatter: (v: number) => `$${v.toLocaleString('en-CA', { minimumFractionDigits: 2 })}`,
+        formatter: (v: number) => fmtMoney(v),
       },
     },
   };
 
   const chartSeries = [{
-    name: 'Commission',
+    name: t('commissionReport.commission') as string,
     data: report.months.map(m => m.commission),
   }];
 
@@ -944,10 +941,10 @@ const CommissionReport = () => {
       <div className="mb-6 flex flex-col gap-4">
         <div>
           <h2 className="text-title-md2 font-semibold text-black dark:text-white">
-            Commission Report
+            {t('commissionReport.title')}
           </h2>
           <p className="flex flex-wrap items-center gap-2 text-sm text-body">
-            <span>{report.repName} · {report.commissionRate}% rate · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ` : ''}{selectedYear}</span>
+            <span>{report.repName} · {t('commissionReport.rateLine', { rate: fmtNumber(report.commissionRate) })} · {selectedMonth !== 'all' ? `${MONTH_NAMES[parseInt(selectedMonth) - 1]} ` : ''}{selectedYear}</span>
             <ProbationBadge probation={report.probation} />
           </p>
           {/* Missing commission — discreet link (any rep viewing their own report can flag a gap) */}
@@ -1167,8 +1164,7 @@ const CommissionReport = () => {
                   {hiredMidYear && (
                     <p className="whitespace-nowrap text-[11px] italic text-body">
                       {t('commissionReport.compSinceHire', {
-                        date: hire!.toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-CA',
-                          { year: 'numeric', month: 'long', day: 'numeric' }) })}
+                        date: fmtDate(hire, { year: 'numeric', month: 'long', day: 'numeric' }) })}
                     </p>
                   )}
                 </div>
@@ -1221,7 +1217,7 @@ const CommissionReport = () => {
           <h4 className="text-2xl font-bold text-black dark:text-white">
             {formatCurrency(displayStats.revenue)}
           </h4>
-          <p className="text-xs text-body mt-1">Paid invoices total</p>
+          <p className="text-xs text-body mt-1">{t('commissionReport.paidInvoicesCount')}</p>
         </div>
 
         {/* YTD Commission (always show for context) */}
@@ -1273,7 +1269,7 @@ const CommissionReport = () => {
               {(() => {
                 const mNum = selectedMonth !== 'all' ? parseInt(selectedMonth) : new Date().getMonth() + 1;
                 const mp = getMonthPoints(mNum);
-                const label = monthNames[mNum - 1];
+                const label = MONTH_NAMES[mNum - 1];
                 const quota = mp?.quota ?? MONTHLY_QUOTA;
                 const quotaPct = quota > 0 ? Math.min(100, ((mp?.totalPoints ?? 0) / quota) * 100) : 100;
                 return (
@@ -1309,10 +1305,10 @@ const CommissionReport = () => {
                       <div className="flex-1 min-w-[100px] rounded-md border border-stroke p-4 dark:border-strokedark">
                         <p className="text-xs uppercase text-body font-medium mb-1">{t('commissionReport.monthlyBonus')}</p>
                         <p className={`text-2xl font-bold ${(mp?.monthlyBonus ?? 0) > 0 ? 'text-success' : 'text-black dark:text-white'}`}>
-                          ${(mp?.monthlyBonus ?? 0).toLocaleString()}
+                          {bonusMoney(mp?.monthlyBonus ?? 0)}
                         </p>
                         {(mp?.zentactBonus ?? 0) > 0 && (
-                          <p className="text-xs text-[#6366F1] mt-1">+${mp!.zentactBonus.toLocaleString()} {t('commissionReport.zentactBonus')}</p>
+                          <p className="text-xs text-[#6366F1] mt-1">+{bonusMoney(mp!.zentactBonus)} {t('commissionReport.zentactBonus')}</p>
                         )}
                       </div>
                     </div>
@@ -1454,9 +1450,9 @@ const CommissionReport = () => {
                           </td>
                           <td className="px-3 py-3.5 text-right text-sm">
                             {mp && mp.monthlyBonus > 0 ? (
-                              <span className="font-semibold text-success">${mp.monthlyBonus.toLocaleString()}</span>
+                              <span className="font-semibold text-success">{bonusMoney(mp.monthlyBonus)}</span>
                             ) : mp && mp.zentactBonus > 0 ? (
-                              <span className="font-semibold text-[#6366F1]">${mp.zentactBonus.toLocaleString()}</span>
+                              <span className="font-semibold text-[#6366F1]">{bonusMoney(mp.zentactBonus)}</span>
                             ) : <span className="text-body">—</span>}
                           </td>
                         </>
@@ -1506,7 +1502,7 @@ const CommissionReport = () => {
                           if (approved > 0 || paid > 0) {
                             return (
                               <div className="flex items-center justify-center gap-1.5 flex-wrap">
-                                <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-warning" title={`${pending} pending · ${approved} approved · ${paid} paid`}>
+                                <span className="inline-flex rounded-full bg-warning bg-opacity-10 px-2.5 py-0.5 text-xs font-medium text-warning" title={t('commissionReport.countsTitle', { pending, approved, paid }) as string}>
                                   {pending}/{approved}/{paid}
                                 </span>
                                 {canApprove && pending > 0 && (
@@ -1583,7 +1579,7 @@ const CommissionReport = () => {
                     <td className="px-3 py-3.5 text-right text-sm font-bold text-success">
                       {(() => {
                         const total = pointsData.months.reduce((s, m) => s + m.monthlyBonus + m.zentactBonus, 0);
-                        return total > 0 ? `$${total.toLocaleString()}` : '—';
+                        return total > 0 ? bonusMoney(total) : '—';
                       })()}
                     </td>
                   )}
@@ -1622,7 +1618,7 @@ const CommissionReport = () => {
                         <td className="px-3 py-2.5 font-medium text-black dark:text-white">{m.name}</td>
                         <td className="px-3 py-2.5 text-right">
                           {m.bonusPaid
-                            ? <span className="font-semibold text-success">{formatCurrency(m.bonusAmount)}{m.bonusDate ? ` · ${formatDateOnly(m.bonusDate, i18n.language)}` : ''}</span>
+                            ? <span className="font-semibold text-success">{formatCurrency(m.bonusAmount)}{m.bonusDate ? ` · ${fmtDateOnly(m.bonusDate)}` : ''}</span>
                             : <span className="text-xs text-body">{t('commissionReport.processing.notPaid')}</span>}
                         </td>
                       </tr>
@@ -1641,21 +1637,21 @@ const CommissionReport = () => {
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[99999] p-4" onClick={handleClosePreview}>
           <div className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-stroke dark:border-strokedark bg-white dark:bg-boxdark">
-              <h3 className="text-lg font-semibold text-black dark:text-white">Invoice {previewModal.invoiceNumber}</h3>
+              <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.previewTitle', { number: previewModal.invoiceNumber })}</h3>
               <div className="flex items-center gap-3">
                 <button onClick={() => handlePrint(previewModal.invoiceNumber)} className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-white px-3 py-1.5 text-xs font-semibold text-black hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:text-white dark:hover:bg-meta-4">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                  Print
+                  {t('common.print')}
                 </button>
                 <button onClick={() => handleDownload(previewModal.invoiceNumber)} className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-white px-3 py-1.5 text-xs font-semibold text-black hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:text-white dark:hover:bg-meta-4">
                   <Download className="h-4 w-4" />
-                  Download
+                  {t('common.download')}
                 </button>
                 <button onClick={() => handleEmail(previewModal.invoiceNumber)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                  Email
+                  {t('common.email')}
                 </button>
-                <button onClick={handleClosePreview} className="text-black dark:text-white hover:text-primary transition" title="Close">
+                <button onClick={handleClosePreview} className="text-black dark:text-white hover:text-primary transition" title={t('common.close') as string}>
                   <X className="h-6 w-6" />
                 </button>
               </div>
@@ -1670,7 +1666,7 @@ const CommissionReport = () => {
                 src={`${API_URL}/api/invoices/${previewModal.invoiceNumber}/preview?token=${localStorage.getItem('token')}`}
                 className="w-full border-0"
                 style={{ minHeight: '600px', height: 'calc(90vh - 80px)' }}
-                title="Invoice Preview"
+                title={t('commissionReport.invoicePreview') as string}
                 onLoad={() => setPreviewModal(prev => ({ ...prev, loading: false }))}
               />
             </div>
@@ -1684,7 +1680,7 @@ const CommissionReport = () => {
           <div className="my-auto bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-stroke dark:border-strokedark">
               <div>
-                <h3 className="text-lg font-bold text-black dark:text-white">Email Invoice</h3>
+                <h3 className="text-lg font-bold text-black dark:text-white">{t('commissionReport.emailInvoice.title')}</h3>
                 <p className="text-sm text-body">{emailModal.invoiceNumber}</p>
               </div>
               <button onClick={() => !emailModal.sending && setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })} className="text-black dark:text-white hover:text-primary transition">
@@ -1692,7 +1688,7 @@ const CommissionReport = () => {
               </button>
             </div>
             <div className="p-6">
-              <label className="mb-3 block text-sm font-medium text-black dark:text-white">Recipient Email</label>
+              <label className="mb-3 block text-sm font-medium text-black dark:text-white">{t('commissionReport.emailInvoice.recipient')}</label>
               <input
                 type="email"
                 value={emailModal.email}
@@ -1704,9 +1700,9 @@ const CommissionReport = () => {
               />
             </div>
             <div className="flex items-center justify-end gap-3 p-6 border-t border-stroke dark:border-strokedark">
-              <button onClick={() => setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })} disabled={emailModal.sending} className="rounded-md border border-stroke px-6 py-2.5 text-sm font-medium text-black dark:border-strokedark dark:text-white disabled:opacity-50">Cancel</button>
+              <button onClick={() => setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })} disabled={emailModal.sending} className="rounded-md border border-stroke px-6 py-2.5 text-sm font-medium text-black dark:border-strokedark dark:text-white disabled:opacity-50">{t('common.cancel')}</button>
               <button onClick={handleSendEmail} disabled={emailModal.sending} className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
-                {emailModal.sending ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>Sending...</>) : (<>Send Email</>)}
+                {emailModal.sending ? (<><div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>{t('commissionReport.emailInvoice.sending')}</>) : (<>{t('commissionReport.emailInvoice.send')}</>)}
               </button>
             </div>
           </div>
@@ -1718,7 +1714,7 @@ const CommissionReport = () => {
         <div className="fixed bottom-6 right-6 z-[999999] max-w-sm">
           <div className={`flex items-start gap-3 rounded-lg px-5 py-3.5 shadow-xl ${notification.type === 'success' ? 'bg-success text-emerald-900' : 'bg-danger text-white'}`}>
             <p className="text-sm font-medium leading-snug">{notification.message}</p>
-            <button onClick={() => setNotification(n => ({ ...n, show: false }))} className="-mr-1 ml-auto shrink-0 text-white/80 transition hover:text-white" aria-label="Close">
+            <button onClick={() => setNotification(n => ({ ...n, show: false }))} className="-mr-1 ml-auto shrink-0 text-white/80 transition hover:text-white" aria-label={t('common.close') as string}>
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>

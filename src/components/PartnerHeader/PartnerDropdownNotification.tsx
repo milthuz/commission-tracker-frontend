@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { fmtDate } from '../../lib/format';
 import axios from 'axios';
 import ClickOutside from '../ClickOutside';
 
@@ -22,7 +23,7 @@ interface NotificationRow {
 // aren't relevant to a partner). "Seen" is a client-side timestamp compare, same lightweight
 // pattern as the internal app's unseen-release dot — no per-user read-state table needed.
 const PartnerDropdownNotification = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);
   const [hasUnseen, setHasUnseen] = useState(false);
@@ -47,9 +48,7 @@ const PartnerDropdownNotification = () => {
 
   const formatDate = (iso: string) => {
     try {
-      return new Date(iso).toLocaleDateString(i18n.language === 'fr' ? 'fr-CA' : 'en-US', {
-        year: 'numeric', month: 'short', day: 'numeric',
-      });
+      return fmtDate(iso, { year: 'numeric', month: 'short', day: 'numeric' });
     } catch { return iso; }
   };
 

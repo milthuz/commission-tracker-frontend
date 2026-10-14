@@ -230,6 +230,14 @@
       "merchant": "Merchant",
       "status": "Status",
       "activatedAt": "Activated"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "closed": "Closed",
+      "pending": "Pending",
+      "suspended": "Suspended",
+      "cancelled": "Cancelled"
     }
   },
   "revenue": {
@@ -573,7 +581,10 @@
     "deleteConfirm": "Remove the sent proposal for {{customer}} from the board? (The Zoho quote is not affected.)",
     "replaceEditedEmail": "You edited the email's subject or text. Replace it with the newly generated email (current language and client), or keep your version?",
     "replaceEditedEmailYes": "Replace",
-    "replaceEditedEmailNo": "Keep my version"
+    "replaceEditedEmailNo": "Keep my version",
+    "downloadFailed": "Could not download the PDF.",
+    "previewFailed": "Could not generate the preview.",
+    "estimatePreview": "Estimate preview"
   },
   "hardware": {
     "eyebrow": "Hardware",
@@ -923,7 +934,8 @@
       "disabled": "Disabled"
     },
     "serverError": {
-      "partnerInactive": "Your organization no longer has access to the portal. This is not a password problem — your credentials are valid. Contact your Cluster representative to restore access."
+      "partnerInactive": "Your organization no longer has access to the portal. This is not a password problem — your credentials are valid. Contact your Cluster representative to restore access.",
+      "loginFailed": "Sign-in failed. Check your email and password."
     },
     "signup": {
       "title": "Create my account",
@@ -1221,7 +1233,9 @@
       "date": "Date",
       "commission": "Commission",
       "export": "Export to Excel",
-      "exporting": "Exporting…"
+      "exporting": "Exporting…",
+      "suggestedRep": "Suggested rep",
+      "source": "Source"
     }
   },
   "saasIncrease": {
@@ -1734,7 +1748,9 @@
     "bulkKeepOpen": "Do not close this page while the bar advances — the operation runs in batches.",
     "campaignBanner": "{{pushed}} of {{raised}} applied · {{realized}}/mo actually billed",
     "campaignChurn": "{{count}} cancelled since",
-    "campaignOpen": "Open tracking"
+    "campaignOpen": "Open tracking",
+    "emailPreviewTitle": "Email preview",
+    "englishLabel": "English"
   },
   "resources": {
     "title": "Resources",
@@ -1998,7 +2014,8 @@
     "ytdZentact": "{{count}} activation(s) · ${{amount}} bonus",
     "assignTo": "Assign to",
     "selectRep": "Select rep...",
-    "restrictedDetails": "Details restricted — only visible to admins or your own row"
+    "restrictedDetails": "Details restricted — only visible to admins or your own row",
+    "assignRepFailed": "Could not assign the rep."
   },
   "commissionReport": {
     "missing": {
@@ -2099,7 +2116,13 @@
       "reconstructedBanner": "This import predates per-invoice storage, so the invoice breakdown below is reconstructed from the app's data. The file total stays authoritative. Re-import the file to store the exact paid amounts.",
       "carrySelected": "{{n}} line(s) selected — {{total}}",
       "carrySelectAll": "Select all",
-      "carryClear": "clear selection"
+      "carryClear": "clear selection",
+      "loadFailed": "Could not load the pay stub.",
+      "quotaWaiveFailed": "Could not update the quota override.",
+      "commitConfirm": "Mark {{rep}} — {{period}} paid? This marks the period's unlocked commissions as paid and records the pay stub.",
+      "commitFailed": "Could not mark the pay stub paid.",
+      "uncommitFailed": "Could not undo the payment.",
+      "adjustFailed": "Could not create the adjustment."
     },
     "bonusStatement": {
       "title": "Bi-Annual Processing Bonus Statement",
@@ -2227,7 +2250,8 @@
       "refuse": "Refuse commission",
       "restore": "Restore commission",
       "confirm": "Refuse commission on {{invoice}}? It will become $0 (reversible).",
-      "restored": "Commission restored — recomputing (~1-3 min)."
+      "restored": "Commission restored — recomputing (~1-3 min).",
+      "failed": "Could not update the commission exclusion."
     },
     "type": "Type",
     "approve": "Approve",
@@ -2248,6 +2272,34 @@
       "confirmPay": "Mark the commission on {{n}} invoice(s) for {{rep}} as PAID — {{total}}?\n\nA paid commission is frozen: a rule change will no longer reach it. The month's pay stub is rebuilt accordingly.",
       "done": "✓ {{n}} invoice(s) updated.",
       "failed": "The operation failed. Nothing was changed."
+    },
+    "approveConfirm": "Approve commission for {{rep}} — {{period}}? This marks all qualifying invoices as commission paid.",
+    "approveDone_one": "✓ Approved! {{count}} invoice marked as commission paid.",
+    "approveDone_other": "✓ Approved! {{count}} invoices marked as commission paid.",
+    "approveFailed": "Could not approve the commission.",
+    "markPaidConfirm": "Mark approved commissions as paid for {{rep}} — {{period}}? This records the final payout.",
+    "markPaidDone_one": "✓ Marked paid! {{count}} invoice.",
+    "markPaidDone_other": "✓ Marked paid! {{count}} invoices.",
+    "markPaidFailed": "Could not mark the commissions as paid.",
+    "unapproveConfirm": "Undo approval for {{rep}} — {{period}}? This will revert commission paid status.",
+    "unapproveDone_one": "↩ Reverted! {{count}} invoice unmarked.",
+    "unapproveDone_other": "↩ Reverted! {{count}} invoices unmarked.",
+    "unapproveFailed": "Could not undo the approval.",
+    "printFailed": "Could not print the invoice.",
+    "downloadFailed": "Could not download the PDF.",
+    "paidOn": "Paid {{date}}",
+    "approvedOn": "Approved {{date}}",
+    "rateLine": "{{rate}}% rate",
+    "countsTitle": "{{pending}} pending · {{approved}} approved · {{paid}} paid",
+    "previewTitle": "Invoice {{number}}",
+    "invoicePreview": "Invoice preview",
+    "emailInvoice": {
+      "title": "Email invoice",
+      "recipient": "Recipient email",
+      "send": "Send email",
+      "sending": "Sending…",
+      "invalid": "Please enter a valid email.",
+      "sent": "Invoice {{number}} sent to {{email}}"
     }
   },
   "admin": {
@@ -2691,7 +2743,9 @@
       "srcRole": "via role",
       "libraryCapOnly": "Library cap only",
       "noUsers": "No users found.",
-      "perUserHint": "Leave the field empty (or 0) to remove the custom cap and fall back to the role limit."
+      "perUserHint": "Leave the field empty (or 0) to remove the custom cap and fall back to the role limit.",
+      "unitMB": "{{n}} MB",
+      "unitGB": "{{n}} GB"
     },
     "integrations": {
       "title": "Integrations",
@@ -2813,7 +2867,14 @@
       "importCsv": "Import historical assignments (CSV)",
       "csvHint": "Upload a CSV file with columns: merchant, sales_rep, activated_at. Merchant names must match the business names in Zentact. Date format: YYYY-MM-DD or MM/DD/YYYY.",
       "preview": "Preview",
-      "apply": "Apply changes"
+      "apply": "Apply changes",
+      "csvEmpty": "The CSV must have a header row and at least one data row.",
+      "csvMissingMerchant": "Missing 'merchant' column. Found: {{found}}",
+      "csvParsed_one": "{{count}} row read. Click “Preview” to match it against the database.",
+      "csvParsed_other": "{{count}} rows read. Click “Preview” to match them against the database.",
+      "csvApplied": "Applied: {{updated}} merchants updated, {{unmatched}} unmatched",
+      "csvPreviewResult": "Preview: {{matched}} will be updated, {{unmatched}} unmatched",
+      "csvMatched": "matched"
     },
     "enrich": {
       "title": "Invoice Enrichment",
@@ -3250,7 +3311,9 @@
       "releaseFailed": "✕ Release workflow failed. Check GitHub Actions for details.",
       "previousReleases": "Previous Releases",
       "noReleases": "No releases found",
-      "view": "View →"
+      "view": "View →",
+      "versionPlaceholder": "e.g. 0.2.6",
+      "generatingNotes": "Fetching commits and generating notes..."
     },
     "impersonate": {
       "title": "Impersonate a User",
@@ -3628,7 +3691,12 @@
       },
       "filename": "File",
       "period": "Period",
-      "importedAt": "Imported"
+      "importedAt": "Imported",
+      "colRep": "Rep",
+      "notFoundCount_one": "{{count}} not found",
+      "notFoundCount_other": "{{count}} not found",
+      "invCount_one": "{{count}} inv.",
+      "invCount_other": "{{count}} inv."
     },
     "reviews": {
       "placeTitle": "Google listing",
@@ -3707,7 +3775,9 @@
       "moreCount": "+{{count}} more",
       "descAdmin": "Full access to everything",
       "descManager": "Team manager — full team visibility, can approve commissions",
-      "descSalesRep": "Standard salesperson — sees own data only"
+      "descSalesRep": "Standard salesperson — sees own data only",
+      "namePlaceholder": "e.g. Team Lead",
+      "descriptionPlaceholder": "What is this role for?"
     },
     "usersSection": {
       "title": "User Management",
@@ -4044,6 +4114,66 @@
       "help": "These users signed in without a role. Assign them a role in the list below: the request disappears on its own.",
       "dismiss": "Dismiss",
       "dismissConfirm": "Dismiss {{name}}'s request without assigning a role?"
+    },
+    "errors": {
+      "loadPayrollPreview": "Could not load the payroll preview.",
+      "saveRecipients": "Could not save the recipients.",
+      "loadBonusPreview": "Could not load the bonus preview.",
+      "createAdjustment": "Could not create the adjustment.",
+      "applySuggestion": "Could not apply the suggestion.",
+      "undoPayStub": "Could not undo the pay stub.",
+      "updateQuotaWaiver": "Could not update the quota waiver.",
+      "loadProcessingBonus": "Could not load the processing bonus.",
+      "commit": "Could not commit.",
+      "uncommit": "Could not undo the commit.",
+      "loadStatement": "Could not load the statement.",
+      "loadReviews": "Could not load the reviews.",
+      "recordReview": "Could not record the review.",
+      "loadHardwareCatalog": "Could not load the hardware catalog.",
+      "removeImage": "Could not remove the image.",
+      "loadPartnerStats": "Could not load the partner statistics.",
+      "loadPartners": "Could not load the partners.",
+      "createPartner": "Could not create the partner.",
+      "updatePartner": "Could not update the partner.",
+      "generateCode": "Could not generate the code.",
+      "sendInvite": "Could not send the invitation.",
+      "loadOpportunityQueue": "Could not load the opportunity queue.",
+      "updateOpportunity": "Could not update the opportunity.",
+      "loadZohoReps": "Could not load the Zoho CRM reps.",
+      "deleteOpportunity": "Could not delete the opportunity.",
+      "checkZoho": "Could not check Zoho CRM.",
+      "linkCustomer": "Could not link the customer.",
+      "loadPayouts": "Could not load the payouts.",
+      "createPayoutRun": "Could not create the payout run.",
+      "finalizeRun": "Could not finalize the run.",
+      "cancelRun": "Could not cancel the run.",
+      "loadPricingGuide": "Could not load the pricing guide.",
+      "saveCategory": "Could not save the category.",
+      "removeLogo": "Could not remove the logo.",
+      "updateKaizenDemo": "Could not update the Kaizen demo settings.",
+      "saveTiers": "Could not save the tiers.",
+      "addSalesperson": "Could not add the salesperson.",
+      "createTeam": "Could not create the team.",
+      "updateTeam": "Could not update the team.",
+      "deleteTeam": "Could not delete the team.",
+      "updateEmail": "Could not update the email.",
+      "updateHireDate": "Could not update the hire date.",
+      "updateQuotaGate": "Could not update the quota gate.",
+      "updateProcessingBonus": "Could not update the processing bonus.",
+      "updateAnnualBonus": "Could not update the annual bonus.",
+      "updateQuota": "Could not update the quota.",
+      "assignTeam": "Could not assign the team.",
+      "savePoints": "Could not save the points.",
+      "saveRole": "Could not save the role.",
+      "deleteRole": "Could not delete the role.",
+      "saveUserRoles": "Could not save the user’s roles.",
+      "createRelease": "Could not create the release.",
+      "assignRep": "Could not assign the rep.",
+      "updateSalespersonStatus": "Could not update the salesperson’s status.",
+      "updateCommissionRate": "Could not update the commission rate.",
+      "updateReviewBonus": "Could not update the review bonus.",
+      "updateAliases": "Could not update the aliases.",
+      "releaseMissingFields": "Please enter a version number and release notes."
     }
   },
   "header": {
@@ -4152,7 +4282,19 @@
     },
     "signatureRoleEn": "Title in English",
     "signatureRoleEnPh": "e.g. Sales Representative",
-    "signatureRoleEnHint": "Used instead of your title in emails sent to English-speaking merchants."
+    "signatureRoleEnHint": "Used instead of your title in emails sent to English-speaking merchants.",
+    "tz": {
+      "toronto": "Eastern Time (Toronto)",
+      "chicago": "Central Time (Chicago)",
+      "denver": "Mountain Time (Denver)",
+      "losAngeles": "Pacific Time (Los Angeles)",
+      "vancouver": "Pacific Time (Vancouver)",
+      "montreal": "Eastern Time (Montreal)",
+      "london": "GMT (London)",
+      "paris": "CET (Paris)"
+    },
+    "qrAlt": "QR code",
+    "currentPassword": "Current password"
   },
   "impersonation": {
     "banner": "You are impersonating: {{name}}",
@@ -7743,5 +7885,37 @@
     "actions": "Actions",
     "toggleTheme": "Switch light / dark theme",
     "switchLanguage": "Passer en français"
+  },
+  "pageTitle": {
+    "signIn": "Sign in",
+    "authenticating": "Signing in",
+    "terms": "Terms of service",
+    "privacy": "Privacy policy",
+    "invitation": "Invitation",
+    "resetPassword": "Reset password",
+    "partnerTeam": "Team",
+    "partnerOrganization": "Organization",
+    "saasLookup": "SaaS increase reference",
+    "saasCampaign": "SaaS increase campaign tracking"
+  },
+  "errors": {
+    "failed": "Something went wrong. Please try again.",
+    "deleteFailed": "Could not delete.",
+    "saveFailed": "Could not save.",
+    "sendFailed": "Could not send.",
+    "addFailed": "Could not add.",
+    "updateFailed": "Could not update.",
+    "fetchFailed": "Could not retrieve the data.",
+    "publishFailed": "Could not publish.",
+    "uploadFailed": "Upload failed.",
+    "actionFailed": "The action failed.",
+    "importFailed": "The import failed.",
+    "previewFailed": "The preview failed.",
+    "commitFailed": "The commit failed.",
+    "inviteFailed": "The invitation failed.",
+    "retryFailed": "The retry failed.",
+    "migrationFailed": "The migration failed.",
+    "loadFailed": "Could not load the data.",
+    "generic": "Something went wrong. Try again."
   }
 }

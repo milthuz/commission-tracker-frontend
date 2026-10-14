@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { fmtDateOnly, fmtPeriod } from '../../lib/format';
 import axios from 'axios';
 import Select from '../../components/Select';
 import { dialog } from '../../lib/dialog';
@@ -12,7 +13,7 @@ type ManualDeal = {
   manual_note: string | null; manual_created_by: string | null;
 };
 
-const fmtDate = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString();
+const fmtDate = (iso: string) => fmtDateOnly(iso);
 const todayIso = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -143,7 +144,7 @@ export default function ManualDeals() {
           </button>
           {selectedPts != null && rep && (
             <span className="text-sm text-body">
-              {t('admin.deals.manual.preview', { rep, points: selectedPts, month: new Date(soldDate + 'T00:00:00').toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) })}
+              {t('admin.deals.manual.preview', { rep, points: selectedPts, month: fmtPeriod(soldDate) })}
             </span>
           )}
         </div>

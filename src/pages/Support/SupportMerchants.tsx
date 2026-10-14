@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { fmtNumber } from '../../lib/format';
 import axios from 'axios';
 import Select from '../../components/Select';
 
@@ -54,7 +55,7 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
         `${API_URL}/api/support/merchants?months=${mois}&minRevenue=${revenuMin}`, jeton());
       setData(r.data);
     } catch (e: any) {
-      setErreur(e?.response?.data?.error || 'Erreur');
+      setErreur(e?.response?.data?.error || t('errors.loadFailed'));
     } finally { setChargement(false); }
   };
   useEffect(() => { charger(); }, [mois, revenuMin]);
@@ -65,8 +66,8 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
     const v = Number(h);
     if (h == null || !isFinite(v)) return '—';
     if (v < 1) return `${Math.round(v * 60)} min`;
-    if (v < 48) return `${v.toFixed(1)} h`;
-    return `${(v / 24).toFixed(1)} ${t('support.jours')}`;
+    if (v < 48) return `${fmtNumber(v, 1)} h`;
+    return `${fmtNumber(v / 24, 1)} ${t('support.jours')}`;
   };
   const dateCourte = (v: string | null) =>
     v ? new Date(v).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short', year: '2-digit' }) : '—';
@@ -122,10 +123,10 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
         <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
           <p className="text-xs font-medium uppercase tracking-wide text-body">{t('support.rev.apparies')}</p>
           <p className="mt-1 text-title-md font-bold text-black dark:text-white">
-            {data.resume.apparies.toLocaleString()}
+            {fmtNumber(data.resume.apparies)}
           </p>
           <p className="mt-0.5 text-xs text-body">
-            {t('support.rev.surClients', { n: data.resume.clients.toLocaleString() })}
+            {t('support.rev.surClients', { n: fmtNumber(data.resume.clients) })}
           </p>
         </div>
         <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
@@ -134,11 +135,11 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
         </div>
         <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
           <p className="text-xs font-medium uppercase tracking-wide text-body">{t('support.billets')}</p>
-          <p className="mt-1 text-title-md font-bold text-black dark:text-white">{data.resume.billets.toLocaleString()}</p>
+          <p className="mt-1 text-title-md font-bold text-black dark:text-white">{fmtNumber(data.resume.billets)}</p>
         </div>
         <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
           <p className="text-xs font-medium uppercase tracking-wide text-body">{t('support.rev.lents')}</p>
-          <p className="mt-1 text-title-md font-bold text-black dark:text-white">{data.resume.lents.toLocaleString()}</p>
+          <p className="mt-1 text-title-md font-bold text-black dark:text-white">{fmtNumber(data.resume.lents)}</p>
           <p className="mt-0.5 text-xs text-body">{t('support.rev.lentsNote')}</p>
         </div>
       </div>
@@ -165,13 +166,13 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
                   return (
                     <tr key={i} className="border-t border-stroke dark:border-strokedark">
                       <td className="py-2 pr-4 text-black dark:text-white">{m.motif}</td>
-                      <td className="py-2 pr-4 text-right tabular-nums">{m.marchands.toLocaleString()}</td>
-                      <td className="py-2 pr-4 text-right tabular-nums">{m.moy12?.toFixed(1)}</td>
-                      <td className="py-2 pr-4 text-right tabular-nums">{m.moy3?.toFixed(1)}</td>
+                      <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(m.marchands)}</td>
+                      <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(m.moy12, 1)}</td>
+                      <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(m.moy3, 1)}</td>
                       <td className="py-2 text-right tabular-nums font-medium text-black dark:text-white">
-                        {m.moy_lents?.toFixed(2)}
+                        {fmtNumber(m.moy_lents, 2)}
                         {r && r >= 1.5 && (
-                          <span className="ml-1.5 text-xs font-semibold text-danger">×{r.toFixed(1)}</span>
+                          <span className="ml-1.5 text-xs font-semibold text-danger">×{fmtNumber(r, 1)}</span>
                         )}
                       </td>
                     </tr>
@@ -179,11 +180,11 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
                 })}
                 <tr className="border-t-2 border-stroke bg-gray-50 dark:border-strokedark dark:bg-meta-4">
                   <td className="py-2 pr-4 font-semibold text-black dark:text-white">{t('support.churn.temoin')}</td>
-                  <td className="py-2 pr-4 text-right tabular-nums">{temoin.marchands.toLocaleString()}</td>
-                  <td className="py-2 pr-4 text-right tabular-nums">{temoin.moy12?.toFixed(1)}</td>
-                  <td className="py-2 pr-4 text-right tabular-nums">{temoin.moy3?.toFixed(1)}</td>
+                  <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(temoin.marchands)}</td>
+                  <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(temoin.moy12, 1)}</td>
+                  <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(temoin.moy3, 1)}</td>
                   <td className="py-2 text-right font-semibold tabular-nums text-black dark:text-white">
-                    {temoin.moy_lents?.toFixed(2)}
+                    {fmtNumber(temoin.moy_lents, 2)}
                   </td>
                 </tr>
               </tbody>
@@ -196,7 +197,7 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
             <div className="mt-4 flex flex-wrap gap-2">
               {ch.motifs.slice(0, 8).map((m, i) => (
                 <span key={i} className="rounded-full bg-stroke px-3 py-1 text-xs text-black dark:bg-meta-4 dark:text-white">
-                  {m.motif} · {m.n.toLocaleString()}
+                  {m.motif} · {fmtNumber(m.n)}
                 </span>
               ))}
             </div>

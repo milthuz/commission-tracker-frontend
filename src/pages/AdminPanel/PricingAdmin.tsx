@@ -76,7 +76,7 @@ const PricingAdmin: React.FC = () => {
       const r = await axios.get(`${API_URL}/api/pricing`, { headers: authHeaders() });
       setPackages(r.data.packages || []);
       setCategories((r.data.categories || []).slice().sort((a: PricingCategory, b: PricingCategory) => a.sortOrder - b.sortOrder));
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to load pricing guide'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.loadPricingGuide')); }
     finally { setLoading(false); }
   };
   useEffect(() => { fetchAll(); }, []);
@@ -102,7 +102,7 @@ const PricingAdmin: React.FC = () => {
       }
       setCatForm(null);
       await fetchAll();
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to save category'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.saveCategory')); }
     finally { setSavingCat(false); }
   };
 
@@ -155,7 +155,7 @@ const PricingAdmin: React.FC = () => {
       revertAll();
       await fetchAll();
       dialog.alert(t('admin.pricing.published') as string);
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to publish'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.publishFailed')); }
     finally { setPublishing(false); }
   };
 
@@ -180,7 +180,7 @@ const PricingAdmin: React.FC = () => {
       await axios.post(`${API_URL}/api/pricing/${id}/image`, fd, { headers: { ...authHeaders(), 'Content-Type': 'multipart/form-data' } });
       setForm((f) => (f ? { ...f, hasImage: true } : f));
       setPackages((ps) => ps.map((x) => (x.id === id ? { ...x, hasImage: true } : x)));
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Upload failed'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.uploadFailed')); }
     finally { setUploadingLogo(false); }
   };
   const removeLogo = async () => {
@@ -191,7 +191,7 @@ const PricingAdmin: React.FC = () => {
       await axios.delete(`${API_URL}/api/pricing/${id}/image`, { headers: authHeaders() });
       setForm((f) => (f ? { ...f, hasImage: false } : f));
       setPackages((ps) => ps.map((x) => (x.id === id ? { ...x, hasImage: false } : x)));
-    } catch (e: any) { dialog.alert(e?.response?.data?.error || 'Failed to remove logo'); }
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.removeLogo')); }
   };
   const toggleFormArr = (k: 'compat' | 'status', val: string) => setForm((f) => {
     if (!f) return f;

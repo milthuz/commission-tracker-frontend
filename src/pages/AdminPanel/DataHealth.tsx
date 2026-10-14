@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { appLocale, fmtDateOnly, fmtDateTime, fmtMoney, fmtPeriod } from '../../lib/format';
 import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
 
@@ -139,7 +140,7 @@ const DataHealth: React.FC = () => {
       if (!r.ok) throw new Error(String(r.status));
       const { rows } = await r.json();
       const esc = (s: any) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      const head = ['Invoice', 'Customer', 'Date', 'Commission', 'Status', 'Suggested rep', 'Source'];
+      const head = [t('dataHealth.invoiceList.invoice'), t('dataHealth.invoiceList.customer'), t('dataHealth.invoiceList.date'), t('dataHealth.invoiceList.commission'), t('common.status'), t('dataHealth.invoiceList.suggestedRep'), t('dataHealth.invoiceList.source')];
       const html = [
         '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1">',
         `<tr>${head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr>`,
@@ -159,7 +160,7 @@ const DataHealth: React.FC = () => {
   };
 
   const i = data?.issues;
-  const money = (n: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'CAD' }).format(n || 0);
+  const money = (n: number) => fmtMoney(n || 0);
 
   const cards = i ? [
     { key: 'resellerActivations', count: i.unassignedResellerActivations, to: '/reseller', detail: undefined as string | undefined, expandable: false },
@@ -303,7 +304,7 @@ const DataHealth: React.FC = () => {
                     <tr key={m.merchant_account_id} className="border-b border-stroke last:border-0 dark:border-strokedark">
                       <td className="px-4 py-2.5 text-black dark:text-white">{m.business_name}</td>
                       <td className="px-4 py-2.5 text-body dark:text-bodydark">{m.sales_rep_name || '—'}</td>
-                      <td className="whitespace-nowrap px-4 py-2.5 text-body dark:text-bodydark">{String(m.activated_at).slice(0, 10)}</td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-body dark:text-bodydark">{fmtDateOnly(String(m.activated_at).slice(0, 10))}</td>
                       <td className="whitespace-nowrap px-4 py-2.5">
                         {m.never_earned
                           ? <span className="rounded-full bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger">{t('dataHealth.cards.staleMerchants.neverBadge')}</span>
@@ -344,7 +345,7 @@ const DataHealth: React.FC = () => {
                           {t(`dataHealth.reports.type.${rep.report_type}`)}
                         </span>
                         <span className="text-sm font-medium text-black dark:text-white">{rep.reporter_name || rep.reporter_email || '—'}</span>
-                        {rep.period && <span className="text-xs text-gray-500">· {rep.period}</span>}
+                        {rep.period && <span className="text-xs text-gray-500">· {fmtPeriod(rep.period)}</span>}
                         {rep.reference && <span className="text-xs text-gray-500">· {rep.reference}</span>}
                       </div>
                       <p className="whitespace-pre-wrap text-sm text-body dark:text-bodydark">{rep.message}</p>
@@ -379,7 +380,7 @@ const DataHealth: React.FC = () => {
                       )}
 
                       <div className="mt-1 flex items-center gap-2">
-                        <span className="text-[11px] text-gray-400">{new Date(rep.created_at).toLocaleString()}</span>
+                        <span className="text-[11px] text-gray-400">{fmtDateTime(rep.created_at)}</span>
                         <button
                           onClick={() => reinvestigate(rep.id)}
                           disabled={investigating === rep.id}
@@ -405,7 +406,7 @@ const DataHealth: React.FC = () => {
         </>
       )}
 
-      {data && <p className="mt-4 text-xs text-gray-400">{t('dataHealth.lastChecked', { time: new Date(data.generatedAt).toLocaleTimeString() })}</p>}
+      {data && <p className="mt-4 text-xs text-gray-400">{t('dataHealth.lastChecked', { time: new Date(data.generatedAt).toLocaleTimeString(appLocale()) })}</p>}
 
       {resolveModal && (
         <div

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { fmtDateOnly, fmtPeriod } from '../../lib/format';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
 import ManualDeals from './ManualDeals';
@@ -12,8 +13,8 @@ type Deal = {
   excluded: boolean; exclusionReason: string | null; isManual?: boolean;
 };
 
-const fmtDate = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString();
-const monthLabel = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+const fmtDate = (iso: string) => fmtDateOnly(iso);
+const monthLabel = (iso: string) => fmtPeriod(iso);
 
 // Move a deal (and its points) to a different month — e.g. a deal submitted last month but only
 // synced from Zoho this month because of an internal delay. sold_date is the single column that
