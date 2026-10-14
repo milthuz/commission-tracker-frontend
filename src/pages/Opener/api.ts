@@ -55,7 +55,7 @@ export interface Stop extends ClusterInfo {
   outcome: 'planned' | 'done' | 'skipped';
   skipReason: SkipReason | null;
   doneAt: string | null;
-  checkin: { id: string; at: string; interest: number; leadId: number | null; decisionMaker: string | null; currentPos: string;
+  checkin: { id: string; at: string; interest: number | null; leadId: number | null; decisionMaker: string | null; currentPos: string;
     distanceM?: number | null; accuracyM?: number | null; verdict?: Verdict;
     startedAt?: string | null; durationMin?: number | null; endDistanceM?: number | null } | null;
 }
@@ -94,7 +94,7 @@ export interface PlaceCard {
   cluster: ClusterInfo;
   history: {
     id: string; at: string; by: string; currentPos: string; serviceType: ServiceType; terminals: number | null;
-    decisionMaker: string | null; interest: number; services: Service[]; notes: string | null; leadRef: string | null;
+    decisionMaker: string | null; interest: number | null; services: Service[]; notes: string | null; leadRef: string | null;
     distanceM?: number | null; verdict?: Verdict; durationMin?: number | null;
     satisfaction?: number | null; paymentsBy?: PaymentsBy | null; editable?: boolean; hasLead?: boolean;
   }[];
@@ -155,7 +155,7 @@ export interface CheckinInput {
   lat?: number | null; lng?: number | null; accuracy?: number | null;
   startedAt?: string | null; startLat?: number | null; startLng?: number | null; startAccuracy?: number | null;
   currentPos: string; serviceType: ServiceType; terminals: number; onlineDelivery: boolean;
-  decisionMaker: 'yes' | 'no' | 'later' | null; interest: number; services: Service[]; notes: string;
+  decisionMaker: 'yes' | 'no' | 'later' | null; interest: number | null; services: Service[]; notes: string;
   satisfaction?: number | null; paymentsBy?: PaymentsBy | null;
 }
 

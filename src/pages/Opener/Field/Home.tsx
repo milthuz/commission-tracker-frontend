@@ -233,7 +233,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
               <p className="truncate text-[15px] font-bold text-[var(--of-title)]">{s.name}</p>
               <p className="truncate text-xs text-[var(--of-faint)]">
                 {s.outcome === 'done'
-                  ? `${t('opener.field.checkinAt', { time: s.doneAt ? new Date(s.doneAt).toLocaleTimeString(lng === 'fr' ? 'fr-CA' : 'en-CA', { hour: '2-digit', minute: '2-digit' }) : '—' })}${s.checkin?.durationMin != null ? ` · ${fmtMinutes(s.checkin.durationMin)}` : ''}${s.checkin ? ` · ${t('opener.field.interestShort', { n: s.checkin.interest })}` : ''}${s.checkin?.leadId ? ` · ${t('opener.field.leadCreated')}` : ''}`
+                  ? `${t('opener.field.checkinAt', { time: s.doneAt ? new Date(s.doneAt).toLocaleTimeString(lng === 'fr' ? 'fr-CA' : 'en-CA', { hour: '2-digit', minute: '2-digit' }) : '—' })}${s.checkin?.durationMin != null ? ` · ${fmtMinutes(s.checkin.durationMin)}` : ''}${s.checkin?.interest ? ` · ${t('opener.field.interestShort', { n: s.checkin.interest })}` : ''}${s.checkin?.leadId ? ` · ${t('opener.field.leadCreated')}` : ''}`
                   : t(`opener.skip.${s.skipReason || 'other'}`)}
               </p>
             </div>

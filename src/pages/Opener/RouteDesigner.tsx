@@ -758,7 +758,7 @@ export default function RouteDesigner() {
                       {detail.history.slice(0, 3).map((h) => (
                         <p key={h.id} className="flex items-center gap-1">
                           {h.verdict && <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[h.verdict] }} title={t(`opener.track.verdict.${h.verdict}`) as string} />}
-                          {new Date(h.at).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'short' })} · {h.by}{h.satisfaction ? ` · ${t('opener.field.client.satShort', { n: h.satisfaction })}` : ''} · {t('opener.field.interestShort', { n: h.interest })}
+                          {new Date(h.at).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'short' })} · {h.by}{h.satisfaction ? ` · ${t('opener.field.client.satShort', { n: h.satisfaction })}` : ''}{h.interest ? ` · ${t('opener.field.interestShort', { n: h.interest })}` : ''}
                         </p>
                       ))}
                     </div>

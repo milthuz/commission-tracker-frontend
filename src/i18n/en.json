@@ -6856,7 +6856,8 @@
         "interest": "Interest in Cluster payments",
         "createLead": "Create an opportunity (payments)",
         "createLeadSub": "Sends it to the leads queue, prefilled with this customer",
-        "requiredMissing": "Satisfaction, current POS, service type and interest level are required."
+        "requiredMissing": "Satisfaction, current POS, service type and interest level are required.",
+        "alreadyPays": "Already on Cluster payments: no interest to note."
       },
       "demo": {
         "title": "See the app before assigning routes",

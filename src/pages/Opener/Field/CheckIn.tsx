@@ -149,7 +149,7 @@ function NewCheckIn() {
       startedAt: f.startedAt, startLat: f.startLat ?? null, startLng: f.startLng ?? null, startAccuracy: f.startAccuracy ?? null,
       lat: here?.[0] ?? null, lng: here?.[1] ?? null, accuracy: hereAcc ?? null,
       currentPos: posValue, serviceType: f.serviceType!, terminals: f.terminals, onlineDelivery: f.onlineDelivery,
-      decisionMaker: f.decisionMaker, interest: f.interest, services: f.services, notes: f.notes.trim(),
+      decisionMaker: f.decisionMaker, interest: f.interest || null, services: f.services, notes: f.notes.trim(),
       satisfaction: isClient ? f.satisfaction || null : null, paymentsBy: isClient ? f.paymentsBy || null : null,
     };
     // Démo : rien n'est envoyé, seul l'écran change.
@@ -158,7 +158,7 @@ function NewCheckIn() {
       await flush().catch(() => {});
     }
     clearDraft(draftKey);
-    markStop(stop.id, { outcome: 'done', doneAt: payload.at, checkin: { id: f.id, at: payload.at, interest: f.interest, leadId: null, decisionMaker: f.decisionMaker, currentPos: posValue } });
+    markStop(stop.id, { outcome: 'done', doneAt: payload.at, checkin: { id: f.id, at: payload.at, interest: f.interest || null, leadId: null, decisionMaker: f.decisionMaker, currentPos: posValue } });
     setSending(false);
     if (wantLead) navigate(`/opener/stop/${stop.id}/lead`, { replace: true, state: { checkin: payload } });
     else navigate('/opener', { replace: true });
@@ -201,7 +201,7 @@ function EditCheckIn({ checkinId }: { checkinId: string }) {
       const known = POS.includes(c.currentPos);
       setForm({
         id: c.id, currentPos: known ? c.currentPos : 'Autre', otherPos: known ? '' : c.currentPos, serviceType: c.serviceType,
-        terminals: c.terminals ?? 1, onlineDelivery: !!c.onlineDelivery, decisionMaker: c.decisionMaker, interest: c.interest,
+        terminals: c.terminals ?? 1, onlineDelivery: !!c.onlineDelivery, decisionMaker: c.decisionMaker, interest: c.interest || 0,
         services: c.services || [], notes: c.notes || '', createLead: false, satisfaction: c.satisfaction || 0, paymentsBy: c.paymentsBy,
       });
     }).catch((e) => setError(e.message));
@@ -218,10 +218,10 @@ function EditCheckIn({ checkinId }: { checkinId: string }) {
     try {
       await api(`/api/opener/checkins/${saved.id}`, { method: 'PUT', body: {
         currentPos: posValue, serviceType: f.serviceType, terminals: f.terminals, onlineDelivery: f.onlineDelivery,
-        decisionMaker: f.decisionMaker, interest: f.interest, services: f.services, notes: f.notes.trim(),
+        decisionMaker: f.decisionMaker, interest: f.interest || null, services: f.services, notes: f.notes.trim(),
         satisfaction: saved.isClient ? f.satisfaction || null : null, paymentsBy: saved.isClient ? f.paymentsBy || null : null,
       } });
-      if (saved.stopId) markStop(saved.stopId, { checkin: { id: saved.id, at: saved.at, interest: f.interest, leadId: saved.leadId, decisionMaker: f.decisionMaker, currentPos: posValue } });
+      if (saved.stopId) markStop(saved.stopId, { checkin: { id: saved.id, at: saved.at, interest: f.interest || null, leadId: saved.leadId, decisionMaker: f.decisionMaker, currentPos: posValue } });
       dialog.alert(t('opener.field.edit.saved'));
       back();
     } catch (e: any) {
@@ -293,8 +293,11 @@ function QuestionForm({ subject, form, setForm, onSubmit, mode, header, top, pos
   const set = <K extends keyof Form>(k: K) => (v: Form[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   const isClient = subject.isClient;
+  // Client qui a DÉJÀ les paiements Cluster (demande de Hao, 2026-10-14) : l'intérêt porte sur
+  // les paiements, il n'y a donc rien à demander, ni occasion à créer.
+  const alreadyPays = isClient && form.paymentsBy === 'cluster';
   const otherPos = (form.otherPos || '').trim();
-  const missing = { pos: !form.currentPos || (form.currentPos === 'Autre' && !otherPos), service: !form.serviceType, interest: !form.interest, satisfaction: isClient && !form.satisfaction };
+  const missing = { pos: !form.currentPos || (form.currentPos === 'Autre' && !otherPos), service: !form.serviceType, interest: !alreadyPays && !form.interest, satisfaction: isClient && !form.satisfaction };
   const posValue = form.currentPos === 'Autre' ? otherPos.slice(0, 40) : form.currentPos;
   const valid = !missing.pos && !missing.service && !missing.interest && !missing.satisfaction;
   const dist = mode === 'new' && position && subject.lat != null ? haversine(position, [subject.lat, subject.lng!]) : null;
@@ -306,7 +309,7 @@ function QuestionForm({ subject, form, setForm, onSubmit, mode, header, top, pos
     // Garde-fou (2026-10-08) : le premier jour, l'opener créait un lead à CHAQUE visite, même à
     // un intérêt de 1/5. Un lead n'a de sens que si le restaurant est intéressé : à 1 ou 2, on
     // demande. « Terminer sans lead » garde le check-in tel quel.
-    let wantLead = mode === 'new' && form.createLead;
+    let wantLead = mode === 'new' && form.createLead && !alreadyPays;
     if (wantLead && form.interest > 0 && form.interest <= LOW_INTEREST) {
       wantLead = await dialog.confirm(t('opener.field.lowInterestConfirm', { n: form.interest }),
         { confirmText: t('opener.field.lowInterestCreate'), cancelText: t('opener.field.lowInterestSkip') });
@@ -357,7 +360,8 @@ function QuestionForm({ subject, form, setForm, onSubmit, mode, header, top, pos
         ))}
         {isClient && q(t('opener.field.client.payments'), false, false,
           <Segmented options={(['cluster', 'other', 'unknown'] as PaymentsBy[]).map((v) => ({ value: v, label: t(`opener.field.client.paymentsBy.${v}`) }))}
-            value={form.paymentsBy || null} onChange={(v) => set('paymentsBy')(v as PaymentsBy)} />)}
+            value={form.paymentsBy || null} onChange={(v) => setForm((f) => ({ ...f, paymentsBy: v as PaymentsBy, ...(v === 'cluster' ? { interest: 0, createLead: false } : {}) }))} />)}
+        {alreadyPays && <p className="-mt-3 text-xs text-[var(--of-ok)]">{t('opener.field.client.alreadyPays')}</p>}
         {q(t('opener.field.q.pos'), true, missing.pos,
           <div>
             <Chips options={POS.map((p) => ({ value: p, label: p === 'Aucun' ? t('opener.field.none') : p === 'Autre' ? t('opener.field.other') : p }))} value={form.currentPos} onChange={set('currentPos')} />
@@ -378,7 +382,7 @@ function QuestionForm({ subject, form, setForm, onSubmit, mode, header, top, pos
         {q(t('opener.field.q.decision'), false, false,
           <Segmented options={[{ value: 'yes', label: t('opener.field.yes') }, { value: 'no', label: t('opener.field.no') }, { value: 'later', label: t('opener.field.later') }]}
             value={form.decisionMaker} onChange={(v) => set('decisionMaker')(v as Form['decisionMaker'])} />)}
-        {q(isClient ? t('opener.field.client.interest') : t('opener.field.q.interest'), true, missing.interest, (
+        {!alreadyPays && q(isClient ? t('opener.field.client.interest') : t('opener.field.q.interest'), true, missing.interest, (
           <div className="flex items-center gap-3">
             <div className="grid flex-1 grid-cols-5 gap-1.5" role="radiogroup">
               {[1, 2, 3, 4, 5].map((v) => (
@@ -394,7 +398,7 @@ function QuestionForm({ subject, form, setForm, onSubmit, mode, header, top, pos
         {q(t('opener.field.q.notes'), false, false,
           <textarea value={form.notes} onChange={(e) => set('notes')(e.target.value)} maxLength={2000}
             className="min-h-[88px] w-full rounded-[10px] border border-[var(--of-input-stroke)] bg-[var(--of-input)] p-3 text-sm text-[var(--of-text)] outline-none focus:border-primary" />)}
-        {mode === 'new' && (
+        {mode === 'new' && !alreadyPays && (
           <Card onClick={() => set('createLead')(!form.createLead)} className={form.createLead ? '!border-primary' : ''}>
             <div className="flex items-center gap-3">
               <span className={`flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md border ${form.createLead ? 'border-primary bg-primary' : 'border-[var(--of-input-stroke)]'}`}>

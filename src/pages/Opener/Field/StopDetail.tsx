@@ -156,7 +156,7 @@ export default function StopDetail() {
                   <div className="min-w-0 flex-1">
                     <p className="text-[13px] font-semibold text-[var(--of-title)]">{t('opener.field.checkinBy', { name: h.by })}</p>
                     <p className="text-xs leading-[1.4] text-[var(--of-muted)]">
-                      {[h.satisfaction ? t('opener.field.client.satShort', { n: h.satisfaction }) : null, h.currentPos, t(`opener.serviceShort.${h.serviceType}`), t('opener.field.interestShort', { n: h.interest }), h.leadRef].filter(Boolean).join(' · ')}
+                      {[h.satisfaction ? t('opener.field.client.satShort', { n: h.satisfaction }) : null, h.currentPos, t(`opener.serviceShort.${h.serviceType}`), h.interest ? t('opener.field.interestShort', { n: h.interest }) : null, h.leadRef].filter(Boolean).join(' · ')}
                       {h.notes ? <><br />{h.notes}</> : null}
                     </p>
                     <p className="text-[11px] text-[var(--of-faint)]">{fmtDate(h.at)}

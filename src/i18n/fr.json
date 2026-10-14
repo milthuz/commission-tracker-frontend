@@ -6856,7 +6856,8 @@
         "interest": "Intérêt pour les paiements Cluster",
         "createLead": "Créer une occasion (paiements)",
         "createLeadSub": "Envoie la demande dans la file des leads, préremplie avec ce client",
-        "requiredMissing": "Satisfaction, POS actuel, type de service et niveau d'intérêt sont obligatoires."
+        "requiredMissing": "Satisfaction, POS actuel, type de service et niveau d'intérêt sont obligatoires.",
+        "alreadyPays": "Déjà aux paiements Cluster : pas d’intérêt à noter."
       },
       "demo": {
         "title": "Voir l'application avant d'assigner des routes",
