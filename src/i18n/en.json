@@ -5614,6 +5614,9 @@
         "not_found": "Lead not found.",
         "failed": "The merge failed."
       }
+    },
+    "v2": {
+      "tabsLabel": "Lead status"
     }
   },
   "csLookup": {

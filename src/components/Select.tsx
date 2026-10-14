@@ -73,9 +73,11 @@ const Select: React.FC<{
    * resterait ouvert et vide après un abandon.
    */
   onClose?: () => void;
+  /** Opens the list ABOVE the button — for a select pinned at the bottom of a panel. */
+  openUp?: boolean;
   id?: string;
   'aria-label'?: string;
-}> = ({ value, onChange, options, className = '', disabled, placeholder, buttonClassName, required, autoOpen, onClose, id, ...aria }) => {
+}> = ({ value, onChange, options, className = '', disabled, placeholder, buttonClassName, required, autoOpen, onClose, openUp, id, ...aria }) => {
   const isDesktop = useIsDesktop();
   const [open, setOpen] = useState(!!autoOpen);
   const [active, setActive] = useState(0);
@@ -226,7 +228,7 @@ const Select: React.FC<{
           // `w-full` collait la liste a la largeur du bouton : des libelles plus longs que lui
           // s'y retrouvaient comprimes. `min-w-full w-max` la laisse s'elargir au contenu,
           // avec un plafond pour qu'un libelle aberrant ne traverse pas la page.
-          className="absolute z-[9999] mt-1 max-h-60 min-w-full w-max max-w-[min(24rem,80vw)] overflow-y-auto thin-scrollbar rounded border border-stroke bg-white py-1 shadow-default dark:border-strokedark dark:bg-boxdark"
+          className={`absolute z-[9999] ${openUp ? 'bottom-full mb-1' : 'mt-1'} max-h-60 min-w-full w-max max-w-[min(24rem,80vw)] overflow-y-auto thin-scrollbar rounded border border-stroke bg-white py-1 shadow-default dark:border-strokedark dark:bg-boxdark`}
         >
           {options.map((o, i) => (
             <li

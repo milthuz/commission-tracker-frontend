@@ -273,6 +273,15 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
     finally { setBusy(null); }
   };
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape' || busy || document.querySelector('[data-dialog-host]')) return;
+      onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [busy, onClose]);
+
   const dupRecords = lead?.duplicate?.records || [];
   // Ce a quoi une opportunite peut pendre : un compte, ou un contact (dont on lira le compte).
   // Un Lead n'a ni l'un ni l'autre — s'y rattacher n'aurait aucun sens, et le serveur le refuse.
@@ -295,17 +304,18 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
   const auto = lead?.automation || {};
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto p-4 sm:p-8">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !busy && onClose()} />
-      <div role="dialog" aria-modal="true" className="relative my-auto w-full max-w-4xl rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="fixed inset-0 z-[99999] flex justify-end">
+      <div className="absolute inset-0 bg-black/30" onClick={() => !busy && onClose()} />
+      {/* Panneau à droite (audit UX, planche DeskPistes) : la liste reste visible derrière. */}
+      <div role="dialog" aria-modal="true" aria-labelledby="lead-panel-title" className="relative flex h-full w-full max-w-[640px] flex-col border-l border-stroke bg-white shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)] dark:border-strokedark dark:bg-boxdark">
         {!lead ? (
           <div className="px-6 py-16 text-center text-sm text-bodydark2">{t('common.loading')}</div>
         ) : (
           <>
-            <div className="flex items-start justify-between gap-4 border-b border-stroke px-6 py-4 dark:border-strokedark">
+            <div className="flex flex-none items-start justify-between gap-4 border-b border-stroke px-6 py-4 dark:border-strokedark">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <h3 className="truncate text-lg font-semibold text-black dark:text-white">{lead.businessName}</h3>
+                  <h3 id="lead-panel-title" className="truncate text-lg font-semibold text-black dark:text-white">{lead.businessName}</h3>
                   <span className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${statusTone[lead.status]}`}>
                     {t(`leads.status.${lead.status}`)}
                   </span>
@@ -320,7 +330,7 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
               </button>
             </div>
 
-            <div className="max-h-[72vh] overflow-y-auto px-6 py-5">
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
               <MergePanel
                 lead={lead}
                 canMerge={canMerge}
@@ -503,34 +513,10 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
                 </div>
               )}
 
-              {/* ── Attribution + décision ─────────────────────────────────── */}
+              {/* ── Décision : ce qui se passera, et le rattachement choisi. Les commandes
+                  (« Assigner à » et les boutons) sont dans le PIED du panneau, toujours visibles. */}
               {pending && canReview && (
-                <div className="mt-6 rounded-sm border border-stroke px-4 py-4 dark:border-strokedark">
-                  <p className="mb-3 text-xs uppercase tracking-wide text-bodydark2">{t('leads.detail.decision')}</p>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="mb-2 block text-sm font-medium text-black dark:text-white">{t('leads.detail.assignTo')}</label>
-                      <Select
-                        buttonClassName={SELECT_CLS}
-                        value={rep}
-                        onChange={chooseRep}
-                        placeholder={t('leads.detail.pickRep') as string}
-                        options={reps.map((r) => ({
-                          value: r.name,
-                          label: r.name + (r.away_until ? ` — ${t('leads.detail.away')}` : r.in_rotation ? '' : ` — ${t('leads.detail.notInRotation')}`),
-                        }))}
-                      />
-                      <p className="mt-1.5 text-xs text-bodydark2">{t('leads.detail.assignOnAccept')}</p>
-                      {lead.suggested && (
-                        <p className="mt-1.5 text-xs text-bodydark2">
-                          {t('leads.detail.suggestion')}: <strong className="text-black dark:text-white">{lead.suggested.repName}</strong>
-                          {' — '}
-                          {lead.suggested.via === 'rule' ? t('leads.viaRule', { rule: lead.suggested.ruleName }) : t('leads.viaRotation')}
-                        </p>
-                      )}
-                    </div>
-
+                <div className="mt-6 flex flex-col gap-4">
                     {/* Ce que le bouton va RÉELLEMENT déclencher, énuméré avant le clic. */}
                     <div className="rounded-sm bg-gray-2 px-4 py-3 dark:bg-meta-4">
                       <p className="mb-1.5 text-xs font-medium text-black dark:text-white">{t('leads.detail.willHappen')}</p>
@@ -543,8 +529,6 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
                         <li>· {lead.contactEmail ? t('leads.detail.willMerchantEmail', { email: lead.contactEmail }) : t('leads.detail.noMerchantEmail')}</li>
                       </ul>
                     </div>
-                  </div>
-
                   {/* Le rattachement choisi, rappelé ICI : la liste des doublons est tout en haut
                       de la fiche et on ne la voit plus au moment de cliquer. */}
                   {rattachement && (
@@ -557,121 +541,6 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
                         className="shrink-0 rounded border border-stroke px-3 py-1.5 text-xs font-medium text-bodydark2 hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:hover:bg-meta-4">
                         {t('leads.attach.clear')}
                       </button>
-                    </div>
-                  )}
-
-                  {ticketOpen ? (
-                    <div id="lead-ticket-panel" className="mt-4 rounded-sm border border-[#3C50E0]/30 bg-[#3C50E0]/5 px-4 py-4">
-                      <p className="text-sm font-medium text-black dark:text-white">{t('leads.ticket.title')}</p>
-                      <p className="mt-1 text-xs text-bodydark2">{t('leads.ticket.hint', { email: lead.contactEmail || lead.contactPhone || '—' })}</p>
-                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <div>
-                          <label className="mb-1.5 block text-xs font-medium text-black dark:text-white">{t('leads.ticket.department')}</label>
-                          {departments === null ? (
-                            <p className="py-2.5 text-sm text-bodydark2">{t('common.loading')}</p>
-                          ) : departments.length ? (
-                            <Select value={deptId} onChange={setDeptId} buttonClassName={SELECT_CLS}
-                              options={departments.map((d) => ({ value: d.id, label: d.name }))} />
-                          ) : (
-                            <p className="py-2.5 text-sm text-danger">{t('leads.ticket.noDepartments')}</p>
-                          )}
-                          {deptHidden > 0 && (
-                            <p className="mt-1 text-xs text-bodydark2">{t('leads.ticket.deptHidden', { n: deptHidden })}</p>
-                          )}
-                        </div>
-                        <div>
-                          <label className="mb-1.5 block text-xs font-medium text-black dark:text-white">{t('leads.ticket.subject')}</label>
-                          <input value={ticketSubject} onChange={(e) => setTicketSubject(e.target.value)} maxLength={250}
-                            className="w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
-                        </div>
-                      </div>
-                      <label className="mb-1.5 mt-3 block text-xs font-medium text-black dark:text-white">{t('leads.ticket.note')}</label>
-                      <textarea rows={2} value={ticketNote} onChange={(e) => setTicketNote(e.target.value)}
-                        placeholder={t('leads.ticket.notePlaceholder') as string}
-                        className="w-full resize-y rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
-                      <div className="mt-3 flex flex-wrap justify-end gap-2">
-                        <button type="button" onClick={() => setTicketOpen(false)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
-                          {t('common.cancel')}
-                        </button>
-                        <button type="button" onClick={doTicket} disabled={!!busy || !deptId} className="rounded bg-[#3C50E0] px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
-                          {busy === 'ticket' ? t('leads.ticket.creating') : t('leads.ticket.create')}
-                        </button>
-                      </div>
-                    </div>
-                  ) : rejecting ? (
-                    <div className="mt-4">
-                      <label className="mb-2 block text-sm font-medium text-black dark:text-white">{t('leads.detail.rejectReason')}</label>
-                      <input
-                        className="w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
-                        placeholder={t('leads.detail.rejectReasonPlaceholder') as string}
-                        autoFocus
-                      />
-                      <div className="mt-3 flex flex-wrap justify-end gap-2">
-                        <button type="button" onClick={() => { setRejecting(false); setReason(''); }} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
-                          {t('common.cancel')}
-                        </button>
-                        <button type="button" onClick={() => doReject(true)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-bodydark2 hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:hover:bg-meta-4">
-                          {t('leads.detail.markDuplicate')}
-                        </button>
-                        <button type="button" onClick={() => doReject(false)} disabled={!!busy} className="rounded bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
-                          {busy === 'reject' ? t('common.loading') : t('leads.detail.confirmReject')}
-                        </button>
-                      </div>
-                    </div>
-                  ) : confirmDup ? (
-                    <div className="mt-4 rounded-sm border border-warning/50 bg-warning/10 px-4 py-3">
-                      <p className="text-sm font-medium text-warning">{t('leads.dup.confirmTitle')}</p>
-                      <p className="mt-1 text-sm text-black dark:text-white">
-                        {t('leads.dup.confirmBody', { n: dupRecords.length, rep: rep || '…' })}
-                        {owners.length > 0 && <> {t('leads.dup.confirmOwners', { names: owners.join(', ') })}</>}
-                      </p>
-                      {/* Le meilleur chemin, nommé AVANT « Accepter quand même » : accepter crée un
-                          second compte à la conversion, rattacher non. On ne retire pas l'autre
-                          bouton pour autant — un même numéro peut appartenir à deux commerces. */}
-                      {canAttach && dupRecords.some(attachable) && (
-                        <p className="mt-2 rounded-sm bg-emerald-600/10 px-3 py-2 text-xs text-emerald-800 dark:text-emerald-300">
-                          {t('leads.attach.hint')}
-                        </p>
-                      )}
-                      <div className="mt-3 flex flex-wrap justify-end gap-2">
-                        <button type="button" onClick={() => setConfirmDup(false)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
-                          {t('common.cancel')}
-                        </button>
-                        <button type="button" onClick={() => { setConfirmDup(false); doReject(true); }} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-bodydark2 hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:hover:bg-meta-4">
-                          {t('leads.detail.markDuplicate')}
-                        </button>
-                        <button type="button" onClick={() => doAccept(true)} disabled={!!busy || !rep} className="rounded bg-warning px-4 py-2 text-sm font-medium text-orange-900 hover:bg-opacity-90 disabled:opacity-60">
-                          {busy === 'accept' ? t('leads.detail.accepting') : t('leads.dup.acceptAnyway')}
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-4 flex flex-wrap justify-end gap-2">
-                      {canTicket && (
-                        // Toujours en couleur, avec une icône : c'est une vraie sortie de la file, pas une
-                        // option secondaire. Plein quand la piste a l'air d'un client existant.
-                        <button type="button" onClick={openTicket} disabled={!!busy} className={`mr-auto inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium disabled:opacity-60 ${
-                          looksExisting
-                            ? 'bg-[#3C50E0] text-white shadow-sm hover:bg-opacity-90'
-                            : 'border border-[#3C50E0] text-[#3C50E0] hover:bg-[#3C50E0]/10 dark:text-[#8FA1FF]'}`}>
-                          <LifeBuoy className="h-4 w-4" />{t('leads.ticket.button')}
-                        </button>
-                      )}
-                      <button type="button" onClick={() => setRejecting(true)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
-                        {t('leads.detail.reject')}
-                      </button>
-                      {rattachement ? (
-                        <button type="button" onClick={() => doAccept(false, rattachement)} disabled={!!busy || !rep}
-                          className="rounded bg-emerald-700 px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
-                          {busy === 'accept' ? t('leads.detail.accepting') : t('leads.attach.accept')}
-                        </button>
-                      ) : (
-                        <button type="button" onClick={() => doAccept()} disabled={!!busy || !rep} className="rounded bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
-                          {busy === 'accept' ? t('leads.detail.accepting') : t('leads.detail.accept')}
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>
@@ -852,6 +721,148 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
                 </div>
               )}
             </div>
+            {/* Pied du panneau, toujours visible (audit UX) : « Assigner à », puis Billet soutien,
+                Rejeter ou Accepter — au lieu de boutons perdus au bas d'une fenêtre qui défile. */}
+            {pending && canReview && (
+              <div className="max-h-[60vh] flex-none overflow-y-auto border-t border-stroke bg-white px-6 py-4 dark:border-strokedark dark:bg-boxdark">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-black dark:text-white">{t('leads.detail.assignTo')}</label>
+                      <Select
+                        buttonClassName={SELECT_CLS}
+                        value={rep}
+                        onChange={chooseRep}
+                        openUp
+                        placeholder={t('leads.detail.pickRep') as string}
+                        options={reps.map((r) => ({
+                          value: r.name,
+                          label: r.name + (r.away_until ? ` — ${t('leads.detail.away')}` : r.in_rotation ? '' : ` — ${t('leads.detail.notInRotation')}`),
+                        }))}
+                      />
+                      <p className="mt-1.5 text-xs text-bodydark2">{t('leads.detail.assignOnAccept')}</p>
+                      {lead.suggested && (
+                        <p className="mt-1.5 text-xs text-bodydark2">
+                          {t('leads.detail.suggestion')}: <strong className="text-black dark:text-white">{lead.suggested.repName}</strong>
+                          {' — '}
+                          {lead.suggested.via === 'rule' ? t('leads.viaRule', { rule: lead.suggested.ruleName }) : t('leads.viaRotation')}
+                        </p>
+                      )}
+                    </div>
+                  {ticketOpen ? (
+                    <div id="lead-ticket-panel" className="mt-4 rounded-sm border border-[#3C50E0]/30 bg-[#3C50E0]/5 px-4 py-4">
+                      <p className="text-sm font-medium text-black dark:text-white">{t('leads.ticket.title')}</p>
+                      <p className="mt-1 text-xs text-bodydark2">{t('leads.ticket.hint', { email: lead.contactEmail || lead.contactPhone || '—' })}</p>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-1.5 block text-xs font-medium text-black dark:text-white">{t('leads.ticket.department')}</label>
+                          {departments === null ? (
+                            <p className="py-2.5 text-sm text-bodydark2">{t('common.loading')}</p>
+                          ) : departments.length ? (
+                            <Select value={deptId} onChange={setDeptId} buttonClassName={SELECT_CLS}
+                              options={departments.map((d) => ({ value: d.id, label: d.name }))} />
+                          ) : (
+                            <p className="py-2.5 text-sm text-danger">{t('leads.ticket.noDepartments')}</p>
+                          )}
+                          {deptHidden > 0 && (
+                            <p className="mt-1 text-xs text-bodydark2">{t('leads.ticket.deptHidden', { n: deptHidden })}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="mb-1.5 block text-xs font-medium text-black dark:text-white">{t('leads.ticket.subject')}</label>
+                          <input value={ticketSubject} onChange={(e) => setTicketSubject(e.target.value)} maxLength={250}
+                            className="w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                        </div>
+                      </div>
+                      <label className="mb-1.5 mt-3 block text-xs font-medium text-black dark:text-white">{t('leads.ticket.note')}</label>
+                      <textarea rows={2} value={ticketNote} onChange={(e) => setTicketNote(e.target.value)}
+                        placeholder={t('leads.ticket.notePlaceholder') as string}
+                        className="w-full resize-y rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
+                      <div className="mt-3 flex flex-wrap justify-end gap-2">
+                        <button type="button" onClick={() => setTicketOpen(false)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                          {t('common.cancel')}
+                        </button>
+                        <button type="button" onClick={doTicket} disabled={!!busy || !deptId} className="rounded bg-[#3C50E0] px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                          {busy === 'ticket' ? t('leads.ticket.creating') : t('leads.ticket.create')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : rejecting ? (
+                    <div className="mt-4">
+                      <label className="mb-2 block text-sm font-medium text-black dark:text-white">{t('leads.detail.rejectReason')}</label>
+                      <input
+                        className="w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        placeholder={t('leads.detail.rejectReasonPlaceholder') as string}
+                        autoFocus
+                      />
+                      <div className="mt-3 flex flex-wrap justify-end gap-2">
+                        <button type="button" onClick={() => { setRejecting(false); setReason(''); }} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                          {t('common.cancel')}
+                        </button>
+                        <button type="button" onClick={() => doReject(true)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-bodydark2 hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:hover:bg-meta-4">
+                          {t('leads.detail.markDuplicate')}
+                        </button>
+                        <button type="button" onClick={() => doReject(false)} disabled={!!busy} className="rounded bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                          {busy === 'reject' ? t('common.loading') : t('leads.detail.confirmReject')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : confirmDup ? (
+                    <div className="mt-4 rounded-sm border border-warning/50 bg-warning/10 px-4 py-3">
+                      <p className="text-sm font-medium text-warning">{t('leads.dup.confirmTitle')}</p>
+                      <p className="mt-1 text-sm text-black dark:text-white">
+                        {t('leads.dup.confirmBody', { n: dupRecords.length, rep: rep || '…' })}
+                        {owners.length > 0 && <> {t('leads.dup.confirmOwners', { names: owners.join(', ') })}</>}
+                      </p>
+                      {/* Le meilleur chemin, nommé AVANT « Accepter quand même » : accepter crée un
+                          second compte à la conversion, rattacher non. On ne retire pas l'autre
+                          bouton pour autant — un même numéro peut appartenir à deux commerces. */}
+                      {canAttach && dupRecords.some(attachable) && (
+                        <p className="mt-2 rounded-sm bg-emerald-600/10 px-3 py-2 text-xs text-emerald-800 dark:text-emerald-300">
+                          {t('leads.attach.hint')}
+                        </p>
+                      )}
+                      <div className="mt-3 flex flex-wrap justify-end gap-2">
+                        <button type="button" onClick={() => setConfirmDup(false)} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                          {t('common.cancel')}
+                        </button>
+                        <button type="button" onClick={() => { setConfirmDup(false); doReject(true); }} disabled={!!busy} className="rounded border border-stroke px-4 py-2 text-sm font-medium text-bodydark2 hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:hover:bg-meta-4">
+                          {t('leads.detail.markDuplicate')}
+                        </button>
+                        <button type="button" onClick={() => doAccept(true)} disabled={!!busy || !rep} className="rounded bg-warning px-4 py-2 text-sm font-medium text-orange-900 hover:bg-opacity-90 disabled:opacity-60">
+                          {busy === 'accept' ? t('leads.detail.accepting') : t('leads.dup.acceptAnyway')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`mt-3 grid gap-2 ${canTicket ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                      {canTicket && (
+                        // Toujours en couleur, avec une icône : c'est une vraie sortie de la file, pas une
+                        // option secondaire. Plein quand la piste a l'air d'un client existant.
+                        <button type="button" onClick={openTicket} disabled={!!busy} className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl px-3 text-[13px] font-bold disabled:opacity-60 ${
+                          looksExisting
+                            ? 'bg-[#3C50E0] text-white shadow-sm hover:bg-opacity-90'
+                            : 'border border-[#3C50E0] text-[#3C50E0] hover:bg-[#3C50E0]/10 dark:text-[#8FA1FF]'}`}>
+                          <LifeBuoy className="h-4 w-4" />{t('leads.ticket.button')}
+                        </button>
+                      )}
+                      <button type="button" onClick={() => setRejecting(true)} disabled={!!busy} className="h-11 rounded-xl border border-stroke px-3 text-[13px] font-bold text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+                        {t('leads.detail.reject')}
+                      </button>
+                      {rattachement ? (
+                        <button type="button" onClick={() => doAccept(false, rattachement)} disabled={!!busy || !rep}
+                          className="h-11 rounded-xl bg-emerald-700 px-3 text-[13px] font-bold text-white hover:bg-opacity-90 disabled:opacity-60">
+                          {busy === 'accept' ? t('leads.detail.accepting') : t('leads.attach.accept')}
+                        </button>
+                      ) : (
+                        <button type="button" onClick={() => doAccept()} disabled={!!busy || !rep} className="h-11 rounded-xl bg-primary px-3 text-[13px] font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
+                          {busy === 'accept' ? t('leads.detail.accepting') : t('leads.detail.accept')}
+                        </button>
+                      )}
+                    </div>
+                  )}
+              </div>
+            )}
           </>
         )}
       </div>

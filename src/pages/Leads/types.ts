@@ -1,3 +1,4 @@
+import { STATUS_PILL_CLS, type StatusFamily } from '../../components/ui/StatusPill';
 // Formes renvoyées par le backend (SH-20). Elles suivent `publicLead()` de server.js — les
 // champs de contact sont volontairement À PLAT (`contactEmail` et non `contact.email`) : le mode
 // démo masque par NOM de clé, et une clé générique `email` toucherait aussi les courriels des
@@ -158,11 +159,16 @@ export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getIte
 export const leadFullName = (l: Lead) =>
   [l.contactFirstName, l.contactLastName].filter(Boolean).join(' ') || null;
 
-export const statusTone: Record<LeadStatus, string> = {
-  new: 'bg-warning/15 text-warning',
-  in_review: 'bg-primary/15 text-primary',
-  accepted: 'bg-success/15 text-success',
-  rejected: 'bg-danger/10 text-danger',
-  duplicate: 'bg-bodydark2/15 text-bodydark2 dark:text-bodydark1',
-  support_ticket: 'bg-[#3C50E0]/10 text-[#3C50E0] dark:text-[#8FA1FF]',
+// Une couleur = un sens, partout (refonte UI, composants/StatusPill) : à examiner = « nouveau »,
+// acceptée = « réussi », fermée ou passée au soutien = « neutre ».
+export const statusFamily: Record<LeadStatus, StatusFamily> = {
+  new: 'new',
+  in_review: 'new',
+  accepted: 'ok',
+  rejected: 'neutral',
+  duplicate: 'neutral',
+  support_ticket: 'neutral',
 };
+export const statusTone: Record<LeadStatus, string> = Object.fromEntries(
+  Object.entries(statusFamily).map(([k, fam]) => [k, STATUS_PILL_CLS[fam]]),
+) as Record<LeadStatus, string>;

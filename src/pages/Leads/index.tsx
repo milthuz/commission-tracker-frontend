@@ -7,8 +7,9 @@ import ImportLeads from './ImportLeads';
 import StatsFilters, { type StatsQuery } from './StatsFilters';
 import LeadsChart, { type ChartPoint, SOURCE_ORDER, sourceColor, useIsDark } from './LeadsChart';
 import LeadDetail from './LeadDetail';
-import { authHeaders, leadFullName, statusTone, LEAD_SOURCES, type Lead, type LeadRep } from './types';
+import { authHeaders, leadFullName, statusFamily, LEAD_SOURCES, type Lead, type LeadRep } from './types';
 import { notifyLeadsChanged } from '../../lib/badgeEvents';
+import { Button, DataTable, FilterBar, StatusPill, Tabs, useUrlTab, type Column } from '../../components/ui';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -40,7 +41,8 @@ const Leads = () => {
   const fr = !!i18n.language?.startsWith('fr');
   const location = useLocation();
 
-  const [tab, setTab] = useState<Tab>('queue');
+  // Onglet actif dans l'adresse (?onglet=) : un lien vers « Pistes › Acceptées » se partage.
+  const [tab, setTab] = useUrlTab<Tab>('queue', ['queue', 'accepted', 'closed', 'support', 'all', 'stats']);
   const [rows, setRows] = useState<Lead[] | null>(null);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [can, setCan] = useState({ review: false, intake: false, viewAll: false, rules: false, import: false, export: false });
@@ -150,57 +152,93 @@ const Leads = () => {
     { label: t('leads.kpi.won'), value: `${stats.funnel.won} / ${stats.funnel.received}`, tone: '' },
   ] : [];
 
+  const leadColumns: Column<Lead>[] = [
+    {
+      key: 'business', header: t('leads.columns.business'), sortValue: (l) => l.businessName,
+      render: (l) => {
+        const waitingH = Math.round((Date.now() - new Date(l.createdAt).getTime()) / 3600000);
+        const pendingReview = l.status === 'new' || l.status === 'in_review';
+        const stale = pendingReview && waitingH >= 24;
+        const existing = (!!l.existingCustomer?.matches?.length || l.formSaysExisting) && pendingReview;
+        return (
+          <div className="min-w-[180px]">
+            <p className="m-0 font-bold">{l.businessName}</p>
+            <p className="m-0 mt-0.5 text-xs text-body dark:text-bodydark2">
+              {l.refCode}{[l.city, l.province].filter(Boolean).length ? ` · ${[l.city, l.province].filter(Boolean).join(', ')}` : ''}
+            </p>
+            {/* Signalements : jamais bloquants, toujours visibles avant d'accepter. */}
+            {(l.possibleMerge || !!l.duplicate.records?.length || l.crm.error || stale || existing) && (
+              <p className="m-0 mt-1.5 flex flex-wrap gap-1.5">
+                {existing && <StatusPill family="wait">{t('leads.badge.existing')}</StatusPill>}
+                {!!l.duplicate.records?.length && <StatusPill family="wait">{t('leads.badge.duplicate')}</StatusPill>}
+                {l.possibleMerge && <StatusPill family="wait" title={t('leads.merge.badgeHint') as string}>{t('leads.merge.badge')}</StatusPill>}
+                {stale && <StatusPill family="err">{t('leads.badge.waiting', { n: waitingH })}</StatusPill>}
+                {l.crm.error && <StatusPill family="err" title={l.crm.error}>{t('leads.badge.crmFailed')}</StatusPill>}
+              </p>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'contact', header: t('leads.columns.contact'), sortValue: (l) => leadFullName(l),
+      render: (l) => (
+        <>
+          <p className="m-0 text-sm">{leadFullName(l) || '—'}</p>
+          <p className="m-0 mt-0.5 whitespace-nowrap text-xs text-body dark:text-bodydark2">{l.contactPhone || l.contactEmail || '—'} · {l.language === 'en' ? 'EN' : 'FR'}</p>
+        </>
+      ),
+    },
+    { key: 'source', header: t('leads.columns.source'), sortValue: (l) => t(`leads.source.${l.source}`) as string, className: 'whitespace-nowrap text-[#424242] dark:text-bodydark', render: (l) => t(`leads.source.${l.source}`) },
+    {
+      key: 'received', header: t('leads.columns.received'), sortValue: (l) => new Date(l.createdAt).getTime(), className: 'whitespace-nowrap',
+      render: (l) => {
+        const late = (l.status === 'new' || l.status === 'in_review') && Date.now() - new Date(l.createdAt).getTime() >= 4 * 3600e3;
+        return <span className={late ? 'font-bold text-warning' : 'text-[#424242] dark:text-bodydark'}>{dt(l.createdAt)}</span>;
+      },
+    },
+    {
+      key: 'rep', header: t('leads.columns.rep'), sortValue: (l) => l.assigned?.repName || l.suggested?.repName || '',
+      render: (l) => l.assigned?.repName
+        ? l.assigned.repName
+        : l.suggested?.repName
+          ? <span className="text-body dark:text-bodydark2">{t('leads.suggestedShort', { rep: l.suggested.repName })}</span>
+          : <span className="text-body dark:text-bodydark2">—</span>,
+    },
+    { key: 'status', header: t('leads.columns.status'), sortValue: (l) => l.status, render: (l) => <StatusPill family={statusFamily[l.status]}>{t(`leads.status.${l.status}`)}</StatusPill> },
+  ];
+
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-title-md2 font-bold text-black dark:text-white">{t('leads.title')}</h2>
-          <p className="mt-1 text-sm text-bodydark2">{t('leads.subtitle')}</p>
+      <header className="mb-5 flex flex-col gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[13px] text-body dark:text-bodydark2">{t('sidebar.sections.sales')}</span>
+            <h1 className="m-0 text-2xl font-bold leading-tight tracking-[-0.01em] text-black dark:text-white">{t('leads.title')}</h1>
+            <p className="m-0 text-[13px] text-body dark:text-bodydark2">{t('leads.subtitle')}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {can.import && (
+              <Button size="md" onClick={() => setImportOpen(true)}
+                icon={<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 21h14" /></svg>}>
+                {t('leads.import.button')}
+              </Button>
+            )}
+            {can.intake && (
+              <Button size="md" variant="primary" onClick={() => setIntakeOpen(true)}
+                icon={<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>}>
+                {t('leads.newLead')}
+              </Button>
+            )}
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-        {can.import && (
-          <button
-            type="button"
-            onClick={() => setImportOpen(true)}
-            className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-5 py-2.5 text-sm font-medium text-black shadow-sm hover:bg-gray-2 dark:border-strokedark dark:bg-boxdark dark:text-white dark:hover:bg-meta-4"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 21h14" /></svg>
-            {t('leads.import.button')}
-          </button>
-        )}
-        {can.intake && (
-          <button
-            type="button"
-            onClick={() => setIntakeOpen(true)}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-            {t('leads.newLead')}
-          </button>
-        )}
-        </div>
-      </div>
-
-      <div className="mb-5 inline-flex flex-wrap rounded-sm border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-        {TABS.map((k) => {
-          const n = tabCount(k);
-          return (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setTab(k)}
-              className={`rounded-sm px-4 py-2 text-sm font-medium transition-colors duration-150 ${
-                tab === k ? 'bg-primary text-white' : 'text-bodydark2 hover:text-black dark:hover:text-white'
-              }`}
-            >
-              {t(`leads.tabs.${k}`)}
-              {n != null && n > 0 && (
-                <span className={`ml-2 rounded-full px-1.5 py-0.5 text-[11px] ${tab === k ? 'bg-white/25' : 'bg-gray-2 dark:bg-meta-4'}`}>{n}</span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+        <Tabs
+          ariaLabel={t('leads.v2.tabsLabel') as string}
+          value={tab}
+          onChange={setTab}
+          tabs={TABS.map((k) => { const n = tabCount(k); return { id: k, label: t(`leads.tabs.${k}`), count: n != null && n > 0 ? n : undefined }; })}
+        />
+      </header>
 
       {tab === 'stats' ? (
         <>
@@ -312,14 +350,13 @@ const Leads = () => {
         </>
       ) : (
         <>
-          {/* Barre de filtres en CARTE pleine largeur sous le titre — convention maison :
-              sélecteurs à gauche, recherche qui s'étire, jamais flottante à côté du titre. */}
-          <div className="mb-5 rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="flex flex-wrap items-center gap-3">
+          {/* Barre de filtres en CARTE pleine largeur sous le titre — convention maison. */}
+          <div className="mb-4">
+            <FilterBar search={q} onSearch={setQ} searchPlaceholder={t('leads.filters.search') as string}>
               <Select
                 value={source}
                 onChange={setSource}
-                buttonClassName="rounded border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4"
+                buttonClassName="h-10 rounded-xl border border-stroke bg-white px-3 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
                 options={[{ value: '', label: t('leads.filters.allSources') as string },
                   ...LEAD_SOURCES.map((s) => ({ value: s, label: t(`leads.source.${s}`) as string }))]}
               />
@@ -327,126 +364,28 @@ const Leads = () => {
                 <Select
                   value={rep}
                   onChange={setRep}
-                  buttonClassName="rounded border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4"
+                  buttonClassName="h-10 rounded-xl border border-stroke bg-white px-3 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
                   options={[{ value: '', label: t('leads.filters.allReps') as string },
                     ...reps.map((r) => ({ value: r.name, label: r.name }))]}
                 />
               )}
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={t('leads.filters.search') as string}
-                className="min-w-[220px] flex-1 rounded border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4"
-              />
-            </div>
+            </FilterBar>
           </div>
 
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[820px] table-auto">
-                <thead>
-                  <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                    <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('leads.columns.business')}</th>
-                    <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('leads.columns.contact')}</th>
-                    <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('leads.columns.source')}</th>
-                    <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('leads.columns.received')}</th>
-                    <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('leads.columns.rep')}</th>
-                    <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('leads.columns.status')}</th>
-                    <th className="sticky right-0 bg-gray-2 px-4 py-4 dark:bg-meta-4" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {visible?.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className="px-4 py-12 text-center text-sm text-bodydark2">
-                        {source || q || rep ? t('leads.empty') : t(`leads.emptyTab.${tab}`)}
-                      </td>
-                    </tr>
-                  )}
-                  {visible?.map((l) => {
-                    const waitingH = Math.round((Date.now() - new Date(l.createdAt).getTime()) / 3600000);
-                    const stale = (l.status === 'new' || l.status === 'in_review') && waitingH >= 24;
-                    return (
-                      <tr key={l.id} className="border-t border-stroke dark:border-strokedark">
-                        <td className="px-4 py-4">
-                          <p className="font-medium text-black dark:text-white">
-                            {l.businessName}
-                            {l.possibleMerge && (
-                              <span className="ml-2 inline-flex rounded-full bg-warning/15 px-2 py-0.5 align-middle text-[11px] font-medium text-warning" title={t('leads.merge.badgeHint') as string}>
-                                {t('leads.merge.badge')}
-                              </span>
-                            )}
-                          </p>
-                          <p className="mt-0.5 text-xs text-bodydark2">
-                            {l.refCode}
-                            {[l.city, l.province].filter(Boolean).length ? ` · ${[l.city, l.province].filter(Boolean).join(', ')}` : ''}
-                          </p>
-                          {/* Signalements : jamais bloquants, toujours visibles avant d'accepter. */}
-                          {(!!l.duplicate.records?.length || l.crm.error || stale || !!l.existingCustomer?.matches?.length || l.formSaysExisting) && (
-                            <p className="mt-1.5 flex flex-wrap gap-1.5">
-                              {(!!l.existingCustomer?.matches?.length || l.formSaysExisting) && (l.status === 'new' || l.status === 'in_review') && (
-                                <span className="inline-flex whitespace-nowrap rounded bg-[#3C50E0]/10 px-1.5 py-0.5 text-[11px] font-medium text-[#3C50E0] dark:text-[#8FA1FF]">
-                                  {t('leads.badge.existing')}
-                                </span>
-                              )}
-                              {!!l.duplicate.records?.length && (
-                                <span className="inline-flex items-center gap-1 whitespace-nowrap rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-medium text-warning">
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 9v5M12 17.5v.1" /><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /></svg>
-                                  {t('leads.badge.duplicate')}
-                                </span>
-                              )}
-                              {stale && (
-                                <span className="inline-flex whitespace-nowrap rounded bg-danger/10 px-1.5 py-0.5 text-[11px] font-medium text-danger">
-                                  {t('leads.badge.waiting', { n: waitingH })}
-                                </span>
-                              )}
-                              {l.crm.error && (
-                                <span title={l.crm.error} className="inline-flex whitespace-nowrap rounded bg-danger/10 px-1.5 py-0.5 text-[11px] font-medium text-danger">
-                                  {t('leads.badge.crmFailed')}
-                                </span>
-                              )}
-                            </p>
-                          )}
-                        </td>
-                        <td className="px-4 py-4">
-                          <p className="text-sm text-black dark:text-white">{leadFullName(l) || '—'}</p>
-                          <p className="mt-0.5 whitespace-nowrap text-xs text-bodydark2">
-                            {l.contactPhone || l.contactEmail || '—'}
-                            {' · '}{l.language === 'en' ? 'EN' : 'FR'}
-                          </p>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm text-black dark:text-white">{t(`leads.source.${l.source}`)}</td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm text-black dark:text-white">{dt(l.createdAt)}</td>
-                        <td className="px-4 py-4 text-sm">
-                          {l.assigned?.repName
-                            ? <span className="text-black dark:text-white">{l.assigned.repName}</span>
-                            : l.suggested?.repName
-                            ? <span className="text-bodydark2">{t('leads.suggestedShort', { rep: l.suggested.repName })}</span>
-                            : <span className="text-bodydark2">—</span>}
-                        </td>
-                        <td className="px-4 py-4">
-                          <span className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${statusTone[l.status]}`}>
-                            {t(`leads.status.${l.status}`)}
-                          </span>
-                        </td>
-                        {/* Colonne d'actions collée à droite, fond opaque : sur un écran étroit
-                            elle doit rester lisible par-dessus le contenu qui défile dessous. */}
-                        <td className="sticky right-0 bg-white px-4 py-4 text-right dark:bg-boxdark">
-                          <button
-                            type="button"
-                            onClick={() => setOpenId(l.id)}
-                            className="whitespace-nowrap rounded border border-stroke px-3 py-1.5 text-xs font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4"
-                          >
-                            {can.review && (l.status === 'new' || l.status === 'in_review') ? t('leads.actions.review') : t('leads.actions.open')}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {/* Liste : la ligne ENTIÈRE ouvre le panneau de la piste à droite (audit UX). La file
+              « À examiner » est triée de la plus ancienne à la plus récente : la plus vieille
+              attend le plus. Pagination par 25. */}
+          <DataTable<Lead>
+            key={tab}
+            rows={visible || []}
+            loading={visible == null}
+            rowKey={(l) => l.id}
+            onRowClick={(l) => setOpenId(l.id)}
+            selectedKey={openId}
+            defaultSort={{ key: 'received', dir: tab === 'queue' ? 'asc' : 'desc' }}
+            empty={{ title: source || q || rep ? t('leads.empty') : t(`leads.emptyTab.${tab}`) }}
+            columns={leadColumns}
+          />
         </>
       )}
 

@@ -5614,6 +5614,9 @@
         "not_found": "Piste introuvable.",
         "failed": "La fusion a échoué."
       }
+    },
+    "v2": {
+      "tabsLabel": "Statut des pistes"
     }
   },
   "csLookup": {
