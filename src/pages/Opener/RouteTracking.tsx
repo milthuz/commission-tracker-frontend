@@ -59,7 +59,8 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
   const [mapReady, setMapReady] = useState(false);
   const layers = useRef<any[]>([]);
   const fitted = useRef('');
-  const fmtTime = (s: string) => new Date(s).toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' });
+  // Toujours l'heure de MONTRÉAL (le terrain), quel que soit le fuseau de l'ordinateur du gestionnaire.
+  const fmtTime = (s: string) => new Date(s).toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Toronto' });
   const fmtDay = (s: string) => new Date(`${s}T12:00:00Z`).toLocaleDateString(loc, { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' });
 
   useEffect(() => { getOpenerConfig().then((c) => { setToday(c.today); setDay(c.today); }).catch(() => {}); }, []);
@@ -268,13 +269,13 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
                 return (
                   <button key={s.id} onClick={() => setStopSel(s.id)}
                     className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left ${stopSel === s.id ? 'bg-gray-2 dark:bg-meta-4' : 'hover:bg-gray-2 dark:hover:bg-meta-4/60'}`}>
-                    <span className="w-10 shrink-0 text-[11px] tabular-nums text-body dark:text-bodydark">{s.checkin ? fmtTime(s.checkin.at) : ''}</span>
+                    <span className="w-11 shrink-0 whitespace-nowrap text-[11px] tabular-nums text-body dark:text-bodydark">{s.checkin ? fmtTime(s.checkin.at) : ''}</span>
                     {dot(RESULT_COLOR[k])}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-semibold text-black dark:text-white">{s.name}</p>
                       <p className="truncate text-[11px] text-body dark:text-bodydark">{resultLine(s)}</p>
                     </div>
-                    {gpsWarn(s) && <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-danger" aria-label={t(`opener.track.verdict.${s.checkin!.verdict}`) as string} />}
+                    {gpsWarn(s) && <span title={`${t(`opener.track.verdict.${s.checkin!.verdict}`)} — ${t('opener.track.gpsWarn')}`} className="shrink-0"><AlertTriangle className="h-3.5 w-3.5 text-danger" aria-label={t(`opener.track.verdict.${s.checkin!.verdict}`) as string} /></span>}
                   </button>
                 );
               })}
