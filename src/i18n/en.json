@@ -3843,7 +3843,15 @@
       "notFoundCount_one": "{{count}} not found",
       "notFoundCount_other": "{{count}} not found",
       "invCount_one": "{{count}} inv.",
-      "invCount_other": "{{count}} inv."
+      "invCount_other": "{{count}} inv.",
+      "fileStatus": {
+        "pending": "Queued",
+        "previewed": "Ready",
+        "done": "Done",
+        "error": "Error",
+        "invoicePending": "Pending"
+      },
+      "batchSummary": "{{files}} ready · {{invoices}} invoices · {{signups}} signup bonuses · {{total}} to pay"
     },
     "reviews": {
       "placeTitle": "Google listing",

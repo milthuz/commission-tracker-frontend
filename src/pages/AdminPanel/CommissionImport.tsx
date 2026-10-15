@@ -7,7 +7,9 @@ import PayStubModal, { PayStubData } from '../../components/PayStubModal';
 import ProcessingBonusStatementModal, { BonusStatementData } from '../../components/ProcessingBonusStatementModal';
 import SendConfirmModal from '../../components/SendConfirmModal';
 import DealsAdmin from './DealsAdmin';
-import { useUrlTab } from '../../components/ui/Tabs';
+import { DataTable, Modal, StatusPill, Tabs, useUrlTab } from '../../components/ui';
+import type { StatusFamily } from '../../components/ui';
+import { CARD, CARD_HEAD, CARD_TITLE, CARD_SUB, CARD_BODY, TABLE_WRAP, THEAD_ROW, TH, LABEL, SEG, segBtn } from '../../components/ui/surface';
 import GoogleReviewsAdmin from './GoogleReviewsAdmin';
 import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
@@ -722,7 +724,7 @@ const CommissionImport: React.FC = () => {
     if (!m) return <span className="font-normal text-body">{desc}</span>;
     return (
       <>
-        <InvoiceLink number={m[1]} className="font-medium text-primary hover:underline" />
+        <InvoiceLink number={m[1]} className="font-bold text-accent-ink hover:underline dark:text-accent-ink-dark" />
         {m[2] && <span className="ml-1 font-normal text-body">{m[2]}</span>}
       </>
     );
@@ -1150,41 +1152,31 @@ const CommissionImport: React.FC = () => {
   const anyParsing = entries.some(e => e.status === 'parsing' || e.status === 'committing');
 
   const statusBadge = (e: FileEntry) => {
-    const map: Record<FileEntry['status'], { cls: string; label: string }> = {
-      pending:    { cls: 'bg-gray-200 text-body dark:bg-meta-4',                 label: 'queued' },
-      parsing:    { cls: 'bg-primary bg-opacity-10 text-primary',                label: t('admin.commissionImport.parsing') as string },
-      previewed:  { cls: 'bg-warning bg-opacity-10 text-warning',                label: 'ready' },
-      committing: { cls: 'bg-primary bg-opacity-10 text-primary animate-pulse', label: t('admin.commissionImport.committing') as string },
-      done:       { cls: 'bg-success bg-opacity-10 text-success',                label: '✓ done' },
-      error:      { cls: 'bg-danger bg-opacity-10 text-danger',                  label: 'error' },
+    // Labels were half English (« queued », « ready », « ✓ done ») — now translated, shared pill.
+    const map: Record<FileEntry['status'], { family: StatusFamily; label: string }> = {
+      pending:    { family: 'neutral', label: t('admin.commissionImport.fileStatus.pending') as string },
+      parsing:    { family: 'new',     label: t('admin.commissionImport.parsing') as string },
+      previewed:  { family: 'wait',    label: t('admin.commissionImport.fileStatus.previewed') as string },
+      committing: { family: 'new',     label: t('admin.commissionImport.committing') as string },
+      done:       { family: 'ok',      label: t('admin.commissionImport.fileStatus.done') as string },
+      error:      { family: 'err',     label: t('admin.commissionImport.fileStatus.error') as string },
     };
     const m = map[e.status];
-    return <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${m.cls}`}>{m.label}</span>;
+    return <StatusPill family={m.family} className={e.status === 'committing' ? 'animate-pulse' : ''}>{m.label}</StatusPill>;
   };
 
   return (
     <div className="space-y-6">
       {/* Sub-tab navigation */}
-      <div className="flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-        {SUBTABS.map(key => (
-          <button
-            key={key}
-            onClick={() => setSubTab(key)}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition ${
-              subTab === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'
-            }`}
-          >
-            {t(`admin.commissionImport.tabs.${key}`)}
-          </button>
-        ))}
-      </div>
+      <Tabs tabs={SUBTABS.map((key) => ({ id: key, label: t(`admin.commissionImport.tabs.${key}`) }))} value={subTab} onChange={setSubTab}
+        ariaLabel={t('sidebar.importPayments') as string} />
 
       {subTab === 'import' && (<>
       {/* Drop zone */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.uploadTitle')}</h3>
-          <p className="text-sm text-body">{t('admin.commissionImport.uploadSubtitle')}</p>
+      <div className={CARD}>
+        <div className={CARD_HEAD}>
+          <h3 className={CARD_TITLE}>{t('admin.commissionImport.uploadTitle')}</h3>
+          <p className={CARD_SUB}>{t('admin.commissionImport.uploadSubtitle')}</p>
         </div>
         <div className="p-6">
           <div
@@ -1202,7 +1194,7 @@ const CommissionImport: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
             </svg>
             <p className="text-sm text-black dark:text-white">{t('admin.commissionImport.dropMultiple')}</p>
-            <p className="text-xs text-body">{t('admin.commissionImport.filenameHint')}</p>
+            <p className="max-w-full break-words px-4 text-center text-xs text-body">{t('admin.commissionImport.filenameHint')}</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -1217,32 +1209,32 @@ const CommissionImport: React.FC = () => {
 
       {/* Aggregated totals + bulk actions */}
       {entries.length > 0 && (
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark flex items-center justify-between flex-wrap gap-3">
+        <div className={CARD}>
+          <div className={`flex flex-wrap items-center justify-between gap-3 ${CARD_HEAD}`}>
             <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white">
+              <h3 className={CARD_TITLE}>
                 {t('admin.commissionImport.batchTitle', { count: entries.length })}
               </h3>
-              <p className="text-sm text-body">
-                {totals.files} ready · {totals.invoices} invoices · {totals.signupCount} signup · {fmt(totals.total)} {t('admin.commissionImport.totalToPay').toLowerCase()}
+              <p className={CARD_SUB}>
+                {t('admin.commissionImport.batchSummary', { files: totals.files, invoices: totals.invoices, signups: totals.signupCount, total: fmt(totals.total) })}
               </p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={clearAll}
                 disabled={committingAll || anyParsing}
-                className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4 disabled:opacity-50"
+                className="rounded-[10px] border border-stroke px-4 py-2 text-sm font-bold text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4 disabled:opacity-50"
               >
                 {t('admin.commissionImport.clearAll')}
               </button>
               <button
                 onClick={commitAll}
                 disabled={!anyPreviewed || committingAll || anyParsing}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-[10px] bg-primary px-5 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50"
               >
                 {committingAll ? (
                   <>
-                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#141414] border-t-transparent"></span>
                     {t('admin.commissionImport.committingAll')}
                   </>
                 ) : t('admin.commissionImport.confirmAll', { count: totals.files })}
@@ -1321,8 +1313,8 @@ const CommissionImport: React.FC = () => {
                       </p>
                       <div className="max-h-48 overflow-auto rounded border border-stroke dark:border-strokedark">
                         <table className="w-full text-xs">
-                          <thead className="bg-gray-50 dark:bg-meta-4 sticky top-0">
-                            <tr>
+                          <thead className="sticky top-0 bg-white dark:bg-boxdark">
+                            <tr className={THEAD_ROW}>
                               <th className="px-2 py-1 text-left">{t('admin.commissionImport.payStub.invoice')}</th>
                               <th className="px-2 py-1 text-left">{t('common.customer')}</th>
                               <th className="px-2 py-1 text-right">$</th>
@@ -1332,15 +1324,13 @@ const CommissionImport: React.FC = () => {
                           <tbody>
                             {e.preview.matched.map((m) => (
                               <tr key={m.invoice_number} className="border-t border-stroke dark:border-strokedark">
-                                <td className="px-2 py-1"><InvoiceLink number={m.invoice_number} className="font-medium text-primary hover:underline" /></td>
+                                <td className="px-2 py-1"><InvoiceLink number={m.invoice_number} className="font-bold text-accent-ink hover:underline dark:text-accent-ink-dark" /></td>
                                 <td className="px-2 py-1 truncate max-w-[180px]">{m.customer}</td>
                                 <td className="px-2 py-1 text-right">{fmt(m.commission)}</td>
                                 <td className="px-2 py-1 text-center">
-                                  <span className={`inline-flex rounded-full px-1.5 py-0 text-[9px] font-bold ${
-                                    m.current_approval === 'paid' ? 'bg-success bg-opacity-10 text-success'
-                                    : m.current_approval === 'approved' ? 'bg-primary bg-opacity-10 text-primary'
-                                    : 'bg-warning bg-opacity-10 text-warning'
-                                  }`}>{m.current_approval || 'pending'}</span>
+                                  <StatusPill family={m.current_approval === 'paid' ? 'ok' : m.current_approval === 'approved' ? 'new' : 'wait'}>
+                                    {m.current_approval === 'paid' ? t('commissionReport.paidBadge') : m.current_approval === 'approved' ? t('commissionReport.approvedBadge') : t('admin.commissionImport.fileStatus.invoicePending')}
+                                  </StatusPill>
                                 </td>
                               </tr>
                             ))}
@@ -1419,42 +1409,30 @@ const CommissionImport: React.FC = () => {
         </div>
       )}
 
-      {/* History */}
+      {/* History — shared table: sortable, paginated, opens the stub on click or Enter. */}
       {history.length > 0 && (
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.historyTitle')}</h3>
-            <p className="text-sm text-body">{t('admin.commissionImport.historySubtitle')}</p>
-          </div>
-          <div className="overflow-auto max-h-96">
-            <table className="w-full text-xs">
-              <thead className="bg-gray-50 dark:bg-meta-4 sticky top-0">
-                <tr>
-                  <th className="px-3 py-2 text-left">{t('admin.commissionImport.filename')}</th>
-                  <th className="px-3 py-2 text-left">{t('admin.commissionImport.colRep')}</th>
-                  <th className="px-3 py-2 text-left">{t('admin.commissionImport.period')}</th>
-                  <th className="px-3 py-2 text-right">{t('admin.commissionImport.invoicesToMark')}</th>
-                  <th className="px-3 py-2 text-right">{t('admin.commissionImport.signupBonuses')}</th>
-                  <th className="px-3 py-2 text-right">{t('admin.commissionImport.totalToPay')}</th>
-                  <th className="px-3 py-2 text-left">{t('admin.commissionImport.importedAt')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((h) => (
-                  <tr key={h.id} onClick={() => openStub(h.id)} className="cursor-pointer border-t border-stroke transition hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/30">
-                    <td className="px-3 py-1.5 truncate max-w-[280px] text-primary">{h.filename}</td>
-                    <td className="px-3 py-1.5">{h.rep_name}</td>
-                    <td className="px-3 py-1.5">{h.paid_for_period ? fmtPeriod(h.paid_for_period) : ''}</td>
-                    <td className="px-3 py-1.5 text-right">{h.invoices_marked}</td>
-                    <td className="px-3 py-1.5 text-right">{h.signup_bonuses_count} ({fmt(h.signup_bonuses_amount)})</td>
-                    <td className="px-3 py-1.5 text-right font-semibold">{fmt(h.total_amount)}</td>
-                    <td className="px-3 py-1.5 text-body">{fmtDate(h.imported_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <DataTable
+          title={t('admin.commissionImport.historyTitle')}
+          rows={history}
+          rowKey={(h) => h.id}
+          onRowClick={(h) => openStub(h.id)}
+          pageSize={25}
+          defaultSort={{ key: 'imported', dir: 'desc' }}
+          columns={[
+            { key: 'file', header: t('admin.commissionImport.filename'), sortValue: (h) => String(h.filename || '').toLowerCase(),
+              render: (h) => <span className="block max-w-[280px] truncate font-medium" title={h.filename}>{h.filename}</span> },
+            { key: 'rep', header: t('admin.commissionImport.colRep'), sortValue: (h) => String(h.rep_name || '').toLowerCase(), render: (h) => h.rep_name },
+            { key: 'period', header: t('admin.commissionImport.period'), sortValue: (h) => h.paid_for_period || '',
+              render: (h) => <span className="whitespace-nowrap">{h.paid_for_period ? fmtPeriod(h.paid_for_period) : ''}</span> },
+            { key: 'inv', header: t('admin.commissionImport.invoicesToMark'), align: 'right', sortValue: (h) => h.invoices_marked, render: (h) => h.invoices_marked },
+            { key: 'signup', header: t('admin.commissionImport.signupBonuses'), align: 'right', sortValue: (h) => h.signup_bonuses_amount,
+              render: (h) => <span className="whitespace-nowrap">{h.signup_bonuses_count} ({fmt(h.signup_bonuses_amount)})</span> },
+            { key: 'total', header: t('admin.commissionImport.totalToPay'), align: 'right', sortValue: (h) => h.total_amount,
+              render: (h) => <span className="whitespace-nowrap font-bold">{fmt(h.total_amount)}</span> },
+            { key: 'imported', header: t('admin.commissionImport.importedAt'), sortValue: (h) => h.imported_at || '',
+              render: (h) => <span className="whitespace-nowrap text-body dark:text-bodydark2">{fmtDate(h.imported_at)}</span> },
+          ]}
+        />
       )}
 
       </>)}
@@ -1462,14 +1440,14 @@ const CommissionImport: React.FC = () => {
       {subTab === 'coverage' && (<>
       {/* Quota review: invoices the quota gate zeroed (rep missed that month's quota) —
           needs an explicit admin decision before it's considered settled. */}
-      <div className="mb-6 rounded-sm border border-warning/40 bg-white shadow-default dark:bg-boxdark">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
+      <div className="mb-6 rounded-2xl border border-warning/40 bg-white dark:bg-boxdark">
+        <div className={`flex flex-wrap items-center justify-between gap-3 ${CARD_HEAD}`}>
           <div>
-            <h3 className="text-lg font-semibold text-black dark:text-white">
+            <h3 className={CARD_TITLE}>
               {t('admin.commissionImport.quotaReview.title')}
               {!quotaShowHistory && quotaReview.length > 0 && <span className="ml-2 text-warning">({quotaReview.length})</span>}
             </h3>
-            <p className="text-sm text-body">{t('admin.commissionImport.quotaReview.subtitle')}</p>
+            <p className={CARD_SUB}>{t('admin.commissionImport.quotaReview.subtitle')}</p>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={toggleQuotaLog} className="text-xs font-medium text-primary underline decoration-dotted">
@@ -1482,21 +1460,21 @@ const CommissionImport: React.FC = () => {
           </div>
         </div>
         {quotaLog !== null && (
-          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+          <div className={CARD_HEAD}>
             <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('admin.commissionImport.quotaReview.logTitle')}</h4>
             {quotaLog.length === 0 ? (
               <p className="text-sm text-body">{t('admin.commissionImport.quotaReview.logEmpty')}</p>
             ) : (
-              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <div className={TABLE_WRAP}>
                 <table className="w-full min-w-[560px] text-sm">
-                  <thead className="bg-gray-2 dark:bg-meta-4">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
-                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.month')}</th>
-                      <th className="px-3 py-2 text-right font-medium">%</th>
-                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.quotaReview.logAction')}</th>
-                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.logBy')}</th>
-                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.logWhen')}</th>
+                  <thead>
+                    <tr className={THEAD_ROW}>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.colRep')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.quotaReview.month')}</th>
+                      <th className={`${TH} text-right`}>%</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.quotaReview.logAction')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.quotaReview.logBy')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.quotaReview.logWhen')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1520,7 +1498,7 @@ const CommissionImport: React.FC = () => {
             )}
           </div>
         )}
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
           {quotaReview.length === 0 ? (
             <div className="flex flex-col items-center py-8 text-center">
               <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
@@ -1530,14 +1508,14 @@ const CommissionImport: React.FC = () => {
               <p className="mt-1 text-sm text-body">{quotaShowHistory ? t('admin.commissionImport.quotaReview.emptyHistoryHint') : t('admin.commissionImport.quotaReview.emptyHint')}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+            <div className={TABLE_WRAP}>
               <table className="w-full min-w-[560px] text-sm">
-                <thead className="bg-gray-2 dark:bg-meta-4">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
-                    <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.month')}</th>
-                    <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
-                    <th className="px-3 py-2 text-right font-medium whitespace-nowrap">{t('admin.commissionImport.quotaReview.forfeited')}</th>
+                <thead>
+                  <tr className={THEAD_ROW}>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.colRep')}</th>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.quotaReview.month')}</th>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.invoicesToMark')}</th>
+                    <th className={`${TH} text-right`}>{t('admin.commissionImport.quotaReview.forfeited')}</th>
                     <th className="px-3 py-2"></th>
                   </tr>
                 </thead>
@@ -1569,7 +1547,7 @@ const CommissionImport: React.FC = () => {
                                 {t('admin.commissionImport.quotaReview.ackedBy', { who: r.ackBy || '—' })}
                               </span>
                               <button onClick={() => quotaUnacknowledge(r)} disabled={busy}
-                                className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+                                className="rounded-[10px] border border-stroke px-3 py-1.5 text-xs font-bold text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
                                 {busy ? '…' : t('admin.commissionImport.quotaReview.undoAck')}
                               </button>
                             </span>
@@ -1582,11 +1560,11 @@ const CommissionImport: React.FC = () => {
                                 %
                               </label>
                               <button onClick={() => quotaPayAnyway(r)} disabled={busy}
-                                className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                                className="rounded-[10px] bg-primary px-3 py-1.5 text-xs font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                                 {r.waived ? t('admin.commissionImport.quotaReview.updatePercent') : t('admin.commissionImport.quotaReview.payAnyway')}
                               </button>
                               <button onClick={() => quotaAcknowledge(r)} disabled={busy}
-                                className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
+                                className="rounded-[10px] border border-stroke px-3 py-1.5 text-xs font-bold text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
                                 {busy ? '…' : t('admin.commissionImport.quotaReview.confirmForfeit')}
                               </button>
                             </span>
@@ -1607,11 +1585,11 @@ const CommissionImport: React.FC = () => {
         const inactiveCount = coverage.rows.filter(r => !r.isActive).length;
         const visibleRows = coverage.rows.filter(r => showInactiveReps || r.isActive);
         return (
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
+        <div className={CARD}>
+          <div className={`flex flex-wrap items-start justify-between gap-3 ${CARD_HEAD}`}>
             <div>
-              <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.coverage.title')}</h3>
-              <p className="text-sm text-body">{t('admin.commissionImport.coverage.subtitle')}</p>
+              <h3 className={CARD_TITLE}>{t('admin.commissionImport.coverage.title')}</h3>
+              <p className={CARD_SUB}>{t('admin.commissionImport.coverage.subtitle')}</p>
               <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-body">
                 <span><span className="font-bold text-success">✓</span> {t('admin.commissionImport.coverage.legendFile')}</span>
                 <span><span className="font-bold text-primary">✓</span> {t('admin.commissionImport.coverage.legendApp')}</span>
@@ -1629,8 +1607,8 @@ const CommissionImport: React.FC = () => {
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="bg-gray-50 dark:bg-meta-4">
-                <tr>
+              <thead>
+                <tr className={THEAD_ROW}>
                   <th className="sticky left-0 z-10 bg-gray-50 px-3 py-2 text-left dark:bg-meta-4">{t('admin.commissionImport.colRep')}</th>
                   {coverage.months.map(ym => (
                     <th key={ym} className="whitespace-nowrap px-2 py-2 text-center font-medium">{ym}</th>
@@ -1700,12 +1678,12 @@ const CommissionImport: React.FC = () => {
 
       {subTab === 'payroll' && (<>
       {/* Payroll recipients — managed list (add one at a time, remove individually) */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.payroll.recipientsTitle')}</h3>
-          <p className="text-sm text-body">{t('admin.commissionImport.payroll.recipientsSubtitle')}</p>
+      <div className={CARD}>
+        <div className={CARD_HEAD}>
+          <h3 className={CARD_TITLE}>{t('admin.commissionImport.payroll.recipientsTitle')}</h3>
+          <p className={CARD_SUB}>{t('admin.commissionImport.payroll.recipientsSubtitle')}</p>
         </div>
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
           {payRecipients.length === 0 ? (
             <p className="mb-3 text-sm text-body">{t('admin.commissionImport.payroll.noRecipients')}</p>
           ) : (
@@ -1725,9 +1703,9 @@ const CommissionImport: React.FC = () => {
             <input type="email" value={newRecipient} onChange={(e) => setNewRecipient(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') addRecipient(); }}
               placeholder="paie@compagnie.com"
-              className="w-72 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+              className="w-full sm:w-72 rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
             <button onClick={addRecipient} disabled={savingRecipients || !newRecipient.trim()}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+              className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
               {t('admin.commissionImport.payroll.addRecipient')}
             </button>
           </div>
@@ -1735,23 +1713,23 @@ const CommissionImport: React.FC = () => {
       </div>
 
       {/* Payroll send — compile a month and email it to payroll */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.payroll.title')}</h3>
-          <p className="text-sm text-body">{t('admin.commissionImport.payroll.subtitle')}</p>
+      <div className={CARD}>
+        <div className={CARD_HEAD}>
+          <h3 className={CARD_TITLE}>{t('admin.commissionImport.payroll.title')}</h3>
+          <p className={CARD_SUB}>{t('admin.commissionImport.payroll.subtitle')}</p>
         </div>
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.month')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.payroll.month')}</label>
               <div className="flex gap-2">
                 <Select value={String(payMonth)} onChange={(v) => setPayMonth(parseInt(v))} options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))} className="w-40" />
                 <input type="number" value={payYear} onChange={(e) => setPayYear(parseInt(e.target.value) || payYear)}
-                  className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                  className="w-24 rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
               </div>
             </div>
             <button onClick={fetchPayroll} disabled={payLoading}
-              className="rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-white disabled:opacity-50">
+              className="rounded-[10px] border border-primary px-4 py-2 text-sm font-bold text-accent-ink hover:bg-primary/10 dark:text-accent-ink-dark disabled:opacity-50">
               {payLoading ? t('admin.commissionImport.processing.loading') : t('admin.commissionImport.payroll.preview')}
             </button>
             {/* SUR QUELLE PAIE le montant tombe. Pré-remplie sur la prochaine paie du calendrier ;
@@ -1759,7 +1737,7 @@ const CommissionImport: React.FC = () => {
                 choisie est imprimée sur chaque bulletin — voir PayStubModal. */}
             {payData && payData.payRuns.length > 0 && (
               <div>
-                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.payRun')}</label>
+                <label className={LABEL}>{t('admin.commissionImport.payroll.payRun')}</label>
                 <Select value={payRunDate} onChange={setPayRunDate} className="w-64"
                   options={payData.payRuns.map(p => ({ value: p.payDate, label: fmtPayRun(p.payDate) }))} />
               </div>
@@ -1784,17 +1762,17 @@ const CommissionImport: React.FC = () => {
                 <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.payroll.none')}</p>
               ) : (
                 <>
-                  <div className="mb-3 overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                  <div className={`mb-3 ${TABLE_WRAP}`}>
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-2 dark:bg-meta-4">
-                        <tr>
-                          <th className="px-3 py-2 text-center font-medium">
+                      <thead>
+                        <tr className={THEAD_ROW}>
+                          <th className={`${TH} text-center`}>
                             <input type="checkbox" checked={selectedReps.size === payData.reps.length && payData.reps.length > 0}
                               onChange={toggleAllReps} title={t('admin.commissionImport.payroll.selectAll') as string} />
                           </th>
-                          <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
-                          <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.status')}</th>
-                          <th className="px-4 py-2 text-right font-medium">{t('common.total')}</th></tr>
+                          <th className={`${TH} text-left`}>{t('admin.commissionImport.colRep')}</th>
+                          <th className={`${TH} text-center`}>{t('admin.commissionImport.payroll.status')}</th>
+                          <th className={`${TH} text-right`}>{t('common.total')}</th></tr>
                       </thead>
                       <tbody>
                         {payData.reps.map(r => (
@@ -1805,14 +1783,12 @@ const CommissionImport: React.FC = () => {
                             <td className="px-4 py-2 font-medium text-black dark:text-white">{r.rep}</td>
                             <td className="px-4 py-2 text-center">
                               {r.sentAt ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary"
-                                  title={`${t('admin.commissionImport.payroll.sentOn')} ${fmtDate(r.sentAt)}${r.payDate ? ` · ${t('admin.commissionImport.payroll.payRun')}: ${fmtPayRun(r.payDate)}` : ''}`}>
-                                  <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                  {t('admin.commissionImport.payroll.statusSent')}
-                                </span>
+                                <StatusPill family="new" title={`${t('admin.commissionImport.payroll.sentOn')} ${fmtDate(r.sentAt)}${r.payDate ? ` · ${t('admin.commissionImport.payroll.payRun')}: ${fmtPayRun(r.payDate)}` : ''}`}>
+                                  ✓ {t('admin.commissionImport.payroll.statusSent')}
+                                </StatusPill>
                               ) : r.source === 'imported'
-                                ? <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success"><span className="h-1.5 w-1.5 rounded-full bg-success" />{t('admin.commissionImport.payroll.statusReady')}</span>
-                                : <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2.5 py-1 text-[11px] font-semibold text-warning"><span className="h-1.5 w-1.5 rounded-full bg-warning" />{t('admin.commissionImport.payroll.statusToApprove')}</span>}
+                                ? <StatusPill family="ok">{t('admin.commissionImport.payroll.statusReady')}</StatusPill>
+                                : <StatusPill family="wait">{t('admin.commissionImport.payroll.statusToApprove')}</StatusPill>}
                             </td>
                             <td className="px-4 py-2 text-right font-semibold text-black dark:text-white">{fmt(r.total)}</td>
                           </tr>
@@ -1825,7 +1801,7 @@ const CommissionImport: React.FC = () => {
                     </table>
                   </div>
                   <button onClick={openPayConfirm} disabled={paySending || payRecipients.length === 0 || selectedReps.size === 0}
-                    className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                    className="rounded-[10px] bg-primary px-5 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50"
                     title={payRecipients.length === 0 ? t('admin.commissionImport.payroll.noRecipients') as string : undefined}>
                     {paySending ? t('admin.commissionImport.payroll.sending') : t('admin.commissionImport.payroll.send')}
                   </button>
@@ -1837,26 +1813,26 @@ const CommissionImport: React.FC = () => {
       </div>
 
       {/* Payroll send history */}
-      <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.payroll.historyTitle')}</h3>
-          <p className="text-sm text-body">{t('admin.commissionImport.payroll.historySubtitle')}</p>
+      <div className={`mt-6 ${CARD}`}>
+        <div className={CARD_HEAD}>
+          <h3 className={CARD_TITLE}>{t('admin.commissionImport.payroll.historyTitle')}</h3>
+          <p className={CARD_SUB}>{t('admin.commissionImport.payroll.historySubtitle')}</p>
         </div>
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
           {paySends.length === 0 ? (
             <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.payroll.historyNone')}</p>
           ) : (
-            <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+            <div className={TABLE_WRAP}>
               <table className="w-full text-sm">
-                <thead className="bg-gray-2 dark:bg-meta-4">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histDate')}</th>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histPeriod')}</th>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.payRun')}</th>
-                    <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.histReps')}</th>
-                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.payroll.histTotal')}</th>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histRecipients')}</th>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histSentBy')}</th>
+                <thead>
+                  <tr className={THEAD_ROW}>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.payroll.histDate')}</th>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.payroll.histPeriod')}</th>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.payroll.payRun')}</th>
+                    <th className={`${TH} text-center`}>{t('admin.commissionImport.payroll.histReps')}</th>
+                    <th className={`${TH} text-right`}>{t('admin.commissionImport.payroll.histTotal')}</th>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.payroll.histRecipients')}</th>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.payroll.histSentBy')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1922,24 +1898,24 @@ const CommissionImport: React.FC = () => {
 
       {/* Bi-annual processing bonus send — deliberately separate from the monthly payroll
           send above: distinct border/badge so admins can never mistake one for the other. */}
-      <div className="mt-6 rounded-sm border border-l-4 border-stroke border-l-warning bg-white shadow-default dark:border-strokedark dark:border-l-warning dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
+      <div className={`mt-6 ${CARD} border-l-4 border-l-warning dark:border-l-warning`}>
+        <div className={CARD_HEAD}>
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center rounded-full bg-warning/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-warning">
               {t('admin.commissionImport.bonusPayroll.badge')}
             </span>
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.bonusPayroll.title')}</h3>
+            <h3 className={CARD_TITLE}>{t('admin.commissionImport.bonusPayroll.title')}</h3>
           </div>
           <p className="mt-1 text-sm text-body">{t('admin.commissionImport.bonusPayroll.subtitle')}</p>
         </div>
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.month')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.payroll.month')}</label>
               <div className="flex gap-2">
                 <Select value={String(bonusSendMonth)} onChange={(v) => setBonusSendMonth(parseInt(v) as 6 | 12)} options={[{ value: "6", label: t('admin.commissionImport.bonusPayroll.june') as string }, { value: "12", label: t('admin.commissionImport.bonusPayroll.december') as string }]} className="w-40" />
                 <input type="number" value={bonusSendYear} onChange={(e) => setBonusSendYear(parseInt(e.target.value) || bonusSendYear)}
-                  className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                  className="w-24 rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
               </div>
             </div>
             <button onClick={fetchBonusCommitted} disabled={bonusSendLoading}
@@ -1963,18 +1939,18 @@ const CommissionImport: React.FC = () => {
                 <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.bonusPayroll.none')}</p>
               ) : (
                 <>
-                  <div className="mb-3 overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                  <div className={`mb-3 ${TABLE_WRAP}`}>
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-2 dark:bg-meta-4">
-                        <tr>
-                          <th className="px-3 py-2 text-center font-medium">
+                      <thead>
+                        <tr className={THEAD_ROW}>
+                          <th className={`${TH} text-center`}>
                             <input type="checkbox" checked={bonusSelectedReps.size === bonusSendData.reps.length && bonusSendData.reps.length > 0}
                               onChange={toggleAllBonusReps} title={t('admin.commissionImport.payroll.selectAll') as string} />
                           </th>
-                          <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
-                          <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.status')}</th>
-                          <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.processing.accounts')}</th>
-                          <th className="px-4 py-2 text-right font-medium">{t('common.total')}</th></tr>
+                          <th className={`${TH} text-left`}>{t('admin.commissionImport.colRep')}</th>
+                          <th className={`${TH} text-center`}>{t('admin.commissionImport.payroll.status')}</th>
+                          <th className={`${TH} text-center`}>{t('admin.commissionImport.processing.accounts')}</th>
+                          <th className={`${TH} text-right`}>{t('common.total')}</th></tr>
                       </thead>
                       <tbody>
                         {bonusSendData.reps.map(r => (
@@ -1985,13 +1961,11 @@ const CommissionImport: React.FC = () => {
                             <td className="px-4 py-2 font-medium text-black dark:text-white">{r.rep}</td>
                             <td className="px-4 py-2 text-center">
                               {r.sentAt ? (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2.5 py-1 text-[11px] font-semibold text-warning"
-                                  title={`${t('admin.commissionImport.bonusPayroll.sentOn')} ${fmtDate(r.sentAt)}`}>
-                                  <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                  {t('admin.commissionImport.bonusPayroll.statusSent')}
-                                </span>
+                                <StatusPill family="new" title={`${t('admin.commissionImport.bonusPayroll.sentOn')} ${fmtDate(r.sentAt)}`}>
+                                  ✓ {t('admin.commissionImport.bonusPayroll.statusSent')}
+                                </StatusPill>
                               ) : (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success"><span className="h-1.5 w-1.5 rounded-full bg-success" />{t('admin.commissionImport.bonusPayroll.statusReady')}</span>
+                                <StatusPill family="ok">{t('admin.commissionImport.bonusPayroll.statusReady')}</StatusPill>
                               )}
                             </td>
                             <td className="px-4 py-2 text-center text-body">{r.accounts.length}</td>
@@ -2006,7 +1980,7 @@ const CommissionImport: React.FC = () => {
                     </table>
                   </div>
                   <button onClick={openBonusConfirm} disabled={bonusSending || payRecipients.length === 0 || bonusSelectedReps.size === 0}
-                    className="rounded-md bg-warning px-5 py-2.5 text-sm font-medium text-orange-900 hover:bg-opacity-90 disabled:opacity-50"
+                    className="rounded-[10px] bg-warning px-5 py-2.5 text-sm font-bold text-orange-900 hover:bg-opacity-90 disabled:opacity-50"
                     title={payRecipients.length === 0 ? t('admin.commissionImport.payroll.noRecipients') as string : undefined}>
                     {bonusSending ? t('admin.commissionImport.bonusPayroll.sending') : t('admin.commissionImport.bonusPayroll.send')}
                   </button>
@@ -2018,25 +1992,25 @@ const CommissionImport: React.FC = () => {
       </div>
 
       {/* Bi-annual bonus send history — kept separate from the monthly payroll history */}
-      <div className="mt-6 rounded-sm border border-l-4 border-stroke border-l-warning bg-white shadow-default dark:border-strokedark dark:border-l-warning dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.bonusPayroll.historyTitle')}</h3>
-          <p className="text-sm text-body">{t('admin.commissionImport.bonusPayroll.historySubtitle')}</p>
+      <div className={`mt-6 ${CARD} border-l-4 border-l-warning dark:border-l-warning`}>
+        <div className={CARD_HEAD}>
+          <h3 className={CARD_TITLE}>{t('admin.commissionImport.bonusPayroll.historyTitle')}</h3>
+          <p className={CARD_SUB}>{t('admin.commissionImport.bonusPayroll.historySubtitle')}</p>
         </div>
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
           {bonusSends.length === 0 ? (
             <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.bonusPayroll.historyNone')}</p>
           ) : (
-            <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+            <div className={TABLE_WRAP}>
               <table className="w-full text-sm">
-                <thead className="bg-gray-2 dark:bg-meta-4">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histDate')}</th>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histPeriod')}</th>
-                    <th className="px-4 py-2 text-center font-medium">{t('admin.commissionImport.payroll.histReps')}</th>
-                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.payroll.histTotal')}</th>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histRecipients')}</th>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.payroll.histSentBy')}</th>
+                <thead>
+                  <tr className={THEAD_ROW}>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.payroll.histDate')}</th>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.payroll.histPeriod')}</th>
+                    <th className={`${TH} text-center`}>{t('admin.commissionImport.payroll.histReps')}</th>
+                    <th className={`${TH} text-right`}>{t('admin.commissionImport.payroll.histTotal')}</th>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.payroll.histRecipients')}</th>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.payroll.histSentBy')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2098,24 +2072,24 @@ const CommissionImport: React.FC = () => {
 
       {subTab === 'bonus' && (<>
       {/* Processing bonus (bi-annual) preview */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.processing.title')}</h3>
-          <p className="text-sm text-body">{t('admin.commissionImport.processing.subtitle')}</p>
+      <div className={CARD}>
+        <div className={CARD_HEAD}>
+          <h3 className={CARD_TITLE}>{t('admin.commissionImport.processing.title')}</h3>
+          <p className={CARD_SUB}>{t('admin.commissionImport.processing.subtitle')}</p>
         </div>
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
           <div className="mb-4 flex flex-wrap items-center gap-3">
             <Select value={String(procMonth)} onChange={(v) => setProcMonth(parseInt(v) as 6 | 12)} options={[{ value: "6", label: t('admin.commissionImport.processing.june') as string }, { value: "12", label: t('admin.commissionImport.processing.december') as string }]} className="w-40" />
             <input
               type="number"
               value={procYear}
               onChange={(e) => setProcYear(parseInt(e.target.value) || procYear)}
-              className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white"
+              className="w-24 rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white"
             />
             <button
               onClick={fetchProcessing}
               disabled={procLoading}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+              className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50"
             >
               {procLoading ? t('admin.commissionImport.processing.loading') : t('admin.commissionImport.processing.preview')}
             </button>
@@ -2135,7 +2109,7 @@ const CommissionImport: React.FC = () => {
               <button
                 onClick={commitProcessing}
                 disabled={procCommitting}
-                className="rounded-md bg-success px-4 py-2 text-sm font-medium text-emerald-900 hover:bg-opacity-90 disabled:opacity-50"
+                className="rounded-[10px] bg-success px-4 py-2 text-sm font-bold text-emerald-900 hover:bg-opacity-90 disabled:opacity-50"
               >
                 {procCommitting ? t('admin.commissionImport.processing.loading') : t('admin.commissionImport.processing.commit')}
               </button>
@@ -2159,14 +2133,14 @@ const CommissionImport: React.FC = () => {
             procData.reps.length === 0 ? (
               <p className="py-6 text-center text-sm text-body">{t('admin.commissionImport.processing.none')}</p>
             ) : (
-              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <div className={TABLE_WRAP}>
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-2 dark:bg-meta-4">
-                    <tr>
-                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
-                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.accounts')}</th>
-                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.settled')}</th>
-                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.processing.bonus')}</th>
+                  <thead>
+                    <tr className={THEAD_ROW}>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.colRep')}</th>
+                      <th className={`${TH} text-right`}>{t('admin.commissionImport.processing.accounts')}</th>
+                      <th className={`${TH} text-right`}>{t('admin.commissionImport.processing.settled')}</th>
+                      <th className={`${TH} text-right`}>{t('admin.commissionImport.processing.bonus')}</th>
                       {procData.committed && procData.committed.count > 0 && <th className="px-4 py-2"></th>}
                     </tr>
                   </thead>
@@ -2191,7 +2165,7 @@ const CommissionImport: React.FC = () => {
                           {procData.committed && procData.committed.count > 0 && (
                             <td className="px-4 py-2 text-right" onClick={(e) => e.stopPropagation()}>
                               <button onClick={() => viewBonusStatement(r.rep)}
-                                className="text-xs font-medium text-primary hover:underline">
+                                className="text-xs font-bold text-accent-ink hover:underline dark:text-accent-ink-dark">
                                 {t('commissionReport.bonusStatement.open')}
                               </button>
                             </td>
@@ -2223,38 +2197,38 @@ const CommissionImport: React.FC = () => {
       </div>
 
       {/* Manual bonus — add a free-text bonus to a rep's monthly pay stub */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.manualBonus.title')}</h3>
-          <p className="text-sm text-body">{t('admin.commissionImport.manualBonus.subtitle')}</p>
+      <div className={CARD}>
+        <div className={CARD_HEAD}>
+          <h3 className={CARD_TITLE}>{t('admin.commissionImport.manualBonus.title')}</h3>
+          <p className={CARD_SUB}>{t('admin.commissionImport.manualBonus.subtitle')}</p>
         </div>
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.colRep')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.colRep')}</label>
               <Select value={mbRep} onChange={(v) => setMbRep(v)} options={reps.map((r) => ({ value: r, label: r }))} placeholder={t('admin.commissionImport.manualBonus.selectRep') as string} className="w-48" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.payroll.month')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.payroll.month')}</label>
               <div className="flex gap-2">
                 <Select value={String(mbMonth)} onChange={(v) => setMbMonth(parseInt(v))} options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))} className="w-40" />
                 <input type="number" value={mbYear} onChange={(e) => setMbYear(parseInt(e.target.value) || mbYear)}
-                  className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                  className="w-24 rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.amount')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.manualBonus.amount')}</label>
               <input type="number" step="0.01" value={mbAmount} onChange={(e) => setMbAmount(e.target.value)} placeholder="0.00"
-                className="w-28 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                className="w-28 rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.manualBonus.description')}</label>
               <input type="text" value={mbDesc} onChange={(e) => setMbDesc(e.target.value)}
                 placeholder={t('admin.commissionImport.manualBonus.descPlaceholder') as string}
-                className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                className="w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
             </div>
             <button onClick={addManualBonus}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+              className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A]">
               {t('admin.commissionImport.manualBonus.add')}
             </button>
           </div>
@@ -2262,15 +2236,15 @@ const CommissionImport: React.FC = () => {
           {manualList.length > 0 && (
             <div className="mt-6">
               <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('admin.commissionImport.manualBonus.historyTitle')}</h4>
-              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <div className={TABLE_WRAP}>
                 <table className="w-full min-w-[640px] text-sm">
-                  <thead className="bg-gray-2 dark:bg-meta-4">
-                    <tr>
-                      <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.manualBonus.date')}</th>
-                      <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.manualBonus.period')}</th>
-                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
-                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.manualBonus.description')}</th>
-                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                  <thead>
+                    <tr className={THEAD_ROW}>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.manualBonus.date')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.manualBonus.period')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.colRep')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.manualBonus.description')}</th>
+                      <th className={`${TH} text-right`}>{t('admin.commissionImport.manualBonus.amount')}</th>
                       <th className="px-4 py-2"></th>
                     </tr>
                   </thead>
@@ -2297,40 +2271,40 @@ const CommissionImport: React.FC = () => {
 
       {/* Manual payment activation — stop-gap for when Zentact itself is limited/down.
           Creates a real activation (points + signup bonus), not just a raw dollar amount. */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.manualActivation.title')}</h3>
-          <p className="text-sm text-body">{t('admin.commissionImport.manualActivation.subtitle')}</p>
+      <div className={CARD}>
+        <div className={CARD_HEAD}>
+          <h3 className={CARD_TITLE}>{t('admin.commissionImport.manualActivation.title')}</h3>
+          <p className={CARD_SUB}>{t('admin.commissionImport.manualActivation.subtitle')}</p>
         </div>
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.colRep')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.colRep')}</label>
               <Select value={maRep} onChange={(v) => setMaRep(v)} options={reps.map((r) => ({ value: r, label: r }))} placeholder={t('admin.commissionImport.manualBonus.selectRep') as string} className="w-48" />
             </div>
             <div className="flex-1 min-w-[220px]">
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualActivation.businessName')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.manualActivation.businessName')}</label>
               <input type="text" value={maBusiness} onChange={(e) => setMaBusiness(e.target.value)}
                 placeholder={t('admin.commissionImport.manualActivation.businessNamePlaceholder') as string}
-                className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                className="w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualActivation.activationDate')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.manualActivation.activationDate')}</label>
               <input type="date" value={maDate} onChange={(e) => setMaDate(e.target.value)}
-                className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                className="rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualActivation.bonusAmount')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.manualActivation.bonusAmount')}</label>
               <input type="number" step="0.01" value={maBonus} onChange={(e) => setMaBonus(e.target.value)}
-                className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                className="w-24 rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualActivation.points')}</label>
+              <label className={LABEL}>{t('admin.commissionImport.manualActivation.points')}</label>
               <input type="number" value={maPoints} onChange={(e) => setMaPoints(e.target.value)}
-                className="w-20 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                className="w-20 rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
             </div>
             <button onClick={addManualActivation} disabled={maAdding}
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+              className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
               {maAdding ? t('common.saving') : t('admin.commissionImport.manualActivation.add')}
             </button>
           </div>
@@ -2340,15 +2314,15 @@ const CommissionImport: React.FC = () => {
           {manualActivations.length > 0 && (
             <div className="mt-6">
               <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('admin.commissionImport.manualActivation.historyTitle')}</h4>
-              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <div className={TABLE_WRAP}>
                 <table className="w-full min-w-[640px] text-sm">
-                  <thead className="bg-gray-2 dark:bg-meta-4">
-                    <tr>
-                      <th className="px-4 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.manualActivation.activationDate')}</th>
-                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
-                      <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.manualActivation.businessName')}</th>
-                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualActivation.points')}</th>
-                      <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.manualActivation.bonusAmount')}</th>
+                  <thead>
+                    <tr className={THEAD_ROW}>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.manualActivation.activationDate')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.colRep')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.manualActivation.businessName')}</th>
+                      <th className={`${TH} text-right`}>{t('admin.commissionImport.manualActivation.points')}</th>
+                      <th className={`${TH} text-right`}>{t('admin.commissionImport.manualActivation.bonusAmount')}</th>
                       <th className="px-4 py-2"></th>
                     </tr>
                   </thead>
@@ -2378,25 +2352,25 @@ const CommissionImport: React.FC = () => {
       {subTab === 'adjustments' && (<>
       {/* One card, three inner views (the stacked version was too dense):
           Suggestions (reconciliation anomalies) · Create (carry OR free ±) · History */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
+      <div className={CARD}>
+        <div className={`flex flex-wrap items-center justify-between gap-3 ${CARD_HEAD}`}>
           <div>
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.adjustments.title')}</h3>
-            <p className="text-sm text-body">{t(`admin.commissionImport.adjustments.viewHint.${adjView}`)}</p>
+            <h3 className={CARD_TITLE}>{t('admin.commissionImport.adjustments.title')}</h3>
+            <p className={CARD_SUB}>{t(`admin.commissionImport.adjustments.viewHint.${adjView}`)}</p>
           </div>
-          <div className="flex gap-1 rounded-lg bg-gray-2 p-1 dark:bg-meta-4/60">
+          <div className={SEG} role="tablist">
             {(['suggestions', 'create', 'history'] as const).map(v => (
-              <button key={v} onClick={() => setAdjView(v)}
-                className={`rounded-md px-4 py-2 text-sm font-medium transition ${adjView === v ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+              <button key={v} onClick={() => setAdjView(v)} role="tab" aria-selected={adjView === v}
+                className={segBtn(adjView === v)}>
                 {t(`admin.commissionImport.adjustments.view.${v}`)}
                 {v === 'suggestions' && suggestions.length > 0 && (
-                  <span className={`ml-1.5 inline-flex min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-bold ${adjView === v ? 'bg-white/25' : 'bg-warning/15 text-warning'}`}>{suggestions.length}</span>
+                  <span className={`ml-1.5 inline-flex min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-bold ${adjView === v ? 'bg-warning/20 text-warning' : 'bg-warning/15 text-warning'}`}>{suggestions.length}</span>
                 )}
               </button>
             ))}
           </div>
         </div>
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
 
           {/* ── VIEW 1: reconciliation suggestions ── */}
           {adjView === 'suggestions' && (
@@ -2415,17 +2389,17 @@ const CommissionImport: React.FC = () => {
                 <label className="text-xs font-medium text-body">{t('admin.commissionImport.adjustments.sugTargetLabel')}</label>
                 <Select value={String(sugMonth)} onChange={(v) => setSugMonth(parseInt(v))} options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))} className="w-40" />
                 <input type="number" value={sugYear} onChange={(e) => setSugYear(parseInt(e.target.value) || sugYear)}
-                  className="w-20 rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                  className="w-20 rounded-[10px] border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
               </div>
-              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <div className={TABLE_WRAP}>
                 <table className="w-full min-w-[640px] text-sm">
-                  <thead className="bg-gray-2 dark:bg-meta-4">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugReason')}</th>
-                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
-                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.adjustments.sugInvoiceClient')}</th>
-                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
-                      <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                  <thead>
+                    <tr className={THEAD_ROW}>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.adjustments.sugReason')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.colRep')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.adjustments.sugInvoiceClient')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.adjustments.from')}</th>
+                      <th className={`${TH} text-right`}>{t('admin.commissionImport.manualBonus.amount')}</th>
                       {/* Actions column is sticky-right so Apply/Ignore stay visible even when
                           the table scrolls horizontally (narrow window / open sidebar). */}
                       <th className="sticky right-0 bg-gray-2 px-3 py-2 dark:bg-meta-4"></th>
@@ -2453,7 +2427,7 @@ const CommissionImport: React.FC = () => {
                         <td className="px-3 py-2 text-black dark:text-white">{s.repName}</td>
                         <td className="px-3 py-2">
                           {/* Invoice + client merged: number on top, client as muted subtext */}
-                          <p className="whitespace-nowrap"><InvoiceLink number={s.invoiceNumber} className="font-medium text-primary hover:underline" /></p>
+                          <p className="whitespace-nowrap"><InvoiceLink number={s.invoiceNumber} className="font-bold text-accent-ink hover:underline dark:text-accent-ink-dark" /></p>
                           <p className="max-w-[200px] truncate text-xs text-body" title={s.customer || ''}>{s.customer || '—'}</p>
                         </td>
                         <td className="px-3 py-2 text-body whitespace-nowrap">{s.sourcePeriod ? `${monthName(new Date(s.sourcePeriod).getUTCMonth() + 1)} ${new Date(s.sourcePeriod).getUTCFullYear()}` : '—'}</td>
@@ -2461,7 +2435,7 @@ const CommissionImport: React.FC = () => {
                         <td className="sticky right-0 bg-white px-3 py-2 text-right whitespace-nowrap dark:bg-boxdark">
                           <span className="inline-flex items-center gap-1.5">
                             <button onClick={() => applySuggestion(s)} disabled={sugBusy === s.key}
-                              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                              className="rounded-[10px] bg-primary px-3 py-1.5 text-xs font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                               {sugBusy === s.key ? '…' : t('admin.commissionImport.adjustments.sugApply')}
                             </button>
                             {/* Compact dismiss: icon-only, label on hover */}
@@ -2486,22 +2460,22 @@ const CommissionImport: React.FC = () => {
             {/* Shared: who + which pay month it lands on */}
             <div className="flex flex-wrap items-end gap-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.colRep')}</label>
+                <label className={LABEL}>{t('admin.commissionImport.colRep')}</label>
                 <Select value={adjRep} onChange={(v) => { setAdjRep(v); fetchAdjUnpaid(v); }} options={reps.map((r) => ({ value: r, label: r }))} placeholder={t('admin.commissionImport.manualBonus.selectRep') as string} className="w-48" />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.targetMonth')}</label>
+                <label className={LABEL}>{t('admin.commissionImport.adjustments.targetMonth')}</label>
                 <div className="flex gap-2">
                   <Select value={String(adjMonth)} onChange={(v) => setAdjMonth(parseInt(v))} options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: monthName(i + 1) }))} className="w-40" />
                   <input type="number" value={adjYear} onChange={(e) => setAdjYear(parseInt(e.target.value) || adjYear)}
-                    className="w-24 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                    className="w-24 rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
                 </div>
               </div>
               {/* Mode: carry unpaid invoices vs free ± amount */}
-              <div className="flex gap-1 rounded-lg bg-gray-2 p-1 dark:bg-meta-4/60">
+              <div className={SEG} role="tablist">
                 {(['carry', 'free', 'bulk'] as const).map(m => (
-                  <button key={m} onClick={() => setAdjMode(m)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${adjMode === m ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+                  <button key={m} onClick={() => setAdjMode(m)} role="tab" aria-selected={adjMode === m}
+                    className={segBtn(adjMode === m)}>
                     {t(`admin.commissionImport.adjustments.mode.${m}`)}
                   </button>
                 ))}
@@ -2512,13 +2486,13 @@ const CommissionImport: React.FC = () => {
             {adjMode === 'carry' && (<>
               <div className="mt-3 flex flex-wrap items-end gap-3">
                 <div className="flex-1 min-w-[180px]">
-                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
+                  <label className={LABEL}>{t('admin.commissionImport.manualBonus.description')}</label>
                   <input type="text" value={adjDesc} onChange={(e) => setAdjDesc(e.target.value)}
                     placeholder={t('admin.commissionImport.adjustments.descPlaceholder') as string}
-                    className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                    className="w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
                 </div>
                 <button onClick={createAdjustments} disabled={adjBusy || adjSelected.size === 0}
-                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                  className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                   {adjBusy ? '…' : t('admin.commissionImport.adjustments.carry', { count: adjSelected.size })}
                 </button>
               </div>
@@ -2551,15 +2525,15 @@ const CommissionImport: React.FC = () => {
                 adjUnpaidShown.length === 0 ? (
                   <p className="mt-4 text-sm text-body">{adjSearch ? t('admin.commissionImport.adjustments.noSearchResults') : t('admin.commissionImport.adjustments.noUnpaid')}</p>
                 ) : (
-                  <div className="mt-4 overflow-x-auto rounded border border-stroke dark:border-strokedark">
+                  <div className={`mt-4 ${TABLE_WRAP}`}>
                     <table className="w-full min-w-[640px] text-sm">
-                      <thead className="bg-gray-2 dark:bg-meta-4">
-                        <tr>
+                      <thead>
+                        <tr className={THEAD_ROW}>
                           <th className="px-3 py-2 w-8"></th>
-                          <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
-                          <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.manualBonus.period')}</th>
-                          <th className="px-3 py-2 text-left font-medium">{t('common.customer')}</th>
-                          <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                          <th className={`${TH} text-left`}>{t('admin.commissionImport.invoicesToMark')}</th>
+                          <th className={`${TH} text-left`}>{t('admin.commissionImport.manualBonus.period')}</th>
+                          <th className={`${TH} text-left`}>{t('common.customer')}</th>
+                          <th className={`${TH} text-right`}>{t('admin.commissionImport.manualBonus.amount')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2568,7 +2542,7 @@ const CommissionImport: React.FC = () => {
                             <td className="px-3 py-2 text-center">
                               <input type="checkbox" checked={adjSelected.has(u.invoice_number)} onChange={() => toggleAdjSel(u.invoice_number)} />
                             </td>
-                            <td className="px-3 py-2"><InvoiceLink number={u.invoice_number} className="font-medium text-primary hover:underline" /></td>
+                            <td className="px-3 py-2"><InvoiceLink number={u.invoice_number} className="font-bold text-accent-ink hover:underline dark:text-accent-ink-dark" /></td>
                             <td className="px-3 py-2 text-body whitespace-nowrap">{u.payable_date ? `${monthName(new Date(u.payable_date).getUTCMonth() + 1)} ${new Date(u.payable_date).getUTCFullYear()}` : '—'}</td>
                             <td className="px-3 py-2 text-black dark:text-white">{u.customer || '—'}</td>
                             <td className="px-3 py-2 text-right font-semibold text-black dark:text-white whitespace-nowrap">{fmt(u.commission)}</td>
@@ -2584,26 +2558,26 @@ const CommissionImport: React.FC = () => {
             {adjMode === 'free' && (<>
               <div className="mt-3 flex flex-wrap items-end gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.amount')}</label>
+                  <label className={LABEL}>{t('admin.commissionImport.manualBonus.amount')}</label>
                   <input type="number" step="0.01" value={freeAdjAmount} onChange={(e) => setFreeAdjAmount(e.target.value)}
                     placeholder="-118.00"
-                    className="w-32 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                    className="w-32 rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.freeSource')}</label>
+                  <label className={LABEL}>{t('admin.commissionImport.adjustments.freeSource')}</label>
                   <input type="month" value={freeAdjSourceYm} onChange={(e) => setFreeAdjSourceYm(e.target.value)}
-                    className="rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                    className="rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
                 </div>
                 <div className="flex-1 min-w-[180px]">
-                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
+                  <label className={LABEL}>{t('admin.commissionImport.manualBonus.description')}</label>
                   <input type="text" value={freeAdjDesc} onChange={(e) => setFreeAdjDesc(e.target.value)}
                     placeholder={t('admin.commissionImport.adjustments.freeDescPlaceholder') as string}
-                    className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                    className="w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
                 </div>
                 {/* Description required: it IS the reason line the rep reads on their stub */}
                 <button onClick={createFreeAdjustment} disabled={freeAdjBusy || !adjRep || !freeAdjAmount || !freeAdjDesc.trim()}
                   title={!freeAdjDesc.trim() ? (t('admin.commissionImport.adjustments.freeDescRequired') as string) : undefined}
-                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                  className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                   {freeAdjBusy ? '…' : t('admin.commissionImport.adjustments.freeAdd')}
                 </button>
               </div>
@@ -2612,7 +2586,7 @@ const CommissionImport: React.FC = () => {
 
             {adjMode === 'bulk' && (<>
               <div className="mt-3">
-                <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.adjustments.bulkFormatHint')}</label>
+                <label className={LABEL}>{t('admin.commissionImport.adjustments.bulkFormatHint')}</label>
                 <textarea value={bulkText} onChange={(e) => { setBulkText(e.target.value); setBulkResult(null); }}
                   placeholder={t('admin.commissionImport.adjustments.bulkPlaceholder') as string}
                   rows={8}
@@ -2620,14 +2594,14 @@ const CommissionImport: React.FC = () => {
               </div>
               <div className="mt-3 flex flex-wrap items-end gap-3">
                 <div className="flex-1 min-w-[220px]">
-                  <label className="mb-1 block text-xs font-medium text-body">{t('admin.commissionImport.manualBonus.description')}</label>
+                  <label className={LABEL}>{t('admin.commissionImport.manualBonus.description')}</label>
                   <input type="text" value={bulkDesc} onChange={(e) => setBulkDesc(e.target.value)}
                     placeholder={t('admin.commissionImport.adjustments.bulkDescPlaceholder') as string}
-                    className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+                    className="w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
                 </div>
                 <button onClick={submitBulkAdjustments} disabled={bulkBusy || bulkValid.length === 0 || !bulkDesc.trim()}
                   title={!bulkDesc.trim() ? (t('admin.commissionImport.adjustments.bulkNeedDesc') as string) : undefined}
-                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                  className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                   {bulkBusy ? '…' : t('admin.commissionImport.adjustments.bulkSubmit', { count: bulkValid.length })}
                 </button>
               </div>
@@ -2668,15 +2642,15 @@ const CommissionImport: React.FC = () => {
             adjList.length === 0 ? (
               <p className="py-8 text-center text-sm text-body">{t('admin.commissionImport.adjustments.historyEmpty')}</p>
             ) : (
-              <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+              <div className={TABLE_WRAP}>
                 <table className="w-full min-w-[680px] text-sm">
-                  <thead className="bg-gray-2 dark:bg-meta-4">
-                    <tr>
-                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.targetMonth')}</th>
-                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
-                      <th className="px-3 py-2 text-left font-medium">{t('admin.commissionImport.invoicesToMark')}</th>
-                      <th className="px-3 py-2 text-left font-medium whitespace-nowrap">{t('admin.commissionImport.adjustments.from')}</th>
-                      <th className="px-3 py-2 text-right font-medium">{t('admin.commissionImport.manualBonus.amount')}</th>
+                  <thead>
+                    <tr className={THEAD_ROW}>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.adjustments.targetMonth')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.colRep')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.invoicesToMark')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.adjustments.from')}</th>
+                      <th className={`${TH} text-right`}>{t('admin.commissionImport.manualBonus.amount')}</th>
                       <th className="px-3 py-2"></th>
                     </tr>
                   </thead>
@@ -2686,7 +2660,7 @@ const CommissionImport: React.FC = () => {
                         <td className="px-3 py-2 text-body whitespace-nowrap">{monthName(new Date(a.target_period).getUTCMonth() + 1)} {new Date(a.target_period).getUTCFullYear()}</td>
                         <td className="px-3 py-2 text-black dark:text-white whitespace-nowrap">{a.rep_name}</td>
                         <td className="px-3 py-2 font-medium text-primary">
-                          <InvoiceLink number={a.invoice_number} className="font-medium text-primary hover:underline" />
+                          <InvoiceLink number={a.invoice_number} className="font-bold text-accent-ink hover:underline dark:text-accent-ink-dark" />
                           {editingAdjId === a.id ? (
                             <span className="ml-2 inline-flex items-center gap-1.5">
                               <input
@@ -2732,21 +2706,21 @@ const CommissionImport: React.FC = () => {
 
       {subTab === 'reconciliation' && (<>
       {/* Annual reconciliation — paid (ledger) vs calculated (model) vs delta, per rep */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
+      <div className={CARD}>
+        <div className={`flex flex-wrap items-center justify-between gap-3 ${CARD_HEAD}`}>
           <div>
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.reconciliation.title')}</h3>
-            <p className="text-sm text-body">{t('admin.commissionImport.reconciliation.subtitle')}</p>
+            <h3 className={CARD_TITLE}>{t('admin.commissionImport.reconciliation.title')}</h3>
+            <p className={CARD_SUB}>{t('admin.commissionImport.reconciliation.subtitle')}</p>
           </div>
           <div className="flex items-center gap-2">
             <Select value={String(reconYear)} onChange={(v) => setReconYear(parseInt(v))} options={Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => new Date().getFullYear() - i).map((y) => ({ value: String(y), label: String(y) }))} className="w-32" />
             <button onClick={reconExportExcel} disabled={!recon || reconLoading}
-              className="rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary hover:text-white disabled:opacity-50">
+              className="rounded-[10px] border border-primary px-4 py-2 text-sm font-bold text-accent-ink hover:bg-primary/10 dark:text-accent-ink-dark disabled:opacity-50">
               Excel
             </button>
           </div>
         </div>
-        <div className="px-6 py-4">
+        <div className={CARD_BODY}>
           <p className="mb-4 rounded-md bg-gray-1 px-3 py-2 text-xs text-body dark:bg-meta-4/40">
             {t('admin.commissionImport.reconciliation.platformNote')}
           </p>
@@ -2759,14 +2733,14 @@ const CommissionImport: React.FC = () => {
             <p className="py-8 text-center text-sm text-body">{t('admin.commissionImport.reconciliation.empty')}</p>
           )}
           {!reconLoading && recon && recon.reps.length > 0 && (
-            <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
+            <div className={TABLE_WRAP}>
               <table className="w-full min-w-[560px] text-sm">
-                <thead className="bg-gray-2 dark:bg-meta-4">
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium">{t('admin.commissionImport.colRep')}</th>
-                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.reconciliation.paid')}</th>
-                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.reconciliation.calculated')}</th>
-                    <th className="px-4 py-2 text-right font-medium">{t('admin.commissionImport.reconciliation.delta')}</th>
+                <thead>
+                  <tr className={THEAD_ROW}>
+                    <th className={`${TH} text-left`}>{t('admin.commissionImport.colRep')}</th>
+                    <th className={`${TH} text-right`}>{t('admin.commissionImport.reconciliation.paid')}</th>
+                    <th className={`${TH} text-right`}>{t('admin.commissionImport.reconciliation.calculated')}</th>
+                    <th className={`${TH} text-right`}>{t('admin.commissionImport.reconciliation.delta')}</th>
                     <th className="px-4 py-2 w-10"></th>
                   </tr>
                 </thead>
@@ -2844,28 +2818,26 @@ const CommissionImport: React.FC = () => {
       {subTab === 'settings' && (<>
       {/* Report years visibility — hide a noisy past year (e.g. 2025) everywhere */}
       {new Date().getFullYear() > 2025 && (
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.commissionImport.reportYears.title')}</h3>
-            <p className="text-sm text-body">{t('admin.commissionImport.reportYears.subtitle')}</p>
+        <div className={CARD}>
+          <div className={CARD_HEAD}>
+            <h3 className={CARD_TITLE}>{t('admin.commissionImport.reportYears.title')}</h3>
+            <p className={CARD_SUB}>{t('admin.commissionImport.reportYears.subtitle')}</p>
           </div>
-          <div className="px-6 py-4">
+          <div className={CARD_BODY}>
             {Array.from({ length: new Date().getFullYear() - 2025 }, (_, i) => 2025 + i).map(y => {
               const hidden = disabledYears.includes(y);
               return (
                 <div key={y} className="flex flex-wrap items-center justify-between gap-3 py-2">
                   <div className="flex items-center gap-3">
                     <span className="font-medium text-black dark:text-white">{y}</span>
-                    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      hidden ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'
-                    }`}>
+                    <StatusPill family={hidden ? 'wait' : 'ok'}>
                       {hidden ? t('admin.commissionImport.reportYears.hidden') : t('admin.commissionImport.reportYears.visible')}
-                    </span>
+                    </StatusPill>
                   </div>
                   <button
                     onClick={() => toggleYear(y)}
                     disabled={savingYears}
-                    className={`whitespace-nowrap rounded px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 ${
+                    className={`whitespace-nowrap rounded-[10px] px-3 py-1.5 text-sm font-bold text-[#141414] disabled:opacity-50 ${
                       hidden ? 'bg-success hover:bg-success/90' : 'bg-warning hover:bg-warning/90'
                     }`}
                   >
@@ -2927,34 +2899,24 @@ const CommissionImport: React.FC = () => {
       />
 
       {/* Quota-review: the raw invoices behind a rep×month's forfeiture */}
-      {quotaInvoices && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4 sm:p-8" onClick={() => setQuotaInvoices(null)}>
-          <div className="relative w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setQuotaInvoices(null)}
-              className="absolute -right-3 -top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-stroke bg-white text-body shadow-lg transition hover:text-danger dark:border-strokedark dark:bg-boxdark dark:text-bodydark">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <div className="flex max-h-[85vh] flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark">
-              <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">
-                  {t('admin.commissionImport.quotaReview.invoicesTitle', { rep: quotaInvoices.rep, month: `${monthName(quotaInvoices.month)} ${quotaInvoices.year}` })}
-                </h3>
-                <p className="text-sm text-body">{t('admin.commissionImport.quotaReview.invoicesSubtitle')}</p>
-              </div>
-              <div className="overflow-auto px-6 py-4">
+      <Modal open={!!quotaInvoices} onClose={() => setQuotaInvoices(null)} size="lg"
+        title={quotaInvoices ? t('admin.commissionImport.quotaReview.invoicesTitle', { rep: quotaInvoices.rep, month: `${monthName(quotaInvoices.month)} ${quotaInvoices.year}` }) : ''}>
+        {quotaInvoices && (<>
+          <p className={`mb-3 ${CARD_SUB}`}>{t('admin.commissionImport.quotaReview.invoicesSubtitle')}</p>
+          <div className={TABLE_WRAP}>
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-2 dark:bg-meta-4">
-                    <tr>
-                      <th className="px-2 py-2 text-left font-medium">{t('admin.commissionImport.quotaReview.invoiceNum')}</th>
-                      <th className="px-2 py-2 text-left font-medium">{t('admin.commissionImport.quotaReview.customer')}</th>
-                      <th className="px-2 py-2 text-right font-medium">{t('admin.commissionImport.quotaReview.wouldBe')}</th>
-                      <th className="px-2 py-2 text-right font-medium">{t('admin.commissionImport.quotaReview.forfeited')}</th>
+                  <thead>
+                    <tr className={THEAD_ROW}>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.quotaReview.invoiceNum')}</th>
+                      <th className={`${TH} text-left`}>{t('admin.commissionImport.quotaReview.customer')}</th>
+                      <th className={`${TH} text-right`}>{t('admin.commissionImport.quotaReview.wouldBe')}</th>
+                      <th className={`${TH} text-right`}>{t('admin.commissionImport.quotaReview.forfeited')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {quotaInvoices.rows.map(row => (
                       <tr key={row.invoice_number} className="border-t border-stroke dark:border-strokedark">
-                        <td className="px-2 py-2 whitespace-nowrap"><InvoiceLink number={row.invoice_number} className="font-medium text-primary hover:underline" /></td>
+                        <td className="px-2 py-2 whitespace-nowrap"><InvoiceLink number={row.invoice_number} className="font-bold text-accent-ink hover:underline dark:text-accent-ink-dark" /></td>
                         <td className="px-2 py-2 text-body">{row.customer}</td>
                         <td className="px-2 py-2 text-right text-body whitespace-nowrap">{fmt(row.commission + row.forfeited)}</td>
                         <td className="px-2 py-2 text-right font-semibold text-danger whitespace-nowrap">{fmt(row.forfeited)}</td>
@@ -2965,11 +2927,9 @@ const CommissionImport: React.FC = () => {
                     )}
                   </tbody>
                 </table>
-              </div>
-            </div>
           </div>
-        </div>
-      )}
+        </>)}
+      </Modal>
     </div>
   );
 };

@@ -3843,7 +3843,15 @@
       "notFoundCount_one": "{{count}} introuvable",
       "notFoundCount_other": "{{count}} introuvables",
       "invCount_one": "{{count}} fact.",
-      "invCount_other": "{{count}} fact."
+      "invCount_other": "{{count}} fact.",
+      "fileStatus": {
+        "pending": "En file",
+        "previewed": "Prêt",
+        "done": "Terminé",
+        "error": "Erreur",
+        "invoicePending": "En attente"
+      },
+      "batchSummary": "{{files}} prêts · {{invoices}} factures · {{signups}} paiements d’inscription · {{total}} à payer"
     },
     "reviews": {
       "placeTitle": "Fiche Google",
