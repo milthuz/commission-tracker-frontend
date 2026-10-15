@@ -3,6 +3,7 @@ import Select from './Select';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../lib/dialog';
+import { ActionMenu } from './ui';
 import ProbationBadge from './ProbationBadge';
 import ActivityTimeline from './ActivityTimeline';
 import { fmtMoney, fmtPeriod, fmtDate, fmtDateOnly, fmtDateTime } from '../lib/format';
@@ -409,26 +410,22 @@ const PayStubModal: React.FC<{
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <button onClick={() => { setEmailOpen(o => !o); }} title={tp('email') as string}
-                className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium text-body transition hover:border-primary hover:text-primary dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                {tp('email')}
-              </button>
-              <button onClick={exportExcel} title={tp('excel') as string}
-                className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium text-body transition hover:border-success hover:text-success dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 4h16v16H4zM4 9h16M9 4v16" /></svg>
-                {tp('excel')}
-              </button>
-              <button onClick={exportCsv} title={tp('csv') as string}
-                className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium text-body transition hover:border-success hover:text-success dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5M9 13h6M9 17h6" /></svg>
-                {tp('csv')}
-              </button>
-              <button onClick={printStub} title={tp('pdf') as string}
-                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-opacity-90">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z" /></svg>
-                {tp('pdf')}
-              </button>
+              {/* ONE « Exporter » menu instead of five buttons (audit UX, P2). */}
+              <ActionMenu
+                items={[
+                  { label: tp('pdf'), onSelect: printStub },
+                  { label: tp('excel'), onSelect: exportExcel },
+                  { label: tp('csv'), onSelect: exportCsv },
+                  { label: `${tp('email')}…`, onSelect: () => setEmailOpen(true), separated: true },
+                ]}
+                trigger={(props, open) => (
+                  <button {...props} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A]">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg>
+                    {tp('export')}
+                    <svg className={`h-3.5 w-3.5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m6 9 6 6 6-6" /></svg>
+                  </button>
+                )}
+              />
               {showAppCalc && (
                 <button onClick={() => setRepActivityOpen(true)} title={tp('repActivity') as string}
                   className="inline-flex items-center gap-1.5 rounded-md border border-stroke bg-transparent px-3 py-2 text-sm font-medium text-body transition hover:border-primary hover:text-primary dark:border-strokedark">
@@ -774,38 +771,34 @@ const PayStubModal: React.FC<{
                 );
               })()}
 
-              {/* Commit action — only for app-generated stubs, only when the parent wires it. */}
-              {onCommit && data.source === 'generated' && (data.lines.length > 0 || data.bonuses.length > 0) && (
-                <button
-                  onClick={onCommit}
-                  disabled={committing}
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-success px-5 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-opacity-90 disabled:opacity-50"
-                >
-                  {committing ? (
-                    <>
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      {tp('committing')}
-                    </>
-                  ) : tp('commit')}
-                </button>
-              )}
-
-              {/* Undo — only for an app-generated (committed) stub. */}
-              {onUncommit && data.source === 'imported' && data.appGenerated && (
-                <button
-                  onClick={onUncommit}
-                  disabled={committing}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-danger px-5 py-2.5 text-sm font-semibold text-danger transition hover:bg-danger hover:text-white disabled:opacity-50"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v6h6M3 13a9 9 0 103-7.7L3 8" />
-                  </svg>
-                  {tp('uncommit')}
-                </button>
-              )}
             </>
           )}
         </div>
+        {/* Commit / undo in a footer that never scrolls away (audit UX, P2 — the admin's « Confirm »
+            sat at the bottom of a long scroll). Undo is the quiet, destructive one, on the left. */}
+        {((onCommit && data.source === 'generated' && (data.lines.length > 0 || data.bonuses.length > 0))
+          || (onUncommit && data.source === 'imported' && data.appGenerated)) && (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stroke bg-white px-6 py-3.5 dark:border-strokedark dark:bg-boxdark">
+            {onUncommit && data.source === 'imported' && data.appGenerated ? (
+              <button onClick={onUncommit} disabled={committing}
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-semibold text-danger transition hover:bg-danger/10 disabled:opacity-50">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v6h6M3 13a9 9 0 103-7.7L3 8" /></svg>
+                {tp('uncommit')}…
+              </button>
+            ) : <span />}
+            {onCommit && data.source === 'generated' && (data.lines.length > 0 || data.bonuses.length > 0) && (
+              <button onClick={onCommit} disabled={committing}
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
+                {committing ? (
+                  <>
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#141414] border-t-transparent" />
+                    {tp('committing')}
+                  </>
+                ) : tp('commit')}
+              </button>
+            )}
+          </div>
+        )}
         </div>
       </div>
 

@@ -2064,7 +2064,9 @@
     "assignTo": "Assigner à",
     "selectRep": "Choisir un vendeur...",
     "restrictedDetails": "Détails restreints — visibles uniquement par les admins ou pour votre propre ligne",
-    "assignRepFailed": "Impossible d'assigner le représentant."
+    "assignRepFailed": "Impossible d'assigner le représentant.",
+    "changeSource": "Changer",
+    "overrideSourceFailed": "La source n'a pas pu être changée. Réessaie."
   },
   "commissionReport": {
     "missing": {
@@ -2171,11 +2173,12 @@
       "commitConfirm": "Marquer {{rep}} — {{period}} comme payé ? Les commissions débloquées de la période seront marquées payées et le bulletin de paie sera enregistré.",
       "commitFailed": "Impossible de marquer le bulletin de paie comme payé.",
       "uncommitFailed": "Impossible d'annuler le paiement.",
-      "adjustFailed": "Impossible de créer l'ajustement."
+      "adjustFailed": "Impossible de créer l'ajustement.",
+      "export": "Exporter"
     },
     "bonusStatement": {
       "title": "Relevé du bonus de volume bi-annuel",
-      "open": "Relevé de bonus",
+      "open": "Relevé de prime de traitement",
       "period": "Période de versement",
       "repLabel": "Représentant",
       "issuedOn": "Émis le",
@@ -2191,7 +2194,8 @@
       "emailSending": "Envoi…",
       "emailSent": "Relevé de bonus envoyé.",
       "close": "Fermer",
-      "hint": "Ceci est un bonus bi-annuel distinct, lié au volume de traitement de vos marchands Zentact — il ne fait pas partie de votre bulletin de commission mensuel régulier."
+      "hint": "Ceci est un bonus bi-annuel distinct, lié au volume de traitement de vos marchands Zentact — il ne fait pas partie de votre bulletin de commission mensuel régulier.",
+      "loadFailed": "Le relevé de prime de traitement n'a pas pu être chargé."
     },
     "title": "Rapport de commissions",
     "earnedToDate": "gagné à ce jour",
@@ -6616,7 +6620,9 @@
       "medium": "moyen",
       "low": "incertain"
     },
-    "hidePaste": "Masquer la saisie JSON"
+    "hidePaste": "Masquer la saisie JSON",
+    "recalculating": "Calcul…",
+    "recalcFailed": "Échec du calcul — les chiffres affichés sont les précédents."
   },
   "icplusRates": {
     "title": "Taux de référence IC+",

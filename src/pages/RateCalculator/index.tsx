@@ -68,6 +68,11 @@ export default function RateCalculator() {
   const [error, setError] = useState<string | null>(null);
   const [state, setState] = useState<any>(null);
   const [result, setResult] = useState<Result | null>(null);
+  // Server recalculation status (audit UX, P2): 'pending' while a change is being recomputed,
+  // 'error' when the last one failed — the figures on screen are then the PREVIOUS ones.
+  const [calc, setCalc] = useState<'idle' | 'pending' | 'error'>('idle');
+  const calcSeq = useRef(0);
+  const calcTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
   const [detectedAs, setDetectedAs] = useState<string | null>(null);
 
@@ -215,6 +220,10 @@ export default function RateCalculator() {
       setError((data.notes?.[0]?.text) || (t('icplus.unreadable') as string));
       return;
     }
+    // A new statement replaces everything: drop any recalculation still on its way.
+    calcSeq.current++;
+    if (calcTimer.current) clearTimeout(calcTimer.current);
+    setCalc('idle');
     setState(data.state);
     setResult(data.result);
     setDetectedAs(data.detected || data.processor || null);
@@ -222,14 +231,31 @@ export default function RateCalculator() {
   }
 
   // ⚠️ Toute modification repasse par le serveur : il recalcule, la page n'additionne rien.
-  async function recalc(next: any) {
+  //
+  // Before: one request per KEYSTROKE, no indicator, errors swallowed — and answers could arrive
+  // out of order, an older one overwriting the newer figures. Now: the field updates at once,
+  // the server is asked 350 ms after the last keystroke, only the LATEST answer is kept, and the
+  // savings card says « Calcul… » / « Échec — Réessayer ».
+  function recalc(next: any) {
     setState(next);
-    const res = await fetch(`${API_URL}/api/icplus/calculate`, {
-      method: 'POST', headers: authHeaders(), body: JSON.stringify({ state: next, lang }),
-    });
-    const data = await res.json();
-    if (data.ok) setResult(data.result);
+    setCalc('pending');
+    if (calcTimer.current) clearTimeout(calcTimer.current);
+    calcTimer.current = setTimeout(() => { void runCalc(next); }, 350);
   }
+  async function runCalc(next: any) {
+    const seq = ++calcSeq.current;
+    try {
+      const res = await fetch(`${API_URL}/api/icplus/calculate`, {
+        method: 'POST', headers: authHeaders(), body: JSON.stringify({ state: next, lang }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (seq !== calcSeq.current) return; // a newer change is already on its way
+      if (res.ok && data.ok) { setResult(data.result); setCalc('idle'); } else setCalc('error');
+    } catch {
+      if (seq === calcSeq.current) setCalc('error');
+    }
+  }
+  useEffect(() => () => { if (calcTimer.current) clearTimeout(calcTimer.current); }, []);
 
   const setVolume = (field: string, v: string) =>
     recalc({ ...state, volume: { ...state.volume, [field]: Number(v) || 0 } });
@@ -468,7 +494,7 @@ export default function RateCalculator() {
                   className="w-full min-w-[240px] border-0 border-b border-stroke bg-transparent pb-1 text-xl font-semibold text-black outline-none focus:border-primary dark:border-strokedark dark:text-white" />
                 {detectedAs && <p className="mt-1 text-xs text-body">{t('icplus.detectedAs', { name: detectedAs })}</p>}
               </div>
-              <div className="text-right">
+              <div className={`text-right transition-opacity ${calc === 'idle' ? '' : 'opacity-60'}`} aria-busy={calc === 'pending'}>
                 <p className="text-sm text-body dark:text-bodydark">
                   {result.savings.clusterIsCheaper ? t('icplus.savingsMonthly') : t('icplus.differenceMonthly')}
                 </p>
@@ -477,6 +503,15 @@ export default function RateCalculator() {
                 </p>
                 <p className="text-sm text-body dark:text-bodydark">
                   {money(Math.abs(result.savings.annual))} {t('icplus.perYear')}
+                </p>
+                <p className="mt-1 min-h-[18px] text-xs font-medium" role="status" aria-live="polite">
+                  {calc === 'pending' && <span className="text-body dark:text-bodydark">{t('icplus.recalculating')}</span>}
+                  {calc === 'error' && (
+                    <span className="text-danger">
+                      {t('icplus.recalcFailed')}{' '}
+                      <button type="button" onClick={() => { setCalc('pending'); void runCalc(state); }} className="font-bold underline">{t('common.retry')}</button>
+                    </span>
+                  )}
                 </p>
               </div>
             </div>

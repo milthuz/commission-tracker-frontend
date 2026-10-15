@@ -789,7 +789,7 @@ const CommissionImport: React.FC = () => {
   const uncommitStub = async () => {
     if (!stub) return;
     const [year, month] = stub.period.split('-');
-    if (!(await dialog.confirm(t('admin.commissionImport.quotaReview.uncommitConfirm', { rep: stub.repName, month: `${monthName(parseInt(month))} ${year}` }) as string))) return;
+    if (!(await dialog.confirm(t('admin.commissionImport.quotaReview.uncommitConfirm', { rep: stub.repName, month: `${monthName(parseInt(month))} ${year}` }) as string, { danger: true }))) return;
     setStubBusy(true);
     try {
       const token = localStorage.getItem('token');

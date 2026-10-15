@@ -594,7 +594,8 @@ const PricingGuide: React.FC = () => {
       {/* Quote tray */}
       {quoteIds.length > 0 && (
         <div className="fixed bottom-0 max-lg:bottom-[calc(3.8rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 border-t border-stroke bg-white/95 backdrop-blur dark:border-strokedark dark:bg-boxdark/95 lg:left-64">
-          <div className="flex flex-wrap items-center gap-3.5 px-6 py-3.5">
+          {/* lg:pr-24 = room for Sofia's bubble (bottom-right), which used to sit on these buttons. */}
+          <div className="flex flex-wrap items-center gap-3.5 px-6 py-3.5 lg:pr-24">
             <span className="text-primary">📄</span>
             <span className="text-[13px] font-bold text-black dark:text-white">{t('pricingGuide.quoteBuilder')}</span>
             <span className="text-xs text-gray-400">{quoteIds.length} {t('pricingGuide.items')}</span>
@@ -605,15 +606,15 @@ const PricingGuide: React.FC = () => {
               {rec > 0 && oneTime > 0 && <div className="text-[11px] text-gray-400">+ {money(oneTime)} {t('pricingGuide.oneTimeShort')}</div>}
             </div>
             <button onClick={() => { setQuote({}); setQuoteOpen(false); }} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('pricingGuide.clear')}</button>
-            <button onClick={() => setQuoteOpen((v) => !v)} className="rounded-full bg-primary px-4 py-2 text-[13px] font-semibold text-white hover:bg-opacity-90">{quoteOpen ? t('pricingGuide.close') : t('pricingGuide.open')}</button>
+            <button onClick={() => setQuoteOpen((v) => !v)} className="rounded-full bg-primary px-4 py-2 text-[13px] font-bold text-[#141414] hover:bg-[#F79C6A]">{quoteOpen ? t('pricingGuide.close') : t('pricingGuide.open')}</button>
           </div>
           {/* Always visible — no scrolling needed to reach these, regardless of how long the item list gets. */}
-          <div className="flex flex-wrap items-center gap-2.5 border-t border-stroke px-6 py-3 dark:border-strokedark">
+          <div className="flex flex-wrap items-center gap-2.5 border-t border-stroke px-6 py-3 dark:border-strokedark lg:pr-24">
             <input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder={t('pricingGuide.clientNamePh') as string}
               className="min-w-0 flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
             <button onClick={buildQuote} disabled={building}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
-              {building ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <span>👁</span>}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
+              {building ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#141414] border-t-transparent" /> : <span>👁</span>}
               {t('pricingGuide.buildQuote')}
             </button>
             {canPropose && (
@@ -624,7 +625,7 @@ const PricingGuide: React.FC = () => {
             )}
           </div>
           {quoteOpen && (
-            <div className="max-h-[230px] overflow-y-auto border-t border-stroke px-6 pb-4 dark:border-strokedark">
+            <div className="max-h-[230px] overflow-y-auto border-t border-stroke px-6 pb-4 dark:border-strokedark lg:pr-24">
               {quoteRows.map((qr) => (
                 <div key={qr.id} className="flex items-center gap-3 border-b border-stroke py-2.5 dark:border-strokedark">
                   <div className="min-w-0 flex-1">

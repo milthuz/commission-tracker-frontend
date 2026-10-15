@@ -6,6 +6,7 @@ import { fmtDateOnly, fmtMoney, fmtNumber, monthNames } from '../lib/format';
 import { dialog } from '../lib/dialog';
 import ProbationBadge from '../components/ProbationBadge';
 import { ContentLoader } from '../common/Loader';
+import { Button, StateCard, StatusPill } from '../components/ui';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -197,8 +198,8 @@ const CommissionTracker: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       fetchPoints();
-    } catch (err) {
-      console.error('Failed to override deal source', err);
+    } catch (err: any) {
+      dialog.alert(err?.response?.data?.error || (t('commissionTracker.overrideSourceFailed') as string));
     }
   };
 
@@ -212,16 +213,7 @@ const CommissionTracker: React.FC = () => {
 
   if (loading) return <ContentLoader label={t('commissionTracker.loadingPoints') as string} />;
 
-  if (error) return (
-    <div className="flex h-[60vh] items-center justify-center">
-      <div className="text-center">
-        <p className="mb-4 text-red-500">{error}</p>
-        <button onClick={fetchPoints} className="rounded-lg bg-primary px-5 py-2.5 text-white hover:bg-opacity-90">
-          {t('common.retry')}
-        </button>
-      </div>
-    </div>
-  );
+  if (error) return <StateCard kind="error" title={t('errors.loadFailed')} body={error} onRetry={fetchPoints} />;
 
   if (!data) return null;
 
@@ -248,13 +240,8 @@ const CommissionTracker: React.FC = () => {
   const activeKey = selectedTeamKey && groups.some(g => g.key === selectedTeamKey)
     ? selectedTeamKey
     : (groups[0]?.key ?? null);
-  // Top summary reflects the SELECTED team (switches with the selector), not the whole company.
+  // Subtitle count follows the SELECTED team.
   const activeGroup = groups.find(g => g.key === activeKey);
-  const agName = activeGroup ? (activeGroup.team ? activeGroup.team.name : t('commissionTracker.noTeamGroup')) : '';
-  const agPoints = activeGroup ? (activeGroup.team ? activeGroup.team.totalPoints : activeGroup.reps.reduce((s, r) => s + r.totalPoints, 0)) : 0;
-  const agTarget = activeGroup ? (activeGroup.team ? activeGroup.team.quotaTarget : activeGroup.reps.reduce((s, r) => s + (r.quota || QUOTA), 0)) : 0;
-  const agMet = activeGroup ? (activeGroup.team ? activeGroup.team.membersMet : activeGroup.reps.filter(r => r.quotaMet).length) : 0;
-  const agMembers = activeGroup ? (activeGroup.team ? activeGroup.team.memberCount : activeGroup.reps.length) : 0;
   const agDeals = activeGroup ? activeGroup.reps.reduce((s, r) => s + (r.dealsCount ?? r.deals.length), 0) : 0;
 
   return (
@@ -324,33 +311,6 @@ const CommissionTracker: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Compact company summary */}
-      <div className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-sm border border-stroke bg-white px-6 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#8B5CF6] bg-opacity-20">
-            <svg className="h-5 w-5 text-[#8B5CF6]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-2xl font-bold leading-none text-black dark:text-white">
-              {agPoints}<span className="text-sm font-normal text-gray-500"> / {agTarget} pts</span>
-            </p>
-            <span className="text-xs font-medium text-gray-500">{agName || t('commissionTracker.companyQuota')}</span>
-          </div>
-        </div>
-        <div className="hidden h-9 w-px bg-stroke dark:bg-strokedark sm:block" />
-        <div>
-          <p className="text-2xl font-bold leading-none text-black dark:text-white">{agMet}/{agMembers}</p>
-          <span className="text-xs font-medium text-gray-500">{t('commissionTracker.repsMetQuota')}</span>
-        </div>
-        <div className="hidden h-9 w-px bg-stroke dark:bg-strokedark sm:block" />
-        <div>
-          <p className="text-2xl font-bold leading-none text-black dark:text-white">{agDeals}</p>
-          <span className="text-xs font-medium text-gray-500">{t('commissionTracker.totalDeals')}</span>
-        </div>
-      </div>
 
       {/* Team selector */}
       {groups.length > 1 && (
@@ -452,8 +412,16 @@ const CommissionTracker: React.FC = () => {
                     <div key={rep.repName} className="bg-white dark:bg-boxdark">
               {/* Rep Header */}
               <div
-                className={`flex items-center justify-between px-6 py-5 ${canViewDetails ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                className={`flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5 ${canViewDetails ? 'cursor-pointer hover:bg-gray-2/60 focus-visible:bg-gray-2/60 dark:hover:bg-meta-4/30 dark:focus-visible:bg-meta-4/30' : 'cursor-not-allowed'} outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary`}
+                role={canViewDetails ? 'button' : undefined}
+                tabIndex={canViewDetails ? 0 : undefined}
+                aria-expanded={canViewDetails ? isExpanded : undefined}
                 onClick={() => canViewDetails && setExpandedRep(isExpanded ? null : rep.repName)}
+                onKeyDown={(e) => {
+                  if (!canViewDetails || (e.key !== 'Enter' && e.key !== ' ')) return;
+                  e.preventDefault();
+                  setExpandedRep(isExpanded ? null : rep.repName);
+                }}
                 title={canViewDetails ? '' : t('commissionTracker.restrictedDetails')}
               >
                 <div className="flex items-center gap-4 flex-1">
@@ -467,25 +435,9 @@ const CommissionTracker: React.FC = () => {
                     <div className="flex flex-wrap items-center gap-3 mb-1.5">
                       <p className="font-semibold text-black dark:text-white">{rep.repName}</p>
                       <ProbationBadge probation={rep.probation} />
-                      {rep.quotaMet ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-success bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-success">
-                          {t('commissionTracker.quotaMet')}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-danger bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-danger">
-                          {t('commissionTracker.ptsToQuota', { count: rep.pointsToQuota })}
-                        </span>
-                      )}
-                      {rep.bonusTier && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#F59E0B] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#F59E0B]">
-                          🎯 {t('commissionTracker.monthlyBonus', { amount: fmtNumber(rep.monthlyBonus) })}
-                        </span>
-                      )}
-                      {rep.zentactActivations > 0 && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[#6366F1] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#6366F1] dark:text-[#a5b4fc]">
-                          {t('commissionTracker.zentactBonusBadge', { count: rep.zentactActivations, amount: fmtNumber(rep.zentactBonus) })}
-                        </span>
-                      )}
+                      {rep.quotaMet
+                        ? <StatusPill family="ok">{t('commissionTracker.quotaMet')}</StatusPill>
+                        : <StatusPill family="wait">{t('commissionTracker.ptsToQuota', { count: rep.pointsToQuota })}</StatusPill>}
                     </div>
                     {/* Progress bar */}
                     <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">
@@ -494,6 +446,15 @@ const CommissionTracker: React.FC = () => {
                         style={{ width: `${quotaPct}%`, backgroundColor: repBarColor }}
                       />
                     </div>
+                    {/* Bonuses: plain text, not more badges (audit UX — up to 5 badges per row before). */}
+                    {(rep.bonusTier || rep.zentactActivations > 0) && (
+                      <p className="mt-1.5 text-xs text-body dark:text-bodydark">
+                        {[
+                          rep.bonusTier ? t('commissionTracker.monthlyBonus', { amount: fmtNumber(rep.monthlyBonus) }) : null,
+                          rep.zentactActivations > 0 ? t('commissionTracker.zentactBonusBadge', { count: rep.zentactActivations, amount: fmtNumber(rep.zentactBonus) }) : null,
+                        ].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -572,15 +533,10 @@ const CommissionTracker: React.FC = () => {
                                     </span>
                                   )}
                                   {isAdmin && (
-                                    <button
-                                      onClick={() => setEditingDealSource(deal.crm_deal_id)}
-                                      title={t('commissionTracker.overrideSourceHint') as string}
-                                      className="text-body transition hover:text-primary"
-                                    >
-                                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                      </svg>
-                                    </button>
+                                    <Button variant="link" size="sm" onClick={() => setEditingDealSource(deal.crm_deal_id)}
+                                      title={t('commissionTracker.overrideSourceHint') as string}>
+                                      {t('commissionTracker.changeSource')}
+                                    </Button>
                                   )}
                                 </span>
                               )}

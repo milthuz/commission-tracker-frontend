@@ -8,6 +8,7 @@ import { ApexOptions } from 'apexcharts';
 import { Eye, Download, X } from 'lucide-react';
 import { fmtMoney, fmtMonth, fmtDate, fmtDateOnly, fmtNumber, appLocale, monthNames as appMonthNames } from '../lib/format';
 import PayStubModal, { PayStubData } from '../components/PayStubModal';
+import ProcessingBonusStatementModal, { BonusStatementData } from '../components/ProcessingBonusStatementModal';
 import ProbationBadge from '../components/ProbationBadge';
 import { dialog } from '../lib/dialog';
 import { setPageEntity } from '../lib/pageContext';
@@ -462,6 +463,27 @@ const CommissionReport = () => {
 
   // Open the pay stub for the selected rep + month. The backend picks the source:
   // a historical import if one exists for that period, else the app-generated stub.
+  // The rep's OWN bi-annual processing-bonus statement (audit UX, P2 — it was only reachable from
+  // the admin's import screen). Server: same permission as the pay stub, scoped to the rep
+  // (resolveTargetRep), June and December only.
+  const [bonusStatement, setBonusStatement] = useState<BonusStatementData | null>(null);
+  const [loadingBonus, setLoadingBonus] = useState(false);
+  const isBonusMonth = selectedMonth === '6' || selectedMonth === '12';
+  const openBonusStatement = async () => {
+    if (!isBonusMonth) return;
+    setLoadingBonus(true);
+    try {
+      const params: Record<string, string> = { year: selectedYear, month: selectedMonth };
+      if (selectedRep) params.repName = selectedRep;
+      const res = await axios.get(`${API_URL}/api/commissions/processing-bonus-statement`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, params,
+      });
+      setBonusStatement(res.data);
+    } catch (e: any) {
+      dialog.alert(e?.response?.data?.error || t('commissionReport.bonusStatement.loadFailed'));
+    } finally { setLoadingBonus(false); }
+  };
+
   const openPayStub = async () => {
     if (selectedMonth === 'all') return;
     setLoadingStub(true);
@@ -543,7 +565,7 @@ const CommissionReport = () => {
   const uncommitPayStub = async () => {
     if (!payStub || selectedMonth === 'all') return;
     const period = fmtMonth(Number(selectedYear), parseInt(selectedMonth));
-    if (!(await dialog.confirm(t('commissionReport.payStub.uncommitConfirm', { rep: payStub.repName, period }) as string))) return;
+    if (!(await dialog.confirm(t('commissionReport.payStub.uncommitConfirm', { rep: payStub.repName, period }) as string, { danger: true }))) return;
     setCommittingStub(true);
     try {
       const token = localStorage.getItem('token');
@@ -976,6 +998,11 @@ const CommissionReport = () => {
               <ProbationBadge probation={report.probation} />
             </p>
           </div>
+          {canViewPaystub && isBonusMonth && (
+            <Button size="md" onClick={openBonusStatement} disabled={loadingBonus}>
+              {loadingBonus ? '…' : t('commissionReport.bonusStatement.open')}
+            </Button>
+          )}
           {canViewPaystub && (
             <Button
               variant="primary"
@@ -1075,6 +1102,8 @@ const CommissionReport = () => {
           </div>
         </div>
       )}
+
+      <ProcessingBonusStatementModal data={bonusStatement} onClose={() => setBonusStatement(null)} />
 
       {/* Pay Stub modal (shared component) */}
       <PayStubModal

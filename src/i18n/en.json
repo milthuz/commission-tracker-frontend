@@ -2064,7 +2064,9 @@
     "assignTo": "Assign to",
     "selectRep": "Select rep...",
     "restrictedDetails": "Details restricted — only visible to admins or your own row",
-    "assignRepFailed": "Could not assign the rep."
+    "assignRepFailed": "Could not assign the rep.",
+    "changeSource": "Change",
+    "overrideSourceFailed": "The source couldn't be changed. Try again."
   },
   "commissionReport": {
     "missing": {
@@ -2171,11 +2173,12 @@
       "commitConfirm": "Mark {{rep}} — {{period}} paid? This marks the period's unlocked commissions as paid and records the pay stub.",
       "commitFailed": "Could not mark the pay stub paid.",
       "uncommitFailed": "Could not undo the payment.",
-      "adjustFailed": "Could not create the adjustment."
+      "adjustFailed": "Could not create the adjustment.",
+      "export": "Export"
     },
     "bonusStatement": {
       "title": "Bi-Annual Processing Bonus Statement",
-      "open": "Bonus statement",
+      "open": "Processing bonus statement",
       "period": "Payout period",
       "repLabel": "Salesperson",
       "issuedOn": "Issued on",
@@ -2191,7 +2194,8 @@
       "emailSending": "Sending…",
       "emailSent": "Bonus statement emailed.",
       "close": "Close",
-      "hint": "This is a separate, one-time bi-annual bonus tied to your Zentact merchants' processing volume — not part of your regular monthly commission pay stub."
+      "hint": "This is a separate, one-time bi-annual bonus tied to your Zentact merchants' processing volume — not part of your regular monthly commission pay stub.",
+      "loadFailed": "The processing bonus statement could not be loaded."
     },
     "title": "Commission Report",
     "earnedToDate": "earned to date",
@@ -6616,7 +6620,9 @@
       "medium": "fair",
       "low": "uncertain"
     },
-    "hidePaste": "Hide JSON entry"
+    "hidePaste": "Hide JSON entry",
+    "recalculating": "Recalculating…",
+    "recalcFailed": "Recalculation failed — figures shown are the previous ones."
   },
   "icplusRates": {
     "title": "IC+ reference rates",
