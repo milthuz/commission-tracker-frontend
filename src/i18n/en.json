@@ -1063,7 +1063,7 @@
     "colSubmittedOnBy": "Submitted on / by"
   },
   "kaizenDemo": {
-    "title": "Kaizen DEMO",
+    "title": "Kaizen demo",
     "subtitle": "Run a live demo of the Kaizen POS, streamed in your browser.",
     "readyTitle": "Ready to demo the Kaizen POS",
     "readyHint": "Click below to start a live, interactive session. It opens in this page — give it a few seconds to load the first time.",
@@ -1323,7 +1323,7 @@
     }
   },
   "saasIncrease": {
-    "title": "SAAS increase",
+    "title": "SaaS increase",
     "subtitle": "Simulate SaaS price increases across every live Zoho Billing subscription and build a scenario toward a target MRR add.",
     "error": "Couldn't load SaaS Increase data. Please try again.",
     "scenario": "Scenario",

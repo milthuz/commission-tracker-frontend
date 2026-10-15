@@ -76,11 +76,13 @@ export default function EmailPreview() {
         <p className="mt-1 text-sm text-body">{t('admin.emailPreview.subtitle')}</p>
       </div>
 
-      <div className="p-7">
+      <div className="p-4 sm:p-7">
         <div className="mb-5 flex flex-wrap items-end gap-4">
-          <div>
+          {/* min-w-0 + max-w-full : sur téléphone le menu natif prend la largeur de sa plus longue
+              option (« Réinitialisation du mot de passe… ») et sortait de l'écran. */}
+          <div className="min-w-0 max-w-full">
             <label className={labelCls}>{t('admin.emailPreview.template')}</label>
-            <Select buttonClassName={selectCls} value={type} onChange={(v) => setType(v as TemplateType)} options={TEMPLATE_TYPES.map((ty) => ({ value: ty, label: t(`admin.emailPreview.types.${ty}`) as string }))} />
+            <Select className="max-w-full" buttonClassName={selectCls} value={type} onChange={(v) => setType(v as TemplateType)} options={TEMPLATE_TYPES.map((ty) => ({ value: ty, label: t(`admin.emailPreview.types.${ty}`) as string }))} />
           </div>
 
           <div>

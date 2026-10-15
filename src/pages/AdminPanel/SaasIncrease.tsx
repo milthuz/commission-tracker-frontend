@@ -1987,7 +1987,7 @@ const SaasIncrease: React.FC = () => {
             <Gauge className="mr-1.5 inline h-3.5 w-3.5" /> {t('saasIncrease.calibration.title')}
           </button>
           <div className="flex-1" />
-          <div className={`flex items-center gap-2 py-1 pl-3 pr-1.5 ${chipInput}`}>
+          <div className={`flex max-w-full flex-wrap items-center gap-2 py-1 pl-3 pr-1.5 ${chipInput}`}>
             <span className={`whitespace-nowrap text-xs ${textTer}`}>{t('saasIncrease.bulk')}</span>
             <div className={`inline-flex rounded-lg p-0.5 ${raised}`}>
               <button type="button" onClick={() => setBulkType('percent')} className={segBtn(bulkType === 'percent')}>%</button>
@@ -2018,7 +2018,9 @@ const SaasIncrease: React.FC = () => {
         {/* Segment list — the default view. Individual subscriptions are behind a per-segment
             drill-down, so the page opens on a few dozen decision-sized rows rather than
             thousands of editable ones. */}
-        <div>
+        {/* Sur téléphone, la grille à 6 colonnes défile à l'horizontale au lieu d'être coupée
+            (la carte qui l'entoure masque ce qui dépasse). */}
+        <div className="overflow-x-auto [&>*]:min-w-[760px] lg:[&>*]:min-w-0">
           {(() => {
                 // The select-all checkbox lives here, so the action you take on a selection belongs
                 // here too. ALWAYS visible: gating it on a live selection made it undiscoverable —

@@ -213,7 +213,7 @@
       "submissions": "Soumissions",
       "merchants": "Marchands",
       "active": "Marchands actifs",
-      "profit": "Transaction Profit"
+      "profit": "Profit des transactions"
     },
     "chart": {
       "activationsTitle": "Licences par mois — {{year}}",
@@ -262,8 +262,8 @@
       "byReseller": "Par revendeur"
     },
     "kpi": {
-      "profit": "Transaction Profit",
-      "other": "Other Revenue",
+      "profit": "Profit des transactions",
+      "other": "Autres revenus",
       "total": "Revenu total",
       "volume": "Volume traité",
       "merchants": "Marchands",
@@ -287,8 +287,8 @@
       "rep": "Vendeur",
       "reseller": "Revendeur",
       "merchant": "Marchand",
-      "profit": "Transaction Profit",
-      "other": "Other Revenue",
+      "profit": "Profit des transactions",
+      "other": "Autres revenus",
       "total": "Total",
       "volume": "Volume",
       "merchants": "Marchands",
@@ -1063,7 +1063,7 @@
     "colSubmittedOnBy": "Soumis le / par"
   },
   "kaizenDemo": {
-    "title": "Kaizen DEMO",
+    "title": "Démo Kaizen",
     "subtitle": "Lance une démo en direct du POS Kaizen, diffusée dans ton navigateur.",
     "readyTitle": "Prêt à faire la démo du POS Kaizen",
     "readyHint": "Clique ci-dessous pour démarrer une session interactive en direct. Elle s'ouvre dans cette page — laisse-lui quelques secondes au premier lancement.",
@@ -1323,7 +1323,7 @@
     }
   },
   "saasIncrease": {
-    "title": "SAAS increase",
+    "title": "Hausse SaaS",
     "subtitle": "Simule des augmentations de prix SaaS sur chaque abonnement Zoho Billing actif et construis un scénario vers une cible de MRR ajouté.",
     "error": "Impossible de charger les données d'Augmentation SaaS. Réessaie.",
     "scenario": "Scénario",
@@ -2030,7 +2030,7 @@
     "totalDeals": "Deals ce mois",
     "activations": "Activations",
     "paidRevenueYtd": "Revenus payés (YTD)",
-    "commissionYtd": "Commission (YTD)",
+    "commissionYtd": "Commission (cumul annuel)",
     "met": "atteint",
     "belowQuota": "{{count}} rep(s) sous le quota",
     "ptsLeft": "{{count}} pts restants",
@@ -3411,7 +3411,7 @@
       "emailHint": "Le courriel Zoho du vendeur — permet la pré-assignation de rôles et l'impersonation avant sa première connexion.",
       "hireDate": "Date d'embauche",
       "hireDateHint": "Pilote la rampe de 90 jours : le quota gate est suspendu pendant les 90 premiers jours (plan §7).",
-      "quotaGate": "Quota gate",
+      "quotaGate": "Seuil de quota",
       "quotaGateHint": "Plan §2 : un mois sous le quota ne paie aucune commission matériel/SaaS. Désactiver pour exempter cette personne (comptes maison, direction…).",
       "processingBonus": "Bonus de processing",
       "processingBonusHint": "Bonus de processing/volume bi-annuel. Désactiver pour exclure cette personne (active) de ce bonus, sans toucher à ses commissions.",
@@ -3718,7 +3718,7 @@
         "delta": "Écart",
         "month": "Mois",
         "yearTotal": "Total année",
-        "grandTotal": "Grand total",
+        "grandTotal": "Total général",
         "empty": "Aucun paiement ni commission calculée pour cette année.",
         "preTag": "pré-plateforme",
         "platformNote": "Les mois avant mai 2026 étaient payés d'après les rapports importés (l'ancien système) — leurs écarts vs le modèle actuel sont attendus et ne demandent aucune correction. La plateforme paie depuis mai 2026.",
