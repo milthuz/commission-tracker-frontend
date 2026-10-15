@@ -6,6 +6,8 @@ import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import axios from 'axios';
 import { getToken } from '../../lib/auth';
+import { ContentLoader } from '../../common/Loader';
+import { CARD, Modal, PageHeader, StateCard, Tabs } from '../../components/ui';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -60,14 +62,14 @@ const ICONS = {
 
 function KpiCard({ label, value, color, iconD, title }: { label: string; value: string; color: string; iconD: string; title?: string }) {
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="rounded-2xl border border-stroke bg-white px-5 py-4 dark:border-strokedark dark:bg-boxdark">
       <div className="flex items-center gap-3">
         <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${color}`}>
           <Icon d={iconD} />
         </span>
         <div className="min-w-0">
           <p title={title || value} className="truncate text-xl font-bold leading-tight text-black dark:text-white">{value}</p>
-          <p className="text-sm font-medium text-body">{label}</p>
+          <p className="text-sm font-medium text-body dark:text-bodydark2">{label}</p>
         </div>
       </div>
     </div>
@@ -75,12 +77,7 @@ function KpiCard({ label, value, color, iconD, title }: { label: string; value: 
 }
 
 function EmptyCard({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-stroke p-10 text-center dark:border-strokedark">
-      <p className="text-sm font-medium text-black dark:text-white">{title}</p>
-      <p className="mt-1 text-sm text-body">{desc}</p>
-    </div>
-  );
+  return <div className={CARD}><StateCard kind="empty" title={title} body={desc} /></div>;
 }
 
 // Stacked column chart: profit per month of the year, segmented by rep/reseller.
@@ -125,8 +122,8 @@ function YearChart({ points, title }: { points: { month: number; key: string; va
     tooltip: { y: { formatter: (v: number) => money(v) } },
   };
   return (
-    <div className="mb-6 rounded-sm border border-stroke bg-white px-5 pt-5 pb-2 shadow-default dark:border-strokedark dark:bg-boxdark">
-      <h4 className="mb-2 text-base font-semibold text-black dark:text-white">{title}</h4>
+    <div className="mb-6 rounded-2xl border border-stroke bg-white px-5 pt-5 pb-2 dark:border-strokedark dark:bg-boxdark">
+      <h4 className="mb-2 text-base font-bold text-black dark:text-white">{title}</h4>
       <ReactApexChart options={options} series={series} type="bar" height={350} />
     </div>
   );
@@ -283,39 +280,25 @@ export default function Revenue() {
   }, [tabRows, filter.search, tab]);
 
   const isFiltered = filter.month !== String(now.getMonth() + 1) || filter.search.trim() !== '';
-  const selectCls = 'rounded-md border border-stroke bg-transparent py-2 pl-3 pr-8 text-sm font-medium text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white';
-  const labelCls = 'mb-1.5 block text-xs font-medium text-body';
-  const tabBtn = (id: Tab, label: string) => (
-    <button
-      onClick={() => setTab(id)}
-      className={`border-b-2 px-4 py-3 text-sm font-medium transition ${tab === id ? 'border-primary text-primary' : 'border-transparent text-body hover:text-black dark:hover:text-white'}`}
-    >
-      {label}
-    </button>
-  );
-
+  const selectCls = 'rounded-[10px] border border-stroke bg-transparent py-2 pl-3 pr-8 text-sm font-medium text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white';
+  const labelCls = 'mb-1.5 block text-xs font-bold text-body dark:text-bodydark2';
   return (
     <>
-      <div className="mb-6">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('revenue.title')}</h2>
-        <p className="mt-1 text-sm text-body">{t('revenue.subtitle')}</p>
-      </div>
+      <PageHeader section={t('sidebar.sections.direction')} title={t('revenue.title')} subtitle={t('revenue.subtitle')} />
 
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="flex gap-2 border-b border-stroke px-4 dark:border-strokedark">
-          {tabBtn('byRep', t('revenue.tabs.byRep'))}
-          {tabBtn('byReseller', t('revenue.tabs.byReseller'))}
-        </div>
+      <Tabs ariaLabel={t('revenue.title') as string} value={tab} onChange={setTab}
+        tabs={[{ id: 'byRep', label: t('revenue.tabs.byRep') }, { id: 'byReseller', label: t('revenue.tabs.byReseller') }]} />
 
-        <div className="p-6">
+      <div>
+        <div className="mt-4">
           {data === null ? (
-            <p className="text-sm text-body">…</p>
+            <ContentLoader />
           ) : error || data.length === 0 ? (
             <EmptyCard title={t('revenue.emptyTitle')} desc={t('revenue.emptyDesc')} />
           ) : (
             <>
               {/* Filter bar */}
-              <div className="mb-6 flex flex-wrap items-end gap-4">
+              <div className="mb-6 flex flex-wrap items-end gap-4 rounded-2xl border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
                 <div>
                   <label className={labelCls}>{t('revenue.filters.year')}</label>
                   <Select buttonClassName={selectCls} value={String(year)} onChange={(v) => setYear(Number(v))} options={years.map((y) => ({ value: String(y), label: String(y) }))} />
@@ -324,7 +307,7 @@ export default function Revenue() {
                   <label className={labelCls}>{t('revenue.filters.month')}</label>
                   <Select buttonClassName={selectCls} value={filter.month} onChange={(v) => setFilter({ ...filter, month: v })} options={[{ value: 'all', label: t('revenue.filters.allMonths') as string }, ...months.map((m) => ({ value: m.value, label: m.label.charAt(0).toUpperCase() + m.label.slice(1) }))]} />
                 </div>
-                <div className="relative ml-auto">
+                <div className="relative w-full sm:ml-auto sm:w-auto">
                   <label className={labelCls}>{t('revenue.filters.search')}</label>
                   <span className="pointer-events-none absolute left-3 top-9 text-body"><Icon d={ICONS.search} className="h-4 w-4" /></span>
                   <input
@@ -332,13 +315,13 @@ export default function Revenue() {
                     value={filter.search}
                     onChange={(e) => setFilter({ ...filter, search: e.target.value })}
                     placeholder={t('revenue.filters.searchPlaceholder')}
-                    className="w-72 rounded-md border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
+                    className="w-full rounded-[10px] sm:w-72 border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
                   />
                 </div>
                 <div className="flex items-center gap-3 pb-0.5">
                   <span className="text-sm text-body">{t('revenue.filters.results', { count: filtered.length })}</span>
                   {isFiltered && (
-                    <button onClick={() => setFilter({ month: String(now.getMonth() + 1), search: '' })} className="text-sm font-medium text-primary hover:underline">
+                    <button onClick={() => setFilter({ month: String(now.getMonth() + 1), search: '' })} className="text-sm font-bold text-accent-ink hover:underline dark:text-accent-ink-dark">
                       {t('revenue.filters.reset')}
                     </button>
                   )}
@@ -358,16 +341,16 @@ export default function Revenue() {
               {filtered.length === 0 ? (
                 <EmptyCard title={t('revenue.filters.noResultsTitle')} desc={t('revenue.filters.noResultsDesc')} />
               ) : (
-                <div className="max-h-[34rem] overflow-auto rounded-md border border-stroke dark:border-strokedark">
+                <div className="max-h-[34rem] overflow-auto rounded-xl border border-stroke dark:border-strokedark">
                   <table className="w-full table-auto text-sm">
                     <thead className="sticky top-0 z-10">
-                      <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                        <th className="px-4 py-3 font-medium text-black dark:text-white">{tab === 'byRep' ? t('revenue.cols.rep') : t('revenue.cols.reseller')}</th>
-                        <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.profit')}</th>
-                        <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.other')}</th>
-                        <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.total')}</th>
-                        <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.merchants')}</th>
-                        <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('revenue.cols.avgPerMerchant')}</th>
+                      <tr className="bg-white text-left text-xs text-body dark:bg-boxdark dark:text-bodydark2">
+                        <th className="px-4 py-3 border-b border-stroke font-bold dark:border-strokedark">{tab === 'byRep' ? t('revenue.cols.rep') : t('revenue.cols.reseller')}</th>
+                        <th className="px-4 py-3 text-right border-b border-stroke font-bold dark:border-strokedark">{t('revenue.cols.profit')}</th>
+                        <th className="px-4 py-3 text-right border-b border-stroke font-bold dark:border-strokedark">{t('revenue.cols.other')}</th>
+                        <th className="px-4 py-3 text-right border-b border-stroke font-bold dark:border-strokedark">{t('revenue.cols.total')}</th>
+                        <th className="px-4 py-3 text-right border-b border-stroke font-bold dark:border-strokedark">{t('revenue.cols.merchants')}</th>
+                        <th className="px-4 py-3 text-right border-b border-stroke font-bold dark:border-strokedark">{t('revenue.cols.avgPerMerchant')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -378,7 +361,7 @@ export default function Revenue() {
                           <td className="px-4 py-3">
                             <button
                               onClick={() => setDrill(g.name)}
-                              className={logo ? 'flex items-center' : 'font-medium text-primary hover:underline'}
+                              className={logo ? 'flex items-center' : 'font-bold text-accent-ink hover:underline dark:text-accent-ink-dark'}
                               title={logo ? g.name : t('revenue.viewAccounts')}
                             >
                               {logo || g.name}
@@ -386,7 +369,7 @@ export default function Revenue() {
                           </td>
                           <td className="px-4 py-3 text-right text-body">{money(g.profit)}</td>
                           <td className="px-4 py-3 text-right text-body">{money(g.other)}</td>
-                          <td className="px-4 py-3 text-right font-semibold text-primary">{money(g.total)}</td>
+                          <td className="px-4 py-3 text-right font-bold text-accent-ink dark:text-accent-ink-dark">{money(g.total)}</td>
                           <td className="px-4 py-3 text-right text-body">{g.merchants}</td>
                           <td className="px-4 py-3 text-right text-body">{money(g.merchants ? g.total / g.merchants : 0)}</td>
                         </tr>
@@ -402,99 +385,82 @@ export default function Revenue() {
       </div>
 
       {/* Drill-down modal: per-merchant accounts for the clicked rep/reseller */}
-      {drill && (
-        <div
-          className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setDrill(null)}
-        >
-          <div
-            className="max-h-[80vh] w-full max-w-3xl overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
-              <div className="flex items-center gap-3">
-                {tab === 'byReseller' && resellerLogo(drill)}
-                <div>
-                  <h3 className="text-lg font-semibold text-black dark:text-white">{drill}</h3>
-                  <p className="text-sm text-body">
-                    {t('revenue.accountsSubtitle', { count: drillMerchants.length })} · {money(drillTotal)}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="relative hidden sm:block">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-body"><Icon d={ICONS.search} className="h-4 w-4" /></span>
-                  <input
-                    type="text"
-                    value={drillSearch}
-                    onChange={(e) => setDrillSearch(e.target.value)}
-                    placeholder={t('revenue.searchAccounts')}
-                    className="w-56 rounded-md border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
-                  />
-                </div>
-                <button onClick={() => setDrill(null)} className="text-body hover:text-black dark:hover:text-white" aria-label={t('common.close') as string}>
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            {/* Mobile search (header too narrow) */}
-            <div className="border-b border-stroke px-6 py-3 dark:border-strokedark sm:hidden">
-              <input
-                type="text"
-                value={drillSearch}
-                onChange={(e) => setDrillSearch(e.target.value)}
-                placeholder={t('revenue.searchAccounts')}
-                className="w-full rounded-md border border-stroke bg-transparent py-2 px-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
-              />
-            </div>
-            <div className="max-h-[calc(80vh-5rem)] overflow-auto">
-              <table className="w-full table-auto text-sm">
-                <thead className="sticky top-0 z-10">
-                  <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                    <th className="px-6 py-3 font-medium text-black dark:text-white">
-                      <button onClick={() => sortDrillBy('name')} className="font-medium transition hover:text-primary">{t('revenue.cols.merchant')}{sortArrow('name')}</button>
-                    </th>
-                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">
-                      <button onClick={() => sortDrillBy('profit')} className="font-medium transition hover:text-primary">{t('revenue.cols.profit')}{sortArrow('profit')}</button>
-                    </th>
-                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">
-                      <button onClick={() => sortDrillBy('other')} className="font-medium transition hover:text-primary">{t('revenue.cols.other')}{sortArrow('other')}</button>
-                    </th>
-                    <th className="px-6 py-3 text-right font-medium text-black dark:text-white">
-                      <button onClick={() => sortDrillBy('total')} className="font-medium transition hover:text-primary">{t('revenue.cols.total')}{sortArrow('total')}</button>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {drillMerchants.map((m) => (
-                    <tr key={m.name} className="border-t border-stroke align-top dark:border-strokedark">
-                      <td className="px-6 py-3 text-black dark:text-white">
-                        {m.name}
-                        {m.stores && m.stores.length > 1 && (
-                          <div className="mt-1 flex flex-col gap-0.5 text-xs font-normal text-body">
-                            <span className="font-medium">{t('revenue.storesCount', { count: m.stores.length })}</span>
-                            {m.stores.map((s) => (
-                              // Zentact's API exposes no per-store name. When storeReferenceId is a
-                              // readable name, show it; otherwise this is the merchant's primary store,
-                              // which Zentact UI labels "<merchant> Store" — replicate that.
-                              <span key={s.storeId} className="pl-3">• {storeName(s) || `${m.name} Store`}</span>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-3 text-right text-body">{money(m.profit)}</td>
-                      <td className="px-6 py-3 text-right text-body">{money(m.other)}</td>
-                      <td className="px-6 py-3 text-right font-semibold text-primary">{money(m.total)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      <Modal open={!!drill} onClose={() => setDrill(null)} size="xl"
+        title={drill ? (
+          <span className="flex items-center gap-3">
+            {tab === 'byReseller' && resellerLogo(drill)}
+            <span className="flex flex-col">
+              <span>{drill}</span>
+              <span className="text-sm font-medium text-body dark:text-bodydark2">
+                {t('revenue.accountsSubtitle', { count: drillMerchants.length })} · {money(drillTotal)}
+              </span>
+            </span>
+          </span>
+        ) : ''}
+        headerExtra={
+          <div className="relative hidden sm:block">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-body"><Icon d={ICONS.search} className="h-4 w-4" /></span>
+            <input
+              type="text"
+              value={drillSearch}
+              onChange={(e) => setDrillSearch(e.target.value)}
+              placeholder={t('revenue.searchAccounts')}
+              className="h-9 w-56 rounded-[10px] border border-stroke bg-transparent pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
+            />
           </div>
+        }>
+        {/* Mobile search (header too narrow) */}
+        <input
+          type="text"
+          value={drillSearch}
+          onChange={(e) => setDrillSearch(e.target.value)}
+          placeholder={t('revenue.searchAccounts')}
+          className="w-full rounded-[10px] border border-stroke bg-transparent py-2 px-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white sm:hidden"
+        />
+        <div className="max-h-[60vh] overflow-auto rounded-xl border border-stroke dark:border-strokedark">
+          <table className="w-full table-auto text-sm">
+            <thead className="sticky top-0 z-10">
+              <tr className="bg-white text-left text-xs text-body dark:bg-boxdark dark:text-bodydark2">
+                <th className="border-b border-stroke px-4 py-3 font-bold dark:border-strokedark">
+                  <button onClick={() => sortDrillBy('name')} className="font-bold transition hover:text-black dark:hover:text-white">{t('revenue.cols.merchant')}{sortArrow('name')}</button>
+                </th>
+                <th className="border-b border-stroke px-4 py-3 text-right font-bold dark:border-strokedark">
+                  <button onClick={() => sortDrillBy('profit')} className="font-bold transition hover:text-black dark:hover:text-white">{t('revenue.cols.profit')}{sortArrow('profit')}</button>
+                </th>
+                <th className="border-b border-stroke px-4 py-3 text-right font-bold dark:border-strokedark">
+                  <button onClick={() => sortDrillBy('other')} className="font-bold transition hover:text-black dark:hover:text-white">{t('revenue.cols.other')}{sortArrow('other')}</button>
+                </th>
+                <th className="border-b border-stroke px-4 py-3 text-right font-bold dark:border-strokedark">
+                  <button onClick={() => sortDrillBy('total')} className="font-bold transition hover:text-black dark:hover:text-white">{t('revenue.cols.total')}{sortArrow('total')}</button>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {drillMerchants.map((m) => (
+                <tr key={m.name} className="border-t border-stroke align-top dark:border-strokedark">
+                  <td className="px-4 py-3 text-black dark:text-white">
+                    {m.name}
+                    {m.stores && m.stores.length > 1 && (
+                      <div className="mt-1 flex flex-col gap-0.5 text-xs font-normal text-body">
+                        <span className="font-medium">{t('revenue.storesCount', { count: m.stores.length })}</span>
+                        {m.stores.map((s) => (
+                          // Zentact's API exposes no per-store name. When storeReferenceId is a
+                          // readable name, show it; otherwise this is the merchant's primary store,
+                          // which Zentact UI labels "<merchant> Store" — replicate that.
+                          <span key={s.storeId} className="pl-3">• {storeName(s) || `${m.name} Store`}</span>
+                        ))}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right text-body">{money(m.profit)}</td>
+                  <td className="px-4 py-3 text-right text-body">{money(m.other)}</td>
+                  <td className="px-4 py-3 text-right font-bold text-accent-ink dark:text-accent-ink-dark">{money(m.total)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </Modal>
     </>
   );
 }

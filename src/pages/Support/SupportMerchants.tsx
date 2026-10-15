@@ -4,6 +4,7 @@ import { fmtNumber } from '../../lib/format';
 import axios from 'axios';
 import Select from '../../components/Select';
 import { getToken } from '../../lib/auth';
+import { CARD, CARD_HEAD, CARD_SUB, CARD_TITLE, StateCard } from '../../components/ui';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -27,10 +28,10 @@ type Donnees = {
 
 function Carte({ titre, sous, children }: { titre: string; sous?: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-      <div className="border-b border-stroke px-5 py-4 dark:border-strokedark">
-        <h3 className="text-base font-semibold text-black dark:text-white">{titre}</h3>
-        {sous && <p className="mt-0.5 text-xs text-body">{sous}</p>}
+    <div className={CARD}>
+      <div className={CARD_HEAD}>
+        <h3 className={CARD_TITLE}>{titre}</h3>
+        {sous && <p className={CARD_SUB}>{sous}</p>}
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -85,12 +86,10 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
   };
 
   if (chargement) {
-    return <div className="flex h-40 items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-    </div>;
+    return <div className={CARD}><StateCard kind="loading" /></div>;
   }
   if (erreur) {
-    return <div className="rounded-sm border border-stroke bg-white p-8 text-center text-sm text-danger dark:border-strokedark dark:bg-boxdark">{erreur}</div>;
+    return <div className={CARD}><StateCard kind="error" title={erreur} onRetry={charger} /></div>;
   }
   if (!data) return null;
 
@@ -121,26 +120,26 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <p className="text-xs font-medium uppercase tracking-wide text-body">{t('support.rev.apparies')}</p>
-          <p className="mt-1 text-title-md font-bold text-black dark:text-white">
+        <div className="rounded-2xl border border-stroke bg-white px-5 py-4 dark:border-strokedark dark:bg-boxdark">
+          <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t('support.rev.apparies')}</p>
+          <p className="mt-1 text-2xl font-bold leading-tight text-black dark:text-white">
             {fmtNumber(data.resume.apparies)}
           </p>
           <p className="mt-0.5 text-xs text-body">
             {t('support.rev.surClients', { n: fmtNumber(data.resume.clients) })}
           </p>
         </div>
-        <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <p className="text-xs font-medium uppercase tracking-wide text-body">{t('support.rev.revenu')}</p>
-          <p className="mt-1 text-title-md font-bold text-black dark:text-white">{argent(data.resume.revenu)}</p>
+        <div className="rounded-2xl border border-stroke bg-white px-5 py-4 dark:border-strokedark dark:bg-boxdark">
+          <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t('support.rev.revenu')}</p>
+          <p className="mt-1 text-2xl font-bold leading-tight text-black dark:text-white">{argent(data.resume.revenu)}</p>
         </div>
-        <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <p className="text-xs font-medium uppercase tracking-wide text-body">{t('support.billets')}</p>
-          <p className="mt-1 text-title-md font-bold text-black dark:text-white">{fmtNumber(data.resume.billets)}</p>
+        <div className="rounded-2xl border border-stroke bg-white px-5 py-4 dark:border-strokedark dark:bg-boxdark">
+          <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t('support.billets')}</p>
+          <p className="mt-1 text-2xl font-bold leading-tight text-black dark:text-white">{fmtNumber(data.resume.billets)}</p>
         </div>
-        <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <p className="text-xs font-medium uppercase tracking-wide text-body">{t('support.rev.lents')}</p>
-          <p className="mt-1 text-title-md font-bold text-black dark:text-white">{fmtNumber(data.resume.lents)}</p>
+        <div className="rounded-2xl border border-stroke bg-white px-5 py-4 dark:border-strokedark dark:bg-boxdark">
+          <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t('support.rev.lents')}</p>
+          <p className="mt-1 text-2xl font-bold leading-tight text-black dark:text-white">{fmtNumber(data.resume.lents)}</p>
           <p className="mt-0.5 text-xs text-body">{t('support.rev.lentsNote')}</p>
         </div>
       </div>
@@ -153,12 +152,12 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
           <div className="overflow-x-auto">
             <table className="w-full min-w-[620px] text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-body">
-                  <th className="pb-2 pr-4 font-medium">{t('support.churn.motif')}</th>
-                  <th className="pb-2 pr-4 text-right font-medium">{t('support.churn.marchands')}</th>
-                  <th className="pb-2 pr-4 text-right font-medium">{t('support.churn.moy12')}</th>
-                  <th className="pb-2 pr-4 text-right font-medium">{t('support.churn.moy3')}</th>
-                  <th className="pb-2 text-right font-medium">{t('support.churn.lents')}</th>
+                <tr className="text-left text-xs text-body dark:text-bodydark2">
+                  <th className="pb-2 pr-4 font-bold">{t('support.churn.motif')}</th>
+                  <th className="pb-2 pr-4 text-right font-bold">{t('support.churn.marchands')}</th>
+                  <th className="pb-2 pr-4 text-right font-bold">{t('support.churn.moy12')}</th>
+                  <th className="pb-2 pr-4 text-right font-bold">{t('support.churn.moy3')}</th>
+                  <th className="pb-2 text-right font-bold">{t('support.churn.lents')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -179,7 +178,7 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
                     </tr>
                   );
                 })}
-                <tr className="border-t-2 border-stroke bg-gray-50 dark:border-strokedark dark:bg-meta-4">
+                <tr className="border-t-2 border-stroke bg-gray-2 dark:border-strokedark dark:bg-meta-4/60">
                   <td className="py-2 pr-4 font-semibold text-black dark:text-white">{t('support.churn.temoin')}</td>
                   <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(temoin.marchands)}</td>
                   <td className="py-2 pr-4 text-right tabular-nums">{fmtNumber(temoin.moy12, 1)}</td>
@@ -191,7 +190,7 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
               </tbody>
             </table>
           </div>
-          <p className="mt-4 rounded-md bg-primary bg-opacity-5 px-4 py-3 text-sm text-body">
+          <p className="mt-4 rounded-xl bg-primary/10 px-4 py-3 text-sm text-black dark:text-white">
             {t('support.churn.lecture')}
           </p>
           {ch.motifs.length > 0 && (
@@ -210,16 +209,16 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-body">
-                <th className="pb-2 pr-3 font-medium">{t('support.marchands.nom')}</th>
-                <th className="pb-2 pr-3 text-right font-medium">{t('support.rev.revenu')}</th>
-                <th className="pb-2 pr-3 font-medium">{t('support.rev.rep')}</th>
-                <th className="pb-2 pr-3 text-right font-medium">{t('support.billets')}</th>
-                <th className="pb-2 pr-3 text-right font-medium">{t('support.ouverts')}</th>
-                <th className="pb-2 pr-3 text-right font-medium">{t('support.rev.lentsCourt')}</th>
-                <th className="pb-2 pr-3 text-right font-medium">{t('support.medianeCourt')}</th>
-                <th className="pb-2 pr-3 font-medium">{t('support.types.type')}</th>
-                <th className="pb-2 text-right font-medium">{t('support.marchands.dernier')}</th>
+              <tr className="text-left text-xs text-body dark:text-bodydark2">
+                <th className="pb-2 pr-3 font-bold">{t('support.marchands.nom')}</th>
+                <th className="pb-2 pr-3 text-right font-bold">{t('support.rev.revenu')}</th>
+                <th className="pb-2 pr-3 font-bold">{t('support.rev.rep')}</th>
+                <th className="pb-2 pr-3 text-right font-bold">{t('support.billets')}</th>
+                <th className="pb-2 pr-3 text-right font-bold">{t('support.ouverts')}</th>
+                <th className="pb-2 pr-3 text-right font-bold">{t('support.rev.lentsCourt')}</th>
+                <th className="pb-2 pr-3 text-right font-bold">{t('support.medianeCourt')}</th>
+                <th className="pb-2 pr-3 font-bold">{t('support.types.type')}</th>
+                <th className="pb-2 text-right font-bold">{t('support.marchands.dernier')}</th>
               </tr>
             </thead>
             <tbody>
@@ -243,7 +242,7 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
 
       {/* Le revenu ne couvre qu'UNE des trois organisations de facturation. Un lecteur qui
           l'ignore prend un revenu inconnu pour un revenu nul. */}
-      <div className="rounded-sm border border-stroke bg-white px-5 py-4 text-xs text-body shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-stroke bg-white px-5 py-4 text-xs text-body dark:border-strokedark dark:bg-boxdark">
         {t('support.rev.orgNote')}
       </div>
 
@@ -264,7 +263,7 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {!gereExclus ? (
               <button onClick={() => setGereExclus(true)}
-                className="rounded-md border border-stroke bg-white px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+                className="rounded-[10px] border border-stroke bg-white px-4 py-2 text-sm font-bold text-black hover:border-primary disabled:opacity-50 dark:border-strokedark dark:bg-boxdark dark:text-white">
                 {t('support.exclus.gerer')}
               </button>
             ) : (
@@ -272,9 +271,9 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
                 <input value={nouvelExclu} onChange={(e) => setNouvelExclu(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') ajouterExclu(); }}
                   placeholder={t('support.exclus.nom') as string}
-                  className="w-72 rounded-md border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark" />
+                  className="w-72 rounded-[10px] border border-stroke bg-transparent px-4 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
                 <button onClick={ajouterExclu}
-                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+                  className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A]">
                   {t('support.exclus.ajouter')}
                 </button>
                 <button onClick={() => setGereExclus(false)} className="px-2 text-sm text-body hover:underline">

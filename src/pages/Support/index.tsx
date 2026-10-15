@@ -7,6 +7,8 @@ import axios from 'axios';
 import Select from '../../components/Select';
 import SupportMerchants from './SupportMerchants';
 import { getToken } from '../../lib/auth';
+import { ContentLoader } from '../../common/Loader';
+import { CARD, CARD_HEAD, CARD_SUB, CARD_TITLE, PageHeader, StateCard, Tabs } from '../../components/ui';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -46,10 +48,10 @@ type Onglet = 'apercu' | 'problemes' | 'equipe' | 'marchands' | 'revenus';
 function Carte({ titre, sous, children, className = '' }:
   { titre: string; sous?: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ${className}`}>
-      <div className="border-b border-stroke px-5 py-4 dark:border-strokedark">
-        <h3 className="text-base font-semibold text-black dark:text-white">{titre}</h3>
-        {sous && <p className="mt-0.5 text-xs text-body">{sous}</p>}
+    <div className={`${CARD} ${className}`}>
+      <div className={CARD_HEAD}>
+        <h3 className={CARD_TITLE}>{titre}</h3>
+        {sous && <p className={CARD_SUB}>{sous}</p>}
       </div>
       <div className="p-5">{children}</div>
     </div>
@@ -58,9 +60,9 @@ function Carte({ titre, sous, children, className = '' }:
 
 function Tuile({ libelle, valeur, note }: { libelle: string; valeur: string; note?: string }) {
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-      <p className="text-xs font-medium uppercase tracking-wide text-body">{libelle}</p>
-      <p className="mt-1 text-title-md font-bold text-black dark:text-white">{valeur}</p>
+    <div className="rounded-2xl border border-stroke bg-white px-5 py-4 dark:border-strokedark dark:bg-boxdark">
+      <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{libelle}</p>
+      <p className="mt-1 text-2xl font-bold leading-tight text-black dark:text-white">{valeur}</p>
       {note && <p className="mt-0.5 text-xs text-body">{note}</p>}
     </div>
   );
@@ -184,25 +186,13 @@ export default function Support() {
     ...(data?.departements || []).map((d) => ({ value: d.id, label: `${d.name} (${fmtNumber(d.n)})` })),
   ], [data?.departements, i18n.language]);
 
-  const ongletBtn = (id: Onglet, libelle: string) => (
-    <button key={id} onClick={() => setOnglet(id)}
-      className={`border-b-2 px-4 py-3 text-sm font-medium transition ${onglet === id
-        ? 'border-primary text-primary'
-        : 'border-transparent text-body hover:text-black dark:hover:text-white'}`}>
-      {libelle}
-    </button>
-  );
-
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('support.title')}</h2>
-        <p className="mt-1 text-sm text-body">{t('support.subtitle')}</p>
-      </div>
+      <div className="-mb-4"><PageHeader section={t('sidebar.sections.direction')} title={t('support.title')} subtitle={t('support.subtitle')} /></div>
 
       {/* Barre de filtres : carte pleine largeur SOUS le titre — sélecteurs à gauche, action
           épinglée à droite. */}
-      <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
         <div className="flex flex-wrap items-center gap-3">
           <div className="w-48">
             <Select value={mois} onChange={setMois} options={[
@@ -227,7 +217,7 @@ export default function Support() {
                 </span>
               )}
               <button onClick={lancerRattrapage} disabled={lance || synchro?.enCours}
-                className="inline-flex items-center gap-2 rounded-md border border-stroke bg-white px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+                className="inline-flex items-center gap-2 rounded-[10px] border border-stroke bg-white px-4 py-2 text-sm font-bold text-black hover:border-primary disabled:opacity-50 dark:border-strokedark dark:bg-boxdark dark:text-white">
                 {synchro?.enCours ? t('support.synchroEnCoursCourt') : t('support.rattrapage')}
               </button>
             </div>
@@ -235,22 +225,13 @@ export default function Support() {
         </div>
       </div>
 
-      {chargement && (
-        <div className="flex h-40 items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      )}
+      {chargement && <ContentLoader />}
       {!chargement && erreur && (
-        <div className="rounded-sm border border-stroke bg-white p-8 text-center text-sm text-danger dark:border-strokedark dark:bg-boxdark">
-          {erreur}
-        </div>
+        <div className={CARD}><StateCard kind="error" title={erreur} onRetry={charger} /></div>
       )}
 
       {!chargement && !erreur && data && data.total === 0 && (
-        <div className="rounded-sm border border-stroke bg-white p-10 text-center dark:border-strokedark dark:bg-boxdark">
-          <p className="text-sm font-medium text-black dark:text-white">{t('support.vide')}</p>
-          <p className="mt-1 text-sm text-body">{t('support.videAide')}</p>
-        </div>
+        <div className={CARD}><StateCard kind="empty" title={t('support.vide')} body={t('support.videAide')} /></div>
       )}
 
       {!chargement && !erreur && data && data.total > 0 && (
@@ -268,16 +249,11 @@ export default function Support() {
             <Tuile libelle={t('support.kpi.marchands') as string} valeur={fmtNumber(data.marchands)} />
           </div>
 
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="flex flex-wrap gap-1 border-b border-stroke px-4 dark:border-strokedark">
-              {ongletBtn('apercu', t('support.onglets.apercu') as string)}
-              {ongletBtn('problemes', t('support.onglets.problemes') as string)}
-              {ongletBtn('equipe', t('support.onglets.equipe') as string)}
-              {ongletBtn('marchands', t('support.onglets.marchands') as string)}
-              {ongletBtn('revenus', t('support.onglets.revenus') as string)}
-            </div>
+          <Tabs ariaLabel={t('support.title') as string} value={onglet} onChange={setOnglet}
+            tabs={(['apercu', 'problemes', 'equipe', 'marchands', 'revenus'] as Onglet[]).map((id) => ({ id, label: t(`support.onglets.${id}`) }))} />
 
-            <div className="flex flex-col gap-4 p-4 md:p-6">
+          <div>
+            <div className="flex flex-col gap-4">
               {onglet === 'apercu' && (
                 <>
                   <Carte titre={t('support.volume.titre') as string} sous={t('support.volume.sous') as string}>
@@ -323,7 +299,7 @@ export default function Support() {
                       <Classement lignes={data.parCanal.slice(0, 8)} cle="canal" valeur="n"
                         vide={t('support.aucun') as string} />
                       <div className="mt-5 border-t border-stroke pt-4 dark:border-strokedark">
-                        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-body">
+                        <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">
                           {t('support.langues')}
                         </p>
                         <Classement lignes={data.parLangue.slice(0, 5)} cle="langue" valeur="n"
@@ -343,10 +319,10 @@ export default function Support() {
                       <div className="mt-5 overflow-x-auto border-t border-stroke pt-4 dark:border-strokedark">
                         <table className="w-full text-sm">
                           <thead>
-                            <tr className="text-left text-xs uppercase tracking-wide text-body">
-                              <th className="pb-2 pr-4 font-medium">{t('support.types.type')}</th>
-                              <th className="pb-2 pr-4 text-right font-medium">{t('support.billets')}</th>
-                              <th className="pb-2 text-right font-medium">{t('support.medianeCourt')}</th>
+                            <tr className="text-left text-xs text-body dark:text-bodydark2">
+                              <th className="pb-2 pr-4 font-bold">{t('support.types.type')}</th>
+                              <th className="pb-2 pr-4 text-right font-bold">{t('support.billets')}</th>
+                              <th className="pb-2 text-right font-bold">{t('support.medianeCourt')}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -370,7 +346,7 @@ export default function Support() {
                         if (!l.length) return null;
                         return (
                           <div key={fam} className="mb-5 last:mb-0">
-                            <p className="mb-3 text-xs font-medium uppercase tracking-wide text-body">{fam}</p>
+                            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{fam}</p>
                             <Classement lignes={l} cle="valeur" valeur="n" vide={t('support.aucun') as string} />
                           </div>
                         );
@@ -392,11 +368,11 @@ export default function Support() {
                     <div className="overflow-x-auto">
                       <table className="w-full min-w-[520px] text-sm">
                         <thead>
-                          <tr className="text-left text-xs uppercase tracking-wide text-body">
-                            <th className="pb-2 pr-4 font-medium">{t('support.dept.nom')}</th>
-                            <th className="pb-2 pr-4 text-right font-medium">{t('support.billets')}</th>
-                            <th className="pb-2 pr-4 text-right font-medium">{t('support.ouverts')}</th>
-                            <th className="pb-2 text-right font-medium">{t('support.medianeCourt')}</th>
+                          <tr className="text-left text-xs text-body dark:text-bodydark2">
+                            <th className="pb-2 pr-4 font-bold">{t('support.dept.nom')}</th>
+                            <th className="pb-2 pr-4 text-right font-bold">{t('support.billets')}</th>
+                            <th className="pb-2 pr-4 text-right font-bold">{t('support.ouverts')}</th>
+                            <th className="pb-2 text-right font-bold">{t('support.medianeCourt')}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -417,12 +393,12 @@ export default function Support() {
                     <div className="overflow-x-auto">
                       <table className="w-full min-w-[560px] text-sm">
                         <thead>
-                          <tr className="text-left text-xs uppercase tracking-wide text-body">
-                            <th className="pb-2 pr-4 font-medium">{t('support.agents.nom')}</th>
-                            <th className="pb-2 pr-4 text-right font-medium">{t('support.billets')}</th>
-                            <th className="pb-2 pr-4 text-right font-medium">{t('support.resolus')}</th>
-                            <th className="pb-2 pr-4 text-right font-medium">{t('support.ouverts')}</th>
-                            <th className="pb-2 text-right font-medium">{t('support.medianeCourt')}</th>
+                          <tr className="text-left text-xs text-body dark:text-bodydark2">
+                            <th className="pb-2 pr-4 font-bold">{t('support.agents.nom')}</th>
+                            <th className="pb-2 pr-4 text-right font-bold">{t('support.billets')}</th>
+                            <th className="pb-2 pr-4 text-right font-bold">{t('support.resolus')}</th>
+                            <th className="pb-2 pr-4 text-right font-bold">{t('support.ouverts')}</th>
+                            <th className="pb-2 text-right font-bold">{t('support.medianeCourt')}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -447,12 +423,12 @@ export default function Support() {
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[620px] text-sm">
                       <thead>
-                        <tr className="text-left text-xs uppercase tracking-wide text-body">
-                          <th className="pb-2 pr-4 font-medium">{t('support.marchands.nom')}</th>
-                          <th className="pb-2 pr-4 text-right font-medium">{t('support.billets')}</th>
-                          <th className="pb-2 pr-4 text-right font-medium">{t('support.ouverts')}</th>
-                          <th className="pb-2 pr-4 text-right font-medium">{t('support.medianeCourt')}</th>
-                          <th className="pb-2 text-right font-medium">{t('support.marchands.dernier')}</th>
+                        <tr className="text-left text-xs text-body dark:text-bodydark2">
+                          <th className="pb-2 pr-4 font-bold">{t('support.marchands.nom')}</th>
+                          <th className="pb-2 pr-4 text-right font-bold">{t('support.billets')}</th>
+                          <th className="pb-2 pr-4 text-right font-bold">{t('support.ouverts')}</th>
+                          <th className="pb-2 pr-4 text-right font-bold">{t('support.medianeCourt')}</th>
+                          <th className="pb-2 text-right font-bold">{t('support.marchands.dernier')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -477,7 +453,7 @@ export default function Support() {
 
           {/* Ce que la page NE couvre PAS. Écrit sur la page plutôt que caché dans le code :
               un total qui a l'air complet et ne l'est pas est pire qu'un total annoté. */}
-          <div className="rounded-sm border border-stroke bg-white px-5 py-4 text-xs text-body shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="rounded-2xl border border-stroke bg-white px-5 py-4 text-xs text-body dark:border-strokedark dark:bg-boxdark">
             <p>
               {t('support.note.copie', {
                 n: fmtNumber(data.copie.billets),

@@ -6,6 +6,7 @@ import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import axios from 'axios';
 import { getToken } from '../../lib/auth';
+import { CARD, PageHeader, StateCard, StatusPill, Tabs } from '../../components/ui';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -52,7 +53,7 @@ const moneyCompact = (n: number) =>
 
 function KpiCard({ label, value, color, iconD, title }: { label: string; value: number | string; color: string; iconD: string; title?: string }) {
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="rounded-2xl border border-stroke bg-white px-5 py-4 dark:border-strokedark dark:bg-boxdark">
       <div className="flex items-center gap-3">
         <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${color}`}>
           <Icon d={iconD} />
@@ -61,7 +62,7 @@ function KpiCard({ label, value, color, iconD, title }: { label: string; value: 
           <p title={title || String(value)} className="truncate text-xl font-bold leading-tight text-black dark:text-white">
             {typeof value === 'number' ? fmtNumber(value) : value}
           </p>
-          <p className="text-sm font-medium text-body">{label}</p>
+          <p className="text-sm font-medium text-body dark:text-bodydark2">{label}</p>
         </div>
       </div>
     </div>
@@ -72,24 +73,15 @@ function StatusBadge({ status }: { status: string }) {
   const { t } = useTranslation();
   const active = (status || '').toUpperCase() === 'ACTIVE';
   return (
-    <span
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-        active ? 'bg-success bg-opacity-10 text-success' : 'bg-body bg-opacity-10 text-body'
-      }`}
-    >
+    <StatusPill family={active ? 'ok' : 'neutral'}>
       {/* Display only — the stored status stays as the API sends it. */}
       {status ? t(`reseller.status.${status.toLowerCase()}`, { defaultValue: status }) : '—'}
-    </span>
+    </StatusPill>
   );
 }
 
 function EmptyCard({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-stroke p-10 text-center dark:border-strokedark">
-      <p className="text-sm font-medium text-black dark:text-white">{title}</p>
-      <p className="mt-1 text-sm text-body">{desc}</p>
-    </div>
-  );
+  return <div className={CARD}><StateCard kind="empty" title={title} body={desc} /></div>;
 }
 
 function NotConnected({ source }: { source: string }) {
@@ -119,7 +111,7 @@ function ResellerHero({ name, meta }: { name: string; meta: ResellerMeta }) {
   return (
     <div className="mb-6 flex items-center gap-4">
       <img src={logoUrl(m)} alt={name} className="h-16 max-w-[200px] object-contain" />
-      <h3 className="text-xl font-semibold text-black dark:text-white">{name}</h3>
+      <h3 className="text-xl font-bold text-black dark:text-white">{name}</h3>
     </div>
   );
 }
@@ -154,11 +146,11 @@ function FilterBar({
   const isFiltered = !filtersEqual(filter, defaultFilter);
 
   const selectCls =
-    'rounded-md border border-stroke bg-transparent py-2 pl-3 pr-8 text-sm font-medium text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white dark:focus:border-primary';
-  const labelCls = 'mb-1.5 block text-xs font-medium text-body';
+    'rounded-[10px] border border-stroke bg-transparent py-2 pl-3 pr-8 text-sm font-medium text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white dark:focus:border-primary';
+  const labelCls = 'mb-1.5 block text-xs font-bold text-body dark:text-bodydark2';
 
   return (
-    <div className="mb-6 flex flex-wrap items-end gap-4">
+    <div className="mb-6 flex flex-wrap items-end gap-4 rounded-2xl border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
       <div>
         <label className={labelCls}>{t('reseller.filters.year')}</label>
         <Select buttonClassName={selectCls} value={filter.year} onChange={(v) => setFilter({ ...filter, year: v })} options={[{ value: 'all', label: t('reseller.filters.all') as string }, ...years.map((y) => ({ value: String(y), label: String(y) }))]} />
@@ -174,7 +166,7 @@ function FilterBar({
         <Select buttonClassName={selectCls} value={filter.reseller} onChange={(v) => setFilter({ ...filter, reseller: v })} options={[{ value: 'all', label: t('reseller.filters.all') as string }, ...resellers.map((r) => ({ value: r, label: r }))]} />
       </div>
 
-      <div className="relative ml-auto">
+      <div className="relative w-full sm:ml-auto sm:w-auto">
         <label className={labelCls}>{t('reseller.filters.search')}</label>
         <span className="pointer-events-none absolute left-3 top-9 text-body">
           <Icon d={ICONS.search} className="h-4 w-4" />
@@ -184,7 +176,7 @@ function FilterBar({
           value={filter.search}
           onChange={(e) => setFilter({ ...filter, search: e.target.value })}
           placeholder={t('reseller.filters.searchPlaceholder')}
-          className="w-64 rounded-md border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
+          className="w-full rounded-[10px] sm:w-64 border border-stroke bg-transparent py-2 pl-9 pr-3 text-sm text-black outline-none transition focus:border-primary dark:border-strokedark dark:text-white"
         />
       </div>
 
@@ -193,7 +185,7 @@ function FilterBar({
         {isFiltered && (
           <button
             onClick={() => setFilter({ ...defaultFilter })}
-            className="text-sm font-medium text-primary hover:underline"
+            className="text-sm font-bold text-accent-ink hover:underline dark:text-accent-ink-dark"
           >
             {t('reseller.filters.reset')}
           </button>
@@ -293,8 +285,8 @@ function ResellerYearChart({
   };
 
   return (
-    <div className="mb-6 rounded-sm border border-stroke bg-white px-5 pt-5 pb-2 shadow-default dark:border-strokedark dark:bg-boxdark">
-      <h4 className="mb-2 text-base font-semibold text-black dark:text-white">{title}</h4>
+    <div className="mb-6 rounded-2xl border border-stroke bg-white px-5 pt-5 pb-2 dark:border-strokedark dark:bg-boxdark">
+      <h4 className="mb-2 text-base font-bold text-black dark:text-white">{title}</h4>
       {points.length > 0 ? (
         <ReactApexChart options={options} series={series} type="bar" height={350} />
       ) : (
@@ -363,7 +355,7 @@ function ActivationsTab({
     return { licenses, locations: locations.size, resellers: rs.size, submissions: filtered.length };
   }, [filtered]);
 
-  if (!data) return <p className="text-sm text-body">…</p>;
+  if (!data) return <div className={CARD}><StateCard kind="loading" /></div>;
   if (!data.connected) return <NotConnected source="Zoho Forms" />;
   if (rows.length === 0)
     return <EmptyCard title={t('reseller.activations.emptyTitle')} desc={t('reseller.activations.emptyDesc')} />;
@@ -386,14 +378,14 @@ function ActivationsTab({
       {filtered.length === 0 ? (
         <EmptyCard title={t('reseller.filters.noResultsTitle')} desc={t('reseller.filters.noResultsDesc')} />
       ) : (
-        <div className="max-h-[34rem] overflow-auto rounded-md border border-stroke dark:border-strokedark">
+        <div className="max-h-[34rem] overflow-auto rounded-xl border border-stroke dark:border-strokedark">
           <table className="w-full table-auto text-sm">
             <thead className="sticky top-0 z-10">
-              <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.reseller')}</th>
-                <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.customer')}</th>
-                <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('reseller.cols.licenses')}</th>
-                <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.date')}</th>
+              <tr className="bg-white text-left text-xs text-body dark:bg-boxdark dark:text-bodydark2">
+                <th className="px-4 py-3 border-b border-stroke font-bold dark:border-strokedark">{t('reseller.cols.reseller')}</th>
+                <th className="px-4 py-3 border-b border-stroke font-bold dark:border-strokedark">{t('reseller.cols.customer')}</th>
+                <th className="px-4 py-3 text-right border-b border-stroke font-bold dark:border-strokedark">{t('reseller.cols.licenses')}</th>
+                <th className="px-4 py-3 border-b border-stroke font-bold dark:border-strokedark">{t('reseller.cols.date')}</th>
               </tr>
             </thead>
             <tbody>
@@ -470,7 +462,7 @@ function PaymentsTab({
     return { merchants: filtered.length, active, resellers: rs.size, profit };
   }, [filtered]);
 
-  if (!data) return <p className="text-sm text-body">…</p>;
+  if (!data) return <div className={CARD}><StateCard kind="loading" /></div>;
   if (!data.connected) return <NotConnected source="Zentact" />;
   if (sales.length === 0)
     return <EmptyCard title={t('reseller.payments.emptyTitle')} desc={t('reseller.payments.emptyDesc')} />;
@@ -493,15 +485,15 @@ function PaymentsTab({
       {filtered.length === 0 ? (
         <EmptyCard title={t('reseller.filters.noResultsTitle')} desc={t('reseller.filters.noResultsDesc')} />
       ) : (
-        <div className="max-h-[34rem] overflow-auto rounded-md border border-stroke dark:border-strokedark">
+        <div className="max-h-[34rem] overflow-auto rounded-xl border border-stroke dark:border-strokedark">
           <table className="w-full table-auto text-sm">
             <thead className="sticky top-0 z-10">
-              <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.cols.reseller')}</th>
-                <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.payments.merchant')}</th>
-                <th className="px-4 py-3 text-right font-medium text-black dark:text-white">{t('reseller.kpi.profit')}</th>
-                <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.payments.status')}</th>
-                <th className="px-4 py-3 font-medium text-black dark:text-white">{t('reseller.payments.activatedAt')}</th>
+              <tr className="bg-white text-left text-xs text-body dark:bg-boxdark dark:text-bodydark2">
+                <th className="px-4 py-3 border-b border-stroke font-bold dark:border-strokedark">{t('reseller.cols.reseller')}</th>
+                <th className="px-4 py-3 border-b border-stroke font-bold dark:border-strokedark">{t('reseller.payments.merchant')}</th>
+                <th className="px-4 py-3 text-right border-b border-stroke font-bold dark:border-strokedark">{t('reseller.kpi.profit')}</th>
+                <th className="px-4 py-3 border-b border-stroke font-bold dark:border-strokedark">{t('reseller.payments.status')}</th>
+                <th className="px-4 py-3 border-b border-stroke font-bold dark:border-strokedark">{t('reseller.payments.activatedAt')}</th>
               </tr>
             </thead>
             <tbody>
@@ -509,7 +501,7 @@ function PaymentsTab({
                 <tr key={i} className="border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
                   <td className="px-4 py-3 font-medium text-black dark:text-white"><ResellerCell name={s.reseller_name} meta={meta} /></td>
                   <td className="px-4 py-3 text-body">{s.business_name || '—'}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-primary">{money(Number(s.transaction_profit) || 0)}</td>
+                  <td className="px-4 py-3 text-right font-bold text-accent-ink dark:text-accent-ink-dark">{money(Number(s.transaction_profit) || 0)}</td>
                   <td className="px-4 py-3"><StatusBadge status={s.status} /></td>
                   <td className="px-4 py-3 text-body">
                     {s.activated_at ? fmtDateOnly(s.activated_at) : '—'}
@@ -557,33 +549,15 @@ export default function Reseller() {
       .catch(() => setMeta({}));
   }, []);
 
-  const tabBtn = (id: Tab, label: string) => (
-    <button
-      onClick={() => setTab(id)}
-      className={`border-b-2 px-4 py-3 text-sm font-medium transition ${
-        tab === id
-          ? 'border-primary text-primary'
-          : 'border-transparent text-body hover:text-black dark:hover:text-white'
-      }`}
-    >
-      {label}
-    </button>
-  );
-
   return (
     <>
-      <div className="mb-6">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('reseller.title')}</h2>
-        <p className="mt-1 text-sm text-body">{t('reseller.subtitle')}</p>
-      </div>
+      <PageHeader section={t('sidebar.sections.ops')} title={t('reseller.title')} subtitle={t('reseller.subtitle')} />
 
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="flex gap-2 border-b border-stroke px-4 dark:border-strokedark">
-          {tabBtn('activations', t('reseller.tabs.activations'))}
-          {tabBtn('payments', t('reseller.tabs.payments'))}
-        </div>
+      <Tabs ariaLabel={t('reseller.title') as string} value={tab} onChange={setTab}
+        tabs={[{ id: 'activations', label: t('reseller.tabs.activations') }, { id: 'payments', label: t('reseller.tabs.payments') }]} />
 
-        <div className="p-6">
+      <div>
+        <div className="mt-4">
           {tab === 'activations' && <ActivationsTab data={activations} filter={filter} setFilter={setFilter} defaultFilter={defaultFilter} meta={meta} />}
           {tab === 'payments' && <PaymentsTab data={residuals} filter={filter} setFilter={setFilter} defaultFilter={defaultFilter} meta={meta} />}
         </div>
