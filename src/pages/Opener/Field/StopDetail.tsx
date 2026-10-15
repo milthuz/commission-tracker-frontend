@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Star, MapPin, Clock, Phone, Globe, Plus, Loader2, Ban, Undo2, RotateCcw, Pencil } from 'lucide-react';
+import { Star, MapPin, Clock, Phone, Globe, Plus, Loader2, Ban, Undo2, Pencil } from 'lucide-react';
 import { useField } from './index';
 import { Card, Eyebrow, ScreenHeader, StatusBadge, StickyCta, btnPrimary, btnSecondary } from './ui';
-import { api, type PlaceCard, type PlaceStatus, type SkipReason } from '../api';
+import { api, type PlaceCard, type PlaceStatus } from '../api';
 import { dialog } from '../../../lib/dialog';
+import { NoVisitPicker, applyNoVisit, confirmNoVisit, skipReasonOf, type NoVisitReason } from './NoVisit';
 
 // Écran 1c — fiche du restaurant.
 //
@@ -41,32 +42,17 @@ export default function StopDetail() {
   const fmtDate = (s: string) => new Date(s).toLocaleDateString(lng === 'fr' ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'long', year: 'numeric' });
   const open = route.status === 'published';
 
-  const skip = async (reason: SkipReason) => {
-    setBusy(true);
+  // « Marquer non visité » : la même liste que « Pas de visite possible » du check-in (NoVisit).
+  const [picking, setPicking] = useState<string | null>(null);
+  const noVisit = async (k: NoVisitReason) => {
+    if (!(await confirmNoVisit(k, t))) return;
+    setBusy(true); setPicking(k);
     try {
-      if (!demo) await api(`/api/opener/stops/${stop.id}/skip`, { method: 'POST', body: { reason } });
-      markStop(stop.id, { outcome: 'skipped', skipReason: reason });
+      if (!demo) await applyNoVisit(k, stop);
+      if (k === 'later') { if (!demo) await reload(); }
+      else markStop(stop.id, { outcome: 'skipped', skipReason: skipReasonOf(k) });
       navigate('/opener/list');
-    } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); setSkipOpen(false); }
-  };
-  // « Pas un restaurant » : l'arrêt est sauté ET le lieu exclu pour de bon (il ne revient plus
-  // dans les scans ni dans la campagne). Seul un manager peut le rétablir.
-  const excludeIt = async () => {
-    if (!(await dialog.confirm(t('opener.field.excludeConfirm'), { confirmText: t('opener.campaign.exclude'), danger: true }))) return;
-    setBusy(true);
-    try {
-      if (!demo) await api(`/api/opener/places/${encodeURIComponent(stop.placeId)}/exclude`, { method: 'POST', body: { reason: 'not_restaurant', stopId: stop.id } });
-      markStop(stop.id, { outcome: 'skipped', skipReason: 'excluded' });
-      navigate('/opener/list');
-    } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); setSkipOpen(false); }
-  };
-  // Revenir plus tard (demande de Hao, 2026-10-12) : l'arrêt reste à faire, en fin de route.
-  const later = async () => {
-    setBusy(true);
-    try {
-      if (!demo) { await api(`/api/opener/stops/${stop.id}/later`, { method: 'POST' }); await reload(); }
-      navigate('/opener/list');
-    } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); setSkipOpen(false); }
+    } catch (e: any) { dialog.alert(e.message); } finally { setBusy(false); setPicking(null); setSkipOpen(false); }
   };
   const unskip = async () => {
     setBusy(true);
@@ -172,17 +158,7 @@ export default function StopDetail() {
         {/* Non visité */}
         {open && stop.outcome === 'planned' && (
           skipOpen ? (
-            <Card>
-              <p className="mb-2 text-sm font-semibold text-[var(--of-title)]">{t('opener.field.skipWhy')}</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button disabled={busy} onClick={later} className="col-span-2 flex h-11 items-center justify-center gap-2 rounded-[10px] border border-primary bg-[rgba(245,131,70,.08)] text-[13px] font-semibold text-primary"><RotateCcw className="h-4 w-4" />{t('opener.field.quick.laterLong')}</button>
-                {(['closed', 'no_time', 'refused', 'other'] as SkipReason[]).map((r) => (
-                  <button key={r} disabled={busy} onClick={() => skip(r)} className="h-11 rounded-[10px] border border-[var(--of-stroke)] bg-[var(--of-page)] text-[13px] font-semibold text-[var(--of-text)]">{t(`opener.skip.${r}`)}</button>
-                ))}
-                <button disabled={busy} onClick={excludeIt} className="col-span-2 h-11 rounded-[10px] border border-[var(--of-stroke)] bg-[var(--of-page)] text-[13px] font-semibold text-[var(--of-bad)]">{t('opener.campaign.notRestaurant')}</button>
-              </div>
-              <button onClick={() => setSkipOpen(false)} className="mt-2 w-full py-2 text-xs text-[var(--of-faint)]">{t('opener.field.cancel')}</button>
-            </Card>
+            <NoVisitPicker title={t('opener.field.skipWhy')} busy={picking} onPick={noVisit} onCancel={() => setSkipOpen(false)} />
           ) : (
             <button onClick={() => setSkipOpen(true)} className="flex w-full items-center justify-center gap-2 py-2 text-[13px] font-semibold text-[var(--of-faint)]">
               <Ban className="h-4 w-4" />{t('opener.field.markSkipped')}

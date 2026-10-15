@@ -6,7 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 import useColorMode from '../../../hooks/useColorMode';
 import './field.css';
 import { api, type Route, type Campaign, type CampaignRouteDetail } from '../api';
-import { flush, onOutboxChange, pending } from './outbox';
+import { blocked, flush, onOutboxChange, pending, retryBlocked } from './outbox';
 import { getOpenerConfig } from '../GoogleMap';
 import Home from './Home';
 import StopDetail from './StopDetail';
@@ -71,6 +71,7 @@ export default function FieldApp() {
   const hasFix = useRef(false);
   const [gpsTry, setGpsTry] = useState(0);
   const [outbox, setOutbox] = useState(pending().length);
+  const [refused, setRefused] = useState(blocked());
   const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
 
   const allowed = !!user && (user.isAdmin || user.permissions?.includes('*') || user.permissions?.includes('opener:field') || user.permissions?.includes('opener:*'));
@@ -130,7 +131,7 @@ export default function FieldApp() {
 
   // File d'envoi : au retour du réseau, toutes les 30 s, et à chaque ajout.
   useEffect(() => {
-    const off = onOutboxChange(() => setOutbox(pending().length));
+    const off = onOutboxChange(() => { setOutbox(pending().length); setRefused(blocked()); });
     const up = () => { setOnline(true); flush().then(() => reload()); };
     const down = () => setOnline(false);
     window.addEventListener('online', up);
@@ -195,11 +196,20 @@ export default function FieldApp() {
               <button onClick={endDemo} className="ml-1 inline-flex items-center gap-0.5 rounded-full bg-white/20 px-2 py-0.5"><X className="h-3 w-3" />{t('opener.field.demo.quit')}</button>
             </div>
           )}
-          {(!online || outbox > 0) && (
-            <div className="fixed inset-x-0 top-0 z-50 mx-auto flex max-w-[480px] items-center justify-center gap-2 bg-warning/90 px-3 py-1.5 text-xs font-semibold text-[#141414]"
-              style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 6px)' }} role="status">
+          {/* Sous le bandeau de démo quand il est là (avant, les deux se superposaient). */}
+          {(!online || outbox > refused.length) && (
+            <div className="fixed inset-x-0 z-50 mx-auto flex max-w-[480px] items-center justify-center gap-2 bg-warning/90 px-3 py-1.5 text-xs font-semibold text-[#141414]"
+              style={{ top: demo ? 'calc(env(safe-area-inset-top, 0px) + 30px)' : 0, paddingTop: demo ? 6 : 'calc(env(safe-area-inset-top, 0px) + 6px)' }} role="status">
               {!online && <WifiOff className="h-3.5 w-3.5" />}
-              {!online ? t('opener.field.offline', { n: outbox }) : t('opener.field.sending', { n: outbox })}
+              {!online ? t('opener.field.offline', { n: outbox }) : t('opener.field.sending', { n: outbox - refused.length })}
+            </div>
+          )}
+          {/* Piste refusée par le serveur : elle reste sur le téléphone, avec la raison. */}
+          {online && refused.length > 0 && (
+            <div className="fixed inset-x-0 z-50 mx-auto flex max-w-[480px] flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-[#D92D20] px-3 py-1.5 text-xs font-semibold text-white"
+              style={{ top: demo ? 'calc(env(safe-area-inset-top, 0px) + 30px)' : 0, paddingTop: demo ? 6 : 'calc(env(safe-area-inset-top, 0px) + 6px)' }} role="alert">
+              <span>{t('opener.field.leadRefused', { count: refused.length, name: String(refused[0].payload.businessName), error: refused[0].lastError || '' })}</span>
+              <button type="button" onClick={() => retryBlocked().then(() => reload())} className="rounded-full bg-white/20 px-2.5 py-0.5">{t('common.retry')}</button>
             </div>
           )}
           <Routes>

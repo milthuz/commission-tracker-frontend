@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Clock, Check, HeartHandshake, Loader2, RotateCcw, DoorClosed, SearchX } from 'lucide-react';
+import { Clock, Check, HeartHandshake, Loader2 } from 'lucide-react';
 import { useField } from './index';
 import { Card, Chips, GpsBanner, ScreenHeader, Segmented, Stepper, StickyCta, Toggle, btnPrimary } from './ui';
 import { enqueueCheckin, flush, loadDraft, saveDraft, clearDraft } from './outbox';
 import { api, haversine, fmtDistance, uuid, type Service, type ServiceType, type CheckinInput, type PaymentsBy, type Version } from '../api';
 import { dialog } from '../../../lib/dialog';
+import { NoVisitPicker, applyNoVisit, confirmNoVisit, skipReasonOf, type NoVisitReason } from './NoVisit';
 
 // Écran 1d — check-in.
 // Obligatoires : POS actuel, type de service, niveau d'intérêt. Le reste est facultatif.
@@ -115,18 +116,14 @@ function NewCheckIn() {
   if (!route || !stop) return <div className="p-8 text-center text-sm text-[var(--of-muted)]">{t('opener.field.stopNotFound')}</div>;
 
   // Pas de visite possible : un appui, rien à remplir. Le brouillon est jeté.
-  const noVisit = async (kind: 'later' | 'closed' | 'not_found') => {
-    if (kind === 'not_found' && !(await dialog.confirm(t('opener.field.quick.notFoundConfirm'), { confirmText: t('opener.field.quick.notFound'), danger: true }))) return;
+  const noVisit = async (kind: NoVisitReason) => {
+    if (!(await confirmNoVisit(kind, t))) return;
     setBusy(kind);
     try {
-      if (!demo) {
-        if (kind === 'later') await api(`/api/opener/stops/${stop.id}/later`, { method: 'POST' });
-        else if (kind === 'closed') await api(`/api/opener/stops/${stop.id}/skip`, { method: 'POST', body: { reason: 'closed' } });
-        else await api(`/api/opener/places/${encodeURIComponent(stop.placeId)}/exclude`, { method: 'POST', body: { reason: 'not_found', stopId: stop.id } });
-      }
+      if (!demo) await applyNoVisit(kind, stop);
       clearDraft(draftKey);
       if (kind === 'later') { if (demo) markStop(stop.id, { outcome: 'planned' }); else await reload(); }
-      else markStop(stop.id, { outcome: 'skipped', skipReason: kind === 'closed' ? 'closed' : 'excluded' });
+      else markStop(stop.id, { outcome: 'skipped', skipReason: skipReasonOf(kind) });
       navigate('/opener', { replace: true });
     } catch (e: any) { dialog.alert(e.message); } finally { setBusy(null); }
   };
@@ -171,7 +168,7 @@ function NewCheckIn() {
         right={<span className="inline-flex items-center gap-1 rounded-full bg-[rgba(245,131,70,.12)] px-2.5 py-1 text-xs font-bold tabular-nums text-primary" aria-label={t('opener.field.visitTimer') as string}>
           <Clock className="h-3.5 w-3.5" />{fmtElapsed(tick - new Date(form.startedAt || tick).getTime())}</span>} />}
       top={<>
-        <QuickActions title={t('opener.field.quick.title')} busy={busy} onPick={noVisit} />
+        <NoVisitPicker title={t('opener.field.quick.title')} busy={busy} onPick={noVisit} />
         {/* Le bandeau suit l'état réel ; « pas de position à l'arrivée » le montre même si le navigateur n'a rien signalé. */}
         <GpsBanner gps={gps === 'ok' && gpsMissing ? 'unavailable' : gps} onRetry={() => { retryGps(); restart(); }} />
         <p className="flex flex-wrap items-center gap-x-2 text-xs text-[var(--of-faint)]">
@@ -230,12 +227,12 @@ function EditCheckIn({ checkinId }: { checkinId: string }) {
   };
 
   // « Ce n'était pas une visite » : le check-in est retiré, l'arrêt prend son vrai sort.
-  const voidIt = async (kind: 'later' | 'closed' | 'not_found') => {
-    if (!(await dialog.confirm(t(`opener.field.edit.voidConfirm.${kind}`), { confirmText: t('opener.field.edit.voidCta'), danger: kind === 'not_found' }))) return;
+  const voidIt = async (kind: NoVisitReason) => {
+    if (!(await dialog.confirm(t(`opener.noVisit.voidConfirm.${kind}`), { confirmText: t('opener.field.edit.voidCta'), danger: kind === 'not_found' || kind === 'not_restaurant' }))) return;
     setBusy(kind);
     try {
       await api(`/api/opener/checkins/${saved.id}/void`, { method: 'POST', body: { reason: kind } });
-      if (saved.stopId) markStop(saved.stopId, kind === 'later' ? { outcome: 'planned', checkin: null, doneAt: null } : { outcome: 'skipped', skipReason: kind === 'closed' ? 'closed' : 'excluded', checkin: null });
+      if (saved.stopId) markStop(saved.stopId, kind === 'later' ? { outcome: 'planned', checkin: null, doneAt: null } : { outcome: 'skipped', skipReason: skipReasonOf(kind), checkin: null });
       await reload();
       navigate('/opener', { replace: true });
     } catch (e: any) {
@@ -251,7 +248,7 @@ function EditCheckIn({ checkinId }: { checkinId: string }) {
       top={<>
         {!saved.editable && <p className="rounded-[10px] border border-[rgba(248,113,113,.35)] bg-[rgba(248,113,113,.08)] p-3 text-xs text-[var(--of-bad)]">{t('opener.field.edit.tooOld')}</p>}
         <p className="text-xs text-[var(--of-faint)]">{t('opener.field.edit.help', { date: new Date(saved.at).toLocaleString(lng === 'fr' ? 'fr-CA' : 'en-CA', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) })}</p>
-        {saved.editable && !saved.leadId && <QuickActions title={t('opener.field.edit.voidTitle')} busy={busy} onPick={voidIt} />}
+        {saved.editable && !saved.leadId && <NoVisitPicker title={t('opener.field.edit.voidTitle')} busy={busy} onPick={voidIt} />}
       </>}
       disabled={!saved.editable}
     />
@@ -259,28 +256,6 @@ function EditCheckIn({ checkinId }: { checkinId: string }) {
 }
 
 // ------------------------------------------------------------------ morceaux communs
-function QuickActions({ title, busy, onPick }: { title: string; busy: string | null; onPick: (k: 'later' | 'closed' | 'not_found') => void }) {
-  const { t } = useTranslation();
-  const items: { k: 'later' | 'closed' | 'not_found'; Icon: any; label: string; cls: string }[] = [
-    { k: 'later', Icon: RotateCcw, label: t('opener.field.quick.later'), cls: 'text-[var(--of-text)]' },
-    { k: 'closed', Icon: DoorClosed, label: t('opener.field.quick.closed'), cls: 'text-[var(--of-text)]' },
-    { k: 'not_found', Icon: SearchX, label: t('opener.field.quick.notFound'), cls: 'text-[var(--of-bad)]' },
-  ];
-  return (
-    <Card>
-      <p className="mb-2 text-xs font-semibold text-[var(--of-muted)]">{title}</p>
-      <div className="grid grid-cols-3 gap-2">
-        {items.map(({ k, Icon, label, cls }) => (
-          <button key={k} type="button" disabled={!!busy} onClick={() => onPick(k)}
-            className={`flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-[10px] border border-[var(--of-stroke)] bg-[var(--of-page)] px-1 text-center text-[12px] font-semibold leading-tight ${cls} disabled:opacity-50`}>
-            {busy === k ? <Loader2 className="h-4 w-4 animate-spin" /> : <Icon className="h-4 w-4" />}{label}
-          </button>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
 function QuestionForm({ subject, form, setForm, onSubmit, mode, header, top, position, disabled }: {
   subject: Subject; form: Form; setForm: React.Dispatch<React.SetStateAction<Form>>;
   onSubmit: (f: Form, posValue: string, wantLead: boolean, setSending: (v: boolean) => void) => Promise<void>;

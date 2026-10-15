@@ -7206,7 +7206,11 @@
         "save": "Enregistrer les corrections",
         "saved": "Lead {{ref}} corrigé.",
         "locked": "Ce lead a déjà été révisé : il ne peut plus être modifié ici. Demandez à votre gestionnaire."
-      }
+      },
+      "leadQueuedTitle": "Piste gardée sur le téléphone",
+      "leadQueuedBody": "Pas de réseau pour l'instant : {{name}} partira tout seul dès que la connexion revient. Rien à refaire.",
+      "leadRefused_one": "Piste « {{name}} » non envoyée : {{error}}",
+      "leadRefused_other": "{{count}} pistes non envoyées (« {{name}} » : {{error}})"
     },
     "kind": {
       "restaurant": "Restaurants",
@@ -7416,6 +7420,28 @@
       "clientsKept": "Nos clients d’une franchise restent toujours sur les routes. Un changement recalcule la campagne.",
       "filterChip": "Franchises",
       "filterHelp": "Même POS dans toute la bannière : masquées par défaut. Nos clients restent affichés."
+    },
+    "noVisit": {
+      "later": "Revenir plus tard aujourd’hui (fin de route)",
+      "closed": "Fermé à l'arrivée",
+      "no_time": "Manque de temps",
+      "refused": "Refus d'entrer",
+      "other": "Autre raison",
+      "not_found": "N’existe pas",
+      "not_restaurant": "Pas un restaurant",
+      "confirm": {
+        "not_found": "Ce restaurant n’existe pas (ou plus) à cette adresse ? Il sera retiré de la route et ne reviendra sur aucune autre.",
+        "not_restaurant": "Ce lieu n'est pas un restaurant ? Il sera retiré de la route et ne reviendra plus dans les prochaines routes."
+      },
+      "voidConfirm": {
+        "later": "Annuler ce check-in ? Le restaurant revient à la fin de votre route pour y retourner plus tard.",
+        "closed": "Annuler ce check-in ? Le restaurant est marqué « fermé à l’arrivée » et reviendra dans une prochaine route.",
+        "no_time": "Annuler ce check-in ? L’arrêt est marqué « manque de temps » et reviendra dans une prochaine route.",
+        "refused": "Annuler ce check-in ? L’arrêt est marqué « refus d’entrer ».",
+        "other": "Annuler ce check-in ? L’arrêt est marqué comme non visité.",
+        "not_found": "Annuler ce check-in ? Le restaurant n’existe pas : il est retiré pour de bon de toutes les routes.",
+        "not_restaurant": "Annuler ce check-in ? Ce lieu n’est pas un restaurant : il est retiré pour de bon de toutes les routes."
+      }
     }
   },
   "hr": {

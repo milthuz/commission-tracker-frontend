@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Plus, CheckCircle2, Loader2, Save } from 'lucide-react';
 import { useField } from './index';
 import { Chips, Eyebrow, ScreenHeader, Segmented, StickyCta, btnPrimary, inputCls, labelCls } from './ui';
-import { api, uuid, type CheckinInput, type PlaceCard, type Service } from '../api';
+import { api, ApiError, uuid, type CheckinInput, type PlaceCard, type Service } from '../api';
+import { enqueueLead, flush, type LeadInput } from './outbox';
 import { dialog } from '../../../lib/dialog';
 
 // Écran 1e — nouvelle piste, depuis le terrain. Même chemin que la saisie interne : file de
@@ -34,7 +35,8 @@ export default function LeadForm() {
     locationsCount: '', timeline: 'unknown' as (typeof TIMELINES)[number], notes: checkin?.notes || '',
   });
   const [sending, setSending] = useState(false);
-  const [done, setDone] = useState<{ refCode: string } | null>(null);
+  // refCode null = piste gardée sur le téléphone (pas de réseau), envoyée au retour du réseau.
+  const [done, setDone] = useState<{ refCode: string | null } | null>(null);
   const [edit, setEdit] = useState<{ id: number; refCode: string; editable: boolean; website: string | null } | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
   // Le libellé enregistré (« Restaurant », « 1 à 3 mois »…) → la clé du formulaire, en FR ou en EN.
@@ -102,25 +104,36 @@ export default function LeadForm() {
     if (!f.businessName.trim()) { dialog.alert(t('opener.field.nameRequired')); return; }
     // Démo : aucun lead créé dans Zoho ni dans la file ; un faux numéro montre l'écran de fin.
     if (demo) { markStop(stop.id, { outcome: 'done' }); setDone({ refCode: 'DEMO-0000' }); return; }
-    if (!online) { dialog.alert(t('opener.field.leadNeedsNetwork')); return; }
+    const timeline = t(`opener.field.timeline.${f.timeline}`);
+    const body: LeadInput = {
+      clientRef: clientRef.current, placeId: stop.placeId, stopId: stop.id, checkinId: checkin?.id || null,
+      businessName: f.businessName.trim(), businessType: t(`opener.field.businessType.${f.businessType}`), phone: f.phone,
+      address: f.address, city: f.city, province: f.province, postalCode: f.postalCode, website: card?.google?.website || null,
+      firstName: f.firstName, lastName: f.lastName, title: f.title, language: f.language, email: f.email,
+      interest: f.interest, currentPos: f.currentPos, locationsCount: f.locationsCount || null,
+      timeline: f.timeline === 'unknown' ? null : timeline, notes: f.notes,
+    };
+    // Sans réseau (audit UX, P2 — avant : « la création d'un lead demande du réseau ») : la piste
+    // part dans la file du téléphone, APRÈS le check-in de la visite. Le serveur vérifie les
+    // doublons à l'arrivée, et le `clientRef` empêche un double envoi.
+    const keepOnPhone = () => {
+      enqueueLead(body);
+      flush().catch(() => {});
+      markStop(stop.id, { outcome: 'done' });
+      setDone({ refCode: null });
+    };
+    if (!online) { keepOnPhone(); return; }
     setSending(true);
     try {
-      const timeline = t(`opener.field.timeline.${f.timeline}`);
-      const r = await api<{ refCode: string }>('/api/opener/leads', {
-        method: 'POST',
-        body: {
-          clientRef: clientRef.current, placeId: stop.placeId, stopId: stop.id, checkinId: checkin?.id || null,
-          businessName: f.businessName.trim(), businessType: t(`opener.field.businessType.${f.businessType}`), phone: f.phone,
-          address: f.address, city: f.city, province: f.province, postalCode: f.postalCode, website: card?.google?.website || null,
-          firstName: f.firstName, lastName: f.lastName, title: f.title, language: f.language, email: f.email,
-          interest: f.interest, currentPos: f.currentPos, locationsCount: f.locationsCount || null,
-          timeline: f.timeline === 'unknown' ? null : timeline, notes: f.notes,
-        },
-      });
+      // Une visite faite hors ligne a peut-être encore son check-in dans la file : il part d'abord.
+      await flush().catch(() => {});
+      const r = await api<{ refCode: string }>('/api/opener/leads', { method: 'POST', body });
       markStop(stop.id, { outcome: 'done' });
       setDone({ refCode: r.refCode });
     } catch (e: any) {
-      dialog.alert(t('opener.field.leadFailed', { error: e.message }));
+      // Réseau perdu en route : on garde la piste. Refus du serveur : on le dit, rien n'est perdu.
+      if (!(e instanceof ApiError) || e.status >= 500 || e.status === 408 || e.status === 429) keepOnPhone();
+      else dialog.alert(t('opener.field.leadFailed', { error: e.message }));
     } finally { setSending(false); }
   };
 
@@ -128,9 +141,9 @@ export default function LeadForm() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-8 text-center">
         <CheckCircle2 className="h-14 w-14 text-[#57D193]" />
-        <p className="text-lg font-bold text-[var(--of-title)]">{t('opener.field.leadCreatedTitle')}</p>
-        <p className="text-sm text-[var(--of-muted)]">{t('opener.field.leadCreatedBody', { ref: done.refCode, name: f.businessName })}</p>
-        <p className="rounded-[10px] border border-[var(--of-stroke)] bg-[var(--of-surface)] px-4 py-2 text-xl font-bold tracking-wide text-[var(--of-title)]">{done.refCode}</p>
+        <p className="text-lg font-bold text-[var(--of-title)]">{done.refCode ? t('opener.field.leadCreatedTitle') : t('opener.field.leadQueuedTitle')}</p>
+        <p className="text-sm text-[var(--of-muted)]">{done.refCode ? t('opener.field.leadCreatedBody', { ref: done.refCode, name: f.businessName }) : t('opener.field.leadQueuedBody', { name: f.businessName })}</p>
+        {done.refCode && <p className="rounded-[10px] border border-[var(--of-stroke)] bg-[var(--of-surface)] px-4 py-2 text-xl font-bold tracking-wide text-[var(--of-title)]">{done.refCode}</p>}
         <button onClick={() => navigate('/opener', { replace: true })} className={`${btnPrimary} mt-2 w-full`}>{t('opener.field.done')}</button>
       </div>
     );

@@ -7206,7 +7206,11 @@
         "save": "Save corrections",
         "saved": "Lead {{ref}} updated.",
         "locked": "This lead has already been reviewed and can no longer be edited here. Ask your manager."
-      }
+      },
+      "leadQueuedTitle": "Lead saved on the phone",
+      "leadQueuedBody": "No network right now: {{name}} will be sent automatically as soon as the connection is back. Nothing to redo.",
+      "leadRefused_one": "Lead “{{name}}” not sent: {{error}}",
+      "leadRefused_other": "{{count}} leads not sent (“{{name}}”: {{error}})"
     },
     "kind": {
       "restaurant": "Restaurants",
@@ -7416,6 +7420,28 @@
       "clientsKept": "Our clients within a franchise always stay on the routes. A change recomputes the campaign.",
       "filterChip": "Franchises",
       "filterHelp": "Same POS across the brand: hidden by default. Our clients stay visible."
+    },
+    "noVisit": {
+      "later": "Come back later today (end of route)",
+      "closed": "Closed on arrival",
+      "no_time": "Out of time",
+      "refused": "Turned away",
+      "other": "Other reason",
+      "not_found": "Doesn’t exist",
+      "not_restaurant": "Not a restaurant",
+      "confirm": {
+        "not_found": "This restaurant doesn’t exist (anymore) at this address? It will be removed from the route and won’t come back on any other.",
+        "not_restaurant": "Not a restaurant? It will be removed from the route and won't come back in future routes."
+      },
+      "voidConfirm": {
+        "later": "Cancel this check-in? The restaurant goes back to the end of your route so you can return later.",
+        "closed": "Cancel this check-in? The restaurant is marked “closed on arrival” and will come back on a future route.",
+        "no_time": "Cancel this check-in? The stop is marked “out of time” and will come back on a future route.",
+        "refused": "Cancel this check-in? The stop is marked “turned away”.",
+        "other": "Cancel this check-in? The stop is marked as not visited.",
+        "not_found": "Cancel this check-in? The restaurant doesn’t exist: it is permanently removed from all routes.",
+        "not_restaurant": "Cancel this check-in? This place is not a restaurant: it is permanently removed from all routes."
+      }
     }
   },
   "hr": {
