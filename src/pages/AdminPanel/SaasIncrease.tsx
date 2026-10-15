@@ -3280,7 +3280,7 @@ const SaasIncrease: React.FC = () => {
           ? Math.round((ecoule / bulkProgress.done) * (bulkProgress.total - bulkProgress.done) / 60000)
           : null;
         return (
-          <div className="fixed bottom-4 left-1/2 z-[999] w-[min(92vw,420px)] -translate-x-1/2 rounded-lg border border-stroke bg-white p-4 shadow-xl dark:border-strokedark dark:bg-boxdark">
+          <div className="fixed bottom-4 max-lg:bottom-[calc(4.6rem+env(safe-area-inset-bottom))] left-1/2 z-[999] w-[min(92vw,420px)] -translate-x-1/2 rounded-lg border border-stroke bg-white p-4 shadow-xl dark:border-strokedark dark:bg-boxdark">
             <div className="mb-2 flex items-center justify-between text-sm">
               <span className="font-medium text-black dark:text-white">{bulkProgress.label}</span>
               <span className="text-body">{bulkProgress.done} / {bulkProgress.total} · {pct} %</span>

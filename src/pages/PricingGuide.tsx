@@ -593,7 +593,7 @@ const PricingGuide: React.FC = () => {
 
       {/* Quote tray */}
       {quoteIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-stroke bg-white/95 backdrop-blur dark:border-strokedark dark:bg-boxdark/95 lg:left-64">
+        <div className="fixed bottom-0 max-lg:bottom-[calc(3.8rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 border-t border-stroke bg-white/95 backdrop-blur dark:border-strokedark dark:bg-boxdark/95 lg:left-64">
           <div className="flex flex-wrap items-center gap-3.5 px-6 py-3.5">
             <span className="text-primary">📄</span>
             <span className="text-[13px] font-bold text-black dark:text-white">{t('pricingGuide.quoteBuilder')}</span>

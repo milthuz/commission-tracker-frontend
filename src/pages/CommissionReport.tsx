@@ -1501,7 +1501,7 @@ const CommissionReport = () => {
 
       {/* Notification — bottom-right toast, auto-dismisses, manually closable */}
       {notification.show && (
-        <div className="fixed bottom-6 right-6 z-[999999] max-w-sm">
+        <div className="fixed bottom-6 max-lg:bottom-[calc(4.6rem+env(safe-area-inset-bottom))] right-6 z-[999999] max-w-sm max-lg:left-4 max-lg:right-4">
           <div className={`flex items-start gap-3 rounded-lg px-5 py-3.5 shadow-xl ${notification.type === 'success' ? 'bg-success text-emerald-900' : 'bg-danger text-white'}`}>
             <p className="text-sm font-medium leading-snug">{notification.message}</p>
             <button onClick={() => setNotification(n => ({ ...n, show: false }))} className="-mr-1 ml-auto shrink-0 text-white/80 transition hover:text-white" aria-label={t('common.close') as string}>

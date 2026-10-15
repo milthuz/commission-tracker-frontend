@@ -368,7 +368,7 @@ const PricingAdmin: React.FC = () => {
       </div>
 
       {editedCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center gap-3.5 border-t border-stroke bg-white/95 px-6 py-3.5 backdrop-blur dark:border-strokedark dark:bg-boxdark/95 lg:left-64">
+        <div className="fixed bottom-0 max-lg:bottom-[calc(3.8rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 flex items-center gap-3.5 border-t border-stroke bg-white/95 px-6 py-3.5 backdrop-blur dark:border-strokedark dark:bg-boxdark/95 lg:left-64">
           <span className="text-[13px] font-bold text-black dark:text-white">{t('admin.pricing.unsaved', { count: editedCount })}</span>
           <div className="flex-1" />
           <button onClick={revertAll} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('admin.pricing.discard')}</button>

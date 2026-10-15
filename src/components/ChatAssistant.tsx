@@ -195,7 +195,11 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight, behavior: 'smooth' });
   }, [msgs, busy, open]);
 
-  useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
+  // Focus the question box on open — not on a touch screen, where it pops the keyboard over the
+  // welcome card (and, on iPhone, used to zoom the page).
+  useEffect(() => {
+    if (open && !window.matchMedia?.('(pointer: coarse)').matches) inputRef.current?.focus();
+  }, [open]);
 
   // Phone tab bar (refonte UI, P2): its « Sofia » tab opens/closes this panel, and shows it as
   // the current tab while open.

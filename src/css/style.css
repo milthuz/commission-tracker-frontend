@@ -183,3 +183,14 @@
 .dark .dark\:bg-primary.text-white {
   color: #141414; /* Kaizen : texte sur l'orange toujours #141414 */
 }
+
+/* iPhone/iPad: Safari ZOOMS the page when a text field under 16 px gets focus, and the layout
+   stays shifted afterwards (seen on Sofia's question box, 2026-10-14). 16 px on touch screens
+   only — @supports matches iOS WebKit alone, so desktop and Android keep their sizes. */
+@supports (-webkit-touch-callout: none) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}

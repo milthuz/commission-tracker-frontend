@@ -6,7 +6,7 @@ const ToastHost = () => {
   const [items, setItems] = useState<ToastItem[]>([]);
   useEffect(() => subscribeToasts(setItems), []);
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-[1000001] flex flex-col items-end gap-2" aria-live="polite">
+    <div className="pointer-events-none fixed bottom-4 max-lg:bottom-[calc(4.6rem+env(safe-area-inset-bottom))] right-4 z-[1000001] flex flex-col items-end gap-2" aria-live="polite">
       {items.map((it) => (
         <div
           key={it.id}
