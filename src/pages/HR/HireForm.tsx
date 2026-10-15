@@ -11,13 +11,13 @@ import { API_URL, authHeaders, scrollToTop, type HireData, type HireDetail, type
 // parce qu'une entente signée qui diverge du calcul réel de la paie est un problème à venir.
 
 const INPUT =
-  'w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none ' +
+  'w-full rounded-[10px] border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none ' +
   'transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
 const LABEL = 'mb-1.5 block text-sm font-medium text-black dark:text-white';
 const SELECT_CLS =
-  'w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-left text-sm text-black outline-none ' +
+  'w-full rounded-[10px] border border-stroke bg-transparent px-4 py-2.5 text-left text-sm text-black outline-none ' +
   'transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
-const CARD = 'rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:p-6';
+const CARD = 'rounded-2xl border border-stroke bg-white p-5  dark:border-strokedark dark:bg-boxdark sm:p-6';
 
 const PROVINCES = ['QC', 'ON', 'NB', 'NS', 'PE', 'NL', 'MB', 'SK', 'AB', 'BC', 'YT', 'NT', 'NU'];
 
@@ -210,7 +210,7 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-title-md2 font-bold text-black dark:text-white">{initial ? t('hr.form.editTitle') : t('hr.form.newTitle')}</h2>
+          <h2 className="text-2xl font-bold leading-tight tracking-[-0.01em] text-black dark:text-white">{initial ? t('hr.form.editTitle') : t('hr.form.newTitle')}</h2>
           <p className="mt-1 text-sm text-bodydark2">{t('hr.form.subtitle')}</p>
         </div>
       </div>
@@ -414,7 +414,7 @@ const HireForm = ({ meta, initial, onCancel, onSaved }: {
         <button type="button" onClick={onCancel} className="rounded-md border border-stroke px-5 py-2.5 text-sm font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
           {t('common.cancel')}
         </button>
-        <button type="button" onClick={submit} disabled={saving} className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+        <button type="button" onClick={submit} disabled={saving} className="rounded-[10px] bg-primary px-6 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
           {saving ? t('hr.form.saving') : initial ? t('hr.form.save') : t('hr.form.create')}
         </button>
       </div>

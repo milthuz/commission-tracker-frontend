@@ -3,19 +3,20 @@ import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import SignaturePad, { type SignaturePadHandle } from '../../components/SignaturePad';
 import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
-import { API_URL, authHeaders, DELETABLE, SIGNED_DELETABLE, scrollToTop, statusTone, type HireDetail, type Meta } from './types';
+import { API_URL, authHeaders, DELETABLE, SIGNED_DELETABLE, scrollToTop, statusFamily, type HireDetail, type Meta } from './types';
+import { StatusPill } from '../../components/ui';
 
 // Fiche d'une embauche. Les boutons suivent le cycle de vie — un seul geste principal à la fois
 // (« Envoyer », puis « Contresigner », puis « Créer le représentant ») pour que la prochaine
 // étape soit évidente sans lire la chronologie.
 
-const CARD = 'rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:p-6';
-const BTN = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition';
-const BTN_PRIMARY = `${BTN} bg-primary text-white hover:bg-opacity-90 disabled:opacity-60`;
+const CARD = 'rounded-2xl border border-stroke bg-white p-5  dark:border-strokedark dark:bg-boxdark sm:p-6';
+const BTN = 'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[10px] px-4 py-2 text-sm font-bold transition';
+const BTN_PRIMARY = `${BTN} bg-primary text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60`;
 const BTN_GHOST = `${BTN} border border-stroke text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4 disabled:opacity-60`;
 const BTN_DANGER = `${BTN} border border-danger/40 text-danger hover:bg-danger/5 disabled:opacity-60`;
 const INPUT =
-  'w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none ' +
+  'w-full rounded-[10px] border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none ' +
   'transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
 
 const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, onOpen }: {
@@ -173,8 +174,8 @@ const HireDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, on
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="text-title-md2 font-bold text-black dark:text-white">{d.name}</h2>
-            <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusTone[d.status]}`}>{t(`hr.status.${d.status}`)}</span>
+            <h2 className="text-2xl font-bold leading-tight tracking-[-0.01em] text-black dark:text-white">{d.name}</h2>
+            <StatusPill family={statusFamily[d.status]}>{t(`hr.status.${d.status}`)}</StatusPill>
           </div>
           <p className="mt-1 text-sm text-bodydark2">
             {isAddendum

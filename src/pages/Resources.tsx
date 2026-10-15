@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { appLocale, fmtNumber, fmtDate, fmtDateOnly } from '../lib/format';
 import { dialog } from '../lib/dialog';
 import { authHeaders } from '../lib/auth';
+import { Modal, PageHeader, SEG, segBtn } from '../components/ui';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -391,7 +392,7 @@ const Resources: React.FC = () => {
   // Lighter card (grid view). showCat=false inside a folder (the folder name is already the context).
   const renderCard = (r: Resource, showCat: boolean) => {
     return (
-      <div key={r.id} className="flex flex-col rounded-xl border border-stroke bg-white p-4 shadow-default transition hover:border-primary dark:border-strokedark dark:bg-boxdark">
+      <div key={r.id} className="flex flex-col rounded-2xl border border-stroke bg-white p-4 transition hover:border-primary dark:border-strokedark dark:bg-boxdark">
         <button onClick={() => openResource(r)} className="flex items-start gap-3 text-left">
           <FileIcon name={r.file_name} mime={r.mime_type} className="h-11 w-auto" />
           <div className="min-w-0 flex-1">
@@ -437,7 +438,7 @@ const Resources: React.FC = () => {
   const renderFiles = (list: Resource[]) => {
     const showCat = isSearching || !openFolder;
     return view === 'list'
-      ? <div className="divide-y divide-stroke overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:divide-strokedark dark:border-strokedark dark:bg-boxdark">{list.map(r => renderRow(r, showCat))}</div>
+      ? <div className="divide-y divide-stroke overflow-hidden rounded-xl border border-stroke bg-white dark:divide-strokedark dark:border-strokedark dark:bg-boxdark">{list.map(r => renderRow(r, showCat))}</div>
       : <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">{list.map(r => renderCard(r, showCat))}</div>;
   };
 
@@ -445,32 +446,29 @@ const Resources: React.FC = () => {
     <>
       {/* Header — title, then a tidy toolbar row so buttons never orphan beside the title */}
       <div className="mb-6 flex flex-col gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-black dark:text-white">{t('resources.title')}</h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('resources.subtitle')}</p>
-        </div>
+        <div className="-mb-5"><PageHeader section={t('sidebar.sections.sales')} title={t('resources.title')} subtitle={t('resources.subtitle')} /></div>
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin && (
-            <button onClick={toggleJournal} className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+            <button onClick={toggleJournal} className="inline-flex items-center gap-2 rounded-[10px] border border-stroke bg-white px-3 py-2.5 text-sm font-bold text-body hover:border-primary hover:text-black dark:border-strokedark dark:bg-boxdark dark:text-bodydark2 dark:hover:text-white">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
               {t('resources.journal')}
             </button>
           )}
           {canManage && !personal && (
-            <button onClick={() => setShowCats(true)} className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+            <button onClick={() => setShowCats(true)} className="inline-flex items-center gap-2 rounded-[10px] border border-stroke bg-white px-3 py-2.5 text-sm font-bold text-body hover:border-primary hover:text-black dark:border-strokedark dark:bg-boxdark dark:text-bodydark2 dark:hover:text-white">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" /></svg>
               {t('resources.manageCats')}
             </button>
           )}
           {canAddHere && (
-            <label className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 ${importing ? 'pointer-events-none opacity-50' : ''}`}>
+            <label className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-stroke bg-white px-3 py-2.5 text-sm font-bold text-body hover:border-primary hover:text-black dark:border-strokedark dark:bg-boxdark dark:text-bodydark2 dark:hover:text-white ${importing ? 'pointer-events-none opacity-50' : ''}`}>
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2zM12 11v5m0 0l-2-2m2 2l2-2" /></svg>
               {t('resources.importFolder')}
               <input type="file" multiple className="hidden" disabled={importing} onChange={importFolder} {...({ webkitdirectory: '', directory: '' } as any)} />
             </label>
           )}
           {canAddHere && (
-            <label className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4 ${importing ? 'pointer-events-none opacity-50' : ''}`}>
+            <label className={`inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-stroke bg-white px-3 py-2.5 text-sm font-bold text-body hover:border-primary hover:text-black dark:border-strokedark dark:bg-boxdark dark:text-bodydark2 dark:hover:text-white ${importing ? 'pointer-events-none opacity-50' : ''}`}>
               {importing ? (
                 <><span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />{importMsg || t('resources.importing')}</>
               ) : (
@@ -480,13 +478,13 @@ const Resources: React.FC = () => {
             </label>
           )}
           {canAddHere && (
-            <button onClick={() => { setNewFolderName(''); setCreatingFolder(true); }} className="inline-flex items-center gap-2 rounded-lg border border-stroke bg-white px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+            <button onClick={() => { setNewFolderName(''); setCreatingFolder(true); }} className="inline-flex items-center gap-2 rounded-[10px] border border-stroke bg-white px-3 py-2.5 text-sm font-bold text-body hover:border-primary hover:text-black dark:border-strokedark dark:bg-boxdark dark:text-bodydark2 dark:hover:text-white">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2zM12 11v4m-2-2h4" /></svg>
               {t('resources.newFolder')}
             </button>
           )}
           {canAddHere && (
-            <button onClick={openAdd} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-opacity-90">
+            <button onClick={openAdd} className="inline-flex items-center gap-2 rounded-[10px] bg-primary px-4 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A]">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
               {t('resources.add')}
             </button>
@@ -495,10 +493,11 @@ const Resources: React.FC = () => {
       </div>
 
       {/* Zone switch — common (shared) library vs the user's private "My files" */}
-      <div className="mb-5 inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
+      <div className={`mb-5 inline-flex ${SEG}`} role="tablist">
         {(['shared', 'personal'] as const).map(z => (
           <button key={z} onClick={() => { if (zone !== z) { setQ(''); setZone(z); } }}
-            className={`inline-flex items-center gap-2 rounded-md px-4 py-1.5 text-sm font-medium transition ${zone === z ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+            role="tab" aria-selected={zone === z}
+            className={`inline-flex items-center gap-2 ${segBtn(zone === z)}`}>
             {z === 'shared'
               ? <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a3 3 0 10-2.5-4.5" /></svg>
               : <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
@@ -509,7 +508,7 @@ const Resources: React.FC = () => {
 
       {/* Journal (admin) */}
       {isAdmin && showJournal && (
-        <div className="mb-5 rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="mb-5 rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
           <h3 className="mb-3 text-sm font-semibold text-black dark:text-white">{t('resources.journalTitle')}</h3>
           {audit.length === 0 ? <p className="text-sm text-gray-500">{t('resources.journalEmpty')}</p> : (
             <div className="max-h-72 space-y-1.5 overflow-y-auto">
@@ -531,15 +530,15 @@ const Resources: React.FC = () => {
         <div className="relative max-w-md flex-1">
           <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('resources.search') as string}
-            className="w-full rounded-lg border border-stroke bg-white py-2.5 pl-9 pr-3 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white" />
+            className="h-10 w-full rounded-[10px] border border-stroke bg-white pl-9 pr-3 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white" />
         </div>
         <div className="flex shrink-0 overflow-hidden rounded-lg border border-stroke dark:border-strokedark">
           <button onClick={() => setView('list')} title={t('resources.viewList') as string}
-            className={`p-2.5 ${view === 'list' ? 'bg-primary text-white' : 'bg-white text-body hover:bg-gray-1 dark:bg-boxdark dark:hover:bg-meta-4'}`}>
+            className={`p-2.5 ${view === 'list' ? 'bg-primary text-[#141414]' : 'bg-white text-body hover:bg-gray-1 dark:bg-boxdark dark:hover:bg-meta-4'}`}>
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
           <button onClick={() => setView('grid')} title={t('resources.viewGrid') as string}
-            className={`p-2.5 ${view === 'grid' ? 'bg-primary text-white' : 'bg-white text-body hover:bg-gray-1 dark:bg-boxdark dark:hover:bg-meta-4'}`}>
+            className={`p-2.5 ${view === 'grid' ? 'bg-primary text-[#141414]' : 'bg-white text-body hover:bg-gray-1 dark:bg-boxdark dark:hover:bg-meta-4'}`}>
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v6H4zM14 15h6v6h-6z" /></svg>
           </button>
         </div>
@@ -599,10 +598,10 @@ const Resources: React.FC = () => {
       ) : isSearching ? (
         /* Flat search results across all folders */
         searchResults.length === 0
-          ? <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.empty')}</p></div>
+          ? <div className="rounded-2xl border border-stroke bg-white p-10 text-center dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('resources.empty')}</p></div>
           : (<><p className="mb-3 text-sm text-body">{t('resources.searchResults', { count: searchResults.length })}</p>{renderFiles(searchResults)}</>)
       ) : (folders.length === 0 && folderFiles.length === 0) ? (
-        <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t(cur ? 'resources.folderEmpty' : 'resources.empty')}</p></div>
+        <div className="rounded-2xl border border-stroke bg-white p-10 text-center dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t(cur ? 'resources.folderEmpty' : 'resources.empty')}</p></div>
       ) : (
         /* Nested view: sub-folder tiles + the files directly at this level */
         <div className="space-y-7">
@@ -619,7 +618,7 @@ const Resources: React.FC = () => {
                     onDragOver={(e) => { if (dragPath && canDrop(dragPath, f.path)) { e.preventDefault(); if (dropTarget !== f.path) setDropTarget(f.path); } }}
                     onDragLeave={() => setDropTarget(prev => (prev === f.path ? null : prev))}
                     onDrop={(e) => { e.preventDefault(); if (dragPath) moveFolder(dragPath, f.path); setDragPath(null); setDropTarget(null); }}
-                    className={`group relative flex cursor-pointer flex-col items-center rounded-xl border bg-white p-5 text-center shadow-default outline-none transition hover:border-primary hover:shadow-md focus:outline-none dark:bg-boxdark ${dropTarget === f.path ? 'border-primary ring-2 ring-primary' : 'border-stroke dark:border-strokedark'} ${dragPath === f.path ? 'opacity-40' : ''}`}>
+                    className={`group relative flex cursor-pointer flex-col items-center rounded-xl border bg-white p-5 text-center outline-none transition hover:border-primary hover:shadow-md focus:outline-none dark:bg-boxdark ${dropTarget === f.path ? 'border-primary ring-2 ring-primary' : 'border-stroke dark:border-strokedark'} ${dragPath === f.path ? 'opacity-40' : ''}`}>
                     {canManageFolders && (
                       <button onClick={(e) => { e.stopPropagation(); const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); setMenu({ path: f.path, count: f.count, x: r.right, y: r.bottom }); }}
                         title={t('resources.folderActions') as string}
@@ -663,112 +662,92 @@ const Resources: React.FC = () => {
       )}
 
       {/* Create folder modal */}
-      {creatingFolder && (
-        <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4" onClick={() => setCreatingFolder(false)}>
-          <div className="my-auto w-full max-w-sm rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('resources.newFolder')}</h3>
-            <p className="mb-4 text-xs text-gray-400">{openFolder ? `${t('resources.title')} / ${openFolder}` : t('resources.title')}{zone === 'personal' ? ` · ${t('resources.zonePersonal')}` : ''}</p>
-            <input autoFocus value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder={t('resources.folderNamePlaceholder') as string}
-              onKeyDown={(e) => { if (e.key === 'Enter') createFolder(); }}
-              className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-            <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => setCreatingFolder(false)} className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">{t('common.cancel')}</button>
-              <button onClick={createFolder} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">{t('resources.createBtn')}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal open={creatingFolder} onClose={() => setCreatingFolder(false)} size="sm" title={t('resources.newFolder')}
+        footer={<>
+          <button onClick={() => setCreatingFolder(false)} className="rounded-[10px] border border-stroke px-4 py-2 text-sm font-bold text-body hover:border-primary hover:text-black dark:border-strokedark dark:text-bodydark2 dark:hover:text-white">{t('common.cancel')}</button>
+          <button onClick={createFolder} className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">{t('resources.createBtn')}</button>
+        </>}>
+        <p className="mb-3 text-xs text-body dark:text-bodydark2">{openFolder ? `${t('resources.title')} / ${openFolder}` : t('resources.title')}{zone === 'personal' ? ` · ${t('resources.zonePersonal')}` : ''}</p>
+        <input autoFocus value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder={t('resources.folderNamePlaceholder') as string}
+          onKeyDown={(e) => { if (e.key === 'Enter') createFolder(); }}
+          className="w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+      </Modal>
 
       {/* Rename folder modal */}
-      {renameTarget && (
-        <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4" onClick={() => setRenameTarget(null)}>
-          <div className="my-auto w-full max-w-sm rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('resources.renameTitle')}</h3>
-            <p className="mb-4 text-xs text-gray-400">{renameTarget.path}</p>
-            <input autoFocus value={renameInput} onChange={(e) => setRenameInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') renameFolder(); }}
-              className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-            <div className="mt-4 flex justify-end gap-2">
-              <button onClick={() => setRenameTarget(null)} className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">{t('common.cancel')}</button>
-              <button onClick={renameFolder} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">{t('resources.rename')}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal open={!!renameTarget} onClose={() => setRenameTarget(null)} size="sm" title={t('resources.renameTitle')}
+        footer={<>
+          <button onClick={() => setRenameTarget(null)} className="rounded-[10px] border border-stroke px-4 py-2 text-sm font-bold text-body hover:border-primary hover:text-black dark:border-strokedark dark:text-bodydark2 dark:hover:text-white">{t('common.cancel')}</button>
+          <button onClick={renameFolder} className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">{t('resources.rename')}</button>
+        </>}>
+        {renameTarget && <p className="mb-3 text-xs text-body dark:text-bodydark2">{renameTarget.path}</p>}
+        <input autoFocus value={renameInput} onChange={(e) => setRenameInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') renameFolder(); }}
+          className="w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+      </Modal>
 
       {/* Add / edit modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
-          <div className="my-auto w-full max-w-lg rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-4 text-lg font-semibold text-black dark:text-white">{editing ? t('resources.editTitle') : t('resources.addTitle')}</h3>
-            <div className="space-y-3">
-              {/* File(s) first — multi-upload allowed when adding */}
-              <div>
-                <label className="mb-1 block text-xs font-medium text-body">{editing ? t('resources.fReplaceFile') : t('resources.fFiles')}</label>
-                <input type="file" multiple={!editing} onChange={(e) => setFiles(Array.from(e.target.files || []))}
-                  className="w-full text-sm text-body file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-white" />
-                {editing && <p className="mt-1 text-xs text-gray-400">{t('resources.fCurrentFile', { name: editing.file_name })}</p>}
-                {!editing && files.length > 1 && <p className="mt-1 text-xs text-primary">{t('resources.multiNote', { count: files.length })}</p>}
-              </div>
-              {/* Title only for single upload / edit */}
-              {(editing || files.length <= 1) && (
-                <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('resources.fTitle') as string}
-                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-              )}
-              {(editing || files.length <= 1) && (
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder={t('resources.fDescription') as string} rows={2}
-                  className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-              )}
-              <div className="grid grid-cols-2 gap-3">
-                <Select value={form.category} onChange={(v) => setForm({ ...form, category: v })} options={[{ value: '', label: t('resources.noCategory') as string }, ...categories.map((c) => ({ value: c, label: c }))]} buttonClassName={'rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white'} />
-                <input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder={t('resources.fTags') as string}
-                  className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-              </div>
-            </div>
-            <div className="mt-6 flex justify-end gap-3">
-              <button onClick={() => setShowModal(false)} className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">{t('common.cancel')}</button>
-              <button onClick={save} disabled={saving} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">{saving ? t('common.saving') : t('common.save')}</button>
-            </div>
+      <Modal open={showModal} onClose={() => setShowModal(false)} size="md" title={editing ? t('resources.editTitle') : t('resources.addTitle')}
+        footer={<>
+          <button onClick={() => setShowModal(false)} className="rounded-[10px] border border-stroke px-4 py-2 text-sm font-bold text-body hover:border-primary hover:text-black dark:border-strokedark dark:text-bodydark2 dark:hover:text-white">{t('common.cancel')}</button>
+          <button onClick={save} disabled={saving} className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">{saving ? t('common.saving') : t('common.save')}</button>
+        </>}>
+                <div className="space-y-3">
+          {/* File(s) first — multi-upload allowed when adding */}
+          <div>
+            <label className="mb-1 block text-xs font-medium text-body">{editing ? t('resources.fReplaceFile') : t('resources.fFiles')}</label>
+            <input type="file" multiple={!editing} onChange={(e) => setFiles(Array.from(e.target.files || []))}
+              className="w-full text-sm text-body file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:font-bold file:text-[#141414]" />
+            {editing && <p className="mt-1 text-xs text-gray-400">{t('resources.fCurrentFile', { name: editing.file_name })}</p>}
+            {!editing && files.length > 1 && <p className="mt-1 text-xs text-primary">{t('resources.multiNote', { count: files.length })}</p>}
+          </div>
+          {/* Title only for single upload / edit */}
+          {(editing || files.length <= 1) && (
+            <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={t('resources.fTitle') as string}
+              className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+          )}
+          {(editing || files.length <= 1) && (
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder={t('resources.fDescription') as string} rows={2}
+              className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <Select value={form.category} onChange={(v) => setForm({ ...form, category: v })} options={[{ value: '', label: t('resources.noCategory') as string }, ...categories.map((c) => ({ value: c, label: c }))]} buttonClassName={'rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white'} />
+            <input value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder={t('resources.fTags') as string}
+              className="rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
           </div>
         </div>
-      )}
+      </Modal>
 
       {/* Manage categories modal */}
-      {showCats && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setShowCats(false)}>
-          <div className="w-full max-w-md rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-4 text-lg font-semibold text-black dark:text-white">{t('resources.manageCats')}</h3>
-            <div className="mb-3 flex gap-2">
-              <input value={newCat} onChange={(e) => setNewCat(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addCategory(); }} placeholder={t('resources.newCategory') as string}
-                className="flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
-              <button onClick={addCategory} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">{t('resources.addCat')}</button>
-            </div>
-            <div className="max-h-72 space-y-1.5 overflow-y-auto">
-              {categories.length === 0 ? <p className="text-sm text-gray-500">{t('resources.noCats')}</p> : categories.map(c => (
-                <div key={c} className="flex items-center justify-between rounded-lg border border-stroke px-3 py-2 text-sm dark:border-strokedark">
-                  <span className="text-black dark:text-white">{c}</span>
-                  {isAdmin && (
-                    <button onClick={() => removeCategory(c)} className="text-body hover:text-danger" title={t('common.delete') as string}>
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            <p className="mt-3 text-xs text-gray-400">{t('resources.catNote')}</p>
-            {isAdmin && (
-              <div className="mt-4 rounded-lg border border-danger/30 bg-danger/5 p-3">
-                <p className="mb-2 text-xs font-semibold text-danger">{t('resources.dangerZone')}</p>
-                <button onClick={deleteAll} className="inline-flex items-center gap-2 rounded-lg border border-danger px-3 py-2 text-sm font-medium text-danger hover:bg-danger hover:text-white">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  {t('resources.deleteAllBtn')}
-                </button>
-                <p className="mt-1.5 text-[11px] text-body">{t('resources.deleteAllNote')}</p>
-              </div>
-            )}
-          </div>
+      <Modal open={showCats} onClose={() => setShowCats(false)} size="md" title={t('resources.manageCats')}>
+                <div className="mb-3 flex gap-2">
+          <input value={newCat} onChange={(e) => setNewCat(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addCategory(); }} placeholder={t('resources.newCategory') as string}
+            className="flex-1 rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white" />
+          <button onClick={addCategory} className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A]">{t('resources.addCat')}</button>
         </div>
-      )}
+        <div className="max-h-72 space-y-1.5 overflow-y-auto">
+          {categories.length === 0 ? <p className="text-sm text-gray-500">{t('resources.noCats')}</p> : categories.map(c => (
+            <div key={c} className="flex items-center justify-between rounded-lg border border-stroke px-3 py-2 text-sm dark:border-strokedark">
+              <span className="text-black dark:text-white">{c}</span>
+              {isAdmin && (
+                <button onClick={() => removeCategory(c)} className="text-body hover:text-danger" title={t('common.delete') as string}>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-gray-400">{t('resources.catNote')}</p>
+        {isAdmin && (
+          <div className="mt-4 rounded-lg border border-danger/30 bg-danger/5 p-3">
+            <p className="mb-2 text-xs font-semibold text-danger">{t('resources.dangerZone')}</p>
+            <button onClick={deleteAll} className="inline-flex items-center gap-2 rounded-lg border border-danger px-3 py-2 text-sm font-medium text-danger hover:bg-danger hover:text-white">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              {t('resources.deleteAllBtn')}
+            </button>
+            <p className="mt-1.5 text-[11px] text-body">{t('resources.deleteAllNote')}</p>
+          </div>
+        )}
+      </Modal>
     </>
   );
 };

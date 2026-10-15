@@ -8,7 +8,7 @@ import { API_URL, authHeaders, employerLogoUrl, type Employer } from './types';
 // dans la fiche. Un employeur est figé dans un dossier au moment de l'envoi.
 
 const INPUT =
-  'w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none ' +
+  'w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none ' +
   'transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
 
 // `logo` : undefined = inchangé (le serveur garde l'existant), null = retiré, string = nouveau.
@@ -54,7 +54,7 @@ const EmployersEditor = ({ initial, onSaved }: { initial: Employer[]; onSaved: (
   const logoPreview = (r: Row) => (typeof r.logo === 'string' ? r.logo : r.hasLogo && r.key && r.logo !== null ? employerLogoUrl(r.key) : null);
 
   return (
-    <div className="mb-5 rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:p-6">
+    <div className="mb-5 rounded-2xl border border-stroke bg-white p-5  dark:border-strokedark dark:bg-boxdark sm:p-6">
       <h3 className="font-semibold text-black dark:text-white">{t('hr.employers.title')}</h3>
       <p className="mb-4 mt-1 text-sm text-bodydark2">{t('hr.employers.hint')}</p>
 
@@ -105,7 +105,7 @@ const EmployersEditor = ({ initial, onSaved }: { initial: Employer[]; onSaved: (
 
       {error && <p className="mt-3 text-sm text-danger">{error}</p>}
       <div className="mt-4 flex justify-end">
-        <button type="button" onClick={save} disabled={saving} className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+        <button type="button" onClick={save} disabled={saving} className="rounded-[10px] bg-primary px-5 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
           {saving ? t('common.saving') : t('common.save')}
         </button>
       </div>

@@ -7,7 +7,7 @@ import { API_URL, authHeaders, type Manager } from './types';
 // chaque embauche — et deux dossiers ne peuvent plus écrire le même titre de deux façons.
 
 const INPUT =
-  'w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none ' +
+  'w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none ' +
   'transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
 
 const ManagersEditor = ({ initial, onClose, onSaved }: {
@@ -39,7 +39,7 @@ const ManagersEditor = ({ initial, onClose, onSaved }: {
   };
 
   return (
-    <div className="mb-5 rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:p-6">
+    <div className="mb-5 rounded-2xl border border-stroke bg-white p-5  dark:border-strokedark dark:bg-boxdark sm:p-6">
       <h3 className="font-semibold text-black dark:text-white">{t('hr.managers.title')}</h3>
       <p className="mb-4 mt-1 text-sm text-bodydark2">{t('hr.managers.hint')}</p>
 
@@ -66,7 +66,7 @@ const ManagersEditor = ({ initial, onClose, onSaved }: {
         {onClose && <button type="button" onClick={onClose} className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
           {t('common.cancel')}
         </button>}
-        <button type="button" onClick={save} disabled={saving} className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+        <button type="button" onClick={save} disabled={saving} className="rounded-[10px] bg-primary px-5 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
           {saving ? t('common.saving') : t('common.save')}
         </button>
       </div>

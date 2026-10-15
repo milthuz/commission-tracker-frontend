@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { Check, FileText, Paperclip, Plus, RefreshCw, Search, Send, Trash2, Upload, X } from 'lucide-react';
+import { Check, FileText, Paperclip, Plus, RefreshCw, Search, Send, Trash2, Upload } from 'lucide-react';
 import { ContentLoader } from '../../common/Loader';
 import { dialog } from '../../lib/dialog';
 import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
 import CreditsReport from './Report';
 import { getToken, authHeaders as sharedAuthHeaders } from '../../lib/auth';
+import { DataTable, Modal as SharedModal, PageHeader, SEG, StateCard, StatusPill, Tabs, segBtn } from '../../components/ui';
+import type { StatusFamily } from '../../components/ui';
 
 // Crédits processeur marchand (/credits).
 //
@@ -41,21 +43,15 @@ interface Meta { canSend: boolean; canViewAll: boolean; canApprove: boolean; can
 interface Customer { id: string; name: string; company: string; email: string; phone: string }
 interface ZMerchant { id: string; name: string; email: string; status: string; rep: string }
 
-const CARD = 'rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark';
-const INPUT = 'w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white';
-const BTN = 'inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-stroke px-3 py-2 text-sm text-black hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark dark:text-white';
-const BTN_PRIMARY = 'inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-primary px-3.5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50';
+// Surfaces of the redesign (refonte UI, P3) — one place restyles the list, the editor and the file.
+const CARD = 'rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark';
+const INPUT = 'w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white';
+const BTN = 'inline-flex items-center gap-1.5 whitespace-nowrap rounded-[10px] border border-stroke px-3 py-2 text-sm font-bold text-black hover:border-primary disabled:opacity-50 dark:border-strokedark dark:text-white';
+const BTN_PRIMARY = 'inline-flex items-center gap-1.5 whitespace-nowrap rounded-[10px] bg-primary px-3.5 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50';
 
-const STATUS_CLS: Record<Status, string> = {
-  draft: 'bg-gray-2 text-body dark:bg-meta-4 dark:text-bodydark',
-  sent: 'bg-primary/10 text-primary',
-  viewed: 'bg-primary/10 text-primary',
-  signed: 'bg-warning/15 text-warning',
-  approved: 'bg-success/15 text-success',
-  rejected: 'bg-danger/10 text-danger',
-  declined: 'bg-danger/10 text-danger',
-  cancelled: 'bg-gray-2 text-body dark:bg-meta-4 dark:text-bodydark',
-  expired: 'bg-gray-2 text-body dark:bg-meta-4 dark:text-bodydark',
+const STATUS_FAMILY: Record<Status, StatusFamily> = {
+  draft: 'neutral', sent: 'new', viewed: 'new', signed: 'wait', approved: 'ok',
+  rejected: 'err', declined: 'err', cancelled: 'neutral', expired: 'neutral',
 };
 const FILTERS: Record<string, Status[] | null> = {
   all: null,
@@ -139,23 +135,16 @@ export default function Credits() {
   };
 
   if (loading) return <ContentLoader />;
-  if (fatal || !meta) return <div className={`${CARD} p-8 text-center text-sm text-danger`}>{fatal}</div>;
+  if (fatal || !meta) return <div className={CARD}><StateCard kind="error" title={fatal || ''} /></div>;
   const filesAccess = meta.canSend || meta.canViewAll || meta.canApprove;
   const pickTab = (k: 'files' | 'report') => { setTab(k); setParams(k === 'report' ? { tab: 'report' } : {}, { replace: true }); };
 
   const heading = (
     <div className="mb-4">
-      <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('credits.title')}</h2>
-      <p className="mt-1 text-sm text-body dark:text-bodydark">{t(tab === 'report' ? 'credits.report.subtitle' : 'credits.subtitle')}</p>
+      <PageHeader section={t('sidebar.sections.pay')} title={t('credits.title')}
+        subtitle={t(tab === 'report' ? 'credits.report.subtitle' : 'credits.subtitle')} />
       {filesAccess && meta.canReport && (
-        <div className="mt-4 flex gap-1 border-b border-stroke dark:border-strokedark">
-          {(['files', 'report'] as const).map((k) => (
-            <button key={k} type="button" onClick={() => pickTab(k)}
-              className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${tab === k ? 'border-primary text-primary' : 'border-transparent text-body hover:text-black dark:hover:text-white'}`}>
-              {t(`credits.tab.${k}`)}
-            </button>
-          ))}
-        </div>
+        <Tabs tabs={(['files', 'report'] as const).map((k) => ({ id: k, label: t(`credits.tab.${k}`) }))} value={tab} onChange={pickTab} />
       )}
     </div>
   );
@@ -169,10 +158,11 @@ export default function Credits() {
       {heading}
 
       <div className={`${CARD} mb-5 flex flex-wrap items-center gap-3 p-4`}>
-        <div className="inline-flex flex-wrap rounded-lg border border-stroke p-1 dark:border-strokedark">
+        <div className={SEG} role="tablist">
           {(Object.keys(FILTERS) as (keyof typeof FILTERS)[]).filter((k) => k !== 'clawback' || counts.clawback > 0 || filter === 'clawback').map((k) => (
             <button key={k} type="button" onClick={() => setFilter(k)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium ${filter === k ? 'bg-primary text-white' : k === 'clawback' ? 'text-danger hover:bg-danger/5' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+              role="tab" aria-selected={filter === k}
+              className={`${segBtn(filter === k)} ${k === 'clawback' ? '!text-danger' : ''}`}>
               {t(`credits.filter.${k}`)} <span className="opacity-70">({counts[k] || 0})</span>
             </button>
           ))}
@@ -193,44 +183,36 @@ export default function Credits() {
         )}
       </div>
 
-      {shown.length === 0 ? (
-        <div className={`${CARD} p-10 text-center text-sm text-body`}>{credits.length ? t('credits.noneFiltered') : t('credits.none')}</div>
-      ) : (
-        <div className={`${CARD} overflow-x-auto`}>
-          <table className="w-full min-w-[760px] text-sm">
-            <thead className="bg-gray-2 text-left text-xs text-body dark:bg-meta-4 dark:text-bodydark">
-              <tr>
-                <th className="px-4 py-3 font-medium">{t('credits.col.ref')}</th>
-                <th className="px-4 py-3 font-medium">{t('credits.col.merchant')}</th>
-                <th className="px-4 py-3 text-right font-medium">{t('credits.col.amount')}</th>
-                <th className="px-4 py-3 font-medium">{t('credits.col.status')}</th>
-                <th className="px-4 py-3 font-medium">{t('credits.col.rep')}</th>
-                <th className="px-4 py-3 font-medium">{t('credits.col.updated')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shown.map((c) => (
-                <tr key={c.id} onClick={() => openCredit(c.id)} className="cursor-pointer border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
-                  <td className="whitespace-nowrap px-4 py-3 font-medium text-black dark:text-white">{c.ref}</td>
-                  <td className="px-4 py-3 text-black dark:text-white">
-                    {c.legalName || '—'}
-                    {c.docCount === 0 && !['cancelled', 'declined', 'rejected'].includes(c.status) && (
-                      <span className="ml-2 text-xs text-warning">{t('credits.noDocsBadge')}</span>
-                    )}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-black dark:text-white">{money(c.amount)}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge c={c} t={t as any} />
-                    {isClawback(c) && <span className="ml-1.5 inline-block whitespace-nowrap rounded-full bg-danger/10 px-2.5 py-0.5 text-xs font-medium text-danger">{t('credits.clawback.badge')}</span>}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-body dark:text-bodydark">{c.repName || c.repEmail}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-body dark:text-bodydark">{date(c.updatedAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        rows={shown}
+        rowKey={(c) => c.id}
+        onRowClick={(c) => openCredit(c.id)}
+        empty={{ title: credits.length ? t('credits.noneFiltered') : t('credits.none') }}
+        defaultSort={{ key: 'updated', dir: 'desc' }}
+        columns={[
+          { key: 'ref', header: t('credits.col.ref'), sortValue: (c) => c.ref, render: (c) => <span className="whitespace-nowrap font-bold">{c.ref}</span> },
+          { key: 'merchant', header: t('credits.col.merchant'), sortValue: (c) => (c.legalName || '').toLowerCase(),
+            render: (c) => (<>
+              {c.legalName || '—'}
+              {c.docCount === 0 && !['cancelled', 'declined', 'rejected'].includes(c.status) && (
+                <span className="ml-2 text-xs font-bold text-warning">{t('credits.noDocsBadge')}</span>
+              )}
+            </>) },
+          { key: 'amount', header: t('credits.col.amount'), align: 'right', sortValue: (c) => c.amount,
+            render: (c) => <span className="whitespace-nowrap tabular-nums">{money(c.amount)}</span> },
+          { key: 'status', header: t('credits.col.status'), sortValue: (c) => c.status,
+            render: (c) => (
+              <span className="inline-flex flex-wrap gap-1.5">
+                <StatusBadge c={c} t={t as any} />
+                {isClawback(c) && <StatusPill family="err">{t('credits.clawback.badge')}</StatusPill>}
+              </span>
+            ) },
+          { key: 'rep', header: t('credits.col.rep'), sortValue: (c) => (c.repName || c.repEmail || '').toLowerCase(),
+            render: (c) => <span className="whitespace-nowrap text-body dark:text-bodydark2">{c.repName || c.repEmail}</span> },
+          { key: 'updated', header: t('credits.col.updated'), sortValue: (c) => c.updatedAt || '',
+            render: (c) => <span className="whitespace-nowrap text-body dark:text-bodydark2">{date(c.updatedAt)}</span> },
+        ]}
+      />
 
       {editor && (
         <Editor credit={editor.credit} t={t as any}
@@ -249,29 +231,19 @@ export default function Credits() {
 function StatusBadge({ c, t }: { c: Credit; t: (k: string, o?: any) => string }) {
   const booksPending = c.status === 'approved' && !c.creditnoteId;
   return (
-    <span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${booksPending ? 'bg-warning/15 text-warning' : STATUS_CLS[c.status]}`}>
+    <StatusPill family={booksPending ? 'wait' : STATUS_FAMILY[c.status]}>
       {booksPending ? t('credits.status.booksPending') : t(`credits.status.${c.status}`)}
-    </span>
+    </StatusPill>
   );
 }
 
 function Modal({ title, subtitle, onClose, children, wide }: { title: string; subtitle?: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
-  const down = useRef(false);
+  // The shared window (refonte UI, P3): Escape, focus kept inside, background locked.
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4"
-      onMouseDown={(e) => { down.current = e.target === e.currentTarget; }}
-      onClick={(e) => { if (down.current && e.target === e.currentTarget) onClose(); }}>
-      <div className={`flex max-h-[92vh] w-full ${wide ? 'max-w-4xl' : 'max-w-2xl'} flex-col overflow-hidden rounded-2xl border border-stroke bg-white shadow-2xl dark:border-strokedark dark:bg-boxdark`}>
-        <div className="flex items-start justify-between gap-3 border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <div className="min-w-0">
-            <h3 className="text-lg font-semibold text-black dark:text-white">{title}</h3>
-            {subtitle && <p className="text-xs text-body dark:text-bodydark">{subtitle}</p>}
-          </div>
-          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-body hover:bg-gray-1 dark:hover:bg-meta-4"><X className="h-5 w-5" /></button>
-        </div>
-        <div className="thin-scrollbar flex-1 overflow-y-auto p-6">{children}</div>
-      </div>
-    </div>
+    <SharedModal open onClose={onClose} size={wide ? 'xl' : 'lg'}
+      title={<>{title}{subtitle && <span className="mt-0.5 block text-xs font-medium text-body dark:text-bodydark2">{subtitle}</span>}</>}>
+      {children}
+    </SharedModal>
   );
 }
 
@@ -321,7 +293,7 @@ function Editor({ credit, t, onClose, onSaved }: { credit: Credit | null; t: (k:
 
   const field = (k: keyof typeof f, label: string, type = 'text') => (
     <label className="block">
-      <span className="mb-1 block text-xs font-medium text-body dark:text-bodydark">{label}</span>
+      <span className="mb-1 block text-xs font-bold text-body dark:text-bodydark2">{label}</span>
       <input type={type} value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} className={INPUT} />
     </label>
   );
@@ -330,9 +302,9 @@ function Editor({ credit, t, onClose, onSaved }: { credit: Credit | null; t: (k:
     <Modal title={credit ? t('credits.editTitle', { ref: credit.ref }) : t('credits.newTitle')} onClose={onClose}>
       <div className="space-y-4">
         <div>
-          <span className="mb-1 block text-xs font-medium text-body dark:text-bodydark">{t('credits.merchant')}</span>
+          <span className="mb-1 block text-xs font-bold text-body dark:text-bodydark2">{t('credits.merchant')}</span>
           {merchantId && (
-            <div className="mb-2 flex items-center justify-between rounded border border-success/40 bg-success/5 px-3 py-2 text-sm">
+            <div className="mb-2 flex items-center justify-between rounded-[10px] border border-success/40 bg-success/5 px-3 py-2 text-sm">
               <span className="text-black dark:text-white">{merchantLabel}</span>
               <span className="text-xs text-body">Zentact · {merchantId}</span>
             </div>
@@ -367,18 +339,18 @@ function Editor({ credit, t, onClose, onSaved }: { credit: Credit | null; t: (k:
         <p className="-mt-2 text-xs text-body dark:text-bodydark">{t('credits.clientCompletes')}</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1 block text-xs font-medium text-body dark:text-bodydark">{t('credits.f.amount')}</span>
+            <span className="mb-1 block text-xs font-bold text-body dark:text-bodydark2">{t('credits.f.amount')}</span>
             <div className="flex items-center rounded border border-stroke focus-within:border-primary dark:border-strokedark">
               <input inputMode="decimal" value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} className="min-w-0 flex-1 bg-transparent px-3 py-2 text-right text-sm text-black outline-none dark:text-white" />
               <span className="pr-3 text-xs text-body">$ CAD</span>
             </div>
           </label>
           <div>
-            <span className="mb-1 block text-xs font-medium text-body dark:text-bodydark">{t('credits.f.lang')}</span>
-            <div className="inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
+            <span className="mb-1 block text-xs font-bold text-body dark:text-bodydark2">{t('credits.f.lang')}</span>
+            <div className={SEG}>
               {(['fr', 'en'] as const).map((l) => (
                 <button key={l} type="button" onClick={() => setF({ ...f, lang: l })}
-                  className={`rounded-md px-4 py-1 text-sm font-medium ${f.lang === l ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+                  className={segBtn(f.lang === l)}>
                   {l === 'fr' ? 'Français' : 'English'}
                 </button>
               ))}
@@ -386,7 +358,7 @@ function Editor({ credit, t, onClose, onSaved }: { credit: Credit | null; t: (k:
           </div>
         </div>
         <label className="block">
-          <span className="mb-1 block text-xs font-medium text-body dark:text-bodydark">{t('credits.f.note')}</span>
+          <span className="mb-1 block text-xs font-bold text-body dark:text-bodydark2">{t('credits.f.note')}</span>
           <textarea rows={2} value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} className={INPUT} placeholder={t('credits.f.notePh') as string} />
         </label>
         {err && <p className="text-sm text-danger">{err}</p>}
@@ -476,7 +448,7 @@ function DetailModal({ id, t, money, date, locale, canDelete, onClose, onChanged
           </div>
 
           {c.status === 'approved' && c.creditnoteId && (
-            <div className="rounded border border-success/40 bg-success/5 p-3 text-sm text-black dark:text-white">
+            <div className="rounded-[10px] border border-success/40 bg-success/5 p-3 text-sm text-black dark:text-white">
               <Check className="mr-1 inline h-4 w-4 text-success" />{t('credits.booksDone', { number: c.creditnoteNumber || c.creditnoteId })}
             </div>
           )}

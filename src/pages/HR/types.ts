@@ -135,6 +135,10 @@ export const DELETABLE: HireStatus[] = ['draft', 'cancelled', 'declined'];
 // Signés : supprimables seulement avec hr:delete_signed (nom retapé + motif). Même liste que le serveur.
 export const SIGNED_DELETABLE: HireStatus[] = ['employee_signed', 'completed'];
 
+// Shared pill families (refonte UI, P3). statusTone kept for any older caller.
+export const statusFamily: Record<HireStatus, 'neutral' | 'new' | 'wait' | 'ok' | 'err'> = {
+  draft: 'neutral', sent: 'new', viewed: 'new', employee_signed: 'wait', completed: 'ok', declined: 'err', cancelled: 'neutral',
+};
 export const statusTone: Record<HireStatus, string> = {
   draft: 'bg-gray-2 text-bodydark2 dark:bg-meta-4',
   sent: 'bg-primary/10 text-primary',

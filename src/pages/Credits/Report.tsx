@@ -12,7 +12,7 @@ import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const auth = (): Record<string, string> => ({ Authorization: `Bearer ${getToken() || ''}` });
-const CARD = 'rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark';
+const CARD = 'rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark';
 const BTN = 'inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-stroke px-3 py-2 text-sm text-black hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark dark:text-white';
 
 interface Row {
@@ -119,16 +119,16 @@ export default function CreditsReport({ t, money, date, locale }: {
           ) : (
             <div className={`${CARD} overflow-x-auto`}>
               <table className="w-full min-w-[900px] text-sm">
-                <thead className="bg-gray-2 text-left text-xs text-body dark:bg-meta-4 dark:text-bodydark">
+                <thead className="border-b border-stroke text-left text-xs text-body dark:border-strokedark dark:text-bodydark2">
                   <tr>
-                    <th className="px-4 py-3 font-medium">{t('credits.report.col.approved')}</th>
-                    <th className="px-4 py-3 font-medium">{t('credits.col.ref')}</th>
-                    <th className="px-4 py-3 font-medium">{t('credits.col.merchant')}</th>
-                    <th className="px-4 py-3 font-medium">{t('credits.report.col.books')}</th>
-                    <th className="px-4 py-3 text-right font-medium">{t('credits.col.amount')}</th>
-                    <th className="px-4 py-3 font-medium">{t('credits.report.col.creditNote')}</th>
-                    <th className="px-4 py-3 font-medium">{t('credits.col.rep')}</th>
-                    <th className="px-4 py-3 font-medium">{t('credits.report.col.approvedBy')}</th>
+                    <th className="px-4 py-3 font-bold">{t('credits.report.col.approved')}</th>
+                    <th className="px-4 py-3 font-bold">{t('credits.col.ref')}</th>
+                    <th className="px-4 py-3 font-bold">{t('credits.col.merchant')}</th>
+                    <th className="px-4 py-3 font-bold">{t('credits.report.col.books')}</th>
+                    <th className="px-4 py-3 text-right font-bold">{t('credits.col.amount')}</th>
+                    <th className="px-4 py-3 font-bold">{t('credits.report.col.creditNote')}</th>
+                    <th className="px-4 py-3 font-bold">{t('credits.col.rep')}</th>
+                    <th className="px-4 py-3 font-bold">{t('credits.report.col.approvedBy')}</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -172,14 +172,14 @@ export default function CreditsReport({ t, money, date, locale }: {
               <h3 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('credits.report.clawbacksTitle')}</h3>
               <div className={`${CARD} overflow-x-auto`}>
                 <table className="w-full min-w-[700px] text-sm">
-                  <thead className="bg-gray-2 text-left text-xs text-body dark:bg-meta-4 dark:text-bodydark">
+                  <thead className="border-b border-stroke text-left text-xs text-body dark:border-strokedark dark:text-bodydark2">
                     <tr>
-                      <th className="px-4 py-3 font-medium">{t('credits.report.col.decided')}</th>
-                      <th className="px-4 py-3 font-medium">{t('credits.col.ref')}</th>
-                      <th className="px-4 py-3 font-medium">{t('credits.col.merchant')}</th>
-                      <th className="px-4 py-3 text-right font-medium">{t('credits.col.amount')}</th>
-                      <th className="px-4 py-3 font-medium">{t('credits.report.col.decision')}</th>
-                      <th className="px-4 py-3 font-medium">{t('credits.report.col.note')}</th>
+                      <th className="px-4 py-3 font-bold">{t('credits.report.col.decided')}</th>
+                      <th className="px-4 py-3 font-bold">{t('credits.col.ref')}</th>
+                      <th className="px-4 py-3 font-bold">{t('credits.col.merchant')}</th>
+                      <th className="px-4 py-3 text-right font-bold">{t('credits.col.amount')}</th>
+                      <th className="px-4 py-3 font-bold">{t('credits.report.col.decision')}</th>
+                      <th className="px-4 py-3 font-bold">{t('credits.report.col.note')}</th>
                     </tr>
                   </thead>
                   <tbody>

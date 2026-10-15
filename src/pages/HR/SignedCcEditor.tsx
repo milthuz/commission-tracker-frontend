@@ -7,7 +7,7 @@ import { API_URL, authHeaders } from './types';
 // gestionnaires). Ils ne reçoivent jamais le lien de signature du candidat.
 
 const INPUT =
-  'w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none ' +
+  'w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none ' +
   'transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -44,7 +44,7 @@ const SignedCcEditor = () => {
   };
 
   return (
-    <div className="mb-5 rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:p-6">
+    <div className="mb-5 rounded-2xl border border-stroke bg-white p-5  dark:border-strokedark dark:bg-boxdark sm:p-6">
       <h3 className="font-semibold text-black dark:text-white">{t('hr.signedCc.title')}</h3>
       <p className="mb-4 mt-1 text-sm text-bodydark2">{t('hr.signedCc.hint')}</p>
       <div className="mb-3 flex flex-wrap gap-2">
@@ -58,7 +58,7 @@ const SignedCcEditor = () => {
       </div>
       <div className="flex max-w-md gap-2">
         <input type="email" className={INPUT} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} placeholder="jen@clustersystems.com" />
-        <button type="button" onClick={add} className="whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">{t('hr.signedCc.add')}</button>
+        <button type="button" onClick={add} className="whitespace-nowrap rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A]">{t('hr.signedCc.add')}</button>
       </div>
       {error && <p className="mt-2 text-sm text-danger">{error}</p>}
       {saved && !error && <p className="mt-2 text-sm text-success">{t('hr.signedCc.saved')}</p>}

@@ -14,13 +14,13 @@ import { API_URL, authHeaders, scrollToTop, type HireDetail, type HireListItem, 
 // Le document lui-même se joint à l'étape suivante, dans la fiche (comme une pièce jointe).
 
 const INPUT =
-  'w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none ' +
+  'w-full rounded-[10px] border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none ' +
   'transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
 const LABEL = 'mb-1.5 block text-sm font-medium text-black dark:text-white';
 const SELECT_CLS =
-  'w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-left text-sm text-black outline-none ' +
+  'w-full rounded-[10px] border border-stroke bg-transparent px-4 py-2.5 text-left text-sm text-black outline-none ' +
   'transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
-const CARD = 'rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark sm:p-6';
+const CARD = 'rounded-2xl border border-stroke bg-white p-5  dark:border-strokedark dark:bg-boxdark sm:p-6';
 const OTHER = '__other__';
 
 interface Form {
@@ -116,7 +116,7 @@ const AddendumForm = ({ meta, initial, hires, onCancel, onSaved }: {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-title-md2 font-bold text-black dark:text-white">{initial ? t('hr.addendum.editTitle') : t('hr.addendum.newTitle')}</h2>
+        <h2 className="text-2xl font-bold leading-tight tracking-[-0.01em] text-black dark:text-white">{initial ? t('hr.addendum.editTitle') : t('hr.addendum.newTitle')}</h2>
         <p className="mt-1 text-sm text-bodydark2">{t('hr.addendum.subtitle')}</p>
       </div>
       {error && <div className="rounded border border-danger/40 bg-danger/5 px-4 py-3 text-sm text-danger">{error}</div>}
@@ -125,10 +125,10 @@ const AddendumForm = ({ meta, initial, hires, onCancel, onSaved }: {
       <div className={CARD}>
         <h3 className="mb-4 font-semibold text-black dark:text-white">{t('hr.addendum.employee')}</h3>
         {!initial && (
-          <div className="mb-4 inline-flex flex-wrap rounded-sm border border-stroke p-1 dark:border-strokedark">
+          <div className="mb-4 inline-flex flex-wrap rounded-xl bg-gray-2 p-1 dark:bg-meta-4/60">
             {(['linked', 'manual'] as const).map((m) => (
               <button key={m} type="button" onClick={() => { setMode(m); if (m === 'manual') set('parentId')(null); }}
-                className={`rounded-sm px-4 py-2 text-sm font-medium transition-colors ${mode === m ? 'bg-primary text-white' : 'text-bodydark2 hover:text-black dark:hover:text-white'}`}>
+                className={`rounded-lg px-4 py-2 text-sm font-bold transition-colors ${mode === m ? 'bg-white text-black shadow-sm dark:bg-boxdark dark:text-white' : 'text-body hover:text-black dark:text-bodydark2 dark:hover:text-white'}`}>
                 {t(m === 'linked' ? 'hr.addendum.modeLinked' : 'hr.addendum.modeManual')}
               </button>
             ))}
@@ -192,7 +192,7 @@ const AddendumForm = ({ meta, initial, hires, onCancel, onSaved }: {
 
       <div className="flex flex-wrap justify-end gap-3">
         <button type="button" onClick={onCancel} className="rounded-md border border-stroke px-5 py-2.5 text-sm font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">{t('common.cancel')}</button>
-        <button type="button" onClick={submit} disabled={saving || (mode === 'linked' && !form.parentId)} className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+        <button type="button" onClick={submit} disabled={saving || (mode === 'linked' && !form.parentId)} className="rounded-[10px] bg-primary px-6 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
           {saving ? t('hr.form.saving') : initial ? t('hr.form.save') : t('hr.addendum.create')}
         </button>
       </div>

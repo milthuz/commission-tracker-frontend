@@ -7,7 +7,8 @@ import HireForm from './HireForm';
 import AddendumForm from './AddendumForm';
 import HireDetailView from './HireDetailView';
 import { dialog } from '../../lib/dialog';
-import { API_URL, authHeaders, DELETABLE, scrollToTop, statusTone, type HireDetail, type HireListItem, type HireStatus, type Meta } from './types';
+import { API_URL, authHeaders, DELETABLE, scrollToTop, statusFamily, type HireDetail, type HireListItem, type HireStatus, type Meta } from './types';
+import { Button, DataTable, FilterBar, PageHeader, StatusPill, Tabs } from '../../components/ui';
 
 // Section RH : embauche d'un représentant. Une seule page qui alterne trois vues (liste, fiche,
 // formulaire) plutôt que des fenêtres superposées — pas de second ascenseur, et le lien
@@ -136,100 +137,56 @@ const HR = () => {
 
       {meta && view.kind === 'list' && (
         <>
-          <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="text-title-md2 font-bold text-black dark:text-white">{t('hr.title')}</h2>
-              <p className="mt-1 text-sm text-bodydark2">{t('hr.subtitle')}</p>
-            </div>
-            {meta.can.manage && (
-              <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setView({ kind: 'newAddendum' })}
-                className="inline-flex items-center gap-2 rounded-md border border-stroke px-4 py-2.5 text-sm font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M12 12v6M9 15h6" /></svg>
+          <PageHeader section={t('sidebar.sections.direction')} title={t('hr.title')} subtitle={t('hr.subtitle')}
+            actions={meta.can.manage ? (<>
+              <Button size="md" onClick={() => setView({ kind: 'newAddendum' })}
+                icon={<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M12 12v6M9 15h6" /></svg>}>
                 {t('hr.addendum.new')}
-              </button>
-              <button type="button" onClick={() => setView({ kind: 'new' })}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+              </Button>
+              <Button size="md" variant="primary" onClick={() => setView({ kind: 'new' })}
+                icon={<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>}>
                 {t('hr.newHire')}
-              </button>
-              </div>
-            )}
-          </div>
+              </Button>
+            </>) : undefined} />
 
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-sm border border-stroke bg-white p-3 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="inline-flex flex-wrap gap-1">
-              {(['active', 'completed', 'closed', 'all'] as Tab[]).map((k) => (
-                <button key={k} type="button" onClick={() => setTab(k)}
-                  className={`rounded-sm px-4 py-2 text-sm font-medium transition-colors ${tab === k ? 'bg-primary text-white' : 'text-bodydark2 hover:text-black dark:hover:text-white'}`}>
-                  {t(`hr.tabs.${k}`)}
-                  {counts[k] > 0 && <span className={`ml-2 rounded-full px-1.5 py-0.5 text-[11px] ${tab === k ? 'bg-white/25' : 'bg-gray-2 dark:bg-meta-4'}`}>{counts[k]}</span>}
-                </button>
-              ))}
-            </div>
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('hr.search') as string}
-              className="w-full rounded border border-stroke bg-transparent px-4 py-2 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white sm:w-64" />
-          </div>
+          <Tabs tabs={(['active', 'completed', 'closed', 'all'] as Tab[]).map((k) => ({ id: k, label: t(`hr.tabs.${k}`), count: counts[k] > 0 ? counts[k] : undefined }))}
+            value={tab} onChange={setTab} />
 
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-            {rows === null ? (
-              <div className="px-6 py-12 text-center text-sm text-bodydark2">{t('common.loading')}</div>
-            ) : !visible.length ? (
-              <div className="px-6 py-14 text-center">
-                <p className="text-sm text-bodydark2">{rows.length ? t('hr.noMatch') : t('hr.empty')}</p>
-                {!rows.length && meta.can.manage && (
-                  <button type="button" onClick={() => setView({ kind: 'new' })} className="mt-3 text-sm font-medium text-primary hover:underline">{t('hr.newHire')}</button>
-                )}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] table-auto">
-                  <thead>
-                    <tr className="border-b border-stroke text-left text-xs text-bodydark2 dark:border-strokedark">
-                      <th className="px-5 py-3 font-medium">{t('hr.columns.candidate')}</th>
-                      <th className="px-4 py-3 font-medium">{t('hr.columns.position')}</th>
-                      <th className="px-4 py-3 font-medium">{t('hr.columns.start')}</th>
-                      <th className="px-4 py-3 font-medium">{t('hr.columns.status')}</th>
-                      <th className="px-4 py-3 font-medium">{t('hr.columns.updated')}</th>
-                      {meta.can.manage && <th className="w-12 px-2 py-3" aria-label={t('common.actions') as string} />}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visible.map((r) => (
-                      <tr key={r.id} onClick={() => openHire(r.id)} className="cursor-pointer border-b border-stroke last:border-0 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4">
-                        <td className="px-5 py-3">
-                          <p className="text-sm font-medium text-black dark:text-white">{r.name}</p>
-                          <p className="text-xs text-bodydark2">{r.ref} · {r.email}</p>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-black dark:text-white">
-                          {r.kind === 'addendum'
-                            ? <><span className="mr-1.5 rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">{t('hr.addendum.badge')}</span>{(fr ? r.docTitleFr : r.docTitleEn) || r.docTitleFr}</>
-                            : r.position}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-black dark:text-white">{day(r.startDate)}</td>
-                        <td className="px-4 py-3">
-                          <span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${statusTone[r.status]}`}>{t(`hr.status.${r.status}`)}</span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-xs text-bodydark2">
-                          {new Date(when(r)).toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' })}
-                        </td>
-                        {meta.can.manage && (
-                          <td className="px-2 py-3 text-right">
-                            {DELETABLE.includes(r.status) && (
-                              <button type="button" title={t('common.delete') as string} aria-label={t('common.delete') as string}
-                                onClick={(e) => { e.stopPropagation(); removeRow(r); }}
-                                className="rounded p-1.5 text-bodydark2 transition hover:bg-danger/10 hover:text-danger">
-                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3" /></svg>
-                              </button>
-                            )}
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+          <div className="mt-4 space-y-4">
+            <FilterBar search={q} onSearch={setQ} searchPlaceholder={t('hr.search') as string} />
+            <DataTable
+              rows={visible}
+              rowKey={(r) => r.id}
+              onRowClick={(r) => openHire(r.id)}
+              loading={rows === null}
+              empty={{
+                title: rows && rows.length ? t('hr.noMatch') : t('hr.empty'),
+                body: rows && !rows.length && meta.can.manage
+                  ? <button type="button" onClick={() => setView({ kind: 'new' })} className="mt-1 text-sm font-bold text-accent-ink hover:underline dark:text-accent-ink-dark">{t('hr.newHire')}</button>
+                  : undefined,
+              }}
+              columns={[
+                { key: 'name', header: t('hr.columns.candidate'), sortValue: (r) => (r.name || '').toLowerCase(),
+                  render: (r) => (<div className="min-w-0"><p className="m-0 font-bold">{r.name}</p><p className="m-0 text-xs text-body dark:text-bodydark2">{r.ref} · {r.email}</p></div>) },
+                { key: 'position', header: t('hr.columns.position'),
+                  render: (r) => r.kind === 'addendum'
+                    ? <><StatusPill family="new" className="mr-1.5">{t('hr.addendum.badge')}</StatusPill>{(fr ? r.docTitleFr : r.docTitleEn) || r.docTitleFr}</>
+                    : r.position },
+                { key: 'start', header: t('hr.columns.start'), sortValue: (r) => r.startDate || '', render: (r) => <span className="whitespace-nowrap">{day(r.startDate)}</span> },
+                { key: 'status', header: t('hr.columns.status'), sortValue: (r) => r.status,
+                  render: (r) => <StatusPill family={statusFamily[r.status]}>{t(`hr.status.${r.status}`)}</StatusPill> },
+                { key: 'updated', header: t('hr.columns.updated'), sortValue: (r) => when(r) || '',
+                  render: (r) => <span className="whitespace-nowrap text-xs text-body dark:text-bodydark2">{new Date(when(r)).toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' })}</span> },
+                ...(meta.can.manage ? [{ key: 'del', header: '', align: 'right' as const,
+                  render: (r: HireListItem) => DELETABLE.includes(r.status) ? (
+                    <button type="button" title={t('common.delete') as string} aria-label={t('common.delete') as string}
+                      onClick={(e) => { e.stopPropagation(); removeRow(r); }}
+                      className="rounded p-1.5 text-body transition hover:bg-danger/10 hover:text-danger dark:text-bodydark2">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3" /></svg>
+                    </button>
+                  ) : null }] : []),
+              ]}
+            />
           </div>
         </>
       )}
