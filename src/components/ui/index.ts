@@ -16,3 +16,5 @@ export type { MenuItem } from './ActionMenu';
 export { default as InlineError } from './InlineError';
 export { toast } from '../../lib/toast';
 export { dialog } from '../../lib/dialog';
+export { default as PageHeader } from './PageHeader';
+export * from './surface';

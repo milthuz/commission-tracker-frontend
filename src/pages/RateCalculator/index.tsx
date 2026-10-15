@@ -6,6 +6,7 @@ import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
 import { extractCells, looksScanned } from './extract';
 import { getToken, authHeaders as sharedAuthHeaders } from '../../lib/auth';
+import { StatusPill } from '../../components/ui';
 
 // Calculateur comparatif IC+.
 //
@@ -55,7 +56,7 @@ interface ScanRead {
   flags: { code: string; field?: string; value?: number; n?: number; gap?: number; kind?: string }[];
 }
 
-const CARD = 'rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark';
+const CARD = 'rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark';
 
 export default function RateCalculator() {
   const { t, i18n } = useTranslation();
@@ -310,7 +311,7 @@ export default function RateCalculator() {
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('icplus.title')}</h2>
+        <h1 className="m-0 text-2xl font-bold leading-tight tracking-[-0.01em] text-black dark:text-white">{t('icplus.title')}</h1>
         <p className="mt-1 text-sm text-body dark:text-bodydark">{t('icplus.subtitle')}</p>
       </div>
 
@@ -325,10 +326,10 @@ export default function RateCalculator() {
           <div className="min-w-[200px] flex-1">
             <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('icplus.salesperson')}</label>
             <input value={salesperson} onChange={(e) => setSalesperson(e.target.value)}
-              className="w-full rounded border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
+              className="w-full rounded-lg border border-stroke bg-transparent px-4 py-2 outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
           </div>
           <button onClick={() => fileRef.current?.click()} disabled={!!busy}
-            className="flex items-center gap-2 rounded bg-primary px-4 py-2 font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+            className="flex items-center gap-2 rounded-[10px] bg-primary px-4 py-2 font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
             {busy === 'parse' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
             {t('icplus.uploadStatement')}
           </button>
@@ -340,7 +341,7 @@ export default function RateCalculator() {
               main. On la laisse donc accessible, mais seulement là où elle sert. */}
           {showPaste && (
             <button onClick={() => setShowPaste(false)}
-              className="flex items-center gap-2 rounded border border-stroke px-4 py-2 font-medium text-black hover:border-primary dark:border-strokedark dark:text-white">
+              className="flex items-center gap-2 rounded-[10px] border border-stroke px-4 py-2 font-bold text-black hover:border-primary dark:border-strokedark dark:text-white">
               <ClipboardPaste className="h-4 w-4" />{t('icplus.hidePaste')}
             </button>
           )}
@@ -352,7 +353,7 @@ export default function RateCalculator() {
         {scanFile && !scan && config?.canReadScan && (
           <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-stroke pt-4 dark:border-strokedark">
             <button onClick={onReadScan} disabled={!!busy}
-              className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+              className="flex items-center gap-2 rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
               {busy === 'scan' ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanLine className="h-4 w-4" />}
               {busy === 'scan' ? t('icplus.scanReading') : t('icplus.scanRead')}
             </button>
@@ -362,7 +363,7 @@ export default function RateCalculator() {
 
         {/* Revue de la transcription. Rien n'est calculé tant que l'humain n'a pas tranché. */}
         {scan && (
-          <div className="mt-4 rounded-sm border border-primary bg-primary/5 p-4">
+          <div className="mt-4 rounded-xl border border-primary bg-primary/5 p-4">
             <h4 className="mb-1 font-medium text-black dark:text-white">
               {t('icplus.scanTitle', {
                 processor: scan.processorName || t('icplus.scanUnknownProcessor'),
@@ -371,7 +372,7 @@ export default function RateCalculator() {
             </h4>
 
             {/* ⚠️ L'avertissement central, écrit sur la page : une lecture d'images se trompe. */}
-            <div className="mb-3 flex gap-2 rounded-sm border border-warning bg-warning/10 p-3 text-sm">
+            <div className="mb-3 flex gap-2 rounded-xl border border-warning bg-warning/10 p-3 text-sm">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
               <p className="text-black dark:text-white">{t('icplus.scanWarning')}</p>
             </div>
@@ -407,7 +408,7 @@ export default function RateCalculator() {
             {/* Chaque montant lu, avec le texte imprimé en regard — pour vérifier sans
                 rouvrir le PDF. C'est ce qui rend la revue faisable en pratique. */}
             {scan.readings.length > 0 && (
-              <details className="mb-3 rounded-sm border border-stroke bg-white p-3 text-xs dark:border-strokedark dark:bg-boxdark">
+              <details className="mb-3 rounded-xl border border-stroke bg-white p-3 text-xs dark:border-strokedark dark:bg-boxdark">
                 <summary className="cursor-pointer font-medium text-black dark:text-white">
                   {t('icplus.scanReadings', { n: scan.readings.length })}
                 </summary>
@@ -430,7 +431,7 @@ export default function RateCalculator() {
 
             <div className="flex flex-wrap gap-3">
               <button onClick={useScan} disabled={!!busy}
-                className="rounded bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+                className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                 {busy === 'import' ? '…' : t('icplus.scanUse')}
               </button>
               <button onClick={() => { setScan(null); setShowPaste(true); }}
@@ -449,10 +450,10 @@ export default function RateCalculator() {
           <div className="mt-4 border-t border-stroke pt-4 dark:border-strokedark">
             <p className="mb-2 text-sm text-body dark:text-bodydark">{t('icplus.pasteHelp')}</p>
             <textarea value={pasteText} onChange={(e) => setPasteText(e.target.value)} rows={6}
-              className="w-full rounded border border-stroke bg-transparent p-3 font-mono text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
+              className="w-full rounded-lg border border-stroke bg-transparent p-3 font-mono text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input"
               placeholder='{"current_processor": {...}, "volume": {...}}' />
             <button onClick={onPaste} disabled={!pasteText.trim() || !!busy}
-              className="mt-2 rounded bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+              className="mt-2 rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
               {busy === 'import' ? '…' : t('icplus.import')}
             </button>
           </div>
@@ -462,7 +463,7 @@ export default function RateCalculator() {
       {/* ⚠️ Les tables de taux de référence sont encore incomplètes : sans cet avertissement,
           chaque ligne d'interchange affiche « À vérifier » et la page a simplement l'air cassée. */}
       {config?.rateData?.incomplete && (
-        <div className="mb-6 flex items-start gap-3 rounded-sm border border-warning bg-warning/10 p-4">
+        <div className="mb-6 flex items-start gap-3 rounded-xl border border-warning bg-warning/10 p-4">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
           <div className="text-sm text-black dark:text-white">
             <p className="font-medium">{t('icplus.rateDataIncomplete')}</p>
@@ -474,7 +475,7 @@ export default function RateCalculator() {
       )}
 
       {error && (
-        <div className="mb-6 rounded-sm border border-danger bg-danger/10 p-4 text-sm text-danger">{error}</div>
+        <div className="mb-6 rounded-xl border border-danger bg-danger/10 p-4 text-sm text-danger">{error}</div>
       )}
 
       {!state && !error && (
@@ -520,17 +521,17 @@ export default function RateCalculator() {
 
           {/* Volumes */}
           <div className={`${CARD} mb-6`}>
-            <h3 className="mb-4 font-semibold text-black dark:text-white">{t('icplus.volume')}</h3>
+            <h3 className="mb-4 text-base font-bold text-black dark:text-white">{t('icplus.volume')}</h3>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {(['debit', 'visa', 'mc', 'amex'] as const).map((b) => (
                 <div key={b}>
                   <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t(`icplus.brand.${b}`)}</label>
                   <input type="number" value={state.volume[`${b}_count`]} onChange={(e) => setVolume(`${b}_count`, e.target.value)}
                     placeholder={t('icplus.count') as string}
-                    className="mb-2 w-full rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
+                    className="mb-2 w-full rounded-lg border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
                   <input type="number" step="0.01" value={state.volume[`${b}_amt`]} onChange={(e) => setVolume(`${b}_amt`, e.target.value)}
                     placeholder={t('icplus.amount') as string}
-                    className="w-full rounded border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
+                    className="w-full rounded-lg border border-stroke bg-transparent px-3 py-1.5 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
                 </div>
               ))}
             </div>
@@ -540,7 +541,7 @@ export default function RateCalculator() {
           <div className="mb-6 grid gap-6 lg:grid-cols-2">
             {(['current', 'cluster'] as const).map((side) => (
               <div key={side} className={CARD}>
-                <h3 className={`mb-4 font-semibold ${side === 'cluster' ? 'text-primary' : 'text-black dark:text-white'}`}>
+                <h3 className={`mb-4 text-base font-bold ${side === 'cluster' ? 'text-accent-ink dark:text-accent-ink-dark' : 'text-black dark:text-white'}`}>
                   {t(side === 'current' ? 'icplus.currentSide' : 'icplus.clusterSide')}
                 </h3>
 
@@ -552,12 +553,12 @@ export default function RateCalculator() {
                         <td className="py-2 text-right">
                           <input type="number" step="0.0001" value={state[side].rates[b].pct}
                             onChange={(e) => setRate(side, b, 'pct', e.target.value)}
-                            className="w-24 rounded border border-stroke bg-transparent px-2 py-1 text-right text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
+                            className="w-24 rounded-lg border border-stroke bg-transparent px-2 py-1 text-right text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
                         </td>
                         <td className="py-2 text-right">
                           <input type="number" step="0.001" value={state[side].rates[b].perItem}
                             onChange={(e) => setRate(side, b, 'perItem', e.target.value)}
-                            className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-right text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
+                            className="w-20 rounded-lg border border-stroke bg-transparent px-2 py-1 text-right text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
                         </td>
                       </tr>
                     ))}
@@ -584,9 +585,9 @@ export default function RateCalculator() {
                     <div key={k} className="mb-1.5 flex items-center gap-2 text-xs">
                       <span className="flex-1 text-body dark:text-bodydark">{t(`icplus.fixed.${k}`)}</span>
                       <input type="number" value={state[side].fixed[k].qty} onChange={(e) => setFixed(side, k, 'qty', e.target.value)}
-                        className="w-14 rounded border border-stroke bg-transparent px-2 py-1 text-right dark:border-form-strokedark dark:bg-form-input" />
+                        className="w-14 rounded-lg border border-stroke bg-transparent px-2 py-1 text-right dark:border-form-strokedark dark:bg-form-input" />
                       <input type="number" step="0.01" value={state[side].fixed[k].unit} onChange={(e) => setFixed(side, k, 'unit', e.target.value)}
-                        className="w-20 rounded border border-stroke bg-transparent px-2 py-1 text-right dark:border-form-strokedark dark:bg-form-input" />
+                        className="w-20 rounded-lg border border-stroke bg-transparent px-2 py-1 text-right dark:border-form-strokedark dark:bg-form-input" />
                     </div>
                   ))}
                   {(state[side].extraFixed || []).map((r: any, i: number) => (
@@ -605,11 +606,11 @@ export default function RateCalculator() {
           {(['interchange', 'brand', 'interac'] as const).map((bucket) =>
             state.lineAudit?.[bucket]?.length ? (
               <div key={bucket} className={`${CARD} mb-6`}>
-                <h3 className="mb-3 font-semibold text-black dark:text-white">{t(`icplus.audit.${bucket}`)}</h3>
+                <h3 className="mb-3 text-base font-bold text-black dark:text-white">{t(`icplus.audit.${bucket}`)}</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[640px] text-sm">
                     <thead>
-                      <tr className="border-b border-stroke text-left text-xs text-body dark:border-strokedark">
+                      <tr className="border-b border-stroke text-left text-xs font-bold text-body dark:border-strokedark dark:text-bodydark2">
                         <th className="py-2">{t('icplus.audit.desc')}</th>
                         <th className="py-2 text-right">{t('icplus.audit.applied')}</th>
                         <th className="py-2 text-right">{t('icplus.audit.published')}</th>
@@ -625,10 +626,7 @@ export default function RateCalculator() {
                           <td className="py-2 text-right text-body">{rateCell(r.publishedRate, r.publishedPerItem)}</td>
                           <td className="py-2 text-right text-black dark:text-white">{money(r.total)}</td>
                           <td className="py-2 text-right">
-                            <span className={`rounded px-2 py-0.5 text-xs font-medium ${
-                              r.status === 'SUSPECT' ? 'bg-danger/10 text-danger'
-                                : r.status === 'Conforme' ? 'bg-success/10 text-success'
-                                : 'bg-warning/10 text-warning'}`}>{r.status}</span>
+                            <StatusPill family={r.status === 'SUSPECT' ? 'err' : r.status === 'Conforme' ? 'ok' : 'wait'}>{r.status}</StatusPill>
                           </td>
                         </tr>
                       ))}
@@ -642,7 +640,7 @@ export default function RateCalculator() {
           {/* Rentabilité interne — permission distincte, absente de la réponse sans elle. */}
           {result.margin && (
             <div className={`${CARD} mb-6`}>
-              <h3 className="mb-3 font-semibold text-black dark:text-white">{t('icplus.margin')}</h3>
+              <h3 className="mb-3 text-base font-bold text-black dark:text-white">{t('icplus.margin')}</h3>
               <table className="w-full text-sm">
                 <tbody>
                   {result.margin.rows.map((r: any) => (
@@ -654,10 +652,10 @@ export default function RateCalculator() {
                     </tr>
                   ))}
                   <tr>
-                    <td className="py-2 font-semibold text-primary">{t('icplus.total')}</td>
+                    <td className="py-2 font-semibold text-accent-ink dark:text-accent-ink-dark">{t('icplus.total')}</td>
                     <td className="py-2 text-right text-body">{money(result.margin.totalBilled)}</td>
                     <td className="py-2 text-right text-body">{money(result.margin.totalCost)}</td>
-                    <td className="py-2 text-right font-bold text-primary">{money(result.margin.revenue)}</td>
+                    <td className="py-2 text-right font-bold text-accent-ink dark:text-accent-ink-dark">{money(result.margin.revenue)}</td>
                   </tr>
                 </tbody>
               </table>
@@ -667,7 +665,7 @@ export default function RateCalculator() {
           {/* Notes de lecture */}
           {notes.length > 0 && (
             <div className={`${CARD} mb-6`}>
-              <h3 className="mb-3 font-semibold text-black dark:text-white">{t('icplus.notes')}</h3>
+              <h3 className="mb-3 text-base font-bold text-black dark:text-white">{t('icplus.notes')}</h3>
               <ul className="space-y-2 text-sm text-body dark:text-bodydark">
                 {notes.map((n, i) => <li key={i} className="flex gap-2"><span>•</span><span>{n.text}</span></li>)}
               </ul>
@@ -676,18 +674,18 @@ export default function RateCalculator() {
 
           {/* Exports */}
           <div className={CARD}>
-            <h3 className="mb-3 font-semibold text-black dark:text-white">{t('icplus.exports')}</h3>
+            <h3 className="mb-3 text-base font-bold text-black dark:text-white">{t('icplus.exports')}</h3>
             <textarea value={clientNotes} onChange={(e) => setClientNotes(e.target.value)} rows={2}
               placeholder={t('icplus.clientNotesPlaceholder') as string}
-              className="mb-3 w-full rounded border border-stroke bg-transparent p-3 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
+              className="mb-3 w-full rounded-lg border border-stroke bg-transparent p-3 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
             <div className="flex flex-wrap gap-3">
               <button onClick={() => download('client')} disabled={!!busy}
-                className="flex items-center gap-2 rounded bg-primary px-4 py-2 font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                className="flex items-center gap-2 rounded-[10px] bg-primary px-4 py-2 font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                 <Download className="h-4 w-4" />{t('icplus.downloadClient')}
               </button>
               {config?.canSeeMargin && (
                 <button onClick={() => download('detailed')} disabled={!!busy}
-                  className="flex items-center gap-2 rounded border border-stroke px-4 py-2 font-medium text-black hover:border-primary dark:border-strokedark dark:text-white">
+                  className="flex items-center gap-2 rounded-[10px] border border-stroke px-4 py-2 font-bold text-black hover:border-primary dark:border-strokedark dark:text-white">
                   <Download className="h-4 w-4" />{t('icplus.downloadDetailed')}
                 </button>
               )}

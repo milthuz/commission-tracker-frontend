@@ -33,7 +33,7 @@ const authHeaders = () => ({
 
 interface Scenario { id: string; name: string; inputs: Inputs; mine: boolean; owner: string; ownerName?: string; updatedAt: string }
 
-const CARD = 'rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark';
+const CARD = 'rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark';
 const ORANGE = '#F58345';
 const INPUT_CLS = 'w-full rounded border border-stroke bg-transparent px-2.5 py-1.5 text-sm text-black outline-none transition focus:border-[#F58345] focus:ring-2 focus:ring-[#F58345]/15 dark:border-strokedark dark:bg-form-input dark:text-white';
 
@@ -465,7 +465,7 @@ export default function RevenueModeler() {
       `}</style>
 
       <div className="mb-4">
-        <h2 className="text-title-md2 font-semibold text-black dark:text-white">{t('revenueModeler.title')}</h2>
+        <h1 className="m-0 text-2xl font-bold leading-tight tracking-[-0.01em] text-black dark:text-white">{t('revenueModeler.title')}</h1>
         <p className="mt-1 text-sm text-body dark:text-bodydark">{t('revenueModeler.subtitle')}</p>
       </div>
 
@@ -717,7 +717,7 @@ export default function RevenueModeler() {
 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
             {kpis.map((k) => (
-              <div key={k.label} className="rounded-sm border border-stroke bg-gray-2 p-3 dark:border-strokedark dark:bg-meta-4" style={{ borderLeft: `3px solid ${k.color}` }}>
+              <div key={k.label} className="rounded-xl border border-stroke bg-gray-2 p-3 dark:border-strokedark dark:bg-meta-4" style={{ borderLeft: `3px solid ${k.color}` }}>
                 <div className="text-[11px] uppercase tracking-wide text-body dark:text-bodydark">{k.label}</div>
                 <div className="mt-1 text-lg font-semibold tabular-nums" style={{ color: k.color === '#64748B' ? undefined : k.color }}>{k.value}</div>
                 {k.sub && <div className="mt-0.5 text-[11px] text-body dark:text-bodydark">{k.sub}</div>}
@@ -746,7 +746,7 @@ export default function RevenueModeler() {
 
           <div id="rm-tiers" className={`${CARD} scroll-mt-24 p-5`}>
             <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold text-black dark:text-white">{t('revenueModeler.tiers.title')}</h3>
+              <h3 className="text-base font-bold text-black dark:text-white">{t('revenueModeler.tiers.title')}</h3>
               {canEditTiers && !tierDraft && (
                 <button type="button" onClick={() => { setTierDraft([...tiers]); setTierErr(null); }}
                   className="rm-no-print inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-stroke px-2.5 py-1 text-xs text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
@@ -756,7 +756,7 @@ export default function RevenueModeler() {
             </div>
             <p className="mb-3 text-xs text-body dark:text-bodydark">{t('revenueModeler.tiers.hint')}</p>
             {tierDraft && (
-              <div className="rm-no-print mb-4 rounded-sm border border-[#F58345]/30 bg-[#F58345]/5 p-3">
+              <div className="rm-no-print mb-4 rounded-xl border border-[#F58345]/30 bg-[#F58345]/5 p-3">
                 <p className="mb-3 text-xs text-black dark:text-white">{t('revenueModeler.tiers.editHint')}</p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   {tierDraft.map((v, idx) => (
@@ -782,7 +782,7 @@ export default function RevenueModeler() {
               <table className="w-full min-w-[480px] text-sm">
                 <thead>
                   <tr className="border-b border-stroke text-left text-xs text-body dark:border-strokedark dark:text-bodydark">
-                    <th className="py-2 pr-3 font-medium" />
+                    <th className="py-2 pr-3 font-bold" />
                     {tierModels.map(({ price }, idx) => (
                       <th key={price} className={`px-3 py-2 text-right font-semibold ${inputs.saasPerLoc === price ? 'text-[#F58345]' : 'text-black dark:text-white'}`}>
                         {t(`revenueModeler.tiers.name${idx}`, { defaultValue: '' })} {money(price)}
@@ -810,7 +810,7 @@ export default function RevenueModeler() {
           </div>
 
           <div className={`${CARD} p-5`}>
-            <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('revenueModeler.chart.title')}</h3>
+            <h3 className="mb-1 text-base font-bold text-black dark:text-white">{t('revenueModeler.chart.title')}</h3>
             <p className="mb-2 text-xs text-body dark:text-bodydark">{t('revenueModeler.chart.hint')}</p>
             <ReactApexChart type="bar" height={300} options={chartOpts} series={chartSeries} />
           </div>
@@ -826,7 +826,7 @@ export default function RevenueModeler() {
 
 function Alert({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="flex gap-2.5 rounded-sm border border-l-4 border-[#BA7517]/30 border-l-[#BA7517] bg-[#BA7517]/10 p-3 text-xs text-black dark:text-white">
+    <div className="flex gap-2.5 rounded-xl border border-l-4 border-[#BA7517]/30 border-l-[#BA7517] bg-[#BA7517]/10 p-3 text-xs text-black dark:text-white">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#BA7517]" />
       <div><div className="mb-0.5 font-semibold">{title}</div><div className="text-body dark:text-bodydark">{children}</div></div>
     </div>
@@ -865,9 +865,9 @@ function PLTable({ rows, money, t }: { rows: Row[]; money: (n: number) => string
       <table className="w-full min-w-[900px] text-[13px]">
         <thead>
           <tr className="border-b border-stroke text-left text-xs text-body dark:border-strokedark dark:text-bodydark">
-            <th className="px-4 py-3 font-medium">{t('revenueModeler.pl.col.item')}</th>
+            <th className="px-4 py-3 font-bold">{t('revenueModeler.pl.col.item')}</th>
             {YEAR_NUMS.map((n) => (
-              <th key={n} className="w-24 whitespace-nowrap px-2 py-3 text-right font-medium">{t('revenueModeler.pl.col.year', { n })}</th>
+              <th key={n} className="w-24 whitespace-nowrap px-2 py-3 text-right font-bold">{t('revenueModeler.pl.col.year', { n })}</th>
             ))}
             <th className="w-28 whitespace-nowrap px-4 py-3 text-right font-semibold">{t('revenueModeler.pl.col.total', { n: YEARS })}</th>
           </tr>

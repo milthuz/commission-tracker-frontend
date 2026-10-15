@@ -13,9 +13,11 @@ export interface FilterChip {
   onRemove: () => void;
 }
 
-const FilterBar = ({ search, onSearch, searchPlaceholder, children, chips = [], onClearAll, exportItems }: {
+const FilterBar = ({ search, onSearch, onSubmit, searchPlaceholder, children, chips = [], onClearAll, exportItems }: {
   search?: string;
   onSearch?: (v: string) => void;
+  /** Enter in the search box — for screens that search on the SERVER (e.g. Proposals). */
+  onSubmit?: () => void;
   searchPlaceholder?: string;
   /** Filter controls (Select, « + Source » buttons…). */
   children?: React.ReactNode;
@@ -35,6 +37,7 @@ const FilterBar = ({ search, onSearch, searchPlaceholder, children, chips = [], 
               type="search"
               value={search ?? ''}
               onChange={(e) => onSearch(e.target.value)}
+              onKeyDown={onSubmit ? (e) => { if (e.key === 'Enter') onSubmit(); } : undefined}
               placeholder={searchPlaceholder || (t('ui.filter.searchPlaceholder') as string)}
               className="min-w-0 flex-1 border-0 bg-transparent text-sm text-black outline-none placeholder:opacity-75 dark:text-white"
             />

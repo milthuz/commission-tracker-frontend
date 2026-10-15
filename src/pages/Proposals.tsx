@@ -6,6 +6,8 @@ import { formatDateOnly } from '../utils/date';
 import PdfThumbPreview from './PdfThumbPreview';
 import ActivityTimeline from '../components/ActivityTimeline';
 import Select from '../components/Select';
+import { Button, DataTable, FilterBar, Modal, PageHeader, StatusPill, Tabs, CARD_TITLE, CARD_SUB, LABEL, SEG, segBtn } from '../components/ui';
+import type { StatusFamily } from '../components/ui';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { authHeaders, getToken } from '../lib/auth';
 
@@ -293,272 +295,187 @@ const Proposals: React.FC = () => {
     }
   };
 
-  const inputCls = 'w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
+  const inputCls = 'w-full rounded-[10px] border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
   const money = (n: number, c: string) => `${(n || 0).toLocaleString(i18n.language, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${c || ''}`.trim();
-  const statusBadge = (r: SentRow): { label: string; cls: string } => {
-    if (r.status === 'accepted') return { label: t('proposals.statusAccepted'), cls: 'bg-success/15 text-success' };
-    if (r.status === 'declined') return { label: t('proposals.statusDeclined'), cls: 'bg-danger/15 text-danger' };
-    if (r.status === 'expired') return { label: t('proposals.statusExpired'), cls: 'bg-gray-200 text-gray-500 dark:bg-meta-4' };
-    if (r.viewed) return { label: t('proposals.statusViewed'), cls: 'bg-[#2b67c2]/15 text-[#2b67c2]' };
-    return { label: t('proposals.statusSent'), cls: 'bg-warning/15 text-warning' };
+  const statusBadge = (r: SentRow): { label: string; family: StatusFamily } => {
+    if (r.status === 'accepted') return { label: t('proposals.statusAccepted'), family: 'ok' };
+    if (r.status === 'declined') return { label: t('proposals.statusDeclined'), family: 'err' };
+    if (r.status === 'expired') return { label: t('proposals.statusExpired'), family: 'neutral' };
+    if (r.viewed) return { label: t('proposals.statusViewed'), family: 'new' };
+    return { label: t('proposals.statusSent'), family: 'wait' };
   };
 
   return (
     <>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-black dark:text-white">{t('proposals.title')}</h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('proposals.subtitle')}</p>
-      </div>
+      <PageHeader section={t('sidebar.sections.sales')} title={t('proposals.title')} subtitle={t('proposals.subtitle')}
+        actions={<>
+          {canChain && (
+            <Button size="md" onClick={() => openChainBuilder()}
+              icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 21V9l8-5 8 5v12M9 21v-6h6v6" /></svg>}>
+              {t('proposals.chain.new')}
+            </Button>
+          )}
+          <Button size="md" variant="primary" onClick={() => openBuilder(null)}
+            icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>}>
+            {t('proposals.blankNew')}
+          </Button>
+        </>} />
 
-      {/* Tabs */}
-      <div className="mb-5 flex items-center justify-between">
-        <div className="inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
-          {(['pending', 'sent'] as const).map((v) => (
-            <button key={v} onClick={() => setView(v)} className={`rounded-md px-4 py-1.5 text-sm font-medium ${view === v ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
-              {v === 'pending' ? t('proposals.tabPending') : t('proposals.tabSent')}
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-2">
-        {canChain && (
-          <button onClick={() => openChainBuilder()} className="inline-flex items-center gap-1.5 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 21V9l8-5 8 5v12M9 21v-6h6v6" /></svg>
-            {t('proposals.chain.new')}
-          </button>
-        )}
-        <button onClick={() => openBuilder(null)} className="inline-flex items-center gap-1.5 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-          {t('proposals.blankNew')}
-        </button>
-        </div>
-      </div>
+      <Tabs tabs={[{ id: 'pending', label: t('proposals.tabPending') }, { id: 'sent', label: t('proposals.tabSent') }]} value={view} onChange={setView} />
 
-      {view === 'pending' && (<>
-      {/* Search */}
-      <div className="mb-5 flex items-center gap-3">
-        <div className="relative max-w-md flex-1">
-          <svg className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-body" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
-          <input value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') fetchEstimates(); }}
-            placeholder={t('proposals.search') as string}
-            className="w-full rounded-lg border border-stroke bg-white py-2.5 pl-9 pr-3 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-boxdark dark:text-white" />
-        </div>
-        <button onClick={fetchEstimates} className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-opacity-90">{t('proposals.refresh')}</button>
-      </div>
-
-      {loading ? (
-        <div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
-      ) : error ? (
-        <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-danger">{error}</p></div>
-      ) : estimates.length === 0 ? (
-        <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('proposals.empty')}</p></div>
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] text-sm">
-              <thead className="bg-gray-2 dark:bg-meta-4">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium">{t('proposals.number')}</th>
-                  <th className="px-4 py-3 text-left font-medium">{t('proposals.customer')}</th>
-                  <th className="px-4 py-3 text-right font-medium">{t('proposals.total')}</th>
-                  <th className="px-4 py-3 text-left font-medium">{t('proposals.date')}</th>
-                  <th className="px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {estimates.map((e) => (
-                  <tr key={e.estimateId} className="border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
-                    <td className="px-4 py-2.5 font-medium text-black dark:text-white">{e.number}</td>
-                    <td className="px-4 py-2.5">
-                      <button onClick={() => setEstPreview({ estimateId: e.estimateId, number: e.number, loading: true })} className="text-primary hover:underline">
-                        {e.customerName}
-                      </button>
-                    </td>
-                    <td className="px-4 py-2.5 text-right text-body">{money(e.total, e.currency)}</td>
-                    <td className="px-4 py-2.5 text-body">{formatDateOnly(e.date, i18n.language)}</td>
-                    <td className="px-4 py-2.5 text-right">
-                      <button onClick={() => openBuilder(e)} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90">
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                        {t('proposals.prepare')}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {view === 'pending' && (
+        <div className="mt-4 space-y-4">
+          <FilterBar search={q} onSearch={setQ} onSubmit={fetchEstimates} searchPlaceholder={t('proposals.search') as string}>
+            <Button size="md" onClick={fetchEstimates}>{t('proposals.refresh')}</Button>
+          </FilterBar>
+          <DataTable
+            rows={estimates}
+            rowKey={(e) => e.estimateId}
+            loading={loading}
+            error={error ? { title: error, onRetry: fetchEstimates } : null}
+            empty={{ title: t('proposals.empty') }}
+            columns={[
+              { key: 'num', header: t('proposals.number'), sortValue: (e) => e.number, render: (e) => <span className="font-bold">{e.number}</span> },
+              { key: 'cust', header: t('proposals.customer'), sortValue: (e) => (e.customerName || '').toLowerCase(),
+                render: (e) => (
+                  <button onClick={() => setEstPreview({ estimateId: e.estimateId, number: e.number, loading: true })}
+                    className="text-left font-medium text-accent-ink hover:underline dark:text-accent-ink-dark">{e.customerName}</button>
+                ) },
+              { key: 'total', header: t('proposals.total'), align: 'right', sortValue: (e) => Number(e.total) || 0,
+                render: (e) => <span className="whitespace-nowrap">{money(e.total, e.currency)}</span> },
+              { key: 'date', header: t('proposals.date'), sortValue: (e) => e.date || '',
+                render: (e) => <span className="whitespace-nowrap text-body dark:text-bodydark2">{formatDateOnly(e.date, i18n.language)}</span> },
+              { key: 'act', header: '', align: 'right',
+                render: (e) => (
+                  <Button size="sm" variant="primary" onClick={() => openBuilder(e)}
+                    icon={<svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}>
+                    {t('proposals.prepare')}
+                  </Button>
+                ) },
+            ]}
+          />
         </div>
       )}
-      </>)}
 
       {/* Sent proposals — status board */}
       {view === 'sent' && (
-        <>
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t('proposals.sentSubtitle')}</p>
-            <button onClick={fetchSent} className="rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">{t('proposals.refresh')}</button>
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="m-0 text-[13px] text-body dark:text-bodydark2">{t('proposals.sentSubtitle')}</p>
+            <Button size="md" onClick={fetchSent}>{t('proposals.refresh')}</Button>
           </div>
-          {sentLoading ? (
-            <div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
-          ) : sent.length === 0 ? (
-            <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('proposals.sentEmpty')}</p></div>
-          ) : (
-            <div className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] text-sm">
-                  <thead className="bg-gray-2 dark:bg-meta-4">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-medium">{t('proposals.customer')}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t('proposals.number')}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t('proposals.sentOn')}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t('proposals.to')}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t('proposals.colEmail')}</th>
-                      <th className="px-4 py-3 text-left font-medium">{t('proposals.colStatus')}</th>
-                      <th className="px-4 py-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sent.map((r) => {
-                      const b = statusBadge(r);
-                      const detail = r.acceptedDate ? `${t('proposals.acceptedOn')} ${formatDateOnly(r.acceptedDate, i18n.language)}`
-                        : r.viewedTime ? `${t('proposals.viewedOn')} ${formatDateOnly(r.viewedTime, i18n.language)}` : '';
-                      return (
-                        <tr key={r.id} className="border-t border-stroke dark:border-strokedark">
-                          <td className="px-4 py-2.5 font-medium">
-                            {r.estimateId ? (
-                              <button onClick={() => setEstPreview({ estimateId: r.estimateId, number: r.number, loading: true })} className="text-black hover:text-primary hover:underline dark:text-white">
-                                {r.customerName}
-                              </button>
-                            ) : (
-                              <span className="text-black dark:text-white">{r.customerName}</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-2.5 text-body">{r.number}</td>
-                          <td className="px-4 py-2.5 text-body">{formatDateOnly(r.sentAt, i18n.language)}</td>
-                          <td className="px-4 py-2.5 text-body">{r.toEmail}</td>
-                          <td className="px-4 py-2.5">
-                            <div className="flex flex-col gap-1">
-                              {r.emailOpened ? (
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="inline-flex w-fit items-center gap-1 rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-semibold text-success">
-                                    ✓ {t('proposals.emailOpened')}{r.emailOpenCount > 0 ? ` · ${r.emailOpenCount}×` : ''}
-                                  </span>
-                                  {r.emailOpenedAt && (
-                                    <span className="text-[11px] text-gray-400" title={t('proposals.emailFirstOpened') as string}>
-                                      {new Date(r.emailOpenedAt).toLocaleString(i18n.language, { dateStyle: 'short', timeStyle: 'short' })}
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-xs text-gray-400">{t('proposals.emailNotOpened')}</span>
-                              )}
-                              {r.linkClickCount > 0 && (
-                                <div className="flex flex-col gap-0.5">
-                                  <span className="inline-flex w-fit items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                                    🔗 {t('proposals.linkClicked')} · {r.linkClickCount}×
-                                  </span>
-                                  {r.linkLastClickAt && (
-                                    <span className="text-[11px] text-gray-400" title={t('proposals.linkLastClicked') as string}>
-                                      {new Date(r.linkLastClickAt).toLocaleString(i18n.language, { dateStyle: 'short', timeStyle: 'short' })}
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-4 py-2.5">
-                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${b.cls}`}>{b.label}</span>
-                            {detail && <span className="ml-2 text-xs text-gray-400">{detail}</span>}
-                          </td>
-                          <td className="px-4 py-2.5 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button onClick={() => setActivityFor({ estimateId: r.estimateId || `blank-${r.id}`, number: r.number })} title={t('activity.title') as string} className="rounded-lg p-1.5 text-body hover:text-primary">
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                              </button>
-                              {isAdmin && (
-                                <button onClick={() => deleteSent(r)} title={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger">
-                                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </>
+          <DataTable
+            rows={sent}
+            rowKey={(r) => r.id}
+            loading={sentLoading}
+            empty={{ title: t('proposals.sentEmpty') }}
+            defaultSort={{ key: 'sentOn', dir: 'desc' }}
+            columns={[
+              { key: 'cust', header: t('proposals.customer'), sortValue: (r) => (r.customerName || '').toLowerCase(),
+                render: (r) => r.estimateId ? (
+                  <button onClick={() => setEstPreview({ estimateId: r.estimateId, number: r.number, loading: true })}
+                    className="text-left font-medium text-black hover:underline dark:text-white">{r.customerName}</button>
+                ) : <span className="font-medium">{r.customerName}</span> },
+              { key: 'num', header: t('proposals.number'), render: (r) => <span className="text-body dark:text-bodydark2">{r.number}</span> },
+              { key: 'sentOn', header: t('proposals.sentOn'), sortValue: (r) => r.sentAt || '',
+                render: (r) => <span className="whitespace-nowrap text-body dark:text-bodydark2">{formatDateOnly(r.sentAt, i18n.language)}</span> },
+              { key: 'to', header: t('proposals.to'), render: (r) => <span className="text-body dark:text-bodydark2">{r.toEmail}</span> },
+              { key: 'mail', header: t('proposals.colEmail'),
+                render: (r) => (
+                  <div className="flex flex-col gap-1">
+                    {r.emailOpened ? (
+                      <div className="flex flex-col gap-0.5">
+                        <StatusPill family="ok">✓ {t('proposals.emailOpened')}{r.emailOpenCount > 0 ? ` · ${r.emailOpenCount}×` : ''}</StatusPill>
+                        {r.emailOpenedAt && (
+                          <span className="text-[11px] text-body dark:text-bodydark2" title={t('proposals.emailFirstOpened') as string}>
+                            {new Date(r.emailOpenedAt).toLocaleString(i18n.language, { dateStyle: 'short', timeStyle: 'short' })}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-body dark:text-bodydark2">{t('proposals.emailNotOpened')}</span>
+                    )}
+                    {r.linkClickCount > 0 && (
+                      <div className="flex flex-col gap-0.5">
+                        <StatusPill family="new">🔗 {t('proposals.linkClicked')} · {r.linkClickCount}×</StatusPill>
+                        {r.linkLastClickAt && (
+                          <span className="text-[11px] text-body dark:text-bodydark2" title={t('proposals.linkLastClicked') as string}>
+                            {new Date(r.linkLastClickAt).toLocaleString(i18n.language, { dateStyle: 'short', timeStyle: 'short' })}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) },
+              { key: 'status', header: t('proposals.colStatus'), sortValue: (r) => r.status || '',
+                render: (r) => {
+                  const b = statusBadge(r);
+                  const detail = r.acceptedDate ? `${t('proposals.acceptedOn')} ${formatDateOnly(r.acceptedDate, i18n.language)}`
+                    : r.viewedTime ? `${t('proposals.viewedOn')} ${formatDateOnly(r.viewedTime, i18n.language)}` : '';
+                  return (
+                    <div className="flex flex-col items-start gap-0.5">
+                      <StatusPill family={b.family}>{b.label}</StatusPill>
+                      {detail && <span className="text-[11px] text-body dark:text-bodydark2">{detail}</span>}
+                    </div>
+                  );
+                } },
+              { key: 'act', header: '', align: 'right',
+                render: (r) => (
+                  <div className="flex items-center justify-end gap-1">
+                    <button onClick={() => setActivityFor({ estimateId: r.estimateId || `blank-${r.id}`, number: r.number })} title={t('activity.title') as string} aria-label={t('activity.title') as string} className="rounded-lg p-1.5 text-body hover:text-black dark:hover:text-white">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </button>
+                    {isAdmin && (
+                      <button onClick={() => deleteSent(r)} title={t('common.delete') as string} aria-label={t('common.delete') as string} className="rounded-lg p-1.5 text-body hover:text-danger">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      </button>
+                    )}
+                  </div>
+                ) },
+            ]}
+          />
+        </div>
       )}
 
       {/* Activity modal */}
-      {activityFor && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onClick={() => setActivityFor(null)}>
-          <div className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-stroke bg-white shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
-              <div>
-                <p className="text-sm font-semibold text-black dark:text-white">{t('activity.title')}</p>
-                <p className="text-xs text-gray-400">{activityFor.number}</p>
-              </div>
-              <button onClick={() => setActivityFor(null)} className="rounded-lg p-1.5 text-body hover:bg-gray-1 dark:hover:bg-meta-4"><svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
-            </div>
-            <div className="overflow-y-auto">
-              <ActivityTimeline entityType="proposal" entityId={activityFor.estimateId} />
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal open={!!activityFor} onClose={() => setActivityFor(null)} size="md" title={t('activity.title')}
+        headerExtra={activityFor ? <span className="text-xs text-body dark:text-bodydark2">{activityFor.number}</span> : null}>
+        {activityFor && <ActivityTimeline entityType="proposal" entityId={activityFor.estimateId} />}
+      </Modal>
 
       {/* Estimate PDF preview modal */}
-      {estPreview && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setEstPreview(null)}>
-          <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
-              <p className="font-semibold text-black dark:text-white">{estPreview.number}</p>
-              <button onClick={() => setEstPreview(null)} title={t('common.close') as string} className="text-body transition hover:text-danger">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="relative flex-1 overflow-y-auto bg-white dark:bg-boxdark">
-              {estPreview.loading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
-                  <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                </div>
-              )}
-              <iframe
-                src={`${API_URL}/api/proposals/estimate/${estPreview.estimateId}/preview?token=${getToken()}`}
-                className="h-full w-full border-0"
-                title={t('proposals.estimatePreview') as string}
-                onLoad={() => setEstPreview((p) => (p ? { ...p, loading: false } : p))}
-              />
-            </div>
+      <Modal open={!!estPreview} onClose={() => setEstPreview(null)} size="xl" title={estPreview?.number || ''}>
+        {estPreview && (
+          <div className="relative -mx-5 -my-4 h-[75vh] bg-white dark:bg-boxdark">
+            {estPreview.loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-boxdark">
+                <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              </div>
+            )}
+            <iframe
+              src={`${API_URL}/api/proposals/estimate/${estPreview.estimateId}/preview?token=${getToken()}`}
+              className="h-full w-full border-0"
+              title={t('proposals.estimatePreview') as string}
+              onLoad={() => setEstPreview((p) => (p ? { ...p, loading: false } : p))}
+            />
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* Email preview modal — srcDoc renders the exact HTML /send would email, read-only */}
-      {emailPreview && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-60 p-4" onClick={() => setEmailPreview(null)}>
-          <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
-              <p className="font-semibold text-black dark:text-white">{t('proposals.previewEmail')}</p>
-              <button onClick={() => setEmailPreview(null)} title={t('common.close') as string} className="text-body transition hover:text-danger">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="relative flex-1 overflow-y-auto bg-[#eef1f6]">
-              {emailPreview.loading ? (
-                <div className="flex h-full items-center justify-center">
-                  <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                </div>
-              ) : (
-                <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title={t('proposals.previewEmail') as string} />
-              )}
-            </div>
+      <Modal open={!!emailPreview} onClose={() => setEmailPreview(null)} size="xl" title={t('proposals.previewEmail')}>
+        {emailPreview && (
+          <div className="relative -mx-5 -my-4 h-[75vh] bg-[#eef1f6]">
+            {emailPreview.loading ? (
+              <div className="flex h-full items-center justify-center">
+                <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              </div>
+            ) : (
+              <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title={t('proposals.previewEmail') as string} />
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* Builder modal */}
       {builderOpen && (
@@ -570,8 +487,8 @@ const Proposals: React.FC = () => {
           <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-stroke bg-white shadow-2xl dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
               <div>
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('proposals.builderTitle')}</h3>
-                <p className="text-xs text-gray-400">{sel ? `${sel.number} · ${sel.customerName}` : chainMode ? (chain ? `${t('proposals.chain.new')} · ${chain.name}` : t('proposals.chain.new')) : quoteSource ? t('proposals.fromGuide', { count: quoteSource.items.length }) : t('proposals.blankNew')}</p>
+                <h3 className={CARD_TITLE}>{t('proposals.builderTitle')}</h3>
+                <p className={CARD_SUB}>{sel ? `${sel.number} · ${sel.customerName}` : chainMode ? (chain ? `${t('proposals.chain.new')} · ${chain.name}` : t('proposals.chain.new')) : quoteSource ? t('proposals.fromGuide', { count: quoteSource.items.length }) : t('proposals.blankNew')}</p>
               </div>
               <button onClick={closeBuilder} className="rounded-lg p-1.5 text-body hover:bg-gray-1 dark:hover:bg-meta-4"><svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
@@ -583,36 +500,36 @@ const Proposals: React.FC = () => {
                     a generic placeholder fills the cover when left blank. */}
                 {chainMode && (
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-body">{t('proposals.chain.scenario')}</label>
+                    <label className={LABEL}>{t('proposals.chain.scenario')}</label>
                     <Select value={chain?.id || ''} onChange={pickChain}
                       options={[{ value: '', label: chainScenarios.length ? (t('proposals.chain.pick') as string) : (t('proposals.chain.none') as string) },
                         ...chainScenarios.map((c) => ({ value: c.id, label: `${c.name}${c.merchantName && c.merchantName !== c.name ? ` — ${c.merchantName}` : ''} · ${t('proposals.chain.locs', { n: c.numLocs })}` }))]} />
-                    <p className="mt-1 text-[11px] text-gray-400">{t('proposals.chain.hint')}</p>
+                    <p className="mt-1 text-[11px] text-body dark:text-bodydark2">{t('proposals.chain.hint')}</p>
                   </div>
                 )}
                 {!sel && (
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-body">{t('proposals.blankClientName')}</label>
+                    <label className={LABEL}>{t('proposals.blankClientName')}</label>
                     <input value={blankClientName} onChange={(e) => { setBlankClientName(e.target.value); setPrepared(null); }}
                       placeholder={t('proposals.blankClientNamePlaceholder') as string} className={inputCls} />
                   </div>
                 )}
                 {/* Language */}
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-body">{t('proposals.language')}</label>
-                  <div className="inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
+                  <label className={LABEL}>{t('proposals.language')}</label>
+                  <div className={SEG}>
                     {(['fr', 'en'] as const).map((l) => (
-                      <button key={l} onClick={() => { setLang(l); setPrepared(null); }} className={`rounded-md px-4 py-1.5 text-sm font-medium ${lang === l ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>{l === 'fr' ? 'Français' : 'English'}</button>
+                      <button key={l} onClick={() => { setLang(l); setPrepared(null); }} className={segBtn(lang === l)}>{l === 'fr' ? 'Français' : 'English'}</button>
                     ))}
                   </div>
                 </div>
                 {/* Cover co-branding: client name OR client logo (rep's choice) */}
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-body">{t('proposals.branding')}</label>
-                  <div className="inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
+                  <label className={LABEL}>{t('proposals.branding')}</label>
+                  <div className={SEG}>
                     {(['name', 'logo'] as const).map((m) => (
                       <button key={m} onClick={() => { setBranding(m); setPrepared(null); }}
-                        className={`rounded-md px-4 py-1.5 text-sm font-medium ${branding === m ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+                        className={segBtn(branding === m)}>
                         {m === 'name' ? t('proposals.brandingName') : t('proposals.brandingLogo')}
                       </button>
                     ))}
@@ -620,19 +537,19 @@ const Proposals: React.FC = () => {
                   {branding === 'logo' && (
                     <div className="mt-2 flex items-center gap-2">
                       <input ref={fileRef} type="file" accept="image/png,image/jpeg" onChange={(e) => { onLogo(e.target.files?.[0]); setPrepared(null); }}
-                        className="text-sm text-body file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-white" />
+                        className="text-sm text-body file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:font-bold file:text-[#141414]" />
                       {logo && <button onClick={() => { setLogo(null); if (fileRef.current) fileRef.current.value = ''; }} className="text-xs text-danger hover:underline">{t('common.remove') || 'Retirer'}</button>}
                     </div>
                   )}
                 </div>
 
-                <button onClick={prepare} disabled={preparing || (chainMode && !chain)} className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
-                  {preparing ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('proposals.preparing')}</> : (prepared ? t('proposals.regenerate') : t('proposals.generatePreview'))}
+                <button onClick={prepare} disabled={preparing || (chainMode && !chain)} className="inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-primary px-4 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
+                  {preparing ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-[#141414] border-t-transparent" />{t('proposals.preparing')}</> : (prepared ? t('proposals.regenerate') : t('proposals.generatePreview'))}
                 </button>
 
                 {/* Reordering + page selection now lives on the thumbnails in the preview (right). */}
                 {prepared && (prepared.presentationPageCount + prepared.estimatePageCount) > 0 && (
-                  <p className="border-t border-stroke pt-4 text-xs text-gray-400 dark:border-strokedark">
+                  <p className="border-t border-stroke pt-4 text-xs text-body dark:text-bodydark2 dark:border-strokedark">
                     {t('proposals.pagesHintThumb', { count: order.filter((n) => !excludedPages.includes(n)).length })}
                   </p>
                 )}
@@ -641,21 +558,21 @@ const Proposals: React.FC = () => {
                 {prepared && (
                   <div className="space-y-3 border-t border-stroke pt-4 dark:border-strokedark">
                     <p className="text-sm font-semibold text-black dark:text-white">{t('proposals.emailDraft')}</p>
-                    <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.to')}</label><input value={to} onChange={(e) => setTo(e.target.value)} placeholder="client@example.com" className={inputCls} /></div>
-                    <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.cc')}</label><input value={cc} onChange={(e) => setCc(e.target.value)} className={inputCls} /></div>
-                    <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.subject')}</label><input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputCls} /></div>
-                    <div><label className="mb-1 block text-xs font-medium text-body">{t('proposals.message')}</label><textarea value={body} onChange={(e) => setBody(e.target.value)} rows={7} className={inputCls} /></div>
-                    <div className="flex gap-2">
-                      <button onClick={previewEmailContent} disabled={emailPreview?.loading} className="inline-flex items-center justify-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2.5 text-sm font-medium text-body hover:border-primary hover:text-primary disabled:opacity-60 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+                    <div><label className={LABEL}>{t('proposals.to')}</label><input value={to} onChange={(e) => setTo(e.target.value)} placeholder="client@example.com" className={inputCls} /></div>
+                    <div><label className={LABEL}>{t('proposals.cc')}</label><input value={cc} onChange={(e) => setCc(e.target.value)} className={inputCls} /></div>
+                    <div><label className={LABEL}>{t('proposals.subject')}</label><input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputCls} /></div>
+                    <div><label className={LABEL}>{t('proposals.message')}</label><textarea value={body} onChange={(e) => setBody(e.target.value)} rows={7} className={inputCls} /></div>
+                    <div className="flex flex-wrap gap-2">
+                      <button onClick={previewEmailContent} disabled={emailPreview?.loading} className="inline-flex items-center justify-center gap-2 rounded-[10px] border border-stroke bg-white px-4 py-2.5 text-sm font-bold text-body hover:border-primary hover:text-black dark:hover:text-white disabled:opacity-60 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
                         {emailPreview?.loading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" /> : <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
                         {t('proposals.previewEmail')}
                       </button>
-                      <button onClick={download} disabled={downloading} className="inline-flex items-center justify-center gap-2 rounded-lg border border-stroke bg-white px-4 py-2.5 text-sm font-medium text-body hover:border-primary hover:text-primary disabled:opacity-60 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+                      <button onClick={download} disabled={downloading} className="inline-flex items-center justify-center gap-2 rounded-[10px] border border-stroke bg-white px-4 py-2.5 text-sm font-bold text-body hover:border-primary hover:text-black dark:hover:text-white disabled:opacity-60 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
                         {downloading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" /> : <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m6 5v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1" /></svg>}
                         {t('proposals.downloadPdf')}
                       </button>
-                      <button onClick={send} disabled={sending} className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-opacity-90 disabled:opacity-50">
-                        {sending ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />{t('proposals.sending')}</> : <><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>{t('proposals.sendBtn')}</>}
+                      <button onClick={send} disabled={sending} className="inline-flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-primary px-4 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] hover:bg-opacity-90 disabled:opacity-50">
+                        {sending ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-[#141414] border-t-transparent" />{t('proposals.sending')}</> : <><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>{t('proposals.sendBtn')}</>}
                       </button>
                     </div>
                   </div>
@@ -673,7 +590,7 @@ const Proposals: React.FC = () => {
                     onDownload={download} downloading={downloading}
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center p-8 text-center text-sm text-gray-400">{t('proposals.previewHint')}</div>
+                  <div className="flex h-full items-center justify-center p-8 text-center text-sm text-body dark:text-bodydark2">{t('proposals.previewHint')}</div>
                 )}
               </div>
             </div>

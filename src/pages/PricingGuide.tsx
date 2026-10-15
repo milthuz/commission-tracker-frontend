@@ -6,6 +6,8 @@ import { dialog } from '../lib/dialog';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authHeaders } from '../lib/auth';
+import { CARD, Modal, PageHeader, StateCard } from '../components/ui';
+import { ContentLoader } from '../common/Loader';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -294,8 +296,9 @@ const PricingGuide: React.FC = () => {
     return { id: key, name: pick(p.nameEn, p.nameFr), sku: p.sku || (t('pricingGuide.noSku') as string), qty, lineTotal: money(line) || '—' };
   }).filter(Boolean) as { id: string; name: string; sku: string; qty: number; lineTotal: string }[];
 
+  // Segmented control of the redesign (was a full orange pill with white text).
   const segBtn = (active: boolean) =>
-    `rounded-full px-3.5 py-1.5 text-[13px] font-medium transition ${active ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`;
+    `rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${active ? 'bg-white text-black shadow-sm dark:bg-boxdark dark:text-white' : 'text-body hover:text-black dark:text-bodydark2 dark:hover:text-white'}`;
   const chipBtn = (active: boolean) =>
     `inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[13px] font-medium transition ${
       active ? 'border-primary bg-primary/10 text-primary dark:text-white' : 'border-stroke text-body hover:border-primary/40 dark:border-strokedark'
@@ -306,10 +309,7 @@ const PricingGuide: React.FC = () => {
 
   return (
     <>
-      <div className="mb-1">
-        <h1 className="text-title-md2 font-semibold text-black dark:text-white">{t('pricingGuide.title')}</h1>
-        <p className="text-sm text-body">{t('pricingGuide.subtitle')}</p>
-      </div>
+      <PageHeader section={t('sidebar.salesTools')} title={t('pricingGuide.title')} subtitle={t('pricingGuide.subtitle')} />
 
       <div className="mb-5 mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-stroke pt-4 dark:border-strokedark">
         <div>
@@ -336,22 +336,24 @@ const PricingGuide: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="flex h-40 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+        <ContentLoader />
       ) : error ? (
-        <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-danger">{error}</p></div>
+        <div className={CARD}><StateCard kind="error" title={error} /></div>
       ) : (
-        <div className="flex gap-6">
-          <div className="w-[190px] flex-none">
+        // Phone / tablet: the category rail becomes a scrolling row ABOVE the products (a fixed
+        // 190 px column left ~140 px for the products on a 375 px screen). Desktop: unchanged.
+        <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
+          <div className="min-w-0 lg:w-[190px] lg:flex-none">
             {hwCats.length > 0 && (
               <>
                 <div className="mb-2 px-2 text-[11px] font-bold uppercase tracking-wide text-gray-400">{t('hardware.title')}</div>
-                <div className="mb-4 flex flex-col gap-0.5">
+                <div className="no-scrollbar mb-3 flex gap-1 overflow-x-auto lg:mb-4 lg:flex-col lg:gap-0.5 lg:overflow-visible">
                   {hwCats.map((c) => {
                     const count = hwAll.filter((p) => p.catId === c).length;
                     const on = cat === c;
                     return (
                       <button key={c} onClick={() => selectCat(c)}
-                        className={`flex items-center gap-2 rounded-lg border-l-[3px] px-3 py-2.5 text-left text-[13.5px] font-medium transition ${
+                        className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border-l-[3px] px-3 py-2.5 text-left text-[13.5px] font-medium transition ${
                           on ? 'border-l-primary bg-gray-2 text-black dark:bg-meta-4 dark:text-white' : 'border-l-transparent text-body hover:bg-gray-1 dark:hover:bg-meta-4/40'
                         }`}>
                         <CatIcon id={c} />
@@ -366,13 +368,13 @@ const PricingGuide: React.FC = () => {
             {pkgCats.length > 0 && (
               <>
                 <div className="mb-2 px-2 text-[11px] font-bold uppercase tracking-wide text-gray-400">{t('pricingGuide.sections')}</div>
-                <div className="flex flex-col gap-0.5">
+                <div className="no-scrollbar flex gap-1 overflow-x-auto lg:flex-col lg:gap-0.5 lg:overflow-visible">
                   {pkgCats.map((c) => {
                     const count = allPackages.filter((p) => p.catId === c).length;
                     const on = cat === c;
                     return (
                       <button key={c} onClick={() => selectCat(c)}
-                        className={`flex items-center gap-2 rounded-lg border-l-[3px] px-3 py-2.5 text-left text-[13.5px] font-medium transition ${
+                        className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border-l-[3px] px-3 py-2.5 text-left text-[13.5px] font-medium transition ${
                           on ? 'border-l-primary bg-gray-2 text-black dark:bg-meta-4 dark:text-white' : 'border-l-transparent text-body hover:bg-gray-1 dark:hover:bg-meta-4/40'
                         }`}>
                         <CatIcon id={c} />
@@ -394,7 +396,7 @@ const PricingGuide: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-medium text-gray-400">{t('pricingGuide.compatLabel')}</span>
-                <div className="inline-flex rounded-full border border-stroke p-1 dark:border-strokedark">
+                <div className="inline-flex rounded-full bg-gray-2 p-1 dark:bg-meta-4/60">
                   {(['all', 'V2', 'V1'] as const).map((c) => (
                     <button key={c} onClick={() => setCompat(c)} className={segBtn(compat === c)}>{c === 'all' ? t('common.all') : c === 'V2' ? t('hardware.kaizen') : 'V1'}</button>
                   ))}
@@ -414,7 +416,7 @@ const PricingGuide: React.FC = () => {
               {activeGroup === 'pricing' && CATS_WITH_BILLING.has(cat) && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-400">{t('pricingGuide.billing')}</span>
-                  <div className="inline-flex rounded-full border border-stroke p-1 dark:border-strokedark">
+                  <div className="inline-flex rounded-full bg-gray-2 p-1 dark:bg-meta-4/60">
                     {(['monthly', 'yearly'] as const).map((b) => (
                       <button key={b} onClick={() => setBilling(b)} className={segBtn(billing === b)}>{b === 'monthly' ? t('pricingGuide.monthly') : t('pricingGuide.yearly')}</button>
                     ))}
@@ -436,10 +438,10 @@ const PricingGuide: React.FC = () => {
                 <div className="flex flex-col items-center gap-3 py-16 text-center">
                   <svg className="h-9 w-9 text-gray-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
                   <div className="text-base font-semibold text-black dark:text-white">{t('pricingGuide.noResultsTitle')}</div>
-                  <button onClick={() => { setCompat('all'); setStatus('all'); setQ(''); }} className="mt-1 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90">{t('pricingGuide.reset')}</button>
+                  <button onClick={() => { setCompat('all'); setStatus('all'); setQ(''); }} className="mt-1 rounded-full bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A]">{t('pricingGuide.reset')}</button>
                 </div>
               ) : (
-                <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))' }}>
                   {hwList.map((p) => {
                     const key = hwKey(p.id);
                     const inQuote = !!quote[key];
@@ -464,7 +466,7 @@ const PricingGuide: React.FC = () => {
                             title={(unitPrice == null ? t('hardware.noFirmPrice') : t('pricingGuide.addQuote')) as string}
                             className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg border ${
                               unitPrice == null ? 'cursor-not-allowed border-stroke text-gray-300 dark:border-strokedark dark:text-gray-600' :
-                              inQuote ? 'border-primary bg-primary text-white' : 'border-stroke text-body dark:border-strokedark'
+                              inQuote ? 'border-primary bg-primary font-bold text-[#141414]' : 'border-stroke text-body dark:border-strokedark'
                             }`}>
                             {inQuote ? '✓' : '+'}
                           </button>
@@ -495,10 +497,10 @@ const PricingGuide: React.FC = () => {
                 <div className="flex flex-col items-center gap-3 py-16 text-center">
                   <svg className="h-9 w-9 text-gray-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" /></svg>
                   <div className="text-base font-semibold text-black dark:text-white">{t('pricingGuide.noResultsTitle')}</div>
-                  <button onClick={() => { setCompat('all'); setQ(''); }} className="mt-1 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90">{t('pricingGuide.reset')}</button>
+                  <button onClick={() => { setCompat('all'); setQ(''); }} className="mt-1 rounded-full bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A]">{t('pricingGuide.reset')}</button>
                 </div>
               ) : (
-                <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))' }}>
                   {pkgList.map((p) => {
                     const key = pkgKey(p.id);
                     const pr = priceOf(p);
@@ -535,7 +537,7 @@ const PricingGuide: React.FC = () => {
                             <div className="text-[15.5px] font-bold leading-tight text-black dark:text-white">{pick(p.nameEn, p.nameFr)}</div>
                           </div>
                           <button onClick={() => toggleQuote(key)} title={t('pricingGuide.addQuote') as string}
-                            className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg border ${inQuote ? 'border-primary bg-primary text-white' : 'border-stroke text-body dark:border-strokedark'}`}>
+                            className={`flex h-8 w-8 flex-none items-center justify-center rounded-lg border ${inQuote ? 'border-primary bg-primary font-bold text-[#141414]' : 'border-stroke text-body dark:border-strokedark'}`}>
                             {inQuote ? '✓' : '+'}
                           </button>
                         </div>
@@ -577,7 +579,7 @@ const PricingGuide: React.FC = () => {
             {activeGroup === 'pricing' && cat === 'saas' && pricingData && pricingData.guides.length > 0 && (
               <div className="mt-8">
                 <div className="mb-3 text-[11px] font-bold uppercase tracking-wide text-gray-400">{t('pricingGuide.reference')}</div>
-                <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(280px, 100%), 1fr))' }}>
                   {pricingData.guides.map((g) => (
                     <div key={g.id} className="rounded-2xl border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
                       <div className="mb-1.5 text-sm font-bold text-black dark:text-white">{pick(g.titleEn, g.titleFr)}</div>
@@ -655,24 +657,20 @@ const PricingGuide: React.FC = () => {
       )}
 
       {/* Quote PDF preview */}
-      {quotePdf && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setQuotePdf(null); }}>
-          <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
-            <div className="flex flex-none items-center justify-between border-b border-stroke px-5 py-3.5 dark:border-strokedark">
-              <span className="text-base font-bold text-black dark:text-white">{t('pricingGuide.quotePreview')}</span>
-              <div className="flex items-center gap-2">
-                <a href={quotePdf.url} download={quotePdf.fileName}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-white hover:bg-opacity-90">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m6 5v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1" /></svg>
-                  {t('pricingGuide.downloadPdf')}
-                </a>
-                <button onClick={() => setQuotePdf(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
-              </div>
-            </div>
-            <iframe src={quotePdf.url} title={t('pricingGuide.quotePreview') as string} className="h-full w-full flex-1 border-0" />
+      <Modal open={!!quotePdf} onClose={() => setQuotePdf(null)} size="xl" title={t('pricingGuide.quotePreview')}
+        headerExtra={quotePdf ? (
+          <a href={quotePdf.url} download={quotePdf.fileName}
+            className="inline-flex items-center gap-1.5 rounded-[10px] bg-primary px-3.5 py-2 text-xs font-bold text-[#141414] hover:bg-[#F79C6A]">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m6 5v1a2 2 0 01-2 2H5a2 2 0 01-2-2v-1" /></svg>
+            {t('pricingGuide.downloadPdf')}
+          </a>
+        ) : null}>
+        {quotePdf && (
+          <div className="-mx-5 -my-4 h-[75vh]">
+            <iframe src={quotePdf.url} title={t('pricingGuide.quotePreview') as string} className="h-full w-full border-0" />
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </>
   );
 };
