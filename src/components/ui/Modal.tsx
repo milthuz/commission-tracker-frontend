@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useId, useRef } from 'react';
+import React, { useCallback, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
+import { useDialog } from './useDialog';
 
 // « Des fenêtres qui ne font rien perdre » (planche « Fenêtres et confirmations ») :
 //   · Échap ferme, le focus reste dans la fenêtre et revient où il était à la fermeture ;
@@ -16,12 +17,6 @@ import { dialog } from '../../lib/dialog';
 // cette fenêtre.
 
 const SIZE = { sm: 'max-w-[440px]', md: 'max-w-[560px]', lg: 'max-w-[720px]', xl: 'max-w-[960px]' };
-
-// Only the top-most open modal reacts to Escape / Tab.
-const stack: number[] = [];
-let seq = 0;
-
-const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 export interface ModalProps {
   open: boolean;
@@ -41,7 +36,6 @@ const Modal = ({ open, onClose, title, children, footer, dirty = false, size = '
   const { t } = useTranslation();
   const titleId = useId();
   const boxRef = useRef<HTMLDivElement>(null);
-  const idRef = useRef(0);
   const downOnOverlay = useRef(false);
 
   const requestClose = useCallback(async () => {
@@ -54,45 +48,8 @@ const Modal = ({ open, onClose, title, children, footer, dirty = false, size = '
     onClose();
   }, [dirty, onClose, t]);
 
-  useEffect(() => {
-    if (!open) return;
-    const id = ++seq;
-    idRef.current = id;
-    stack.push(id);
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    // Focus the first field (or the box) once painted.
-    requestAnimationFrame(() => {
-      const box = boxRef.current;
-      if (!box) return;
-      const first = box.querySelector<HTMLElement>('[autofocus]') || box.querySelector<HTMLElement>(`[data-modal-body] ${FOCUSABLE}`) || box;
-      first.focus();
-    });
-    return () => {
-      const i = stack.indexOf(id);
-      if (i >= 0) stack.splice(i, 1);
-      if (!stack.length) document.body.style.overflow = prevOverflow;
-      previouslyFocused?.focus?.();
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (stack[stack.length - 1] !== idRef.current) return;
-      if (document.querySelector('[data-dialog-host]')) return; // a confirm is on top
-      if (e.key === 'Escape') { e.preventDefault(); requestClose(); return; }
-      if (e.key !== 'Tab' || !boxRef.current) return;
-      const items = Array.from(boxRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.offsetParent !== null);
-      if (!items.length) { e.preventDefault(); return; }
-      const first = items[0], last = items[items.length - 1];
-      if (e.shiftKey && (document.activeElement === first || document.activeElement === boxRef.current)) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, requestClose]);
+  // Échap, focus gardé et rendu, défilement bloqué : le même comportement que toute fenêtre.
+  useDialog(open, requestClose, boxRef, '[data-modal-body]');
 
   if (!open) return null;
 

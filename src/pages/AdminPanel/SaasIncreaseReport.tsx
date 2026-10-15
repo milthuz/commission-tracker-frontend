@@ -177,7 +177,7 @@ export default function SaasIncreaseReport({ scenarioId, onClose }: { scenarioId
           <button onClick={() => window.print()} className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50">
             <Printer className="h-4 w-4" /> {t('saasIncrease.report.print')}
           </button>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} aria-label={t('common.close') as string} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button>
         </div>
       </div>
 

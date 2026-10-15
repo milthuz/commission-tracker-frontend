@@ -190,7 +190,7 @@ export default function FieldApp() {
         style={{ ['--of-top' as any]: demo ? 'calc(env(safe-area-inset-top, 0px) + 30px)' : 'env(safe-area-inset-top, 0px)' }}>
         <div className="relative mx-auto min-h-screen max-w-[480px]">
           {demo && (
-            <div className="fixed inset-x-0 top-0 z-50 mx-auto flex h-[calc(env(safe-area-inset-top,0px)+30px)] max-w-[480px] items-center justify-center gap-2 bg-[#8B5CF6] px-3 text-xs font-semibold text-white"
+            <div className="fixed inset-x-0 top-0 z-50 mx-auto flex h-[calc(env(safe-area-inset-top,0px)+30px)] max-w-[480px] items-center justify-center gap-2 bg-[#7C3AED] px-3 text-xs font-semibold text-white"
               style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }} role="status">
               <FlaskConical className="h-3.5 w-3.5" />{t('opener.field.demo.banner')}
               <button onClick={endDemo} className="ml-1 inline-flex items-center gap-0.5 rounded-full bg-white/20 px-2 py-0.5"><X className="h-3 w-3" />{t('opener.field.demo.quit')}</button>

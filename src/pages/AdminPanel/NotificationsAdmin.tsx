@@ -192,7 +192,7 @@ const SaasAutoCard = () => {
           <p className="mt-1 max-w-2xl text-sm text-body">{t('admin.notifications.saasAutoHint')}</p>
         </div>
         <button type="button" onClick={toggle} disabled={enabled === null || saving}
-          aria-pressed={enabled === true}
+          aria-pressed={enabled === true} aria-label={t('admin.notifications.saasAutoTitle') as string}
           className={`relative mt-1 h-7 w-14 shrink-0 rounded-full transition disabled:opacity-50 ${
             enabled ? 'bg-primary' : 'bg-gray-300 dark:bg-meta-4'}`}>
           <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${
@@ -238,7 +238,7 @@ const AvisRepCard = () => {
           <p className="mt-1 max-w-2xl text-sm text-body">{t('admin.notifications.repNotifyHint')}</p>
         </div>
         <button type="button" onClick={toggle} disabled={enabled === null || saving}
-          aria-pressed={enabled === true}
+          aria-pressed={enabled === true} aria-label={t('admin.notifications.repNotifyTitle') as string}
           className={`relative mt-1 h-7 w-14 shrink-0 rounded-full transition disabled:opacity-50 ${
             enabled ? 'bg-primary' : 'bg-gray-300 dark:bg-meta-4'}`}>
           <span className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-all ${

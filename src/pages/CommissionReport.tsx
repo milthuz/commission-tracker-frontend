@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Select from '../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +17,7 @@ import { ContentLoader } from '../common/Loader';
 import { Button, FilterBar, RowMenu, StateCard, StatusPill, Tabs, useUrlTab } from '../components/ui';
 import type { MenuItem, StatusFamily } from '../components/ui';
 import { getToken } from '../lib/auth';
+import { useDialog } from '../components/ui/useDialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -209,6 +210,15 @@ const CommissionReport = () => {
   const [searchModal, setSearchModal] = useState<{ open: boolean; q: string; loading: boolean; results: DrillInvoice[] }>({
     open: false, q: '', loading: false, results: [],
   });
+  // Les quatre fenêtres de la page : Échap ferme, le focus y reste.
+  const missingRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const emailRef = useRef<HTMLDivElement>(null);
+  useDialog(missingModal.open, () => { if (!missingModal.sending) setMissingModal(m => ({ ...m, open: false })); }, missingRef);
+  useDialog(searchModal.open, () => setSearchModal(s => ({ ...s, open: false })), searchRef);
+  useDialog(previewModal.isOpen, () => handleClosePreview(), previewRef);
+  useDialog(emailModal.isOpen, () => { if (!emailModal.sending) setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false }); }, emailRef);
   const runSearch = async () => {
     const q = searchInput.trim();
     if (!q) return;
@@ -1049,7 +1059,7 @@ const CommissionReport = () => {
       {/* Missing-commission modal */}
       {missingModal.open && (
         <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
-          <div className="my-auto w-full max-w-md rounded-[20px] border border-strokestrong bg-white p-6 shadow-xl dark:border-graydark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+          <div ref={missingRef} role="dialog" aria-modal="true" className="my-auto w-full max-w-md rounded-[20px] border border-strokestrong bg-white p-6 shadow-xl dark:border-graydark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 text-lg font-bold text-black dark:text-white">{t('commissionReport.missing.title')}</h3>
             <p className="mb-4 text-sm text-body">{t('commissionReport.missing.subtitle')}</p>
             <label className="mb-1 block text-xs font-medium text-body">{t('commissionReport.missing.invoiceLabel')}</label>
@@ -1081,7 +1091,7 @@ const CommissionReport = () => {
       {/* Client / invoice search results */}
       {searchModal.open && (
         <div className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black bg-opacity-50 p-4 pt-16" onClick={() => setSearchModal(s => ({ ...s, open: false }))}>
-          <div className="w-full max-w-4xl rounded-[20px] border border-strokestrong bg-white shadow-xl dark:border-graydark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+          <div ref={searchRef} role="dialog" aria-modal="true" className="w-full max-w-4xl rounded-[20px] border border-strokestrong bg-white shadow-xl dark:border-graydark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
               <div>
                 <h3 className="text-lg font-bold text-black dark:text-white">{t('commissionReport.searchResultsTitle')}</h3>
@@ -1455,7 +1465,7 @@ const CommissionReport = () => {
       {/* Preview Modal */}
       {previewModal.isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[99999] p-4" onClick={handleClosePreview}>
-          <div className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          <div ref={previewRef} role="dialog" aria-modal="true" className="bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-stroke dark:border-strokedark bg-white dark:bg-boxdark">
               <h3 className="text-lg font-semibold text-black dark:text-white">{t('commissionReport.previewTitle', { number: previewModal.invoiceNumber })}</h3>
               <div className="flex items-center gap-3">
@@ -1497,13 +1507,13 @@ const CommissionReport = () => {
       {/* Email Modal */}
       {emailModal.isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-start overflow-y-auto justify-center z-[99999] p-4" onClick={() => !emailModal.sending && setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })}>
-          <div className="my-auto bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div ref={emailRef} role="dialog" aria-modal="true" className="my-auto bg-white dark:bg-boxdark rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-6 border-b border-stroke dark:border-strokedark">
               <div>
                 <h3 className="text-lg font-bold text-black dark:text-white">{t('commissionReport.emailInvoice.title')}</h3>
                 <p className="text-sm text-body">{emailModal.invoiceNumber}</p>
               </div>
-              <button onClick={() => !emailModal.sending && setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })} className="text-black dark:text-white hover:text-primary transition">
+              <button onClick={() => !emailModal.sending && setEmailModal({ isOpen: false, invoiceNumber: '', email: '', sending: false })} aria-label={t('common.close') as string} className="text-black dark:text-white hover:text-primary transition">
                 <X className="h-6 w-6" />
               </button>
             </div>

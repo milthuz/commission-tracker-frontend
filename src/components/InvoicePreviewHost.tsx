@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { subscribe, closeInvoicePreview } from '../lib/invoicePreview';
 import ActivityTimeline from './ActivityTimeline';
 import { getToken } from '../lib/auth';
+import { useDialog } from './ui/useDialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -18,12 +19,14 @@ export default function InvoicePreviewHost() {
 
   useEffect(() => subscribe((n) => { setNum(n); setTab('details'); setLoading(true); }), []);
 
+  const boxRef = useRef<HTMLDivElement>(null);
+  useDialog(!!num, closeInvoicePreview, boxRef);
   if (!num) return null;
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-60 p-4"
       onClick={(e) => { e.stopPropagation(); closeInvoicePreview(); }}>
-      <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark"
+      <div ref={boxRef} role="dialog" aria-modal="true" className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark"
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
           <div className="flex items-center gap-4">

@@ -344,6 +344,8 @@
     "edit": "Modifier",
     "remove": "Retirer",
     "close": "Fermer",
+    "openMenu": "Ouvrir le menu",
+    "showDetails": "Afficher le détail",
     "search": "Rechercher...",
     "loading": "Chargement...",
     "noResults": "Aucun résultat trouvé",

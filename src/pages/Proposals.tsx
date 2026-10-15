@@ -490,7 +490,7 @@ const Proposals: React.FC = () => {
                 <h3 className={CARD_TITLE}>{t('proposals.builderTitle')}</h3>
                 <p className={CARD_SUB}>{sel ? `${sel.number} · ${sel.customerName}` : chainMode ? (chain ? `${t('proposals.chain.new')} · ${chain.name}` : t('proposals.chain.new')) : quoteSource ? t('proposals.fromGuide', { count: quoteSource.items.length }) : t('proposals.blankNew')}</p>
               </div>
-              <button onClick={closeBuilder} className="rounded-lg p-1.5 text-body hover:bg-gray-1 dark:hover:bg-meta-4"><svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+              <button onClick={closeBuilder} aria-label={t('common.close') as string} className="rounded-lg p-1.5 text-body hover:bg-gray-1 dark:hover:bg-meta-4"><svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
 
             <div className="grid flex-1 grid-cols-1 gap-0 overflow-hidden md:grid-cols-2">

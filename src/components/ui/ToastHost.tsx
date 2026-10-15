@@ -19,7 +19,7 @@ const ToastHost = () => {
             <button
               type="button"
               onClick={() => { it.onAction?.(); dismissToast(it.id); }}
-              className="ml-2 h-7 flex-none rounded-lg px-2 text-[13px] font-bold text-[#F79C6A] hover:bg-white/10 dark:text-[#B5521F] dark:hover:bg-black/5"
+              className="ml-2 h-7 flex-none rounded-lg px-2 text-[13px] font-bold text-[#F79C6A] hover:bg-white/10 dark:text-accent-ink dark:hover:bg-black/5"
             >
               {it.actionLabel}
             </button>

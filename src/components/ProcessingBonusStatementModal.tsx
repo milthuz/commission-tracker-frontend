@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../lib/dialog';
 import { fmtMoney, fmtPeriod, fmtDate } from '../lib/format';
 import { getToken } from '../lib/auth';
+import { useDialog } from './ui/useDialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -30,6 +31,8 @@ const ProcessingBonusStatementModal: React.FC<{
   const [emailOpen, setEmailOpen] = useState(false);
   const [emailTo, setEmailTo] = useState('');
   const [emailSending, setEmailSending] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+  useDialog(!!data, onClose, boxRef);
   if (!data) return null;
 
   const tp = (k: string) => t(`commissionReport.bonusStatement.${k}`);
@@ -135,7 +138,7 @@ const ProcessingBonusStatementModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4 sm:p-8" onClick={onClose}>
-      <div className="relative w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+      <div ref={boxRef} role="dialog" aria-modal="true" className="relative w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
           title={tp('close') as string}

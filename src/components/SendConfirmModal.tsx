@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { pressable } from '../lib/pressable';
+import { useDialog } from './ui/useDialog';
 
 export interface SendConfirmAccount {
   merchant_name: string;
@@ -35,6 +37,8 @@ const SendConfirmModal: React.FC<SendConfirmModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const [expandedRep, setExpandedRep] = useState<string | null>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  useDialog(open, () => { if (!confirming) onClose(); }, boxRef);
   if (!open) return null;
   const accentText = accent === 'warning' ? 'text-warning' : 'text-primary';
   const accentBg = accent === 'warning' ? 'bg-warning' : 'bg-primary';
@@ -42,7 +46,7 @@ const SendConfirmModal: React.FC<SendConfirmModalProps> = ({
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !confirming && onClose()} />
-      <div role="dialog" aria-modal="true"
+      <div ref={boxRef} role="dialog" aria-modal="true"
         className="relative w-full max-w-lg rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark">
         <h3 className="text-base font-semibold text-black dark:text-white">{title}</h3>
         {subtitle && <p className="mt-1 text-sm text-body dark:text-gray-300">{subtitle}</p>}
@@ -63,6 +67,7 @@ const SendConfirmModal: React.FC<SendConfirmModalProps> = ({
                   <React.Fragment key={r.rep}>
                     <tr
                       onClick={hasAccounts ? () => setExpandedRep(open ? null : r.rep) : undefined}
+                      {...pressable(hasAccounts && (() => setExpandedRep(open ? null : r.rep)), open)}
                       className={`border-t border-stroke dark:border-strokedark ${hasAccounts ? 'cursor-pointer hover:bg-gray-1 dark:hover:bg-meta-4/40' : ''}`}
                     >
                       <td className="px-3 py-2 text-black dark:text-white">

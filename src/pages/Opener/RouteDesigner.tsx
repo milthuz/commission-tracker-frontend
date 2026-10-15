@@ -15,6 +15,7 @@ import RouteTracking from './RouteTracking';
 import CampaignView from './CampaignView';
 import OpenerReports from './OpenerReports';
 import { useAuth } from '../../context/AuthContext';
+import { pressable } from '../../lib/pressable';
 
 // Écran 1g — conception des routes (manager). Permission opener:routes.
 // Trois onglets : « Campagne » (CampaignView, ouvert par défaut : le territoire déjà découpé en routes),
@@ -625,6 +626,7 @@ export default function RouteDesigner() {
                   onDragOver={(e) => { e.preventDefault(); }}
                   onDrop={() => { if (dragIdx != null) moveStop(dragIdx, i); setDragIdx(null); }}
                   onClick={() => { setSelected(s.placeId); if (s.lat != null) mapRef.current?.map.panTo({ lat: s.lat, lng: s.lng }); }}
+                  {...pressable(() => { setSelected(s.placeId); if (s.lat != null) mapRef.current?.map.panTo({ lat: s.lat, lng: s.lng }); })}
                   className={`flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 ${selected === s.placeId ? 'bg-gray-2 dark:bg-meta-4' : 'hover:bg-gray-2 dark:hover:bg-meta-4/60'} ${dragIdx === i ? 'opacity-50' : ''}`}>
                   {editable && <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-body" />}
                   <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full text-xs font-bold text-[#141414]" style={{ background: STATUS_COLOR[st] }}>
@@ -945,6 +947,7 @@ export default function RouteDesigner() {
               const days = p.lastVisitAt ? Math.floor((Date.now() - new Date(p.lastVisitAt).getTime()) / 86400000) : null;
               return (
                 <div key={p.placeId} onClick={() => { setSelected(p.placeId); mapRef.current?.map.panTo({ lat: p.lat, lng: p.lng }); }}
+                  {...pressable(() => { setSelected(p.placeId); mapRef.current?.map.panTo({ lat: p.lat, lng: p.lng }); })}
                   className={`flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 ${selected === p.placeId ? 'bg-gray-2 dark:bg-meta-4' : ''}`}>
                   <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: p.franchise && p.status !== 'client' ? FRANCHISE_COLOR : STATUS_COLOR[p.status] }} />
                   <div className="min-w-0 flex-1">

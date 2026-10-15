@@ -202,7 +202,7 @@ const KaizenDemo: React.FC = () => {
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('kaizenDemo.subtitle')}</p>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{t('kaizenDemo.subtitle')}</p>
         </div>
         {maintenance?.enabled !== false && (
         <div className="flex shrink-0 flex-wrap items-center gap-2">

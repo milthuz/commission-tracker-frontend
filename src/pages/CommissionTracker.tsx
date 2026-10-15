@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Select from '../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,7 @@ import ProbationBadge from '../components/ProbationBadge';
 import { ContentLoader } from '../common/Loader';
 import { Button, StateCard, StatusPill } from '../components/ui';
 import { getToken } from '../lib/auth';
+import { useDialog } from '../components/ui/useDialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -105,6 +106,8 @@ const CommissionTracker: React.FC = () => {
   const [activeReps, setActiveReps] = useState<string[]>([]);
   // "Missing points" report — flagged by a rep, persisted + emailed to admins (see À corriger).
   const [missingModal, setMissingModal] = useState({ open: false, reference: '', message: '', sending: false });
+  const missingRef = useRef<HTMLDivElement>(null);
+  useDialog(missingModal.open, () => { if (!missingModal.sending) setMissingModal(m => ({ ...m, open: false })); }, missingRef);
   const submitMissingPoints = async () => {
     if (!missingModal.message.trim()) return;
     setMissingModal(m => ({ ...m, sending: true }));
@@ -206,7 +209,7 @@ const CommissionTracker: React.FC = () => {
 
   const getSourceBadgeColor = (sourceGroup: string) => {
     const s = sourceGroup.toLowerCase();
-    if (s.includes('outbound')) return 'bg-[#8B5CF6] text-white';
+    if (s.includes('outbound')) return 'bg-[#7C3AED] text-white';
     if (s.includes('partner')) return 'bg-[#F59E0B] text-white';
     return 'bg-[#3B82F6] text-white';
   };
@@ -280,7 +283,7 @@ const CommissionTracker: React.FC = () => {
       {/* Missing points modal */}
       {missingModal.open && (
         <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
-          <div className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+          <div ref={missingRef} role="dialog" aria-modal="true" className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('commissionTracker.missing.title')}</h3>
             <p className="mb-4 text-sm text-body">{t('commissionTracker.missing.subtitle')}</p>
             <label className="mb-1 block text-xs font-medium text-body">{t('commissionTracker.missing.refLabel')}</label>
@@ -427,7 +430,7 @@ const CommissionTracker: React.FC = () => {
               >
                 <div className="flex items-center gap-4 flex-1">
                   {/* Avatar */}
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#8B5CF6] text-sm font-bold text-white">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#7C3AED] text-sm font-bold text-white">
                     {rep.repName.charAt(0)}
                   </div>
 
@@ -546,7 +549,7 @@ const CommissionTracker: React.FC = () => {
                               {fmtDateOnly(deal.close_date)}
                             </td>
                             <td className="px-6 py-3 text-right">
-                              <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${rep.includeDeals === false ? 'bg-gray-200 text-gray-400 line-through dark:bg-meta-4 dark:text-gray-500' : 'bg-[#8B5CF6] text-white'}`}
+                              <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${rep.includeDeals === false ? 'bg-gray-200 text-gray-400 line-through dark:bg-meta-4 dark:text-gray-500' : 'bg-[#7C3AED] text-white'}`}
                                 title={rep.includeDeals === false ? t('commissionTracker.dealsDoNotCount', { team: rep.team?.name || '' }) as string : undefined}>
                                 {deal.points}
                               </span>
@@ -629,7 +632,7 @@ const CommissionTracker: React.FC = () => {
                           +{fmtMoney(rep.zentactBonus, { decimals: Number.isInteger(rep.zentactBonus) ? 0 : 2 })} {t('commissionTracker.zentactBonusLabel')}
                         </span>
                       )}
-                      <span className="inline-flex h-7 w-auto min-w-7 items-center justify-center rounded-full bg-[#8B5CF6] px-2 text-xs font-bold text-white">
+                      <span className="inline-flex h-7 w-auto min-w-7 items-center justify-center rounded-full bg-[#7C3AED] px-2 text-xs font-bold text-white">
                         {rep.totalPoints} pts
                       </span>
                     </div>

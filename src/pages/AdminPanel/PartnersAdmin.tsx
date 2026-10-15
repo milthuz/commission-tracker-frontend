@@ -9,6 +9,7 @@ import { dialog } from '../../lib/dialog';
 import { Modal } from '../../components/ui';
 import PartnerStats from './PartnerStats';
 import { authHeaders } from '../../lib/auth';
+import { pressable } from '../../lib/pressable';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -2074,6 +2075,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                       // chaque cellule.
                       <tr key={o.id}
                         onClick={(e) => { if (!(e.target as HTMLElement).closest('button, a, input, select')) setDetails(o); }}
+                        {...pressable(() => setDetails(o))}
                         title={t('admin.partners.queue.openDetails') as string}
                         className="cursor-pointer border-b border-stroke last:border-0 hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4">
                         {cols.map((c) => (

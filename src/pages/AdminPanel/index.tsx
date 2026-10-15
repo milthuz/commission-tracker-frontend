@@ -38,6 +38,7 @@ import RepEditPanel from './RepEditPanel';
 import UserDirectory from './UserDirectory';
 import { Button, Modal } from '../../components/ui';
 import { dialog } from '../../lib/dialog';
+import { pressable } from '../../lib/pressable';
 
 // Whole amounts stay whole ("$1,200"), cents are shown when there are some — like the old toLocaleString().
 const money = (v: number) => fmtMoney(v, { decimals: Number.isInteger(Number(v)) ? 0 : 2 });
@@ -1727,7 +1728,7 @@ const AdminPanel = () => {
         {activeTab === 'releases' && (
           <button
             onClick={showReleaseForm ? () => setShowReleaseForm(false) : openReleaseForm}
-            className="inline-flex items-center gap-2 rounded-md bg-[#8B5CF6] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90"
+            className="inline-flex items-center gap-2 rounded-md bg-[#7C3AED] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -1887,7 +1888,7 @@ const AdminPanel = () => {
                           <button
                             onClick={syncCRM}
                             disabled={crmSyncing}
-                            className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-4 py-2 text-sm font-medium text-[#141414] shadow-sm hover:bg-opacity-90 disabled:opacity-50"
                           >
                             {crmSyncing ? (
                               <>
@@ -1921,7 +1922,7 @@ const AdminPanel = () => {
                         <button
                           onClick={connectCRM}
                           disabled={crmConnecting}
-                          className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                          className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-5 py-2.5 text-sm font-medium text-[#141414] shadow-sm hover:bg-opacity-90 disabled:opacity-50"
                         >
                           {crmConnecting ? (
                             <>
@@ -2002,7 +2003,7 @@ const AdminPanel = () => {
                         <button
                           onClick={() => connectDesk(deskStatus?.account || undefined)}
                           disabled={deskConnecting}
-                          className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                          className="inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-5 py-2.5 text-sm font-medium text-[#141414] shadow-sm hover:bg-opacity-90 disabled:opacity-50"
                         >
                           {deskConnecting ? (
                             <>
@@ -2032,7 +2033,7 @@ const AdminPanel = () => {
                           <li>{t('admin.desk.svcStep3', { email: serviceAccount })}</li>
                         </ol>
                         <button onClick={() => connectDesk(serviceAccount)} disabled={deskConnecting}
-                          className="mt-3 inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                          className="mt-3 inline-flex items-center gap-2 rounded-md bg-[#E8542A] px-4 py-2 text-sm font-medium text-[#141414] hover:bg-opacity-90 disabled:opacity-50">
                           {t('admin.desk.svcButton', { email: serviceAccount })}
                         </button>
                       </div>
@@ -2714,7 +2715,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   className={`w-20 rounded border bg-transparent px-2 py-1 outline-none focus:border-primary dark:bg-form-input ${dp.isCustom ? 'border-primary font-medium text-[#8B5CF6]' : 'border-stroke text-black dark:border-strokedark dark:text-white'}`}
                                 />
                                 {dp.isCustom
-                                  ? <span className="rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-xs font-medium text-[#8B5CF6]">{t('admin.dealPoints.custom')}</span>
+                                  ? <span className="rounded-full bg-[#7C3AED] bg-opacity-10 px-2 py-0.5 text-xs font-medium text-[#8B5CF6]">{t('admin.dealPoints.custom')}</span>
                                   : <span className="text-xs text-body">{t('admin.dealPoints.default')}</span>}
                               </div>
                             </td>
@@ -2932,6 +2933,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                           key={customer.name}
                           className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-meta-4 cursor-pointer border-b border-stroke dark:border-strokedark last:border-b-0"
                           onClick={() => excludeCustomer(customer.name)}
+                          {...pressable(() => excludeCustomer(customer.name))}
                         >
                           <div>
                             <p className="text-sm font-medium text-black dark:text-white">{customer.name}</p>
@@ -2990,7 +2992,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
               <div className="p-7">
                 {/* Status Banners */}
                 {releaseStatus === 'triggered' && (
-                  <div className="mb-4 rounded-md bg-[#8B5CF6] bg-opacity-10 p-4">
+                  <div className="mb-4 rounded-md bg-[#7C3AED] bg-opacity-10 p-4">
                     <div className="flex items-center gap-3">
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
                       <p className="text-sm font-medium text-[#8B5CF6]">
@@ -3012,7 +3014,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
                 {/* New Release Form */}
                 {showReleaseForm && (
-                  <div className="mb-6 rounded-lg border border-[#8B5CF6] border-opacity-30 bg-[#8B5CF6] bg-opacity-5 p-6">
+                  <div className="mb-6 rounded-lg border border-[#8B5CF6] border-opacity-30 bg-[#7C3AED] bg-opacity-5 p-6">
                     <h4 className="mb-4 text-sm font-bold text-black dark:text-white">{t('admin.releases.newRelease')}</h4>
 
                     <div className="mb-4">
@@ -3117,7 +3119,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       <button
                         onClick={pushRelease}
                         disabled={releaseStatus === 'pushing' || !newVersion.trim() || !releaseNotes.trim()}
-                        className="inline-flex items-center gap-2 rounded-md bg-[#8B5CF6] px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-md bg-[#7C3AED] px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
                       >
                         {releaseStatus === 'pushing' ? (
                           <>
@@ -3157,7 +3159,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                         >
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="inline-flex rounded-full bg-[#8B5CF6] bg-opacity-10 px-3 py-0.5 text-xs font-bold text-[#8B5CF6]">
+                              <span className="inline-flex rounded-full bg-[#7C3AED] bg-opacity-10 px-3 py-0.5 text-xs font-bold text-[#8B5CF6]">
                                 {release.version}
                               </span>
                               <span className="text-xs text-body">
@@ -3400,7 +3402,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   </span>
                                 )}
                                 {user.isDemo && (
-                                  <span className="inline-flex rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-[10px] font-bold uppercase text-[#8B5CF6]">
+                                  <span className="inline-flex rounded-full bg-[#7C3AED] bg-opacity-10 px-2 py-0.5 text-[10px] font-bold uppercase text-[#8B5CF6]">
                                     {t('admin.admins.demoBadge')}
                                   </span>
                                 )}
@@ -3428,7 +3430,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                             <td className="px-4 py-5">
                               <div className="flex flex-wrap gap-1">
                                 {(user.roles || []).map(r => (
-                                  <span key={r.id} className="inline-flex rounded-md bg-[#8B5CF6] bg-opacity-10 px-2 py-1 text-xs font-medium leading-tight text-[#8B5CF6]">
+                                  <span key={r.id} className="inline-flex rounded-md bg-[#7C3AED] bg-opacity-10 px-2 py-1 text-xs font-medium leading-tight text-[#8B5CF6]">
                                     {r.name}
                                   </span>
                                 ))}

@@ -204,9 +204,9 @@ export default function SaasIncreaseCampaign() {
   const textPri = 'text-gray-900 dark:text-white';
   const textSec = 'text-gray-600 dark:text-[#D1D1D1]';
   const textTer = 'text-gray-500 dark:text-[#999AA7]';
-  const textQuat = 'text-gray-400 dark:text-[#61646C]';
+  const textQuat = 'text-gray-400 dark:text-[#8A8D96]';
   const label = `text-[11px] font-semibold uppercase tracking-wider ${textQuat}`;
-  const neutralPill = 'bg-gray-100 text-gray-500 dark:bg-[#1B1B1B] dark:text-[#61646C]';
+  const neutralPill = 'bg-gray-100 text-gray-500 dark:bg-[#1B1B1B] dark:text-[#8A8D96]';
 
   const pctCible = data && data.mrr.target > 0
     ? Math.min(100, (data.mrr.committed / data.mrr.target) * 100) : 0;

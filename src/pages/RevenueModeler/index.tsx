@@ -504,7 +504,7 @@ export default function RevenueModeler() {
           {active && canChainProposal && (
             <button type="button" onClick={() => navigate(`/proposals?chaine=${active.id}`)} disabled={dirty}
               title={dirty ? (t('revenueModeler.proposalSaveFirst') as string) : undefined}
-              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-[#F58345] px-3 py-2 text-sm font-medium text-[#B5521F] hover:bg-[#F58345]/10 disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#F79C6A]">
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-[#F58345] px-3 py-2 text-sm font-medium text-accent-ink hover:bg-[#F58345]/10 disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#F79C6A]">
               <FileText className="h-4 w-4" />{t('revenueModeler.makeProposal')}
             </button>
           )}

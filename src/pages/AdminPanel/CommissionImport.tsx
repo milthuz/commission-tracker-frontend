@@ -14,6 +14,7 @@ import GoogleReviewsAdmin from './GoogleReviewsAdmin';
 import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
 import { getToken } from '../../lib/auth';
+import { pressable } from '../../lib/pressable';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -1184,6 +1185,7 @@ const CommissionImport: React.FC = () => {
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
             onClick={() => fileInputRef.current?.click()}
+            {...pressable(() => fileInputRef.current?.click())}
             className={`flex flex-col items-center justify-center gap-2 cursor-pointer rounded-md border-2 border-dashed py-10 transition ${
               dragOver
                 ? 'border-primary bg-primary bg-opacity-5'
@@ -1269,6 +1271,8 @@ const CommissionImport: React.FC = () => {
                 <div className="flex items-center gap-3 px-3 py-2 flex-wrap">
                   <button
                     onClick={() => toggleExpand(e.id)}
+                    aria-label={t('common.showDetails') as string}
+                    aria-expanded={!!e.expanded}
                     disabled={e.status !== 'previewed' && e.status !== 'done' && e.status !== 'error'}
                     className="text-body hover:text-primary disabled:opacity-30"
                   >
@@ -1632,6 +1636,7 @@ const CommissionImport: React.FC = () => {
                         <td
                           key={ym}
                           onClick={() => (hasImport || hasUnpaid) && openPeriodStub(row.rep, ym)}
+                          {...pressable((hasImport || hasUnpaid) && (() => openPeriodStub(row.rep, ym)))}
                           title={hasQuota
                             ? `${row.rep} · ${ym} — ${t('admin.commissionImport.coverage.legendQuota')}: ${fmt(c!.quotaForfeited)}${c!.quotaAcknowledged ? ` (${t('admin.commissionImport.quotaReview.reviewed')})` : ''}`
                             : `${row.rep} · ${ym}`}
@@ -1841,7 +1846,7 @@ const CommissionImport: React.FC = () => {
                     const open = expandedSend === key;
                     return (
                       <React.Fragment key={key}>
-                        <tr onClick={() => setExpandedSend(open ? null : key)}
+                        <tr onClick={() => setExpandedSend(open ? null : key)} {...pressable(() => setExpandedSend(open ? null : key), open)}
                           className="cursor-pointer border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
                           <td className="px-4 py-2 text-black dark:text-white">
                             <span className="inline-flex items-center gap-1.5">
@@ -2019,7 +2024,7 @@ const CommissionImport: React.FC = () => {
                     const open = expandedBonusSend === key;
                     return (
                       <React.Fragment key={key}>
-                        <tr onClick={() => setExpandedBonusSend(open ? null : key)}
+                        <tr onClick={() => setExpandedBonusSend(open ? null : key)} {...pressable(() => setExpandedBonusSend(open ? null : key), open)}
                           className="cursor-pointer border-t border-stroke hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4/40">
                           <td className="px-4 py-2 text-black dark:text-white">
                             <span className="inline-flex items-center gap-1.5">
@@ -2149,6 +2154,7 @@ const CommissionImport: React.FC = () => {
                       <React.Fragment key={r.rep}>
                         <tr
                           onClick={() => setProcExpanded(procExpanded === r.rep ? null : r.rep)}
+                          {...pressable(() => setProcExpanded(procExpanded === r.rep ? null : r.rep), procExpanded === r.rep)}
                           className="cursor-pointer border-t border-stroke transition hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/30"
                         >
                           <td className="px-4 py-2 font-medium text-black dark:text-white">{procExpanded === r.rep ? '▾' : '▸'} {r.rep}</td>
@@ -2747,7 +2753,7 @@ const CommissionImport: React.FC = () => {
                 <tbody>
                   {recon.reps.map(r => (
                     <React.Fragment key={r.rep}>
-                      <tr onClick={() => setReconExpanded(reconExpanded === r.rep ? null : r.rep)}
+                      <tr onClick={() => setReconExpanded(reconExpanded === r.rep ? null : r.rep)} {...pressable(() => setReconExpanded(reconExpanded === r.rep ? null : r.rep), reconExpanded === r.rep)}
                         className="cursor-pointer border-t border-stroke hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4/20">
                         <td className="px-4 py-2.5 font-medium text-black dark:text-white">{r.rep}</td>
                         <td className="px-4 py-2.5 text-right font-semibold text-black dark:text-white">{fmt(r.totals.paid)}</td>

@@ -100,7 +100,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
           <div className="mt-4 w-full rounded-[14px] border border-dashed border-[#8B5CF6]/60 p-4">
             <p className="mb-1 text-sm font-semibold text-[var(--of-title)]">{t('opener.field.demo.title')}</p>
             <p className="mb-3 text-xs text-[var(--of-faint)]">{t('opener.field.demo.help')}</p>
-            <button onClick={tryDemo} disabled={demoBusy} className={`${btnPrimary} w-full !bg-[#8B5CF6] !text-white`}>
+            <button onClick={tryDemo} disabled={demoBusy} className={`${btnPrimary} w-full !bg-[#7C3AED] !text-white`}>
               {demoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <FlaskConical className="h-4 w-4" />}{t('opener.field.demo.start')}
             </button>
           </div>

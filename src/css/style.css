@@ -194,3 +194,33 @@
     font-size: max(16px, 1em) !important;
   }
 }
+
+/* Éléments rendus atteignables au clavier par lib/pressable (lignes qui se déplient, cartes) :
+   un contour orange au focus CLAVIER seulement — un clic de souris n'en laisse pas. Le décalage
+   négatif garde le contour visible sur une ligne de tableau, dont les bords sont rognés. */
+[data-pressable]:focus { outline: none; }
+[data-pressable]:focus-visible {
+  outline: 2px solid #F58345;
+  outline-offset: -2px;
+}
+
+/* Contraste en mode sombre : `text-body` (#575A61) sert ~890 fois sans variante `dark:` et ne
+   donnait que ~2,7:1 sur les surfaces sombres (#141414). En sombre il prend bodydark2 (#999AA7,
+   ~6,4:1). `:where()` garde la priorité au plus bas : toute variante `dark:text-…` explicite
+   (priorité supérieure) l'emporte toujours. */
+:where(.dark) .text-body { color: #999AA7; }
+
+/* Contraste (P5, mesuré sur les 39 écrans du menu, clair et sombre). Ces classes donnaient du
+   texte sous 4,5:1 là où aucune variante n'était prévue pour le thème. Même principe que ci-dessus :
+   `:where()` garde la priorité au plus bas, toute couleur explicite du thème l'emporte. */
+/* Clair : l'orange plein est une couleur de FOND ; en texte, il prend accent-ink (≥ 5:1). */
+:where(html:not(.dark)) .text-primary { color: #A64A1B; }
+/* Clair : gris d'aide et gris pensés pour le sombre → gris lisibles sur blanc (≥ 4,8:1). */
+:where(html:not(.dark)) .text-gray-400,
+:where(html:not(.dark)) .text-bodydark2 { color: #61646C; }
+/* Clair : rouge d'erreur posé sur un fond rosé (bg-danger/10, bg-red-50) → rouge plus foncé. */
+:where(html:not(.dark)) .text-danger,
+:where(html:not(.dark)) .text-red-500,
+:where(html:not(.dark)) .text-red-600 { color: #B42318; }
+/* Sombre : gris-500 sans variante sombre → gris-400 (≥ 6:1 sur #141414). */
+:where(.dark) .text-gray-500 { color: #9CA3AF; }

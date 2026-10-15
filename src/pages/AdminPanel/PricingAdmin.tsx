@@ -340,7 +340,7 @@ const PricingAdmin: React.FC = () => {
                         <td className="px-2 py-1.5"><input value={ev(p.id, 'priceYearly', p.priceYearly)} onChange={(e) => setEdit(p.id, 'priceYearly', e.target.value)} className={priceInputCls} /></td>
                         <td className="px-2 py-1.5"><input value={ev(p.id, 'priceFlat', p.priceFlat)} onChange={(e) => setEdit(p.id, 'priceFlat', e.target.value)} className={priceInputCls} /></td>
                         <td className="px-3 py-2 text-center">
-                          <button onClick={() => toggleVisible(p.id)}
+                          <button onClick={() => toggleVisible(p.id)} role="switch" aria-checked={!rowHidden} aria-label={t('admin.pricing.colVisible') as string}
                             className={`inline-flex h-[22px] w-[38px] items-center rounded-full p-0.5 ${rowHidden ? 'justify-start bg-stroke dark:bg-strokedark' : 'justify-end bg-primary'}`}>
                             <span className="h-[18px] w-[18px] rounded-full bg-white" />
                           </button>

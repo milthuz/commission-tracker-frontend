@@ -615,7 +615,7 @@ export default function IcplusRatesAdmin() {
                     {e.updated_by ? `${e.updated_by}${e.updated_at ? ` · ${fmtDate(e.updated_at)}` : ''}` : '—'}
                   </td>
                   <td className="py-1.5 text-right">
-                    <button onClick={() => removeRow(i)} className="rounded p-1 text-body hover:text-danger">
+                    <button onClick={() => removeRow(i)} aria-label={t('common.delete') as string} className="rounded p-1 text-body hover:text-danger">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </td>

@@ -248,7 +248,7 @@ export default function ZohoSystemAccount() {
                   className="w-full max-w-xs rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark"
                 />
                 <button onClick={() => brancher(nouveau)} disabled={occupe !== null || !nouveau.trim()}
-                  className="rounded bg-[#E8542A] px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                  className="rounded bg-[#E8542A] px-4 py-2 text-sm font-medium text-[#141414] hover:bg-opacity-90 disabled:opacity-50">
                   {occupe === 'connect' ? t('admin.crmSystem.redirecting') : t('admin.crmSystem.connectAs')}
                 </button>
               </div>

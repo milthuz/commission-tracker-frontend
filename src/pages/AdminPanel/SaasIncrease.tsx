@@ -1499,11 +1499,11 @@ const SaasIncrease: React.FC = () => {
   // weight of the colored status pills (emerald/red/amber) instead of `raised`'s boxy
   // border+rounded-lg, which visually clashed with the rounded-full pill shape it was combined
   // with (David's screenshot: a bordered box with wrapped text instead of a clean pill).
-  const neutralPill = 'bg-gray-100 text-gray-500 dark:bg-[#1B1B1B] dark:text-[#61646C]';
+  const neutralPill = 'bg-gray-100 text-gray-500 dark:bg-[#1B1B1B] dark:text-[#8A8D96]';
   const textPri = 'text-gray-900 dark:text-white';
   const textSec = 'text-gray-600 dark:text-[#D1D1D1]';
   const textTer = 'text-gray-500 dark:text-[#999AA7]';
-  const textQuat = 'text-gray-400 dark:text-[#61646C]';
+  const textQuat = 'text-gray-400 dark:text-[#8A8D96]';
   // Titre de fenêtre (Modal) avec une ligne d'explication dessous.
   const modalTitle = (title: React.ReactNode, sub: React.ReactNode) => (
     <>{title}<span className={`mt-0.5 block text-xs font-normal ${textTer}`}>{sub}</span></>

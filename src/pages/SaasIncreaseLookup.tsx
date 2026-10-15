@@ -345,7 +345,7 @@ export default function SaasIncreaseLookup() {
   const textPri = 'text-gray-900 dark:text-white';
   const textSec = 'text-gray-600 dark:text-[#D1D1D1]';
   const textTer = 'text-gray-500 dark:text-[#999AA7]';
-  const textQuat = 'text-gray-400 dark:text-[#61646C]';
+  const textQuat = 'text-gray-400 dark:text-[#8A8D96]';
 
   // Notice state is the first thing an agent must know: whether this merchant was told, and when.
   // "They were never emailed" changes the whole conversation, so it is a badge, not a footnote.

@@ -72,7 +72,10 @@ export default function SalesHubLogo({
 }) {
   const { t } = useTranslation();
   const mark = tone === 'dark' ? MarkDark : MarkLight;
-  const mutedClass = textClassName.includes('white') ? 'text-[#8a99af]' : 'text-[#575a61]';
+  // Le « par » suit le fond : clair sur fond sombre, foncé sur fond clair. `dark:text-white` veut
+  // dire « fond clair en mode clair » — le prendre pour un fond sombre donnait 2,9:1 en clair.
+  const mutedClass = textClassName.includes('dark:text-white') ? 'text-[#575a61] dark:text-[#8a99af]'
+    : /(^|\s)text-white/.test(textClassName) ? 'text-[#8a99af]' : 'text-[#575a61]';
 
   if (variant === 'stacked') {
     return <Stacked tone={tone} by={t('brand.by')} className={className} />;

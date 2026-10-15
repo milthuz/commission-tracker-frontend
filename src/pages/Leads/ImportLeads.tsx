@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import Select from '../../components/Select';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { authHeaders } from './types';
+import { useDialog } from '../../components/ui/useDialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -231,6 +232,8 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
   ].filter((x): x is string => !!x);
   const setRow = (key: string, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
 
+  const boxRef = useRef<HTMLDivElement>(null);
+  useDialog(open, close, boxRef);
   if (!open) return null;
 
   const dt = (iso: string) => new Date(iso).toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'short' });
@@ -238,7 +241,7 @@ const ImportLeads = ({ open, onClose, onChanged }: { open: boolean; onClose: () 
   return (
     <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto p-4 sm:p-8">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={close} />
-      <div role="dialog" aria-modal="true" className="relative my-auto w-full max-w-6xl rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div ref={boxRef} role="dialog" aria-modal="true" className="relative my-auto w-full max-w-6xl rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex items-start justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
           <div>
             <h3 className="text-lg font-semibold text-black dark:text-white">{t('leads.import.title')}</h3>

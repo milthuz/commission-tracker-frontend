@@ -5,6 +5,7 @@ export { default as Button } from './Button';
 export { default as StatusPill, STATUS_PILL_CLS, STATUS_DOT_CLS } from './StatusPill';
 export type { StatusFamily } from './StatusPill';
 export { default as Modal } from './Modal';
+export { useDialog } from './useDialog';
 export { default as Tabs, useUrlTab } from './Tabs';
 export type { TabItem } from './Tabs';
 export { default as FilterBar } from './FilterBar';

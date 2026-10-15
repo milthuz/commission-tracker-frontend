@@ -132,6 +132,7 @@ const PassConfigAdmin = () => {
             type="button"
             role="switch"
             aria-checked={cfg.enabled}
+            aria-label={t('passOps.cfg.enabled') as string}
             onClick={toggleEnabled}
             className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-150 ${
               cfg.enabled ? 'bg-success' : 'bg-bodydark2/40'

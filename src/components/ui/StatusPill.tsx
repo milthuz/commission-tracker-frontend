@@ -14,7 +14,7 @@ export type StatusFamily = 'neutral' | 'new' | 'wait' | 'ok' | 'err';
 
 export const STATUS_PILL_CLS: Record<StatusFamily, string> = {
   neutral: 'bg-[#ECECEE] text-[#424242] dark:bg-[#232323] dark:text-[#D1D1D1]',
-  new: 'bg-[rgba(245,131,69,0.14)] text-[#B5521F] dark:bg-[rgba(245,131,69,0.16)] dark:text-[#F79C6A]',
+  new: 'bg-[rgba(245,131,69,0.14)] text-accent-ink dark:bg-[rgba(245,131,69,0.16)] dark:text-[#F79C6A]',
   wait: 'bg-[rgba(253,176,34,0.18)] text-[#B54708] dark:bg-[rgba(253,176,34,0.16)] dark:text-[#FDB022]',
   ok: 'bg-[rgba(23,178,106,0.12)] text-[#067647] dark:bg-[rgba(23,178,106,0.18)] dark:text-[#57D193]',
   err: 'bg-[rgba(244,96,96,0.12)] text-[#D92D20] dark:bg-[rgba(244,96,96,0.16)] dark:text-[#F46060]',

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PasswordInput from '../components/PasswordInput';
 import Select from '../components/Select';
 import axios from 'axios';
@@ -7,6 +7,7 @@ import { fmtMoney, fmtNumber, fmtDate } from '../lib/format';
 import { useAuth } from '../context/AuthContext';
 import { dialog } from '../lib/dialog';
 import { getToken } from '../lib/auth';
+import { useDialog } from '../components/ui/useDialog';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -102,6 +103,8 @@ const Profile = () => {
   const [featureModal, setFeatureModal] = useState<{ open: boolean; message: string; sending: boolean }>({
     open: false, message: '', sending: false,
   });
+  const featureRef = useRef<HTMLDivElement>(null);
+  useDialog(featureModal.open, () => { if (!featureModal.sending) setFeatureModal(m => ({ ...m, open: false })); }, featureRef);
   // SaaS Increase push confirmation PIN — required before pushing price increases into live
   // Zoho subscriptions (saas_increase:execute). Only relevant to users with that permission.
   const [hasPin, setHasPin] = useState(false);
@@ -155,6 +158,8 @@ const Profile = () => {
   // No enabled/disabled state to track here — a local account can't reach this page at all
   // unless totp_enabled is already true (enforced at login), unlike a freshly-invited partner.
   const [resetOpen, setResetOpen] = useState(false);
+  const resetRef = useRef<HTMLDivElement>(null);
+  useDialog(resetOpen, () => { if (!resetBusy) closeReset(); }, resetRef);
   // 'password' comes first: re-binding the second factor now requires the current password
   // server-side, so a stolen session token alone can't move 2FA to an attacker's authenticator.
   const [resetStep, setResetStep] = useState<'password' | 'starting' | 'qr' | 'done'>('password');
@@ -903,7 +908,7 @@ const Profile = () => {
       {/* 2FA reset modal */}
       {resetOpen && (
         <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !resetBusy && closeReset()}>
-          <div className="my-auto w-full max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+          <div ref={resetRef} role="dialog" aria-modal="true" className="my-auto w-full max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             {resetStep === 'password' && (
               <>
                 <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('profile.twoFactor.resetTitle')}</h3>
@@ -978,7 +983,7 @@ const Profile = () => {
       {/* Request-a-feature modal */}
       {featureModal.open && (
         <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !featureModal.sending && setFeatureModal(m => ({ ...m, open: false }))}>
-          <div className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+          <div ref={featureRef} role="dialog" aria-modal="true" className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('profile.requestFeature.title')}</h3>
             <p className="mb-4 text-sm text-body">{t('profile.requestFeature.subtitle')}</p>
             <textarea

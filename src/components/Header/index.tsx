@@ -10,7 +10,7 @@ const Header = (props: {
   sidebarOpen: string | boolean | undefined;
   setSidebarOpen: (arg0: boolean) => void;
 }) => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const setLang = (l: 'en' | 'fr') => { i18n.changeLanguage(l); localStorage.setItem('language', l); };
   // Single theme setting shared by the whole app (lib/theme).
   const [theme, , toggleDarkMode] = useTheme();
@@ -23,6 +23,8 @@ const Header = (props: {
           {/* <!-- Hamburger Toggle BTN --> */}
           <button
             aria-controls="sidebar"
+            aria-label={t('common.openMenu') as string}
+            aria-expanded={!!props.sidebarOpen}
             onClick={(e) => {
               e.stopPropagation();
               props.setSidebarOpen(!props.sidebarOpen);

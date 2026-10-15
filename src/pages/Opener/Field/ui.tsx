@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, Minus, Plus, MapPinOff, RefreshCw } from 'lucide-react';
 import { STATUS_BADGE, STATUS_COLOR, type PlaceStatus, type Version } from '../api';
+import { pressable } from '../../../lib/pressable';
 
 // Éléments d'interface du module terrain (thème sombre du brief, indépendant du thème choisi
 // dans Sales Hub : l'opener travaille dehors, sur téléphone).
@@ -12,7 +13,7 @@ export const Eyebrow = ({ children, className = '' }: { children: ReactNode; cla
 );
 
 export const Card = ({ children, className = '', onClick }: { children: ReactNode; className?: string; onClick?: () => void }) => (
-  <div onClick={onClick} className={`rounded-[14px] border border-[var(--of-stroke)] bg-[var(--of-surface)] p-3.5 ${onClick ? 'cursor-pointer active:bg-[var(--of-raised)]' : ''} ${className}`}>{children}</div>
+  <div onClick={onClick} {...pressable(onClick)} className={`rounded-[14px] border border-[var(--of-stroke)] bg-[var(--of-surface)] p-3.5 ${onClick ? 'cursor-pointer active:bg-[var(--of-raised)]' : ''} ${className}`}>{children}</div>
 );
 
 export function StatusBadge({ status, version }: { status: PlaceStatus; version?: Version | null }) {

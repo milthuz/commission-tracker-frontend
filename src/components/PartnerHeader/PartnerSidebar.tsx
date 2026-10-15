@@ -103,6 +103,7 @@ const PartnerSidebar = ({ sidebarOpen, setSidebarOpen }: PartnerSidebarProps) =>
             ref={trigger}
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-controls="partner-sidebar"
+            aria-label={t('common.openMenu') as string}
             aria-expanded={sidebarOpen}
             className="block lg:hidden"
           >

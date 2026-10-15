@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Select from '../../components/Select';
 import axios from 'axios';
 import ReactApexChart from 'react-apexcharts';
@@ -8,6 +8,7 @@ import { fmtMoney, fmtNumber, appLocale, monthNames } from '../../lib/format';
 import AdminActionItems from './AdminActionItems';
 import { ContentLoader } from '../../common/Loader';
 import { getToken } from '../../lib/auth';
+import { useDialog } from '../../components/ui/useDialog';
 const API_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 interface DashboardData {
@@ -54,6 +55,8 @@ const AdminDashboard: React.FC = () => {
   const [billing, setBilling] = useState<{ mrr: number; arr: number; activeSubs: number; arpu: number; churnedThisMonth: number; churnRate: number; ltv: number; orgCount: number; perOrg: OrgMetrics[] } | null>(null);
   const [billingErr, setBillingErr] = useState<string | null>(null);
   const [drillMetric, setDrillMetric] = useState<keyof OrgMetrics | null>(null); // tile clicked → per-org breakdown
+  const drillRef = useRef<HTMLDivElement>(null);
+  useDialog(!!drillMetric, () => setDrillMetric(null), drillRef);
 
   useEffect(() => {
     const token = getToken();
@@ -198,10 +201,10 @@ const AdminDashboard: React.FC = () => {
       {/* Per-org breakdown modal for a clicked billing tile */}
       {drillMetric && billing && (
         <div className="fixed inset-0 z-999999 flex items-start overflow-y-auto justify-center bg-black/50 p-4" onClick={() => setDrillMetric(null)}>
-          <div className="my-auto w-full max-w-md overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
+          <div ref={drillRef} role="dialog" aria-modal="true" className="my-auto w-full max-w-md overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
               <h3 className="text-lg font-semibold text-black dark:text-white">{billLabel(drillMetric as string)} · {t('dashboard.byOrg')}</h3>
-              <button onClick={() => setDrillMetric(null)} className="text-body hover:text-black dark:hover:text-white">
+              <button onClick={() => setDrillMetric(null)} aria-label={t('common.close') as string} className="text-body hover:text-black dark:hover:text-white">
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>

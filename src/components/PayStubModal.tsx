@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Select from './Select';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -8,6 +8,7 @@ import ProbationBadge from './ProbationBadge';
 import ActivityTimeline from './ActivityTimeline';
 import { fmtMoney, fmtPeriod, fmtDate, fmtDateOnly, fmtDateTime } from '../lib/format';
 import { getToken } from '../lib/auth';
+import { useDialog } from './ui/useDialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -97,6 +98,13 @@ const PayStubModal: React.FC<{
   const [invPreviewTab, setInvPreviewTab] = useState<'details' | 'activity'>('details');
   const [repActivityOpen, setRepActivityOpen] = useState(false);
   const openInvPreview = (num: string) => { setInvPreviewTab('details'); setInvPreview({ num, loading: true }); };
+  // Talon, aperçu de facture par-dessus, activité du rep : chacun ferme avec Échap, le dernier ouvert d'abord.
+  const boxRef = useRef<HTMLDivElement>(null);
+  const invRef = useRef<HTMLDivElement>(null);
+  const actRef = useRef<HTMLDivElement>(null);
+  useDialog(!!data, onClose, boxRef);
+  useDialog(!!invPreview, () => setInvPreview(null), invRef);
+  useDialog(repActivityOpen, () => setRepActivityOpen(false), actRef);
   if (!data) return null;
   const showApp = !!showAppCalc && data.source === 'imported';
   // Adjustments (corrections on past periods) are shown in their OWN section, not with bonuses.
@@ -367,7 +375,7 @@ const PayStubModal: React.FC<{
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50 p-4 sm:p-8" onClick={onClose}>
       {/* Outer wrapper = position context for the corner ✕ (kept OUTSIDE the clipped box so it isn't cut);
           inner box is overflow-hidden so the scroll area's scrollbar gets clipped by the rounded corners. */}
-      <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+      <div ref={boxRef} role="dialog" aria-modal="true" className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
           title={tp('close') as string}
@@ -808,7 +816,7 @@ const PayStubModal: React.FC<{
       {invPreview && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-60 p-4"
           onClick={(e) => { e.stopPropagation(); setInvPreview(null); }}>
-          <div className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark"
+          <div ref={invRef} role="dialog" aria-modal="true" className="flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark"
             onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
               <div className="flex items-center gap-4">
@@ -857,7 +865,7 @@ const PayStubModal: React.FC<{
       {repActivityOpen && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-60 p-4"
           onClick={(e) => { e.stopPropagation(); setRepActivityOpen(false); }}>
-          <div className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark"
+          <div ref={actRef} role="dialog" aria-modal="true" className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-lg bg-white shadow-xl dark:bg-boxdark"
             onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
               <div>

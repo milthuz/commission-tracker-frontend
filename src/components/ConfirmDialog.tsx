@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useDialog } from './ui/useDialog';
 
 // Confirmation À L'IMAGE DE L'APPLICATION, à la place du confirm() de Chrome : même habillage que
 // SendConfirmModal (qui reste réservé aux envois d'ARGENT, avec ses totaux). Le contenu est libre :
@@ -21,12 +22,14 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   open, title, message, children, confirmLabel, busyLabel, busy = false, tone = 'primary', onConfirm, onClose,
 }) => {
   const { t } = useTranslation();
+  const boxRef = useRef<HTMLDivElement>(null);
+  useDialog(open, () => { if (!busy) onClose(); }, boxRef);
   if (!open) return null;
   const bg = tone === 'danger' ? 'bg-danger' : tone === 'warning' ? 'bg-warning' : 'bg-primary';
   return (
     <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !busy && onClose()} />
-      <div role="alertdialog" aria-modal="true"
+      <div ref={boxRef} role="alertdialog" aria-modal="true"
         className="relative w-full max-w-lg rounded-2xl border border-stroke bg-white p-6 shadow-2xl dark:border-strokedark dark:bg-boxdark">
         <h3 className="text-base font-semibold text-black dark:text-white">{title}</h3>
         {message && <div className="mt-1 text-sm text-body dark:text-gray-300">{message}</div>}

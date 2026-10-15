@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import * as pdfjsLib from 'pdfjs-dist';
 // Vite bundles the worker and gives us a URL for it.
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { pressable } from '../lib/pressable';
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 interface Props {
@@ -133,6 +134,7 @@ const PdfThumbPreview: React.FC<Props> = ({ pdfBase64, presentationPageCount, or
                 onDrop={() => onDropThumb(num)}
                 onDragEnd={() => { setDragNum(null); setDragOverNum(null); }}
                 onClick={() => setFocused(num)}
+                {...pressable(() => setFocused(num))}
                 className={`group relative cursor-grab rounded-md border-2 transition ${focused === num ? 'border-primary' : isDragOver ? 'border-dashed border-primary/70' : 'border-transparent'}`}
               >
                 <img src={p.thumb} alt={`page ${num}`} draggable={false} className={`w-full rounded shadow-sm transition ${inc ? '' : 'opacity-25 grayscale'}`} />
