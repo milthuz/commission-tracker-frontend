@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import SalesHubLogo from '../../components/SalesHubLogo';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import { getDeviceToken, storeDeviceToken } from '../../lib/deviceTrust';
+import { authError } from '../../lib/authError';
 
 const DEVICE_TOKEN_PREFIX = 'deviceToken';
 
@@ -73,7 +74,7 @@ const ZohoLogin = () => {
         body: JSON.stringify({ email, password, deviceToken }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || 'Login failed'); return; }
+      if (!r.ok) { setError(authError(d.error, t)); return; }
       if (d.mfaRequired) { setMfaToken(d.mfaToken); setCode(''); setStep('mfa'); }
       else if (d.token) { await finishLogin(d.token); } // trusted device — MFA skipped
     } catch {
@@ -90,7 +91,7 @@ const ZohoLogin = () => {
         body: JSON.stringify({ mfaToken, code, rememberDevice }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || 'Invalid code'); return; }
+      if (!r.ok) { setError(authError(d.error, t, 'auth.serverError.invalidCode')); return; }
       if (d.deviceToken) storeDeviceToken(DEVICE_TOKEN_PREFIX, email, d.deviceToken);
       await finishLogin(d.token);
     } catch {
@@ -168,7 +169,7 @@ const ZohoLogin = () => {
                 </div>
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy}
-                  className="mx-auto !mt-6 flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
+                  className="mx-auto !mt-6 flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary dark:text-[#141414]">
                   {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.logIn')}
                 </button>
               </form>
@@ -240,7 +241,7 @@ const ZohoLogin = () => {
                 </label>
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy || code.length !== 6}
-                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
+                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary dark:text-[#141414]">
                   {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.verify')}
                 </button>
                 <button type="button" onClick={() => { setError(''); setStep('creds'); }}
@@ -266,7 +267,7 @@ const ZohoLogin = () => {
                 />
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy}
-                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
+                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary dark:text-[#141414]">
                   {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.sendResetLink')}
                 </button>
                 <button type="button" onClick={() => { setError(''); setStep('creds'); }}

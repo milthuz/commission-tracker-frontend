@@ -39,7 +39,7 @@ interface Info {
 type Phase = 'loading' | 'invalid' | 'expired' | 'cancelled' | 'ready' | 'signed' | 'declined' | 'error';
 
 const INPUT =
-  'w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-[15px] text-gray-900 outline-none transition focus:border-[#f26b21] focus:ring-2 focus:ring-[#f26b21]/20';
+  'w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-[15px] text-gray-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20';
 
 const Sign = () => {
   usePassFavicon();
@@ -128,7 +128,7 @@ const Sign = () => {
 
   const message = (title: string, body: string, tone: 'ok' | 'warn' = 'warn') => (
     <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-200">
-      <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full text-xl ${tone === 'ok' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-[#f26b21]'}`}>
+      <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full text-xl ${tone === 'ok' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-accent-ink'}`}>
         {tone === 'ok' ? '✓' : '!'}
       </div>
       <h1 className="mb-2 text-xl font-semibold text-gray-900">{title}</h1>
@@ -155,7 +155,7 @@ const Sign = () => {
             ))}
           </div>
         </div>
-        <div className="h-1 bg-[#f26b21]" />
+        <div className="h-1 bg-primary" />
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -170,7 +170,7 @@ const Sign = () => {
         {phase === 'ready' && info && (
           <div className="space-y-6">
             <div>
-              <p className="text-sm font-medium uppercase tracking-wide text-[#f26b21]">{t(info.kind === 'addendum' ? 'sign.addendumEyebrow' : 'sign.eyebrow')}</p>
+              <p className="text-sm font-medium uppercase tracking-wide text-accent-ink">{t(info.kind === 'addendum' ? 'sign.addendumEyebrow' : 'sign.eyebrow')}</p>
               <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{t('sign.hello', { name: info.firstName })}</h1>
               <p className="mt-2 text-[15px] leading-relaxed text-gray-600">{info.kind === 'addendum'
                 ? t('sign.addendumIntro', { company, title: (lang === 'fr' ? info.docTitleFr : info.docTitleEn) || info.docTitleFr || info.docTitleEn })
@@ -185,15 +185,15 @@ const Sign = () => {
                   <li key={d.key}>
                     <button type="button"
                       onClick={() => { setOpened((o) => ({ ...o, [d.key]: true })); setViewer({ url: docUrl(d.key), title: docTitle(d), filename: `Cluster_${d.key}.pdf` }); }}
-                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3 text-left transition hover:border-[#f26b21] hover:bg-orange-50/40">
+                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3 text-left transition hover:border-primary hover:bg-orange-50/40">
                       <span className="flex min-w-0 items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-xs font-bold text-[#f26b21]">PDF</span>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-xs font-bold text-accent-ink">PDF</span>
                         <span className="min-w-0">
                           <span className="block truncate text-[15px] font-medium">{docTitle(d)}</span>
                           {d.pages && <span className="block text-xs text-gray-500">{t('sign.pages', { n: d.pages, count: d.pages })}</span>}
                         </span>
                       </span>
-                      <span className={`shrink-0 text-sm font-medium ${opened[d.key] ? 'text-green-700' : 'text-[#f26b21]'}`}>
+                      <span className={`shrink-0 text-sm font-medium ${opened[d.key] ? 'text-green-700' : 'text-accent-ink'}`}>
                         {opened[d.key] ? `✓ ${t('sign.opened')}` : t('sign.open')}
                       </span>
                     </button>
@@ -209,11 +209,11 @@ const Sign = () => {
               <h2 className="mb-4 font-semibold">{t('sign.step2')}</h2>
               <div className="space-y-4">
                 <label className="flex cursor-pointer items-start gap-3 text-[15px]">
-                  <input type="checkbox" className="mt-1 h-4 w-4 accent-[#f26b21]" checked={readAll} onChange={(e) => setReadAll(e.target.checked)} />
+                  <input type="checkbox" className="mt-1 h-4 w-4 accent-primary" checked={readAll} onChange={(e) => setReadAll(e.target.checked)} />
                   <span>{t('sign.readAll')}{!allOpened && <span className="block text-xs text-gray-500">{t('sign.notAllOpened')}</span>}</span>
                 </label>
                 <label className="flex cursor-pointer items-start gap-3 text-[15px]">
-                  <input type="checkbox" className="mt-1 h-4 w-4 accent-[#f26b21]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+                  <input type="checkbox" className="mt-1 h-4 w-4 accent-primary" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                   <span>{t('sign.consent')}</span>
                 </label>
                 <div>
@@ -229,7 +229,7 @@ const Sign = () => {
               {error && <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
               <button type="button" onClick={submit} disabled={!canSign}
-                className="mt-5 w-full rounded-xl bg-[#f26b21] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#dc5a14] disabled:cursor-not-allowed disabled:opacity-40">
+                className="mt-5 w-full rounded-xl bg-primary px-6 py-3.5 text-[15px] font-semibold text-[#141414] shadow-sm transition hover:bg-[#F79C6A] disabled:cursor-not-allowed disabled:opacity-40">
                 {busy ? t('sign.signing') : t('sign.submit')}
               </button>
               <p className="mt-3 text-center text-xs leading-relaxed text-gray-500">{t('sign.legal', { company })}</p>

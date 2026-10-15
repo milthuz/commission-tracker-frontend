@@ -42,7 +42,7 @@ type Phase = 'loading' | 'invalid' | 'expired' | 'cancelled' | 'ready' | 'signed
 type Field = 'legalName' | 'contactPerson' | 'phone' | 'email';
 
 const INPUT =
-  'w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-[15px] text-gray-900 outline-none transition focus:border-[#f26b21] focus:ring-2 focus:ring-[#f26b21]/20';
+  'w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-[15px] text-gray-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20';
 const INPUT_BAD = ' border-red-400 focus:border-red-500 focus:ring-red-200';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_DOC = 10 * 1024 * 1024;
@@ -60,7 +60,7 @@ const invalid = (f: Record<Field, string>): Field[] => {
 const Section = ({ n, title, children }: { n?: number; title: string; children: React.ReactNode }) => (
   <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6">
     <h2 className="mb-3 flex items-center gap-3 font-semibold">
-      {n != null && <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f26b21] text-sm font-bold text-white">{n}</span>}
+      {n != null && <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-[#141414]">{n}</span>}
       {title}
     </h2>
     {children}
@@ -68,7 +68,7 @@ const Section = ({ n, title, children }: { n?: number; title: string; children: 
 );
 
 const Bullet = ({ children }: { children: React.ReactNode }) => (
-  <li className="flex gap-2.5 text-[15px] leading-relaxed text-gray-700"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f26b21]" /><span>{children}</span></li>
+  <li className="flex gap-2.5 text-[15px] leading-relaxed text-gray-700"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" /><span>{children}</span></li>
 );
 
 const CreditSign = () => {
@@ -194,14 +194,14 @@ const CreditSign = () => {
 
   const message = (heading: string, text: string, tone: 'ok' | 'warn' = 'warn', withPdf = false) => (
     <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-200">
-      <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full text-xl ${tone === 'ok' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-[#f26b21]'}`}>
+      <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full text-xl ${tone === 'ok' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-accent-ink'}`}>
         {tone === 'ok' ? '✓' : '!'}
       </div>
       <h1 className="mb-2 text-xl font-semibold text-gray-900">{heading}</h1>
       <p className="text-[15px] leading-relaxed text-gray-600">{text}</p>
       {withPdf && (
         <button type="button" onClick={() => setViewer({ url: `${base}/pdf`, title: t('creditSign.docTitle') as string, filename: `Cluster_${info?.ref || 'credit'}.pdf` })}
-          className="mt-5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:border-[#f26b21] hover:text-[#f26b21]">
+          className="mt-5 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:border-primary hover:text-accent-ink">
           {t('creditSign.viewSigned')}
         </button>
       )}
@@ -225,7 +225,7 @@ const CreditSign = () => {
             ))}
           </div>
         </div>
-        <div className="h-1 bg-[#f26b21]" />
+        <div className="h-1 bg-primary" />
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -240,13 +240,13 @@ const CreditSign = () => {
         {phase === 'ready' && info && (
           <div className="space-y-5">
             <div>
-              <p className="text-sm font-medium uppercase tracking-wide text-[#f26b21]">{t('creditSign.eyebrow')}</p>
+              <p className="text-sm font-medium uppercase tracking-wide text-accent-ink">{t('creditSign.eyebrow')}</p>
               <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">{t('creditSign.formTitle')}</h1>
               <p className="mt-2 text-[15px] leading-relaxed text-gray-600">{t('creditSign.formIntro')}</p>
             </div>
 
-            <section id="merchant-info" className="scroll-mt-4 rounded-2xl border-l-4 border-[#f26b21] bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6">
-              <h2 className="mb-1 text-sm font-bold uppercase tracking-wide text-[#f26b21]">{t('creditSign.merchantInfo')}</h2>
+            <section id="merchant-info" className="scroll-mt-4 rounded-2xl border-l-4 border-primary bg-white p-5 shadow-sm ring-1 ring-gray-200 sm:p-6">
+              <h2 className="mb-1 text-sm font-bold uppercase tracking-wide text-accent-ink">{t('creditSign.merchantInfo')}</h2>
               <p className="mb-4 text-sm text-gray-500">{t('creditSign.merchantInfoHint')}</p>
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -280,7 +280,7 @@ const CreditSign = () => {
             <Section n={2} title={t('creditSign.s2Title')}>
               <div className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl bg-orange-50/60 px-4 py-3">
                 <span className="text-sm font-medium text-gray-700">{t('creditSign.amountLabel')}</span>
-                <span className="text-3xl font-bold text-[#f26b21]">{money(info.amount)} <span className="text-base font-semibold text-gray-700">CAD</span></span>
+                <span className="text-3xl font-bold text-accent-ink">{money(info.amount)} <span className="text-base font-semibold text-gray-700">CAD</span></span>
               </div>
               <p className="mt-3 text-[15px] leading-relaxed text-gray-700">{t('creditSign.s2Body')}</p>
             </Section>
@@ -301,7 +301,7 @@ const CreditSign = () => {
                 ))}
                 <input ref={fileInput} type="file" accept="application/pdf,image/png,image/jpeg,image/webp" multiple className="hidden" onChange={(e) => addFiles(e.target.files)} />
                 <button type="button" onClick={() => fileInput.current?.click()} disabled={uploading}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 px-4 py-4 text-[15px] font-medium text-gray-700 transition hover:border-[#f26b21] hover:text-[#f26b21] disabled:opacity-50">
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 px-4 py-4 text-[15px] font-medium text-gray-700 transition hover:border-primary hover:text-accent-ink disabled:opacity-50">
                   {uploading ? t('creditSign.docUploading') : `＋ ${t('creditSign.docAdd')}`}
                 </button>
                 <p className="text-xs text-gray-500">{t('creditSign.docHint')}</p>
@@ -331,7 +331,7 @@ const CreditSign = () => {
                   <SignaturePad ref={pad} clearLabel={t('creditSign.clear')} placeholder={t('creditSign.drawHere')} onChange={setPadEmpty} />
                 </div>
                 <label className="flex cursor-pointer items-start gap-3 text-[15px]">
-                  <input type="checkbox" className="mt-1 h-4 w-4 accent-[#f26b21]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+                  <input type="checkbox" className="mt-1 h-4 w-4 accent-primary" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                   <span>{t('creditSign.consent')}</span>
                 </label>
               </div>
@@ -340,11 +340,11 @@ const CreditSign = () => {
 
               <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                 <button type="button" onClick={preview}
-                  className="rounded-xl border border-gray-300 px-5 py-3.5 text-[15px] font-medium text-gray-700 transition hover:border-[#f26b21] hover:text-[#f26b21] sm:w-auto">
+                  className="rounded-xl border border-gray-300 px-5 py-3.5 text-[15px] font-medium text-gray-700 transition hover:border-primary hover:text-accent-ink sm:w-auto">
                   {t('creditSign.preview')}
                 </button>
                 <button type="button" onClick={submit} disabled={!canClick}
-                  className="flex-1 rounded-xl bg-[#f26b21] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#dc5a14] disabled:cursor-not-allowed disabled:opacity-40">
+                  className="flex-1 rounded-xl bg-primary px-6 py-3.5 text-[15px] font-semibold text-[#141414] shadow-sm transition hover:bg-[#F79C6A] disabled:cursor-not-allowed disabled:opacity-40">
                   {busy ? t('creditSign.signing') : t('creditSign.submit')}
                 </button>
               </div>

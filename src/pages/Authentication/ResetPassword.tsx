@@ -3,6 +3,7 @@ import PasswordInput from '../../components/PasswordInput';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import SalesHubLogo from '../../components/SalesHubLogo';
+import { authError } from '../../lib/authError';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -29,7 +30,7 @@ const ResetPassword = () => {
         body: JSON.stringify({ token, password: pw1 }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || 'Failed'); return; }
+      if (!r.ok) { setError(authError(d.error, t)); return; }
       setDone(true);
     } catch {
       setError(t('auth.networkError') as string);
@@ -55,7 +56,7 @@ const ResetPassword = () => {
               <h2 className="mb-2 text-2xl font-bold text-black dark:text-white">{t('auth.reset.doneTitle')}</h2>
               <p className="mb-8 text-sm text-body">{t('auth.reset.doneSubtitle')}</p>
               <Link to="/auth/zoho-login"
-                className="block w-full rounded-full bg-black py-4 text-center text-base font-semibold text-white hover:bg-opacity-80 dark:bg-primary">
+                className="block w-full rounded-full bg-black py-4 text-center text-base font-semibold text-white hover:bg-opacity-80 dark:bg-primary dark:text-[#141414]">
                 {t('auth.backToLoginBtn')}
               </Link>
             </div>
@@ -73,7 +74,7 @@ const ResetPassword = () => {
                 <p className="text-xs text-body">{t('auth.invite.pwHint')}</p>
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy}
-                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
+                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary dark:text-[#141414]">
                   {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.reset.submit')}
                 </button>
               </form>

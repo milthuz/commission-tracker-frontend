@@ -127,7 +127,7 @@ const Booking = () => {
 
   const message = (title: string, body: string, tone: 'ok' | 'warn' = 'warn', action?: React.ReactNode) => (
     <div className="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-200">
-      <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full text-xl ${tone === 'ok' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-[#f26b21]'}`}>
+      <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full text-xl ${tone === 'ok' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-accent-ink'}`}>
         {tone === 'ok' ? '✓' : '!'}
       </div>
       <h1 className="mb-2 text-xl font-semibold text-gray-900">{title}</h1>
@@ -149,7 +149,7 @@ const Booking = () => {
   const appt = info?.appointment;
   const againBtn = (
     <button type="button" onClick={() => { setPhase('loading'); load(true); }}
-      className="text-sm font-medium text-[#f26b21] underline-offset-2 hover:underline">
+      className="text-sm font-medium text-accent-ink underline-offset-2 hover:underline">
       {t('booking.changeAgain')}
     </button>
   );
@@ -168,7 +168,7 @@ const Booking = () => {
             ))}
           </div>
         </div>
-        <div className="h-1 bg-[#f26b21]" />
+        <div className="h-1 bg-primary" />
       </header>
 
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -185,7 +185,7 @@ const Booking = () => {
         {phase === 'ready' && info && (
           <div className="space-y-6">
             <div>
-              <p className="text-sm font-medium uppercase tracking-wide text-[#f26b21]">{t('booking.eyebrow')}</p>
+              <p className="text-sm font-medium uppercase tracking-wide text-accent-ink">{t('booking.eyebrow')}</p>
               <h1 className="mt-1 text-2xl font-semibold sm:text-3xl">
                 {info.firstName ? t('booking.hello', { name: info.firstName }) : t('booking.helloAnon')}
               </h1>
@@ -211,7 +211,7 @@ const Booking = () => {
                   </div>
                   {appt.status === 'proposed' && !info.past && (
                     <button type="button" onClick={() => book(appt.at)} disabled={busy}
-                      className="rounded-xl bg-[#f26b21] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#dc5a14] disabled:opacity-40">
+                      className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] shadow-sm transition hover:bg-[#F79C6A] disabled:opacity-40">
                       {t('booking.confirmThis')}
                     </button>
                   )}
@@ -241,7 +241,7 @@ const Booking = () => {
                     return (
                       <button key={d.date} type="button" onClick={() => { setDay(d.date); setPicked(null); }}
                         className={`min-w-[76px] shrink-0 rounded-xl border px-3 py-2 text-center transition ${
-                          on ? 'border-[#f26b21] bg-orange-50 text-gray-900' : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                          on ? 'border-primary bg-orange-50 text-gray-900' : 'border-gray-200 text-gray-700 hover:border-gray-300'
                         } ${!d.slots.length ? 'opacity-50' : ''}`}>
                         <span className="block text-xs uppercase text-gray-500">{l.weekday}</span>
                         <span className="block text-sm font-semibold">{l.day}</span>
@@ -258,9 +258,9 @@ const Booking = () => {
                       return (
                         <button key={s} type="button" disabled={isCurrent} onClick={() => setPicked(s)}
                           className={`rounded-lg border px-2 py-2.5 text-sm font-medium transition ${
-                            on ? 'border-[#f26b21] bg-[#f26b21] text-white'
+                            on ? 'border-primary bg-primary text-[#141414]'
                               : isCurrent ? 'cursor-default border-gray-200 bg-gray-100 text-gray-400'
-                              : 'border-gray-200 text-gray-800 hover:border-[#f26b21]'
+                              : 'border-gray-200 text-gray-800 hover:border-primary'
                           }`}>
                           {fmtTime(s)}
                         </button>
@@ -274,7 +274,7 @@ const Booking = () => {
                 {error && <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
                 <button type="button" onClick={() => picked && book(picked)} disabled={!picked || busy}
-                  className="mt-5 w-full rounded-xl bg-[#f26b21] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#dc5a14] disabled:cursor-not-allowed disabled:opacity-40">
+                  className="mt-5 w-full rounded-xl bg-primary px-6 py-3.5 text-[15px] font-semibold text-[#141414] shadow-sm transition hover:bg-[#F79C6A] disabled:cursor-not-allowed disabled:opacity-40">
                   {busy ? t('booking.saving') : picked ? t('booking.confirmAt', { when: fmtWhen(picked) }) : t('booking.pickFirst')}
                 </button>
               </section>

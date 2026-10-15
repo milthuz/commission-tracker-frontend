@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import SalesHubLogo from '../../components/SalesHubLogo';
+import { authError } from '../../lib/authError';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -63,7 +64,7 @@ const AcceptInvite = () => {
         body: JSON.stringify({ token, password: pw1 }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || 'Failed'); return; }
+      if (!r.ok) { setError(authError(d.error, t)); return; }
       setQr(d.qrDataUrl); setSecret(d.secret); setSetupToken(d.setupToken);
       setStep('qr');
     } catch {
@@ -80,7 +81,7 @@ const AcceptInvite = () => {
         body: JSON.stringify({ setupToken, code }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || 'Invalid code'); return; }
+      if (!r.ok) { setError(authError(d.error, t, 'auth.serverError.invalidCode')); return; }
       const v = await fetch(`${API_URL}/api/auth/verify`, { headers: { Authorization: `Bearer ${d.token}` } });
       const vd = await v.json();
       login(vd.user, d.token);
@@ -132,7 +133,7 @@ const AcceptInvite = () => {
                 <p className="text-xs text-body">{t('auth.invite.pwHint')}</p>
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy}
-                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
+                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary dark:text-[#141414]">
                   {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.invite.continue')}
                 </button>
               </form>
@@ -157,7 +158,7 @@ const AcceptInvite = () => {
                   className={`${inputCls} text-center text-2xl font-bold tracking-[0.5em]`} />
                 {error && <p className="text-sm text-danger">{error}</p>}
                 <button type="submit" disabled={busy || code.length !== 6}
-                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
+                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary dark:text-[#141414]">
                   {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.invite.activate')}
                 </button>
               </form>
