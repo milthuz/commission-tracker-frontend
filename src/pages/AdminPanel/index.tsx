@@ -33,7 +33,9 @@ import NotFound from '../NotFound';
 const ADMIN_SECTIONS = ['sync', 'salespeople', 'customers', 'releases', 'users', 'import-payments', 'resellers', 'resources', 'hardware', 'pricing',
   'icplus-rates', 'opener', 'leads', 'hr', 'partners', 'merchant-links', 'notifications', 'data-health', 'audit'];
 import { useUrlTab } from '../../components/ui/Tabs';
-import DateField from '../../components/DateField';
+import RepEditPanel from './RepEditPanel';
+import UserDirectory from './UserDirectory';
+import { Button } from '../../components/ui';
 import { dialog } from '../../lib/dialog';
 
 // Whole amounts stay whole ("$1,200"), cents are shown when there are some — like the old toLocaleString().
@@ -118,6 +120,8 @@ const AdminPanel = () => {
   useAuth();
   const navigate = useNavigate();
   const [salespeople, setSalespeople] = useState<Salesperson[]>([]);
+  // Rep open in the edit panel (by name — the list may refresh while it is open).
+  const [editingRep, setEditingRep] = useState<string | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [newTeamName, setNewTeamName] = useState('');
   const [newSalespersonName, setNewSalespersonName] = useState('');
@@ -253,8 +257,8 @@ const AdminPanel = () => {
   // Sub-tab state for the reorganized Admin sections.
   const [syncSub, setSyncSub] = useState<'connections' | 'data'>('connections');
   const [spSub, setSpSub] = useState<'reps' | 'teams' | 'points'>('reps');
-  const [usersSub, setUsersSub] = useUrlTab<'access' | 'external' | 'impersonation' | 'roles' | 'sofia'>(
-    rawTab === 'roles' ? 'roles' : 'access', ['access', 'external', 'impersonation', 'roles', 'sofia']);
+  const [usersSub, setUsersSub] = useUrlTab<'all' | 'access' | 'external' | 'impersonation' | 'roles' | 'sofia'>(
+    rawTab === 'roles' ? 'roles' : 'all', ['all', 'access', 'external', 'impersonation', 'roles', 'sofia']);
   const [editingUserRoleIds, setEditingUserRoleIds] = useState<number[]>([]);
   const [editingManagedTeamIds, setEditingManagedTeamIds] = useState<number[]>([]); // team-scoped managers
   type Tier = { points: number; bonus: number };
@@ -352,15 +356,6 @@ const AdminPanel = () => {
 
   // Salespeople tab and edit lock state
   const [salespeopleTab, setSalespeopleTab] = useState<'active' | 'inactive'>('active');
-  const [unlockedFields, setUnlockedFields] = useState<Record<string, boolean>>({});
-  const [confirmModal, setConfirmModal] = useState<{
-    show: boolean;
-    name: string;
-    field: string;
-    oldValue: number;
-    newValue: number;
-    onConfirm: () => void;
-  } | null>(null);
 
   // Admin gate from the EFFECTIVE identity (/api/auth/verify), not the raw JWT —
   // the JWT stays admin while impersonating, which would let an impersonated
@@ -499,8 +494,10 @@ const AdminPanel = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, email: email || null } : p));
+      return true;
     } catch (error: any) {
       dialog.alert(error?.response?.data?.error || t('admin.errors.updateEmail'));
+      return false;
     }
   };
 
@@ -513,8 +510,10 @@ const AdminPanel = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, hireDate: hireDate || null } : p));
+      return true;
     } catch (error: any) {
       dialog.alert(error?.response?.data?.error || t('admin.errors.updateHireDate'));
+      return false;
     }
   };
 
@@ -527,8 +526,10 @@ const AdminPanel = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, quotaGateEnabled: enabled } : p));
+      return true;
     } catch (error: any) {
       dialog.alert(error?.response?.data?.error || t('admin.errors.updateQuotaGate'));
+      return false;
     }
   };
 
@@ -541,8 +542,10 @@ const AdminPanel = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, processingBonusEnabled: enabled } : p));
+      return true;
     } catch (error: any) {
       dialog.alert(error?.response?.data?.error || t('admin.errors.updateProcessingBonus'));
+      return false;
     }
   };
 
@@ -555,8 +558,10 @@ const AdminPanel = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, annualBonusEnabled: enabled } : p));
+      return true;
     } catch (error: any) {
       dialog.alert(error?.response?.data?.error || t('admin.errors.updateAnnualBonus'));
+      return false;
     }
   };
 
@@ -569,8 +574,10 @@ const AdminPanel = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, monthlyQuota: quota } : p));
+      return true;
     } catch (error: any) {
       dialog.alert(error?.response?.data?.error || t('admin.errors.updateQuota'));
+      return false;
     }
   };
 
@@ -585,8 +592,10 @@ const AdminPanel = () => {
       const teamName = teamId == null ? null : (teams.find(t => t.id === teamId)?.name ?? null);
       setSalespeople(prev => prev.map(p => p.name === name ? { ...p, teamId, teamName } : p));
       fetchTeams(); // refresh member counts
+      return true;
     } catch (error: any) {
       dialog.alert(error?.response?.data?.error || t('admin.errors.assignTeam'));
+      return false;
     }
   };
 
@@ -1514,9 +1523,11 @@ const AdminPanel = () => {
             : person
         )
       );
+      return true;
     } catch (error) {
       console.error('Error updating salesperson status:', error);
       dialog.alert(t('admin.errors.updateSalespersonStatus'));
+      return false;
     }
   };
 
@@ -1538,28 +1549,14 @@ const AdminPanel = () => {
             : person
         )
       );
-      // Re-lock the field after save
-      setUnlockedFields(prev => ({ ...prev, [`${name}_commission`]: false }));
+      return true;
     } catch (error) {
       console.error('Error updating commission rate:', error);
       dialog.alert(t('admin.errors.updateCommissionRate'));
+      return false;
     }
   };
 
-  // Show confirmation for commission rate change
-  const confirmCommissionRate = (name: string, oldValue: number, newValue: number) => {
-    setConfirmModal({
-      show: true,
-      name,
-      field: t('admin.salespeople.commissionPercent'),
-      oldValue,
-      newValue,
-      onConfirm: () => {
-        updateCommissionRate(name, newValue);
-        setConfirmModal(null);
-      },
-    });
-  };
 
   // Update base salary (called after confirmation)
   const updateBaseSalary = async (name: string, salary: number) => {
@@ -1579,11 +1576,11 @@ const AdminPanel = () => {
             : person
         )
       );
-      // Re-lock the field after save
-      setUnlockedFields(prev => ({ ...prev, [`${name}_salary`]: false }));
+      return true;
     } catch (error) {
       console.error('Error updating base salary:', error);
       dialog.alert(t('admin.salespeople.failedUpdateSalary'));
+      return false;
     }
   };
 
@@ -1601,10 +1598,11 @@ const AdminPanel = () => {
           person.name === name ? { ...person, signupBonusAmount: amount, signupBonusEnabled: enabled } : person
         )
       );
-      setUnlockedFields(prev => ({ ...prev, [`${name}_signup`]: false }));
+      return true;
     } catch (error) {
       console.error('Error updating signup bonus:', error);
       dialog.alert(t('admin.salespeople.failedUpdateSignup'));
+      return false;
     }
   };
 
@@ -1624,9 +1622,10 @@ const AdminPanel = () => {
           person.name === name ? { ...person, reviewBonusAmount: amount, reviewBonusEnabled: enabled } : person
         )
       );
-      setUnlockedFields(prev => ({ ...prev, [`${name}_review`]: false }));
+      return true;
     } catch (error: any) {
       dialog.alert(error?.response?.data?.error || t('admin.errors.updateReviewBonus'));
+      return false;
     }
   };
 
@@ -1642,27 +1641,14 @@ const AdminPanel = () => {
       setSalespeople(prev =>
         prev.map(person => person.name === name ? { ...person, aliases } : person)
       );
-      setUnlockedFields(prev => ({ ...prev, [`${name}_aliases`]: false }));
+      return true;
     } catch (error) {
       console.error('Error updating aliases:', error);
       dialog.alert(t('admin.errors.updateAliases'));
+      return false;
     }
   };
 
-  // Show confirmation for base salary change
-  const confirmBaseSalary = (name: string, oldValue: number, newValue: number) => {
-    setConfirmModal({
-      show: true,
-      name,
-      field: t('admin.salespeople.baseSalary'),
-      oldValue,
-      newValue,
-      onConfirm: () => {
-        updateBaseSalary(name, newValue);
-        setConfirmModal(null);
-      },
-    });
-  };
 
   // Filter salespeople by search
   const filteredSalespeople = salespeople
@@ -2510,53 +2496,6 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {/* ==================== SALESPEOPLE ==================== */}
           {activeTab === 'salespeople' && (
             <>
-            {/* Confirmation Modal */}
-            {confirmModal?.show && (
-              <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center p-4 bg-black bg-opacity-50">
-                <div className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark">
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning bg-opacity-10">
-                      <svg className="h-5 w-5 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.salespeople.confirmChange')}</h3>
-                      <p className="text-sm text-body">{confirmModal.name}</p>
-                    </div>
-                  </div>
-                  <div className="mb-5 rounded-md bg-gray-2 p-4 dark:bg-meta-4">
-                    <p className="text-sm text-body mb-2">{confirmModal.field}</p>
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-bold text-danger line-through">
-                        {confirmModal.field.includes('%') ? `${confirmModal.oldValue}%` : money(confirmModal.oldValue)}
-                      </span>
-                      <svg className="h-4 w-4 text-body" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                      <span className="text-lg font-bold text-success">
-                        {confirmModal.field.includes('%') ? `${confirmModal.newValue}%` : money(confirmModal.newValue)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex justify-end gap-3">
-                    <button
-                      onClick={() => setConfirmModal(null)}
-                      className="rounded-md border border-stroke px-5 py-2.5 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
-                    >
-                      {t('common.cancel')}
-                    </button>
-                    <button
-                      onClick={confirmModal.onConfirm}
-                      className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90"
-                    >
-                      {t('admin.salespeople.confirmSave')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
               {([['reps', t('admin.salespeople.tabs.reps')], ['teams', t('admin.salespeople.tabs.teams')], ['points', t('admin.salespeople.tabs.points')]] as const).map(([key, label]) => (
                 <button key={key} onClick={() => setSpSub(key as 'reps' | 'teams' | 'points')}
@@ -2879,8 +2818,6 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 <div className="p-3 sm:p-5">
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {(salespeopleTab === 'active' ? activePeople : inactivePeople).map((person) => {
-                      const commissionUnlocked = unlockedFields[`${person.name}_commission`] || false;
-                      const salaryUnlocked = unlockedFields[`${person.name}_salary`] || false;
                       return (
                         <div key={person.name} className="rounded-lg border border-stroke bg-white p-4 shadow-sm transition hover:shadow-md dark:border-strokedark dark:bg-boxdark">
                           {/* Card header */}
@@ -2891,7 +2828,12 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               <p className="mt-1 text-xs text-body">{person.invoiceCount} {t('common.invoices').toLowerCase()}</p>
                             </div>
                             <button
-                              onClick={() => toggleSalesperson(person.name, person.isActive)}
+                              onClick={async () => {
+                                const ok = await dialog.confirm(
+                                  t(person.isActive ? 'admin.repPanel.confirmDeactivate' : 'admin.repPanel.confirmActivate', { name: person.name }) as string,
+                                  { danger: person.isActive });
+                                if (ok) toggleSalesperson(person.name, person.isActive);
+                              }}
                               className={`shrink-0 inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition ${
                                 person.isActive ? 'bg-danger text-white hover:bg-opacity-90' : 'bg-success text-emerald-900 hover:bg-opacity-90'
                               }`}
@@ -2899,317 +2841,33 @@ Joker Pub,Jay Daoust,2024-04-01`}
                               {person.isActive ? t('admin.salespeople.deactivate') : t('admin.salespeople.activate')}
                             </button>
                           </div>
-                          {/* Fields */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.commissionPercent')}</span>
-                              <div className="flex items-center gap-1.5">
-                                {commissionUnlocked ? (
-                                  <>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      max="100"
-                                      step="0.5"
-                                      autoFocus
-                                      defaultValue={person.commissionRate}
-                                      onBlur={(e) => {
-                                        const val = parseFloat(e.target.value);
-                                        if (!isNaN(val) && val !== person.commissionRate) {
-                                          confirmCommissionRate(person.name, person.commissionRate, val);
-                                        } else {
-                                          setUnlockedFields(prev => ({ ...prev, [`${person.name}_commission`]: false }));
-                                        }
-                                      }}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                                        if (e.key === 'Escape') setUnlockedFields(prev => ({ ...prev, [`${person.name}_commission`]: false }));
-                                      }}
-                                      className={`w-16 rounded border border-primary bg-transparent px-2 py-1 text-center text-sm font-medium outline-none dark:bg-form-input ${
-                                        person.commissionRate !== 10 ? 'text-[#8B5CF6]' : 'text-black dark:text-white'
-                                      }`}
-                                    />
-                                    <span className="text-xs text-body">%</span>
-                                  </>
-                                ) : (
-                                  <button
-                                    onClick={() => setUnlockedFields(prev => ({ ...prev, [`${person.name}_commission`]: true }))}
-                                    className="group flex items-center gap-2 rounded-md border border-stroke px-3 py-1.5 text-sm transition hover:border-primary dark:border-strokedark"
-                                  >
-                                    <span className={`font-medium ${person.commissionRate !== 10 ? 'text-[#8B5CF6]' : 'text-black dark:text-white'}`}>
-                                      {person.commissionRate}%
-                                    </span>
-                                    <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                    {person.commissionRate !== 10 && (
-                                      <span className="text-xs text-[#8B5CF6] font-medium">{t('admin.salespeople.override')}</span>
-                                    )}
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.baseSalary')}</span>
-                              <div className="flex items-center gap-1.5">
-                                {salaryUnlocked ? (
-                                  <>
-                                    <span className="text-xs text-body">$</span>
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="100"
-                                      autoFocus
-                                      defaultValue={person.baseSalary || 0}
-                                      onBlur={(e) => {
-                                        const val = parseFloat(e.target.value);
-                                        if (!isNaN(val) && val !== (person.baseSalary || 0)) {
-                                          confirmBaseSalary(person.name, person.baseSalary || 0, val);
-                                        } else {
-                                          setUnlockedFields(prev => ({ ...prev, [`${person.name}_salary`]: false }));
-                                        }
-                                      }}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                                        if (e.key === 'Escape') setUnlockedFields(prev => ({ ...prev, [`${person.name}_salary`]: false }));
-                                      }}
-                                      className={`w-24 rounded border border-primary bg-transparent px-2 py-1 text-center text-sm font-medium outline-none dark:bg-form-input ${
-                                        (person.baseSalary || 0) > 0 ? 'text-primary' : 'text-black dark:text-white'
-                                      }`}
-                                    />
-                                  </>
-                                ) : (
-                                  <button
-                                    onClick={() => setUnlockedFields(prev => ({ ...prev, [`${person.name}_salary`]: true }))}
-                                    className="group flex items-center gap-2 rounded-md border border-stroke px-3 py-1.5 text-sm transition hover:border-primary dark:border-strokedark"
-                                  >
-                                    <span className={`font-medium ${(person.baseSalary || 0) > 0 ? 'text-primary' : 'text-black dark:text-white'}`}>
-                                      {money(person.baseSalary || 0)}
-                                    </span>
-                                    <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.email')}</span>
-                              <input
-                                type="email"
-                                defaultValue={person.email ?? ''}
-                                placeholder={person.resolvedLoginEmail || (t('admin.salespeople.emailPlaceholder') as string)}
-                                title={t('admin.salespeople.emailHint') as string}
-                                onBlur={(e) => {
-                                  const val = e.target.value.trim().toLowerCase();
-                                  if (val !== (person.email || '')) updateRepEmail(person.name, val);
-                                }}
-                                onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                                className={`w-full max-w-[230px] rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input ${person.email ? 'text-black dark:text-white' : 'text-body'}`}
-                              />
-                              {!person.email && person.resolvedLoginEmail && (
-                                <span className="mt-0.5 block max-w-[230px] truncate text-[10px] text-success" title={person.resolvedLoginEmail}>
-                                  ↳ {t('admin.salespeople.loggedInAs')}: {person.resolvedLoginEmail}
-                                </span>
-                              )}
-                            </div>
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body" title={t('admin.salespeople.hireDateHint') as string}>{t('admin.salespeople.hireDate')}</span>
-                              <DateField
-                                value={person.hireDate ?? ''}
-                                onChange={(val) => {
-                                  if (val !== (person.hireDate || '')) updateHireDate(person.name, val);
-                                }}
-                                className="w-full rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white"
-                              />
-                            </div>
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.quotaGate')}</span>
-                              <button
-                                onClick={() => updateQuotaGate(person.name, !(person.quotaGateEnabled !== false))}
-                                title={t('admin.salespeople.quotaGateHint') as string}
-                                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.quotaGateEnabled !== false ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
-                              >
-                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.quotaGateEnabled !== false ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                              </button>
-                            </div>
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.processingBonus')}</span>
-                              <button
-                                onClick={() => updateProcessingBonus(person.name, !(person.processingBonusEnabled !== false))}
-                                title={t('admin.salespeople.processingBonusHint') as string}
-                                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.processingBonusEnabled !== false ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
-                              >
-                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.processingBonusEnabled !== false ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                              </button>
-                            </div>
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.annualBonus')}</span>
-                              <button
-                                onClick={() => updateAnnualBonus(person.name, !(person.annualBonusEnabled !== false))}
-                                title={t('admin.salespeople.annualBonusHint') as string}
-                                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.annualBonusEnabled !== false ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
-                              >
-                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.annualBonusEnabled !== false ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                              </button>
-                            </div>
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.monthlyQuota')}</span>
-                              <input
-                                type="number"
-                                min="0"
-                                defaultValue={person.monthlyQuota ?? ''}
-                                placeholder={String(DEFAULT_QUOTA)}
-                                title={t('admin.salespeople.quotaHint') as string}
-                                onBlur={(e) => {
-                                  const raw = e.target.value.trim();
-                                  const val = raw === '' ? null : parseInt(raw);
-                                  if (val !== person.monthlyQuota) updateQuota(person.name, val);
-                                }}
-                                className={`w-24 rounded border border-stroke bg-transparent px-2 py-1 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input ${person.monthlyQuota != null ? 'font-medium text-[#8B5CF6]' : 'text-black dark:text-white'}`}
-                              />
-                            </div>
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.signupBonus')}</span>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => updateSignupBonus(person.name, person.signupBonusAmount ?? 100, !person.signupBonusEnabled)}
-                                  title={t('admin.salespeople.signupToggleHint')}
-                                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.signupBonusEnabled ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
-                                >
-                                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.signupBonusEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                                </button>
-                                {person.signupBonusEnabled ? (
-                                  unlockedFields[`${person.name}_signup`] ? (
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="10"
-                                      autoFocus
-                                      defaultValue={person.signupBonusAmount ?? 100}
-                                      onBlur={(e) => {
-                                        const val = parseFloat(e.target.value);
-                                        if (!isNaN(val) && val !== (person.signupBonusAmount ?? 100)) {
-                                          updateSignupBonus(person.name, val, true);
-                                        } else {
-                                          setUnlockedFields(prev => ({ ...prev, [`${person.name}_signup`]: false }));
-                                        }
-                                      }}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                                        if (e.key === 'Escape') setUnlockedFields(prev => ({ ...prev, [`${person.name}_signup`]: false }));
-                                      }}
-                                      className="w-20 rounded border border-primary bg-transparent px-2 py-1 text-center text-sm font-medium outline-none dark:bg-form-input text-black dark:text-white"
-                                    />
-                                  ) : (
-                                    <button
-                                      onClick={() => setUnlockedFields(prev => ({ ...prev, [`${person.name}_signup`]: true }))}
-                                      className="group flex items-center gap-1.5 rounded-md border border-stroke px-2.5 py-1.5 text-sm transition hover:border-primary dark:border-strokedark"
-                                    >
-                                      <span className={`font-medium ${(person.signupBonusAmount ?? 100) !== 100 ? 'text-[#8B5CF6]' : 'text-black dark:text-white'}`}>
-                                        {money(person.signupBonusAmount ?? 100)}
-                                      </span>
-                                      <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                      </svg>
-                                    </button>
-                                  )
-                                ) : (
-                                  <span className="text-xs italic text-body">{t('admin.salespeople.signupOff')}</span>
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.reviewBonus')}</span>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => updateReviewBonus(person.name, person.reviewBonusAmount || 0, !person.reviewBonusEnabled)}
-                                  title={t('admin.salespeople.reviewBonusHint') as string}
-                                  className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition ${person.reviewBonusEnabled ? 'bg-primary' : 'bg-stroke dark:bg-meta-4'}`}
-                                >
-                                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition ${person.reviewBonusEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                                </button>
-                                {person.reviewBonusEnabled ? (
-                                  unlockedFields[`${person.name}_review`] ? (
-                                    <input
-                                      type="number"
-                                      min="0"
-                                      step="1"
-                                      autoFocus
-                                      defaultValue={person.reviewBonusAmount || 0}
-                                      onBlur={(e) => {
-                                        const val = parseFloat(e.target.value);
-                                        if (!isNaN(val) && val !== (person.reviewBonusAmount || 0)) {
-                                          updateReviewBonus(person.name, val, true);
-                                        } else {
-                                          setUnlockedFields(prev => ({ ...prev, [`${person.name}_review`]: false }));
-                                        }
-                                      }}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                                        if (e.key === 'Escape') setUnlockedFields(prev => ({ ...prev, [`${person.name}_review`]: false }));
-                                      }}
-                                      className="w-20 rounded border border-primary bg-transparent px-2 py-1 text-center text-sm font-medium text-black outline-none dark:bg-form-input dark:text-white"
-                                    />
-                                  ) : (
-                                    <button
-                                      onClick={() => setUnlockedFields(prev => ({ ...prev, [`${person.name}_review`]: true }))}
-                                      className="group flex items-center gap-1.5 rounded-md border border-stroke px-2.5 py-1.5 text-sm transition hover:border-primary dark:border-strokedark"
-                                    >
-                                      <span className="font-medium text-[#8B5CF6]">{money(person.reviewBonusAmount || 0)}</span>
-                                      <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                      </svg>
-                                    </button>
-                                  )
-                                ) : (
-                                  <span className="text-xs italic text-body">{t('admin.salespeople.reviewOff')}</span>
-                                )}
-                              </div>
-                            </div>
-                            <div className="col-span-2">
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.salespeople.aliases')}</span>
-                              {unlockedFields[`${person.name}_aliases`] ? (
-                                <input
-                                  type="text"
-                                  autoFocus
-                                  defaultValue={(person.aliases || []).join(', ')}
-                                  placeholder="Gaby, Gabi"
-                                  onBlur={(e) => {
-                                    const list = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
-                                    updateAliases(person.name, list);
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-                                    if (e.key === 'Escape') setUnlockedFields(prev => ({ ...prev, [`${person.name}_aliases`]: false }));
-                                  }}
-                                  className="w-44 rounded border border-primary bg-transparent px-2 py-1 text-sm outline-none dark:bg-form-input text-black dark:text-white"
-                                />
-                              ) : (
-                                <button
-                                  onClick={() => setUnlockedFields(prev => ({ ...prev, [`${person.name}_aliases`]: true }))}
-                                  className="group flex items-center gap-1.5 rounded-md border border-stroke px-2.5 py-1.5 text-sm transition hover:border-primary dark:border-strokedark flex-wrap max-w-[220px]"
-                                  title={t('admin.salespeople.aliasesHint')}
-                                >
-                                  {(person.aliases || []).length === 0 ? (
-                                    <span className="text-xs text-body italic">{t('admin.salespeople.addAlias')}</span>
-                                  ) : (
-                                    (person.aliases || []).map(a => (
-                                      <span key={a} className="inline-block rounded-full bg-[#8B5CF6] bg-opacity-10 px-2 py-0.5 text-xs font-medium text-[#8B5CF6]">
-                                        {a}
-                                      </span>
-                                    ))
-                                  )}
-                                  <svg className="h-3.5 w-3.5 text-body group-hover:text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                                  </svg>
-                                </button>
-                              )}
-                            </div>
-                            <div>
-                              <span className="mb-1 block text-xs font-medium text-body">{t('admin.teams.team')}</span>
-                              <Select value={person.teamId != null ? String(person.teamId) : ''} onChange={(v) => assignTeam(person.name, v === '' ? null : parseInt(v))} options={[{ value: '', label: t('admin.teams.noTeam') as string }, ...teams.map((tm) => ({ value: String(tm.id), label: tm.name }))]} buttonClassName={'w-full rounded border border-stroke bg-transparent px-2 py-1.5 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white'} />
-                            </div>
+                          {/* Summary — editing happens in the panel (RepEditPanel), with one Save. */}
+                          <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+                            <div><dt className="text-xs text-body">{t('admin.salespeople.commissionPercent')}</dt>
+                              <dd className={`font-medium ${person.commissionRate !== 10 ? 'text-[#8B5CF6]' : 'text-black dark:text-white'}`}>{person.commissionRate} %{person.commissionRate !== 10 && <span className="ml-1 text-xs">{t('admin.salespeople.override')}</span>}</dd></div>
+                            <div><dt className="text-xs text-body">{t('admin.salespeople.baseSalary')}</dt>
+                              <dd className="font-medium text-black dark:text-white">{money(person.baseSalary || 0)}</dd></div>
+                            <div><dt className="text-xs text-body">{t('admin.salespeople.monthlyQuota')}</dt>
+                              <dd className={`font-medium ${person.monthlyQuota != null ? 'text-[#8B5CF6]' : 'text-black dark:text-white'}`}>{person.monthlyQuota ?? DEFAULT_QUOTA}</dd></div>
+                            <div><dt className="text-xs text-body">{t('admin.teams.team')}</dt>
+                              <dd className="truncate font-medium text-black dark:text-white">{person.teamName || t('admin.teams.noTeam')}</dd></div>
+                            <div className="col-span-2"><dt className="text-xs text-body">{t('admin.salespeople.email')}</dt>
+                              <dd className="truncate text-black dark:text-white">{person.email || (person.resolvedLoginEmail ? <span className="text-success">↳ {person.resolvedLoginEmail}</span> : <span className="italic text-body">—</span>)}</dd></div>
+                          </dl>
+                          {/* What is switched on, at a glance. */}
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {([
+                              [person.quotaGateEnabled !== false, t('admin.salespeople.quotaGate')],
+                              [person.processingBonusEnabled !== false, t('admin.salespeople.processingBonus')],
+                              [person.annualBonusEnabled !== false, t('admin.salespeople.annualBonus')],
+                              [!!person.signupBonusEnabled, `${t('admin.salespeople.signupBonus')} ${money(person.signupBonusAmount ?? 100)}`],
+                              [!!person.reviewBonusEnabled, `${t('admin.salespeople.reviewBonus')} ${money(person.reviewBonusAmount || 0)}`],
+                            ] as [boolean, string][]).map(([on, txt]) => (
+                              <span key={txt} className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${on ? 'bg-[rgba(245,131,69,0.14)] text-accent-ink dark:bg-[rgba(245,131,69,0.16)] dark:text-accent-ink-dark' : 'bg-gray-2 text-body line-through dark:bg-meta-4 dark:text-bodydark'}`}>{txt}</span>
+                            ))}
+                          </div>
+                          <div className="mt-4 flex justify-end border-t border-stroke pt-3 dark:border-strokedark">
+                            <Button size="sm" onClick={() => setEditingRep(person.name)}>{t('admin.repPanel.edit')}</Button>
                           </div>
                         </div>
                       );
@@ -3226,6 +2884,18 @@ Joker Pub,Jay Daoust,2024-04-01`}
             </>)}
             </>
           )}
+
+          {editingRep && (() => {
+            const person = salespeople.find((p) => p.name === editingRep);
+            return person ? (
+              <RepEditPanel person={person} teams={teams} defaultQuota={DEFAULT_QUOTA} onClose={() => setEditingRep(null)}
+                writes={{
+                  email: updateRepEmail, hireDate: updateHireDate, commissionRate: updateCommissionRate, baseSalary: updateBaseSalary,
+                  quota: updateQuota, quotaGate: updateQuotaGate, processingBonus: updateProcessingBonus, annualBonus: updateAnnualBonus,
+                  signupBonus: updateSignupBonus, reviewBonus: updateReviewBonus, aliases: updateAliases, team: assignTeam,
+                }} />
+            ) : null;
+          })()}
 
           {/* ==================== CUSTOMER EXCLUSIONS ==================== */}
           {activeTab === 'customers' && (
@@ -3523,13 +3193,17 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {activeTab === 'users' && (
             <>
             <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-              {([['access', t('admin.usersSection.tabs.access')], ['roles', t('admin.roles.title')], ['external', t('admin.usersSection.tabs.external')], ['impersonation', t('admin.usersSection.tabs.impersonation')], ['sofia', t('admin.sofia.tab')]] as const).map(([key, label]) => (
-                <button key={key} onClick={() => setUsersSub(key as 'access' | 'external' | 'impersonation' | 'roles' | 'sofia')}
+              {([['all', t('admin.directory.tab')], ['access', t('admin.usersSection.tabs.access')], ['roles', t('admin.roles.title')], ['external', t('admin.usersSection.tabs.external')], ['impersonation', t('admin.usersSection.tabs.impersonation')], ['sofia', t('admin.sofia.tab')]] as const).map(([key, label]) => (
+                <button key={key} onClick={() => setUsersSub(key as 'all' | 'access' | 'external' | 'impersonation' | 'roles' | 'sofia')}
                   className={`rounded-md px-4 py-2 text-sm font-medium transition ${usersSub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
                   {label}
                 </button>
               ))}
             </div>
+
+            {usersSub === 'all' && (
+              <UserDirectory users={adminUsers} onOpen={(email) => { setUserSearch(email); setUsersSub('access'); }} />
+            )}
 
             {usersSub === 'impersonation' && (<>
             {/* ==================== IMPERSONATION ==================== */}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, GripVertical, Navigation, Pencil, Check, Loader2, Send, Undo2, Trash2, Star, Search, MapPin, Save, Sparkles, Phone, Clock, Globe, Info, Minus, Ban, Activity, Map as MapIcon, PenLine, Mail } from 'lucide-react';
+import { Plus, X, GripVertical, ChevronUp, ChevronDown, Navigation, Pencil, Check, Loader2, Send, Undo2, Trash2, Star, Search, MapPin, Save, Sparkles, Phone, Clock, Globe, Info, Minus, Ban, Activity, Map as MapIcon, PenLine, Mail } from 'lucide-react';
 import Select from '../../components/Select';
 import DateField from '../../components/DateField';
 import { ContentLoader } from '../../common/Loader';
@@ -583,9 +583,9 @@ export default function RouteDesigner() {
 
       {/* 3 colonnes à partir de 2xl seulement : sous ce seuil, la barre latérale (~290 px) ne laisse
           pas assez de place à la carte. En dessous : la carte en haut, route et filtres côte à côte. */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:h-[calc(100vh-220px)] 2xl:min-h-[640px] 2xl:grid-cols-[340px_minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 min-[1360px]:h-[calc(100vh-220px)] min-[1360px]:min-h-[640px] min-[1360px]:grid-cols-[300px_minmax(0,1fr)_280px] 2xl:grid-cols-[340px_minmax(0,1fr)_320px]">
         {/* ---------------- Gauche : la route ---------------- */}
-        <div className={`${card} flex min-h-0 flex-col p-4 md:max-h-[760px] 2xl:max-h-none`}>
+        <div className={`${card} flex min-h-0 flex-col p-4 md:max-h-[760px] min-[1360px]:max-h-none`}>
           <label className="mb-1 block text-xs font-medium text-black dark:text-white">{t('opener.designer.routeName')}</label>
           <input value={draft.name} disabled={!editable} onChange={(e) => patch({ name: e.target.value })} placeholder={t('opener.designer.routeNamePh') as string}
             className="mb-3 h-11 w-full rounded border border-stroke bg-transparent px-3 text-[15px] font-semibold text-black outline-none focus:border-primary disabled:opacity-70 dark:border-form-strokedark dark:bg-form-input dark:text-white" />
@@ -638,6 +638,20 @@ export default function RouteDesigner() {
                       {s.outcome === 'done' && s.checkin?.durationMin != null ? ` · ${fmtMinutes(s.checkin.durationMin)}` : ''}
                     </p>
                   </div>
+                  {/* Up / down: the same move as drag-and-drop, usable by touch and by keyboard
+                      (audit UX, P2 — drag-and-drop alone works only with a mouse). */}
+                  {editable && draft.stops.length > 1 && (
+                    <div className="flex shrink-0 flex-col">
+                      <button type="button" disabled={i === 0} onClick={(e) => { e.stopPropagation(); moveStop(i, i - 1); }}
+                        className="rounded p-0.5 text-body hover:text-primary disabled:opacity-25" aria-label={t('opener.designer.moveUp', { name: s.name }) as string}>
+                        <ChevronUp className="h-4 w-4" />
+                      </button>
+                      <button type="button" disabled={i === draft.stops.length - 1} onClick={(e) => { e.stopPropagation(); moveStop(i, i + 1); }}
+                        className="rounded p-0.5 text-body hover:text-primary disabled:opacity-25" aria-label={t('opener.designer.moveDown', { name: s.name }) as string}>
+                        <ChevronDown className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
                   {editable && (
                     <button onClick={(e) => { e.stopPropagation(); removeStop(i); }} className="rounded p-1 text-body hover:text-danger" aria-label={t('opener.designer.remove') as string}>
                       <X className="h-4 w-4" />
@@ -682,7 +696,7 @@ export default function RouteDesigner() {
         </div>
 
         {/* ---------------- Centre : la carte ---------------- */}
-        <div className={`${card} relative order-first min-h-[460px] overflow-hidden md:col-span-2 2xl:order-none 2xl:col-span-1`}>
+        <div className={`${card} relative order-first min-h-[460px] overflow-hidden md:col-span-2 min-[1360px]:order-none min-[1360px]:col-span-1`}>
           <GoogleMapView lang={lng} dark={dark} className="absolute inset-0" center={MONTREAL} zoom={14}
             onReady={(g, map) => {
               // La carte est recréée en revenant de l'onglet Suivi : les anciens calques n'existent plus.
@@ -814,7 +828,7 @@ export default function RouteDesigner() {
         </div>
 
         {/* ---------------- Droite : ajouter des arrêts ---------------- */}
-        <div className={`${card} flex min-h-0 flex-col p-4 md:max-h-[760px] 2xl:max-h-none`}>
+        <div className={`${card} flex min-h-0 flex-col p-4 md:max-h-[760px] min-[1360px]:max-h-none`}>
           <div className="mb-3 grid grid-cols-2 gap-1 rounded-xl border border-stroke p-1 dark:border-strokedark">
             {(['results', 'suggest'] as const).map((k) => (
               <button key={k} onClick={() => setRightTab(k)} className={`h-8 rounded-[9px] text-xs font-semibold ${rightTab === k ? 'bg-primary text-white' : 'text-body dark:text-bodydark'}`}>

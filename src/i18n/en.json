@@ -492,7 +492,8 @@
     "saasIncreaseLookupBody": "The support desk's reference when a merchant calls about their bill: search one account and read back the old price, the new price, the date and the exact notice they received.",
     "openerMatchBody": "Every Cluster customer restaurant linked to its Google listing, with its version: V2 (Kaizen) or V1 (Zoho Billing subscribers). Doubtful cases are confirmed here; this is what shows a restaurant as a \"customer\" on the openers' map.",
     "openerRoutesBody": "All door-to-door work in one place. \"Campaign & routes\": Montreal, Laval, the North Shore and South Shore already split into one-day routes, mapping progress, a finish estimate by number of openers, and one-click \"Plan the week\"; the Tracking tab confirms each visit by the check-in location. \"Field app\": the opener's phone app. \"Cluster locations\": our customers linked to their Google listing.",
-    "openerFieldBody": "The opener's app, to open on their phone: the day's route on a map, each restaurant's card, check-in, lead creation and the day summary."
+    "openerFieldBody": "The opener's app, to open on their phone: the day's route on a map, each restaurant's card, check-in, lead creation and the day summary.",
+    "moreBody": "Every other screen you have access to: sales tools, compensation, operations, administration — plus your profile, theme, language and sign-out. The search at the top jumps straight to any screen."
   },
   "proposals": {
     "chain": {
@@ -4252,6 +4253,54 @@
       "updateReviewBonus": "Could not update the review bonus.",
       "updateAliases": "Could not update the aliases.",
       "releaseMissingFields": "Please enter a version number and release notes."
+    },
+    "repPanel": {
+      "title": "Edit {{name}}",
+      "edit": "Edit",
+      "pay": "Pay",
+      "quota": "Quota and team",
+      "identity": "Login and identity",
+      "aliasesHelp": "Other spellings of this name in Zoho, separated by commas.",
+      "saveN_one": "Save 1 change",
+      "saveN_other": "Save {{count}} changes",
+      "confirmMoneyTitle": "Change {{name}}'s pay?",
+      "confirmMoneyBody": "Check the amounts before saving: they change what this rep is paid.",
+      "confirmDeactivate": "Deactivate {{name}}? They will no longer appear in active reps or be assigned new sales.",
+      "confirmActivate": "Reactivate {{name}}?",
+      "invalid": {
+        "commissionRate": "Commission % must be between 0 and 100.",
+        "baseSalary": "Base salary must be a positive number.",
+        "quota": "Quota must be a whole number (empty = default).",
+        "signupAmount": "Signup bonus must be a positive amount.",
+        "reviewAmount": "Review bonus must be a positive amount.",
+        "email": "That email address doesn't look valid."
+      }
+    },
+    "directory": {
+      "tab": "All users",
+      "search": "Name, email or role…",
+      "help": "Every account in one list. Click a row to manage it: Sales Hub accounts open in Access, partner-portal accounts in Partners › Users.",
+      "empty": "No account matches.",
+      "col": {
+        "name": "User",
+        "kind": "Type",
+        "access": "Access",
+        "status": "Status",
+        "lastLogin": "Last sign-in"
+      },
+      "kind": {
+        "all": "All",
+        "internal": "Internal",
+        "external": "External",
+        "pending": "Pre-assigned",
+        "partner": "Partner"
+      },
+      "status": {
+        "active": "Active",
+        "invited": "Invited",
+        "pending": "Not signed in yet",
+        "disabled": "Disabled"
+      }
     }
   },
   "header": {
@@ -6964,7 +7013,9 @@
         "campaign": "The territory split into routes; plan the openers’ days",
         "plan": "Draw a route by hand on the map",
         "reports": "The daily visit report by email"
-      }
+      },
+      "moveUp": "Move {{name}} up",
+      "moveDown": "Move {{name}} down"
     },
     "field": {
       "noAccess": "This app is for openers (opener:field permission).",
@@ -8102,7 +8153,8 @@
   "mobileNav": {
     "home": "Home",
     "commissions": "Commissions",
-    "more": "More"
+    "more": "More",
+    "newLead": "New lead"
   },
   "more": {
     "profileSub": "Profile, signature, alerts, two-step",

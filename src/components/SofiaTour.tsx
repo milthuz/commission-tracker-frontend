@@ -37,6 +37,7 @@ const NAV_DESC: Record<string, string> = {
   '/admin/partners': 'tour.partnersBody',
   '/admin': 'tour.adminBody',
   '/profile': 'tour.profileBody',
+  '/plus': 'tour.moreBody',
 };
 
 const PAD = 8;
@@ -104,6 +105,22 @@ const SofiaTour: React.FC<SofiaTourProps> = ({
   const buildSteps = useCallback((): Step[] => {
     const out: Step[] = [];
     out.push({ el: null, title: t(`${i18nPrefix}.welcomeTitle`), body: t(`${i18nPrefix}.welcomeBody`) });
+    // Phone (refonte UI, P2): the sidebar is off screen — walk the bottom tab bar instead, and
+    // end on its « Sofia » tab rather than on the (hidden) bubble.
+    const tabbar = document.querySelector('[data-tour-tabbar]') as HTMLElement | null;
+    // (offsetParent is always null on a fixed element — test the computed display instead.)
+    if (tabbar && getComputedStyle(tabbar).display !== 'none') {
+      let sofiaTab: HTMLElement | null = null;
+      tabbar.querySelectorAll('[data-tour-tab]').forEach((el) => {
+        const tab = el as HTMLElement;
+        if (tab.dataset.tourTab === 'sofia') { sofiaTab = tab; return; }
+        const route = tab.getAttribute('href') || '';
+        const label = tab.dataset.tourLabel || '';
+        out.push({ el: tab, title: label, body: navDesc[route] ? t(navDesc[route]) : (t(`${i18nPrefix}.sectionGeneric`, { section: label }) as string) });
+      });
+      out.push({ el: sofiaTab, title: t(`${i18nPrefix}.sofiaTitle`), body: t(`${i18nPrefix}.sofiaBody`) });
+      return out;
+    }
     const menu = document.querySelector('[data-tour-menu]');
     menu?.querySelectorAll(':scope > li').forEach((li) => {
       const top = li.querySelector(':scope > a, :scope > button') as HTMLElement | null;
@@ -172,8 +189,14 @@ const SofiaTour: React.FC<SofiaTourProps> = ({
     cardStyle = { ...cardStyle, top: '50%', left: '50%', transform: 'translate(-50%,-50%)' };
   } else {
     const left = Math.min(Math.max(8, rect.left), vw - CARD_W - 8);
-    const top = Math.max(8, Math.min(rect.bottom + 12, vh - EST - 8));
-    cardStyle = { ...cardStyle, top, left };
+    if (rect.bottom + 12 + EST > vh && rect.top - 12 > EST / 2) {
+      // Not enough room below (the phone tab bar sits at the very bottom): open ABOVE the target
+      // instead of being clamped on top of it.
+      cardStyle = { maxHeight: rect.top - 20, bottom: vh - rect.top + 12, left };
+    } else {
+      const top = Math.max(8, Math.min(rect.bottom + 12, vh - EST - 8));
+      cardStyle = { ...cardStyle, top, left };
+    }
   }
 
   return (

@@ -53,9 +53,21 @@ const MobileTabBar = () => {
   const pill = (active: boolean) => `relative flex h-7 w-[52px] items-center justify-center rounded-full ${
     active ? 'bg-[rgba(245,131,69,0.14)] dark:bg-[rgba(245,131,69,0.16)]' : ''}`;
 
+  // « Nouvelle piste » under the thumb on the home screen (canvas board Main) — only for whoever
+  // may enter a lead; it opens the same intake form as the dashboard button.
+  const canIntake = ctx.isAdmin || ctx.can('leads:intake');
+
   return (
+    <>
+    {canIntake && pathname === '/' && !sofiaOpen && (
+      <Link to="/leads?nouvelle=1" aria-label={t('mobileNav.newLead') as string}
+        className="fixed right-5 z-[9991] flex h-14 w-14 items-center justify-center rounded-[18px] bg-primary text-[#141414] shadow-[0_12px_16px_-4px_rgba(16,24,40,0.18)] bottom-[calc(4.8rem+env(safe-area-inset-bottom))] lg:hidden">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+      </Link>
+    )}
     <nav
       aria-label={t('sidebar.mainNav') as string}
+      data-tour-tabbar
       className="fixed inset-x-0 bottom-0 z-[9991] grid border-t border-stroke bg-white px-1 pb-[env(safe-area-inset-bottom)] pt-1.5 dark:border-strokedark dark:bg-[#121212] lg:hidden"
       style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
     >
@@ -75,17 +87,18 @@ const MobileTabBar = () => {
           </>
         );
         return tab.to ? (
-          <Link key={tab.id} to={tab.to} className={cell(tab.active)} aria-current={tab.active ? 'page' : undefined}
+          <Link key={tab.id} to={tab.to} data-tour-tab={tab.id} data-tour-label={tab.label} className={cell(tab.active)} aria-current={tab.active ? 'page' : undefined}
             onClick={() => setSofiaOpen(false)}>
             {inner}
           </Link>
         ) : (
-          <button key={tab.id} type="button" className={cell(tab.active)} aria-pressed={tab.active} onClick={() => setSofiaOpen(!sofiaOpen)}>
+          <button key={tab.id} type="button" data-tour-tab={tab.id} data-tour-label={tab.label} className={cell(tab.active)} aria-pressed={tab.active} onClick={() => setSofiaOpen(!sofiaOpen)}>
             {inner}
           </button>
         );
       })}
     </nav>
+    </>
   );
 };
 

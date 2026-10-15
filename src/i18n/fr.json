@@ -492,7 +492,8 @@
     "supportBody": "Rapports de haut niveau sur les billets Zoho Desk : volume, délais de résolution, types de problèmes, équipes, marchands, et billets croisés avec les revenus et le churn. Ce qui distingue les marchands qui partent, ce sont les billets qui traînent, pas leur nombre.",
     "openerMatchBody": "Chaque restaurant client de Cluster relié à sa fiche Google, avec sa version : V2 (Kaizen) ou V1 (abonnés Zoho Billing). Les cas douteux se confirment ici ; c'est ce qui fait apparaître un restaurant « client » sur la carte des openers.",
     "openerRoutesBody": "Tout le porte-à-porte au même endroit. « Campagne et routes » : Montréal, Laval, la Rive-Nord et la Rive-Sud déjà découpés en routes d'une journée, la progression de la cartographie, l'estimation de fin selon le nombre d'openers, et « Planifier la semaine » en un clic ; l'onglet Suivi confirme chaque visite par la position du check-in. « Application terrain » : l'application de l'opener, sur son téléphone. « Emplacements Cluster » : nos clients reliés à leur fiche Google.",
-    "openerFieldBody": "L'application de l'opener, à ouvrir sur son téléphone : la route du jour sur une carte, la fiche de chaque restaurant, le check-in, la création de lead et le résumé de la journée."
+    "openerFieldBody": "L'application de l'opener, à ouvrir sur son téléphone : la route du jour sur une carte, la fiche de chaque restaurant, le check-in, la création de lead et le résumé de la journée.",
+    "moreBody": "Tous les autres écrans auxquels tu as accès : outils de vente, rémunération, opérations, administration — plus ton profil, le thème, la langue et la déconnexion. La recherche en haut mène directement à n'importe quel écran."
   },
   "proposals": {
     "chain": {
@@ -4252,6 +4253,54 @@
       "updateReviewBonus": "Impossible de mettre à jour la prime d’avis.",
       "updateAliases": "Impossible de mettre à jour les alias.",
       "releaseMissingFields": "Veuillez saisir un numéro de version et les notes de version."
+    },
+    "repPanel": {
+      "title": "Modifier {{name}}",
+      "edit": "Modifier",
+      "pay": "Rémunération",
+      "quota": "Quota et équipe",
+      "identity": "Connexion et identité",
+      "aliasesHelp": "Autres graphies de ce nom dans Zoho, séparées par des virgules.",
+      "saveN_one": "Enregistrer 1 modification",
+      "saveN_other": "Enregistrer {{count}} modifications",
+      "confirmMoneyTitle": "Modifier la rémunération de {{name}} ?",
+      "confirmMoneyBody": "Vérifie les montants avant d'enregistrer : ils changent ce que ce représentant est payé.",
+      "confirmDeactivate": "Désactiver {{name}} ? Ce représentant ne sera plus listé parmi les actifs ni attribué aux nouvelles ventes.",
+      "confirmActivate": "Réactiver {{name}} ?",
+      "invalid": {
+        "commissionRate": "Le % de commission doit être entre 0 et 100.",
+        "baseSalary": "Le salaire de base doit être un nombre positif.",
+        "quota": "Le quota doit être un nombre entier (vide = défaut).",
+        "signupAmount": "La prime d'inscription doit être un montant positif.",
+        "reviewAmount": "La prime d'avis doit être un montant positif.",
+        "email": "Cette adresse courriel ne semble pas valide."
+      }
+    },
+    "directory": {
+      "tab": "Tous les usagers",
+      "search": "Nom, courriel ou rôle…",
+      "help": "Tous les comptes dans une seule liste. Clique une ligne pour le gérer : un compte Sales Hub s'ouvre dans Accès, un compte du portail partenaire dans Partenaires › Utilisateurs.",
+      "empty": "Aucun compte ne correspond.",
+      "col": {
+        "name": "Usager",
+        "kind": "Type",
+        "access": "Accès",
+        "status": "Statut",
+        "lastLogin": "Dernière connexion"
+      },
+      "kind": {
+        "all": "Tous",
+        "internal": "Interne",
+        "external": "Externe",
+        "pending": "Pré-assigné",
+        "partner": "Partenaire"
+      },
+      "status": {
+        "active": "Actif",
+        "invited": "Invité",
+        "pending": "Jamais connecté",
+        "disabled": "Désactivé"
+      }
     }
   },
   "header": {
@@ -6964,7 +7013,9 @@
         "campaign": "Le territoire découpé en routes ; planifier les journées des openers",
         "plan": "Dessiner une route à la main sur la carte",
         "reports": "Le rapport quotidien des visites par courriel"
-      }
+      },
+      "moveUp": "Monter {{name}}",
+      "moveDown": "Descendre {{name}}"
     },
     "field": {
       "noAccess": "Cette application est réservée aux openers (permission opener:field).",
@@ -8102,7 +8153,8 @@
   "mobileNav": {
     "home": "Accueil",
     "commissions": "Commissions",
-    "more": "Plus"
+    "more": "Plus",
+    "newLead": "Nouvelle piste"
   },
   "more": {
     "profileSub": "Profil, signature, alertes, 2FA",

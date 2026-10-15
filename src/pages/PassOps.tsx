@@ -173,13 +173,13 @@ const PassOps = () => {
         <p className="mt-1 text-sm text-bodydark2">{t('passOps.sub')}</p>
       </div>
 
-      <div className="mb-5 inline-flex rounded-sm border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="mb-5 inline-flex max-w-full overflow-x-auto no-scrollbar rounded-sm border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
         {(['referrals', 'library', 'config'] as const).map((k) => (
           <button
             key={k}
             type="button"
             onClick={() => setTab(k)}
-            className={`rounded-sm px-4 py-2 text-sm font-medium transition-colors duration-150 ${
+            className={`shrink-0 whitespace-nowrap rounded-sm px-4 py-2 text-sm font-medium transition-colors duration-150 ${
               tab === k ? 'bg-primary text-white' : 'text-bodydark2 hover:text-black dark:hover:text-white'
             }`}
           >
