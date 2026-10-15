@@ -2,16 +2,18 @@ import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
-import { dialog } from '../../lib/dialog';
+import { Button, InlineError, toast, dialog } from '../../components/ui';
 import { portalError } from './serverError';
+import PartnerPageHeader from './PageHeader';
+import PartnerAdminOnly from './AdminOnly';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('partnerToken')}` });
 
 // SH-32 (co-branding), Partner Admin only — upload the organization's own logo, shown alongside
-// the Sales Hub brand. The partners table has carried logo_data/logo_mime_type/logo_file_name
+// the Cluster brand. The partners table has carried logo_data/logo_mime_type/logo_file_name
 // since Phase 1's schema (unused until now); this is the first UI to use it.
-const PartnerOrganization: React.FC = () => {
+const PartnerOrganizationScreen: React.FC = () => {
   const { t } = useTranslation();
   const { user } = usePartnerAuth();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -21,12 +23,20 @@ const PartnerOrganization: React.FC = () => {
   // Whether a logo currently exists at all — drives the sidebar-preview section below;
   // reset to true on every upload/remove so a fresh <img> gets a fresh chance to load.
   const [logoOk, setLogoOk] = useState(true);
+  // Errors stay in the page, with their cause (refonte UI : jamais une alerte bloquante).
+  const [error, setError] = useState<{ title: string; detail?: string } | null>(null);
   const logoUrl = user ? `${API_URL}/api/partner-portal/organization/logo/${user.partnerId}?v=${logoVersion}` : '';
 
   const pickFile = () => fileInput.current?.click();
+  const failure = (e: any, key: string) => {
+    const title = t(key) as string;
+    const msg = portalError(e?.response?.data?.error, t, title);
+    setError({ title, detail: msg !== title ? msg : undefined });
+  };
 
   const uploadLogo = async (file: File) => {
-    if (!/^image\//.test(file.type)) { dialog.alert(t('partnerPortal.organization.mustBeImage') as string); return; }
+    setError(null);
+    if (!/^image\//.test(file.type)) { setError({ title: t('partnerPortal.organization.mustBeImage') as string }); return; }
     setUploading(true);
     try {
       const fd = new FormData();
@@ -34,39 +44,41 @@ const PartnerOrganization: React.FC = () => {
       await axios.post(`${API_URL}/api/partner-portal/organization/logo`, fd, { headers: authHeaders() });
       setLogoVersion((v) => v + 1);
       setLogoOk(true);
+      toast.success(t('partnerPortal.organization.uploaded'));
     } catch (e: any) {
-      dialog.alert(portalError(e?.response?.data?.error, t, t('partnerPortal.organization.uploadFailed') as string));
+      failure(e, 'partnerPortal.organization.uploadFailed');
     } finally {
       setUploading(false);
     }
   };
 
   const removeLogo = async () => {
-    if (!(await dialog.confirm(t('partnerPortal.organization.removeConfirm') as string))) return;
+    if (!(await dialog.confirm(t('partnerPortal.organization.removeConfirm') as string, {
+      danger: true, confirmText: t('partnerPortal.organization.removeButton') as string,
+    }))) return;
+    setError(null);
     try {
       await axios.delete(`${API_URL}/api/partner-portal/organization/logo`, { headers: authHeaders() });
       setLogoVersion((v) => v + 1);
       setLogoOk(false);
+      toast.success(t('partnerPortal.organization.removed'));
     } catch (e: any) {
-      dialog.alert(portalError(e?.response?.data?.error, t, t('partnerPortal.organization.removeFailed') as string));
+      failure(e, 'partnerPortal.organization.removeFailed');
     }
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-title-md2 font-semibold text-black dark:text-white">{t('partnerPortal.sidebar.organization')}</h1>
-        <p className="text-sm text-body">{user?.partnerName}</p>
-      </div>
+    <div className="flex flex-col gap-4">
+      <PartnerPageHeader eyebrow={user?.partnerName} title={t('partnerPortal.sidebar.organization')} />
 
-      <div className="max-w-xl rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-        <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-          <h3 className="text-lg font-semibold text-black dark:text-white">{t('partnerPortal.organization.logoTitle')}</h3>
-          <p className="mt-1 text-sm text-body">{t('partnerPortal.organization.logoSubtitle')}</p>
+      <section className="max-w-xl rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
+        <div className="border-b border-stroke px-4 py-4 dark:border-strokedark sm:px-6">
+          <h2 className="m-0 text-base font-bold text-black dark:text-white">{t('partnerPortal.organization.logoTitle')}</h2>
+          <p className="m-0 mt-1 text-[13px] text-body dark:text-bodydark2">{t('partnerPortal.organization.logoSubtitle')}</p>
         </div>
-        <div className="p-7">
-          <div className="flex items-center gap-5">
-            <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg border border-stroke bg-gray-2 dark:border-strokedark dark:bg-meta-4 overflow-hidden">
+        <div className="flex flex-col gap-4 p-4 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-stroke bg-gray-2 dark:border-strokedark dark:bg-meta-4">
               <img
                 key={logoVersion}
                 src={logoUrl}
@@ -76,7 +88,7 @@ const PartnerOrganization: React.FC = () => {
                 onLoad={(e) => { (e.target as HTMLImageElement).style.visibility = 'visible'; }}
               />
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <input
                 ref={fileInput}
                 type="file"
@@ -84,22 +96,21 @@ const PartnerOrganization: React.FC = () => {
                 className="hidden"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadLogo(f); e.target.value = ''; }}
               />
-              <button
-                onClick={pickFile}
-                disabled={uploading}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
-              >
-                {uploading ? t('common.saving') : t('partnerPortal.organization.uploadButton')}
-              </button>
-              <button
-                onClick={removeLogo}
-                className="inline-flex items-center gap-2 rounded-md border border-stroke px-5 py-2.5 text-sm font-medium text-danger hover:bg-danger hover:text-white dark:border-strokedark"
-              >
-                {t('partnerPortal.organization.removeButton')}
-              </button>
-              <p className="text-xs text-body">{t('partnerPortal.organization.logoHint')}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="primary" size="md" onClick={pickFile} disabled={uploading}>
+                  {uploading ? t('common.saving') : t('partnerPortal.organization.uploadButton')}
+                </Button>
+                {logoOk && (
+                  <Button size="md" onClick={removeLogo} className="!text-[#D92D20] dark:!text-[#F46060]">
+                    {t('partnerPortal.organization.removeButton')}…
+                  </Button>
+                )}
+              </div>
+              <p className="m-0 text-xs text-body dark:text-bodydark2">{t('partnerPortal.organization.logoHint')}</p>
             </div>
           </div>
+
+          {error && <InlineError title={error.title} detail={error.detail} />}
 
           {/* Exact WYSIWYG of PartnerSidebar.tsx's co-brand card (same classes, same dark
               backdrop) — since any uploaded file could be light, dark, wide, square, or already
@@ -107,10 +118,10 @@ const PartnerOrganization: React.FC = () => {
               white logo vanishing into the white card) is to show the real thing right here,
               not a generic square preview. */}
           {logoOk && (
-            <div className="mt-6 border-t border-stroke pt-6 dark:border-strokedark">
-              <p className="mb-3 text-xs font-medium text-body">{t('partnerPortal.organization.previewLabel')}</p>
-              <div className="inline-block rounded-lg bg-[#0F0F10] p-4">
-                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#8a99af]">
+            <div className="border-t border-stroke pt-4 dark:border-strokedark">
+              <p className="m-0 mb-3 text-xs font-bold text-body dark:text-bodydark2">{t('partnerPortal.organization.previewLabel')}</p>
+              <div className="inline-block max-w-full rounded-xl bg-[#0F0F10] p-4">
+                <p className="m-0 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#8a99af]">
                   {t('partnerPortal.sidebar.partneredWith')}
                 </p>
                 <div className="inline-flex max-h-14 max-w-full items-center justify-center rounded-lg border border-black/5 bg-white px-3 py-2 shadow-sm">
@@ -123,12 +134,22 @@ const PartnerOrganization: React.FC = () => {
                   />
                 </div>
               </div>
-              <p className="mt-3 text-xs text-body">{t('partnerPortal.organization.previewHint')}</p>
+              <p className="m-0 mt-3 text-xs text-body dark:text-bodydark2">{t('partnerPortal.organization.previewHint')}</p>
             </div>
           )}
         </div>
-      </div>
+      </section>
     </div>
+  );
+};
+
+const PartnerOrganization: React.FC = () => {
+  const { t } = useTranslation();
+  const { user } = usePartnerAuth();
+  return (
+    <PartnerAdminOnly fallbackHeader={<PartnerPageHeader eyebrow={user?.partnerName} title={t('partnerPortal.sidebar.organization')} />}>
+      <PartnerOrganizationScreen />
+    </PartnerAdminOnly>
   );
 };
 

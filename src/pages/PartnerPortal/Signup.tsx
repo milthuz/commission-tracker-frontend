@@ -6,6 +6,7 @@ import ClusterWordmark from '../../components/ClusterWordmark';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
 import { portalError } from './serverError';
 import { useClusterFavicon } from '../../hooks/useClusterFavicon';
+import { Button, InlineError } from '../../components/ui';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -76,10 +77,12 @@ const PartnerSignup = () => {
 
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2">
+    <div className="flex min-h-screen items-center justify-center bg-gray-2 px-4 py-10 dark:bg-boxdark-2">
       <div className="w-full max-w-md">
-        <div className="mb-8 flex justify-center"><ClusterWordmark className="h-8 w-auto" /></div>
-        <div className="rounded-2xl bg-white p-8 shadow-default dark:bg-boxdark">
+        <div className="mb-8 flex justify-center">
+          <ClusterWordmark className="h-8 w-auto" />
+        </div>
+        <div className="rounded-[20px] border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark sm:p-8">
           {step === 'form' && (
             <>
               <h1 className="text-center text-2xl font-bold text-black dark:text-white">{t('partnerPortal.signup.title')}</h1>
@@ -91,35 +94,34 @@ const PartnerSignup = () => {
                       depuis un courriel ou lu au téléphone. */}
                   <input value={orgCode} onChange={(e) => setOrgCode(e.target.value.toUpperCase())}
                     required placeholder="XXXX-XXXX-XXXX" autoComplete="off" spellCheck={false}
-                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-3 text-center font-mono text-lg tracking-widest outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+                    className="h-12 w-full rounded-xl border border-stroke bg-white px-4 text-center font-mono text-lg tracking-widest text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
                   <p className="mt-1.5 text-xs text-body">{t('partnerPortal.signup.orgCodeHint')}</p>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.fName')}</label>
                   <input value={name} onChange={(e) => setName(e.target.value)} required
-                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-3 outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+                    className="h-12 w-full rounded-xl border border-stroke bg-white px-4 text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.fEmail')}</label>
                   <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
-                    className="w-full rounded-lg border border-stroke bg-transparent px-4 py-3 outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+                    className="h-12 w-full rounded-xl border border-stroke bg-white px-4 text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
                   <p className="mt-1.5 text-xs text-body">{t('partnerPortal.signup.emailHint')}</p>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.signup.password')}</label>
                   <PasswordInput value={pw1} onChange={(e) => setPw1(e.target.value)} required
-                    autoComplete="new-password" className="w-full rounded-lg border border-stroke bg-transparent px-4 py-3 outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+                    autoComplete="new-password" className="h-12 w-full rounded-xl border border-stroke bg-white px-4 text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.signup.passwordConfirm')}</label>
                   <PasswordInput value={pw2} onChange={(e) => setPw2(e.target.value)} required
-                    autoComplete="new-password" className="w-full rounded-lg border border-stroke bg-transparent px-4 py-3 outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+                    autoComplete="new-password" className="h-12 w-full rounded-xl border border-stroke bg-white px-4 text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
                 </div>
-                {error && <p className="text-sm text-danger">{error}</p>}
-                <button type="submit" disabled={busy}
-                  className="w-full rounded-lg bg-black py-3 font-semibold text-white hover:bg-opacity-90 disabled:opacity-50 dark:bg-white dark:text-black">
+                {error && <InlineError title={error} />}
+                <Button type="submit" variant="primary" disabled={busy} className="!h-12 w-full text-base">
                   {busy ? t('partnerPortal.signup.creating') : t('partnerPortal.signup.submit')}
-                </button>
+                </Button>
               </form>
               <p className="mt-6 text-center text-sm text-body">
                 {t('partnerPortal.signup.haveAccount')}{' '}

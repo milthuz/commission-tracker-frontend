@@ -780,7 +780,16 @@
       "uploadInvoice": "Téléverser la facture",
       "uploadHistory": "Historique des téléversements",
       "loadError": "Impossible de charger vos paiements.",
-      "uploadFailed": "Impossible de téléverser la facture. Veuillez réessayer."
+      "uploadFailed": "Impossible de téléverser la facture. Veuillez réessayer.",
+      "uploaded": "Facture téléversée",
+      "uploadFailedTitle": "La facture n’a pas été téléversée",
+      "tableTitle": "Runs de paiement",
+      "colPeriod": "Période",
+      "colAmount": "Montant",
+      "colCount": "Occasions",
+      "colInvoice": "Facture",
+      "colFile": "Fichier",
+      "colUploaded": "Téléversé le"
     },
     "teamBreakdownTitle": "Par membre de l’équipe",
     "unknownSubmitter": "Inconnu",
@@ -846,7 +855,9 @@
         "disableButton": "Retirer la double authentification",
         "disableTitle": "Retirer la double authentification",
         "disableSubtitle": "Votre mot de passe seul suffira ensuite pour vous connecter. Confirmez votre mot de passe actuel pour continuer.",
-        "currentPassword": "Mot de passe actuel"
+        "currentPassword": "Mot de passe actuel",
+        "qrAlt": "Code QR à scanner",
+        "codeLabel": "Code à six chiffres"
       }
     },
     "sidebar": {
@@ -862,7 +873,7 @@
     },
     "organization": {
       "logoTitle": "Logo de l’organisation",
-      "logoSubtitle": "Affiché aux côtés de la marque Sales Hub dans votre Portail partenaire.",
+      "logoSubtitle": "Affiché aux côtés de la marque Cluster dans votre Portail partenaire.",
       "logoHint": "PNG ou JPG, jusqu’à 2 Mo. Pour un meilleur résultat, utilisez un logo conçu pour un fond blanc ou pâle.",
       "previewLabel": "Voici comment il apparaîtra dans le menu",
       "previewHint": "Si votre logo est difficile à voir ici, essayez une version à fond transparent ou conçue pour un fond pâle.",
@@ -871,7 +882,9 @@
       "mustBeImage": "Le fichier doit être une image.",
       "uploadFailed": "Impossible de téléverser le logo. Veuillez réessayer.",
       "removeConfirm": "Retirer le logo de votre organisation?",
-      "removeFailed": "Impossible de retirer le logo. Veuillez réessayer."
+      "removeFailed": "Impossible de retirer le logo. Veuillez réessayer.",
+      "uploaded": "Logo mis à jour",
+      "removed": "Logo retiré"
     },
     "notifications": {
       "title": "Notifications",
@@ -904,15 +917,17 @@
       "welcomeTitle": "Bonjour, je suis Sofia 👋",
       "welcomeBody": "Laissez-moi vous faire faire une visite rapide du Portail partenaire. Vous pouvez passer en tout temps.",
       "opportunitiesBody": "Soumettez une nouvelle occasion d’affaires et suivez le statut de tout ce que vous avez déjà soumis.",
-      "adminPanelBody": "Invitez d’autres personnes de votre organisation dans le portail, et téléversez le logo de votre organisation (affiché aux côtés de la marque Sales Hub).",
+      "adminPanelBody": "Invitez d’autres personnes de votre organisation dans le portail, et téléversez le logo de votre organisation (affiché aux côtés de la marque Cluster).",
       "teamBody": "Invitez d’autres personnes de votre organisation dans le portail, en tant qu’utilisateur Standard ou Admin.",
-      "organizationBody": "Téléversez le logo de votre organisation — affiché aux côtés de la marque Sales Hub.",
+      "organizationBody": "Téléversez le logo de votre organisation — affiché aux côtés de la marque Cluster.",
       "settingsBody": "Mettez à jour votre nom affiché, changez votre mot de passe et réinitialisez votre appareil 2FA.",
       "sectionGeneric": "Ouvrez la section {{section}} ici.",
       "sofiaTitle": "Je suis toujours ici",
       "sofiaBody": "Cliquez sur moi en tout temps pour de l’aide, ou pour refaire cette visite. Profitez bien du Portail partenaire!",
       "askPlaceholder": "Posez une question à Sofia…",
-      "askError": "Désolée, une erreur est survenue — réessayez."
+      "askError": "Désolée, une erreur est survenue — réessayez.",
+      "submitBody": "Soumettez une nouvelle occasion d’affaires en quelques champs : Cluster l’examine et vous en suivez le statut dans « Occasions ».",
+      "moreBody": "Vos paramètres, le thème, la langue et — pour les administrateurs — l’équipe et le logo de votre organisation."
     },
     "localeFr": "Français",
     "localeEn": "Anglais",
@@ -931,7 +946,15 @@
       "confirmRole": "Faire de {{email}} un {{role}} ?",
       "errLastAdmin": "Impossible : c’est le dernier administrateur actif de {{name}}. Nomme un autre administrateur d’abord, sinon plus personne ne pourrait inviter ni gérer les comptes.",
       "errSelf": "Tu ne peux pas modifier ni supprimer ton propre compte ici.",
-      "errHistoryAskDisable": "{{email}} est rattaché à {{opportunities}} opportunité(s) et {{invoices}} facture(s) : la suppression est impossible sans effacer cet historique.\n\nDésactiver le compte à la place ? Il ne pourra plus se connecter et rien ne sera perdu."
+      "errHistoryAskDisable": "{{email}} est rattaché à {{opportunities}} opportunité(s) et {{invoices}} facture(s) : la suppression est impossible sans effacer cet historique.\n\nDésactiver le compte à la place ? Il ne pourra plus se connecter et rien ne sera perdu.",
+      "actionFailed": "Action refusée",
+      "makeAdmin": "Nommer administrateur",
+      "makeStandard": "Passer en standard",
+      "actionsOn": "Actions sur {{email}}",
+      "disabledToast": "{{email}} désactivé",
+      "enabledToast": "{{email}} réactivé",
+      "deletedToast": "{{email}} supprimé",
+      "roleToast": "{{email}} est maintenant {{role}}"
     },
     "userStatus": {
       "active": "Actif",
@@ -981,8 +1004,48 @@
       "rotateFailed": "Impossible de régénérer le code.",
       "domains": "Seules les adresses de ces domaines sont acceptées : {{domains}}.",
       "linkHint": "Lien tout prêt :",
-      "signup_closed": "L’inscription libre est fermée pour votre organisation. Contactez votre responsable Cluster."
-    }
+      "signup_closed": "L’inscription libre est fermée pour votre organisation. Contactez votre responsable Cluster.",
+      "copiedToast": "Code copié",
+      "rotateTitle": "Régénérer le code ?",
+      "rotated": "Nouveau code créé — l’ancien ne fonctionne plus"
+    },
+    "mobileNav": {
+      "label": "Navigation du portail",
+      "opportunities": "Occasions",
+      "submit": "Soumettre"
+    },
+    "header": {
+      "toggleTheme": "Basculer le thème clair / sombre"
+    },
+    "more": {
+      "profileSub": "Nom, mot de passe, 2FA"
+    },
+    "access": {
+      "adminOnlyTitle": "Réservé aux administrateurs",
+      "adminOnlyBody": "Cet écran est réservé aux administrateurs de votre organisation. Si vous en avez besoin, demandez-le à l’un d’eux."
+    },
+    "list": {
+      "searchPlaceholder": "Rechercher une entreprise, un contact…",
+      "tableTitle": "Occasions soumises",
+      "statusChip": "Statut : {{status}}",
+      "noMatchTitle": "Aucune occasion ne correspond",
+      "noMatchBody": "Retirez un filtre ou changez la recherche.",
+      "emptyBody": "Soumettez votre première occasion : elle apparaîtra ici avec son suivi."
+    },
+    "submitCta": "Soumettre une occasion",
+    "submitted": "« {{name}} » soumise — Cluster va l’examiner.",
+    "submitErrorTitle": "L’occasion n’a pas été soumise",
+    "detail": {
+      "rejectionReason": "Raison du refus"
+    },
+    "colMember": "Membre",
+    "colLastLogin": "Dernière connexion",
+    "neverLoggedIn": "Jamais",
+    "teamTableTitle": "Membres de l’équipe",
+    "teamEmpty": "Personne dans l’équipe pour l’instant",
+    "invited": "Invitation envoyée à {{email}}",
+    "inviteLocaleLabel": "Langue du courriel",
+    "colSubmittedOnBy": "Soumis le / par"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",
@@ -8064,7 +8127,8 @@
     "partnerTeam": "Équipe",
     "partnerOrganization": "Organisation",
     "saasLookup": "Référence hausse SaaS",
-    "saasCampaign": "Suivi de campagne hausse SaaS"
+    "saasCampaign": "Suivi de campagne hausse SaaS",
+    "partnerPortal": "Portail partenaire"
   },
   "errors": {
     "failed": "Une erreur est survenue. Veuillez réessayer.",

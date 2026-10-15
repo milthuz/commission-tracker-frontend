@@ -1,12 +1,16 @@
 import React from 'react';
 import SofiaTour from '../SofiaTour';
 
-// Route -> i18n key map for the Partner Portal's own menu (PartnerSidebar.tsx). Any item
+// Route -> i18n key map for the Partner Portal's own menu (PartnerSidebar.tsx, and
+// PartnerMobileTabBar.tsx on a phone). Any item
 // without an entry here falls back to a generic blurb, same as the internal tour's NAV_DESC.
 const PARTNER_NAV_DESC: Record<string, string> = {
   '/partner-portal': 'partnerPortal.tour.opportunitiesBody',
   '/partner-portal/team': 'partnerPortal.tour.adminPanelBody',
   '/partner-portal/profile': 'partnerPortal.tour.settingsBody',
+  // Phone tab bar (PartnerMobileTabBar) — the tour walks it instead of the hidden sidebar.
+  '/partner-portal?onglet=soumettre': 'partnerPortal.tour.submitBody',
+  '/partner-portal/plus': 'partnerPortal.tour.moreBody',
 };
 
 // Sofia's guided tour, scoped to the Partner Portal: builds itself from PartnerSidebar's own

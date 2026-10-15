@@ -3,8 +3,9 @@ import PasswordInput from '../../components/PasswordInput';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { usePartnerAuth } from '../../context/PartnerAuthContext';
-import { dialog } from '../../lib/dialog';
+import { Button, StatusPill, Modal, InlineError, StateCard, toast } from '../../components/ui';
 import { portalError } from './serverError';
+import PartnerPageHeader from './PageHeader';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('partnerToken')}` });
@@ -15,13 +16,12 @@ const PartnerProfile: React.FC = () => {
 
   const [displayName, setDisplayName] = useState(user?.name || '');
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [pwSaving, setPwSaving] = useState(false);
-  const [pwSaved, setPwSaved] = useState(false);
   const [pwError, setPwError] = useState('');
 
   // 2FA device reset — request a fresh secret/QR, then confirm with a live code before it
@@ -39,17 +39,19 @@ const PartnerProfile: React.FC = () => {
   const [resetBusy, setResetBusy] = useState(false);
   const [resetError, setResetError] = useState('');
 
-  const inputCls = 'w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
+  const inputCls = 'h-11 w-full rounded-xl border border-stroke bg-white px-3.5 text-sm text-black outline-none transition focus:border-primary disabled:cursor-not-allowed disabled:bg-gray-2 disabled:text-body dark:border-strokedark dark:bg-form-input dark:text-white dark:disabled:bg-meta-4 dark:disabled:text-bodydark2';
+  const labelCls = 'mb-1.5 block text-[13px] font-bold text-black dark:text-white';
+  const card = 'rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark';
+  const cardHead = 'border-b border-stroke px-4 py-4 dark:border-strokedark sm:px-6';
 
   const saveProfile = async () => {
-    setSaving(true);
+    setSaving(true); setSaveError('');
     try {
       await axios.put(`${API_URL}/api/partner-portal/profile`, { displayName }, { headers: authHeaders() });
       await checkAuth();
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      toast.success(t('partnerPortal.profile.saved'));
     } catch (e: any) {
-      dialog.alert(portalError(e?.response?.data?.error, t, t('partnerPortal.profile.saveFailed') as string));
+      setSaveError(portalError(e?.response?.data?.error, t, t('partnerPortal.profile.saveFailed') as string));
     } finally {
       setSaving(false);
     }
@@ -64,8 +66,7 @@ const PartnerProfile: React.FC = () => {
       await axios.post(`${API_URL}/api/partner-portal/change-password`,
         { currentPassword, newPassword }, { headers: authHeaders() });
       setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
-      setPwSaved(true);
-      setTimeout(() => setPwSaved(false), 3000);
+      toast.success(t('partnerPortal.profile.passwordSaved'));
     } catch (e: any) {
       setPwError(portalError(e?.response?.data?.error, t, t('partnerPortal.profile.passwordSaveFailed') as string));
     } finally {
@@ -135,212 +136,155 @@ const PartnerProfile: React.FC = () => {
     }
   };
 
-  const closeReset = () => { setResetOpen(false); setQr(''); setSecret(''); setSetupToken(''); setCode(''); };
+  const closeReset = () => { if (resetBusy) return; setResetOpen(false); setQr(''); setSecret(''); setSetupToken(''); setCode(''); };
+
+  const tf = 'partnerPortal.profile.twoFactor';
+  const modalTitle = resetStep === 'disable' ? t(`${tf}.disableTitle`) : resetStep === 'done' ? t(`${tf}.doneTitle`) : t(`${tf}.resetTitle`);
+  const cancelBtn = <Button size="md" onClick={closeReset} disabled={resetBusy}>{t('common.cancel')}</Button>;
+  const modalFooter = resetStep === 'password' ? (
+    <>{cancelBtn}<Button size="md" variant="primary" onClick={submitResetPassword} disabled={resetBusy || !resetPassword}>{t('common.continue')}</Button></>
+  ) : resetStep === 'qr' ? (
+    <>{cancelBtn}<Button size="md" variant="primary" onClick={confirmReset} disabled={resetBusy || code.length !== 6}>
+      {resetBusy ? t('common.saving') : t(`${tf}.confirmButton`)}</Button></>
+  ) : resetStep === 'disable' ? (
+    <>{cancelBtn}<Button size="md" variant="danger" onClick={submitDisable} disabled={resetBusy || !resetPassword}>{t(`${tf}.disableButton`)}</Button></>
+  ) : resetStep === 'done' ? (
+    <Button size="md" variant="primary" onClick={closeReset}>{t('common.close')}</Button>
+  ) : undefined;
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-title-md2 font-semibold text-black dark:text-white">{t('partnerPortal.profile.title')}</h1>
-        <p className="text-sm text-body">{user?.partnerName}</p>
-      </div>
+    <div className="flex flex-col gap-4">
+      <PartnerPageHeader eyebrow={user?.partnerName} title={t('partnerPortal.profile.title')} />
 
-      <div className="flex flex-col gap-6 xl:max-w-2xl">
+      <div className="flex flex-col gap-4 xl:max-w-2xl">
         {/* Account Information */}
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.accountInfo')}</h3>
+        <section className={card}>
+          <div className={cardHead}>
+            <h2 className="m-0 text-base font-bold text-black dark:text-white">{t('partnerPortal.profile.accountInfo')}</h2>
           </div>
-          <div className="p-7">
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="flex flex-col gap-4 p-4 sm:p-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.profile.displayName')}</label>
-                <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className={inputCls} />
+                <label htmlFor="pp-name" className={labelCls}>{t('partnerPortal.profile.displayName')}</label>
+                <input id="pp-name" type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.fEmail')}</label>
-                <input type="email" value={user?.email || ''} disabled
-                  className={`${inputCls} bg-whiter cursor-not-allowed opacity-70`} />
+                <label htmlFor="pp-email" className={labelCls}>{t('partnerPortal.fEmail')}</label>
+                <input id="pp-email" type="email" value={user?.email || ''} disabled className={inputCls} />
               </div>
               <div>
-                <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.colRole')}</label>
-                <input type="text" value={user?.role === 'admin' ? t('partnerPortal.roleAdmin') as string : t('partnerPortal.roleStandard') as string} disabled
-                  className={`${inputCls} bg-whiter cursor-not-allowed opacity-70`} />
+                <label htmlFor="pp-role" className={labelCls}>{t('partnerPortal.colRole')}</label>
+                <input id="pp-role" type="text" value={user?.role === 'admin' ? t('partnerPortal.roleAdmin') as string : t('partnerPortal.roleStandard') as string} disabled className={inputCls} />
               </div>
             </div>
-            <div className="mt-6 flex items-center gap-3">
-              <button onClick={saveProfile} disabled={saving}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+            {saveError && <InlineError title={t('partnerPortal.profile.saveFailed')} detail={saveError !== t('partnerPortal.profile.saveFailed') ? saveError : undefined} />}
+            <div>
+              <Button variant="primary" size="md" onClick={saveProfile} disabled={saving} className="max-sm:w-full">
                 {saving ? t('common.saving') : t('common.save')}
-              </button>
-              {saved && <span className="text-sm font-medium text-success animate-fade-in">{t('partnerPortal.profile.saved')}</span>}
+              </Button>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Change Password */}
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.changePassword')}</h3>
+        <section className={card}>
+          <div className={cardHead}>
+            <h2 className="m-0 text-base font-bold text-black dark:text-white">{t('partnerPortal.profile.changePassword')}</h2>
           </div>
-          <div className="p-7">
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="flex flex-col gap-4 p-4 sm:p-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.profile.currentPassword')}</label>
-                <PasswordInput  value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={inputCls} />
+                <label htmlFor="pp-cur" className={labelCls}>{t('partnerPortal.profile.currentPassword')}</label>
+                <PasswordInput id="pp-cur" autoComplete="current-password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className={inputCls} />
               </div>
-              <div />
+              <div className="max-sm:hidden" />
               <div>
-                <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.profile.newPassword')}</label>
-                <PasswordInput  value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputCls} />
+                <label htmlFor="pp-new" className={labelCls}>{t('partnerPortal.profile.newPassword')}</label>
+                <PasswordInput id="pp-new" autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className="mb-2.5 block text-sm font-medium text-black dark:text-white">{t('partnerPortal.profile.confirmPassword')}</label>
-                <PasswordInput  value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputCls} />
+                <label htmlFor="pp-new2" className={labelCls}>{t('partnerPortal.profile.confirmPassword')}</label>
+                <PasswordInput id="pp-new2" autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputCls} />
               </div>
             </div>
-            {pwError && <p className="mt-3 text-sm text-danger">{pwError}</p>}
-            <div className="mt-6 flex items-center gap-3">
-              <button onClick={changePassword} disabled={pwSaving || !currentPassword || !newPassword || !confirmPassword}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+            {pwError && <InlineError title={pwError} />}
+            <div>
+              <Button variant="primary" size="md" onClick={changePassword} disabled={pwSaving || !currentPassword || !newPassword || !confirmPassword} className="max-sm:w-full">
                 {pwSaving ? t('common.saving') : t('partnerPortal.profile.changePassword')}
-              </button>
-              {pwSaved && <span className="text-sm font-medium text-success animate-fade-in">{t('partnerPortal.profile.passwordSaved')}</span>}
+              </Button>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Two-Factor Authentication */}
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-          <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-            <h3 className="text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.title')}</h3>
+        <section className={card}>
+          <div className={`${cardHead} flex flex-wrap items-center justify-between gap-2`}>
+            <h2 className="m-0 text-base font-bold text-black dark:text-white">{t(`${tf}.title`)}</h2>
+            <StatusPill family={totpEnabled ? 'ok' : 'wait'}>{totpEnabled ? t(`${tf}.enabled`) : t(`${tf}.disabled`)}</StatusPill>
           </div>
-          <div className="p-7">
-            <div className="flex items-center gap-3">
-              <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${totpEnabled ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger'}`}>
-                {totpEnabled ? t('partnerPortal.profile.twoFactor.enabled') : t('partnerPortal.profile.twoFactor.disabled')}
-              </span>
-            </div>
-            <p className="mt-3 text-sm text-body">
-              {totpEnabled
-                ? t('partnerPortal.profile.twoFactor.subtitle')
-                : t('partnerPortal.profile.twoFactor.offSubtitle')}
+          <div className="flex flex-col gap-4 p-4 sm:p-6">
+            <p className="m-0 text-[13px] text-body dark:text-bodydark2">
+              {totpEnabled ? t(`${tf}.subtitle`) : t(`${tf}.offSubtitle`)}
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button onClick={startReset}
-                className={totpEnabled
-                  ? 'inline-flex items-center gap-2 rounded-md border border-stroke px-6 py-2.5 text-sm font-medium text-black hover:bg-gray-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4'
-                  : 'inline-flex items-center gap-2 rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white hover:bg-opacity-90'}>
-                {totpEnabled
-                  ? t('partnerPortal.profile.twoFactor.resetButton')
-                  : t('partnerPortal.profile.twoFactor.enableButton')}
-              </button>
+            <div className="flex flex-wrap gap-2">
+              <Button size="md" variant={totpEnabled ? 'secondary' : 'primary'} onClick={startReset}>
+                {totpEnabled ? t(`${tf}.resetButton`) : t(`${tf}.enableButton`)}
+              </Button>
               {totpEnabled && (
-                <button onClick={startDisable}
-                  className="inline-flex items-center gap-2 rounded-md border border-stroke px-6 py-2.5 text-sm font-medium text-danger hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4">
-                  {t('partnerPortal.profile.twoFactor.disableButton')}
-                </button>
+                <Button size="md" onClick={startDisable} className="!text-[#D92D20] dark:!text-[#F46060]">
+                  {t(`${tf}.disableButton`)}…
+                </Button>
               )}
             </div>
           </div>
-        </div>
+        </section>
       </div>
 
-      {/* 2FA reset modal */}
-      {resetOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !resetBusy && closeReset()}>
-          <div className="my-auto w-full max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            {resetStep === 'password' && (
-              <>
-                <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.resetTitle')}</h3>
-                <p className="mb-4 text-sm text-body">{t('partnerPortal.profile.twoFactor.confirmPasswordFirst')}</p>
-                <PasswordInput  autoComplete="current-password"
-                  value={resetPassword} onChange={(e) => setResetPassword(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && resetPassword) submitResetPassword(); }}
-                  placeholder={t('partnerPortal.profile.currentPassword') as string}
-                  className="w-full rounded-lg border border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
-                {resetError && <p className="mt-3 text-sm text-danger">{resetError}</p>}
-                <div className="mt-4 flex justify-end gap-2">
-                  <button onClick={closeReset} disabled={resetBusy}
-                    className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark">
-                    {t('common.cancel')}
-                  </button>
-                  <button onClick={submitResetPassword} disabled={resetBusy || !resetPassword}
-                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
-                    {t('common.continue')}
-                  </button>
-                </div>
-              </>
-            )}
-            {resetStep === 'starting' && (
-              <div className="flex items-center justify-center py-8">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-              </div>
-            )}
-            {resetStep === 'qr' && (
-              <>
-                <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.resetTitle')}</h3>
-                <p className="mb-4 text-sm text-body">{t('partnerPortal.profile.twoFactor.resetSubtitle')}</p>
-                <div className="mb-4 flex justify-center">
-                  {qr && <img src={qr} alt="QR code" className="rounded-lg border border-stroke dark:border-strokedark" />}
-                </div>
-                <p className="mb-4 text-center text-xs text-body">
-                  {t('partnerPortal.profile.twoFactor.manualKey')}<br />
-                  <code className="mt-1 inline-block rounded bg-gray-100 px-2 py-1 font-mono text-[11px] text-black dark:bg-meta-4 dark:text-white">{secret}</code>
-                </p>
-                <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
-                  value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                  placeholder="000000"
-                  className={`${inputCls} text-center text-2xl font-bold tracking-[0.5em]`} />
-                {resetError && <p className="mt-3 text-sm text-danger">{resetError}</p>}
-                <div className="mt-4 flex justify-end gap-2">
-                  <button onClick={closeReset} disabled={resetBusy}
-                    className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark">
-                    {t('common.cancel')}
-                  </button>
-                  <button onClick={confirmReset} disabled={resetBusy || code.length !== 6}
-                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
-                    {resetBusy ? t('common.saving') : t('partnerPortal.profile.twoFactor.confirmButton')}
-                  </button>
-                </div>
-              </>
-            )}
-            {resetStep === 'disable' && (
-              <>
-                <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.disableTitle')}</h3>
-                <p className="mb-4 text-sm text-body">{t('partnerPortal.profile.twoFactor.disableSubtitle')}</p>
-                <PasswordInput value={resetPassword} onChange={(e) => setResetPassword(e.target.value)}
-                  autoComplete="current-password"
-                  placeholder={t('partnerPortal.profile.twoFactor.currentPassword') as string}
-                  className="w-full rounded-md border border-stroke bg-transparent px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
-                {resetError && <p className="mt-3 text-sm text-danger">{resetError}</p>}
-                <div className="mt-5 flex justify-end gap-2">
-                  <button onClick={closeReset} disabled={resetBusy}
-                    className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4">
-                    {t('common.cancel')}
-                  </button>
-                  <button onClick={submitDisable} disabled={resetBusy || !resetPassword}
-                    className="rounded-md bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
-                    {t('partnerPortal.profile.twoFactor.disableButton')}
-                  </button>
-                </div>
-              </>
-            )}
-
-            {resetStep === 'done' && (
-              <>
-                <h3 className="mb-2 text-lg font-semibold text-black dark:text-white">{t('partnerPortal.profile.twoFactor.doneTitle')}</h3>
-                <p className="mb-4 text-sm text-body">{t('partnerPortal.profile.twoFactor.doneSubtitle')}</p>
-                <div className="flex justify-end">
-                  <button onClick={closeReset}
-                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
-                    {t('common.close')}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {/* 2FA set-up / reset / removal — the shared window: Échap ferme, le focus y reste. */}
+      <Modal open={resetOpen} onClose={closeReset} title={modalTitle} size="sm" footer={modalFooter}>
+        {resetStep === 'password' && (
+          <>
+            <p className="m-0 text-sm text-body dark:text-bodydark2">{t(`${tf}.confirmPasswordFirst`)}</p>
+            <PasswordInput autoComplete="current-password" autoFocus
+              value={resetPassword} onChange={(e) => setResetPassword(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && resetPassword) submitResetPassword(); }}
+              placeholder={t('partnerPortal.profile.currentPassword') as string}
+              aria-label={t('partnerPortal.profile.currentPassword') as string}
+              className={inputCls} />
+          </>
+        )}
+        {resetStep === 'starting' && <StateCard kind="loading" />}
+        {resetStep === 'qr' && (
+          <>
+            <p className="m-0 text-sm text-body dark:text-bodydark2">{t(`${tf}.resetSubtitle`)}</p>
+            <div className="flex justify-center">
+              {qr && <img src={qr} alt={t(`${tf}.qrAlt`) as string} className="max-w-full rounded-xl border border-stroke bg-white dark:border-strokedark" />}
+            </div>
+            <p className="m-0 text-center text-xs text-body dark:text-bodydark2">
+              {t(`${tf}.manualKey`)}<br />
+              <code className="mt-1 inline-block max-w-full break-all rounded bg-gray-2 px-2 py-1 font-mono text-[11px] text-black dark:bg-meta-4 dark:text-white">{secret}</code>
+            </p>
+            <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
+              value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              onKeyDown={(e) => { if (e.key === 'Enter' && code.length === 6) confirmReset(); }}
+              placeholder="000000" aria-label={t(`${tf}.codeLabel`) as string}
+              className={`${inputCls} !h-14 text-center text-2xl font-bold tracking-[0.5em]`} />
+          </>
+        )}
+        {resetStep === 'disable' && (
+          <>
+            <p className="m-0 text-sm text-body dark:text-bodydark2">{t(`${tf}.disableSubtitle`)}</p>
+            <PasswordInput value={resetPassword} onChange={(e) => setResetPassword(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && resetPassword) submitDisable(); }}
+              autoComplete="current-password" autoFocus
+              placeholder={t(`${tf}.currentPassword`) as string}
+              aria-label={t(`${tf}.currentPassword`) as string}
+              className={inputCls} />
+          </>
+        )}
+        {resetStep === 'done' && <p className="m-0 text-sm text-body dark:text-bodydark2">{t(`${tf}.doneSubtitle`)}</p>}
+        {resetError && resetStep !== 'done' && <InlineError title={resetError} />}
+      </Modal>
     </div>
   );
 };

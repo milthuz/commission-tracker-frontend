@@ -1,42 +1,32 @@
 import React, { Suspense, useState } from 'react';
-import axios from 'axios';
 import { ContentLoader } from '../common/Loader';
-import { Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PartnerSidebar from '../components/PartnerHeader/PartnerSidebar';
 import PartnerDropdownUser from '../components/PartnerHeader/PartnerDropdownUser';
 import PartnerDropdownNotification from '../components/PartnerHeader/PartnerDropdownNotification';
 import PartnerChatAssistant from '../components/PartnerHeader/PartnerChatAssistant';
 import PartnerSofiaTour from '../components/PartnerHeader/PartnerSofiaTour';
+import PartnerMobileTabBar from '../components/PartnerHeader/PartnerMobileTabBar';
+import { TABBAR_SPACE } from '../components/MobileTabBar';
+import clusterIcon from '../images/logo/cluster-appicon.svg';
+import { setPartnerLanguage } from '../pages/PartnerPortal/locale';
 import { useClusterFavicon } from '../hooks/useClusterFavicon';
 import { useTheme } from '../lib/theme';
 
 // Mirrors layout/DefaultLayout.tsx's Sidebar + Header + content-area split (user decision
 // 2026-07-2x: the Partner Portal should act like Sales Hub, not a stripped-down shell) — the
 // brand mark and app version now live in PartnerSidebar (like the internal Sidebar), so the
-// header only carries the mobile hamburger, language/theme toggles, and the user dropdown.
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const partnerAuthHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('partnerToken')}` });
-
+// header only carries the language/theme toggles and the user dropdown. On a phone the
+// bottom tab bar (PartnerMobileTabBar) replaces the sidebar drawer.
 const PartnerLayout: React.FC = () => {
   // Le portail affiche la marque Cluster ; son onglet doit suivre.
   useClusterFavicon();
 
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // La bascule change l'affichage ET la langue du compte : sans le second appel, un
-  // partenaire lisant le portail en anglais continuerait de recevoir ses courriels dans
-  // la langue choisie par la personne qui l'a invite, il y a peut-etre des mois.
-  //
-  // Volontairement sans await ni message d'erreur : l'affichage doit basculer tout de
-  // suite, et rater l'enregistrement d'une preference ne vaut pas d'interrompre
-  // quelqu'un. La prochaine bascule reessaiera.
-  const setLang = (l: 'en' | 'fr') => {
-    i18n.changeLanguage(l);
-    localStorage.setItem('language', l);
-    axios.put(`${API_URL}/api/partner-portal/locale`, { locale: l }, { headers: partnerAuthHeaders() })
-      .catch(() => {});
-  };
+  // Display AND account language (see pages/PartnerPortal/locale.ts).
+  const setLang = (l: 'en' | 'fr') => setPartnerLanguage(i18n, l);
 
   // Same device-level theme setting as the internal app (lib/theme).
   const [theme, , toggleDarkMode] = useTheme();
@@ -50,25 +40,12 @@ const PartnerLayout: React.FC = () => {
         <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
           <header className="sticky top-0 z-999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
             <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-11">
-              <div className="flex items-center gap-2 sm:gap-4 lg:hidden">
-                <button
-                  aria-controls="partner-sidebar"
-                  onClick={(e) => { e.stopPropagation(); setSidebarOpen(!sidebarOpen); }}
-                  className="z-99999 block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-strokedark dark:bg-boxdark lg:hidden"
-                >
-                  <span className="relative block h-5.5 w-5.5 cursor-pointer">
-                    <span className="du-block absolute right-0 h-full w-full">
-                      <span className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-[0] duration-200 ease-in-out dark:bg-white ${!sidebarOpen && '!w-full delay-300'}`}></span>
-                      <span className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-150 duration-200 ease-in-out dark:bg-white ${!sidebarOpen && 'delay-400 !w-full'}`}></span>
-                      <span className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-200 duration-200 ease-in-out dark:bg-white ${!sidebarOpen && '!w-full delay-500'}`}></span>
-                    </span>
-                    <span className="absolute right-0 h-full w-full rotate-45">
-                      <span className={`absolute left-2.5 top-0 block h-full w-0.5 rounded-sm bg-black delay-300 duration-200 ease-in-out dark:bg-white ${!sidebarOpen && '!h-0 !delay-[0]'}`}></span>
-                      <span className={`delay-400 absolute left-0 top-2.5 block h-0.5 w-full rounded-sm bg-black duration-200 ease-in-out dark:bg-white ${!sidebarOpen && '!h-0 !delay-200'}`}></span>
-                    </span>
-                  </span>
-                </button>
-              </div>
+              {/* Phone: no drawer behind a hamburger any more — the tab bar at the bottom
+                  (PartnerMobileTabBar) replaces it, as in the internal app. The « C » icon of the
+                  Cluster kit stands in for the sidebar's wordmark. */}
+              <Link className="block flex-shrink-0 lg:hidden" to="/partner-portal" aria-label="Cluster">
+                <img src={clusterIcon} alt="" className="h-8 w-8" draggable={false} />
+              </Link>
 
               <div className="hidden sm:block" />
 
@@ -79,6 +56,8 @@ const PartnerLayout: React.FC = () => {
                       {(['en', 'fr'] as const).map((l) => (
                         <button
                           key={l}
+                          type="button"
+                          aria-pressed={i18n.language?.startsWith(l)}
                           onClick={() => setLang(l)}
                           className={`flex h-full items-center rounded-full px-2.5 text-xs font-bold transition ${
                             i18n.language?.startsWith(l) ? 'bg-primary text-white' : 'text-body hover:text-primary dark:text-white'
@@ -94,7 +73,7 @@ const PartnerLayout: React.FC = () => {
                     <button
                       onClick={toggleDarkMode}
                       className="relative flex h-8.5 w-8.5 items-center justify-center rounded-full border-[0.5px] border-stroke bg-gray hover:text-primary dark:border-strokedark dark:bg-meta-4 dark:text-white"
-                      aria-label="Toggle dark mode"
+                      aria-label={t('partnerPortal.header.toggleTheme') as string}
                     >
                       {darkMode ? (
                         <svg className="fill-current" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -124,7 +103,8 @@ const PartnerLayout: React.FC = () => {
             </div>
           </header>
 
-          <main>
+          {/* Room under the content for the phone tab bar (none on desktop). */}
+          <main className={TABBAR_SPACE}>
             <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
               <Suspense fallback={<ContentLoader />}>
                 <Outlet />
@@ -135,6 +115,7 @@ const PartnerLayout: React.FC = () => {
       </div>
 
       <PartnerChatAssistant />
+      <PartnerMobileTabBar />
       <PartnerSofiaTour />
     </div>
   );

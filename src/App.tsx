@@ -101,6 +101,7 @@ const PartnerPortal = lazyRoute(() => import('./pages/PartnerPortal'));
 const PartnerProfile = lazyRoute(() => import('./pages/PartnerPortal/Profile'));
 const PartnerTeam = lazyRoute(() => import('./pages/PartnerPortal/Team'));
 const PartnerOrganization = lazyRoute(() => import('./pages/PartnerPortal/Organization'));
+const PartnerMore = lazyRoute(() => import('./pages/PartnerPortal/More'));
 const PassJoin = lazyRoute(() => import('./pages/Pass/Join'));
 const PassHub = lazyRoute(() => import('./pages/Pass/Hub'));
 const PassRefer = lazyRoute(() => import('./pages/Pass/Refer'));
@@ -335,7 +336,7 @@ function AppContent() {
             path="/partner-portal"
             element={
               <>
-                <PageTitle title="Portail partenaire | Cluster" />
+                <PageTitle titleKey="pageTitle.partnerPortal" suffix="Cluster" />
                 <PartnerPortal />
               </>
             }
@@ -344,7 +345,7 @@ function AppContent() {
             path="/partner-portal/profile"
             element={
               <>
-                <PageTitle titleKey="sidebar.profile" />
+                <PageTitle titleKey="sidebar.profile" suffix="Cluster" />
                 <PartnerProfile />
               </>
             }
@@ -364,6 +365,15 @@ function AppContent() {
               <>
                 <PageTitle titleKey="pageTitle.partnerOrganization" suffix="Cluster" />
                 <PartnerOrganization />
+              </>
+            }
+          />
+          <Route
+            path="/partner-portal/plus"
+            element={
+              <>
+                <PageTitle titleKey="mobileNav.more" suffix="Cluster" />
+                <PartnerMore />
               </>
             }
           />

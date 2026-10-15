@@ -780,7 +780,16 @@
       "uploadInvoice": "Upload invoice",
       "uploadHistory": "Upload history",
       "loadError": "Couldn't load your payouts.",
-      "uploadFailed": "Couldn't upload the invoice. Please try again."
+      "uploadFailed": "Couldn't upload the invoice. Please try again.",
+      "uploaded": "Invoice uploaded",
+      "uploadFailedTitle": "The invoice was not uploaded",
+      "tableTitle": "Payout runs",
+      "colPeriod": "Period",
+      "colAmount": "Amount",
+      "colCount": "Opportunities",
+      "colInvoice": "Invoice",
+      "colFile": "File",
+      "colUploaded": "Uploaded on"
     },
     "teamBreakdownTitle": "By team member",
     "unknownSubmitter": "Unknown",
@@ -846,7 +855,9 @@
         "disableButton": "Turn off two-factor authentication",
         "disableTitle": "Turn off two-factor authentication",
         "disableSubtitle": "Your password alone will then be enough to sign in. Confirm your current password to continue.",
-        "currentPassword": "Current password"
+        "currentPassword": "Current password",
+        "qrAlt": "QR code to scan",
+        "codeLabel": "Six-digit code"
       }
     },
     "sidebar": {
@@ -862,7 +873,7 @@
     },
     "organization": {
       "logoTitle": "Organization logo",
-      "logoSubtitle": "Shown alongside the Sales Hub brand in your Partner Portal.",
+      "logoSubtitle": "Shown alongside the Cluster brand in your Partner Portal.",
       "logoHint": "PNG or JPG, up to 2 MB. For best results, use a logo designed for a white or light background.",
       "previewLabel": "How it will look in the sidebar",
       "previewHint": "If your logo is hard to see here, try a version with a transparent background or one meant for light backgrounds.",
@@ -871,7 +882,9 @@
       "mustBeImage": "The file must be an image.",
       "uploadFailed": "Couldn't upload the logo. Please try again.",
       "removeConfirm": "Remove your organization's logo?",
-      "removeFailed": "Couldn't remove the logo. Please try again."
+      "removeFailed": "Couldn't remove the logo. Please try again.",
+      "uploaded": "Logo updated",
+      "removed": "Logo removed"
     },
     "notifications": {
       "title": "Notifications",
@@ -904,15 +917,17 @@
       "welcomeTitle": "Hi, I'm Sofia 👋",
       "welcomeBody": "Let me give you a quick tour of the Partner Portal. You can skip anytime.",
       "opportunitiesBody": "Submit a new business opportunity and track the status of everything you've already submitted.",
-      "adminPanelBody": "Invite more people from your organization into the portal, and upload your organization's logo (shown alongside the Sales Hub brand).",
+      "adminPanelBody": "Invite more people from your organization into the portal, and upload your organization's logo (shown alongside the Cluster brand).",
       "teamBody": "Invite more people from your organization into the portal, as a Standard user or another Admin.",
-      "organizationBody": "Upload your organization's logo — shown alongside the Sales Hub brand.",
+      "organizationBody": "Upload your organization's logo — shown alongside the Cluster brand.",
       "settingsBody": "Update your display name, change your password, and reset your 2FA device.",
       "sectionGeneric": "Open the {{section}} section here.",
       "sofiaTitle": "I'm always here",
       "sofiaBody": "Click me anytime for help, or to take this tour again. Enjoy the Partner Portal!",
       "askPlaceholder": "Ask Sofia a question…",
-      "askError": "Sorry, something went wrong — try again."
+      "askError": "Sorry, something went wrong — try again.",
+      "submitBody": "Submit a new opportunity in a few fields: Cluster reviews it and you follow its status under “Opportunities”.",
+      "moreBody": "Your settings, theme, language and — for admins — your team and your organization’s logo."
     },
     "localeFr": "French",
     "localeEn": "English",
@@ -931,7 +946,15 @@
       "confirmRole": "Make {{email}} a {{role}}?",
       "errLastAdmin": "Not possible: this is the last active admin of {{name}}. Appoint another admin first, otherwise nobody could invite or manage accounts.",
       "errSelf": "You cannot change or delete your own account here.",
-      "errHistoryAskDisable": "{{email}} is linked to {{opportunities}} opportunity(ies) and {{invoices}} invoice(s): deleting is impossible without erasing that history.\n\nDisable the account instead? It will no longer be able to sign in and nothing will be lost."
+      "errHistoryAskDisable": "{{email}} is linked to {{opportunities}} opportunity(ies) and {{invoices}} invoice(s): deleting is impossible without erasing that history.\n\nDisable the account instead? It will no longer be able to sign in and nothing will be lost.",
+      "actionFailed": "Action refused",
+      "makeAdmin": "Make admin",
+      "makeStandard": "Make standard",
+      "actionsOn": "Actions on {{email}}",
+      "disabledToast": "{{email}} disabled",
+      "enabledToast": "{{email}} re-enabled",
+      "deletedToast": "{{email}} deleted",
+      "roleToast": "{{email}} is now {{role}}"
     },
     "userStatus": {
       "active": "Active",
@@ -981,8 +1004,48 @@
       "rotateFailed": "Could not regenerate the code.",
       "domains": "Only addresses on these domains are accepted: {{domains}}.",
       "linkHint": "Ready-made link:",
-      "signup_closed": "Self sign-up is closed for your organization. Please contact your Cluster representative."
-    }
+      "signup_closed": "Self sign-up is closed for your organization. Please contact your Cluster representative.",
+      "copiedToast": "Code copied",
+      "rotateTitle": "Regenerate the code?",
+      "rotated": "New code created — the old one no longer works"
+    },
+    "mobileNav": {
+      "label": "Portal navigation",
+      "opportunities": "Opportunities",
+      "submit": "Submit"
+    },
+    "header": {
+      "toggleTheme": "Switch light / dark theme"
+    },
+    "more": {
+      "profileSub": "Name, password, 2FA"
+    },
+    "access": {
+      "adminOnlyTitle": "Admins only",
+      "adminOnlyBody": "This screen is for your organization’s admins. If you need it, ask one of them."
+    },
+    "list": {
+      "searchPlaceholder": "Search a business, a contact…",
+      "tableTitle": "Submitted opportunities",
+      "statusChip": "Status: {{status}}",
+      "noMatchTitle": "No opportunity matches",
+      "noMatchBody": "Remove a filter or change the search.",
+      "emptyBody": "Submit your first opportunity: it will show up here with its follow-up."
+    },
+    "submitCta": "Submit an opportunity",
+    "submitted": "“{{name}}” submitted — Cluster will review it.",
+    "submitErrorTitle": "The opportunity was not submitted",
+    "detail": {
+      "rejectionReason": "Reason for rejection"
+    },
+    "colMember": "Member",
+    "colLastLogin": "Last login",
+    "neverLoggedIn": "Never",
+    "teamTableTitle": "Team members",
+    "teamEmpty": "Nobody on the team yet",
+    "invited": "Invitation sent to {{email}}",
+    "inviteLocaleLabel": "Email language",
+    "colSubmittedOnBy": "Submitted on / by"
   },
   "kaizenDemo": {
     "title": "Kaizen DEMO",
@@ -8064,7 +8127,8 @@
     "partnerTeam": "Team",
     "partnerOrganization": "Organization",
     "saasLookup": "SaaS increase reference",
-    "saasCampaign": "SaaS increase campaign tracking"
+    "saasCampaign": "SaaS increase campaign tracking",
+    "partnerPortal": "Partner Portal"
   },
   "errors": {
     "failed": "Something went wrong. Please try again.",

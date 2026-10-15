@@ -2,8 +2,10 @@ import { useState } from 'react';
 import PasswordInput from '../../components/PasswordInput';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import SalesHubLogo from '../../components/SalesHubLogo';
+import ClusterWordmark from '../../components/ClusterWordmark';
+import { Button, InlineError } from '../../components/ui';
 import { useClusterFavicon } from '../../hooks/useClusterFavicon';
+import { portalError } from './serverError';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -32,33 +34,34 @@ const PartnerResetPassword = () => {
         body: JSON.stringify({ token, password: pw1 }),
       });
       const d = await r.json();
-      if (!r.ok) { setError(d.error || (t('errors.generic') as string)); return; }
+      if (!r.ok) { setError(portalError(d.error, t, t('errors.generic') as string)); return; }
       setDone(true);
     } catch {
       setError(t('auth.networkError') as string);
     } finally { setBusy(false); }
   };
 
-  const inputCls = 'w-full rounded-xl border border-stroke bg-gray-50 px-5 py-4 text-base text-black outline-none transition focus:border-primary focus:bg-white dark:border-strokedark dark:bg-meta-4 dark:text-white';
+  const inputCls = 'h-12 w-full rounded-xl border border-stroke bg-white px-4 text-base text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white';
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2">
+    <div className="flex min-h-screen items-center justify-center bg-gray-2 px-4 py-10 dark:bg-boxdark-2">
       <div className="w-full max-w-md">
         <div className="mb-8 flex justify-center">
-          <SalesHubLogo variant="stacked" tone="light" className="h-32 w-auto" />
+          {/* Portail partenaire = marque Cluster (cette page montrait le logo Sales Hub). */}
+          <ClusterWordmark className="h-10 w-auto" />
         </div>
-        <div className="rounded-2xl bg-white p-8 shadow-xl dark:bg-boxdark sm:p-10">
+        <div className="rounded-[20px] border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark sm:p-10">
           {done ? (
             <div className="text-center">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-success bg-opacity-10">
-                <svg className="h-7 w-7 text-success" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(23,178,106,0.12)] dark:bg-[rgba(23,178,106,0.18)]">
+                <svg className="h-7 w-7 text-[#067647] dark:text-[#57D193]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <h2 className="mb-2 text-2xl font-bold text-black dark:text-white">{t('auth.reset.doneTitle')}</h2>
               <p className="mb-8 text-sm text-body">{t('auth.reset.doneSubtitle')}</p>
               <Link to="/partner-portal/login"
-                className="block w-full rounded-full bg-black py-4 text-center text-base font-semibold text-white hover:bg-opacity-80 dark:bg-primary">
+                className="flex h-12 w-full items-center justify-center rounded-xl bg-primary text-base font-bold text-[#141414] hover:bg-[#F79C6A]">
                 {t('auth.backToLoginBtn')}
               </Link>
             </div>
@@ -74,11 +77,10 @@ const PartnerResetPassword = () => {
                   onChange={(e) => setPw2(e.target.value)}
                   placeholder={t('auth.invite.confirmPassword') as string} className={inputCls} />
                 <p className="text-xs text-body">{t('auth.invite.pwHint')}</p>
-                {error && <p className="text-sm text-danger">{error}</p>}
-                <button type="submit" disabled={busy}
-                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.reset.submit')}
-                </button>
+                {error && <InlineError title={error} />}
+                <Button type="submit" variant="primary" disabled={busy} className="!h-12 w-full text-base">
+                  {busy ? <span aria-label={t('common.loading') as string} className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#141414] border-t-transparent" /> : t('auth.reset.submit')}
+                </Button>
               </form>
             </>
           )}

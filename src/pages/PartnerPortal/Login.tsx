@@ -8,6 +8,7 @@ import { useAppVersion } from '../../hooks/useAppVersion';
 import { getDeviceToken, storeDeviceToken } from '../../lib/deviceTrust';
 import { portalError } from './serverError';
 import { useClusterFavicon } from '../../hooks/useClusterFavicon';
+import { Button, InlineError } from '../../components/ui';
 
 const DEVICE_TOKEN_PREFIX = 'partnerDeviceToken';
 
@@ -102,7 +103,7 @@ const PartnerLogin = () => {
     } finally { setBusy(false); }
   };
 
-  const inputCls = 'w-full rounded-xl border border-stroke bg-gray-50 px-5 py-4 text-base text-black outline-none transition focus:border-primary focus:bg-white dark:border-strokedark dark:bg-meta-4 dark:text-white';
+  const inputCls = 'h-12 w-full rounded-xl border border-stroke bg-white px-4 text-base text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white';
 
   return (
     <div className="flex min-h-screen">
@@ -123,12 +124,12 @@ const PartnerLogin = () => {
         </p>
       </div>
 
-      <div className="flex w-full flex-col items-center justify-center bg-gray-100 px-4 py-10 dark:bg-boxdark-2 lg:w-1/2">
+      <div className="flex w-full flex-col items-center justify-center bg-gray-2 px-4 py-10 dark:bg-boxdark-2 lg:w-1/2">
         <div className="mb-8 rounded-xl bg-[#0F0F10] px-6 py-5 lg:hidden">
           <ClusterWordmark tone="dark" className="h-8 w-auto" />
         </div>
 
-        <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl dark:bg-boxdark sm:p-10">
+        <div className="w-full max-w-md rounded-[20px] border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark sm:p-10">
           {step === 'creds' && (
             <>
               <h2 className="mb-2 text-center text-3xl font-bold text-black dark:text-white">
@@ -154,11 +155,10 @@ const PartnerLogin = () => {
                     {t('auth.forgotPassword')}
                   </button>
                 </div>
-                {error && <p className="text-sm text-danger">{error}</p>}
-                <button type="submit" disabled={busy}
-                  className="mx-auto !mt-6 flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.logIn')}
-                </button>
+                {error && <InlineError title={error} />}
+                <Button type="submit" variant="primary" disabled={busy} className="!h-12 w-full text-base">
+                  {busy ? <span aria-label={t('common.loading') as string} className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#141414] border-t-transparent" /> : t('auth.logIn')}
+                </Button>
               </form>
               {/* La porte d entree de l inscription libre : sans ce lien, un partenaire a qui on
                   a donne un code n a nulle part ou le saisir. */}
@@ -189,11 +189,10 @@ const PartnerLogin = () => {
                     className="h-4 w-4 rounded-[6px] border-stroke text-primary focus:ring-primary dark:border-strokedark" />
                   {t('auth.rememberDevice')}
                 </label>
-                {error && <p className="text-sm text-danger">{error}</p>}
-                <button type="submit" disabled={busy || code.length !== 6}
-                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.verify')}
-                </button>
+                {error && <InlineError title={error} />}
+                <Button type="submit" variant="primary" disabled={busy || code.length !== 6} className="!h-12 w-full text-base">
+                  {busy ? <span aria-label={t('common.loading') as string} className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#141414] border-t-transparent" /> : t('auth.verify')}
+                </Button>
                 <button type="button" onClick={() => { setError(''); setStep('creds'); }}
                   className="w-full text-center text-sm font-medium text-body hover:text-primary">
                   ← {t('auth.back')}
@@ -215,11 +214,10 @@ const PartnerLogin = () => {
                   placeholder={t('auth.email') as string}
                   className={inputCls}
                 />
-                {error && <p className="text-sm text-danger">{error}</p>}
-                <button type="submit" disabled={busy}
-                  className="flex w-full items-center justify-center rounded-full bg-black py-4 text-base font-semibold text-white transition hover:bg-opacity-80 disabled:opacity-50 dark:bg-primary">
-                  {busy ? <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : t('auth.sendResetLink')}
-                </button>
+                {error && <InlineError title={error} />}
+                <Button type="submit" variant="primary" disabled={busy} className="!h-12 w-full text-base">
+                  {busy ? <span aria-label={t('common.loading') as string} className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-[#141414] border-t-transparent" /> : t('auth.sendResetLink')}
+                </Button>
                 <button type="button" onClick={() => { setError(''); setStep('creds'); }}
                   className="w-full text-center text-sm font-medium text-body hover:text-primary">
                   ← {t('auth.back')}
@@ -230,17 +228,16 @@ const PartnerLogin = () => {
 
           {step === 'forgotSent' && (
             <div className="text-center">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-success bg-opacity-10">
-                <svg className="h-7 w-7 text-success" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[rgba(23,178,106,0.12)] dark:bg-[rgba(23,178,106,0.18)]">
+                <svg className="h-7 w-7 text-[#067647] dark:text-[#57D193]" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <h2 className="mb-2 text-2xl font-bold text-black dark:text-white">{t('auth.forgotSentTitle')}</h2>
               <p className="mb-8 text-sm text-body">{t('auth.forgotSentSubtitle')}</p>
-              <button onClick={() => setStep('creds')}
-                className="w-full rounded-full border border-stroke py-3.5 text-base font-semibold text-black hover:bg-gray-50 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+              <Button onClick={() => setStep('creds')} className="!h-12 w-full text-base">
                 ← {t('auth.backToLoginBtn')}
-              </button>
+              </Button>
             </div>
           )}
         </div>
