@@ -1,6 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LegalBrand from './LegalBrand';
+import LegalContact from './LegalContact';
 
 // Bilingual Privacy Policy for Sales Hub — an internal sales & commission tool
 // operated by Cluster Systems. Note: reasonable internal-tool policy, not legal advice.
@@ -128,7 +129,7 @@ const PrivacyPolicy = () => {
               ))}
             </div>
 
-            <p className="mt-8 border-t border-stroke pt-6 text-sm text-body dark:border-strokedark">{c.contact}</p>
+            <LegalContact text={c.contact} />
           </div>
         </div>
       </div>
