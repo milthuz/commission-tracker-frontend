@@ -70,9 +70,9 @@ export default function EmailPreview() {
   const labelCls = 'mb-1.5 block text-xs font-medium text-body';
 
   return (
-    <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
       <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-        <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.emailPreview.title')}</h3>
+        <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.emailPreview.title')}</h3>
         <p className="mt-1 text-sm text-body">{t('admin.emailPreview.subtitle')}</p>
       </div>
 
@@ -102,7 +102,7 @@ export default function EmailPreview() {
           <button
             onClick={sendTest}
             disabled={sending}
-            className="whitespace-nowrap rounded-md bg-primary px-5 py-2 text-sm font-medium text-white transition hover:bg-opacity-90 disabled:opacity-50"
+            className="whitespace-nowrap rounded-md bg-primary px-5 py-2 text-sm font-medium text-[#141414] transition hover:bg-[#F79C6A] disabled:opacity-50"
           >
             {sending ? t('admin.emailPreview.sending') : t('admin.emailPreview.sendTest')}
           </button>

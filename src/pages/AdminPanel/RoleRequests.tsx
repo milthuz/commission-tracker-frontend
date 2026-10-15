@@ -40,10 +40,10 @@ export default function RoleRequests() {
   const fmt = (s: string) => new Date(s).toLocaleString(appLocale(), { dateStyle: 'medium', timeStyle: 'short' });
 
   return (
-    <div className="mb-6 rounded-sm border border-warning/50 bg-white shadow-default dark:border-warning/40 dark:bg-boxdark">
+    <div className="mb-6 rounded-sm border border-warning/50 bg-white dark:border-warning/40 dark:bg-boxdark">
       <div className="flex items-center gap-2 border-b border-stroke px-7 py-4 dark:border-strokedark">
         <UserPlus className="h-5 w-5 text-warning" />
-        <h3 className="text-base font-semibold text-black dark:text-white">{t('admin.roleRequests.title', { count: list.length })}</h3>
+        <h3 className="text-base font-bold text-black dark:text-white">{t('admin.roleRequests.title', { count: list.length })}</h3>
       </div>
       <p className="px-7 pt-3 text-xs text-body dark:text-bodydark">{t('admin.roleRequests.help')}</p>
       <div className="divide-y divide-stroke px-7 pb-2 dark:divide-strokedark">

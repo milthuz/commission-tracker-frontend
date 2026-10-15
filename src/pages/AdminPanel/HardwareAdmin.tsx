@@ -213,7 +213,7 @@ const HardwareAdmin: React.FC = () => {
   return (
     <div className="relative">
       <div className="mb-4 flex items-center justify-end">
-        <button onClick={() => openForm(null)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">
+        <button onClick={() => openForm(null)} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A]">
           + {t('admin.hardware.addProduct')}
         </button>
       </div>
@@ -249,7 +249,7 @@ const HardwareAdmin: React.FC = () => {
           ) : list.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-16 text-center">
               <div className="text-sm text-gray-400">{t('admin.hardware.emptyCategory')}</div>
-              <button onClick={() => openForm(null)} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white">{t('admin.hardware.addProduct')}</button>
+              <button onClick={() => openForm(null)} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-[#141414]">{t('admin.hardware.addProduct')}</button>
             </div>
           ) : (
             <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
@@ -301,7 +301,7 @@ const HardwareAdmin: React.FC = () => {
           <span className="text-[13px] font-bold text-black dark:text-white">{t('admin.hardware.unsaved', { count: editedCount })}</span>
           <div className="flex-1" />
           <button onClick={revertAll} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('admin.hardware.discard')}</button>
-          <button onClick={publish} disabled={publishing} className="rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+          <button onClick={publish} disabled={publishing} className="rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
             {publishing ? t('admin.hardware.publishing') : t('admin.hardware.publish')}
           </button>
         </div>
@@ -335,7 +335,7 @@ const HardwareAdmin: React.FC = () => {
 
               <div className="mb-4 inline-flex rounded-lg border border-stroke p-1 dark:border-strokedark">
                 {(['en', 'fr'] as const).map((l) => (
-                  <button key={l} onClick={() => setFormLang(l)} className={`rounded-md px-4 py-1.5 text-sm font-semibold ${formLang === l ? 'bg-primary text-white' : 'text-body'}`}>{l.toUpperCase()}</button>
+                  <button key={l} onClick={() => setFormLang(l)} className={`rounded-md px-4 py-1.5 text-sm font-semibold ${formLang === l ? 'bg-primary text-[#141414]' : 'text-body'}`}>{l.toUpperCase()}</button>
                 ))}
               </div>
 
@@ -395,7 +395,7 @@ const HardwareAdmin: React.FC = () => {
               {!form.isNew && formId && <button onClick={() => removeProduct(formId)} className="rounded-lg border border-danger/40 px-3.5 py-2.5 text-sm font-semibold text-danger hover:bg-danger hover:text-white">{t('common.delete')}</button>}
               <span className="min-w-0 flex-1 px-2 text-xs leading-snug text-gray-400">{t('admin.hardware.stagedHint')}</span>
               <button onClick={closeForm} className="flex-none rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
-              <button onClick={saveForm} className="flex-none rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{form.isNew ? t('admin.hardware.add') : t('admin.hardware.applyStaged')}</button>
+              <button onClick={saveForm} className="flex-none rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A]">{form.isNew ? t('admin.hardware.add') : t('admin.hardware.applyStaged')}</button>
             </div>
           </div>
         </div>

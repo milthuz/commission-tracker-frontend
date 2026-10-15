@@ -329,7 +329,7 @@ export default function IcplusRatesAdmin() {
           return (
             <button key={n} onClick={() => switchTable(n)}
               className={`rounded px-3 py-1.5 text-sm font-medium transition ${
-                active === n ? 'bg-primary text-white'
+                active === n ? 'bg-primary text-[#141414]'
                   : count === 0 ? 'border border-warning/50 bg-warning/5 text-body dark:text-bodydark'
                   : 'border border-stroke text-black hover:border-primary dark:border-strokedark dark:text-white'}`}>
               {t(`icplusRates.table.${n}`, { defaultValue: n })} <span className="opacity-70">({count})</span>
@@ -339,14 +339,14 @@ export default function IcplusRatesAdmin() {
       </div>
 
       {/* Dépôt d'une carte de taux */}
-      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-sm border border-stroke bg-whiter p-3 dark:border-strokedark dark:bg-meta-4">
+      <div className="mb-4 flex flex-wrap items-end gap-3 rounded-2xl border border-stroke bg-whiter p-3 dark:border-strokedark dark:bg-meta-4">
         <div className="min-w-[240px] flex-1">
           <label className="mb-1 block text-xs font-medium text-black dark:text-white">{t('icplusRates.extractSource')}</label>
           <Select value={extractSrc} onChange={setExtractSrc} options={sourceOptions} />
         </div>
         <button onClick={() => fileRef.current?.click()} disabled={extracting || !extractSrc}
           title={!extractSrc ? (t('icplusRates.pickSourceFirst') as string) : undefined}
-          className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+          className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
           {extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
           {extracting ? t('icplusRates.extracting') : t('icplusRates.uploadRateCard')}
         </button>
@@ -391,7 +391,7 @@ export default function IcplusRatesAdmin() {
           {Object.entries(wb.proposals).map(([table, rows]) => {
             const picked = rows.filter((r) => r.accept).length;
             return (
-              <div key={table} className="mb-3 rounded-sm border border-stroke bg-white p-3 dark:border-strokedark dark:bg-boxdark">
+              <div key={table} className="mb-3 rounded-2xl border border-stroke bg-white p-3 dark:border-strokedark dark:bg-boxdark">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-sm font-medium text-black dark:text-white">
                     {t(`icplusRates.table.${table}`, { defaultValue: table })}
@@ -405,7 +405,7 @@ export default function IcplusRatesAdmin() {
                     )}
                   </span>
                   <button onClick={() => loadWbTable(table)} disabled={!picked}
-                    className="flex items-center gap-1 rounded bg-primary px-3 py-1.5 text-xs font-medium text-white disabled:opacity-40">
+                    className="flex items-center gap-1 rounded bg-primary px-3 py-1.5 text-xs font-medium text-[#141414] disabled:opacity-40">
                     {t('icplusRates.wbLoadInto', { n: picked })}<ArrowRight className="h-3 w-3" />
                   </button>
                 </div>
@@ -467,7 +467,7 @@ export default function IcplusRatesAdmin() {
           {/* La feuille des majorations n'est pas une source de taux : elle dit comment
               l'acquéreur classe ses propres lignes, ce qui confronte nos libellés SUSPECT. */}
           {wb.classification && wb.classification.length > 0 && (
-            <details className="mb-3 rounded-sm border border-stroke bg-white p-3 text-xs dark:border-strokedark dark:bg-boxdark">
+            <details className="mb-3 rounded-2xl border border-stroke bg-white p-3 text-xs dark:border-strokedark dark:bg-boxdark">
               <summary className="cursor-pointer font-medium text-black dark:text-white">
                 {t('icplusRates.wbClassification', { n: wb.classification.length })}
               </summary>
@@ -542,7 +542,7 @@ export default function IcplusRatesAdmin() {
 
           <div className="mt-3 flex gap-3">
             <button onClick={acceptProposals} disabled={!proposals.some((p) => p.accept)}
-              className="rounded bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+              className="rounded bg-primary px-4 py-2 text-sm font-medium text-[#141414] disabled:opacity-50">
               {t('icplusRates.addSelected', { n: proposals.filter((p) => p.accept).length })}
             </button>
             <button onClick={() => { setProposals(null); setExtractInfo(null); }}
@@ -635,7 +635,7 @@ export default function IcplusRatesAdmin() {
           <Plus className="h-4 w-4" />{t('icplusRates.addRow')}
         </button>
         <button onClick={save} disabled={!dirty || saving}
-          className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+          className="flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
           <Save className="h-4 w-4" />{saving ? '…' : t('icplusRates.save')}
         </button>
         {saved && (

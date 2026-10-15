@@ -242,7 +242,7 @@ const PricingAdmin: React.FC = () => {
     <div className="relative">
       <div className="mb-4 flex items-center justify-between">
         <p className="text-xs text-gray-400">{t('admin.pricing.hint')}</p>
-        <button onClick={openAddForm} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">
+        <button onClick={openAddForm} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A]">
           + {t('admin.pricing.addPackage')}
         </button>
       </div>
@@ -372,7 +372,7 @@ const PricingAdmin: React.FC = () => {
           <span className="text-[13px] font-bold text-black dark:text-white">{t('admin.pricing.unsaved', { count: editedCount })}</span>
           <div className="flex-1" />
           <button onClick={revertAll} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('admin.pricing.discard')}</button>
-          <button onClick={publish} disabled={publishing} className="rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+          <button onClick={publish} disabled={publishing} className="rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
             {publishing ? t('admin.pricing.publishing') : t('admin.pricing.publish')}
           </button>
         </div>
@@ -457,7 +457,7 @@ const PricingAdmin: React.FC = () => {
                   on reload because nothing had been published. */}
               <span className="min-w-0 flex-1 text-xs leading-snug text-gray-400">{t('admin.pricing.stagedHint')}</span>
               <button onClick={() => setForm(null)} className="flex-none rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
-              <button onClick={saveForm} className="flex-none rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90">{form.editingId ? t('admin.pricing.applyStaged') : t('admin.pricing.addPackage')}</button>
+              <button onClick={saveForm} className="flex-none rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A]">{form.editingId ? t('admin.pricing.applyStaged') : t('admin.pricing.addPackage')}</button>
             </div>
           </div>
         </div>
@@ -483,7 +483,7 @@ const PricingAdmin: React.FC = () => {
             </div>
             <div className="flex flex-none items-center justify-end gap-2.5 border-t border-stroke p-4 dark:border-strokedark">
               <button onClick={() => setCatForm(null)} className="rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
-              <button onClick={saveCatForm} disabled={savingCat} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+              <button onClick={saveCatForm} disabled={savingCat} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                 {catForm.editingId ? t('common.save') : t('admin.pricing.addCategory')}
               </button>
             </div>

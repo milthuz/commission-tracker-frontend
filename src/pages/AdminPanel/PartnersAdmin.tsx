@@ -112,7 +112,7 @@ const PAYOUT_BADGE: Record<string, string> = {
   not_eligible: 'bg-gray-2 text-gray-500 dark:bg-meta-4',
   eligible: 'bg-success/15 text-green-700 dark:text-success',
   in_run: 'bg-primary/15 text-primary',
-  paid: 'bg-primary text-white',
+  paid: 'bg-primary text-[#141414]',
 };
 
 const PartnersAdmin: React.FC<{ canDelete?: boolean; canMigrate?: boolean; canStats?: boolean; canExportUsers?: boolean; canCreateOpportunity?: boolean }> = ({ canDelete, canMigrate, canStats, canExportUsers, canCreateOpportunity }) => {
@@ -1314,7 +1314,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
           (L'ancien commentaire disait « pas de barre d'onglets, la barre latérale suffit » — vrai
           en juillet avec deux vues, faux maintenant. Les pastilles sont d'ailleurs le motif déjà
           utilisé par Commissions et par le portail.) */}
-      <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="mb-6 flex flex-wrap gap-1 rounded-xl bg-gray-2 p-1 dark:bg-meta-4/60">
         {([
           { key: 'queue',    to: '/admin/partners',              label: 'admin.partners.tabs.queue' },
           { key: 'partners', to: '/admin/partners?view=manage',  label: 'admin.partners.tabs.partners' },
@@ -1327,15 +1327,15 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
           ...(canStats ? [{ key: 'stats' as const, to: '/admin/partners?view=stats', label: 'admin.partners.tabs.stats' }] : []),
         ] as const).map((tab) => (
           <button key={tab.key} onClick={() => navigate(tab.to)}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition ${
-              sub === tab.key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'
+            className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
+              sub === tab.key ? 'bg-white text-black shadow-sm dark:bg-boxdark dark:text-white' : 'text-body hover:text-black dark:text-bodydark2 dark:hover:text-white'
             }`}>
             {t(tab.label)}
             {/* Le nombre de dossiers à réviser se lit sur l'onglet, pas seulement dans la barre
                 latérale : c'est la seule action qui attend vraiment quelqu'un. */}
             {tab.key === 'queue' && queueStats.pending > 0 && (
               <span className={`ml-2 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                sub === 'queue' ? 'bg-white/20 text-white' : 'bg-warning/20 text-warning'}`}>
+                sub === 'queue' ? 'bg-warning/20 text-warning' : 'bg-warning/20 text-warning'}`}>
                 {queueStats.pending}
               </span>
             )}
@@ -1345,18 +1345,18 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
 
       {sub === 'partners' && (
         <div className="flex flex-col gap-4">
-          <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
             <form onSubmit={createPartner} className="flex flex-wrap items-end gap-3">
               <input value={newPartnerName} onChange={(e) => setNewPartnerName(e.target.value)}
                 placeholder={t('admin.partners.fName') as string} className={`${inputCls} max-w-xs`} />
               <button type="submit" disabled={creating}
-                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
                 {creating ? t('admin.partners.creating') : t('admin.partners.addPartner')}
               </button>
             </form>
           </div>
 
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
             {loadingPartners ? (
               <div className="flex h-24 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
             ) : partners.length === 0 ? (
@@ -1452,7 +1452,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
         <div className="flex flex-col gap-4">
         {/* Usagers du portail, par partenaire. Reste le suivi des invitations (envoyee -> lien
             ouvert -> compte active) : ce sont les memes lignes, vues comme un annuaire. */}
-        <div ref={userDirRef} className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div ref={userDirRef} className="mt-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -1531,7 +1531,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                     </button>
                   )}
                   <button onClick={() => inviteSelected(false)} disabled={!selectedUsers.size || !!inviteProgress}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-40">
                     {inviteProgress
                       ? t('admin.partners.inviteBulkSending', { done: inviteProgress.done, total: inviteProgress.total })
                       : t('admin.partners.inviteBulk', { count: selectedUsers.size })}
@@ -1684,8 +1684,8 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       {sub === 'imports' && canMigrate && (
         <div className="flex flex-col gap-4">
           {canMigrate && (
-            <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partners.migration.title')}</h3>
+            <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
+              <h3 className="mb-1 text-sm font-bold text-black dark:text-white">{t('admin.partners.migration.title')}</h3>
               <p className="mb-4 max-w-3xl text-xs text-body">{t('admin.partners.migration.hint')}</p>
               <input ref={migInput} type="file" accept="application/json,.json" className="hidden"
                 onChange={(e) => {
@@ -1699,7 +1699,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 </button>
                 {migFile && <span className="text-xs text-body">{migFile.name} · {Math.round(migFile.size / 1024)} Ko</span>}
                 <button onClick={() => runMigration(true)} disabled={!migFile || !!migBusy}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
                   {migBusy === 'dry' ? t('admin.partners.migration.simulating') : t('admin.partners.migration.simulate')}
                 </button>
                 <button
@@ -1767,8 +1767,8 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
             </div>
           )}
           {canMigrate && (
-            <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partners.payoutImport.title')}</h3>
+            <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
+              <h3 className="mb-1 text-sm font-bold text-black dark:text-white">{t('admin.partners.payoutImport.title')}</h3>
               <p className="mb-4 max-w-3xl text-xs text-body">{t('admin.partners.payoutImport.hint')}</p>
               <input ref={payInput} type="file" accept="application/json,.json" className="hidden"
                 onChange={(e) => { const f = e.target.files?.[0] || null; e.target.value = '';
@@ -1780,7 +1780,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 </button>
                 {payFile && <span className="text-xs text-body">{payFile.name} · {Math.round(payFile.size / 1024)} Ko</span>}
                 <button onClick={() => runPayoutImport(true)} disabled={!payFile || !!payBusy}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
                   {payBusy === 'dry' ? t('admin.partners.migration.simulating') : t('admin.partners.migration.simulate')}
                 </button>
                 <button
@@ -1840,8 +1840,8 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
 
           {/* Historique. Seules les reprises APPLIQUEES y figurent : une simulation ne change rien,
               l'y inscrire ferait croire a une reprise qui n'a pas eu lieu. */}
-          <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partners.importHistory.title')}</h3>
+          <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
+            <h3 className="mb-1 text-sm font-bold text-black dark:text-white">{t('admin.partners.importHistory.title')}</h3>
             <p className="mb-4 max-w-3xl text-xs text-body">{t('admin.partners.importHistory.hint')}</p>
             {dataImports.length === 0 ? (
               <p className="py-4 text-center text-sm text-gray-400">{t('admin.partners.importHistory.empty')}</p>
@@ -1923,7 +1923,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 <span className="ml-1 text-body">{t('admin.partners.zoho.body')}</span>
               </div>
               <button onClick={connecterMonZoho}
-                className="whitespace-nowrap rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-white hover:bg-opacity-90">
+                className="whitespace-nowrap rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-[#141414] hover:bg-[#F79C6A]">
                 {t('admin.partners.zoho.connect')}
               </button>
             </div>
@@ -1946,7 +1946,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
           {/* Barre de filtres en carte pleine largeur : selecteurs a gauche, recherche qui
               s'etire. Le filtre partenaire n'apparait que s'il y a plus d'un partenaire dans la
               file — un selecteur a un seul choix n'est pas un filtre, c'est du decor. */}
-          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-stroke bg-white p-3 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-stroke bg-white p-3 dark:border-strokedark dark:bg-boxdark">
             {partnerNames.length > 1 && (
               <Select
                 value={partnerFilter}
@@ -1992,7 +1992,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
             {canCreateOpportunity && (
               <button type="button" onClick={() => setManualOpen(true)}
                 title={t('admin.partners.manual.hint') as string}
-                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-white hover:bg-opacity-90">
+                className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-[#141414] hover:bg-[#F79C6A]">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" />
                 </svg>
@@ -2014,7 +2014,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
               </div>
             )}
           </div>
-          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
             {loadingQueue ? (
               <div className="flex h-24 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
             ) : opportunities.length === 0 ? (
@@ -2159,7 +2159,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
               <div>
                 <h3 className="mb-3 text-sm font-bold text-black dark:text-white">{t('admin.partners.payout.pendingTitle')}</h3>
                 {pendingPartners.length === 0 ? (
-                  <div className="rounded-sm border border-stroke bg-white p-6 text-center text-sm text-body dark:border-strokedark dark:bg-boxdark">
+                  <div className="rounded-2xl border border-stroke bg-white p-6 text-center text-sm text-body dark:border-strokedark dark:bg-boxdark">
                     {t('admin.partners.payout.noPending')}
                   </div>
                 ) : (
@@ -2196,7 +2196,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                                 : t('admin.partners.payout.showDetail')}
                             </button>
                             <button onClick={() => openCreateRun(p)} disabled={p.payoutRate === null}
-                              className="whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
+                              className="whitespace-nowrap rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-40">
                               {t('admin.partners.payout.createRun')}
                             </button>
                           </div>
@@ -2256,11 +2256,11 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
               <div>
                 <h3 className="mb-3 text-sm font-bold text-black dark:text-white">{t('admin.partners.payout.historyTitle')}</h3>
                 {runs.length === 0 ? (
-                  <div className="rounded-sm border border-stroke bg-white p-6 text-center text-sm text-body dark:border-strokedark dark:bg-boxdark">
+                  <div className="rounded-2xl border border-stroke bg-white p-6 text-center text-sm text-body dark:border-strokedark dark:bg-boxdark">
                     {t('admin.partners.payout.noRuns')}
                   </div>
                 ) : (
-                  <div className="overflow-x-auto rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                  <div className="overflow-x-auto rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-stroke dark:border-strokedark">
@@ -2343,7 +2343,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 </div>
               </div>
               <button onClick={submitCreateRun} disabled={savingRun || !runPeriod.trim() || !runSelectedIds.size}
-                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
                 {savingRun ? t('common.saving') : t('admin.partners.payout.createRun')}
               </button>
             </div>
@@ -2556,7 +2556,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 </div>
               </div>
               <button type="submit" disabled={savingEdit}
-                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
                 {savingEdit ? t('common.saving') : t('common.save')}
               </button>
             </form>
@@ -2620,7 +2620,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
           <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-2xl dark:bg-boxdark"
             onClick={(e) => e.stopPropagation()}>
             <div className="shrink-0 border-b border-stroke px-6 py-4 dark:border-strokedark">
-              <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.partners.manual.title')}</h3>
+              <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.partners.manual.title')}</h3>
               <p className="mt-1 text-sm text-body">{t('admin.partners.manual.subtitle')}</p>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-6">
@@ -2702,7 +2702,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                   {/* Desactive tant que partenaire ET entreprise ne sont pas remplis : le serveur
                       les exige, autant ne pas laisser cliquer pour rien. */}
                   <button onClick={creerManuel} disabled={manualBusy || !manual.partnerId || !manual.businessName.trim()}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-40">
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-40">
                     {manualBusy ? t('common.saving') : t('admin.partners.manual.submit')}
                   </button>
                 </div>
@@ -2815,7 +2815,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                   </button>
                   <button onClick={() => { const o = details; setDetails(null); approve(o); }}
                     disabled={reviewing}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
                     {t('admin.partners.approve')}
                   </button>
                 </>
@@ -2888,7 +2888,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 aria-label={t('partnerPortal.inviteLocaleHint') as string}
               />
               <button type="submit" disabled={inviting}
-                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
+                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
                 {inviting ? t('partnerPortal.inviting') : t('partnerPortal.invite')}
               </button>
             </form>

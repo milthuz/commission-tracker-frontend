@@ -117,10 +117,10 @@ const ExternalUsers: React.FC = () => {
   };
 
   return (
-    <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="mt-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
       <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-black dark:text-white">🔐 {t('admin.externalUsers.title')}</h3>
+          <h3 className="text-lg font-bold text-black dark:text-white">🔐 {t('admin.externalUsers.title')}</h3>
           <button onClick={sendTest} disabled={busy}
             className="rounded border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:text-primary disabled:opacity-50 dark:border-strokedark">
             ✉ {t('admin.externalUsers.sendTest')}
@@ -150,7 +150,7 @@ const ExternalUsers: React.FC = () => {
               className="w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input" />
           </div>
           <button type="submit" disabled={busy}
-            className="inline-flex items-center gap-2 whitespace-nowrap rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
             {busy && <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />}
             {t('admin.externalUsers.sendInvite')}
           </button>
@@ -184,7 +184,7 @@ const ExternalUsers: React.FC = () => {
                 px-4 des xl : -48 px, zero caractere perdu), le plancher tombe a 717 px et la barre
                 horizontale ne revient qu'en dessous de 1128 px. Meme diagnostic qu'en 2e3c6b8. */}
             <table className="w-full text-sm">
-              <thead className="bg-gray-2 text-left dark:bg-meta-4">
+              <thead className="border-b border-stroke text-left dark:border-strokedark">
                 <tr>
                   <th className="px-3 py-2.5 font-medium xl:px-4">{t('admin.externalUsers.email')}</th>
                   <th className="px-3 py-2.5 font-medium xl:px-4">{t('admin.externalUsers.name')}</th>

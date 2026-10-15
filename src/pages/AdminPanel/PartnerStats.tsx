@@ -139,7 +139,7 @@ export default function PartnerStats() {
     </div>;
   }
   if (error) {
-    return <div className="rounded-sm border border-stroke bg-white p-8 text-center text-sm text-danger dark:border-strokedark dark:bg-boxdark">{error}</div>;
+    return <div className="rounded-2xl border border-stroke bg-white p-8 text-center text-sm text-danger dark:border-strokedark dark:bg-boxdark">{error}</div>;
   }
 
   return (
@@ -147,8 +147,8 @@ export default function PartnerStats() {
       {/* ─────────── PIPELINE D'AFFAIRES ───────────
           Ce que les partenaires rapportent. Placé AVANT l'usage du portail : « combien de leads
           et lesquels convertissent » passe avant « combien de gens se connectent ». */}
-      <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.pipelineTitle')}</h3>
+      <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
+        <h3 className="mb-1 text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.pipelineTitle')}</h3>
         <p className="mb-4 text-xs text-body">{t('admin.partnerStats.pipelineHint')}</p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {([
@@ -188,8 +188,8 @@ export default function PartnerStats() {
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Volume et issue par mois de SOUMISSION (vue par cohorte) : la hauteur de la barre est
             le volume du mois, sa composition dit ce que ce volume est devenu. */}
-        <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.monthTitle')}</h3>
+        <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
+          <h3 className="mb-1 text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.monthTitle')}</h3>
           <p className="mb-3 text-xs text-body">{t('admin.partnerStats.monthHint')}</p>
           {byMonth.length === 0 ? (
             <p className="py-10 text-center text-sm text-gray-400">{t('admin.partnerStats.noSubmissions')}</p>
@@ -214,8 +214,8 @@ export default function PartnerStats() {
 
         {/* « Ce qui est en cours », la question posée telle quelle. Les états terminés sont exclus :
             les mélanger noierait les dossiers vivants sous les dossiers clos. */}
-        <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.stageTitle')}</h3>
+        <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
+          <h3 className="mb-1 text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.stageTitle')}</h3>
           <p className="mb-3 text-xs text-body">{t('admin.partnerStats.stageHint', { n: pip.open })}</p>
           {byStage.length === 0 ? (
             <p className="py-10 text-center text-sm text-gray-400">{t('admin.partnerStats.stageNone')}</p>
@@ -236,9 +236,9 @@ export default function PartnerStats() {
       {/* Par partenaire : un TABLEAU et pas un graphique comparé. Il n'y a qu'un partenaire
           aujourd'hui — un histogramme à une barre ne dit rien, un tableau reste lisible à une
           ligne et monte à N sans être redessiné. */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.byPartnerPipeline')}</h3>
+          <h3 className="text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.byPartnerPipeline')}</h3>
           <p className="mt-0.5 text-xs text-body">{t('admin.partnerStats.byPartnerPipelineHint')}</p>
         </div>
         <div className="overflow-x-auto">
@@ -286,12 +286,12 @@ export default function PartnerStats() {
         </div>
       </div>
 
-      <h3 className="mt-2 px-1 text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.usageSection')}</h3>
+      <h3 className="mt-2 px-1 text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.usageSection')}</h3>
 
       {/* L'entonnoir en tête : c'est la seule question qui compte au démarrage d'un portail —
           combien de personnes invitées sont réellement entrées. */}
-      <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.funnelTitle')}</h3>
+      <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
+        <h3 className="mb-1 text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.funnelTitle')}</h3>
         <p className="mb-4 text-xs text-body">{t('admin.partnerStats.funnelHint')}</p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {([
@@ -311,9 +311,9 @@ export default function PartnerStats() {
       </div>
 
       {/* Par partenaire */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
         <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.byPartner')}</h3>
+          <h3 className="text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.byPartner')}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -351,8 +351,8 @@ export default function PartnerStats() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Connexions */}
-        <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.loginsTitle')}</h3>
+        <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
+          <h3 className="mb-1 text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.loginsTitle')}</h3>
           <p className="mb-3 text-xs text-body">{t('admin.partnerStats.loginsHint')}</p>
           {/* Un graphique plat sur 90 jours ne dit rien qu'une phrase ne dise mieux. */}
           {aucuneConnexion ? (
@@ -367,8 +367,8 @@ export default function PartnerStats() {
         </div>
 
         {/* Soumissions */}
-        <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-          <h3 className="mb-1 text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.submissionsTitle')}</h3>
+        <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
+          <h3 className="mb-1 text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.submissionsTitle')}</h3>
           <p className="mb-3 text-xs text-body">{t('admin.partnerStats.submissionsHint')}</p>
           {mois.length === 0 ? (
             <p className="py-10 text-center text-sm text-gray-400">{t('admin.partnerStats.noSubmissions')}</p>
@@ -383,9 +383,9 @@ export default function PartnerStats() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Dormants — le signal le plus actionnable de l'écran */}
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h3 className="text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.dormantTitle')}</h3>
+            <h3 className="text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.dormantTitle')}</h3>
             <p className="mt-0.5 text-xs text-body">{t('admin.partnerStats.dormantHint')}</p>
           </div>
           {dormant.length === 0 ? (
@@ -410,9 +410,9 @@ export default function PartnerStats() {
         </div>
 
         {/* Qui fait vivre le portail */}
-        <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
           <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-            <h3 className="text-sm font-semibold text-black dark:text-white">{t('admin.partnerStats.topTitle')}</h3>
+            <h3 className="text-sm font-bold text-black dark:text-white">{t('admin.partnerStats.topTitle')}</h3>
             <p className="mt-0.5 text-xs text-body">{t('admin.partnerStats.topHint')}</p>
           </div>
           {topUsers.length === 0 ? (

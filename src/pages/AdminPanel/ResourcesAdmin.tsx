@@ -76,7 +76,7 @@ const ResourcesAdmin: React.FC = () => {
   const pct = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
   const barColor = pct >= 90 ? '#e2483d' : pct >= 75 ? '#d97706' : '#3c50e0';
   const inputCls = 'w-24 rounded-lg border border-stroke bg-transparent px-2 py-1.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input text-black dark:text-white';
-  const cardCls = 'rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark';
+  const cardCls = 'rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark';
 
   // How a user's effective limit reads in the table.
   const effLabel = (u: UserRow) => {
@@ -95,7 +95,7 @@ const ResourcesAdmin: React.FC = () => {
     <div className="space-y-6">
       {/* Global library quota */}
       <div className={cardCls}>
-        <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.resources.globalTitle')}</h3>
+        <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.resources.globalTitle')}</h3>
         <p className="mb-4 text-sm text-body">{t('admin.resources.globalSubtitle')}</p>
         <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="font-medium text-black dark:text-white">{t('admin.resources.used')}</span>
@@ -110,14 +110,14 @@ const ResourcesAdmin: React.FC = () => {
           <span className="text-sm text-body">{t('admin.resources.limit')}</span>
           <input type="number" min="0" value={globalInput} onChange={(e) => setGlobalInput(e.target.value)} placeholder="∞" className={inputCls} />
           <span className="text-sm text-body">GB</span>
-          <button onClick={saveGlobal} className="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-opacity-90">{t('admin.resources.saveBtn')}</button>
+          <button onClick={saveGlobal} className="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-[#141414] hover:bg-[#F79C6A]">{t('admin.resources.saveBtn')}</button>
           <span className="text-xs text-gray-400">{t('admin.resources.limitHint')}</span>
         </div>
       </div>
 
       {/* Limits by role */}
       <div className={cardCls}>
-        <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.resources.roleTitle')}</h3>
+        <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.resources.roleTitle')}</h3>
         <p className="mb-4 text-sm text-body">{t('admin.resources.roleSubtitle')}</p>
         <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
           <table className="w-full text-sm">
@@ -151,7 +151,7 @@ const ResourcesAdmin: React.FC = () => {
 
       {/* Per-user limits (auto-populated from all known users) */}
       <div className={cardCls}>
-        <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.resources.perUserTitle')}</h3>
+        <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.resources.perUserTitle')}</h3>
         <p className="mb-4 text-sm text-body">{t('admin.resources.perUserSubtitle')}</p>
         <div className="overflow-x-auto rounded border border-stroke dark:border-strokedark">
           <table className="w-full text-sm">
@@ -184,7 +184,7 @@ const ResourcesAdmin: React.FC = () => {
                   <td className="px-4 py-2 text-right">
                     {editEmail === u.email ? (
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => saveUser(u.email, editDraft)} className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-opacity-90">{t('admin.resources.saveBtn')}</button>
+                        <button onClick={() => saveUser(u.email, editDraft)} className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-[#141414] hover:bg-[#F79C6A]">{t('admin.resources.saveBtn')}</button>
                         <button onClick={() => setEditEmail(null)} className="rounded-md border border-stroke px-3 py-1 text-xs font-medium text-body hover:bg-gray-1 dark:border-strokedark">{t('common.cancel')}</button>
                       </div>
                     ) : (

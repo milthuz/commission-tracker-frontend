@@ -1677,7 +1677,7 @@ const AdminPanel = () => {
       {/* Page Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-title-md2 font-semibold text-black dark:text-white">
+          <h2 className="text-2xl font-bold leading-tight tracking-[-0.01em] text-black dark:text-white">
             {activeTab === 'sync' ? t('admin.integrations.title') :
              activeTab === 'notifications' ? t('admin.notifications.title') :
              activeTab === 'salespeople' ? t('admin.salespeople.title') :
@@ -1742,19 +1742,19 @@ const AdminPanel = () => {
           {activeTab === 'audit' && <Audit />}
           {activeTab === 'sync' && (
             <>
-            <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-6 flex flex-wrap gap-1 rounded-xl bg-gray-2 p-1 dark:bg-meta-4/60">
               {([['connections', t('admin.integrations.tabs.connections')], ['data', t('admin.integrations.tabs.data')]] as const).map(([key, label]) => (
                 <button key={key} onClick={() => setSyncSub(key as 'connections' | 'data')}
-                  className={`rounded-md px-4 py-2 text-sm font-medium transition ${syncSub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+                  className={`rounded-lg px-4 py-2 text-sm font-bold transition ${syncSub === key ? 'bg-white text-black shadow-sm dark:bg-boxdark dark:text-white' : 'text-body hover:text-black dark:text-bodydark2 dark:hover:text-white'}`}>
                   {label}
                 </button>
               ))}
             </div>
 
             {syncSub === 'connections' && (<>
-            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.zohoSync.title')}</h3>
+                <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.zohoSync.title')}</h3>
                 <p className="text-sm text-body mt-1">{t('admin.zohoSync.subtitle')}</p>
               </div>
               <div className="p-7">
@@ -1802,7 +1802,7 @@ const AdminPanel = () => {
                   <button
                     onClick={triggerBulkImport}
                     disabled={syncStatus === 'bulk_importing' || syncStatus === 'bulk_started' || syncStatus === 'syncing'}
-                    className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-[#141414] shadow-sm hover:bg-[#F79C6A] disabled:opacity-50"
                   >
                     <svg className={`h-4 w-4 ${syncStatus === 'bulk_started' ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -1851,10 +1851,10 @@ const AdminPanel = () => {
             </div>
 
             {/* ==================== CRM CONNECTION ==================== */}
-            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mt-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.crm.title')}</h3>
+                  <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.crm.title')}</h3>
                   <p className="text-sm text-body mt-1">{t('admin.crm.subtitle')}</p>
                 </div>
                 {crmStatus?.connected && !crmStatus?.expired && (
@@ -1952,10 +1952,10 @@ const AdminPanel = () => {
             <ZohoSystemAccount />
 
             {/* ==================== ZOHO DESK CONNECTION ==================== */}
-            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mt-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.desk.title')}</h3>
+                  <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.desk.title')}</h3>
                   <p className="text-sm text-body mt-1">{t('admin.desk.subtitle')}</p>
                 </div>
                 {deskStatus?.connected && !deskStatus?.error && (
@@ -2042,10 +2042,10 @@ const AdminPanel = () => {
               </div>
             </div>
             {/* ==================== ZENTACT CONNECTION ==================== */}
-            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mt-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.zentact.title')}</h3>
+                  <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.zentact.title')}</h3>
                   <p className="text-sm text-body mt-1">{t('admin.zentact.subtitle')}</p>
                 </div>
                 {zentactStatus?.connected && (
@@ -2182,10 +2182,10 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   <table className="w-full table-auto">
                                     <thead className="sticky top-0 bg-gray-2 dark:bg-meta-4">
                                       <tr>
-                                        <th className="px-3 py-2 text-left font-medium text-black dark:text-white">{t('admin.zentact.merchant')}</th>
-                                        <th className="px-3 py-2 text-left font-medium text-black dark:text-white">{t('admin.zentact.zentactRep')}</th>
-                                        <th className="px-3 py-2 text-left font-medium text-black dark:text-white">{t('admin.zentact.activated')}</th>
-                                        <th className="px-3 py-2 text-left font-medium text-black dark:text-white">{t('admin.zentact.status')}</th>
+                                        <th className="px-3 py-2 text-left font-bold text-body dark:text-bodydark2">{t('admin.zentact.merchant')}</th>
+                                        <th className="px-3 py-2 text-left font-bold text-body dark:text-bodydark2">{t('admin.zentact.zentactRep')}</th>
+                                        <th className="px-3 py-2 text-left font-bold text-body dark:text-bodydark2">{t('admin.zentact.activated')}</th>
+                                        <th className="px-3 py-2 text-left font-bold text-body dark:text-bodydark2">{t('admin.zentact.status')}</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -2238,10 +2238,10 @@ Joker Pub,Jay Daoust,2024-04-01`}
                                   <table className="w-full table-auto">
                                     <thead>
                                       <tr className="bg-gray-2 text-left text-xs dark:bg-meta-4">
-                                        <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.zentact.merchant')}</th>
-                                        <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.zentact.zentactRep')}</th>
-                                        <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.zentact.activated')}</th>
-                                        <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.zentact.assignTo')}</th>
+                                        <th className="px-3 py-2 font-bold text-body dark:text-bodydark2">{t('admin.zentact.merchant')}</th>
+                                        <th className="px-3 py-2 font-bold text-body dark:text-bodydark2">{t('admin.zentact.zentactRep')}</th>
+                                        <th className="px-3 py-2 font-bold text-body dark:text-bodydark2">{t('admin.zentact.activated')}</th>
+                                        <th className="px-3 py-2 font-bold text-body dark:text-bodydark2">{t('admin.zentact.assignTo')}</th>
                                       </tr>
                                     </thead>
                                     <tbody>
@@ -2276,10 +2276,10 @@ Joker Pub,Jay Daoust,2024-04-01`}
             </div>
 
             {/* ==================== KAIZEN DEMO ==================== */}
-            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mt-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="flex items-center justify-between border-b border-stroke px-7 py-4 dark:border-strokedark">
                 <div>
-                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.kaizenDemo.title')}</h3>
+                  <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.kaizenDemo.title')}</h3>
                   <p className="text-sm text-body mt-1">{t('admin.kaizenDemo.subtitle')}</p>
                 </div>
                 {kaizenSettings && (
@@ -2325,7 +2325,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <button
                     onClick={() => saveKaizenSettings(kaizenSettings)}
                     disabled={kaizenSaving}
-                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-[#141414] shadow-sm hover:bg-[#F79C6A] disabled:opacity-50"
                   >
                     {kaizenSaving ? t('common.saving') : t('admin.kaizenDemo.save')}
                   </button>
@@ -2337,9 +2337,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
             {syncSub === 'data' && (<>
             {/* ==================== ENRICH INVOICES ==================== */}
-            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.enrich.title')}</h3>
+                <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.enrich.title')}</h3>
                 <p className="text-sm text-body mt-1">{t('admin.enrich.subtitle')}</p>
               </div>
               <div className="p-7">
@@ -2369,7 +2369,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <button
                     onClick={triggerEnrich}
                     disabled={enrichPolling}
-                    className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-opacity-90 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-[#141414] shadow-sm hover:bg-[#F79C6A] disabled:opacity-50"
                   >
                     <svg className={`h-4 w-4 ${enrichPolling ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -2401,9 +2401,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
             </div>
 
             {/* ==================== RECALCULATE COMMISSIONS (v2) ==================== */}
-            <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mt-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.recalculate.title')}</h3>
+                <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.recalculate.title')}</h3>
                 <p className="text-sm text-body mt-1">{t('admin.recalculate.subtitle')}</p>
               </div>
               <div className="p-7">
@@ -2497,10 +2497,10 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {/* ==================== SALESPEOPLE ==================== */}
           {activeTab === 'salespeople' && (
             <>
-            <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-6 flex flex-wrap gap-1 rounded-xl bg-gray-2 p-1 dark:bg-meta-4/60">
               {([['reps', t('admin.salespeople.tabs.reps')], ['teams', t('admin.salespeople.tabs.teams')], ['points', t('admin.salespeople.tabs.points')]] as const).map(([key, label]) => (
                 <button key={key} onClick={() => setSpSub(key as 'reps' | 'teams' | 'points')}
-                  className={`rounded-md px-4 py-2 text-sm font-medium transition ${spSub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+                  className={`rounded-lg px-4 py-2 text-sm font-bold transition ${spSub === key ? 'bg-white text-black shadow-sm dark:bg-boxdark dark:text-white' : 'text-body hover:text-black dark:text-bodydark2 dark:hover:text-white'}`}>
                   {label}
                 </button>
               ))}
@@ -2508,9 +2508,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
             {spSub === 'teams' && (<>
             {/* Teams management */}
-            <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.teams.title')}</h3>
+                <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.teams.title')}</h3>
                 <p className="text-sm text-body mt-1">{t('admin.teams.subtitle')}</p>
               </div>
               <div className="p-3 sm:p-5">
@@ -2524,7 +2524,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     placeholder={t('admin.teams.newPlaceholder') as string}
                     className="flex-1 min-w-[200px] rounded border-[1.5px] border-stroke bg-transparent px-4 py-2.5 font-medium outline-none transition focus:border-primary dark:border-form-strokedark dark:bg-form-input"
                   />
-                  <button onClick={createTeam} className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90">
+                  <button onClick={createTeam} className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-[#141414] hover:bg-[#F79C6A]">
                     {t('admin.teams.create')}
                   </button>
                 </div>
@@ -2535,12 +2535,12 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     <table className="w-full min-w-[780px] table-auto">
                       <thead>
                         <tr className="bg-gray-2 text-left text-sm dark:bg-meta-4">
-                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colName')}</th>
-                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colMembers')}</th>
-                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colQuota')}</th>
-                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colSources')}</th>
-                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.teams.colCounts')}</th>
-                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('common.actions')}</th>
+                          <th className="px-3 py-3 font-bold text-body dark:text-bodydark2">{t('admin.teams.colName')}</th>
+                          <th className="px-3 py-3 font-bold text-body dark:text-bodydark2">{t('admin.teams.colMembers')}</th>
+                          <th className="px-3 py-3 font-bold text-body dark:text-bodydark2">{t('admin.teams.colQuota')}</th>
+                          <th className="px-3 py-3 font-bold text-body dark:text-bodydark2">{t('admin.teams.colSources')}</th>
+                          <th className="px-3 py-3 font-bold text-body dark:text-bodydark2">{t('admin.teams.colCounts')}</th>
+                          <th className="px-3 py-3 font-bold text-body dark:text-bodydark2">{t('common.actions')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2633,14 +2633,14 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
             {spSub === 'points' && (<>
             {/* Bonus tiers (monthly + annual) — configurable point→$ thresholds */}
-            <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="flex items-center justify-between border-b border-stroke px-7 py-4 dark:border-strokedark">
                 <div>
-                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.bonusTiers.title')}</h3>
+                  <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.bonusTiers.title')}</h3>
                   <p className="text-sm text-body mt-1">{t('admin.bonusTiers.subtitle')}</p>
                 </div>
                 <button onClick={saveBonusTiers} disabled={savingTiers}
-                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                   {savingTiers ? t('common.saving') : t('common.save')}
                 </button>
               </div>
@@ -2648,7 +2648,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 {(['monthly', 'annual'] as const).map(kind => (
                   <div key={kind}>
                     <div className="mb-2 flex items-center justify-between">
-                      <h4 className="text-sm font-semibold text-black dark:text-white">{t(`admin.bonusTiers.${kind}`)}</h4>
+                      <h4 className="text-sm font-bold text-black dark:text-white">{t(`admin.bonusTiers.${kind}`)}</h4>
                       <button onClick={() => addTier(kind)} className="text-xs font-medium text-primary hover:underline">+ {t('admin.bonusTiers.addTier')}</button>
                     </div>
                     <div className="space-y-2">
@@ -2681,9 +2681,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
             </div>
 
             {/* Deal-type point values */}
-            <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.dealPoints.title')}</h3>
+                <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.dealPoints.title')}</h3>
                 <p className="text-sm text-body mt-1">{t('admin.dealPoints.subtitle')}</p>
               </div>
               <div className="p-3 sm:p-5">
@@ -2694,8 +2694,8 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     <table className="w-full min-w-[420px] table-auto">
                       <thead>
                         <tr className="bg-gray-2 text-left text-sm dark:bg-meta-4">
-                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.dealPoints.type')}</th>
-                          <th className="px-3 py-3 font-medium text-black dark:text-white">{t('admin.dealPoints.points')}</th>
+                          <th className="px-3 py-3 font-bold text-body dark:text-bodydark2">{t('admin.dealPoints.type')}</th>
+                          <th className="px-3 py-3 font-bold text-body dark:text-bodydark2">{t('admin.dealPoints.points')}</th>
                           <th className="px-3 py-3"></th>
                         </tr>
                       </thead>
@@ -2736,9 +2736,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
             </>)}
 
             {spSub === 'reps' && (<>
-            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.salespeople.title')}</h3>
+                <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.salespeople.title')}</h3>
                 <p className="text-sm text-body mt-1">{t('admin.salespeople.subtitle')}</p>
               </div>
 
@@ -2770,7 +2770,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                     placeholder={t('admin.salespeople.addPlaceholder') as string}
                     className="w-72 rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
                   />
-                  <button onClick={addSalesperson} className="whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+                  <button onClick={addSalesperson} className="whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A]">
                     + {t('admin.salespeople.addSalesperson')}
                   </button>
                 </div>
@@ -2900,9 +2900,9 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
           {/* ==================== CUSTOMER EXCLUSIONS ==================== */}
           {activeTab === 'customers' && (
-            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-                <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.customers.title')}</h3>
+                <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.customers.title')}</h3>
                 <p className="text-sm text-body mt-1">{t('admin.customers.subtitle')}</p>
               </div>
               <div className="p-7">
@@ -2949,7 +2949,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <p className="text-sm text-body py-4">{t('admin.customers.noExcluded')}</p>
                 ) : (
                   <div>
-                    <h4 className="mb-3 text-sm font-semibold text-black dark:text-white">
+                    <h4 className="mb-3 text-sm font-bold text-black dark:text-white">
                       {t('admin.customers.excluded')} ({excludedCustomers.length})
                     </h4>
                     <div className="space-y-2">
@@ -2986,7 +2986,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
           {/* ==================== RELEASE MANAGEMENT ==================== */}
           {activeTab === 'releases' && (
-            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="p-7">
                 {/* Status Banners */}
                 {releaseStatus === 'triggered' && (
@@ -3013,7 +3013,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                 {/* New Release Form */}
                 {showReleaseForm && (
                   <div className="mb-6 rounded-lg border border-[#8B5CF6] border-opacity-30 bg-[#8B5CF6] bg-opacity-5 p-6">
-                    <h4 className="mb-4 text-sm font-semibold text-black dark:text-white">{t('admin.releases.newRelease')}</h4>
+                    <h4 className="mb-4 text-sm font-bold text-black dark:text-white">{t('admin.releases.newRelease')}</h4>
 
                     <div className="mb-4">
                       <label className="mb-2 block text-sm font-medium text-black dark:text-white">{t('admin.releases.version')}</label>
@@ -3145,7 +3145,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
                 {/* Release History */}
                 <div>
-                  <h4 className="mb-3 text-sm font-semibold text-black dark:text-white">{t('admin.releases.previousReleases')}</h4>
+                  <h4 className="mb-3 text-sm font-bold text-black dark:text-white">{t('admin.releases.previousReleases')}</h4>
                   {releases.length === 0 ? (
                     <p className="text-sm text-body py-4">{t('admin.releases.noReleases')}</p>
                   ) : (
@@ -3193,10 +3193,10 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {/* ==================== ADMIN USERS ==================== */}
           {activeTab === 'users' && (
             <>
-            <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-6 flex flex-wrap gap-1 rounded-xl bg-gray-2 p-1 dark:bg-meta-4/60">
               {([['all', t('admin.directory.tab')], ['access', t('admin.usersSection.tabs.access')], ['roles', t('admin.roles.title')], ['external', t('admin.usersSection.tabs.external')], ['impersonation', t('admin.usersSection.tabs.impersonation')], ['sofia', t('admin.sofia.tab')]] as const).map(([key, label]) => (
                 <button key={key} onClick={() => setUsersSub(key as 'all' | 'access' | 'external' | 'impersonation' | 'roles' | 'sofia')}
-                  className={`rounded-md px-4 py-2 text-sm font-medium transition ${usersSub === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+                  className={`rounded-lg px-4 py-2 text-sm font-bold transition ${usersSub === key ? 'bg-white text-black shadow-sm dark:bg-boxdark dark:text-white' : 'text-body hover:text-black dark:text-bodydark2 dark:hover:text-white'}`}>
                   {label}
                 </button>
               ))}
@@ -3208,10 +3208,10 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
             {usersSub === 'impersonation' && (<>
             {/* ==================== IMPERSONATION ==================== */}
-            <div className="mb-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mb-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-black dark:text-white">
+                  <h3 className="text-lg font-bold text-black dark:text-white">
                     🎭 {t('admin.impersonate.title')}
                   </h3>
                   <p className="text-sm text-body mt-1">{t('admin.impersonate.subtitle')}</p>
@@ -3276,11 +3276,11 @@ Joker Pub,Jay Daoust,2024-04-01`}
             {usersSub === 'access' && (<>
             {/* Demandes de rôle des nouveaux usagers sans rôle (2026-10-08). */}
             {(can('users:role_requests') || can('admin:users')) && <RoleRequests />}
-            <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               {/* En-tête : titre et explication à gauche, compteurs à droite — une seule bande. */}
               <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stroke px-7 py-5 dark:border-strokedark">
                 <div className="min-w-0 max-w-3xl">
-                  <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.admins.title')}</h3>
+                  <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.admins.title')}</h3>
                   <p className="mt-1 text-sm text-body">{t('admin.admins.description')}</p>
                 </div>
                 <div className="flex shrink-0 gap-3">
@@ -3359,7 +3359,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       <button
                         type="submit"
                         disabled={!preassignEmail.trim().includes('@')}
-                        className="whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-opacity-90 disabled:cursor-not-allowed disabled:bg-gray-3 disabled:text-body dark:disabled:bg-meta-4"
+                        className="whitespace-nowrap rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] transition hover:bg-[#F79C6A] disabled:cursor-not-allowed disabled:bg-gray-3 disabled:text-body dark:disabled:bg-meta-4"
                       >
                         {t('admin.admins.preassignButton')}
                       </button>
@@ -3368,12 +3368,12 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <div className="overflow-x-auto">
                     <table className="w-full table-auto">
                       <thead>
-                        <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.email')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.lastLogin')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.role')}</th>
-                          <th className="px-4 py-4 font-medium text-black dark:text-white">{t('admin.admins.rolesColumn')}</th>
-                          <th className="px-4 py-4 text-right font-medium text-black dark:text-white">{t('common.actions')}</th>
+                        <tr className="border-b border-stroke text-left dark:border-strokedark">
+                          <th className="px-4 py-4 font-bold text-body dark:text-bodydark2">{t('admin.admins.email')}</th>
+                          <th className="px-4 py-4 font-bold text-body dark:text-bodydark2">{t('admin.admins.lastLogin')}</th>
+                          <th className="px-4 py-4 font-bold text-body dark:text-bodydark2">{t('admin.admins.role')}</th>
+                          <th className="px-4 py-4 font-bold text-body dark:text-bodydark2">{t('admin.admins.rolesColumn')}</th>
+                          <th className="px-4 py-4 text-right font-bold text-body dark:text-bodydark2">{t('common.actions')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -3521,15 +3521,15 @@ Joker Pub,Jay Daoust,2024-04-01`}
           {/* ==================== ROLES TAB (under Users) ==================== */}
           {activeTab === 'users' && usersSub === 'roles' && (
             <div className="space-y-6">
-              <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+              <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
                 <div className="border-b border-stroke px-7 py-4 dark:border-strokedark flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.roles.title')}</h3>
+                    <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.roles.title')}</h3>
                     <p className="text-sm text-body mt-1">{t('admin.roles.subtitle')}</p>
                   </div>
                   <button
                     onClick={() => { setShowNewRole(true); setEditingRole({ id: 0, name: '', description: '', permissions: [], isSystem: false, userCount: 0 }); }}
-                    className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-opacity-90"
+                    className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] shadow-sm hover:bg-[#F79C6A]"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -3547,7 +3547,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-semibold text-black dark:text-white">{role.name}</h4>
+                                <h4 className="font-bold text-black dark:text-white">{role.name}</h4>
                                 {role.isSystem && (
                                   <span className="inline-flex rounded-full bg-gray-2 px-2 py-0.5 text-xs font-medium text-body dark:bg-meta-4">
                                     {t('admin.roles.systemRole')}
@@ -3624,7 +3624,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
             <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[99999] p-4" onClick={() => { setEditingRole(null); setShowNewRole(false); }}>
               <div className="bg-white dark:bg-boxdark rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-                  <h3 className="text-lg font-semibold text-black dark:text-white">
+                  <h3 className="text-lg font-bold text-black dark:text-white">
                     {showNewRole ? t('admin.roles.newRole') : t('admin.roles.editRole')}: {editingRole.name || '(new)'}
                   </h3>
                 </div>
@@ -3704,7 +3704,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   <button
                     onClick={() => saveRole(editingRole, showNewRole)}
                     disabled={savingRole || !editingRole.name.trim()}
-                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50"
                   >
                     {savingRole ? t('common.saving') : t('common.save')}
                   </button>
@@ -3722,7 +3722,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   Meme motif que le panneau d'edition de role juste au-dessus. */}
               <div className="bg-white dark:bg-boxdark rounded-lg shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <div className="shrink-0 border-b border-stroke px-6 py-4 dark:border-strokedark">
-                  <h3 className="text-lg font-semibold text-black dark:text-white">
+                  <h3 className="text-lg font-bold text-black dark:text-white">
                     {t('admin.admins.assignRoles')}
                   </h3>
                   <p className="text-sm text-body mt-1">{editingUserRoles}</p>
@@ -3798,7 +3798,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   </button>
                   <button
                     onClick={() => saveUserRoles(editingUserRoles, editingUserRoleIds, editingManagedTeamIds)}
-                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90"
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A]"
                   >
                     {t('common.save')}
                   </button>

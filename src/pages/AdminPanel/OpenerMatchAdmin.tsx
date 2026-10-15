@@ -323,7 +323,7 @@ const OpenerMatchAdmin = () => {
         <ExternalLink className="h-3.5 w-3.5" />{t('openerMatch.viewOnMaps')}
       </a>
       <button onClick={() => confirmPlace(loc, cand)} disabled={busy === loc.id}
-        className="inline-flex items-center gap-1.5 rounded bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+        className="inline-flex items-center gap-1.5 rounded bg-primary px-3 py-1.5 text-xs font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
         {busy === loc.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
         {t('openerMatch.thisOne')}
       </button>
@@ -356,10 +356,10 @@ const OpenerMatchAdmin = () => {
       )}
 
       {/* État du parc + dernier passage */}
-      <div className="rounded-sm border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
         <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="font-semibold text-black dark:text-white">{t('openerMatch.parkTitle')}</h3>
+            <h3 className="font-bold text-black dark:text-white">{t('openerMatch.parkTitle')}</h3>
             <p className="text-xs text-body dark:text-bodydark">
               {run ? t('openerMatch.lastRun', { date: fmtDate(run.at, lng), source: run.source.startsWith('manual') ? t('openerMatch.sourceManual') : t('openerMatch.sourceScheduled') }) : t('openerMatch.neverRun')}
               {' · '}{active === 'true'
@@ -368,7 +368,7 @@ const OpenerMatchAdmin = () => {
             </p>
           </div>
           <button onClick={runSync} disabled={status.running || !status.configured.kaizen}
-            className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
+            className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
             {status.running ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             {status.running ? t('openerMatch.running') : t('openerMatch.syncNow')}
           </button>
@@ -410,7 +410,7 @@ const OpenerMatchAdmin = () => {
       </div>
 
       {/* Barre de filtres — carte pleine largeur sous l'en-tête (convention du projet). */}
-      <div className="rounded-sm border border-stroke bg-white p-3 dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-stroke bg-white p-3 dark:border-strokedark dark:bg-boxdark">
         <div className="mb-3 flex flex-wrap gap-2">
           {FILTERS.map((f) => {
             const n = f === 'todo' ? c.review + c.none + c.no_address
@@ -420,7 +420,7 @@ const OpenerMatchAdmin = () => {
             return (
               <button key={f} onClick={() => setFilter(f)}
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${filter === f
-                  ? 'bg-primary text-white'
+                  ? 'bg-primary text-[#141414]'
                   : 'border border-stroke text-black hover:border-primary dark:border-strokedark dark:text-bodydark1'}`}>
                 {t(`openerMatch.filter.${f}`)} <span className="opacity-70">({nf(n)})</span>
               </button>
@@ -464,7 +464,7 @@ const OpenerMatchAdmin = () => {
       <div className="space-y-2">
         {listLoading && locs.length === 0 && <ContentLoader />}
         {!listLoading && locs.length === 0 && (
-          <p className="rounded-sm border border-stroke bg-white p-6 text-center text-sm text-body dark:border-strokedark dark:bg-boxdark dark:text-bodydark">
+          <p className="rounded-2xl border border-stroke bg-white p-6 text-center text-sm text-body dark:border-strokedark dark:bg-boxdark dark:text-bodydark">
             {t('openerMatch.empty')}
           </p>
         )}
@@ -562,7 +562,7 @@ const OpenerMatchAdmin = () => {
                   <input value={searchQ} onChange={(e) => setSearchQ(e.target.value)} autoFocus
                     className="min-w-[240px] flex-1 rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white" />
                   <button type="submit" disabled={searching || searchQ.trim().length < 3}
-                    className="inline-flex items-center gap-1.5 rounded bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                    className="inline-flex items-center gap-1.5 rounded bg-primary px-4 py-2 text-sm font-semibold text-[#141414] disabled:opacity-50">
                     {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                     {t('openerMatch.searchGoogle')}
                   </button>

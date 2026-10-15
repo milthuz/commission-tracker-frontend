@@ -136,10 +136,10 @@ function RecipientListCard({
   };
 
   return (
-    <div className="rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
       <div className="mb-1 flex items-center gap-2">
         <span className="text-lg">{icon}</span>
-        <h3 className="text-base font-semibold text-black dark:text-white">{title}</h3>
+        <h3 className="text-base font-bold text-black dark:text-white">{title}</h3>
       </div>
       <p className="mb-4 text-xs text-body">{hint}</p>
 
@@ -150,7 +150,7 @@ function RecipientListCard({
           <RecipientPicker recipients={recipients} onChange={setRecipients} users={users} />
           <div className="mt-4 flex justify-end">
             <button onClick={save} disabled={saving}
-              className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+              className="rounded-md bg-primary px-5 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
               {saving ? t('common.saving') : t('common.save')}
             </button>
           </div>
@@ -183,10 +183,10 @@ const SaasAutoCard = () => {
     } finally { setSaving(false); }
   };
   return (
-    <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-black dark:text-white">
+          <h3 className="text-lg font-bold text-black dark:text-white">
             🤖 {t('admin.notifications.saasAutoTitle')}
           </h3>
           <p className="mt-1 max-w-2xl text-sm text-body">{t('admin.notifications.saasAutoHint')}</p>
@@ -229,10 +229,10 @@ const AvisRepCard = () => {
     } finally { setSaving(false); }
   };
   return (
-    <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-black dark:text-white">
+          <h3 className="text-lg font-bold text-black dark:text-white">
             📨 {t('admin.notifications.repNotifyTitle')}
           </h3>
           <p className="mt-1 max-w-2xl text-sm text-body">{t('admin.notifications.repNotifyHint')}</p>

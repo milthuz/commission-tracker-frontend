@@ -120,7 +120,7 @@ export default function ResellerAdmin() {
       <div className="flex items-center gap-2">
         <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder={t('admin.resellers.newPlaceholder') as string}
           className={inputCls + ' max-w-xs'} onKeyDown={(e) => e.key === 'Enter' && create()} />
-        <button onClick={create} className="whitespace-nowrap rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-opacity-90">
+        <button onClick={create} className="whitespace-nowrap rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-[#141414] hover:bg-[#F79C6A]">
           + {t('admin.resellers.add')}
         </button>
       </div>
@@ -132,12 +132,12 @@ export default function ResellerAdmin() {
             scroll, no sticky column. Tiny labels identify each stacked input. */}
         <table className="w-full min-w-[860px] table-auto text-sm">
           <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
-              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.logo')}</th>
-              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.colIdentity')}</th>
-              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.colConfig')}</th>
-              <th className="px-3 py-2 font-medium text-black dark:text-white whitespace-nowrap">{t('admin.resellers.colStats')}</th>
-              <th className="px-3 py-2 font-medium text-black dark:text-white">{t('admin.resellers.active')}</th>
+            <tr className="border-b border-stroke text-left dark:border-strokedark">
+              <th className="px-3 py-2 font-bold text-body dark:text-bodydark2">{t('admin.resellers.logo')}</th>
+              <th className="px-3 py-2 font-bold text-body dark:text-bodydark2">{t('admin.resellers.colIdentity')}</th>
+              <th className="px-3 py-2 font-bold text-body dark:text-bodydark2">{t('admin.resellers.colConfig')}</th>
+              <th className="px-3 py-2 font-bold text-body dark:text-bodydark2 whitespace-nowrap">{t('admin.resellers.colStats')}</th>
+              <th className="px-3 py-2 font-bold text-body dark:text-bodydark2">{t('admin.resellers.active')}</th>
               <th className="px-3 py-2"></th>
             </tr>
           </thead>
@@ -201,7 +201,7 @@ export default function ResellerAdmin() {
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap">
                   <button onClick={() => save(r)} disabled={savingId === r.id}
-                    className="mr-2 rounded bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                    className="mr-2 rounded bg-primary px-3 py-1 text-xs font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                     {savingId === r.id ? '…' : t('admin.resellers.save')}
                   </button>
                   <button onClick={() => remove(r)} className="text-xs font-medium text-danger hover:underline">{t('admin.resellers.delete')}</button>

@@ -22,7 +22,7 @@ interface WfState {
   signed: boolean; defaultLanguage: 'fr' | 'en'; fieldMap: Record<string, string>; targets: string[]; forms: WfForm[];
 }
 
-const CARD = 'rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark';
+const CARD = 'rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark';
 const INPUT =
   'w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm text-black outline-none transition ' +
   'focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
@@ -95,7 +95,7 @@ const LeadsWebflowCard = () => {
   if (!st) return null;
   return (
     <div className={CARD}>
-      <h3 className="text-base font-semibold text-black dark:text-white">{t('admin.leads.webflow.title')}</h3>
+      <h3 className="text-base font-bold text-black dark:text-white">{t('admin.leads.webflow.title')}</h3>
       <p className="mb-4 mt-0.5 text-xs text-body">{t('admin.leads.webflow.hint')}</p>
 
       {st.connected ? (
@@ -126,7 +126,7 @@ const LeadsWebflowCard = () => {
               </div>
             )}
             <button type="button" onClick={connect} disabled={!!busy || token.trim().length < 20 || (!!sites && !siteId)}
-              className="rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+              className="rounded bg-primary px-5 py-2.5 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
               {busy === 'connect' ? t('common.loading') : t('admin.leads.webflow.connect')}
             </button>
           </div>
@@ -137,7 +137,7 @@ const LeadsWebflowCard = () => {
 
       {/* Correspondance des champs — les formulaires apparaissent après leur première soumission. */}
       <div className="mt-6 border-t border-stroke pt-5 dark:border-strokedark">
-        <h4 className="text-sm font-semibold text-black dark:text-white">{t('admin.leads.webflow.mapTitle')}</h4>
+        <h4 className="text-sm font-bold text-black dark:text-white">{t('admin.leads.webflow.mapTitle')}</h4>
         <p className="mb-3 mt-0.5 text-xs text-body">{t('admin.leads.webflow.mapHint')}</p>
         <div className="mb-4 max-w-xs">
           <label className="mb-2 block text-sm font-medium text-black dark:text-white">{t('admin.leads.webflow.defaultLang')}</label>
@@ -170,7 +170,7 @@ const LeadsWebflowCard = () => {
             </table>
           </div>
         ))}
-        <button type="button" onClick={saveMap} disabled={!!busy} className="rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+        <button type="button" onClick={saveMap} disabled={!!busy} className="rounded bg-primary px-5 py-2.5 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
           {busy === 'map' ? t('common.loading') : t('common.save')}
         </button>
       </div>

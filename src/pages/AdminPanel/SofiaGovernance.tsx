@@ -82,8 +82,8 @@ const SofiaGovernance: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Kill switch */}
-      <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('admin.sofia.title')}</h3>
+      <div className="rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
+        <h3 className="mb-1 text-lg font-bold text-black dark:text-white">{t('admin.sofia.title')}</h3>
         <p className="mb-5 text-sm text-body dark:text-bodydark">{t('admin.sofia.intro')}</p>
 
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-stroke p-4 dark:border-strokedark">
@@ -95,7 +95,7 @@ const SofiaGovernance: React.FC = () => {
             onClick={toggle}
             disabled={saving || loading || enabled === null}
             className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-40 ${
-              enabled ? 'bg-danger text-white hover:bg-opacity-90' : 'bg-primary text-white hover:bg-opacity-90'
+              enabled ? 'bg-danger text-white hover:bg-opacity-90' : 'bg-primary text-[#141414] hover:bg-[#F79C6A]'
             }`}
           >
             {enabled ? t('admin.sofia.turnOff') : t('admin.sofia.turnOn')}
@@ -112,9 +112,9 @@ const SofiaGovernance: React.FC = () => {
       </div>
 
       {/* Audit trail */}
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
         <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
-          <h3 className="font-semibold text-black dark:text-white">{t('admin.sofia.auditTitle')}</h3>
+          <h3 className="font-bold text-black dark:text-white">{t('admin.sofia.auditTitle')}</h3>
           <button onClick={load} disabled={loading}
             className="rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body transition hover:border-primary hover:text-primary disabled:opacity-40 dark:border-strokedark dark:text-bodydark">
             {t('admin.sofia.refresh')}
@@ -138,7 +138,7 @@ const SofiaGovernance: React.FC = () => {
                 qu'une colonne reste lisible, pas une largeur plancher. */}
             <table className="w-full table-auto">
               <thead>
-                <tr className="bg-gray-2 text-left dark:bg-meta-4">
+                <tr className="border-b border-stroke text-left dark:border-strokedark">
                   {/* Gouttieres : px-6 conserve AU BORD a partir de xl, parce qu'il aligne la
                       premiere et la derniere colonne sur l'en-tete de la carte (px-6 lui aussi) —
                       cet alignement coute 32 px de plancher, payes sur les plafonds ci-dessous.

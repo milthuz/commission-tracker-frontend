@@ -17,7 +17,7 @@ const LABEL = 'mb-2 block text-sm font-medium text-black dark:text-white';
 const SELECT_CLS =
   'w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-left text-sm text-black outline-none ' +
   'transition focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white';
-const CARD = 'rounded-sm border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark';
+const CARD = 'rounded-2xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark';
 
 // Une liste de valeurs saisie en texte libre séparé par des virgules. Un composant à jetons
 // serait plus joli, mais ces listes sont courtes, rarement modifiées, et souvent COLLÉES depuis
@@ -198,10 +198,10 @@ const LeadsAdmin = () => {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="inline-flex w-fit rounded-sm border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="inline-flex w-fit rounded-2xl border border-stroke bg-white p-1 dark:border-strokedark dark:bg-boxdark">
         {(['rules', 'rotation', 'automation'] as const).map((k) => (
           <button key={k} type="button" onClick={() => setTab(k)}
-            className={`rounded-sm px-4 py-2 text-sm font-medium transition-colors ${tab === k ? 'bg-primary text-white' : 'text-bodydark2 hover:text-black dark:hover:text-white'}`}>
+            className={`rounded-sm px-4 py-2 text-sm font-medium transition-colors ${tab === k ? 'bg-primary text-[#141414]' : 'text-bodydark2 hover:text-black dark:hover:text-white'}`}>
             {t(`admin.leads.tabs.${k}`)}
           </button>
         ))}
@@ -213,10 +213,10 @@ const LeadsAdmin = () => {
           <div className={CARD}>
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 className="text-base font-semibold text-black dark:text-white">{t('admin.leads.rules.title')}</h3>
+                <h3 className="text-base font-bold text-black dark:text-white">{t('admin.leads.rules.title')}</h3>
                 <p className="mt-0.5 text-xs text-body">{t('admin.leads.rules.hint')}</p>
               </div>
-              <button type="button" onClick={() => setEditing(emptyRule())} className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+              <button type="button" onClick={() => setEditing(emptyRule())} className="rounded bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A]">
                 {t('admin.leads.rules.add')}
               </button>
             </div>
@@ -224,11 +224,11 @@ const LeadsAdmin = () => {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[820px] table-auto">
                 <thead>
-                  <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                    <th className="w-16 whitespace-nowrap px-4 py-3 text-sm font-medium text-black dark:text-white">#</th>
-                    <th className="whitespace-nowrap px-4 py-3 text-sm font-medium text-black dark:text-white">{t('admin.leads.rules.name')}</th>
-                    <th className="px-4 py-3 text-sm font-medium text-black dark:text-white">{t('admin.leads.rules.criteria')}</th>
-                    <th className="px-4 py-3 text-sm font-medium text-black dark:text-white">{t('admin.leads.rules.targets')}</th>
+                  <tr className="border-b border-stroke text-left dark:border-strokedark">
+                    <th className="w-16 whitespace-nowrap px-4 py-3 text-sm font-bold text-body dark:text-bodydark2">#</th>
+                    <th className="whitespace-nowrap px-4 py-3 text-sm font-bold text-body dark:text-bodydark2">{t('admin.leads.rules.name')}</th>
+                    <th className="px-4 py-3 text-sm font-bold text-body dark:text-bodydark2">{t('admin.leads.rules.criteria')}</th>
+                    <th className="px-4 py-3 text-sm font-bold text-body dark:text-bodydark2">{t('admin.leads.rules.targets')}</th>
                     <th className="sticky right-0 bg-gray-2 px-4 py-3 dark:bg-meta-4" />
                   </tr>
                 </thead>
@@ -291,7 +291,7 @@ const LeadsAdmin = () => {
           {/* Une règle mal ordonnée est invisible autrement : on ne s'en aperçoit qu'à la
               première vraie piste partie chez la mauvaise personne. */}
           <div className={CARD}>
-            <h3 className="text-base font-semibold text-black dark:text-white">{t('admin.leads.simulate.title')}</h3>
+            <h3 className="text-base font-bold text-black dark:text-white">{t('admin.leads.simulate.title')}</h3>
             <p className="mb-4 mt-0.5 text-xs text-body">{t('admin.leads.simulate.hint')}</p>
             <div className="grid gap-3 sm:grid-cols-5">
               <Select buttonClassName={SELECT_CLS} value={sim.source} onChange={(v) => setSim({ ...sim, source: v })}
@@ -302,7 +302,7 @@ const LeadsAdmin = () => {
               <input className={INPUT} value={sim.businessType} onChange={(e) => setSim({ ...sim, businessType: e.target.value })} placeholder={t('leads.field.businessType') as string} />
               <input className={INPUT} value={sim.postalCode} onChange={(e) => setSim({ ...sim, postalCode: e.target.value })} placeholder={t('leads.field.postalCode') as string} />
             </div>
-            <button type="button" onClick={simulate} className="mt-3 rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+            <button type="button" onClick={simulate} className="mt-3 rounded bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A]">
               {t('admin.leads.simulate.run')}
             </button>
 
@@ -337,17 +337,17 @@ const LeadsAdmin = () => {
       {/* ── TOUR DE RÔLE ───────────────────────────────────────────────────── */}
       {tab === 'rotation' && (
         <div className={CARD}>
-          <h3 className="text-base font-semibold text-black dark:text-white">{t('admin.leads.rotation.title')}</h3>
+          <h3 className="text-base font-bold text-black dark:text-white">{t('admin.leads.rotation.title')}</h3>
           <p className="mb-4 mt-0.5 text-xs text-body">{t('admin.leads.rotation.hint')}</p>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] table-auto">
               <thead>
-                <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                  <th className="px-4 py-3 text-sm font-medium text-black dark:text-white">{t('leads.columns.rep')}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-sm font-medium text-black dark:text-white">{t('admin.leads.rotation.inPool')}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-sm font-medium text-black dark:text-white">{t('admin.leads.rotation.awayUntil')}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-black dark:text-white">{t('admin.leads.rotation.lastAssigned')}</th>
-                  <th className="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-black dark:text-white">{t('admin.leads.rotation.count')}</th>
+                <tr className="border-b border-stroke text-left dark:border-strokedark">
+                  <th className="px-4 py-3 text-sm font-bold text-body dark:text-bodydark2">{t('leads.columns.rep')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 text-sm font-bold text-body dark:text-bodydark2">{t('admin.leads.rotation.inPool')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 text-sm font-bold text-body dark:text-bodydark2">{t('admin.leads.rotation.awayUntil')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 text-right text-sm font-bold text-body dark:text-bodydark2">{t('admin.leads.rotation.lastAssigned')}</th>
+                  <th className="whitespace-nowrap px-4 py-3 text-right text-sm font-bold text-body dark:text-bodydark2">{t('admin.leads.rotation.count')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -396,7 +396,7 @@ const LeadsAdmin = () => {
       {tab === 'automation' && settings && (
         <>
           <div className={CARD}>
-            <h3 className="text-base font-semibold text-black dark:text-white">{t('admin.leads.automation.title')}</h3>
+            <h3 className="text-base font-bold text-black dark:text-white">{t('admin.leads.automation.title')}</h3>
             <p className="mb-4 mt-0.5 text-xs text-body">{t('admin.leads.automation.hint')}</p>
 
             <Toggle on={settings.callbackEnabled} onChange={(v) => set('callbackEnabled', v)}
@@ -463,14 +463,14 @@ const LeadsAdmin = () => {
               <p className="mt-1 text-xs text-body">{t('admin.leads.automation.reminderHint')}</p>
             </div>
 
-            <button type="button" onClick={saveSettings} disabled={saving} className="mt-5 rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+            <button type="button" onClick={saveSettings} disabled={saving} className="mt-5 rounded bg-primary px-5 py-2.5 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
               {saving ? t('common.loading') : t('common.save')}
             </button>
           </div>
 
           {/* ── Rendez-vous en ligne (services/leadBooking) ── */}
           <div className={CARD}>
-            <h3 className="text-base font-semibold text-black dark:text-white">{t('admin.leads.booking.title')}</h3>
+            <h3 className="text-base font-bold text-black dark:text-white">{t('admin.leads.booking.title')}</h3>
             <p className="mb-4 mt-0.5 text-xs text-body">{t('admin.leads.booking.hint')}</p>
 
             <Toggle on={settings.bookingEnabled !== false} onChange={(v) => set('bookingEnabled', v)}
@@ -503,12 +503,12 @@ const LeadsAdmin = () => {
               </>
             )}
 
-            <button type="button" onClick={saveSettings} disabled={saving} className="mt-4 rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+            <button type="button" onClick={saveSettings} disabled={saving} className="mt-4 rounded bg-primary px-5 py-2.5 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
               {saving ? t('common.loading') : t('common.save')}
             </button>
 
             <div className="mt-6 border-t border-stroke pt-5 dark:border-strokedark">
-              <h4 className="text-sm font-semibold text-black dark:text-white">{t('admin.leads.booking.googleTitle')}</h4>
+              <h4 className="text-sm font-bold text-black dark:text-white">{t('admin.leads.booking.googleTitle')}</h4>
               {gcal?.configured ? (
                 <p className="mt-2 rounded-sm border px-4 py-3 text-xs border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
                   {t('admin.leads.booking.googleOn', { email: gcal.serviceAccount?.email })}
@@ -555,7 +555,7 @@ const LeadsAdmin = () => {
           {/* Ces deux champs sont des LISTES DE CHOIX chez Zoho : une valeur absente de la liste
               fait rejeter tout l'enregistrement. D'où le défaut vide, et l'avertissement. */}
           <div className={CARD}>
-            <h3 className="text-base font-semibold text-black dark:text-white">{t('admin.leads.zoho.title')}</h3>
+            <h3 className="text-base font-bold text-black dark:text-white">{t('admin.leads.zoho.title')}</h3>
             <p className="mb-4 mt-0.5 text-xs text-body">{t('admin.leads.zoho.hint')}</p>
             <div className="grid max-w-3xl gap-4 sm:grid-cols-2">
               <div>
@@ -591,7 +591,7 @@ const LeadsAdmin = () => {
                 L'étape se CHOISIT dans la liste que Zoho annonce, mais reste saisissable à la
                 main : ces métadonnées omettent des valeurs pourtant valides (voir le serveur). */}
             <div className="mt-6 border-t border-stroke pt-5 dark:border-strokedark">
-              <h4 className="text-sm font-semibold text-black dark:text-white">{t('admin.leads.deal.title')}</h4>
+              <h4 className="text-sm font-bold text-black dark:text-white">{t('admin.leads.deal.title')}</h4>
               <p className="mb-4 mt-0.5 text-xs text-body">{t('admin.leads.deal.hint')}</p>
               <div className="grid max-w-3xl gap-4 sm:grid-cols-2">
                 <div>
@@ -616,7 +616,7 @@ const LeadsAdmin = () => {
                 </div>
               </div>
             </div>
-            <button type="button" onClick={saveSettings} disabled={saving} className="mt-4 rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+            <button type="button" onClick={saveSettings} disabled={saving} className="mt-4 rounded bg-primary px-5 py-2.5 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
               {saving ? t('common.loading') : t('common.save')}
             </button>
           </div>
@@ -626,7 +626,7 @@ const LeadsAdmin = () => {
 
           {/* Ce que l'équipe du site public doit brancher. */}
           <div className={CARD}>
-            <h3 className="text-base font-semibold text-black dark:text-white">{t('admin.leads.webhook.title')}</h3>
+            <h3 className="text-base font-bold text-black dark:text-white">{t('admin.leads.webhook.title')}</h3>
             <p className="mb-4 mt-0.5 text-xs text-body">{t('admin.leads.webhook.hint')}</p>
             <div className="overflow-x-auto rounded-sm bg-gray-2 px-4 py-3 dark:bg-meta-4">
               <code className="whitespace-pre text-xs text-black dark:text-white">
@@ -660,9 +660,9 @@ Content-Type: application/json
       {editing && (
         <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto p-4 sm:p-8">
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !saving && setEditing(null)} />
-          <div role="dialog" aria-modal="true" className="relative my-auto w-full max-w-2xl rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div role="dialog" aria-modal="true" className="relative my-auto w-full max-w-2xl rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-              <h3 className="text-lg font-semibold text-black dark:text-white">
+              <h3 className="text-lg font-bold text-black dark:text-white">
                 {editing.id ? t('admin.leads.rules.edit') : t('admin.leads.rules.add')}
               </h3>
             </div>
@@ -723,7 +723,7 @@ Content-Type: application/json
                           : [...(editing.target_reps || []), r.name],
                       })}
                       className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
-                        on ? 'bg-primary text-white' : 'bg-gray-2 text-bodydark2 hover:text-black dark:bg-meta-4 dark:hover:text-white'
+                        on ? 'bg-primary text-[#141414]' : 'bg-gray-2 text-bodydark2 hover:text-black dark:bg-meta-4 dark:hover:text-white'
                       }`}
                     >
                       {r.name}
@@ -742,7 +742,7 @@ Content-Type: application/json
                 <button type="button" onClick={() => setEditing(null)} disabled={saving} className="rounded border border-stroke px-5 py-2.5 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
                   {t('common.cancel')}
                 </button>
-                <button type="button" onClick={saveRule} disabled={saving} className="rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+                <button type="button" onClick={saveRule} disabled={saving} className="rounded bg-primary px-5 py-2.5 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
                   {saving ? t('common.loading') : t('common.save')}
                 </button>
               </div>

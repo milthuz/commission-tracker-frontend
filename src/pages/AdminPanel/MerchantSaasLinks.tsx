@@ -110,7 +110,7 @@ export default function MerchantSaasLinks() {
 
   const filterBtn = (key: typeof filter, n?: number) => (
     <button onClick={() => setFilter(key)}
-      className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${filter === key ? 'bg-primary text-white' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
+      className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${filter === key ? 'bg-primary text-[#141414]' : 'text-body hover:bg-gray-1 dark:hover:bg-meta-4'}`}>
       {t(`admin.merchantLinks.filter_${key}`)}{typeof n === 'number' ? ` (${n})` : ''}
     </button>
   );
@@ -129,7 +129,7 @@ export default function MerchantSaasLinks() {
       {summary && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           {([['total', summary.total], ['manual', summary.manual], ['auto', summary.auto], ['no_saas', summary.noSaas], ['unmatched', summary.unmatched]] as [string, number][]).map(([k, v]) => (
-            <div key={k} className="rounded-sm border border-stroke bg-white px-4 py-3 dark:border-strokedark dark:bg-boxdark">
+            <div key={k} className="rounded-2xl border border-stroke bg-white px-4 py-3 dark:border-strokedark dark:bg-boxdark">
               <p className="text-xl font-bold text-black dark:text-white">{v}</p>
               <p className="text-xs text-body">{t(`admin.merchantLinks.summary_${k}`)}</p>
             </div>
@@ -142,7 +142,7 @@ export default function MerchantSaasLinks() {
           {filterBtn('unmatched', summary?.unmatched)}{filterBtn('auto', summary?.auto)}{filterBtn('manual', summary?.manual)}{filterBtn('no_saas', summary?.noSaas)}{filterBtn('all', summary?.total)}
         </div>
         <button onClick={() => setRecentOnly(v => !v)}
-          className={`rounded-md border px-3 py-1.5 text-sm font-medium transition ${recentOnly ? 'border-primary bg-primary text-white' : 'border-stroke text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4'}`}>
+          className={`rounded-md border px-3 py-1.5 text-sm font-medium transition ${recentOnly ? 'border-primary bg-primary text-[#141414]' : 'border-stroke text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4'}`}>
           {t('admin.merchantLinks.recentOnly')}
         </button>
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('admin.merchantLinks.searchPlaceholder') as string}
@@ -152,7 +152,7 @@ export default function MerchantSaasLinks() {
       <div className="overflow-x-auto rounded-md border border-stroke dark:border-strokedark">
         <table className="w-full min-w-[44rem] table-auto text-sm">
           <thead>
-            <tr className="bg-gray-2 text-left dark:bg-meta-4">
+            <tr className="border-b border-stroke text-left dark:border-strokedark">
               {sortTh('businessName', 'admin.merchantLinks.colMerchant')}
               {sortTh('status', 'admin.merchantLinks.colStatus')}
               {sortTh('activatedAt', 'admin.merchantLinks.colActivated')}
@@ -180,7 +180,7 @@ export default function MerchantSaasLinks() {
                 <td className="px-4 py-3 text-right font-semibold text-primary">{money(r.combinedMonthly)}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-right">
                   <button onClick={() => openLink(r)} disabled={busyId === r.merchantAccountId}
-                    className="mr-2 rounded bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                    className="mr-2 rounded bg-primary px-3 py-1 text-xs font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                     {r.status === 'manual' || r.status === 'auto' ? t('admin.merchantLinks.relink') : t('admin.merchantLinks.link')}
                   </button>
                   {r.status !== 'no_saas' && (
@@ -201,10 +201,10 @@ export default function MerchantSaasLinks() {
       {/* Link modal: search Billing customers */}
       {linking && (
         <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4">
-          <div className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
             <div className="flex items-start justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
               <div>
-                <h3 className="font-semibold text-black dark:text-white">{t('admin.merchantLinks.linkTitle', { name: linking.businessName })}</h3>
+                <h3 className="font-bold text-black dark:text-white">{t('admin.merchantLinks.linkTitle', { name: linking.businessName })}</h3>
                 <p className="text-xs text-body">{t('admin.merchantLinks.linkHint')}</p>
               </div>
               <button onClick={() => setLinking(null)} aria-label={t('common.close') as string}

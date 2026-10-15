@@ -202,7 +202,7 @@ const DataHealth: React.FC = () => {
       )}
 
       {data && data.totalIssues === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-stroke bg-white p-10 text-center dark:border-strokedark dark:bg-boxdark">
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-success/10">
             <svg className="h-7 w-7 text-success" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
           </div>
@@ -217,7 +217,7 @@ const DataHealth: React.FC = () => {
             {cards.map((c) => {
               const ok = c.count === 0;
               return (
-                <div key={c.key} className={`flex flex-col rounded-xl border bg-white p-5 shadow-default dark:bg-boxdark ${ok ? 'border-stroke dark:border-strokedark' : 'border-warning/40'}`}>
+                <div key={c.key} className={`flex flex-col rounded-xl border bg-white p-5 dark:bg-boxdark ${ok ? 'border-stroke dark:border-strokedark' : 'border-warning/40'}`}>
                   <div className="mb-2 flex items-start justify-between gap-3">
                     <span className="text-sm font-medium text-black dark:text-white">{t(`dataHealth.cards.${c.key}.title`)}</span>
                     <span className={`inline-flex min-w-[28px] items-center justify-center rounded-full px-2 py-0.5 text-sm font-bold ${ok ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'}`}>{c.count}</span>
@@ -249,10 +249,10 @@ const DataHealth: React.FC = () => {
 
           {/* Expanded detail lists */}
           {expanded === 'invoices' && i && (
-            <div className="mt-4 overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mt-4 overflow-hidden rounded-xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="flex items-start justify-between gap-3 border-b border-stroke px-5 py-3 dark:border-strokedark">
                 <div>
-                  <h4 className="text-sm font-semibold text-black dark:text-white">{t('dataHealth.cards.invoices.title')}</h4>
+                  <h4 className="text-sm font-bold text-black dark:text-white">{t('dataHealth.cards.invoices.title')}</h4>
                   <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t('dataHealth.invoiceList.hint')}</p>
                 </div>
                 <button
@@ -289,7 +289,7 @@ const DataHealth: React.FC = () => {
             </div>
           )}
           {expanded === 'staleMerchants' && i && (
-            <div className="mt-4 overflow-x-auto rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="mt-4 overflow-x-auto rounded-xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead className="border-b border-stroke dark:border-strokedark">
                   <tr className="text-xs uppercase tracking-wide text-gray-400">
@@ -318,8 +318,8 @@ const DataHealth: React.FC = () => {
           )}
 
           {expanded === 'repsNoRole' && i && (
-            <div className="mt-4 rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <h4 className="mb-2 text-sm font-semibold text-black dark:text-white">{t('dataHealth.cards.repsNoRole.title')}</h4>
+            <div className="mt-4 rounded-xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
+              <h4 className="mb-2 text-sm font-bold text-black dark:text-white">{t('dataHealth.cards.repsNoRole.title')}</h4>
               <div className="flex flex-wrap gap-2">
                 {i.repsNoRole.names.map((n) => (
                   <span key={n} className="rounded-full bg-gray-1 px-2.5 py-1 text-xs text-body dark:bg-meta-4 dark:text-bodydark">{n}</span>
@@ -329,9 +329,9 @@ const DataHealth: React.FC = () => {
           )}
 
           {reports.length > 0 && (
-            <div className="mt-6 rounded-xl border border-warning/40 bg-white shadow-default dark:bg-boxdark">
+            <div className="mt-6 rounded-xl border border-warning/40 bg-white dark:bg-boxdark">
               <div className="border-b border-stroke px-5 py-3 dark:border-strokedark">
-                <h4 className="text-sm font-semibold text-black dark:text-white">
+                <h4 className="text-sm font-bold text-black dark:text-white">
                   {t('dataHealth.reports.title')} <span className="text-danger">({reports.length})</span>
                 </h4>
                 <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{t('dataHealth.reports.subtitle')}</p>
@@ -414,7 +414,7 @@ const DataHealth: React.FC = () => {
           onClick={() => resolving === null && setResolveModal(null)}
         >
           <div className="my-auto w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">
+            <h3 className="mb-1 text-lg font-bold text-black dark:text-white">
               {t('dataHealth.reports.resolveTitle')}
             </h3>
             <p className="mb-4 text-sm text-body">
@@ -468,7 +468,7 @@ const DataHealth: React.FC = () => {
               <button
                 onClick={() => resolveReport(resolveModal.id, resolveModal.note.trim())}
                 disabled={resolving !== null}
-                className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+                className="rounded bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50"
               >
                 {resolving !== null ? t('dataHealth.reports.resolving') : t('dataHealth.reports.resolveAndNotify')}
               </button>

@@ -112,16 +112,16 @@ export default function ZohoSystemAccount() {
   const onglet = (v: Service, libelle: string) => (
     <button key={v} onClick={() => setService(v)}
       className={`rounded px-3 py-1.5 text-sm font-medium ${service === v
-        ? 'bg-primary text-white'
+        ? 'bg-primary text-[#141414]'
         : 'text-body hover:bg-gray-2 dark:hover:bg-meta-4'}`}>
       {libelle}
     </button>
   );
 
   return (
-    <div className="mt-6 rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+    <div className="mt-6 rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
       <div className="border-b border-stroke px-7 py-4 dark:border-strokedark">
-        <h3 className="text-lg font-semibold text-black dark:text-white">{t('admin.crmSystem.title')}</h3>
+        <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.crmSystem.title')}</h3>
         <p className="mt-1 text-sm text-body">{t('admin.crmSystem.subtitle')}</p>
       </div>
 
@@ -173,7 +173,7 @@ export default function ZohoSystemAccount() {
                       </button>
                       {!estEpingle && (
                         <button onClick={() => epingler(c.email)} disabled={occupe !== null}
-                          className="ml-2 rounded bg-primary px-2.5 py-1 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+                          className="ml-2 rounded bg-primary px-2.5 py-1 text-xs font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
                           {occupe === `pin:${c.email}` ? t('admin.crmSystem.pinning') : t('admin.crmSystem.pin')}
                         </button>
                       )}

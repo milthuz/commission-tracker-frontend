@@ -97,10 +97,10 @@ const Audit: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="mb-6 flex flex-wrap gap-1 rounded-xl bg-gray-2 p-1 dark:bg-meta-4/60">
         {SUBTABS.map((key) => (
           <button key={key} onClick={() => setSubTab(key)}
-            className={`rounded-md px-4 py-2 text-sm font-medium transition ${subTab === key ? 'bg-primary text-white shadow-sm' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+            className={`rounded-lg px-4 py-2 text-sm font-bold transition ${subTab === key ? 'bg-white text-black shadow-sm dark:bg-boxdark dark:text-white' : 'text-body hover:text-black dark:text-bodydark2 dark:hover:text-white'}`}>
             {t(`admin.audit.tabs.${key}`)}
           </button>
         ))}
@@ -108,10 +108,10 @@ const Audit: React.FC = () => {
 
       {subTab === 'dashboard' && (
         <>
-          <div className="mb-4 flex items-center justify-end gap-1 rounded-lg border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark w-fit">
+          <div className="mb-4 flex items-center justify-end gap-1 rounded-lg border border-stroke bg-white p-1 dark:border-strokedark dark:bg-boxdark w-fit">
             {RANGES.map((r) => (
               <button key={r} onClick={() => setRange(r)}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${range === r ? 'bg-primary text-white' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${range === r ? 'bg-primary text-[#141414]' : 'text-body hover:bg-gray-50 dark:hover:bg-meta-4'}`}>
                 {t(`admin.audit.range.${r}`)}
               </button>
             ))}
@@ -120,28 +120,28 @@ const Audit: React.FC = () => {
           {sessionsLoading ? (
             <div className="flex h-32 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : sessionsError ? (
-            <div className="rounded-xl border border-stroke bg-white p-8 text-center text-sm text-danger shadow-default dark:border-strokedark dark:bg-boxdark">{t('admin.audit.error')}</div>
+            <div className="rounded-xl border border-stroke bg-white p-8 text-center text-sm text-danger dark:border-strokedark dark:bg-boxdark">{t('admin.audit.error')}</div>
           ) : sessions && (
             <>
               <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+                <div className="rounded-xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
                   <p className="text-sm text-body">{t('admin.audit.onlineNow')}</p>
                   <p className="mt-1 text-2xl font-bold text-success">{sessions.onlineNow}</p>
                 </div>
-                <div className="rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+                <div className="rounded-xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
                   <p className="text-sm text-body">{t('admin.audit.activeUsers')}</p>
                   <p className="mt-1 text-2xl font-bold text-black dark:text-white">{sessions.activeUsers}</p>
                 </div>
-                <div className="rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark">
+                <div className="rounded-xl border border-stroke bg-white p-5 dark:border-strokedark dark:bg-boxdark">
                   <p className="text-sm text-body">{t('admin.audit.totalHours')}</p>
                   <p className="mt-1 text-2xl font-bold text-black dark:text-white">{fmtNumber(sessions.totalHours, 1)}h</p>
                 </div>
               </div>
 
               {sessions.users.length === 0 ? (
-                <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('admin.audit.noActivity')}</p></div>
+                <div className="rounded-xl border border-stroke bg-white p-10 text-center dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('admin.audit.noActivity')}</p></div>
               ) : (
-                <div className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+                <div className="overflow-hidden rounded-xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[680px] text-sm">
                       <thead className="bg-gray-2 dark:bg-meta-4">
@@ -183,7 +183,7 @@ const Audit: React.FC = () => {
 
       {subTab === 'logs' && (
         <>
-          <div className="mb-4 rounded-xl border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+          <div className="mb-4 rounded-xl border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
             <div className="flex flex-wrap items-end gap-3">
               <div className="min-w-[160px]">
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.audit.filterActor')}</label>
@@ -211,7 +211,7 @@ const Audit: React.FC = () => {
                   placeholder={t('admin.audit.filterSearchPlaceholder') as string}
                   className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
               </div>
-              <button onClick={applyFilters} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90">{t('admin.audit.applyFilters')}</button>
+              <button onClick={applyFilters} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A]">{t('admin.audit.applyFilters')}</button>
               <button onClick={resetFilters} className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4">{t('admin.audit.resetFilters')}</button>
             </div>
           </div>
@@ -219,11 +219,11 @@ const Audit: React.FC = () => {
           {logsLoading ? (
             <div className="flex h-32 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
           ) : logsError ? (
-            <div className="rounded-xl border border-stroke bg-white p-8 text-center text-sm text-danger shadow-default dark:border-strokedark dark:bg-boxdark">{t('admin.audit.error')}</div>
+            <div className="rounded-xl border border-stroke bg-white p-8 text-center text-sm text-danger dark:border-strokedark dark:bg-boxdark">{t('admin.audit.error')}</div>
           ) : logs.length === 0 ? (
-            <div className="rounded-xl border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('admin.audit.noLogs')}</p></div>
+            <div className="rounded-xl border border-stroke bg-white p-10 text-center dark:border-strokedark dark:bg-boxdark"><p className="text-sm text-gray-500">{t('admin.audit.noLogs')}</p></div>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="overflow-hidden rounded-xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[900px] text-sm">
                   <thead className="bg-gray-2 dark:bg-meta-4">
