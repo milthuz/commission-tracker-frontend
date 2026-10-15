@@ -134,7 +134,7 @@ const DropdownNotification = () => {
         </Link>
 
         {dropdownOpen && (
-          <div className="absolute -right-27 mt-2.5 flex max-h-[28rem] w-80 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark sm:right-0">
+          <div className="fixed inset-x-3 top-[4.75rem] z-[9992] flex max-h-[calc(100dvh-11rem)] w-auto flex-col rounded-2xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2.5 sm:max-h-[28rem] sm:w-80">
             <div className="flex items-center justify-between px-4.5 py-3 border-b border-stroke dark:border-strokedark">
               <h5 className="text-sm font-semibold text-black dark:text-white">
                 {t('notifications.title')}
