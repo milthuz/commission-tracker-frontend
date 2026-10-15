@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard, Snowflake,
          MessageSquareQuote, ArrowRight } from 'lucide-react';
 import { authHeaders } from '../lib/auth';
+import { PageHeader } from '../components/ui';
 
 // The support desk's page. A merchant calls, an agent types whatever the caller gave them — a
 // name, a subscription number, a merchant id — and gets that one account's facts. Read-only by
@@ -399,10 +400,7 @@ export default function SaasIncreaseLookup() {
 
   return (
     <div className="font-satoshi">
-      <div className="mb-6">
-        <h2 className={`text-title-md2 font-semibold ${textPri}`}>{t('csLookup.title')}</h2>
-        <p className="mt-1 text-sm text-body">{t('csLookup.subtitle')}</p>
-      </div>
+      <PageHeader section={t('sidebar.saasGroup')} title={t('csLookup.title')} subtitle={t('csLookup.subtitle')} />
 
       <div className={`${card} mb-4 p-4`}>
         <div className="relative">

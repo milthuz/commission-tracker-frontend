@@ -87,13 +87,13 @@ const PassLibraryAdmin = () => {
 
   const kb = (n: number) => `${Math.max(1, Math.round((n || 0) / 1024))} ko`;
   const input =
-    'mt-1.5 w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4';
+    'mt-1.5 w-full rounded-[10px] border border-stroke bg-transparent px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4';
   const label = 'block text-sm font-medium text-black dark:text-white';
 
   return (
     <>
-      <div className="mb-5 rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-        <h3 className="text-lg font-semibold text-black dark:text-white">{t('passOps.lib.title')}</h3>
+      <div className="mb-5 rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
+        <h3 className="text-lg font-bold text-black dark:text-white">{t('passOps.lib.title')}</h3>
         <p className="mt-1 max-w-[80ch] text-sm text-bodydark2">{t('passOps.lib.sub')}</p>
 
         <form onSubmit={submit} className="mt-5">
@@ -117,7 +117,7 @@ const PassLibraryAdmin = () => {
             <div>
               <label htmlFor="lib-file" className={label}>{t('passOps.lib.file')}</label>
               <input id="lib-file" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="mt-1.5 w-full cursor-pointer rounded border border-stroke bg-transparent px-4 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-white dark:border-strokedark" />
+                className="mt-1.5 w-full cursor-pointer rounded-[10px] border border-stroke bg-transparent px-4 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-primary file:px-3 file:py-1.5 file:font-bold file:text-[#141414] dark:border-strokedark" />
             </div>
             <div>
               <label htmlFor="lib-order" className={label}>{t('passOps.lib.order')}</label>
@@ -126,20 +126,20 @@ const PassLibraryAdmin = () => {
           </div>
 
           {error && (
-            <p role="alert" className="mt-4 rounded-sm border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+            <p role="alert" className="mt-4 rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
               {error}
             </p>
           )}
 
           <button type="submit" disabled={busy}
-            className="mt-5 inline-flex items-center gap-2 rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
+            className="mt-5 inline-flex items-center gap-2 rounded-[10px] bg-primary px-5 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
             {busy && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />}
             {busy ? t('passOps.lib.adding') : t('passOps.lib.add')}
           </button>
         </form>
       </div>
 
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
         <div className="overflow-x-auto">
           {/* Pas de `min-w` : le `min-w-[820px]` qui etait ici MORDAIT — le plancher reel du
               contenu, titres FR/EN et nom de fichier au pire cas, n'est que de 713 px. Les 107 px
@@ -150,12 +150,12 @@ const PassLibraryAdmin = () => {
               colonnes lisibles, pas une largeur plancher. Voir 2e3c6b8 pour le meme diagnostic. */}
           <table className="w-full table-auto">
             <thead>
-              <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('passOps.lib.titleFr')}</th>
-                <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('passOps.lib.titleEn')}</th>
-                <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('passOps.lib.file')}</th>
-                <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('passOps.lib.order')}</th>
-                <th className="sticky right-0 bg-gray-2 px-4 py-4 dark:bg-meta-4" />
+              <tr className="border-b border-stroke text-left dark:border-strokedark">
+                <th className="whitespace-nowrap px-4 py-4 text-xs font-bold text-body dark:text-bodydark2">{t('passOps.lib.titleFr')}</th>
+                <th className="whitespace-nowrap px-4 py-4 text-xs font-bold text-body dark:text-bodydark2">{t('passOps.lib.titleEn')}</th>
+                <th className="whitespace-nowrap px-4 py-4 text-xs font-bold text-body dark:text-bodydark2">{t('passOps.lib.file')}</th>
+                <th className="whitespace-nowrap px-4 py-4 text-xs font-bold text-body dark:text-bodydark2">{t('passOps.lib.order')}</th>
+                <th className="sticky right-0 bg-white px-4 py-4 dark:bg-boxdark" />
               </tr>
             </thead>
             <tbody>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, AlertTriangle, LifeBuoy, Info, ChevronDown } from 'lucide-react';
 import { authHeaders } from '../lib/auth';
+import { PageHeader } from '../components/ui';
 
 // Le suivi d'une campagne EN COURS, par opposition a la vue board qui est une proposition figee.
 // Une hausse de prix ne finit pas au clic sur « Appliquer » : chaque abonnement change de prix a
@@ -216,9 +217,8 @@ export default function SaasIncreaseCampaign() {
   return (
     <div className="font-satoshi">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className={`text-title-md2 font-semibold ${textPri}`}>{t('saasCampaign.title')}</h2>
-          <p className="mt-1 text-sm text-body">{t('saasCampaign.subtitle')}</p>
+        <div className="-mb-5 min-w-0">
+          <PageHeader section={t('sidebar.saasGroup')} title={t('saasCampaign.title')} subtitle={t('saasCampaign.subtitle')} />
         </div>
         <div className="flex items-center gap-2">
           {scenarios.length > 1 && (
@@ -233,7 +233,7 @@ export default function SaasIncreaseCampaign() {
           <button
             onClick={() => id != null && charger(id)}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-[#242424] dark:bg-[#141414] dark:text-[#D1D1D1]"
+            className="inline-flex items-center gap-2 rounded-[10px] border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-[#242424] dark:bg-[#141414] dark:text-[#D1D1D1]"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             {t('saasCampaign.refresh')}

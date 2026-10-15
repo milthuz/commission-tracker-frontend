@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { dialog } from '../lib/dialog';
 import Select from '../components/Select';
 import { useTranslation } from 'react-i18next';
-import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 import PassLibraryAdmin from './PassLibraryAdmin';
 import PassConfigAdmin from './PassConfigAdmin';
 import { authHeaders } from '../lib/auth';
+import { Modal, PageHeader, StatusPill, Tabs, type StatusFamily } from '../components/ui';
 
 // Suivi interne des recommandations de La Passe (écran 06 du deck), permission
 // `pass:referrals`. Écran du PRODUIT INTERNE, pas de la marque La Passe : barre latérale,
@@ -154,39 +154,17 @@ const PassOps = () => {
     ];
   }, [summary, fr]);
 
-  const badge = (s: string) => {
-    const tone: Record<string, string> = {
-      new: 'bg-bodydark2/15 text-bodydark2 dark:text-bodydark1',
-      contacted: 'bg-warning/15 text-warning',
-      live: 'bg-primary/15 text-primary',
-      credit_applied: 'bg-success/15 text-success',
-      not_qualified: 'bg-danger/10 text-danger',
-    };
-    return `inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${tone[s] || tone.new}`;
-  };
+  const badgeFamily = (s: string): StatusFamily => (
+    ({ new: 'neutral', contacted: 'wait', live: 'new', credit_applied: 'ok', not_qualified: 'err' } as Record<string, StatusFamily>)[s] || 'neutral'
+  );
 
   return (
     <>
-      <Breadcrumb pageName={t('sidebar.passOps')} />
+      <PageHeader section={t('sidebar.sections.ops')} title={t('passOps.title')} subtitle={t('passOps.sub')} />
 
       <div className="mb-5">
-        <h2 className="text-title-md2 font-bold text-black dark:text-white">{t('passOps.title')}</h2>
-        <p className="mt-1 text-sm text-bodydark2">{t('passOps.sub')}</p>
-      </div>
-
-      <div className="mb-5 inline-flex max-w-full overflow-x-auto no-scrollbar rounded-sm border border-stroke bg-white p-1 shadow-default dark:border-strokedark dark:bg-boxdark">
-        {(['referrals', 'library', 'config'] as const).map((k) => (
-          <button
-            key={k}
-            type="button"
-            onClick={() => setTab(k)}
-            className={`shrink-0 whitespace-nowrap rounded-sm px-4 py-2 text-sm font-medium transition-colors duration-150 ${
-              tab === k ? 'bg-primary text-white' : 'text-bodydark2 hover:text-black dark:hover:text-white'
-            }`}
-          >
-            {t(`passOps.tabs.${k}`)}
-          </button>
-        ))}
+        <Tabs ariaLabel={t('passOps.title') as string} value={tab} onChange={setTab}
+          tabs={(['referrals', 'library', 'config'] as const).map((k) => ({ id: k, label: t(`passOps.tabs.${k}`) }))} />
       </div>
 
       {tab === 'library' && <PassLibraryAdmin />}
@@ -198,9 +176,9 @@ const PassOps = () => {
       {!!kpis.length && (
         <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {kpis.map((k) => (
-            <div key={k.label} className="rounded-sm border border-stroke bg-white px-5 py-4 shadow-default dark:border-strokedark dark:bg-boxdark">
-              <p className="text-sm text-bodydark2">{k.label}</p>
-              <p className="mt-1 text-title-md font-bold text-black dark:text-white">{k.value}</p>
+            <div key={k.label} className="rounded-2xl border border-stroke bg-white px-5 py-4 dark:border-strokedark dark:bg-boxdark">
+              <p className="text-sm font-medium text-body dark:text-bodydark2">{k.label}</p>
+              <p className="mt-1 text-2xl font-bold leading-tight text-black dark:text-white">{k.value}</p>
             </div>
           ))}
         </div>
@@ -208,14 +186,14 @@ const PassOps = () => {
 
       {/* Barre de filtres en CARTE pleine largeur sous le titre — convention maison :
           sélecteurs à gauche, recherche qui s'étire, jamais flottante à côté du titre. */}
-      <div className="mb-5 rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="mb-5 rounded-2xl border border-stroke bg-white p-4 dark:border-strokedark dark:bg-boxdark">
         <div className="flex flex-wrap items-center gap-3">
-          <Select value={status} onChange={(v) => setStatus(v)} options={[{ value: '', label: t('pass.ops.filters.all') as string }, ...STATUSES.map((st) => ({ value: st, label: t(`pass.status.${st}`) as string }))]} buttonClassName={'rounded border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4'} />
+          <Select value={status} onChange={(v) => setStatus(v)} options={[{ value: '', label: t('pass.ops.filters.all') as string }, ...STATUSES.map((st) => ({ value: st, label: t(`pass.status.${st}`) as string }))]} buttonClassName={'rounded-[10px] border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4'} />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={t('passOps.search')}
-            className="min-w-[220px] flex-1 rounded border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4"
+            className="min-w-[220px] flex-1 rounded-[10px] border border-stroke bg-transparent px-4 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-meta-4"
           />
         </div>
       </div>
@@ -223,7 +201,7 @@ const PassOps = () => {
       {notice && (
         <div
           role="status"
-          className={`mb-5 rounded-sm border px-4 py-3 text-sm ${
+          className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
             notice.tone === 'ok' ? 'border-success/40 bg-success/10 text-success'
             : notice.tone === 'warn' ? 'border-warning/50 bg-warning/10 text-warning'
             : 'border-danger/40 bg-danger/10 text-danger'
@@ -233,19 +211,19 @@ const PassOps = () => {
         </div>
       )}
 
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <div className="rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1040px] table-auto">
             <thead>
-              <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('pass.ops.columns.restaurant')}</th>
-                <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('pass.ops.columns.member')}</th>
-                <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('pass.ops.columns.sent')}</th>
-                <th className="whitespace-nowrap px-4 py-4 text-sm font-medium text-black dark:text-white">{t('pass.ops.columns.status')}</th>
-                <th className="whitespace-nowrap px-4 py-4 text-right text-sm font-medium text-black dark:text-white">{t('pass.ops.columns.credit')}</th>
+              <tr className="border-b border-stroke text-left dark:border-strokedark">
+                <th className="whitespace-nowrap px-4 py-4 text-xs font-bold text-body dark:text-bodydark2">{t('pass.ops.columns.restaurant')}</th>
+                <th className="whitespace-nowrap px-4 py-4 text-xs font-bold text-body dark:text-bodydark2">{t('pass.ops.columns.member')}</th>
+                <th className="whitespace-nowrap px-4 py-4 text-xs font-bold text-body dark:text-bodydark2">{t('pass.ops.columns.sent')}</th>
+                <th className="whitespace-nowrap px-4 py-4 text-xs font-bold text-body dark:text-bodydark2">{t('pass.ops.columns.status')}</th>
+                <th className="whitespace-nowrap px-4 py-4 text-right text-xs font-bold text-body dark:text-bodydark2">{t('pass.ops.columns.credit')}</th>
                 {/* En-tete d'actions volontairement vide : la colonne se lit par ses
                     boutons, et un libelle « Actions » n'ajouterait qu'un mot a scanner. */}
-                <th className="sticky right-0 bg-gray-2 px-4 py-4 dark:bg-meta-4" />
+                <th className="sticky right-0 bg-white px-4 py-4 dark:bg-boxdark" />
               </tr>
             </thead>
             <tbody>
@@ -292,8 +270,8 @@ const PassOps = () => {
                     </p>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4 text-sm text-black dark:text-white">{date(r.submittedAt)}</td>
-                  <td className="px-4 py-4"><span className={badge(r.status)}>{t(`pass.status.${r.status}`)}</span></td>
-                  <td className="whitespace-nowrap px-4 py-4 text-right text-sm font-semibold text-black dark:text-white">
+                  <td className="px-4 py-4"><StatusPill family={badgeFamily(r.status)}>{t(`pass.status.${r.status}`)}</StatusPill></td>
+                  <td className="whitespace-nowrap px-4 py-4 text-right text-sm font-bold text-black dark:text-white">
                     {r.creditAmount === null ? '—' : money(r.creditAmount)}
                   </td>
                   {/* Colonne d'actions collée à droite, fond opaque : sur un écran étroit
@@ -302,20 +280,20 @@ const PassOps = () => {
                     <div className="flex justify-end gap-2">
                       {r.status === 'new' && (
                         <button disabled={busyId === r.id} onClick={() => act(r, 'contacted')}
-                          className="whitespace-nowrap rounded border border-stroke px-3 py-1.5 text-xs font-medium hover:border-primary hover:text-primary disabled:opacity-40 dark:border-strokedark">
+                          className="whitespace-nowrap rounded-[10px] border border-stroke px-3 py-1.5 text-xs font-bold text-black hover:border-primary disabled:opacity-40 dark:border-strokedark dark:text-white">
                           {t('pass.ops.actions.markContacted')}
                         </button>
                       )}
                       {r.status === 'contacted' && (
                         <button disabled={busyId === r.id} onClick={() => act(r, 'live')}
-                          className="whitespace-nowrap rounded bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90 disabled:opacity-40">
+                          className="whitespace-nowrap rounded-[10px] bg-primary px-3 py-1.5 text-xs font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-40">
                           {t('pass.ops.actions.markLive')}
                         </button>
                       )}
                       {r.status === 'live' && (
                         <button disabled={busyId === r.id} onClick={() => openCredit(r)}
                           title={t('pass.ops.actions.apply')}
-                          className="whitespace-nowrap rounded bg-success px-3 py-1.5 text-xs font-medium text-emerald-900 hover:bg-opacity-90 disabled:opacity-40">
+                          className="whitespace-nowrap rounded-[10px] bg-success px-3 py-1.5 text-xs font-bold text-emerald-900 hover:bg-opacity-90 disabled:opacity-40">
                           {t('passOps.applyCredit')}
                         </button>
                       )}
@@ -323,7 +301,7 @@ const PassOps = () => {
                         <button disabled={busyId === r.id} onClick={() => act(r, 'not_qualified')}
                           title={t('passOps.markNotQualified')}
                           aria-label={t('passOps.markNotQualified')}
-                          className="whitespace-nowrap rounded border border-stroke px-2 py-1.5 text-bodydark2 hover:border-danger hover:text-danger disabled:opacity-40 dark:border-strokedark">
+                          className="whitespace-nowrap rounded-[10px] border border-stroke px-2 py-1.5 text-bodydark2 hover:border-danger hover:text-danger disabled:opacity-40 dark:border-strokedark">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
                         </button>
                       )}
@@ -346,34 +324,32 @@ const PassOps = () => {
         // Le serveur borne aussi : ceci n'est qu'un garde-fou de saisie, pas la règle.
         const invalid = !Number.isFinite(asked) || asked <= 0 || asked > ceiling;
         return (
-          <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4"
-            onMouseDown={(e) => { if (e.target === e.currentTarget) setCreditFor(null); }}>
-            <div className="my-auto w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
-              <p className="text-base font-bold text-black dark:text-white">{t('passOps.creditTitle')}</p>
-              <p className="mt-1 text-sm text-body">
-                {creditFor.restaurant.name} — {creditFor.member.business || creditFor.member.email}
-              </p>
-              <label className="mt-5 block text-xs font-medium text-body">{t('passOps.creditAmountLabel')}</label>
+          <Modal open onClose={() => setCreditFor(null)} size="sm" title={t('passOps.creditTitle')}
+            footer={<>
+              <button onClick={() => setCreditFor(null)}
+                className="rounded-[10px] border border-stroke px-4 py-2 text-sm font-bold text-body hover:border-primary hover:text-black dark:border-strokedark dark:text-bodydark2 dark:hover:text-white">
+                {t('passOps.cancel')}
+              </button>
+              <button disabled={invalid} onClick={() => applyCredit(creditFor, asked)}
+                className="rounded-[10px] bg-primary px-4 py-2 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
+                {t('passOps.creditConfirm')}
+              </button>
+            </>}>
+            <p className="m-0 text-sm text-body dark:text-bodydark2">
+              {creditFor.restaurant.name} — {creditFor.member.business || creditFor.member.email}
+            </p>
+            <div>
+              <label className="block text-xs font-bold text-body dark:text-bodydark2">{t('passOps.creditAmountLabel')}</label>
               <input
                 type="number" min={1} max={ceiling} step="0.01" autoFocus
                 value={creditInput}
                 onChange={(e) => setCreditInput(e.target.value)}
-                className="mt-1 w-full rounded border border-stroke bg-transparent px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                className="mt-1 w-full rounded-[10px] border border-stroke bg-transparent px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
               />
               <p className="mt-2 text-xs text-body">{t('passOps.creditCeiling', { amount: money(ceiling) })}</p>
               {invalid && <p className="mt-2 text-xs font-medium text-danger">{t('passOps.creditOutOfRange', { amount: money(ceiling) })}</p>}
-              <div className="mt-6 flex justify-end gap-3">
-                <button onClick={() => setCreditFor(null)}
-                  className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:border-primary dark:border-strokedark">
-                  {t('passOps.cancel')}
-                </button>
-                <button disabled={invalid} onClick={() => applyCredit(creditFor, asked)}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-50">
-                  {t('passOps.creditConfirm')}
-                </button>
-              </div>
             </div>
-          </div>
+          </Modal>
         );
       })()}
     </>
