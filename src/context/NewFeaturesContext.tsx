@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getToken } from '../lib/auth';
+import { getToken, authHeaders } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const DEFAULT_NEW_DAYS = 7;
@@ -63,7 +63,7 @@ export function NewFeaturesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!token()) return;
     let cancelled = false;
-    fetch(`${API_URL}/api/features/new`, { headers: { Authorization: `Bearer ${token()}` } })
+    fetch(`${API_URL}/api/features/new`, { headers: authHeaders() })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('failed'))))
       .then((d) => { if (!cancelled) setFeatures(Array.isArray(d.features) ? d.features : []); })
       .catch(() => {});
@@ -74,7 +74,7 @@ export function NewFeaturesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!token()) { setSeen([]); return; }
     let cancelled = false;
-    fetch(`${API_URL}/api/features/seen`, { headers: { Authorization: `Bearer ${token()}` } })
+    fetch(`${API_URL}/api/features/seen`, { headers: authHeaders() })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error('failed'))))
       .then((d) => { if (!cancelled) setSeen(Array.isArray(d.seen) ? d.seen : []); })
       .catch(() => { if (!cancelled) setSeen(null); });
@@ -85,7 +85,7 @@ export function NewFeaturesProvider({ children }: { children: ReactNode }) {
     setSeen((prev) => (prev && prev.includes(id) ? prev : [...(prev || []), id]));
     fetch(`${API_URL}/api/features/seen`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
       body: JSON.stringify({ featureId: id }),
     }).catch(() => {});
   }, []);

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getToken } from '../../lib/auth';
+import { authHeaders } from '../../lib/auth';
 
 // Le hub d'administration (audit UX, P2 — planche DeskAdmin). Avant : une page de 4 100 lignes
 // et ~16 entrées de menu sans regroupement. Maintenant `/admin` ouvre huit ZONES (plus
@@ -31,7 +31,8 @@ const AdminHub = ({ isAdmin, can, canAccessTab }: {
   const [q, setQ] = useState('');
   const [health, setHealth] = useState<{ total: number; parts: string[] } | null>(null);
   const [pendingOpps, setPendingOpps] = useState(0);
-  const auth = { Authorization: `Bearer ${getToken()}` };
+  // authHeaders : porte aussi « voir en tant que » (X-Impersonate-As), qu'un fetch n'a pas d'office.
+  const auth = authHeaders();
 
   useEffect(() => {
     if (!isAdmin) return;

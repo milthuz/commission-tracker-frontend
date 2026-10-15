@@ -5,7 +5,7 @@ import { fmtDate, fmtNumber } from '../../lib/format';
 import { Plus, Trash2, Save, AlertTriangle, Check, Upload, Loader2, FileSpreadsheet, ArrowRight } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
-import { getToken, authHeaders as sharedAuthHeaders } from '../../lib/auth';
+import { authHeaders as sharedAuthHeaders } from '../../lib/auth';
 
 // Tables de taux de référence IC+ — l'écran qui remplace l'édition d'un fichier JS.
 //
@@ -189,7 +189,7 @@ export default function IcplusRatesAdmin() {
       if (extractSrc) fd.append('src', extractSrc);
       const r = await fetch(`${API_URL}/api/icplus/rates/extract`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: sharedAuthHeaders(), // FormData : pas de Content-Type
         body: fd,
       });
       const d = await r.json();
@@ -243,7 +243,7 @@ export default function IcplusRatesAdmin() {
       fd.append('file', file);
       const r = await fetch(`${API_URL}/api/icplus/rates/import-workbook`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: sharedAuthHeaders(), // FormData : pas de Content-Type
         body: fd,
       });
       const d = await r.json();

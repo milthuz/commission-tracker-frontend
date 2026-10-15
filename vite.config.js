@@ -24,6 +24,12 @@ export default defineConfig({
           vendor: ['react', 'react-dom', 'react-router-dom'],
           i18n: ['i18next', 'react-i18next'],
           charts: ['apexcharts', 'react-apexcharts'],
+          // Les textes de chaque langue dans leur propre fichier : ils étaient fondus dans le
+          // bloc d'entrée (≈ la moitié de ses 1 060 ko), si bien que corriger une ligne de code
+          // faisait retélécharger toutes les traductions, et l'inverse. Toujours chargés au
+          // démarrage (getFixedT sert l'autre langue sur les pages publiques).
+          'i18n-fr': ['./src/i18n/fr.json'],
+          'i18n-en': ['./src/i18n/en.json'],
         },
       },
     },

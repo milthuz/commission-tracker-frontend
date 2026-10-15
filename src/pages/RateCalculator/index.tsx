@@ -5,7 +5,7 @@ import { Upload, FileText, Download, AlertTriangle, ClipboardPaste, Loader2, Sca
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
 import { extractCells, looksScanned } from './extract';
-import { getToken, authHeaders as sharedAuthHeaders } from '../../lib/auth';
+import { authHeaders as sharedAuthHeaders } from '../../lib/auth';
 import { StatusPill } from '../../components/ui';
 
 // Calculateur comparatif IC+.
@@ -177,7 +177,7 @@ export default function RateCalculator() {
       fd.append('file', scanFile);
       const res = await fetch(`${API_URL}/api/icplus/read-scan`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${getToken()}` },
+        headers: sharedAuthHeaders(), // FormData : pas de Content-Type
         body: fd,
       });
       const d = await res.json();
