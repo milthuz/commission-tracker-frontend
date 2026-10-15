@@ -3,6 +3,7 @@ import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
+import { Modal } from '../../components/ui';
 import { authHeaders } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -379,13 +380,19 @@ const PricingAdmin: React.FC = () => {
       )}
 
       {form && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setForm(null); }}>
-          <div className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
-            <div className="flex flex-none items-center justify-between border-b border-stroke px-5 py-4 dark:border-strokedark">
-              <span className="text-base font-bold text-black dark:text-white">{form.editingId ? t('admin.pricing.editPackage') : t('admin.pricing.newPackage')}</span>
-              <button onClick={() => setForm(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+        <Modal
+          open onClose={() => setForm(null)} size="md" title={form.editingId ? t('admin.pricing.editPackage') : t('admin.pricing.newPackage')}
+          footer={
+            <div className="flex items-center gap-2.5 w-full">
+              {/* This dialog only STAGES a change — the write happens on the publish bar. It used
+                  to label that "Save", which cost a real edit: tags looked applied, then vanished
+                  on reload because nothing had been published. */}
+              <span className="min-w-0 flex-1 text-xs leading-snug text-gray-400">{t('admin.pricing.stagedHint')}</span>
+              <button onClick={() => setForm(null)} className="flex-none rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
+              <button onClick={saveForm} className="flex-none rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A]">{form.editingId ? t('admin.pricing.applyStaged') : t('admin.pricing.addPackage')}</button>
             </div>
-            <div className="flex-1 overflow-y-auto p-5">
+          }
+        >
               <div className="flex flex-col gap-3.5">
                 <div className="flex items-center gap-3.5">
                   <div className="flex h-20 w-28 flex-none items-center justify-center overflow-hidden rounded-xl bg-gray-2 dark:bg-white">
@@ -450,27 +457,21 @@ const PricingAdmin: React.FC = () => {
                 <label className="flex flex-col gap-1"><span className="text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fIncludes')} (EN)</span><textarea value={form.includesEn} onChange={(e) => setForm({ ...form, includesEn: e.target.value })} rows={3} className={inputCls} /></label>
                 <label className="flex flex-col gap-1"><span className="text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fIncludes')} (FR)</span><textarea value={form.includesFr} onChange={(e) => setForm({ ...form, includesFr: e.target.value })} rows={3} className={inputCls} /></label>
               </div>
-            </div>
-            <div className="flex flex-none items-center gap-2.5 border-t border-stroke p-4 dark:border-strokedark">
-              {/* This dialog only STAGES a change — the write happens on the publish bar. It used
-                  to label that "Save", which cost a real edit: tags looked applied, then vanished
-                  on reload because nothing had been published. */}
-              <span className="min-w-0 flex-1 text-xs leading-snug text-gray-400">{t('admin.pricing.stagedHint')}</span>
-              <button onClick={() => setForm(null)} className="flex-none rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
-              <button onClick={saveForm} className="flex-none rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A]">{form.editingId ? t('admin.pricing.applyStaged') : t('admin.pricing.addPackage')}</button>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {catForm && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setCatForm(null); }}>
-          <div className="flex max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
-            <div className="flex flex-none items-center justify-between border-b border-stroke px-5 py-4 dark:border-strokedark">
-              <span className="text-base font-bold text-black dark:text-white">{catForm.editingId ? t('admin.pricing.editCategory') : t('admin.pricing.addCategory')}</span>
-              <button onClick={() => setCatForm(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+        <Modal
+          open onClose={() => setCatForm(null)} size="sm" title={catForm.editingId ? t('admin.pricing.editCategory') : t('admin.pricing.addCategory')}
+          footer={
+            <div className="flex items-center justify-end gap-2.5 w-full">
+              <button onClick={() => setCatForm(null)} className="rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
+              <button onClick={saveCatForm} disabled={savingCat} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
+                {catForm.editingId ? t('common.save') : t('admin.pricing.addCategory')}
+              </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-5">
+          }
+        >
               <div className="flex flex-col gap-3.5">
                 <div className="grid grid-cols-2 gap-3">
                   <label className="flex flex-col gap-1"><span className="text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fName')} (EN)</span><input value={catForm.nameEn} onChange={(e) => setCatForm({ ...catForm, nameEn: e.target.value })} className={inputCls} /></label>
@@ -480,15 +481,7 @@ const PricingAdmin: React.FC = () => {
                 <label className="flex flex-col gap-1"><span className="text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fCatNote')} (EN)</span><textarea value={catForm.noteEn} onChange={(e) => setCatForm({ ...catForm, noteEn: e.target.value })} rows={2} className={inputCls} /></label>
                 <label className="flex flex-col gap-1"><span className="text-xs font-semibold uppercase text-gray-400">{t('admin.pricing.fCatNote')} (FR)</span><textarea value={catForm.noteFr} onChange={(e) => setCatForm({ ...catForm, noteFr: e.target.value })} rows={2} className={inputCls} /></label>
               </div>
-            </div>
-            <div className="flex flex-none items-center justify-end gap-2.5 border-t border-stroke p-4 dark:border-strokedark">
-              <button onClick={() => setCatForm(null)} className="rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
-              <button onClick={saveCatForm} disabled={savingCat} className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50">
-                {catForm.editingId ? t('common.save') : t('admin.pricing.addCategory')}
-              </button>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

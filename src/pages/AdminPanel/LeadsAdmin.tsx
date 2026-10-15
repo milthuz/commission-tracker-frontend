@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { fmtDate, fmtDateTime } from '../../lib/format';
 import Select from '../../components/Select';
 import { dialog } from '../../lib/dialog';
+import { Modal } from '../../components/ui';
 import type { LeadRule, LeadRep, LeadSettings } from '../Leads/types';
 import { authHeaders, LEAD_SOURCES } from '../Leads/types';
 
@@ -658,15 +659,7 @@ Content-Type: application/json
 
       {/* ── Éditeur de règle ───────────────────────────────────────────────── */}
       {editing && (
-        <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto p-4 sm:p-8">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !saving && setEditing(null)} />
-          <div role="dialog" aria-modal="true" className="relative my-auto w-full max-w-2xl rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
-            <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-              <h3 className="text-lg font-bold text-black dark:text-white">
-                {editing.id ? t('admin.leads.rules.edit') : t('admin.leads.rules.add')}
-              </h3>
-            </div>
-            <div className="max-h-[70vh] overflow-y-auto px-6 py-5">
+        <Modal open onClose={() => !saving && setEditing(null)} size="lg" title={editing.id ? t('admin.leads.rules.edit') : t('admin.leads.rules.add')}>
               <div className="mb-4">
                 <label className={LABEL}>{t('admin.leads.rules.name')} *</label>
                 <input className={INPUT} value={editing.name || ''} onChange={(e) => setEditing({ ...editing, name: e.target.value })} autoFocus />
@@ -746,9 +739,7 @@ Content-Type: application/json
                   {saving ? t('common.loading') : t('common.save')}
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { fmtDateOnly, fmtMoney } from '../../lib/format';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
+import { Modal } from '../../components/ui';
 import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -200,23 +201,17 @@ export default function MerchantSaasLinks() {
 
       {/* Link modal: search Billing customers */}
       {linking && (
-        <div className="fixed inset-0 z-999999 flex items-center justify-center bg-black/50 p-4">
-          <div className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
-            <div className="flex items-start justify-between border-b border-stroke px-5 py-3 dark:border-strokedark">
-              <div>
-                <h3 className="font-bold text-black dark:text-white">{t('admin.merchantLinks.linkTitle', { name: linking.businessName })}</h3>
-                <p className="text-xs text-body">{t('admin.merchantLinks.linkHint')}</p>
-              </div>
-              <button onClick={() => setLinking(null)} aria-label={t('common.close') as string}
-                className="ml-3 shrink-0 rounded-lg p-1.5 text-body hover:bg-gray-1 hover:text-black dark:hover:bg-meta-4 dark:hover:text-white">
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="p-4">
+        <Modal
+          open
+          onClose={() => setLinking(null)}
+          size="md"
+          title={<>{t('admin.merchantLinks.linkTitle', { name: linking.businessName })}<span className="mt-0.5 block text-xs font-normal text-body">{t('admin.merchantLinks.linkHint')}</span></>}
+        >
+            <div>
               <input autoFocus value={custQuery} onChange={(e) => setCustQuery(e.target.value)} placeholder={t('admin.merchantLinks.searchCustomer') as string}
                 className="w-full rounded-md border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:text-white" />
             </div>
-            <div className="max-h-[50vh] overflow-y-auto px-2 pb-3">
+            <div className="-mx-3 max-h-[50vh] overflow-y-auto">
               {custLoading ? <p className="px-3 py-4 text-sm text-body">…</p>
                 : custResults.length === 0 ? <p className="px-3 py-4 text-sm text-body">{t('admin.merchantLinks.noCustomers')}</p>
                 : custResults.map((s) => (
@@ -230,8 +225,7 @@ export default function MerchantSaasLinks() {
                   </button>
                 ))}
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { fmtDateOnly, fmtPeriod } from '../../lib/format';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
+import { Modal } from '../../components/ui';
 import ManualDeals from './ManualDeals';
 import { getToken } from '../../lib/auth';
 
@@ -274,14 +275,30 @@ export default function DealsAdmin() {
       </div>
 
       {excludeModal && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4"
-          onClick={() => togglingId === null && setExcludeModal(null)}
+        <Modal
+          open
+          onClose={() => togglingId === null && setExcludeModal(null)}
+          size="sm"
+          title={t('admin.deals.excludeTitle')}
+          footer={
+            <>
+              <button
+                onClick={() => setExcludeModal(null)}
+                disabled={togglingId !== null}
+                className="rounded border border-stroke px-4 py-2 text-sm text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => applyExclusion(excludeModal.deal, true, excludeModal.reason.trim())}
+                disabled={togglingId !== null}
+                className="rounded bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
+              >
+                {togglingId !== null ? t('common.saving') : t('admin.deals.exclude')}
+              </button>
+            </>
+          }
         >
-          <div className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">
-              {t('admin.deals.excludeTitle')}
-            </h3>
             <p className="mb-4 text-sm text-body">
               {t('admin.deals.confirmExclude', {
                 deal: excludeModal.deal.dealName,
@@ -299,25 +316,7 @@ export default function DealsAdmin() {
               placeholder={t('admin.deals.reasonPlaceholder') as string}
               className="w-full resize-y rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
             />
-
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => setExcludeModal(null)}
-                disabled={togglingId !== null}
-                className="rounded border border-stroke px-4 py-2 text-sm text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={() => applyExclusion(excludeModal.deal, true, excludeModal.reason.trim())}
-                disabled={togglingId !== null}
-                className="rounded bg-danger px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
-              >
-                {togglingId !== null ? t('common.saving') : t('admin.deals.exclude')}
-              </button>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
     <ManualDeals />

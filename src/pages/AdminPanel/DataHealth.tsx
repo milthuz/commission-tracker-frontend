@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { appLocale, fmtDateOnly, fmtDateTime, fmtMoney, fmtPeriod } from '../../lib/format';
 import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
+import { Modal } from '../../components/ui';
 import { authHeaders } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -409,14 +410,30 @@ const DataHealth: React.FC = () => {
       {data && <p className="mt-4 text-xs text-gray-400">{t('dataHealth.lastChecked', { time: new Date(data.generatedAt).toLocaleTimeString(appLocale()) })}</p>}
 
       {resolveModal && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4"
-          onClick={() => resolving === null && setResolveModal(null)}
+        <Modal
+          open
+          onClose={() => resolving === null && setResolveModal(null)}
+          size="md"
+          title={t('dataHealth.reports.resolveTitle')}
+          footer={
+            <>
+              <button
+                onClick={() => setResolveModal(null)}
+                disabled={resolving !== null}
+                className="rounded border border-stroke px-4 py-2 text-sm text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => resolveReport(resolveModal.id, resolveModal.note.trim())}
+                disabled={resolving !== null}
+                className="rounded bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50"
+              >
+                {resolving !== null ? t('dataHealth.reports.resolving') : t('dataHealth.reports.resolveAndNotify')}
+              </button>
+            </>
+          }
         >
-          <div className="my-auto w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-1 text-lg font-bold text-black dark:text-white">
-              {t('dataHealth.reports.resolveTitle')}
-            </h3>
             <p className="mb-4 text-sm text-body">
               {t('dataHealth.reports.resolveSubtitle', { who: resolveModal.who })}
             </p>
@@ -456,25 +473,7 @@ const DataHealth: React.FC = () => {
               placeholder={t('dataHealth.reports.notePlaceholder') as string}
               className="w-full resize-y rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
             />
-
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => setResolveModal(null)}
-                disabled={resolving !== null}
-                className="rounded border border-stroke px-4 py-2 text-sm text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={() => resolveReport(resolveModal.id, resolveModal.note.trim())}
-                disabled={resolving !== null}
-                className="rounded bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50"
-              >
-                {resolving !== null ? t('dataHealth.reports.resolving') : t('dataHealth.reports.resolveAndNotify')}
-              </button>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

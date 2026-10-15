@@ -36,7 +36,7 @@ const ADMIN_SECTIONS = ['sync', 'salespeople', 'customers', 'releases', 'users',
 import { useUrlTab } from '../../components/ui/Tabs';
 import RepEditPanel from './RepEditPanel';
 import UserDirectory from './UserDirectory';
-import { Button } from '../../components/ui';
+import { Button, Modal } from '../../components/ui';
 import { dialog } from '../../lib/dialog';
 
 // Whole amounts stay whole ("$1,200"), cents are shown when there are some — like the old toLocaleString().
@@ -3621,14 +3621,26 @@ Joker Pub,Jay Daoust,2024-04-01`}
 
           {/* ==================== ROLE EDIT MODAL ==================== */}
           {editingRole && (
-            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[99999] p-4" onClick={() => { setEditingRole(null); setShowNewRole(false); }}>
-              <div className="bg-white dark:bg-boxdark rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-                <div className="border-b border-stroke px-6 py-4 dark:border-strokedark">
-                  <h3 className="text-lg font-bold text-black dark:text-white">
-                    {showNewRole ? t('admin.roles.newRole') : t('admin.roles.editRole')}: {editingRole.name || '(new)'}
-                  </h3>
+            <Modal
+              open onClose={() => { setEditingRole(null); setShowNewRole(false); }} size="lg" title={<>{showNewRole ? t('admin.roles.newRole') : t('admin.roles.editRole')}: {editingRole.name || '(new)'}</>}
+              footer={
+                <div className="flex justify-end gap-3 w-full">
+                  <button
+                    onClick={() => { setEditingRole(null); setShowNewRole(false); }}
+                    className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
+                  >
+                    {t('common.cancel')}
+                  </button>
+                  <button
+                    onClick={() => saveRole(editingRole, showNewRole)}
+                    disabled={savingRole || !editingRole.name.trim()}
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50"
+                  >
+                    {savingRole ? t('common.saving') : t('common.save')}
+                  </button>
                 </div>
-                <div className="p-6 overflow-y-auto flex-1">
+              }
+            >
                   <label className="block text-sm font-medium text-black dark:text-white mb-1">{t('admin.roles.nameField')}</label>
                   <input
                     type="text"
@@ -3693,43 +3705,30 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       </div>
                     ));
                   })()}
-                </div>
-                <div className="border-t border-stroke px-6 py-3 dark:border-strokedark flex justify-end gap-3">
+            </Modal>
+          )}
+
+          {/* ==================== USER ROLES EDIT MODAL ==================== */}
+          {editingUserRoles && (
+            <Modal
+              open onClose={() => setEditingUserRoles(null)} size="sm" title={<>{t('admin.admins.assignRoles')}<span className="mt-0.5 block text-xs font-normal text-body">{editingUserRoles}</span></>}
+              footer={
+                <div className="flex justify-end gap-3 w-full">
                   <button
-                    onClick={() => { setEditingRole(null); setShowNewRole(false); }}
+                    onClick={() => setEditingUserRoles(null)}
                     className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
                   >
                     {t('common.cancel')}
                   </button>
                   <button
-                    onClick={() => saveRole(editingRole, showNewRole)}
-                    disabled={savingRole || !editingRole.name.trim()}
-                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50"
+                    onClick={() => saveUserRoles(editingUserRoles, editingUserRoleIds, editingManagedTeamIds)}
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A]"
                   >
-                    {savingRole ? t('common.saving') : t('common.save')}
+                    {t('common.save')}
                   </button>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* ==================== USER ROLES EDIT MODAL ==================== */}
-          {editingUserRoles && (
-            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[99999] p-4" onClick={() => setEditingUserRoles(null)}>
-              {/* max-h + flex-col : sans eux le panneau grandit avec le nombre de roles et,
-                  etant centre verticalement, il se fait couper EN HAUT ET EN BAS des que la
-                  liste depasse la fenetre — « Enregistrer » devient alors inatteignable.
-                  Meme motif que le panneau d'edition de role juste au-dessus. */}
-              <div className="bg-white dark:bg-boxdark rounded-lg shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-                <div className="shrink-0 border-b border-stroke px-6 py-4 dark:border-strokedark">
-                  <h3 className="text-lg font-bold text-black dark:text-white">
-                    {t('admin.admins.assignRoles')}
-                  </h3>
-                  <p className="text-sm text-body mt-1">{editingUserRoles}</p>
-                </div>
-                {/* min-h-0 : sans lui un enfant flex refuse de descendre sous la hauteur de son
-                    contenu, et overflow-y-auto ne se declenche jamais. */}
-                <div className="min-h-0 flex-1 overflow-y-auto p-6">
+              }
+            >
                   <p className="mb-3 rounded-md bg-primary/5 px-3 py-2 text-xs text-body dark:bg-meta-4">
                     {t('admin.admins.rolesVsAdminHint')}
                   </p>
@@ -3788,23 +3787,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                       </div>
                     );
                   })()}
-                </div>
-                <div className="shrink-0 border-t border-stroke px-6 py-3 dark:border-strokedark flex justify-end gap-3">
-                  <button
-                    onClick={() => setEditingUserRoles(null)}
-                    className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4"
-                  >
-                    {t('common.cancel')}
-                  </button>
-                  <button
-                    onClick={() => saveUserRoles(editingUserRoles, editingUserRoleIds, editingManagedTeamIds)}
-                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A]"
-                  >
-                    {t('common.save')}
-                  </button>
-                </div>
-              </div>
-            </div>
+            </Modal>
           )}
     </div>
   );

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { appLocale, fmtMoney, fmtNumber } from '../../lib/format';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { dialog } from '../../lib/dialog';
+import { Modal } from '../../components/ui';
 import PartnerStats from './PartnerStats';
 import { authHeaders } from '../../lib/auth';
 
@@ -2312,14 +2313,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
       )}
 
       {creatingRunFor && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setCreatingRunFor(null); }}>
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.payout.createRunFor', { name: creatingRunFor.partnerName })}</span>
-              <button onClick={() => setCreatingRunFor(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
+        <Modal open onClose={() => setCreatingRunFor(null)} size="md" title={t('admin.partners.payout.createRunFor', { name: creatingRunFor.partnerName })}>
             <div className="flex flex-col gap-4">
               <div>
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.payout.fPeriod')}</label>
@@ -2347,19 +2341,11 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 {savingRun ? t('common.saving') : t('admin.partners.payout.createRun')}
               </button>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {viewingMatches && (
-        <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setViewingMatches(null); }}>
-          <div className="my-auto w-full max-w-lg rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.crm.matchesFor', { name: viewingMatches.businessName })}</span>
-              <button onClick={() => setViewingMatches(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
+        <Modal open onClose={() => setViewingMatches(null)} size="md" title={t('admin.partners.crm.matchesFor', { name: viewingMatches.businessName })}>
             <p className="mb-4 text-xs text-body">{t('admin.partners.crm.matchesHint')}</p>
             <div className="flex flex-col gap-2">
               {viewingMatches.crmMatchRecords.map((m) => {
@@ -2390,19 +2376,11 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 );
               })}
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {linkingFor && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setLinkingFor(null); }}>
-          <div className="w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.payout.linkFor', { name: linkingFor.businessName })}</span>
-              <button onClick={() => setLinkingFor(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
+        <Modal open onClose={() => setLinkingFor(null)} size="sm" title={t('admin.partners.payout.linkFor', { name: linkingFor.businessName })}>
             <p className="mb-3 text-xs text-body">{t('admin.partners.payout.linkHint')}</p>
             <input value={linkQuery} onChange={(e) => setLinkQuery(e.target.value)} autoFocus
               placeholder={t('admin.partners.payout.linkSearchPh') as string} className={inputCls} />
@@ -2428,19 +2406,11 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 {t('admin.partners.payout.unlink')}
               </button>
             )}
-          </div>
-        </div>
+        </Modal>
       )}
 
       {editingPartner && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setEditingPartner(null); }}>
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.editPartnerFor', { name: editingPartner.name })}</span>
-              <button onClick={() => setEditingPartner(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
+        <Modal open onClose={() => setEditingPartner(null)} size="md" title={t('admin.partners.editPartnerFor', { name: editingPartner.name })}>
             <form onSubmit={saveEdit} className="flex flex-col gap-4">
               <div>
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.fName')}</label>
@@ -2560,19 +2530,11 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 {savingEdit ? t('common.saving') : t('common.save')}
               </button>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {approving && (
-        <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setApproving(null); }}>
-          <div className="my-auto w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.approveFor', { name: approving.businessName })}</span>
-              <button onClick={() => setApproving(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
+        <Modal open onClose={() => setApproving(null)} size="sm" title={t('admin.partners.approveFor', { name: approving.businessName })}>
             {approving.crmMatchStatus === 'match_found' && (
               <p className="mb-4 rounded-lg bg-warning/10 p-3 text-xs text-warning">
                 {t('admin.partners.crm.duplicateConfirm', { name: approving.businessName, summary: approving.crmMatchSummary || '' })}
@@ -2608,22 +2570,34 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
               className="w-full rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-opacity-90 disabled:opacity-60">
               {t('admin.partners.approve')}
             </button>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Fenetre de saisie manuelle. Meme hauteur bornee et meme corps defilant que les autres
           panneaux de cet ecran : la liste des champs depasse une fenetre de portable. */}
       {manualOpen && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-60 p-4"
-          onClick={() => !manualBusy && setManualOpen(false)}>
-          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-2xl dark:bg-boxdark"
-            onClick={(e) => e.stopPropagation()}>
-            <div className="shrink-0 border-b border-stroke px-6 py-4 dark:border-strokedark">
-              <h3 className="text-lg font-bold text-black dark:text-white">{t('admin.partners.manual.title')}</h3>
-              <p className="mt-1 text-sm text-body">{t('admin.partners.manual.subtitle')}</p>
+        <Modal
+          open onClose={() => !manualBusy && setManualOpen(false)} size="lg" title={<>{t('admin.partners.manual.title')}<span className="mt-0.5 block text-xs font-normal text-body">{t('admin.partners.manual.subtitle')}</span></>}
+          footer={
+            <div className="w-full">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs text-body">{t('admin.partners.manual.footNote')}</p>
+                <div className="flex shrink-0 gap-3">
+                  <button onClick={() => setManualOpen(false)} disabled={manualBusy}
+                    className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body disabled:opacity-50 dark:border-strokedark">
+                    {t('common.cancel')}
+                  </button>
+                  {/* Desactive tant que partenaire ET entreprise ne sont pas remplis : le serveur
+                      les exige, autant ne pas laisser cliquer pour rien. */}
+                  <button onClick={creerManuel} disabled={manualBusy || !manual.partnerId || !manual.businessName.trim()}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-40">
+                    {manualBusy ? t('common.saving') : t('admin.partners.manual.submit')}
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-6">
+          }
+        >
               <div className="mb-4">
                 <label className="mb-1 block text-xs font-medium text-body">{t('admin.partners.manual.partner')} *</label>
                 {/* Seuls les partenaires ACTIFS : le serveur refuse les autres (409), autant ne pas
@@ -2690,26 +2664,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 <textarea value={manual.notes} onChange={(e) => majManuel('notes', e.target.value)} rows={3}
                   className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
               </div>
-            </div>
-            <div className="shrink-0 border-t border-stroke px-6 py-3 dark:border-strokedark">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs text-body">{t('admin.partners.manual.footNote')}</p>
-                <div className="flex shrink-0 gap-3">
-                  <button onClick={() => setManualOpen(false)} disabled={manualBusy}
-                    className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body disabled:opacity-50 dark:border-strokedark">
-                    {t('common.cancel')}
-                  </button>
-                  {/* Desactive tant que partenaire ET entreprise ne sont pas remplis : le serveur
-                      les exige, autant ne pas laisser cliquer pour rien. */}
-                  <button onClick={creerManuel} disabled={manualBusy || !manual.partnerId || !manual.businessName.trim()}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-40">
-                    {manualBusy ? t('common.saving') : t('admin.partners.manual.submit')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* ── FICHE D'UNE OPPORTUNITE ────────────────────────────────────────────────────
@@ -2717,26 +2672,31 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
           d'assigner. Les actions sont ICI aussi — sinon il faudrait fermer la fenetre pour
           agir sur ce qu'on vient de lire. */}
       {details && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 p-4"
-          onMouseDown={(e) => { if (e.target === e.currentTarget) setDetails(null); }}>
-          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
-            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-stroke px-6 py-4 dark:border-strokedark">
-              <div className="min-w-0">
-                <h3 className="truncate text-lg font-bold text-black dark:text-white">{details.businessName}</h3>
-                <p className="mt-0.5 text-xs text-body">
-                  {details.partnerName}
-                  {' · '}
-                  {new Date(details.createdAt).toLocaleString(appLocale())}
-                </p>
-              </div>
+        <Modal
+          open onClose={() => setDetails(null)} size="lg" title={<>{details.businessName}<span className="mt-0.5 block text-xs font-normal text-body">{details.partnerName}{' · '}{new Date(details.createdAt).toLocaleString(appLocale())}</span></>}
+          footer={
+            <div className="flex justify-end gap-2 w-full">
               <button onClick={() => setDetails(null)}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4">
+                {t('common.close')}
               </button>
+              {details.status === 'pending' && (
+                <>
+                  <button onClick={() => { const o = details; setDetails(null); setRejecting(o); setRejectReason(''); }}
+                    disabled={reviewing}
+                    className="rounded-lg border border-danger/40 px-4 py-2 text-sm font-medium text-danger hover:bg-danger/10 disabled:opacity-60">
+                    {t('admin.partners.reject')}
+                  </button>
+                  <button onClick={() => { const o = details; setDetails(null); approve(o); }}
+                    disabled={reviewing}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
+                    {t('admin.partners.approve')}
+                  </button>
+                </>
+              )}
             </div>
-
-            {/* min-h-0 : sans lui, un enfant flex ne defile pas — il pousse le parent a la place. */}
-            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          }
+        >
               {/* Une seule colonne, MESURE : a deux colonnes la valeur n'avait que ~196 px et
                   un courriel de marchand cassait au milieu d'un mot. */}
               <div className="grid gap-6">
@@ -2799,64 +2759,22 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                   </dl>
                 </div>
               )}
-            </div>
-
-            <div className="flex shrink-0 justify-end gap-2 border-t border-stroke px-6 py-4 dark:border-strokedark">
-              <button onClick={() => setDetails(null)}
-                className="rounded-lg border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 dark:border-strokedark dark:hover:bg-meta-4">
-                {t('common.close')}
-              </button>
-              {details.status === 'pending' && (
-                <>
-                  <button onClick={() => { const o = details; setDetails(null); setRejecting(o); setRejectReason(''); }}
-                    disabled={reviewing}
-                    className="rounded-lg border border-danger/40 px-4 py-2 text-sm font-medium text-danger hover:bg-danger/10 disabled:opacity-60">
-                    {t('admin.partners.reject')}
-                  </button>
-                  <button onClick={() => { const o = details; setDetails(null); approve(o); }}
-                    disabled={reviewing}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
-                    {t('admin.partners.approve')}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {rejecting && (
-        <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setRejecting(null); }}>
-          <div className="my-auto w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-base font-bold text-black dark:text-white">{t('admin.partners.rejectFor', { name: rejecting.businessName })}</span>
-              <button onClick={() => setRejecting(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
+        <Modal open onClose={() => setRejecting(null)} size="sm" title={t('admin.partners.rejectFor', { name: rejecting.businessName })}>
             <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3}
               placeholder={t('admin.partners.rejectReasonPh') as string} className={`${inputCls} mb-4`} />
             <button onClick={() => setStatus(rejecting, 'rejected', rejectReason.trim() || undefined)} disabled={reviewing}
               className="w-full rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-white hover:bg-opacity-90 disabled:opacity-60">
               {t('admin.partners.reject')}
             </button>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {inviteFor && (
-        <div className="fixed inset-0 z-[99999] flex items-start overflow-y-auto justify-center bg-black/50 p-4" onMouseDown={(e) => { if (e.target === e.currentTarget) setInviteFor(null); }}>
-          <div className="my-auto w-full max-w-md rounded-2xl border border-stroke bg-white p-6 dark:border-strokedark dark:bg-boxdark">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-base font-bold text-black dark:text-white">
-                {inviteRole === 'admin'
-                  ? t('admin.partners.inviteAdminFor', { name: inviteFor.name })
-                  : t('admin.partners.inviteUserTitle')}
-              </span>
-              <button onClick={() => setInviteFor(null)} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
+        <Modal open onClose={() => setInviteFor(null)} size="sm" title={inviteRole === 'admin' ? t('admin.partners.inviteAdminFor', { name: inviteFor.name }) : t('admin.partners.inviteUserTitle')}>
             <form onSubmit={sendInvite} className="flex flex-col gap-3">
               {/* Le partenaire reste MODIFIABLE : ouvert depuis l'annuaire, il est devine a
                   partir du filtre courant, et deviner n'est pas savoir. */}
@@ -2892,8 +2810,7 @@ ${t('admin.partners.firstInviteSent')} : ${fmtDate(iv.firstInvitedAt)}` : '')
                 {inviting ? t('partnerPortal.inviting') : t('partnerPortal.invite')}
               </button>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
     </>

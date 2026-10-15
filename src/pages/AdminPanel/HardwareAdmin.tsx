@@ -3,6 +3,7 @@ import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
+import { Modal } from '../../components/ui';
 import { authHeaders } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -309,13 +310,17 @@ const HardwareAdmin: React.FC = () => {
 
       {/* Edit/Add drawer */}
       {form && (
-        <div className="fixed inset-0 z-[99999] bg-black/50" onMouseDown={(e) => { if (e.target === e.currentTarget) closeForm(); }}>
-          <div className="absolute right-0 top-0 flex h-full w-full max-w-[480px] flex-col overflow-hidden border-l border-stroke bg-white dark:border-strokedark dark:bg-boxdark">
-            <div className="flex flex-none items-center justify-between border-b border-stroke px-5 py-4 dark:border-strokedark">
-              <span className="text-base font-bold text-black dark:text-white">{form.isNew ? t('admin.hardware.newProduct') : t('admin.hardware.editProduct')}</span>
-              <button onClick={closeForm} className="flex h-8 w-8 items-center justify-center rounded-full border border-stroke text-gray-500 dark:border-strokedark"><svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+        <Modal
+          open onClose={closeForm} size="md" title={form.isNew ? t('admin.hardware.newProduct') : t('admin.hardware.editProduct')}
+          footer={
+            <div className="flex items-center gap-2.5 w-full">
+              {!form.isNew && formId && <button onClick={() => removeProduct(formId)} className="rounded-lg border border-danger/40 px-3.5 py-2.5 text-sm font-semibold text-danger hover:bg-danger hover:text-white">{t('common.delete')}</button>}
+              <span className="min-w-0 flex-1 px-2 text-xs leading-snug text-gray-400">{t('admin.hardware.stagedHint')}</span>
+              <button onClick={closeForm} className="flex-none rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
+              <button onClick={saveForm} className="flex-none rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A]">{form.isNew ? t('admin.hardware.add') : t('admin.hardware.applyStaged')}</button>
             </div>
-            <div className="flex-1 overflow-y-auto p-5">
+          }
+        >
               <div className="mb-4">
                 <div className="mb-1 flex h-32 items-center justify-center overflow-hidden rounded-xl bg-gray-2 dark:bg-meta-4">
                   {form.hasImage ? <img src={`${API_URL}/api/hardware/${formId}/image?v=${Date.now()}`} alt="" className="h-full w-full object-contain p-3" /> : <span className="text-sm text-gray-400">{t('hardware.noPhoto')}</span>}
@@ -390,15 +395,7 @@ const HardwareAdmin: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
-            <div className="flex flex-none items-center gap-2.5 border-t border-stroke p-4 dark:border-strokedark">
-              {!form.isNew && formId && <button onClick={() => removeProduct(formId)} className="rounded-lg border border-danger/40 px-3.5 py-2.5 text-sm font-semibold text-danger hover:bg-danger hover:text-white">{t('common.delete')}</button>}
-              <span className="min-w-0 flex-1 px-2 text-xs leading-snug text-gray-400">{t('admin.hardware.stagedHint')}</span>
-              <button onClick={closeForm} className="flex-none rounded-lg border border-stroke px-4 py-2.5 text-sm font-medium text-body dark:border-strokedark">{t('common.cancel')}</button>
-              <button onClick={saveForm} className="flex-none rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-[#141414] hover:bg-[#F79C6A]">{form.isNew ? t('admin.hardware.add') : t('admin.hardware.applyStaged')}</button>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

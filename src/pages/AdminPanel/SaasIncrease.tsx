@@ -12,7 +12,7 @@ import { authHeaders } from '../../lib/auth';
 const API_URL = import.meta.env.VITE_API_URL || '';
 import SaasIncreaseBoard, { type BoardRow } from './SaasIncreaseBoard';
 import SaasIncreaseReport from './SaasIncreaseReport';
-import { PageHeader } from '../../components/ui';
+import { Modal, PageHeader } from '../../components/ui';
 
 interface Subscription {
   nextBillingAt?: string | null;
@@ -1504,6 +1504,10 @@ const SaasIncrease: React.FC = () => {
   const textSec = 'text-gray-600 dark:text-[#D1D1D1]';
   const textTer = 'text-gray-500 dark:text-[#999AA7]';
   const textQuat = 'text-gray-400 dark:text-[#61646C]';
+  // Titre de fenêtre (Modal) avec une ligne d'explication dessous.
+  const modalTitle = (title: React.ReactNode, sub: React.ReactNode) => (
+    <>{title}<span className={`mt-0.5 block text-xs font-normal ${textTer}`}>{sub}</span></>
+  );
   const divider = 'divide-gray-100 dark:divide-[#161616]';
   const btnSecondary = 'inline-flex items-center gap-2 rounded-[10px] border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-[#242424] dark:bg-[#141414] dark:text-[#D1D1D1] dark:hover:bg-[#1B1B1B] dark:hover:text-white';
   const btnPrimary = 'inline-flex items-center gap-2 rounded-[10px] bg-primary px-4 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50';
@@ -1652,18 +1656,8 @@ const SaasIncrease: React.FC = () => {
       )}
 
       {auditOpen && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4" onClick={() => setAuditOpen(false)}>
-          <div className={`flex h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-[20px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)] ${card}`} onClick={(ev) => ev.stopPropagation()}>
-            <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-4 dark:border-[#1B1B1B]">
-              <div>
-                <p className={`text-lg font-bold ${textPri}`}>{t('saasIncrease.audit.title')}</p>
-                <p className={`mt-0.5 text-xs ${textTer}`}>{t('saasIncrease.audit.subtitle')}</p>
-              </div>
-              <button onClick={() => setAuditOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[#424242] transition hover:bg-gray dark:text-bodydark dark:hover:bg-meta-4">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-auto px-5 py-4">
+        <Modal open onClose={() => setAuditOpen(false)} size="xl" title={modalTitle(t('saasIncrease.audit.title'), t('saasIncrease.audit.subtitle'))}>
+            <div className="max-h-[60vh] overflow-auto">
               {anomalies.length === 0 ? (
                 <div className="py-10 text-center">
                   <p className="text-sm font-medium text-emerald-600 dark:text-[#57D193]">{t('saasIncrease.audit.clean')}</p>
@@ -1709,8 +1703,7 @@ const SaasIncrease: React.FC = () => {
                 })
               )}
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Une campagne partie change ce que cette page VEUT DIRE : les chiffres ci-dessous ne sont
@@ -2448,19 +2441,12 @@ const SaasIncrease: React.FC = () => {
                     {/* Drill-down — the full per-subscription table for ONE segment, for handling
                         exceptions. Reuses the same row/column renderers the old flat table used. */}
                     {drilldown && (
-                      <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4" onClick={() => setDrilldownKey(null)}>
-                        <div className={`flex h-[85vh] w-full max-w-6xl flex-col overflow-hidden rounded-[20px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)] ${card}`} onClick={(ev) => ev.stopPropagation()}>
-                          <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4 dark:border-[#1B1B1B]">
-                            <div className="min-w-0">
-                              <p className={`truncate text-lg font-bold ${textPri}`}>{drilldown[0].split('||')[1]}</p>
-                              <p className={`mt-0.5 truncate text-xs ${textTer}`}>
-                                {drilldown[0].split('||')[0]} · {t('saasIncrease.groupCount', { count: drilldown[1].length })} · {t('saasIncrease.segment.drilldownHint')}
-                              </p>
-                            </div>
-                            <button onClick={() => setDrilldownKey(null)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[#424242] transition hover:bg-gray dark:text-bodydark dark:hover:bg-meta-4">
-                              <X className="h-5 w-5" />
-                            </button>
-                          </div>
+                      <Modal
+                        open
+                        onClose={() => setDrilldownKey(null)}
+                        size="xl"
+                        title={modalTitle(drilldown[0].split('||')[1], `${drilldown[0].split('||')[0]} · ${t('saasIncrease.groupCount', { count: drilldown[1].length })} · ${t('saasIncrease.segment.drilldownHint')}`)}
+                      >
                           {(() => {
                             const todo = drilldown[1].filter(r => !isDecided(rowKey(r)));
                             // Snapshot OR currently-undecided: a row decided a second ago stays
@@ -2479,7 +2465,7 @@ const SaasIncrease: React.FC = () => {
                               : base;
                             return (
                               <>
-                                <div className="flex flex-wrap items-center gap-3 border-b border-gray-100 px-5 py-2.5 dark:border-[#1B1B1B]">
+                                <div className="flex flex-wrap items-center gap-3">
                                   {/* 547 subscriptions is not a list you scroll to find one client. */}
                                   <div className="relative min-w-[220px] flex-1">
                                     <Search className={`pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 ${textQuat}`} />
@@ -2520,7 +2506,7 @@ const SaasIncrease: React.FC = () => {
                                     </span>
                                   )}
                                 </div>
-                                <div className="flex-1 overflow-auto">
+                                <div className="max-h-[60vh] overflow-auto">
                                   <div className="min-w-[880px]">
                                     {columnHeader(shown)}
                                     {shown.map(renderRow)}
@@ -2529,8 +2515,7 @@ const SaasIncrease: React.FC = () => {
                               </>
                             );
                           })()}
-                        </div>
-                      </div>
+                      </Modal>
                     )}
                   </>
                 );
@@ -2888,20 +2873,13 @@ const SaasIncrease: React.FC = () => {
           caption, and why each one was flagged, so the number is never just a scary total with
           nothing behind it. */}
       {riskDetailOpen && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4" onClick={() => setRiskDetailOpen(false)}>
-          <div className={`flex max-h-[80vh] w-full max-w-xl flex-col overflow-hidden rounded-[20px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)] ${card}`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-[#1B1B1B]">
-              <div>
-                <p className={`text-lg font-bold ${textPri}`}>{t('saasIncrease.riskDetail.title')}</p>
-                <p className={`mt-0.5 text-xs ${textTer}`}>
-                  {t('saasIncrease.riskDetail.subtitle', { count: highRiskIncludedRows.length, amount: money(highRiskIncludedMrr) })}
-                </p>
-              </div>
-              <button onClick={() => setRiskDetailOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[#424242] transition hover:bg-gray dark:text-bodydark dark:hover:bg-meta-4">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className={`flex-1 divide-y overflow-y-auto ${divider}`}>
+        <Modal
+          open
+          onClose={() => setRiskDetailOpen(false)}
+          size="md"
+          title={modalTitle(t('saasIncrease.riskDetail.title'), t('saasIncrease.riskDetail.subtitle', { count: highRiskIncludedRows.length, amount: money(highRiskIncludedMrr) }))}
+        >
+            <div className={`-m-5 max-h-[60vh] divide-y overflow-y-auto ${divider}`}>
               {highRiskIncludedRows.map(r => (
                 <div key={rowKey(r.s)} className="px-5 py-3">
                   <div className="flex items-center justify-between gap-3">
@@ -2920,8 +2898,7 @@ const SaasIncrease: React.FC = () => {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Suggest Scenario modal — pick a risk-tolerance profile and see a live preview (count,
@@ -2931,15 +2908,8 @@ const SaasIncrease: React.FC = () => {
       {suggestModalOpen && (() => {
         const preview = computeSuggestion(suggestProfile);
         return (
-          <div className="fixed inset-0 z-[999999] flex items-start overflow-y-auto justify-center bg-black/40 p-4" onClick={() => setSuggestModalOpen(false)}>
-            <div className={`my-auto w-full max-w-lg overflow-hidden rounded-[20px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)] ${card}`} onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-[#1B1B1B]">
-                <p className={`text-lg font-bold ${textPri}`}>{t('saasIncrease.suggest.title')}</p>
-                <button onClick={() => setSuggestModalOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[#424242] transition hover:bg-gray dark:text-bodydark dark:hover:bg-meta-4">
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="space-y-3 p-5">
+          <Modal open onClose={() => setSuggestModalOpen(false)} size="md" title={t('saasIncrease.suggest.title')}>
+              <div className="space-y-3">
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {SUGGEST_PROFILES.map(p => (
                     <button
@@ -2987,8 +2957,7 @@ const SaasIncrease: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
-          </div>
+          </Modal>
         );
       })()}
 
@@ -3001,15 +2970,8 @@ const SaasIncrease: React.FC = () => {
         const totalDelta = targetItems.reduce((sum, it) => sum + (it.newMonthly - it.currentMonthly), 0);
         const alreadyPushedCount = targetItems.filter(it => it.status === 'pushed').length;
         return (
-          <div className="fixed inset-0 z-[999999] flex items-start overflow-y-auto justify-center bg-black/40 p-4" onClick={() => !pushModal.busy && setPushModal(null)}>
-            <div className={`my-auto w-full max-w-md overflow-hidden rounded-[20px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)] ${card}`} onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-[#1B1B1B]">
-                <p className={`text-lg font-bold ${textPri}`}>{t('saasIncrease.push.confirmTitle')}</p>
-                <button onClick={() => setPushModal(null)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[#424242] transition hover:bg-gray dark:text-bodydark dark:hover:bg-meta-4">
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="space-y-3 p-5">
+          <Modal open onClose={() => !pushModal.busy && setPushModal(null)} size="sm" title={t('saasIncrease.push.confirmTitle')}>
+              <div className="space-y-3">
                 {!pushModal.results ? (
                   <>
                     <p className={`text-sm ${textSec}`}>
@@ -3065,22 +3027,14 @@ const SaasIncrease: React.FC = () => {
                   </>
                 )}
               </div>
-            </div>
-          </div>
+          </Modal>
         );
       })()}
 
       {/* Email preview modal — srcDoc renders the exact HTML /send would email, read-only */}
       {emailPreview && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4" onClick={() => setEmailPreview(null)}>
-          <div className={`flex h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-[20px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)] ${card}`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-[#1B1B1B]">
-              <p className={`text-lg font-bold ${textPri}`}>{t('saasIncrease.notify.previewTitle')}</p>
-              <button onClick={() => setEmailPreview(null)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[#424242] transition hover:bg-gray dark:text-bodydark dark:hover:bg-meta-4">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="relative flex-1 overflow-y-auto bg-[#eef1f6]">
+        <Modal open onClose={() => setEmailPreview(null)} size="lg" title={t('saasIncrease.notify.previewTitle')}>
+            <div className="relative -m-5 h-[60vh] overflow-y-auto rounded-b-[20px] bg-[#eef1f6]">
               {emailPreview.loading ? (
                 <div className="flex h-full items-center justify-center">
                   <span className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -3089,28 +3043,20 @@ const SaasIncrease: React.FC = () => {
                 <iframe srcDoc={emailPreview.html} className="h-full w-full border-0" title={t('saasIncrease.emailPreviewTitle')} />
               )}
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Template manager modal — an editable library of merchant-notification email templates,
           so different wording can be applied per plan/org group instead of one hardcoded copy. */}
       {templateManagerOpen && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4" onClick={() => { setTemplateManagerOpen(false); setExpandedTemplateId(null); }}>
-          <div className={`flex h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-[20px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)] ${card}`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-[#1B1B1B]">
-              <div>
-                <p className={`text-lg font-bold ${textPri}`}>{t('saasIncrease.templates.title')}</p>
-                <p className={`mt-0.5 text-xs ${textTer}`}>{t('saasIncrease.templates.subtitle')}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={startNewTemplate} className={btnSecondary}><Plus className="h-4 w-4" /> {t('saasIncrease.templates.new')}</button>
-                <button onClick={() => { setTemplateManagerOpen(false); setExpandedTemplateId(null); }} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[#424242] transition hover:bg-gray dark:text-bodydark dark:hover:bg-meta-4">
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-            <div className={`flex-1 divide-y overflow-y-auto ${divider}`}>
+        <Modal
+          open
+          onClose={() => { setTemplateManagerOpen(false); setExpandedTemplateId(null); }}
+          size="lg"
+          title={modalTitle(t('saasIncrease.templates.title'), t('saasIncrease.templates.subtitle'))}
+          headerExtra={<button onClick={startNewTemplate} className={`${btnSecondary} whitespace-nowrap`}><Plus className="h-4 w-4" /> {t('saasIncrease.templates.new')}</button>}
+        >
+            <div className={`-m-5 max-h-[60vh] divide-y overflow-y-auto ${divider}`}>
               {expandedTemplateId === 'new' && (
                 <div className="space-y-2 px-5 py-4">
                   <p className={`text-sm font-medium ${textPri}`}>{t('saasIncrease.templates.new')}</p>
@@ -3188,32 +3134,26 @@ const SaasIncrease: React.FC = () => {
                 <div className={`px-5 py-8 text-center text-sm ${textTer}`}>{t('saasIncrease.templates.none')}</div>
               )}
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Model calibration modal — shows the churn-risk heuristic's observed rates from real
           history (see runSaasChurnHistoryBackfill), so the risk badges above are legible rather
           than a black box: David can see exactly how much real data backs each bucket. */}
       {calibrationOpen && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 p-4" onClick={() => setCalibrationOpen(false)}>
-          <div className={`flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-[20px] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45)] ${card}`} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-[#1B1B1B]">
-              <div>
-                <p className={`text-lg font-bold ${textPri}`}>{t('saasIncrease.calibration.title')}</p>
-                <p className={`mt-0.5 text-xs ${textTer}`}>{t('saasIncrease.calibration.subtitle')}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={refreshCalibrationData} disabled={refreshingCalibration} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
-                  <RefreshCw className={`h-3.5 w-3.5 ${refreshingCalibration ? 'animate-spin' : ''}`} />
-                  {refreshingCalibration ? t('saasIncrease.calibration.refreshing') : t('saasIncrease.calibration.refresh')}
-                </button>
-                <button onClick={() => setCalibrationOpen(false)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[#424242] transition hover:bg-gray dark:text-bodydark dark:hover:bg-meta-4">
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-5">
+        <Modal
+          open
+          onClose={() => setCalibrationOpen(false)}
+          size="lg"
+          title={modalTitle(t('saasIncrease.calibration.title'), t('saasIncrease.calibration.subtitle'))}
+          headerExtra={
+            <button onClick={refreshCalibrationData} disabled={refreshingCalibration} className={`${btnSecondary} px-3 py-1.5 text-xs`}>
+              <RefreshCw className={`h-3.5 w-3.5 ${refreshingCalibration ? 'animate-spin' : ''}`} />
+              {refreshingCalibration ? t('saasIncrease.calibration.refreshing') : t('saasIncrease.calibration.refresh')}
+            </button>
+          }
+        >
+            <div className="max-h-[60vh] overflow-y-auto">
               {!calibration ? (
                 <p className={`text-sm ${textTer}`}>{t('saasIncrease.calibration.loading')}</p>
               ) : (
@@ -3262,8 +3202,7 @@ const SaasIncrease: React.FC = () => {
                 </>
               )}
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Bandeau de progression — fixe, donc visible meme si la page a defile. Il porte aussi
