@@ -7994,5 +7994,77 @@
     "migrationFailed": "La migration a échoué.",
     "loadFailed": "Impossible de charger les données.",
     "generic": "Une erreur est survenue. Réessayez."
+  },
+  "adminHub": {
+    "subtitle": "Chaque zone s'affiche selon tes permissions",
+    "search": "Chercher un réglage",
+    "searchPlaceholder": "Chercher un réglage : quota, rotation, taux IC+…",
+    "toFixTitle_one": "{{count}} élément à corriger",
+    "toFixTitle_other": "{{count}} éléments à corriger",
+    "toFix_one": "{{count}} à corriger",
+    "toFix_other": "{{count}} à corriger",
+    "openQueue": "Ouvrir la file",
+    "pendingOpps_one": "{{count}} en attente",
+    "pendingOpps_other": "{{count}} en attente",
+    "noMatch": "Aucun réglage ne correspond.",
+    "health": {
+      "unassignedInvoices_one": "{{count}} facture sans représentant",
+      "unassignedInvoices_other": "{{count}} factures sans représentant",
+      "unassignedZentact_one": "{{count}} marchand Zentact sans représentant",
+      "unassignedZentact_other": "{{count}} marchands Zentact sans représentant",
+      "unassignedResellers_one": "{{count}} activation revendeur non attribuée",
+      "unassignedResellers_other": "{{count}} activations revendeur non attribuées",
+      "repsNoRole_one": "{{count}} représentant sans rôle",
+      "repsNoRole_other": "{{count}} représentants sans rôle",
+      "unmappedEmails_one": "{{count}} courriel revendeur non relié",
+      "unmappedEmails_other": "{{count}} courriels revendeur non reliés",
+      "userReports_one": "{{count}} signalement ouvert",
+      "userReports_other": "{{count}} signalements ouverts",
+      "staleMerchants_one": "{{count}} marchand inactif",
+      "staleMerchants_other": "{{count}} marchands inactifs"
+    },
+    "links": {
+      "salespeople": "Représentants, équipes, quotas et points"
+    },
+    "zones": {
+      "people": {
+        "title": "Personnes et accès",
+        "desc": "Tous les utilisateurs au même endroit : employés, comptes externes et partenaires, avec leurs rôles."
+      },
+      "sales": {
+        "title": "Équipe de vente et rémunération",
+        "desc": "Le plan de rémunération en un seul endroit : représentants, équipes, quotas, paliers et points par source."
+      },
+      "pay": {
+        "title": "Commissions et paie",
+        "desc": "Le cycle mensuel dans l'ordre : importer, vérifier, ajuster, envoyer la paie."
+      },
+      "partners": {
+        "title": "Partenaires et canaux",
+        "desc": "Partenaires, revendeurs et La Passe, avec leurs paiements."
+      },
+      "catalog": {
+        "title": "Catalogue et prix",
+        "desc": "Ce que les représentants vendent : matériel, forfaits, taux IC+ et documents."
+      },
+      "leads": {
+        "title": "Pistes et prospection",
+        "desc": "Comment les pistes arrivent et à qui elles vont."
+      },
+      "customers": {
+        "title": "Clients et revenus",
+        "desc": "Lier les marchands à leurs abonnements et gérer les hausses de prix."
+      },
+      "data": {
+        "title": "Données et intégrations",
+        "desc": "Connexions Zoho et Zentact, vérification des données et journal des actions."
+      }
+    },
+    "system": {
+      "title": "Système",
+      "adminsOnly": "Admins seulement",
+      "desc": "Outils techniques retirés des menus de tous les jours. Chaque action irréversible demande de taper son nom.",
+      "kaizen": "Démo Kaizen (maintenance)"
+    }
   }
 }

@@ -7,6 +7,7 @@ import PayStubModal, { PayStubData } from '../../components/PayStubModal';
 import ProcessingBonusStatementModal, { BonusStatementData } from '../../components/ProcessingBonusStatementModal';
 import SendConfirmModal from '../../components/SendConfirmModal';
 import DealsAdmin from './DealsAdmin';
+import { useUrlTab } from '../../components/ui/Tabs';
 import GoogleReviewsAdmin from './GoogleReviewsAdmin';
 import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
@@ -144,7 +145,8 @@ const CommissionImport: React.FC = () => {
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [subTab, setSubTab] = useState<SubTab>('import');
+  // Sous-onglet dans l'adresse (?onglet=) : le hub d'administration y pointe directement.
+  const [subTab, setSubTab] = useUrlTab<SubTab>('import', SUBTABS);
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [committingAll, setCommittingAll] = useState(false);
   const [history, setHistory] = useState<HistoryRow[]>([]);

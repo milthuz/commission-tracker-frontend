@@ -63,8 +63,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     NAV.forEach((s) => s.items.forEach((it) => { if (it.children && isItemActive(it, pathname, search)) next[it.id] = true; }));
     setOpenGroups((g) => ({ ...g, ...next }));
   }, [pathname, search]);
-  // Opening Administration acknowledges its "new" features (aggregate dot clears).
-  useEffect(() => { if (openGroups.admin) markSeenUnder('/admin'); }, [openGroups.admin, markSeenUnder]);
+  // Visiting the admin hub acknowledges its "new" features (aggregate dot clears).
+  useEffect(() => { if (pathname === '/admin') markSeenUnder('/admin'); }, [pathname, markSeenUnder]);
 
   // Mobile drawer: close on outside click, Escape, and after navigating.
   useEffect(() => {
@@ -218,7 +218,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                       data-tour={it.id === 'dashboard' ? 'nav-dashboard' : it.id === 'commissionTracker' ? 'nav-tracker' : it.id === 'commissionReport' ? 'nav-report' : undefined}
                       className={section.footer && i === 0 ? 'mt-auto border-t border-stroke pt-3 dark:border-strokedark' : undefined}
                     >
-                      {it.children ? renderGroup(it) : renderLeaf(it)}
+                      {it.children && !it.to ? renderGroup(it) : renderLeaf(it)}
                     </li>
                   ))}
                 </React.Fragment>

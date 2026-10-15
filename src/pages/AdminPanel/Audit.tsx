@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Select from '../../components/Select';
 import axios from 'axios';
+import { useUrlTab } from '../../components/ui/Tabs';
 import { useTranslation } from 'react-i18next';
 import { appLocale, fmtMoney, fmtNumber } from '../../lib/format';
 
@@ -38,7 +39,7 @@ const RANGES = ['today', '7d', '30d'] as const;
 // table across every domain (invoices, proposals, rep pay, auth, user management).
 const Audit: React.FC = () => {
   const { t } = useTranslation();
-  const [subTab, setSubTab] = useState<SubTab>('dashboard');
+  const [subTab, setSubTab] = useUrlTab<SubTab>('dashboard', SUBTABS);
 
   // Dashboard
   const [range, setRange] = useState<typeof RANGES[number]>('7d');

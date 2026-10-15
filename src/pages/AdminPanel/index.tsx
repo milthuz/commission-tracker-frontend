@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { appLocale, fmtDate, fmtDateOnly, fmtDateTime, fmtMoney, fmtNumber } from '../../lib/format';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import packageJson from '../../../package.json';
 import { useAppVersion } from '../../hooks/useAppVersion';
 import ZohoSystemAccount from './ZohoSystemAccount';
@@ -27,6 +27,12 @@ import PartnersAdmin from './PartnersAdmin';
 import LeadsAdmin from './LeadsAdmin';
 import HrAdmin from './HrAdmin';
 import RoleRequests from './RoleRequests';
+import AdminHub from './AdminHub';
+import NotFound from '../NotFound';
+
+const ADMIN_SECTIONS = ['sync', 'salespeople', 'customers', 'releases', 'users', 'import-payments', 'resellers', 'resources', 'hardware', 'pricing',
+  'icplus-rates', 'opener', 'leads', 'hr', 'partners', 'merchant-links', 'notifications', 'data-health', 'audit'];
+import { useUrlTab } from '../../components/ui/Tabs';
 import DateField from '../../components/DateField';
 import { dialog } from '../../lib/dialog';
 
@@ -127,7 +133,8 @@ const AdminPanel = () => {
   const [kaizenSaving, setKaizenSaving] = useState(false);
   const location = useLocation();
   const pathParts = location.pathname.split('/');
-  const rawTab = pathParts[2] || 'sync'; // /admin/sync, /admin/salespeople, etc.
+  // /admin seul = le hub des zones (AdminHub) ; /admin/sync, /admin/salespeople… = un écran.
+  const rawTab = pathParts[2] || 'hub';
   // Roles & Permissions now lives as a tab inside the Users section (so /admin/roles → Users).
   const activeTab = (rawTab === 'admins' || rawTab === 'roles') ? 'users' : rawTab;
 
@@ -137,7 +144,7 @@ const AdminPanel = () => {
   // permission (partners:manage), so a partners-only user hitting /admin/users (or any other
   // section) directly still gets bounced, same as before.
   const can = (p: string) => permissions.includes('*') || permissions.includes(p) || permissions.includes(`${p.split(':')[0]}:*`);
-  const canAccessTab = (tab: string) => isAdmin
+  const canAccessTab = (tab: string): boolean => isAdmin
     || (tab === 'partners' && can('partners:manage'))
     || (tab === 'leads' && can('leads:manage_rules'))
     || (tab === 'hr' && can('hr:manage'))
@@ -147,7 +154,10 @@ const AdminPanel = () => {
     // prix/SKU (y compris SaaS) sans être admin. Les routes /api/hardware et /api/pricing exigent
     // déjà hardware:manage / pricing:manage — seul l'écran leur fermait la porte.
     || (tab === 'hardware' && can('hardware:manage'))
-    || (tab === 'pricing' && can('pricing:manage'));
+    || (tab === 'pricing' && can('pricing:manage'))
+    // Le hub : ouvert à quiconque peut ouvrir au moins UN écran d'administration ; il ne montre
+    // ensuite que ces écrans-là.
+    || (tab === 'hub' && ['partners', 'leads', 'hr', 'icplus-rates', 'opener', 'hardware', 'pricing'].some((x) => canAccessTab(x)));
 
   // Handle redirect back from CRM OAuth
   useEffect(() => {
@@ -243,7 +253,8 @@ const AdminPanel = () => {
   // Sub-tab state for the reorganized Admin sections.
   const [syncSub, setSyncSub] = useState<'connections' | 'data'>('connections');
   const [spSub, setSpSub] = useState<'reps' | 'teams' | 'points'>('reps');
-  const [usersSub, setUsersSub] = useState<'access' | 'external' | 'impersonation' | 'roles' | 'sofia'>(rawTab === 'roles' ? 'roles' : 'access');
+  const [usersSub, setUsersSub] = useUrlTab<'access' | 'external' | 'impersonation' | 'roles' | 'sofia'>(
+    rawTab === 'roles' ? 'roles' : 'access', ['access', 'external', 'impersonation', 'roles', 'sofia']);
   const [editingUserRoleIds, setEditingUserRoleIds] = useState<number[]>([]);
   const [editingManagedTeamIds, setEditingManagedTeamIds] = useState<number[]>([]); // team-scoped managers
   type Tier = { points: number; bonus: number };
@@ -1665,8 +1676,17 @@ const AdminPanel = () => {
     return null; // Will redirect via useEffect once permissions resolve
   }
 
+  if (activeTab === 'hub') return <AdminHub isAdmin={isAdmin} can={can} canAccessTab={canAccessTab} />;
+  // Adresse inconnue (/admin/quelquechose) : avant, un panneau vide au titre blanc.
+  if (!ADMIN_SECTIONS.includes(activeTab)) return <NotFound />;
+
   return (
     <div>
+      {/* Retour au hub : chaque écran d'administration appartient à une zone. */}
+      <Link to="/admin" className="mb-3 inline-flex items-center gap-1 text-[13px] font-medium text-body hover:text-black dark:text-bodydark2 dark:hover:text-white">
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+        {t('sidebar.adminPanel')}
+      </Link>
       {/* Page Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>

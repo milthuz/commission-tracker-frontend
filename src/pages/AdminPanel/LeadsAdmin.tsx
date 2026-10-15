@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import LeadsWebflowCard from './LeadsWebflowCard';
+import { useUrlTab } from '../../components/ui/Tabs';
 import { useTranslation } from 'react-i18next';
 import { fmtDate, fmtDateTime } from '../../lib/format';
 import Select from '../../components/Select';
@@ -32,7 +33,7 @@ const emptyRule = (): Partial<LeadRule> => ({
 
 const LeadsAdmin = () => {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<'rules' | 'rotation' | 'automation'>('rules');
+  const [tab, setTab] = useUrlTab<'rules' | 'rotation' | 'automation'>('rules', ['rules', 'rotation', 'automation']);
 
   const [rules, setRules] = useState<LeadRule[]>([]);
   const [rotation, setRotation] = useState<LeadRep[]>([]);

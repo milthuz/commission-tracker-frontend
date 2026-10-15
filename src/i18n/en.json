@@ -7994,5 +7994,77 @@
     "migrationFailed": "The migration failed.",
     "loadFailed": "Could not load the data.",
     "generic": "Something went wrong. Try again."
+  },
+  "adminHub": {
+    "subtitle": "Each area shows according to your permissions",
+    "search": "Find a setting",
+    "searchPlaceholder": "Find a setting: quota, rotation, IC+ rates…",
+    "toFixTitle_one": "{{count}} item to fix",
+    "toFixTitle_other": "{{count}} items to fix",
+    "toFix_one": "{{count}} to fix",
+    "toFix_other": "{{count}} to fix",
+    "openQueue": "Open the queue",
+    "pendingOpps_one": "{{count}} pending",
+    "pendingOpps_other": "{{count}} pending",
+    "noMatch": "No setting matches.",
+    "health": {
+      "unassignedInvoices_one": "{{count}} invoice without a rep",
+      "unassignedInvoices_other": "{{count}} invoices without a rep",
+      "unassignedZentact_one": "{{count}} Zentact merchant without a rep",
+      "unassignedZentact_other": "{{count}} Zentact merchants without a rep",
+      "unassignedResellers_one": "{{count}} reseller activation unassigned",
+      "unassignedResellers_other": "{{count}} reseller activations unassigned",
+      "repsNoRole_one": "{{count}} rep without a role",
+      "repsNoRole_other": "{{count}} reps without a role",
+      "unmappedEmails_one": "{{count}} reseller email not linked",
+      "unmappedEmails_other": "{{count}} reseller emails not linked",
+      "userReports_one": "{{count}} open report",
+      "userReports_other": "{{count}} open reports",
+      "staleMerchants_one": "{{count}} inactive merchant",
+      "staleMerchants_other": "{{count}} inactive merchants"
+    },
+    "links": {
+      "salespeople": "Reps, teams, quotas and points"
+    },
+    "zones": {
+      "people": {
+        "title": "People and access",
+        "desc": "Every user in one place: staff, external accounts and partners, with their roles."
+      },
+      "sales": {
+        "title": "Sales team and compensation",
+        "desc": "The compensation plan in one place: reps, teams, quotas, tiers and points per source."
+      },
+      "pay": {
+        "title": "Commissions and payroll",
+        "desc": "The monthly cycle in order: import, check, adjust, send the payroll."
+      },
+      "partners": {
+        "title": "Partners and channels",
+        "desc": "Partners, resellers and The Pass, with their payouts."
+      },
+      "catalog": {
+        "title": "Catalogue and pricing",
+        "desc": "What reps sell: hardware, packages, IC+ rates and documents."
+      },
+      "leads": {
+        "title": "Leads and prospecting",
+        "desc": "How leads come in and who they go to."
+      },
+      "customers": {
+        "title": "Customers and revenue",
+        "desc": "Link merchants to their subscriptions and manage price increases."
+      },
+      "data": {
+        "title": "Data and integrations",
+        "desc": "Zoho and Zentact connections, data checks and the activity log."
+      }
+    },
+    "system": {
+      "title": "System",
+      "adminsOnly": "Admins only",
+      "desc": "Technical tools kept out of everyday menus. Every irreversible action asks you to type its name.",
+      "kaizen": "Kaizen demo (maintenance)"
+    }
   }
 }

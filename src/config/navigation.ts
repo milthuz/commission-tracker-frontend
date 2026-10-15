@@ -125,8 +125,9 @@ export const NAV: NavSection[] = [
     footer: true,
     items: [
       {
-        // Until the P2 admin hub (8 zones) exists, Administration opens its list of screens here.
-        id: 'admin', label: 'sidebar.adminPanel', icon: 'shield', badge: 'health',
+        // ONE entry that opens the admin hub (/admin, 8 zones). Its screens stay listed below so
+        // ⌘K finds them and visibility keeps following each screen's own permission.
+        id: 'admin', label: 'sidebar.adminPanel', icon: 'shield', badge: 'health', to: '/admin',
         children: [
           { id: 'dataHealth', label: 'sidebar.dataHealth', to: '/admin/data-health', badge: 'health', visible: adminOnly },
           { id: 'audit', label: 'sidebar.audit', to: '/admin/audit', visible: adminOnly, keywords: 'journal activité log' },
@@ -155,7 +156,7 @@ export const isItemVisible = (item: NavItem, c: NavCtx): boolean =>
   item.children ? item.children.some((ch) => isItemVisible(ch, c)) : (item.visible ? item.visible(c) : true);
 
 export const isItemActive = (item: NavItem, pathname: string, search: string): boolean => {
-  if (item.children) return item.children.some((ch) => isItemActive(ch, pathname, search));
+  if (item.children) return (!!item.to && pathname === item.to) || item.children.some((ch) => isItemActive(ch, pathname, search));
   if (item.active) return item.active(pathname, search);
   if (!item.to) return false;
   const path = item.to.split('?')[0];
@@ -167,7 +168,10 @@ export function flattenNav(c: NavCtx): { item: NavItem; trail: string[] }[] {
   const out: { item: NavItem; trail: string[] }[] = [];
   const walk = (items: NavItem[], trail: string[]) => items.forEach((it) => {
     if (!isItemVisible(it, c)) return;
-    if (it.children) walk(it.children, [...trail, it.label]);
+    if (it.children) {
+      if (it.to) out.push({ item: it, trail }); // a hub (Administration) is a screen too
+      walk(it.children, [...trail, it.label]);
+    }
     else if (it.to) out.push({ item: it, trail });
   });
   NAV.forEach((s) => walk(s.items, s.label ? [s.label] : []));
