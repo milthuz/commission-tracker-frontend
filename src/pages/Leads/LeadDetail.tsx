@@ -5,6 +5,7 @@ import Select from '../../components/Select';
 import TelephoneCopiable from '../../components/TelephoneCopiable';
 import { authHeaders, leadFullName, statusTone, type DuplicateRecord, type Lead, type LeadRep } from './types';
 import MergePanel from './MergePanel';
+import { setPageEntity } from '../../lib/pageContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -116,6 +117,13 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
   // `setAttachTo(null)` : une fiche choisie sur la piste precedente ne doit pas survivre au
   // changement de dossier — ce serait un rattachement au mauvais marchand, en silence.
   useEffect(() => { setAttachTo(null); load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [leadId]);
+
+  // Sofia sait quelle piste est ouverte (« résume cette piste »).
+  useEffect(() => {
+    if (!lead) return;
+    setPageEntity({ kind: 'lead', label: `${lead.businessName} (${lead.refCode}) · ${t(`leads.status.${lead.status}`)}` });
+    return () => setPageEntity(null);
+  }, [lead, t]);
 
   // Fiches vérifiées avant l'ajout du propriétaire, ou jamais vérifiées : on relance la
   // vérification une fois à l'ouverture, pour que la personne qui attribue voie à qui le

@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import SofiaAvatar from './SofiaAvatar';
 import useLocalStorage from '../hooks/useLocalStorage';
+import SofiaMarkdown from './SofiaMarkdown';
+import { pageContext } from '../lib/pageContext';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -43,6 +45,25 @@ interface ChatMsg {
   outcome?: 'sent' | 'cancelled';
 }
 
+// Conversation kept across page changes and reloads (refonte UI, P2), in sessionStorage: it
+// survives a refresh but not closing the tab, which is right for replies quoting CRM data on a
+// shared computer. Keyed by the session token's tail, so another login never sees it.
+const HISTORY_MAX = 40;
+const historyKey = (tokenKey: string) => {
+  const tok = localStorage.getItem(tokenKey) || '';
+  return tok ? `sofia:history:${tokenKey}:${tok.slice(-16)}` : '';
+};
+const loadHistory = (tokenKey: string): ChatMsg[] => {
+  try {
+    const k = historyKey(tokenKey);
+    const raw = k ? sessionStorage.getItem(k) : null;
+    const list = raw ? JSON.parse(raw) : [];
+    // An approval card left open carries a signed, short-lived token: after a reload it is
+    // dropped rather than shown as a button that would fail.
+    return Array.isArray(list) ? list.map((m: ChatMsg) => (m.pending && !m.done ? { ...m, pending: undefined } : m)) : [];
+  } catch { return []; }
+};
+
 interface ChatAssistantProps {
   // i18n namespace prefix for all strings below (default: internal Sales Hub copy).
   i18nPrefix?: string;
@@ -80,7 +101,15 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
   // carries the try/catch this needed.
   const [expanded, setExpanded] = useLocalStorage<boolean>('sofia:expanded', false);
   const toggleExpanded = () => setExpanded((v: boolean) => !v);
-  const [msgs, setMsgs] = useState<ChatMsg[]>([]);
+  const [msgs, setMsgs] = useState<ChatMsg[]>(() => loadHistory(tokenKey));
+  useEffect(() => {
+    try {
+      const k = historyKey(tokenKey);
+      if (!k) return;
+      if (msgs.length) sessionStorage.setItem(k, JSON.stringify(msgs.slice(-HISTORY_MAX)));
+      else sessionStorage.removeItem(k);
+    } catch { /* storage full or blocked — the chat still works, just not kept */ }
+  }, [msgs, tokenKey]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -178,7 +207,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
       const r = await axios.post(`${API_URL}${endpoint}`,
         // Only the plain role/content pairs go back up — the server rebuilds its
         // own tool history, and sending ours would just be noise it discards.
-        { messages: next.slice(-12).map(({ role, content }) => ({ role, content })), lang: i18n.language },
+        { messages: next.slice(-12).map(({ role, content }) => ({ role, content })), lang: i18n.language, page: pageContext() },
         { headers: { Authorization: `Bearer ${token}` } });
       setMsgs([...next, {
         role: 'assistant',
@@ -360,12 +389,12 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
                 )}
 
                 <div className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                  <div className={`max-w-[85%] min-w-0 rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${m.role === 'user' ? 'whitespace-pre-wrap' : ''} ${
                     m.role === 'user'
                       ? 'rounded-br-sm bg-primary text-white'
                       : 'rounded-tl-sm bg-gray-2 text-black dark:bg-meta-4 dark:text-white'
                   }`}>
-                    {m.content}
+                    {m.role === 'assistant' ? <SofiaMarkdown text={m.content} /> : m.content}
                   </div>
                 </div>
 

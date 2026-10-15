@@ -10,6 +10,7 @@ import { fmtMoney, fmtMonth, fmtDate, fmtDateOnly, fmtNumber, appLocale, monthNa
 import PayStubModal, { PayStubData } from '../components/PayStubModal';
 import ProbationBadge from '../components/ProbationBadge';
 import { dialog } from '../lib/dialog';
+import { setPageEntity } from '../lib/pageContext';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { ContentLoader } from '../common/Loader';
 import { Button, FilterBar, RowMenu, StateCard, StatusPill, Tabs, useUrlTab } from '../components/ui';
@@ -310,6 +311,14 @@ const CommissionReport = () => {
     };
     fetchReps();
   }, [isAdmin, isSalesperson]);
+
+  // Sofia sait quel rapport est affiché (« explique ce mois-ci »).
+  useEffect(() => {
+    const who = report?.repName || selectedRep;
+    const when = selectedMonth === 'all' ? selectedYear : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+    setPageEntity({ kind: 'commissionReport', label: `${who ? `${who} · ` : ''}${when} · ${tab}` });
+    return () => setPageEntity(null);
+  }, [report?.repName, selectedRep, selectedMonth, selectedYear, tab]);
 
   // Remember the selected rep for the next visit (instant correct first fetch).
   useEffect(() => {
