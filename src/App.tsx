@@ -71,6 +71,7 @@ function lazyRoute<T extends { default: React.ComponentType<any> }>(factory: () 
 // RepDashboard (the landing page for most users), Profile, Versions, and the layout/route guards.
 const AdminDashboard = lazyRoute(() => import('./pages/Dashboard/AdminDashboard'), true);
 const NotFound = lazyRoute(() => import('./pages/NotFound'));
+const More = lazyRoute(() => import('./pages/More'));
 const ManagerDashboard = lazyRoute(() => import('./pages/Dashboard/ManagerDashboard'), true);
 const CommissionTracker = lazyRoute(() => import('./pages/CommissionTracker'), true);
 const CommissionReport = lazyRoute(() => import('./pages/CommissionReport'), true);
@@ -402,6 +403,15 @@ function AppContent() {
               <>
                 <PageTitle titleKey="sidebar.commissionReport" />
                 <CommissionReport />
+              </>
+            }
+          />
+          <Route
+            path="/plus"
+            element={
+              <>
+                <PageTitle titleKey="mobileNav.more" />
+                <More />
               </>
             }
           />

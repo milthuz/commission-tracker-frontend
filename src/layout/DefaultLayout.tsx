@@ -13,6 +13,7 @@ import { ContentLoader } from '../common/Loader';
 import { useAuth } from '../context/AuthContext';
 import { prefetchRoutes } from '../lib/routePrefetch';
 import NoRoleNotice from '../components/NoRoleNotice';
+import MobileTabBar, { TABBAR_SPACE } from '../components/MobileTabBar';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -51,7 +52,8 @@ const DefaultLayout: React.FC = () => {
           {/* <!-- ===== Header End ===== --> */}
 
           {/* <!-- ===== Main Content Start ===== --> */}
-          <main>
+          {/* Room under the content for the phone tab bar (none on desktop). */}
+          <main className={TABBAR_SPACE}>
             <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
               <NewFeatureBanner />
               {/* La frontière Suspense est ICI, pas autour de toutes les routes.
@@ -71,7 +73,8 @@ const DefaultLayout: React.FC = () => {
         {/* <!-- ===== Content Area End ===== --> */}
       </div>
       {/* <!-- ===== Page Wrapper End ===== --> */}
-      <ChatAssistant crmEnabled={crmEnabled} />
+      <ChatAssistant crmEnabled={crmEnabled} mobileTabBar />
+      <MobileTabBar />
       <SofiaTour />
       <InvoicePreviewHost />
     </div>

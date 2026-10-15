@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import SalesHubLogo from '../SalesHubLogo';
@@ -6,10 +6,11 @@ import { useAppVersion } from '../../hooks/useAppVersion';
 import NewBadge from '../NewBadge';
 import { useNewFeatures } from '../../context/NewFeaturesContext';
 import { useAuth } from '../../context/AuthContext';
-import { NAV, NavCtx, NavItem, NavBadge, isItemActive, isItemVisible } from '../../config/navigation';
+import { NAV, NavItem, NavBadge, isItemActive, isItemVisible } from '../../config/navigation';
 import NavIcon from './NavIcon';
 import CommandPalette, { openCommandPalette, isMac } from './CommandPalette';
 import { useNavBadges } from './useNavBadges';
+import { useNavCtx } from './useNavCtx';
 
 // Main navigation (audit UX, P1 — board DeskSidebar). Everything it shows comes from
 // config/navigation: five sections, Administration pinned at the bottom with the user card.
@@ -33,15 +34,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const { pathname, search } = useLocation();
   const sidebar = useRef<HTMLElement>(null);
 
-  // Admin status from the EFFECTIVE identity (/api/auth/verify via AuthContext), never the raw
-  // JWT — that stays admin while impersonating and would leak the admin menu during "view as".
-  const ctx = useMemo<NavCtx>(() => {
-    const perms = user?.permissions || [];
-    return {
-      isAdmin: !!user?.isAdmin,
-      can: (p: string) => perms.includes('*') || perms.includes(p) || perms.includes(`${p.split(':')[0]}:*`),
-    };
-  }, [user]);
+  const ctx = useNavCtx();
 
   const badges = useNavBadges({
     leads: ctx.isAdmin || ctx.can('leads:review'),

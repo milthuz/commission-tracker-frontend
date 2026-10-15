@@ -5,6 +5,7 @@ import SofiaAvatar from './SofiaAvatar';
 import useLocalStorage from '../hooks/useLocalStorage';
 import SofiaMarkdown from './SofiaMarkdown';
 import { pageContext } from '../lib/pageContext';
+import { SOFIA_SET_EVENT, announceSofiaState } from '../lib/sofiaBus';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -77,6 +78,8 @@ interface ChatAssistantProps {
   // because the Partner Portal reuses this component outside that provider,
   // where useAuth() throws.
   crmEnabled?: boolean;
+  // Sales Hub only: below lg the phone tab bar opens the panel (full screen) and the bubble hides.
+  mobileTabBar?: boolean;
 }
 
 // Floating AI help assistant (bottom-right). Glassy translucent bubble that opens a
@@ -85,7 +88,7 @@ interface ChatAssistantProps {
 // (see PartnerHeader/PartnerChatAssistant.tsx) instead of duplicating the whole widget.
 const ChatAssistant: React.FC<ChatAssistantProps> = ({
   i18nPrefix = 'assistant', tokenKey = 'token', endpoint = '/api/assistant/chat', tourEventName = 'sofia:tour',
-  crmEnabled = false,
+  crmEnabled = false, mobileTabBar = false,
 }) => {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -194,6 +197,16 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
 
   useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
 
+  // Phone tab bar (refonte UI, P2): its « Sofia » tab opens/closes this panel, and shows it as
+  // the current tab while open.
+  useEffect(() => {
+    if (!mobileTabBar) return;
+    const on = (e: Event) => setOpen(!!(e as CustomEvent<boolean>).detail);
+    window.addEventListener(SOFIA_SET_EVENT, on);
+    return () => window.removeEventListener(SOFIA_SET_EVENT, on);
+  }, [mobileTabBar]);
+  useEffect(() => { if (mobileTabBar) announceSofiaState(open); }, [open, mobileTabBar]);
+
   const send = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || busy) return;
@@ -300,7 +313,10 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
             // and inside the viewport on small ones.
             ? 'h-[calc(100vh-7.5rem)] w-[min(880px,calc(100vw-2rem))]'
             : 'h-[min(620px,calc(100vh-8rem))] w-[min(420px,calc(100vw-2rem))]'
-        }`}>
+        }${mobileTabBar
+          // Phone: a full screen above the tab bar, like the canvas board « Sofia ».
+          ? ' max-lg:inset-x-0 max-lg:top-0 max-lg:bottom-[calc(3.75rem+env(safe-area-inset-bottom))] max-lg:h-auto max-lg:w-auto max-lg:rounded-none max-lg:border-0'
+          : ''}`}>
           {/* Header */}
           <div className="flex items-center justify-between bg-[#141414] px-5 py-4">
             <div className="flex items-center gap-3">
@@ -557,7 +573,7 @@ const ChatAssistant: React.FC<ChatAssistantProps> = ({
         data-tour="sofia-bubble"
         onClick={() => setOpen(!open)}
         title={t(`${i18nPrefix}.title`) as string}
-        className="group fixed bottom-6 right-4 z-[9990] flex h-12 w-12 items-center justify-center rounded-full shadow-default transition-transform duration-200 hover:scale-110"
+        className={`group fixed bottom-6 right-4 z-[9990] flex h-12 w-12 items-center justify-center rounded-full shadow-default transition-transform duration-200 hover:scale-110${mobileTabBar ? ' max-lg:hidden' : ''}`}
       >
         {open ? (
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#141414]">

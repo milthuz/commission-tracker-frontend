@@ -8098,5 +8098,21 @@
       "desc": "Outils techniques retirés des menus de tous les jours. Chaque action irréversible demande de taper son nom.",
       "kaizen": "Démo Kaizen (maintenance)"
     }
+  },
+  "mobileNav": {
+    "home": "Accueil",
+    "commissions": "Commissions",
+    "more": "Plus"
+  },
+  "more": {
+    "profileSub": "Profil, signature, alertes, 2FA",
+    "display": "Affichage",
+    "theme": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "language": "Langue",
+    "logout": "Se déconnecter",
+    "toFix_one": "{{count}} à corriger",
+    "toFix_other": "{{count}} à corriger"
   }
 }

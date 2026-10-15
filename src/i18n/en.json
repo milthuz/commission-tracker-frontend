@@ -8098,5 +8098,21 @@
       "desc": "Technical tools kept out of everyday menus. Every irreversible action asks you to type its name.",
       "kaizen": "Kaizen demo (maintenance)"
     }
+  },
+  "mobileNav": {
+    "home": "Home",
+    "commissions": "Commissions",
+    "more": "More"
+  },
+  "more": {
+    "profileSub": "Profile, signature, alerts, two-step",
+    "display": "Display",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "language": "Language",
+    "logout": "Sign out",
+    "toFix_one": "{{count}} to fix",
+    "toFix_other": "{{count}} to fix"
   }
 }

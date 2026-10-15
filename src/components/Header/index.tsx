@@ -3,6 +3,7 @@ import { useTheme } from '../../lib/theme';
 import { useTranslation } from 'react-i18next';
 import DropdownNotification from './DropdownNotification';
 import DropdownUser from './DropdownUser';
+import SalesHubLogo from '../SalesHubLogo';
 import SyncStatusIndicator from './SyncStatusIndicator';
 
 const Header = (props: {
@@ -26,7 +27,7 @@ const Header = (props: {
               e.stopPropagation();
               props.setSidebarOpen(!props.sidebarOpen);
             }}
-            className="z-99999 block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-strokedark dark:bg-boxdark lg:hidden"
+            className="z-99999 hidden rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-strokedark dark:bg-boxdark"
           >
             <span className="relative block h-5.5 w-5.5 cursor-pointer">
               <span className="du-block absolute right-0 h-full w-full">
@@ -62,8 +63,8 @@ const Header = (props: {
           </button>
           {/* <!-- Hamburger Toggle BTN --> */}
 
-          <Link className="block flex-shrink-0 lg:hidden" to="/">
-            <span className="text-xl font-bold text-black dark:text-white">cluster</span>
+          <Link className="block flex-shrink-0 lg:hidden" to="/" aria-label="Sales Hub">
+            <SalesHubLogo variant="glyph" className="h-8 w-8" textClassName="text-black dark:text-white" />
           </Link>
         </div>
 
