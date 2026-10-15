@@ -4,6 +4,7 @@ import { fmtDateOnly, fmtPeriod } from '../../lib/format';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
 import ManualDeals from './ManualDeals';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -29,7 +30,7 @@ export default function DealsAdmin() {
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
 
-  const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  const headers = () => ({ Authorization: `Bearer ${getToken()}` });
 
   // The search box shows nothing until you type, so without this an exclusion becomes
   // invisible the moment it is made — you would have to remember the deal's name to undo it.

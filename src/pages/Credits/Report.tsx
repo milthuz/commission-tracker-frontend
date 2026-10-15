@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Download, FileText } from 'lucide-react';
 import { ContentLoader } from '../../common/Loader';
 import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
 import Select from '../../components/Select';
+import { getToken } from '../../lib/auth';
 
 // Rapport mensuel des crédits processeur marchand, pour la comptabilité (credits:report) et les
 // approbateurs. Lecture seule : les crédits APPROUVÉS pendant le mois (heure de Montréal), avec le
@@ -10,7 +11,7 @@ import Select from '../../components/Select';
 // (réglages Excel fr-CA ou en). Un clic sur une ligne ouvre l'entente signée.
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const auth = (): Record<string, string> => ({ Authorization: `Bearer ${localStorage.getItem('token') || ''}` });
+const auth = (): Record<string, string> => ({ Authorization: `Bearer ${getToken() || ''}` });
 const CARD = 'rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark';
 const BTN = 'inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-stroke px-3 py-2 text-sm text-black hover:border-primary hover:text-primary disabled:opacity-50 dark:border-strokedark dark:text-white';
 

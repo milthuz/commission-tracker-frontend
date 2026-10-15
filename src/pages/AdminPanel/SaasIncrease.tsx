@@ -7,12 +7,11 @@ import { appLocale, fmtDateTime, fmtMoney, fmtNumber } from '../../lib/format';
 import { dialog } from '../../lib/dialog';
 import { useAuth } from '../../context/AuthContext';
 import { RefreshCw, Download, Search, ChevronDown, ChevronRight, Layers, Percent, Wallet, TrendingUp, Plus, CheckCheck, X, Trash2, Settings, Sparkles, Gauge, Info, Ban, Presentation, AlertTriangle, RotateCcw, FileBarChart } from 'lucide-react';
+import { authHeaders } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 import SaasIncreaseBoard, { type BoardRow } from './SaasIncreaseBoard';
 import SaasIncreaseReport from './SaasIncreaseReport';
-
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface Subscription {
   nextBillingAt?: string | null;

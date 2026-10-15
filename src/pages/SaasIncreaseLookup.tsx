@@ -5,6 +5,7 @@ import { fmtMoney } from '../lib/format';
 import { useAuth } from '../context/AuthContext';
 import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard, Snowflake,
          MessageSquareQuote, ArrowRight } from 'lucide-react';
+import { authHeaders } from '../lib/auth';
 
 // The support desk's page. A merchant calls, an agent types whatever the caller gave them — a
 // name, a subscription number, a merchant id — and gets that one account's facts. Read-only by
@@ -15,7 +16,6 @@ import { Search, ChevronDown, Mail, Check, Clock, AlertTriangle, CreditCard, Sno
 // the line does not go looking for a second tab.
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface Hit {
   id: number;

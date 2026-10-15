@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { fmtDateTime, fmtMoney, fmtNumber, fmtPeriod } from '../../lib/format';
 import { X, Printer, AlertTriangle, Info, AlertOctagon } from 'lucide-react';
+import { getToken } from '../../lib/auth';
 
 // Trois lectures d'une campagne, dans un document qu'on imprime et qu'on envoie.
 //
@@ -19,7 +20,7 @@ import { X, Printer, AlertTriangle, Info, AlertOctagon } from 'lucide-react';
 // poussée et les courriels. Rien n'est recalculé ici : cette vue ne peut pas diverger.
 
 const API_URL = import.meta.env.VITE_API_URL;
-const authH = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+const authH = () => ({ Authorization: `Bearer ${getToken()}` });
 
 type Row = {
   id: number | null;

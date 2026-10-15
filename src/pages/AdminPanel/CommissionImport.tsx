@@ -11,6 +11,7 @@ import { useUrlTab } from '../../components/ui/Tabs';
 import GoogleReviewsAdmin from './GoogleReviewsAdmin';
 import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -176,7 +177,7 @@ const CommissionImport: React.FC = () => {
 
   const fetchPaySends = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/payroll/sends`, { headers: { Authorization: `Bearer ${token}` } });
       setPaySends(res.data.sends || []);
     } catch (_e) { /* silent */ }
@@ -185,7 +186,7 @@ const CommissionImport: React.FC = () => {
   const deletePaySend = async (s: PayrollSend) => {
     if (!(await dialog.confirm(t('admin.commissionImport.payroll.histDeleteConfirm', { month: monthName(s.month), year: s.year }) as string))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/commissions/payroll/sends`, { headers: { Authorization: `Bearer ${token}` }, data: { ids: s.ids } });
       fetchPaySends();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
@@ -193,7 +194,7 @@ const CommissionImport: React.FC = () => {
 
   const fetchPayRecipients = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/payroll/recipients`, { headers: { Authorization: `Bearer ${token}` } });
       setPayRecipients(res.data.recipients || []);
     } catch (_e) { /* silent */ }
@@ -202,7 +203,7 @@ const CommissionImport: React.FC = () => {
   const fetchPayroll = async () => {
     setPayLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/payroll/preview`, {
         headers: { Authorization: `Bearer ${token}` }, params: { year: payYear, month: payMonth },
       });
@@ -218,7 +219,7 @@ const CommissionImport: React.FC = () => {
   const saveRecipientList = async (emails: string[]) => {
     setSavingRecipients(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.put(`${API_URL}/api/commissions/payroll/recipients`, { emails }, { headers: { Authorization: `Bearer ${token}` } });
       setPayRecipients(res.data.recipients || emails);
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('admin.errors.saveRecipients')); }
@@ -255,7 +256,7 @@ const CommissionImport: React.FC = () => {
     const reps = [...selectedReps];
     setPaySending(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/commissions/payroll/send`, { year: payYear, month: payMonth, reps, lang: i18n.language, payDate: payRunDate || undefined }, { headers: { Authorization: `Bearer ${token}` } });
       setShowPayConfirm(false);
       dialog.alert(t('admin.commissionImport.payroll.sent', { count: res.data.recipients }));
@@ -287,7 +288,7 @@ const CommissionImport: React.FC = () => {
 
   const fetchBonusSends = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/processing-bonus/sends`, { headers: { Authorization: `Bearer ${token}` } });
       setBonusSends(res.data.sends || []);
     } catch (_e) { /* silent */ }
@@ -296,7 +297,7 @@ const CommissionImport: React.FC = () => {
   const deleteBonusSend = async (s: BonusSend) => {
     if (!(await dialog.confirm(t('admin.commissionImport.bonusPayroll.histDeleteConfirm') as string))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/commissions/processing-bonus/sends`, { headers: { Authorization: `Bearer ${token}` }, data: { ids: s.ids } });
       fetchBonusSends();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
@@ -305,7 +306,7 @@ const CommissionImport: React.FC = () => {
   const fetchBonusCommitted = async () => {
     setBonusSendLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/processing-bonus/committed`, {
         headers: { Authorization: `Bearer ${token}` }, params: { year: bonusSendYear, month: bonusSendMonth },
       });
@@ -334,7 +335,7 @@ const CommissionImport: React.FC = () => {
     const reps = [...bonusSelectedReps];
     setBonusSending(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/commissions/processing-bonus/send`,
         { year: bonusSendYear, month: bonusSendMonth, reps, lang: i18n.language },
         { headers: { Authorization: `Bearer ${token}` } });
@@ -358,7 +359,7 @@ const CommissionImport: React.FC = () => {
   // Full history across all periods (admin console). Reloaded after add/delete.
   const fetchManualBonuses = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/manual-bonus`, {
         headers: { Authorization: `Bearer ${token}` }, params: { all: 'true' },
       });
@@ -370,7 +371,7 @@ const CommissionImport: React.FC = () => {
     const amt = parseFloat(mbAmount);
     if (!mbRep || isNaN(amt)) { dialog.alert(t('admin.commissionImport.manualBonus.needRepAmount')); return; }
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/manual-bonus`,
         { repName: mbRep, year: mbYear, month: mbMonth, amount: amt, description: mbDesc },
         { headers: { Authorization: `Bearer ${token}` } });
@@ -382,7 +383,7 @@ const CommissionImport: React.FC = () => {
   const deleteManualBonus = async (id: number, rep: string, amount: string) => {
     if (!(await dialog.confirm(t('safety.deleteManualBonus', { rep, amount }), { danger: true, confirmText: t('common.delete') }))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/commissions/manual-bonus/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchManualBonuses();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
@@ -401,7 +402,7 @@ const CommissionImport: React.FC = () => {
 
   const fetchManualActivations = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/zentact/merchants/manual`, { headers: { Authorization: `Bearer ${token}` } });
       setManualActivations(res.data.activations || []);
     } catch (_e) { /* silent */ }
@@ -411,7 +412,7 @@ const CommissionImport: React.FC = () => {
     if (!maRep || !maBusiness.trim() || !maDate) { dialog.alert(t('admin.commissionImport.manualActivation.needFields')); return; }
     setMaAdding(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/zentact/merchants/manual`, {
         repName: maRep, businessName: maBusiness.trim(), activatedAt: maDate,
         points: parseInt(maPoints) || 1, bonusAmount: maBonus === '' ? undefined : parseFloat(maBonus),
@@ -425,7 +426,7 @@ const CommissionImport: React.FC = () => {
   const deleteManualActivation = async (merchantAccountId: string, merchant: string, rep: string) => {
     if (!(await dialog.confirm(t('safety.deleteManualActivation', { merchant, rep }), { danger: true, confirmText: t('common.delete') }))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/zentact/merchants/manual/${merchantAccountId}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchManualActivations();
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.deleteFailed')); }
@@ -458,7 +459,7 @@ const CommissionImport: React.FC = () => {
     setAdjSearch('');
     if (!rep) { setAdjUnpaid([]); return; }
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/unpaid-commissions`, {
         headers: { Authorization: `Bearer ${token}` }, params: { repName: rep },
       });
@@ -468,7 +469,7 @@ const CommissionImport: React.FC = () => {
   };
   const fetchAdjustments = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/adjustments`, {
         headers: { Authorization: `Bearer ${token}` }, params: { all: 'true' },
       });
@@ -479,7 +480,7 @@ const CommissionImport: React.FC = () => {
     if (!adjRep || adjSelected.size === 0) { dialog.alert(t('admin.commissionImport.adjustments.needSelection')); return; }
     setAdjBusy(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/adjustments`,
         { repName: adjRep, year: adjYear, month: adjMonth, invoiceNumbers: [...adjSelected], description: adjDesc },
         { headers: { Authorization: `Bearer ${token}` } });
@@ -526,7 +527,7 @@ const CommissionImport: React.FC = () => {
   const [sugYear, setSugYear] = useState(new Date().getFullYear());
   const fetchSuggestions = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/adjustments/suggestions`,
         { headers: { Authorization: `Bearer ${token}` } });
       setSuggestions(res.data.suggestions || []);
@@ -539,7 +540,7 @@ const CommissionImport: React.FC = () => {
         month: `${monthName(sugMonth)} ${sugYear}` }) as string))) return;
     setSugBusy(s.key);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const src = s.sourcePeriod ? new Date(s.sourcePeriod) : null;
       if (s.type === 'never_paid') {
         await axios.post(`${API_URL}/api/commissions/adjustments`,
@@ -566,7 +567,7 @@ const CommissionImport: React.FC = () => {
   const dismissSuggestion = async (s: AdjSuggestion) => {
     setSugBusy(s.key);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/adjustments/suggestions/dismiss`,
         { key: s.key }, { headers: { Authorization: `Bearer ${token}` } });
       setSuggestions(prev => prev.filter(x => x.key !== s.key));
@@ -585,7 +586,7 @@ const CommissionImport: React.FC = () => {
   const fetchRecon = async (y: number) => {
     setReconLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/annual-reconciliation`,
         { headers: { Authorization: `Bearer ${token}` }, params: { year: y } });
       setRecon(res.data);
@@ -636,7 +637,7 @@ const CommissionImport: React.FC = () => {
     }
     setFreeAdjBusy(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const [sy, sm] = freeAdjSourceYm ? freeAdjSourceYm.split('-').map(Number) : [null, null];
       await axios.post(`${API_URL}/api/commissions/adjustments`,
         { repName: adjRep, year: adjYear, month: adjMonth, amount: amt, description: freeAdjDesc,
@@ -675,7 +676,7 @@ const CommissionImport: React.FC = () => {
       { count: bulkValid.length, total: fmt(bulkTotal), month: `${monthName(adjMonth)} ${adjYear}` }) as string))) return;
     setBulkBusy(true);
     setBulkResult(null);
-    const token = localStorage.getItem('token');
+    const token = getToken();
     const failed: { line: string; error: string }[] = [];
     let ok = 0;
     for (const row of bulkValid) {
@@ -698,7 +699,7 @@ const CommissionImport: React.FC = () => {
   const deleteAdjustment = async (id: number) => {
     if (!(await dialog.confirm(t('admin.commissionImport.adjustments.deleteConfirm') as string))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/commissions/adjustments/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       await fetchAdjustments();
       if (adjRep) await fetchAdjUnpaid(adjRep);
@@ -732,7 +733,7 @@ const CommissionImport: React.FC = () => {
     if (!editingAdjDesc.trim()) { dialog.alert(t('admin.commissionImport.adjustments.descRequired')); return; }
     setEditAdjBusy(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(`${API_URL}/api/commissions/adjustments/${id}`,
         { description: editingAdjDesc.trim() },
         { headers: { Authorization: `Bearer ${token}` } });
@@ -755,7 +756,7 @@ const CommissionImport: React.FC = () => {
 
   const openStub = async (id: number) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/admin/commission-imports/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       setStub(toPayStub(res.data as StubDetail));
     } catch (_e) { /* ignore */ }
@@ -764,7 +765,7 @@ const CommissionImport: React.FC = () => {
   // Open the UNIFIED pay stub (imported or app-generated) for a coverage cell.
   const openPeriodStub = async (rep: string, ym: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const [year, month] = ym.split('-');
       const res = await axios.get(`${API_URL}/api/commissions/pay-stub`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -792,7 +793,7 @@ const CommissionImport: React.FC = () => {
     if (!(await dialog.confirm(t('admin.commissionImport.quotaReview.uncommitConfirm', { rep: stub.repName, month: `${monthName(parseInt(month))} ${year}` }) as string, { danger: true }))) return;
     setStubBusy(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/commissions/pay-stub/uncommit`,
         { repName: stub.repName, year, month: parseInt(month) },
         { headers: { Authorization: `Bearer ${token}` } });
@@ -808,7 +809,7 @@ const CommissionImport: React.FC = () => {
     if (!stub) return;
     const [year, month] = stub.period.split('-');
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/quota-waiver`, {
         repName: stub.repName, year, month: String(parseInt(month)), waived,
       }, { headers: { Authorization: `Bearer ${token}` } });
@@ -822,7 +823,7 @@ const CommissionImport: React.FC = () => {
   const fetchProcessing = async () => {
     setProcLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/admin/processing-bonus`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { year: procYear, month: procMonth },
@@ -841,7 +842,7 @@ const CommissionImport: React.FC = () => {
     if (!(await dialog.confirm(t('admin.commissionImport.processing.commitConfirm', { total: fmt(procData.grandTotal) }) as string))) return;
     setProcCommitting(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/commissions/processing-bonus/commit`,
         { year: procYear, month: procMonth }, { headers: { Authorization: `Bearer ${token}` } });
       dialog.alert(t('admin.commissionImport.processing.commitDone', { count: res.data.accounts, total: fmt(res.data.total) }) as string);
@@ -855,7 +856,7 @@ const CommissionImport: React.FC = () => {
     if (!(await dialog.confirm(t('admin.commissionImport.processing.uncommitConfirm') as string))) return;
     setProcCommitting(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/processing-bonus/uncommit`,
         { year: procYear, month: procMonth }, { headers: { Authorization: `Bearer ${token}` } });
       await fetchProcessing();
@@ -868,7 +869,7 @@ const CommissionImport: React.FC = () => {
   const [bonusStatement, setBonusStatement] = useState<BonusStatementData | null>(null);
   const viewBonusStatement = async (rep: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/processing-bonus-statement`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { repName: rep, year: procYear, month: procMonth },
@@ -881,7 +882,7 @@ const CommissionImport: React.FC = () => {
 
   const fetchCoverage = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/admin/commission-imports/coverage/matrix`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -895,7 +896,7 @@ const CommissionImport: React.FC = () => {
   const [quotaBusy, setQuotaBusy] = useState<string | null>(null);
   const fetchQuotaReview = async (includeAcked: boolean) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/quota-review`, {
         headers: { Authorization: `Bearer ${token}` }, params: includeAcked ? { includeAcked: '1' } : {},
       });
@@ -908,7 +909,7 @@ const CommissionImport: React.FC = () => {
   const [quotaInvoices, setQuotaInvoices] = useState<{ rep: string; year: number; month: number; rows: QuotaForfeitInvoice[] } | null>(null);
   const openQuotaInvoices = async (r: QuotaReviewRow) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/quota-review/invoices`, {
         headers: { Authorization: `Bearer ${token}` }, params: { repName: r.rep, year: r.year, month: r.month },
       });
@@ -921,7 +922,7 @@ const CommissionImport: React.FC = () => {
   const [quotaLog, setQuotaLog] = useState<QuotaWaiverLogRow[] | null>(null);
   const fetchQuotaLog = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/commissions/quota-waiver-log`, { headers: { Authorization: `Bearer ${token}` } });
       setQuotaLog(res.data.rows || []);
     } catch (_e) { /* silent */ }
@@ -939,7 +940,7 @@ const CommissionImport: React.FC = () => {
     if (!(await dialog.confirm(confirmMsg as string))) return;
     setQuotaBusy(quotaKey(r));
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/quota-waiver`,
         { repName: r.rep, year: r.year, month: r.month, waived: true, percent },
         { headers: { Authorization: `Bearer ${token}` } });
@@ -952,7 +953,7 @@ const CommissionImport: React.FC = () => {
   const quotaAcknowledge = async (r: QuotaReviewRow) => {
     setQuotaBusy(quotaKey(r));
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/quota-review/acknowledge`,
         { repName: r.rep, year: r.year, month: r.month },
         { headers: { Authorization: `Bearer ${token}` } });
@@ -964,7 +965,7 @@ const CommissionImport: React.FC = () => {
     if (!r.ackId) return;
     setQuotaBusy(quotaKey(r));
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/commissions/quota-review/acknowledge/${r.ackId}`, { headers: { Authorization: `Bearer ${token}` } });
       await Promise.all([fetchQuotaReview(quotaShowHistory), fetchCoverage()]);
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('errors.failed')); }
@@ -973,7 +974,7 @@ const CommissionImport: React.FC = () => {
 
   const fetchHistory = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/admin/commission-imports`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -983,7 +984,7 @@ const CommissionImport: React.FC = () => {
 
   const fetchDisabledYears = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/settings/report-years`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -997,7 +998,7 @@ const CommissionImport: React.FC = () => {
       : [...disabledYears, year];
     setSavingYears(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.put(`${API_URL}/api/admin/report-years`, { disabledYears: next }, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1013,7 +1014,7 @@ const CommissionImport: React.FC = () => {
     // Active salespeople for the manual-bonus rep dropdown.
     (async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const res = await axios.get(`${API_URL}/api/salespeople`, { headers: { Authorization: `Bearer ${token}` } });
         setReps(res.data.salespeople || []);
       } catch (_e) { /* silent */ }
@@ -1034,7 +1035,7 @@ const CommissionImport: React.FC = () => {
     try {
       const fd = new FormData();
       fd.append('file', entry.file);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/admin/commission-import/preview`, fd, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1062,7 +1063,7 @@ const CommissionImport: React.FC = () => {
     try {
       const fd = new FormData();
       fd.append('file', entry.file);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/admin/commission-import/commit`, fd, {
         headers: { Authorization: `Bearer ${token}` },
       });

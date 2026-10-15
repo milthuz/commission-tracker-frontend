@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../lib/dialog';
 import { fmtMoney, fmtPeriod, fmtDate } from '../lib/format';
+import { getToken } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -39,7 +40,7 @@ const ProcessingBonusStatementModal: React.FC<{
     if (!data || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailTo.trim())) return;
     setEmailSending(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/processing-bonus-statement/email`, {
         repName: data.repName, period: data.period, to: emailTo.trim(),
         accounts: data.accounts, total: data.total,

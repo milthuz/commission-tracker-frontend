@@ -5,9 +5,9 @@ import { fmtMoney } from '../lib/format';
 import { dialog } from '../lib/dialog';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { authHeaders } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 const b64ToBytes = (b64: string) => {
   const bin = atob(b64); const arr = new Uint8Array(bin.length);

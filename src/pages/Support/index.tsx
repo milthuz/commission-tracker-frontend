@@ -6,6 +6,7 @@ import { ApexOptions } from 'apexcharts';
 import axios from 'axios';
 import Select from '../../components/Select';
 import SupportMerchants from './SupportMerchants';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -105,7 +106,7 @@ export default function Support() {
   const [synchro, setSynchro] = useState<any>(null);
   const [lance, setLance] = useState(false);
 
-  const jeton = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+  const jeton = () => ({ headers: { Authorization: `Bearer ${getToken()}` } });
 
   const charger = async () => {
     setChargement(true); setErreur('');

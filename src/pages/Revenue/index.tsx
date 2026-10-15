@@ -5,6 +5,7 @@ import { fmtMoney, appLocale } from '../../lib/format';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import axios from 'axios';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -151,7 +152,7 @@ export default function Revenue() {
 
   // Load active salespeople + active resellers so the report shows only active ones.
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     const h = { headers: { Authorization: `Bearer ${token}` } };
     axios
       .get(`${API_URL}/api/salespeople`, h) // active-only by default
@@ -177,7 +178,7 @@ export default function Revenue() {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     setData(null); setError(false);
     axios
       .get(`${API_URL}/api/zentact/revenue?year=${year}`, { headers: { Authorization: `Bearer ${token}` } })

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { fmtDate } from '../../lib/format';
 import axios from 'axios';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -64,7 +65,7 @@ const Versions: React.FC = () => {
   const fetchReleases = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`${API_URL}/api/releases`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -52,7 +53,7 @@ const SyncStatusIndicator = () => {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         if (!token) return;
         const res = await axios.get(`${API_URL}/api/sync/all-status`, {
           headers: { Authorization: `Bearer ${token}` },

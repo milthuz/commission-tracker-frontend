@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { appLocale } from '../../lib/format';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { getToken } from '../../lib/auth';
 
 // Meme convention que PartnersAdmin : l URL est lue de l environnement, il n existe pas
 // de module de configuration partage dans ce projet.
@@ -55,7 +56,7 @@ export default function PartnerStats() {
 
   useEffect(() => {
     axios.get(`${API_URL}/api/admin/partner-stats`,
-      { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+      { headers: { Authorization: `Bearer ${getToken()}` } })
       .then((r) => {
         setFunnel(r.data.funnel || []); setLogins(r.data.logins || []);
         setSubmissions(r.data.submissions || []); setDormant(r.data.dormant || []);

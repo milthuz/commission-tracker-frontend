@@ -7,6 +7,7 @@ import PdfThumbPreview from './PdfThumbPreview';
 import ActivityTimeline from '../components/ActivityTimeline';
 import Select from '../components/Select';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { authHeaders, getToken } from '../lib/auth';
 
 const b64ToBytes = (b64: string) => {
   const bin = atob(b64); const arr = new Uint8Array(bin.length);
@@ -15,7 +16,6 @@ const b64ToBytes = (b64: string) => {
 };
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface Estimate {
   estimateId: string; number: string; customerName: string;
@@ -527,7 +527,7 @@ const Proposals: React.FC = () => {
                 </div>
               )}
               <iframe
-                src={`${API_URL}/api/proposals/estimate/${estPreview.estimateId}/preview?token=${localStorage.getItem('token')}`}
+                src={`${API_URL}/api/proposals/estimate/${estPreview.estimateId}/preview?token=${getToken()}`}
                 className="h-full w-full border-0"
                 title={t('proposals.estimatePreview') as string}
                 onLoad={() => setEstPreview((p) => (p ? { ...p, loading: false } : p))}

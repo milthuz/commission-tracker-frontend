@@ -1,6 +1,7 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { dialog } from '../lib/dialog';
 import { useTranslation } from 'react-i18next';
+import { getToken } from '../lib/auth';
 
 // Administration de la bibliothèque de contenu de La Passe (perm `pass:manage`).
 // Sous-onglet de la page « La Passe » plutôt qu'un nouveau menu latéral : c'est la
@@ -31,7 +32,7 @@ const PassLibraryAdmin = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const auth = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  const auth = () => ({ Authorization: `Bearer ${getToken()}` });
 
   const load = async () => {
     try {

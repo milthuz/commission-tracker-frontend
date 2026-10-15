@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { getToken } from '../lib/auth';
 
 interface User {
   email: string;
@@ -38,7 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const storedUser = localStorage.getItem('user');
 
       if (token && storedUser) {

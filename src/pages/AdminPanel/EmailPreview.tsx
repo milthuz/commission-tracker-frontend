@@ -3,6 +3,7 @@ import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -42,7 +43,7 @@ export default function EmailPreview() {
   const [to, setTo] = useState('');
   const [sending, setSending] = useState(false);
 
-  const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  const headers = () => ({ Authorization: `Bearer ${getToken()}` });
 
   useEffect(() => {
     setLoading(true);

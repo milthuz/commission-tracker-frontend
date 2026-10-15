@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { DataTable, FilterBar, StatusPill } from '../../components/ui';
 import type { Column, StatusFamily } from '../../components/ui';
 import { fmtDate } from '../../lib/format';
+import { getToken } from '../../lib/auth';
 
 // « Tous les usagers » (audit UX, P2 — zone Personnes et accès : « utilisateurs internes, externes
 // et partenaires dans une seule liste »). ONE searchable list of every account, whatever its kind;
@@ -46,7 +47,7 @@ const UserDirectory = ({ users, onOpen }: { users: DirectorySalesHubUser[]; onOp
   const [kind, setKind] = useState<'all' | Kind>('all');
 
   useEffect(() => {
-    axios.get(`${API_URL}/api/admin/partner-invites`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+    axios.get(`${API_URL}/api/admin/partner-invites`, { headers: { Authorization: `Bearer ${getToken()}` } })
       .then((r) => setPartners(r.data.invites || []))
       .catch(() => setPartners([])); // the Sales Hub accounts still list
   }, []);

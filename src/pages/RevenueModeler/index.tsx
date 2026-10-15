@@ -12,6 +12,7 @@ import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
 import BoardView from './BoardView';
 import { buildRows, compute, INTERAC_ALERT_FLOOR, upgradeInputs, YEARS, type Inputs, type NumKey, type Row } from './model';
+import { authHeaders as sharedAuthHeaders } from '../../lib/auth';
 
 // 1..YEARS, pour les en-têtes de colonnes, le graphique et le CSV.
 const YEAR_NUMS = Array.from({ length: YEARS }, (_, k) => k + 1);
@@ -26,7 +27,7 @@ const sum = (a: number[]) => a.reduce((x, v) => x + v, 0);
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem('token')}`,
+  ...sharedAuthHeaders(),
   'Content-Type': 'application/json',
 });
 

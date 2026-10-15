@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { fmtDateTime } from '../lib/format';
+import { getToken } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -33,7 +34,7 @@ const ConnectionStatusBanner = () => {
     let timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         if (!token) return;
         const res = await axios.get(`${API_URL}/api/auth/connections-status`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -61,7 +62,7 @@ const ConnectionStatusBanner = () => {
     // doing a 302 — we have to fetch the authUrl and then redirect the
     // browser to it ourselves.
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}${url}`, {
         headers: { Authorization: `Bearer ${token}` },
       });

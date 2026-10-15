@@ -7,6 +7,7 @@ import { dialog } from '../lib/dialog';
 import ProbationBadge from '../components/ProbationBadge';
 import { ContentLoader } from '../common/Loader';
 import { Button, StateCard, StatusPill } from '../components/ui';
+import { getToken } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -108,7 +109,7 @@ const CommissionTracker: React.FC = () => {
     if (!missingModal.message.trim()) return;
     setMissingModal(m => ({ ...m, sending: true }));
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const period = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
       await axios.post(`${API_URL}/api/commissions/missing-points-report`,
         { reference: missingModal.reference, period, message: missingModal.message },
@@ -127,7 +128,7 @@ const CommissionTracker: React.FC = () => {
   // Admin status from the EFFECTIVE identity (/api/auth/verify), not the raw JWT —
   // the JWT stays admin while impersonating, which would expose admin-only controls.
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (!token) return;
     axios
       .get(`${API_URL}/api/auth/verify`, { headers: { Authorization: `Bearer ${token}` } })
@@ -140,7 +141,7 @@ const CommissionTracker: React.FC = () => {
     if (!isAdmin) return;
     const fetchReps = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const res = await axios.get(`${API_URL}/api/salespeople`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -154,7 +155,7 @@ const CommissionTracker: React.FC = () => {
   const assignMerchant = async (merchantId: string, repName: string) => {
     if (!repName) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.patch(
         `${API_URL}/api/zentact/merchants/${encodeURIComponent(merchantId)}/rep`,
         { repName },
@@ -175,7 +176,7 @@ const CommissionTracker: React.FC = () => {
     try {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/crm/points`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { year: selectedYear, month: selectedMonth },
@@ -191,7 +192,7 @@ const CommissionTracker: React.FC = () => {
   // Admin: override a deal's lead source group (empty = revert to the CRM-synced value).
   const overrideDealSource = async (dealId: string, source: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/crm/deals/${encodeURIComponent(dealId)}/source`,
         { source },

@@ -16,6 +16,7 @@ import useLocalStorage from '../hooks/useLocalStorage';
 import { ContentLoader } from '../common/Loader';
 import { Button, FilterBar, RowMenu, StateCard, StatusPill, Tabs, useUrlTab } from '../components/ui';
 import type { MenuItem, StatusFamily } from '../components/ui';
+import { getToken } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -213,7 +214,7 @@ const CommissionReport = () => {
     if (!q) return;
     setSearchModal({ open: true, q, loading: true, results: [] });
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const params: Record<string, string> = { year: selectedYear, q };
       if (report) params.repName = report.repName;
       const res = await axios.get(`${API_URL}/api/commissions/invoices`, { headers: { Authorization: `Bearer ${token}` }, params });
@@ -228,7 +229,7 @@ const CommissionReport = () => {
   const [processing, setProcessing] = useState<{ merchants: ProcMerchant[]; totals: { bonus: number } } | null>(null);
   useEffect(() => {
     if (!report?.repName) { setProcessing(null); return; }
-    const token = localStorage.getItem('token');
+    const token = getToken();
     axios.get(`${API_URL}/api/commissions/my-processing`, { headers: { Authorization: `Bearer ${token}` }, params: { repName: report.repName } })
       .then(r => setProcessing({ merchants: r.data.merchants || [], totals: r.data.totals || { bonus: 0 } }))
       .catch(() => setProcessing(null));
@@ -238,7 +239,7 @@ const CommissionReport = () => {
     if (!missingModal.message.trim()) return;
     setMissingModal(m => ({ ...m, sending: true }));
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const period = selectedMonth === 'all' ? selectedYear : `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
       await axios.post(`${API_URL}/api/commissions/missing-report`,
         { invoiceNumber: missingModal.invoiceNumber, period, message: missingModal.message },
@@ -253,7 +254,7 @@ const CommissionReport = () => {
 
   // Check admin status + load effective permissions
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (!token) return;
     // isAdmin/permissions come from /api/auth/verify, which reflects the EFFECTIVE
     // identity (impersonation downgrades to isAdmin=false). Do NOT trust the raw JWT's
@@ -293,7 +294,7 @@ const CommissionReport = () => {
   useEffect(() => {
     const fetchReps = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const res = await axios.get(`${API_URL}/api/commissions/viewable-reps`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -335,7 +336,7 @@ const CommissionReport = () => {
     const fetchReport = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const params: Record<string, string> = { year: selectedYear };
         if (selectedRep) params.repName = selectedRep;
         if (selectedMonth !== 'all') params.month = selectedMonth;
@@ -359,7 +360,7 @@ const CommissionReport = () => {
     if (!report?.repName) return;
     const fetchPoints = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const res = await axios.get(`${API_URL}/api/crm/points/annual`, {
           headers: { Authorization: `Bearer ${token}` },
           params: { year: selectedYear, repName: report.repName },
@@ -375,7 +376,7 @@ const CommissionReport = () => {
 
   const refreshReport = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const params: Record<string, string> = { year: selectedYear };
       if (selectedRep) params.repName = selectedRep;
       if (selectedMonth !== 'all') params.month = selectedMonth;
@@ -396,7 +397,7 @@ const CommissionReport = () => {
     
     setApprovingMonth(month);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/commissions/approve`, {
         repName: report.repName,
         year: selectedYear,
@@ -420,7 +421,7 @@ const CommissionReport = () => {
 
     setMarkingPaidMonth(month);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/commissions/mark-paid`, {
         repName: report.repName,
         year: selectedYear,
@@ -444,7 +445,7 @@ const CommissionReport = () => {
     
     setApprovingMonth(month);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/commissions/unapprove`, {
         repName: report.repName,
         year: selectedYear,
@@ -476,7 +477,7 @@ const CommissionReport = () => {
       const params: Record<string, string> = { year: selectedYear, month: selectedMonth };
       if (selectedRep) params.repName = selectedRep;
       const res = await axios.get(`${API_URL}/api/commissions/processing-bonus-statement`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, params,
+        headers: { Authorization: `Bearer ${getToken()}` }, params,
       });
       setBonusStatement(res.data);
     } catch (e: any) {
@@ -488,7 +489,7 @@ const CommissionReport = () => {
     if (selectedMonth === 'all') return;
     setLoadingStub(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const params: Record<string, string> = { year: selectedYear, month: selectedMonth };
       if (selectedRep) params.repName = selectedRep;
       const res = await axios.get(`${API_URL}/api/commissions/pay-stub`, {
@@ -526,7 +527,7 @@ const CommissionReport = () => {
   const waiveQuota = async (waived: boolean) => {
     if (!payStub || selectedMonth === 'all') return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/quota-waiver`, {
         repName: payStub.repName, year: selectedYear, month: selectedMonth, waived,
       }, { headers: { Authorization: `Bearer ${token}` } });
@@ -545,7 +546,7 @@ const CommissionReport = () => {
     if (!(await dialog.confirm(t('commissionReport.payStub.commitConfirm', { rep: payStub.repName, period }) as string))) return;
     setCommittingStub(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/commissions/pay-stub/commit`, {
         repName: payStub.repName,
         year: selectedYear,
@@ -568,7 +569,7 @@ const CommissionReport = () => {
     if (!(await dialog.confirm(t('commissionReport.payStub.uncommitConfirm', { rep: payStub.repName, period }) as string, { danger: true }))) return;
     setCommittingStub(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/commissions/pay-stub/uncommit`, {
         repName: payStub.repName, year: selectedYear, month: selectedMonth,
       }, { headers: { Authorization: `Bearer ${token}` } });
@@ -587,7 +588,7 @@ const CommissionReport = () => {
     setExpandedMonth(month);
     setLoadingDrill(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const params: Record<string, string> = { year: selectedYear, month: String(month) };
       if (report) params.repName = report.repName;
       const res = await axios.get(`${API_URL}/api/commissions/invoices`, {
@@ -613,7 +614,7 @@ const CommissionReport = () => {
     const excluded = !currentlyExcluded;
     if (excluded && !(await dialog.confirm(t('commissionReport.exclude.confirm', { invoice: invoiceNumber }) as string))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(
         `${API_URL}/api/commissions/invoice/${encodeURIComponent(invoiceNumber)}/commission-excluded`,
         { excluded }, { headers: { Authorization: `Bearer ${token}` } });
@@ -645,7 +646,7 @@ const CommissionReport = () => {
   // Print
   const handlePrint = async (invoiceNumber: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`${API_URL}/api/invoices/${invoiceNumber}/pdf`, {
         headers: { Authorization: `Bearer ${token}` }, responseType: 'blob',
       });
@@ -661,7 +662,7 @@ const CommissionReport = () => {
   // Download PDF
   const handleDownload = async (invoiceNumber: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`${API_URL}/api/invoices/${invoiceNumber}/pdf`, {
         headers: { Authorization: `Bearer ${token}` }, responseType: 'blob',
       });
@@ -690,7 +691,7 @@ const CommissionReport = () => {
     }
     setEmailModal(prev => ({ ...prev, sending: true }));
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/invoices/${invoiceNumber}/email`,
         { recipientEmail: email },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -735,7 +736,7 @@ const CommissionReport = () => {
     if (!(await dialog.confirm(message as string))) return;
     setBulkBusy(quoi);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const url = quoi === 'approve' ? '/api/commissions/approve' : '/api/commissions/mark-paid';
       const res = await axios.post(`${API_URL}${url}`,
         { invoiceNumbers: cibles.map((i) => i.invoiceNumber) },
@@ -1482,7 +1483,7 @@ const CommissionReport = () => {
                 </div>
               )}
               <iframe
-                src={`${API_URL}/api/invoices/${previewModal.invoiceNumber}/preview?token=${localStorage.getItem('token')}`}
+                src={`${API_URL}/api/invoices/${previewModal.invoiceNumber}/preview?token=${getToken()}`}
                 className="w-full border-0"
                 style={{ minHeight: '600px', height: 'calc(90vh - 80px)' }}
                 title={t('commissionReport.invoicePreview') as string}

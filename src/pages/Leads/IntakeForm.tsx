@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { dialog } from '../../lib/dialog';
 import { useTranslation } from 'react-i18next';
 import Select from '../../components/Select';
 import { authHeaders, LEAD_SOURCES } from './types';
@@ -48,6 +49,15 @@ const IntakeForm = ({ open, onClose, onCreated }: {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<Created | null>(null);
+  const requestCloseRef = useRef<() => Promise<void>>(async () => {});
+  const confirming = useRef(false); // a confirmation is already showing — Escape must not stack another
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); void requestCloseRef.current(); } };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
 
   if (!open) return null;
 
@@ -56,6 +66,22 @@ const IntakeForm = ({ open, onClose, onCreated }: {
 
   const reset = () => { setForm({ ...blank }); setInterest([]); setCreated(null); setError(null); };
   const close = () => { reset(); onClose(); };
+  // Typed something and not yet sent → confirm before throwing it away (audit UX: a click beside
+  // the window used to erase the whole form, mid-call, without a word).
+  const dirty = !created && (interest.length > 0
+    || (Object.keys(blank) as (keyof typeof blank)[]).some((k) => form[k] !== blank[k]));
+  const requestClose = async () => {
+    if (saving) return;
+    if (confirming.current) return;
+    if (dirty) {
+      confirming.current = true;
+      const ok = await dialog.confirm(t('leads.intake.discardConfirm') as string, { danger: true });
+      confirming.current = false;
+      if (!ok) return;
+    }
+    close();
+  };
+  requestCloseRef.current = requestClose;
 
   const submit = async () => {
     if (!form.businessName.trim()) { setError(t('leads.intake.businessRequired')); return; }
@@ -79,7 +105,7 @@ const IntakeForm = ({ open, onClose, onCreated }: {
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto p-4 sm:p-8">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !saving && close()} />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => void requestClose()} />
       <div
         role="dialog"
         aria-modal="true"
@@ -90,7 +116,7 @@ const IntakeForm = ({ open, onClose, onCreated }: {
             <h3 className="text-lg font-semibold text-black dark:text-white">{t('leads.intake.title')}</h3>
             <p className="mt-0.5 text-sm text-bodydark2">{t('leads.intake.subtitle')}</p>
           </div>
-          <button type="button" onClick={close} className="text-bodydark2 hover:text-black dark:hover:text-white" aria-label={t('common.close') as string}>
+          <button type="button" onClick={() => void requestClose()} className="text-bodydark2 hover:text-black dark:hover:text-white" aria-label={t('common.close') as string}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
           </button>
         </div>
@@ -114,14 +140,31 @@ const IntakeForm = ({ open, onClose, onCreated }: {
               <button type="button" onClick={reset} className="rounded border border-stroke px-5 py-2.5 text-sm font-medium text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
                 {t('leads.intake.another')}
               </button>
-              <button type="button" onClick={close} className="rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90">
+              <button type="button" onClick={close} className="rounded bg-primary px-5 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A]">
                 {t('common.done')}
               </button>
             </div>
           </div>
         ) : (
           <div className="max-h-[70vh] overflow-y-auto px-6 py-5">
-            <p className="mb-4 text-xs uppercase tracking-wide text-bodydark2">{t('leads.intake.sectionBusiness')}</p>
+            <p className="mb-4 text-xs uppercase tracking-wide text-bodydark2">{t('leads.intake.sectionSource')}</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className={LABEL}>{t('leads.field.source')}</label>
+                <Select
+                  buttonClassName={SELECT_CLS}
+                  value={form.source}
+                  onChange={set('source')}
+                  options={LEAD_SOURCES.filter((s) => s !== 'website').map((s) => ({ value: s, label: t(`leads.source.${s}`) as string }))}
+                />
+              </div>
+              <div>
+                <label className={LABEL}>{t('leads.field.sourceDetail')}</label>
+                <input className={INPUT} value={form.sourceDetail} onChange={(e) => set('sourceDetail')(e.target.value)} placeholder={t('leads.field.sourceDetailPlaceholder') as string} />
+              </div>
+            </div>
+
+            <p className="mb-4 mt-6 text-xs uppercase tracking-wide text-bodydark2">{t('leads.intake.sectionBusiness')}</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label className={LABEL}>{t('leads.field.businessName')} *</label>
@@ -215,7 +258,7 @@ const IntakeForm = ({ open, onClose, onCreated }: {
                       type="button"
                       onClick={() => setInterest((cur) => (on ? cur.filter((x) => x !== k) : [...cur, k]))}
                       className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
-                        on ? 'bg-primary text-white' : 'bg-gray-2 text-bodydark2 hover:text-black dark:bg-meta-4 dark:hover:text-white'
+                        on ? 'bg-primary text-[#141414]' : 'bg-gray-2 text-bodydark2 hover:text-black dark:bg-meta-4 dark:hover:text-white'
                       }`}
                     >
                       {t(`leads.interest.${k}`)}
@@ -230,32 +273,15 @@ const IntakeForm = ({ open, onClose, onCreated }: {
               <textarea className={`${INPUT} min-h-[90px]`} value={form.notes} onChange={(e) => set('notes')(e.target.value)} placeholder={t('leads.field.notesPlaceholder') as string} />
             </div>
 
-            <p className="mb-4 mt-6 text-xs uppercase tracking-wide text-bodydark2">{t('leads.intake.sectionSource')}</p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className={LABEL}>{t('leads.field.source')}</label>
-                <Select
-                  buttonClassName={SELECT_CLS}
-                  value={form.source}
-                  onChange={set('source')}
-                  options={LEAD_SOURCES.filter((s) => s !== 'website').map((s) => ({ value: s, label: t(`leads.source.${s}`) as string }))}
-                />
-              </div>
-              <div>
-                <label className={LABEL}>{t('leads.field.sourceDetail')}</label>
-                <input className={INPUT} value={form.sourceDetail} onChange={(e) => set('sourceDetail')(e.target.value)} placeholder={t('leads.field.sourceDetailPlaceholder') as string} />
-              </div>
-            </div>
-
             {error && (
               <div role="alert" className="mt-5 rounded-sm border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</div>
             )}
 
             <div className="mt-6 flex justify-end gap-3">
-              <button type="button" onClick={close} disabled={saving} className="rounded border border-stroke px-5 py-2.5 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
+              <button type="button" onClick={() => void requestClose()} disabled={saving} className="rounded border border-stroke px-5 py-2.5 text-sm font-medium text-black hover:bg-gray-2 disabled:opacity-60 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
                 {t('common.cancel')}
               </button>
-              <button type="button" onClick={submit} disabled={saving} className="rounded bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-60">
+              <button type="button" onClick={submit} disabled={saving} className="rounded bg-primary px-5 py-2.5 text-sm font-bold text-[#141414] hover:bg-[#F79C6A] disabled:opacity-60">
                 {saving ? t('leads.intake.checking') : t('leads.intake.submit')}
               </button>
             </div>

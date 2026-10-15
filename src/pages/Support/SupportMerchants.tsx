@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { fmtNumber } from '../../lib/format';
 import axios from 'axios';
 import Select from '../../components/Select';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -46,7 +47,7 @@ export default function SupportMerchants({ canManageExclusions }: { canManageExc
   const [nouvelExclu, setNouvelExclu] = useState('');
   const [gereExclus, setGereExclus] = useState(false);
 
-  const jeton = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+  const jeton = () => ({ headers: { Authorization: `Bearer ${getToken()}` } });
 
   const charger = async () => {
     setChargement(true); setErreur('');

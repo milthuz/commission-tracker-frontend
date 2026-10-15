@@ -5,6 +5,7 @@ import { fmtMoney, fmtNumber, fmtDate, fmtDateOnly, appLocale } from '../../lib/
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import axios from 'axios';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -536,7 +537,7 @@ export default function Reseller() {
   const [meta, setMeta] = useState<ResellerMeta>({});
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     const headers = { Authorization: `Bearer ${token}` };
     axios
       .get(`${API_URL}/api/resellers/pos-activations`, { headers })

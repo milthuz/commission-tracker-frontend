@@ -8,6 +8,7 @@ import InvoiceLink from '../../components/InvoiceLink';
 import { ContentLoader } from '../../common/Loader';
 import { InlineError, StatusPill } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
+import { getToken } from '../../lib/auth';
 
 // Tableau de bord du représentant — refonte UI (P2, planche DeskAccueil).
 // Le représentant veut savoir combien il touchera et ce qui lui manque pour y arriver :
@@ -97,7 +98,7 @@ const RepDashboard: React.FC = () => {
   const [drillInvoices, setDrillInvoices] = useState<DrillInvoice[]>([]);
   const [loadingDrill, setLoadingDrill] = useState(false);
 
-  const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  const headers = () => ({ Authorization: `Bearer ${getToken()}` });
 
   // Projection de la prime semestrielle : chargée à part, car `report:bonus_forecast` n'est pas
   // donnée à tout le monde — un 403 fait disparaître la ligne, pas tout le tableau de bord.

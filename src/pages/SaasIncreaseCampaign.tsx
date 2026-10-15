@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, AlertTriangle, LifeBuoy, Info, ChevronDown } from 'lucide-react';
+import { authHeaders } from '../lib/auth';
 
 // Le suivi d'une campagne EN COURS, par opposition a la vue board qui est une proposition figee.
 // Une hausse de prix ne finit pas au clic sur « Appliquer » : chaque abonnement change de prix a
@@ -11,7 +12,6 @@ import { RefreshCw, AlertTriangle, LifeBuoy, Info, ChevronDown } from 'lucide-re
 // la main : un compteur d'avancement qu'il faut penser a mettre a jour finit toujours par mentir.
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface Campaign {
   scenario: { id: number; name: string; status: string; createdAt: string };

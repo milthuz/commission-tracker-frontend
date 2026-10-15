@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { appLocale, fmtNumber, fmtDate, fmtDateOnly } from '../lib/format';
 import { dialog } from '../lib/dialog';
+import { authHeaders } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -102,8 +103,6 @@ const Resources: React.FC = () => {
   const [newFolderName, setNewFolderName] = useState('');
   const [dragPath, setDragPath] = useState<string | null>(null);       // folder being dragged
   const [dropTarget, setDropTarget] = useState<string | null>(null);   // folder path (or '' = root) highlighted as drop zone
-
-  const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
   useEffect(() => {
     axios.get(`${API_URL}/api/auth/verify`, { headers: authHeaders() })

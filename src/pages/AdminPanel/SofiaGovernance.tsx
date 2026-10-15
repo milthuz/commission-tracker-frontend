@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { appLocale } from '../../lib/format';
+import { authHeaders } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface SofiaAction {
   id: number;

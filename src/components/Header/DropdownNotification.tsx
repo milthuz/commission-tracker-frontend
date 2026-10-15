@@ -6,6 +6,7 @@ import axios from 'axios';
 import ClickOutside from '../ClickOutside';
 import { useUnseenRelease } from '../../hooks/useUnseenRelease';
 import { useAppVersion } from '../../hooks/useAppVersion';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -52,7 +53,7 @@ const DropdownNotification = () => {
     let cancelled = false;
     (async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const res = await axios.get(`${API_URL}/api/releases`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });

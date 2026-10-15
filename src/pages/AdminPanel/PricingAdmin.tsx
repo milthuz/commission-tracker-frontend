@@ -3,9 +3,9 @@ import Select from '../../components/Select';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
+import { authHeaders } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface PricingPackage {
   id: string; catId: string; nameEn: string; nameFr: string | null;

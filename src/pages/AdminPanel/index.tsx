@@ -29,6 +29,7 @@ import HrAdmin from './HrAdmin';
 import RoleRequests from './RoleRequests';
 import AdminHub from './AdminHub';
 import NotFound from '../NotFound';
+import { getToken } from '../../lib/auth';
 
 const ADMIN_SECTIONS = ['sync', 'salespeople', 'customers', 'releases', 'users', 'import-payments', 'resellers', 'resources', 'hardware', 'pricing',
   'icplus-rates', 'opener', 'leads', 'hr', 'partners', 'merchant-links', 'notifications', 'data-health', 'audit'];
@@ -187,7 +188,7 @@ const AdminPanel = () => {
   // Kaizen demo maintenance switch (Integrations → Connections). Fetched once isAdmin resolves.
   useEffect(() => {
     if (!isAdmin) return;
-    const token = localStorage.getItem('token');
+    const token = getToken();
     axios.get(`${API_URL}/api/demo/kaizen-status`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => setKaizenSettings({ enabled: r.data.enabled !== false, message: r.data.message || '', version: r.data.version || '' }))
       .catch(() => {});
@@ -196,7 +197,7 @@ const AdminPanel = () => {
   const saveKaizenSettings = async (next: { enabled: boolean; message: string; version: string }) => {
     setKaizenSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(`${API_URL}/api/admin/kaizen-demo-settings`, next, { headers: { Authorization: `Bearer ${token}` } });
       setKaizenSettings(next);
     } catch (error: any) {
@@ -267,7 +268,7 @@ const AdminPanel = () => {
 
   const fetchBonusTiers = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const r = await axios.get(`${API_URL}/api/bonus-tiers`, { headers: { Authorization: `Bearer ${token}` } });
       setBonusTiers({ monthly: r.data.monthly || [], annual: r.data.annual || [] });
     } catch (e) { console.error('bonus tiers', e); }
@@ -275,7 +276,7 @@ const AdminPanel = () => {
   const saveBonusTiers = async () => {
     setSavingTiers(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const sortDesc = (a: Tier, b: Tier) => b.points - a.points;
       const payload = {
         monthly: [...bonusTiers.monthly].sort(sortDesc),
@@ -297,7 +298,7 @@ const AdminPanel = () => {
   // Load the user's managed-team set whenever the role-edit modal opens.
   useEffect(() => {
     if (!editingUserRoles) { setEditingManagedTeamIds([]); return; }
-    const token = localStorage.getItem('token');
+    const token = getToken();
     axios.get(`${API_URL}/api/users/${encodeURIComponent(editingUserRoles)}/managed-teams`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => setEditingManagedTeamIds(r.data.teamIds || []))
       .catch(() => setEditingManagedTeamIds([]));
@@ -361,7 +362,7 @@ const AdminPanel = () => {
   // the JWT stays admin while impersonating, which would let an impersonated
   // "view as" session into the Admin Panel.
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (!token) { navigate('/'); return; }
     axios
       .get(`${API_URL}/api/auth/verify`, { headers: { Authorization: `Bearer ${token}` } })
@@ -385,7 +386,7 @@ const AdminPanel = () => {
   const fetchSalespeople = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       
       const response = await axios.get(`${API_URL}/api/salespeople/all`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -402,7 +403,7 @@ const AdminPanel = () => {
   // Fetch teams
   const fetchTeams = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/teams`, { headers: { Authorization: `Bearer ${token}` } });
       setTeams(res.data.teams || []);
     } catch (error) {
@@ -414,7 +415,7 @@ const AdminPanel = () => {
     const name = newSalespersonName.trim();
     if (!name) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const r = await axios.post(`${API_URL}/api/salespeople`, { name }, { headers: { Authorization: `Bearer ${token}` } });
       setNewSalespersonName('');
       await fetchSalespeople();
@@ -428,7 +429,7 @@ const AdminPanel = () => {
     const name = newTeamName.trim();
     if (!name) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/teams`, { name }, { headers: { Authorization: `Bearer ${token}` } });
       setNewTeamName('');
       fetchTeams();
@@ -440,7 +441,7 @@ const AdminPanel = () => {
   const updateTeam = async (team: Team, patch: Partial<Team>) => {
     const merged = { ...team, ...patch };
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/teams/${team.id}`,
         {
@@ -466,7 +467,7 @@ const AdminPanel = () => {
     [next[index], next[j]] = [next[j], next[index]];
     setTeams(next);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(`${API_URL}/api/teams/reorder`, { orderedIds: next.map(t => t.id) }, { headers: { Authorization: `Bearer ${token}` } });
     } catch (error) {
       fetchTeams(); // revert to server order on failure
@@ -476,7 +477,7 @@ const AdminPanel = () => {
   const deleteTeam = async (team: Team) => {
     if (!(await dialog.confirm(t('admin.teams.confirmDelete', { name: team.name }) as string))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/teams/${team.id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchTeams();
       fetchSalespeople();
@@ -487,7 +488,7 @@ const AdminPanel = () => {
 
   const updateRepEmail = async (name: string, email: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/email`,
         { email },
@@ -503,7 +504,7 @@ const AdminPanel = () => {
 
   const updateHireDate = async (name: string, hireDate: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/hire-date`,
         { hireDate },
@@ -519,7 +520,7 @@ const AdminPanel = () => {
 
   const updateQuotaGate = async (name: string, enabled: boolean) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/quota-gate`,
         { enabled },
@@ -535,7 +536,7 @@ const AdminPanel = () => {
 
   const updateProcessingBonus = async (name: string, enabled: boolean) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/processing-bonus`,
         { enabled },
@@ -551,7 +552,7 @@ const AdminPanel = () => {
 
   const updateAnnualBonus = async (name: string, enabled: boolean) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/annual-bonus`,
         { enabled },
@@ -567,7 +568,7 @@ const AdminPanel = () => {
 
   const updateQuota = async (name: string, quota: number | null) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/quota`,
         { quota },
@@ -583,7 +584,7 @@ const AdminPanel = () => {
 
   const assignTeam = async (name: string, teamId: number | null) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/team`,
         { teamId },
@@ -602,7 +603,7 @@ const AdminPanel = () => {
   // Deal-type point values
   const fetchDealPoints = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/deal-source-points`, { headers: { Authorization: `Bearer ${token}` } });
       setDealGroups(res.data.groups || []);
     } catch (error) {
@@ -612,7 +613,7 @@ const AdminPanel = () => {
 
   const saveDealPoints = async (sourceGroup: string, points: number) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(`${API_URL}/api/deal-source-points`, { sourceGroup, points }, { headers: { Authorization: `Bearer ${token}` } });
       fetchDealPoints();
     } catch (error: any) {
@@ -623,7 +624,7 @@ const AdminPanel = () => {
   const deleteDealPoints = async (sourceGroup: string) => {
     if (!(await dialog.confirm(t('safety.deleteDealPoints', { source: sourceGroup }), { danger: true, confirmText: t('common.delete') }))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/deal-source-points/${encodeURIComponent(sourceGroup)}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchDealPoints();
     } catch (error: any) {
@@ -635,7 +636,7 @@ const AdminPanel = () => {
   const fetchAdminUsers = async () => {
     try {
       setAdminLoading(true);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`${API_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -651,7 +652,7 @@ const AdminPanel = () => {
 
   const fetchPermCatalog = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const r = await axios.get(`${API_URL}/api/permissions/catalog`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -661,7 +662,7 @@ const AdminPanel = () => {
 
   const fetchRoles = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const r = await axios.get(`${API_URL}/api/roles`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -672,7 +673,7 @@ const AdminPanel = () => {
   const saveRole = async (role: Partial<Role>, isNew: boolean) => {
     setSavingRole(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       if (isNew) {
         await axios.post(`${API_URL}/api/roles`, role, { headers: { Authorization: `Bearer ${token}` } });
       } else {
@@ -691,7 +692,7 @@ const AdminPanel = () => {
   const deleteRole = async (role: Role) => {
     if (!(await dialog.confirm(t('safety.deleteRole', { name: role.name }), { danger: true, confirmText: t('common.delete'), typeToConfirm: role.name }))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/roles/${role.id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchRoles();
     } catch (e: any) {
@@ -701,7 +702,7 @@ const AdminPanel = () => {
 
   const saveUserRoles = async (email: string, roleIds: number[], teamIds: number[]) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const headers = { Authorization: `Bearer ${token}` };
       await axios.put(`${API_URL}/api/users/${encodeURIComponent(email)}/roles`, { roleIds }, { headers });
       await axios.put(`${API_URL}/api/users/${encodeURIComponent(email)}/managed-teams`, { teamIds }, { headers });
@@ -718,7 +719,7 @@ const AdminPanel = () => {
     if (!(await dialog.confirm(`${action} ${email}?`))) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/admin/users/${encodeURIComponent(email)}/admin`,
         { makeAdmin: !currentStatus },
@@ -739,7 +740,7 @@ const AdminPanel = () => {
   const toggleDemoMode = async (email: string, current: boolean) => {
     if (!current && !(await dialog.confirm(t('admin.admins.confirmDemo', { email })))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/admin/users/${encodeURIComponent(email)}/demo-mode`,
         { enabled: !current },
@@ -773,7 +774,7 @@ const AdminPanel = () => {
     if (!(await dialog.confirm(t(status === 'disabled' ? 'partnerPortal.userMgmt.confirmDisable' : 'partnerPortal.userMgmt.confirmEnable',
       { email: u.email }) as string))) return;
     try {
-      await axios.put(url, { status }, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      await axios.put(url, { status }, { headers: { Authorization: `Bearer ${getToken()}` } });
       await fetchAdminUsers();
     } catch (e: any) {
       const d = e?.response?.data;
@@ -786,7 +787,7 @@ const AdminPanel = () => {
     const urls = accountUrls(u);
     if (!urls) return deleteUser(u.email);   // comptes Zoho / en attente : chemin historique
     if (!(await dialog.confirm(t('partnerPortal.userMgmt.confirmDelete', { email: u.email }) as string))) return;
-    const hdrs = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
+    const hdrs = { headers: { Authorization: `Bearer ${getToken()}` } };
     try {
       await axios.delete(urls.del, hdrs);
       await fetchAdminUsers();
@@ -807,7 +808,7 @@ const AdminPanel = () => {
   const deleteUser = async (email: string) => {
     if (!(await dialog.confirm(t('admin.admins.confirmDelete', { email }) as string))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/admin/users/${encodeURIComponent(email)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -838,7 +839,7 @@ const AdminPanel = () => {
   // Fetch excluded customers
   const fetchExcludedCustomers = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`${API_URL}/api/excluded-customers`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -856,7 +857,7 @@ const AdminPanel = () => {
     }
     try {
       setSearchingCustomers(true);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`${API_URL}/api/customers/search?q=${encodeURIComponent(query)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -871,7 +872,7 @@ const AdminPanel = () => {
   // Exclude a customer
   const excludeCustomer = async (name: string) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/excluded-customers`,
         { customerName: name },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -888,7 +889,7 @@ const AdminPanel = () => {
   const reincludeCustomer = async (id: number, name: string) => {
     if (!(await dialog.confirm(t('safety.reincludeCustomer', { name }), { confirmText: t('safety.reinclude') }))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/excluded-customers/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -913,7 +914,7 @@ const AdminPanel = () => {
   // Fetch releases from GitHub
   const fetchReleases = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`${API_URL}/api/releases`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -940,7 +941,7 @@ const AdminPanel = () => {
   const generateNotes = async () => {
     try {
       setGeneratingNotes(true);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`${API_URL}/api/releases/generate-notes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -982,7 +983,7 @@ const AdminPanel = () => {
 
     try {
       setReleaseStatus('pushing');
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/releases/create`,
         { version: newVersion, releaseNotes, newFeatures: newFeatureTags.filter(f => f.path) },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -996,7 +997,7 @@ const AdminPanel = () => {
       // Poll workflow status
       const pollInterval = setInterval(async () => {
         try {
-          const token = localStorage.getItem('token');
+          const token = getToken();
           const statusRes = await axios.get(`${API_URL}/api/releases/workflow-status`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -1023,7 +1024,7 @@ const AdminPanel = () => {
   // Fetch Zentact status
   const fetchZentactStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/zentact/status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1038,7 +1039,7 @@ const AdminPanel = () => {
     try {
       setZentactSyncing(true);
       setZentactSyncMsg(null);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/zentact/sync`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1069,7 +1070,7 @@ const AdminPanel = () => {
   // Fetch unassigned Zentact merchants
   const fetchUnassignedMerchants = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/zentact/merchants?unassigned=true&active=true`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1083,7 +1084,7 @@ const AdminPanel = () => {
   const assignMerchantRep = async (merchantId: string, repName: string) => {
     if (!repName) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.patch(
         `${API_URL}/api/zentact/merchants/${encodeURIComponent(merchantId)}/rep`,
         { repName },
@@ -1159,7 +1160,7 @@ const AdminPanel = () => {
     if (csvImport.rows.length === 0) return;
     setCsvImport(prev => ({ ...prev, applying: true, message: null }));
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(
         `${API_URL}/api/zentact/import-assignments`,
         { rows: csvImport.rows, dryRun: !apply },
@@ -1182,7 +1183,7 @@ const AdminPanel = () => {
   // Fetch CRM connection status
   const fetchCrmStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/auth/crm-status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1220,7 +1221,7 @@ const AdminPanel = () => {
   const [deskConnecting, setDeskConnecting] = useState(false);
   const fetchDeskStatus = async () => {
     try {
-      const r = await axios.get(`${API_URL}/api/auth/desk-status`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      const r = await axios.get(`${API_URL}/api/auth/desk-status`, { headers: { Authorization: `Bearer ${getToken()}` } });
       setDeskStatus(r.data);
     } catch (e) { setDeskStatus({ connected: false }); }
   };
@@ -1230,7 +1231,7 @@ const AdminPanel = () => {
   // SalesHub Automation (« Agent ») le peut.
   const [serviceAccount, setServiceAccount] = useState<string | null>(null);
   useEffect(() => {
-    axios.get(`${API_URL}/api/admin/zoho-system-account?service=crm`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+    axios.get(`${API_URL}/api/admin/zoho-system-account?service=crm`, { headers: { Authorization: `Bearer ${getToken()}` } })
       .then((r) => setServiceAccount(r.data?.pinned || null)).catch(() => {});
   }, []);
   // « Reconnecter » vise le compte DÉJÀ épinglé pour Desk (saleshub@), pas la personne qui clique :
@@ -1239,7 +1240,7 @@ const AdminPanel = () => {
     try {
       setDeskConnecting(true);
       const q = typeof asEmail === 'string' && asEmail ? `?as=${encodeURIComponent(asEmail)}` : '';
-      const r = await axios.get(`${API_URL}/api/auth/zoho-desk${q}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      const r = await axios.get(`${API_URL}/api/auth/zoho-desk${q}`, { headers: { Authorization: `Bearer ${getToken()}` } });
       window.location.href = r.data.authUrl;
     } catch (e) { console.error('Failed to initiate Desk OAuth:', e); setDeskConnecting(false); }
   };
@@ -1247,7 +1248,7 @@ const AdminPanel = () => {
   const connectCRM = async () => {
     try {
       setCrmConnecting(true);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/auth/zoho-crm`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1264,7 +1265,7 @@ const AdminPanel = () => {
     try {
       setCrmSyncing(true);
       setCrmSyncMsg(null);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/crm/sync`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1294,7 +1295,7 @@ const AdminPanel = () => {
   // Fetch sync status
   const fetchSyncStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`${API_URL}/api/sync/status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1312,7 +1313,7 @@ const AdminPanel = () => {
   const startPolling = () => {
     const pollInterval = setInterval(async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const statusRes = await axios.get(`${API_URL}/api/sync/status`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -1332,7 +1333,7 @@ const AdminPanel = () => {
     if (!(await dialog.confirm(t('safety.bulkImport'), { danger: true, confirmText: t('safety.bulkImportButton'), typeToConfirm: t('safety.bulkImportWord') }))) return;
     try {
       setSyncStatus('bulk_importing');
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.post(`${API_URL}/api/invoices/bulk-import`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1354,7 +1355,7 @@ const AdminPanel = () => {
   const triggerQuickSync = async () => {
     try {
       setSyncStatus('syncing');
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.post(`${API_URL}/api/invoices/incremental-sync`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1387,7 +1388,7 @@ const AdminPanel = () => {
   const triggerRecalculate = async () => {
     if (!(await dialog.confirm(t('admin.recalculate.confirmRecalculate')))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/recalc-v2/start`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1402,7 +1403,7 @@ const AdminPanel = () => {
 
   const stopRecalculate = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       setRecalcStopping(true);
       await axios.post(`${API_URL}/api/commissions/recalc-v2/stop`, {}, {
         headers: { Authorization: `Bearer ${token}` },
@@ -1415,7 +1416,7 @@ const AdminPanel = () => {
   const startRecalcPolling = () => {
     const pollInterval = setInterval(async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const res = await axios.get(`${API_URL}/api/commissions/recalc-v2/status`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -1437,7 +1438,7 @@ const AdminPanel = () => {
   const triggerEnrich = async () => {
     if (!(await dialog.confirm(t('admin.enrich.confirm')))) return;
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/invoices/enrich/start`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -1452,7 +1453,7 @@ const AdminPanel = () => {
 
   const stopEnrich = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       setEnrichStopping(true);
       await axios.post(`${API_URL}/api/invoices/enrich/stop`, {}, {
         headers: { Authorization: `Bearer ${token}` },
@@ -1465,7 +1466,7 @@ const AdminPanel = () => {
   const startEnrichPolling = () => {
     const pollInterval = setInterval(async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const res = await axios.get(`${API_URL}/api/invoices/enrich/status`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -1489,7 +1490,7 @@ const AdminPanel = () => {
       fetchDeskStatus();
       const check = async () => {
         try {
-          const token = localStorage.getItem('token');
+          const token = getToken();
           const headers = { Authorization: `Bearer ${token}` };
           const [rc, en] = await Promise.all([
             axios.get(`${API_URL}/api/commissions/recalc-v2/status`, { headers }),
@@ -1508,7 +1509,7 @@ const AdminPanel = () => {
   // Toggle salesperson active status
   const toggleSalesperson = async (name: string, currentStatus: boolean) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/status`,
@@ -1534,7 +1535,7 @@ const AdminPanel = () => {
   // Update commission rate (called after confirmation)
   const updateCommissionRate = async (name: string, rate: number) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/commission-rate`,
@@ -1561,7 +1562,7 @@ const AdminPanel = () => {
   // Update base salary (called after confirmation)
   const updateBaseSalary = async (name: string, salary: number) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
 
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/base-salary`,
@@ -1587,7 +1588,7 @@ const AdminPanel = () => {
   // Update per-salesperson signup-bonus amount (per activation) and/or on-off toggle.
   const updateSignupBonus = async (name: string, amount: number, enabled: boolean) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/signup-bonus`,
         { amount, enabled },
@@ -1611,7 +1612,7 @@ const AdminPanel = () => {
   // vivent dans sa ligne, on ne va pas en chercher un dans un autre ecran.
   const updateReviewBonus = async (name: string, amount: number, enabled: boolean) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/review-bonus`,
         { amount, enabled },
@@ -1632,7 +1633,7 @@ const AdminPanel = () => {
   // Update aliases (e.g. ["Gaby", "Gabi"] for Gabriella Daly)
   const updateAliases = async (name: string, aliases: string[]) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(
         `${API_URL}/api/salespeople/${encodeURIComponent(name)}/aliases`,
         { aliases },

@@ -4,12 +4,12 @@ import axios from 'axios';
 import { useUrlTab } from '../../components/ui/Tabs';
 import { useTranslation } from 'react-i18next';
 import { appLocale, fmtMoney, fmtNumber } from '../../lib/format';
+import { authHeaders } from '../../lib/auth';
 
 const AUDIT_SELECT =
   'w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface SessionUser {
   email: string;

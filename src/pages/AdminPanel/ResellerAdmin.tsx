@@ -3,6 +3,7 @@ import Select from '../../components/Select';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -16,7 +17,7 @@ export default function ResellerAdmin() {
   const [newName, setNewName] = useState('');
   const [savingId, setSavingId] = useState<number | null>(null);
 
-  const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  const headers = () => ({ Authorization: `Bearer ${getToken()}` });
 
   const load = async () => {
     const [r, u, z] = await Promise.all([

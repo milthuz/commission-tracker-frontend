@@ -7,6 +7,7 @@ import { ActionMenu } from './ui';
 import ProbationBadge from './ProbationBadge';
 import ActivityTimeline from './ActivityTimeline';
 import { fmtMoney, fmtPeriod, fmtDate, fmtDateOnly, fmtDateTime } from '../lib/format';
+import { getToken } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -131,7 +132,7 @@ const PayStubModal: React.FC<{
     if (!(await dialog.confirm(tp('adjustConfirm') as string))) return;
     setAdjBusy(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/adjustments`, {
         repName: data.repName, year: adjYear, month: adjMonth,
         invoiceNumbers: numeros,
@@ -199,7 +200,7 @@ const PayStubModal: React.FC<{
     if (!data || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailTo.trim())) return;
     setEmailSending(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/commissions/pay-stub/email`, {
         repName: data.repName, period: data.period, to: emailTo.trim(),
         lines: data.lines, bonuses: data.bonuses, total: data.total, source: data.source,
@@ -837,7 +838,7 @@ const PayStubModal: React.FC<{
                     </div>
                   )}
                   <iframe
-                    src={`${API_URL}/api/invoices/${invPreview.num}/preview?token=${localStorage.getItem('token')}`}
+                    src={`${API_URL}/api/invoices/${invPreview.num}/preview?token=${getToken()}`}
                     className="h-full w-full border-0"
                     title={t('commissionReport.invoicePreview') as string}
                     onLoad={() => setInvPreview(p => (p ? { ...p, loading: false } : p))}

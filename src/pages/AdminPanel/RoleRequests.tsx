@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { appLocale } from '../../lib/format';
 import { UserPlus, X, Loader2 } from 'lucide-react';
 import { dialog } from '../../lib/dialog';
+import { getToken } from '../../lib/auth';
 
 // Demandes de rôle des usagers qui n'en ont pas encore (écran NoRoleNotice). Affichées en tête
 // d'Admin → Usagers ; une demande disparaît d'elle-même dès qu'un rôle est attribué à l'usager
@@ -15,7 +16,7 @@ export default function RoleRequests() {
   const { t } = useTranslation();
   const [list, setList] = useState<Req[] | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
-  const headers = { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' };
+  const headers = { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' };
 
   const load = useCallback(() => {
     fetch(`${API_URL}/api/admin/role-requests`, { headers })

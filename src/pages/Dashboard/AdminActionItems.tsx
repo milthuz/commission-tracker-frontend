@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { fmtMoney } from '../../lib/format';
 import { Link } from 'react-router-dom';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -24,7 +25,7 @@ const AdminActionItems: React.FC = () => {
     fmtMoney(Number(v) || 0, { decimals: 0 });
 
   useEffect(() => {
-    const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+    const headers = { Authorization: `Bearer ${getToken()}` };
     const params = { year: now.getFullYear(), month: now.getMonth() + 1 };
     axios.get(`${API_URL}/api/commissions/payroll/preview`, { headers, params }).then(r => setPayroll(r.data)).catch(() => {});
     axios.get(`${API_URL}/api/crm/points`, { headers, params }).then(r => setPoints(r.data)).catch(() => {});

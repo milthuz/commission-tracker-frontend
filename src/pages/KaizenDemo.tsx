@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { fmtDate } from '../lib/format';
+import { authHeaders } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 // Streams the Kaizen POS (hosted on AWS AppStream 2.0) inside an iframe so reps can run a live demo.
 // The backend mints a short-lived signed streaming URL; the AppStream stack must have embedding

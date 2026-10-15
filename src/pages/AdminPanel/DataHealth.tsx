@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { appLocale, fmtDateOnly, fmtDateTime, fmtMoney, fmtPeriod } from '../../lib/format';
 import InvoiceLink from '../../components/InvoiceLink';
 import { dialog } from '../../lib/dialog';
+import { authHeaders } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface UserReport {
   id: number;

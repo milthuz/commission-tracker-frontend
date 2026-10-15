@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { subscribe, closeInvoicePreview } from '../lib/invoicePreview';
 import ActivityTimeline from './ActivityTimeline';
+import { getToken } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -51,7 +52,7 @@ export default function InvoicePreviewHost() {
                 </div>
               )}
               <iframe
-                src={`${API_URL}/api/invoices/${num}/preview?token=${localStorage.getItem('token')}`}
+                src={`${API_URL}/api/invoices/${num}/preview?token=${getToken()}`}
                 className="h-full w-full border-0"
                 title="Invoice preview"
                 onLoad={() => setLoading(false)}

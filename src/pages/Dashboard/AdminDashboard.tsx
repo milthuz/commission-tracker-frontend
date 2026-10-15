@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { fmtMoney, fmtNumber, appLocale, monthNames } from '../../lib/format';
 import AdminActionItems from './AdminActionItems';
 import { ContentLoader } from '../../common/Loader';
+import { getToken } from '../../lib/auth';
 const API_URL = import.meta.env.VITE_API_URL || process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 interface DashboardData {
@@ -55,7 +56,7 @@ const AdminDashboard: React.FC = () => {
   const [drillMetric, setDrillMetric] = useState<keyof OrgMetrics | null>(null); // tile clicked → per-org breakdown
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     axios.get(`${API_URL}/api/billing/metrics`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => { setBilling(r.data); setBillingErr(null); })
       .catch(e => setBillingErr(e.response?.data?.detail || e.response?.data?.error || 'unavailable'));
@@ -77,7 +78,7 @@ const AdminDashboard: React.FC = () => {
   const fetchDashboard = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await axios.get(`${API_URL}/api/dashboard?year=${selectedYear}`, {
         headers: { Authorization: `Bearer ${token}` },
       });

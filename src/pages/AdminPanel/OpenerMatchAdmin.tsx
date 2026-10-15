@@ -5,6 +5,7 @@ import { RefreshCw, Loader2, Search, Check, X, RotateCcw, ExternalLink, AlertTri
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
 import { dialog } from '../../lib/dialog';
+import { authHeaders as sharedAuthHeaders } from '../../lib/auth';
 
 // Module Opener, lot 0 — les emplacements Cluster et leur fiche Google.
 //
@@ -20,7 +21,7 @@ import { dialog } from '../../lib/dialog';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem('token')}`,
+  ...sharedAuthHeaders(),
   'Content-Type': 'application/json',
 });
 

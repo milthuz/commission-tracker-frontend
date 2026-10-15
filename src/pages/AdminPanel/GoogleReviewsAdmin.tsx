@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { appLocale, fmtPeriod } from '../../lib/format';
 import Select from '../../components/Select';
 import { dialog } from '../../lib/dialog';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -74,7 +75,7 @@ const GoogleReviewsAdmin: React.FC = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/reviews`, {
         headers: { Authorization: `Bearer ${token}` },
         params: status === 'all' ? {} : { status },
@@ -90,7 +91,7 @@ const GoogleReviewsAdmin: React.FC = () => {
 
   const loadPlace = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.get(`${API_URL}/api/reviews/place`, { headers: { Authorization: `Bearer ${token}` } });
       setPlace(res.data); setPlaceDraft(res.data.placeId || '');
     } catch { /* la carte reste muette si l'appel echoue — ce n'est pas bloquant */ }
@@ -99,7 +100,7 @@ const GoogleReviewsAdmin: React.FC = () => {
 
   const savePlace = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(`${API_URL}/api/reviews/place`, { placeId: placeDraft.trim() },
         { headers: { Authorization: `Bearer ${token}` } });
       loadPlace();
@@ -109,7 +110,7 @@ const GoogleReviewsAdmin: React.FC = () => {
   const fetchNow = async () => {
     setFetching(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const res = await axios.post(`${API_URL}/api/reviews/fetch`, {}, { headers: { Authorization: `Bearer ${token}` } });
       dialog.alert(tr('fetched', { seen: res.data.seen, inserted: res.data.inserted }));
       loadPlace(); load();
@@ -121,7 +122,7 @@ const GoogleReviewsAdmin: React.FC = () => {
   const add = async (allowDuplicate = false) => {
     if (!form.reviewerName.trim() || !form.reviewDate) { dialog.alert(tr('needFields')); return; }
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/reviews`, { ...form, allowDuplicate }, { headers: { Authorization: `Bearer ${token}` } });
       setForm({ reviewerName: '', merchantName: '', reviewDate: '', rating: '', reviewUrl: '', note: '' });
       load();
@@ -140,7 +141,7 @@ const GoogleReviewsAdmin: React.FC = () => {
   const patch = async (id: number, body: Record<string, unknown>) => {
     setBusy(id);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.patch(`${API_URL}/api/reviews/${id}`, body, { headers: { Authorization: `Bearer ${token}` } });
       load();
     } catch (e: any) {
@@ -152,7 +153,7 @@ const GoogleReviewsAdmin: React.FC = () => {
     if (!(await dialog.confirm(tr('deleteConfirm')))) return;
     setBusy(r.id);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.delete(`${API_URL}/api/reviews/${r.id}`, { headers: { Authorization: `Bearer ${token}` } });
       load();
     } catch (e: any) {
@@ -163,7 +164,7 @@ const GoogleReviewsAdmin: React.FC = () => {
   // Activer/desactiver un opener, ou changer son tarif. Le serveur borne le montant.
   const saveRep = async (name: string, enabled: boolean, amount: number) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(`${API_URL}/api/salespeople/${encodeURIComponent(name)}/review-bonus`,
         { enabled, amount }, { headers: { Authorization: `Bearer ${token}` } });
       setDraft(d => { const n = { ...d }; delete n[name]; return n; });

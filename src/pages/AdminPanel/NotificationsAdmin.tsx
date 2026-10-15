@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
 import EmailPreview from './EmailPreview';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -113,7 +114,7 @@ function RecipientListCard({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  const headers = () => ({ Authorization: `Bearer ${getToken()}` });
 
   useEffect(() => {
     axios.get(endpoint, { headers: headers() })
@@ -161,7 +162,7 @@ function RecipientListCard({
 
 // Admin → Notifications: central place to configure who receives each automated
 // email notification. Pre-populated user list + manual emails + visible recipients.
-const authH = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+const authH = () => ({ Authorization: `Bearer ${getToken()}` });
 
 // Interrupteur du pilote automatique de la hausse SaaS.
 const SaasAutoCard = () => {
@@ -260,7 +261,7 @@ export default function NotificationsAdmin() {
 
   useEffect(() => {
     axios.get(`${API_URL}/api/admin/users`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then((r) => setUsers(r.data.users || []))
       .catch(() => { /* ignore */ })

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { fmtNumber } from '../../lib/format';
 import i18n from '../../i18n';
 import { dialog } from '../../lib/dialog';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const GB = 1073741824;
@@ -30,7 +31,7 @@ const ResourcesAdmin: React.FC = () => {
   const [editEmail, setEditEmail] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
 
-  const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  const headers = () => ({ Authorization: `Bearer ${getToken()}` });
 
   const loadGlobal = async () => {
     const r = await axios.get(`${API_URL}/api/resources/storage`, { headers: headers() });

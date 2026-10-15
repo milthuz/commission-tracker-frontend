@@ -5366,7 +5366,8 @@
       "suggestedRep": "Représentant suggéré",
       "noRep": "Aucun représentant disponible — le tour de rôle est vide.",
       "notYetInZoho": "Rien n'a été envoyé à Zoho. La piste doit d'abord être acceptée depuis la file.",
-      "another": "Saisir une autre"
+      "another": "Saisir une autre",
+      "discardConfirm": "Fermer et effacer ce qui a été saisi ?"
     },
     "detail": {
       "loadFailed": "Cette piste n'a pas pu être chargée.",

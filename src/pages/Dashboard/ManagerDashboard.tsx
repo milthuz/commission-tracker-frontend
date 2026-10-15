@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ContentLoader } from '../../common/Loader';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const QUOTA = 15;
@@ -38,7 +39,7 @@ const ManagerDashboard: React.FC = () => {
     const run = async () => {
       try {
         setLoading(true); setError('');
-        const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+        const headers = { Authorization: `Bearer ${getToken()}` };
         const p = await axios.get(`${API_URL}/api/crm/points`, { headers, params: { year: now.getFullYear(), month: now.getMonth() + 1 } });
         setPoints(p.data);
       } catch (e: any) {

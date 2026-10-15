@@ -7,9 +7,9 @@ import { appLocale, fmtMoney, fmtNumber } from '../../lib/format';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { dialog } from '../../lib/dialog';
 import PartnerStats from './PartnerStats';
+import { authHeaders } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 interface Partner {
   id: number; name: string; active: boolean; createdAt: string; hasLogo: boolean; userCount: number;

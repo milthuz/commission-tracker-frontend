@@ -1,5 +1,5 @@
+export { authHeaders } from '../../lib/auth';
 export const API_URL = import.meta.env.VITE_API_URL;
-export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 export type HireStatus = 'draft' | 'sent' | 'viewed' | 'employee_signed' | 'completed' | 'declined' | 'cancelled';
 

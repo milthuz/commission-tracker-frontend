@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { fmtMoney, fmtNumber, fmtDate } from '../lib/format';
 import { useAuth } from '../context/AuthContext';
 import { dialog } from '../lib/dialog';
+import { getToken } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -120,13 +121,13 @@ const Profile = () => {
   const [smsMsg, setSmsMsg] = useState<{ ok: boolean; text: string } | null>(null);
   useEffect(() => {
     if (!canSms) return;
-    axios.get(`${API_URL}/api/user/sms-alerts`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+    axios.get(`${API_URL}/api/user/sms-alerts`, { headers: { Authorization: `Bearer ${getToken()}` } })
       .then((r) => { setSms(r.data); setSmsMobile(r.data.mobile || ''); setSmsEnabled(r.data.enabled !== false); })
       .catch(() => {});
   }, [canSms]);
   const smsCall = async (kind: 'save' | 'test') => {
     setSmsBusy(kind); setSmsMsg(null);
-    const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
+    const headers = { Authorization: `Bearer ${getToken()}` };
     try {
       if (kind === 'save') {
         const r = await axios.put(`${API_URL}/api/user/sms-alerts`, { mobile: smsMobile, enabled: smsEnabled }, { headers });
@@ -169,7 +170,7 @@ const Profile = () => {
     if (!featureModal.message.trim()) return;
     setFeatureModal(m => ({ ...m, sending: true }));
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/feedback/feature-request`,
         { message: featureModal.message },
         { headers: { Authorization: `Bearer ${token}` } });
@@ -184,7 +185,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         const res = await axios.get(`${API_URL}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -216,7 +217,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (!canPushPin) return;
-    const token = localStorage.getItem('token');
+    const token = getToken();
     axios.get(`${API_URL}/api/user/push-pin/status`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => setHasPin(!!r.data.hasPin))
       .catch(() => {});
@@ -225,7 +226,7 @@ const Profile = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(`${API_URL}/api/user/preferences`, {
         displayName,
         language,
@@ -251,7 +252,7 @@ const Profile = () => {
   const saveSignature = async () => {
     setSigSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(`${API_URL}/api/user/signature`, {
         signatureRole: sigRole, signatureRole2: sigRole2, signatureRoleEn: sigRoleEn, signaturePhone: sigPhone,
       }, {
@@ -272,7 +273,7 @@ const Profile = () => {
     if (newPin !== confirmPin) { setPinError(t('profile.pin.mismatch') as string); return; }
     setPinSaving(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.put(`${API_URL}/api/user/push-pin`, { currentPin: currentPin || undefined, newPin }, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -300,7 +301,7 @@ const Profile = () => {
     setResetBusy(true);
     setResetStep('starting');
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const r = await axios.post(`${API_URL}/api/user/2fa/reset`,
         { currentPassword: resetPassword }, { headers: { Authorization: `Bearer ${token}` } });
       setQr(r.data.qrDataUrl); setSecret(r.data.secret); setSetupToken(r.data.setupToken);
@@ -317,7 +318,7 @@ const Profile = () => {
     setResetError('');
     setResetBusy(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       await axios.post(`${API_URL}/api/user/2fa/confirm`, { setupToken, code }, { headers: { Authorization: `Bearer ${token}` } });
       setResetStep('done');
     } catch (e: any) {

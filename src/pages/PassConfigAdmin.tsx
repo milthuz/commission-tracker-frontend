@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { dialog } from '../lib/dialog';
 import { useTranslation } from 'react-i18next';
+import { getToken } from '../lib/auth';
 
 // Configuration du programme La Passe (perm `pass:manage`) — montants, échelle de paliers,
 // et l'interrupteur qui ouvre le programme aux marchands.
@@ -26,7 +27,7 @@ const PassConfigAdmin = () => {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
 
-  const auth = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  const auth = () => ({ Authorization: `Bearer ${getToken()}` });
   const money = (n: number) =>
     new Intl.NumberFormat(fr ? 'fr-CA' : 'en-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(n || 0);
 

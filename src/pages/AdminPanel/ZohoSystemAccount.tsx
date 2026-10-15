@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { authHeaders } from '../../lib/auth';
 
 // Le compte Zoho sous lequel l'application ÉCRIT — pour le CRM et pour Books.
 //
@@ -16,7 +17,6 @@ import { useTranslation } from 'react-i18next';
 // Le serveur refuse d'épingler ce qu'il n'a pas réussi à lire.
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 type Service = 'crm' | 'books';
 type Compte = { email: string; isAdmin: boolean; hasRole: boolean; hasRefresh: boolean; updatedAt: string };

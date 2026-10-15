@@ -1,4 +1,5 @@
 import { STATUS_PILL_CLS, type StatusFamily } from '../../components/ui/StatusPill';
+export { authHeaders } from '../../lib/auth';
 // Formes renvoyées par le backend (SH-20). Elles suivent `publicLead()` de server.js — les
 // champs de contact sont volontairement À PLAT (`contactEmail` et non `contact.email`) : le mode
 // démo masque par NOM de clé, et une clé générique `email` toucherait aussi les courriels des
@@ -153,8 +154,6 @@ export interface LeadSettings {
   dealStage: string;
   dealCloseDays: number;
 }
-
-export const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 export const leadFullName = (l: Lead) =>
   [l.contactFirstName, l.contactLastName].filter(Boolean).join(' ') || null;

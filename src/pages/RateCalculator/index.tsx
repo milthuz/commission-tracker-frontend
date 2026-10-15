@@ -5,6 +5,7 @@ import { Upload, FileText, Download, AlertTriangle, ClipboardPaste, Loader2, Sca
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
 import { extractCells, looksScanned } from './extract';
+import { getToken, authHeaders as sharedAuthHeaders } from '../../lib/auth';
 
 // Calculateur comparatif IC+.
 //
@@ -19,7 +20,7 @@ import { extractCells, looksScanned } from './extract';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const authHeaders = () => ({
-  Authorization: `Bearer ${localStorage.getItem('token')}`,
+  ...sharedAuthHeaders(),
   'Content-Type': 'application/json',
 });
 
@@ -175,7 +176,7 @@ export default function RateCalculator() {
       fd.append('file', scanFile);
       const res = await fetch(`${API_URL}/api/icplus/read-scan`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
         body: fd,
       });
       const d = await res.json();

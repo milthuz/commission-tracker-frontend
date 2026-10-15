@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { fmtDate } from '../lib/format';
 import { UserCog, Send, Loader2, Clock, RefreshCw } from 'lucide-react';
 import { ContentLoader } from '../common/Loader';
+import { getToken } from '../lib/auth';
 
 // Écran d'un usager SANS rôle (2026-10-08, demande de David) : au lieu d'un Sales Hub vide et
 // muet, on lui dit qu'il n'a pas encore de rôle et il demande un accès. La demande part aux
@@ -19,7 +20,7 @@ export default function NoRoleNotice({ name }: { name?: string | null }) {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const headers = { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' };
+  const headers = { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' };
 
   useEffect(() => {
     fetch(`${API_URL}/api/me/role-request`, { headers })

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { getToken } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://commission-tracker-api-c4cd319c79b5.herokuapp.com';
 
@@ -55,7 +56,7 @@ export default function ActivityTimeline({ entityType, entityId }: { entityType:
     let cancelled = false;
     setEvents(null);
     setError(false);
-    const token = localStorage.getItem('token');
+    const token = getToken();
     axios.get(`${API_URL}/api/activity-log`, {
       headers: { Authorization: `Bearer ${token}` },
       params: { entityType, entityId },

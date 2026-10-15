@@ -6,6 +6,7 @@ import { ContentLoader } from '../../common/Loader';
 import { dialog } from '../../lib/dialog';
 import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
 import CreditsReport from './Report';
+import { getToken, authHeaders as sharedAuthHeaders } from '../../lib/auth';
 
 // Crédits processeur marchand (/credits).
 //
@@ -16,9 +17,9 @@ import CreditsReport from './Report';
 // qu'afficher ce que l'API permet.
 
 const API_URL = import.meta.env.VITE_API_URL || '';
-const token = () => localStorage.getItem('token') || '';
+const token = () => getToken() || '';
 const authHeaders = (json = true): Record<string, string> => ({
-  Authorization: `Bearer ${token()}`, ...(json ? { 'Content-Type': 'application/json' } : {}),
+  ...sharedAuthHeaders(), ...(json ? { 'Content-Type': 'application/json' } : {}),
 });
 
 type Status = 'draft' | 'sent' | 'viewed' | 'signed' | 'approved' | 'rejected' | 'declined' | 'cancelled' | 'expired';

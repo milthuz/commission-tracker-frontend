@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getToken } from '../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const DEFAULT_NEW_DAYS = 7;
@@ -41,7 +42,7 @@ const Ctx = createContext<NewFeaturesCtx>({
 });
 export const useNewFeatures = () => useContext(Ctx);
 
-const token = () => localStorage.getItem('token');
+const token = () => getToken();
 
 // The badge/banner is visible while now <= since + days.
 function windowOpen(f: NewFeature) {

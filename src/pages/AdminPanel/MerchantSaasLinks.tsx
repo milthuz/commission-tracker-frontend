@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { fmtDateOnly, fmtMoney } from '../../lib/format';
 import axios from 'axios';
 import { dialog } from '../../lib/dialog';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const money = (n: number) => fmtMoney(Number(n) || 0);
@@ -33,7 +34,7 @@ export default function MerchantSaasLinks() {
   const [custResults, setCustResults] = useState<Sub[]>([]);
   const [custLoading, setCustLoading] = useState(false);
 
-  const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
+  const headers = () => ({ Authorization: `Bearer ${getToken()}` });
 
   const load = async () => {
     setLoading(true);

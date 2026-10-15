@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { subscribeBadgeRefresh } from '../../lib/badgeEvents';
 import type { NavBadge } from '../../config/navigation';
+import { getToken } from '../../lib/auth';
 
 // "Needs attention" counters of the menu, each polled every 2 min and re-read as soon as an action
 // succeeds elsewhere (lib/badgeEvents). Only fetched for users who can see the matching screen.
@@ -18,7 +19,7 @@ function useCount(kind: NavBadge, enabled: boolean): number {
     const load = async () => {
       try {
         const r = await fetch(`${import.meta.env.VITE_API_URL || ''}${ENDPOINTS[kind]}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${getToken()}` },
         });
         if (!r.ok) return;
         const d = await r.json();

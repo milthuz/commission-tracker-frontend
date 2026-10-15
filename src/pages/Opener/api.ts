@@ -1,3 +1,4 @@
+import { getToken } from '../../lib/auth';
 // Module Opener — types et appels à l'API (services/opener/field.js côté serveur).
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -183,7 +184,7 @@ export class ApiError extends Error {
 export async function api<T = any>(path: string, opts: { method?: string; body?: unknown } = {}): Promise<T> {
   const r = await fetch(`${API_URL}${path}`, {
     method: opts.method || 'GET',
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
     body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
   });
   const data = await r.json().catch(() => ({}));

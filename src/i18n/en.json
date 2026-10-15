@@ -5366,7 +5366,8 @@
       "suggestedRep": "Suggested rep",
       "noRep": "No rep available — the round-robin pool is empty.",
       "notYetInZoho": "Nothing has been sent to Zoho yet. The lead has to be accepted from the queue first.",
-      "another": "Enter another"
+      "another": "Enter another",
+      "discardConfirm": "Close and erase what you typed?"
     },
     "detail": {
       "loadFailed": "This lead could not be loaded.",

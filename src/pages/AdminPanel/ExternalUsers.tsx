@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { appLocale } from '../../lib/format';
 import { dialog } from '../../lib/dialog';
+import { getToken } from '../../lib/auth';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -29,7 +30,7 @@ const ExternalUsers: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; msg: string; link?: string } | null>(null);
 
-  const hdrs = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+  const hdrs = () => ({ headers: { Authorization: `Bearer ${getToken()}` } });
 
   const load = async () => {
     try {
