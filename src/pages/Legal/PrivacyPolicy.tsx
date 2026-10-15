@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import SalesHubLogo from '../../components/SalesHubLogo';
+import LegalBrand from './LegalBrand';
 
 // Bilingual Privacy Policy for Sales Hub — an internal sales & commission tool
 // operated by Cluster Systems. Note: reasonable internal-tool policy, not legal advice.
@@ -100,7 +100,7 @@ const PrivacyPolicy = () => {
       <div className="mx-auto w-full max-w-3xl">
         <div className="overflow-hidden rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between gap-4 border-b border-stroke px-6 py-5 dark:border-strokedark">
-            <SalesHubLogo variant="horizontal" className="h-7" textClassName="text-black dark:text-white" />
+            <LegalBrand fromPartner={fromPartner} titleKey="pageTitle.privacy" />
             <div className="flex items-center gap-5">
               <Link to={termsHref} className="text-sm font-medium text-primary hover:underline">
                 {t('legal.termsTitle')}

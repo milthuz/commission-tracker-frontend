@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import SalesHubLogo from '../../components/SalesHubLogo';
+import LegalBrand from './LegalBrand';
 
 // Bilingual Terms of Service for Sales Hub — an internal sales & commission tool
 // operated by Cluster Systems. Authorized employees/partners sign in with Zoho SSO.
@@ -101,7 +101,7 @@ const TermsOfService = () => {
       <div className="mx-auto w-full max-w-3xl">
         <div className="overflow-hidden rounded-lg border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
           <div className="flex items-center justify-between gap-4 border-b border-stroke px-6 py-5 dark:border-strokedark">
-            <SalesHubLogo variant="horizontal" className="h-7" textClassName="text-black dark:text-white" />
+            <LegalBrand fromPartner={fromPartner} titleKey="pageTitle.terms" />
             <div className="flex items-center gap-5">
               <Link to={privacyHref} className="text-sm font-medium text-primary hover:underline">
                 {t('legal.privacyTitle')}
