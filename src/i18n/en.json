@@ -584,7 +584,9 @@
     "replaceEditedEmailNo": "Keep my version",
     "downloadFailed": "Could not download the PDF.",
     "previewFailed": "Could not generate the preview.",
-    "estimatePreview": "Estimate preview"
+    "estimatePreview": "Estimate preview",
+    "fromGuide_one": "From the pricing guide · {{count}} line",
+    "fromGuide_other": "From the pricing guide · {{count}} lines"
   },
   "hardware": {
     "eyebrow": "Hardware",
@@ -734,7 +736,9 @@
         "desc": "On-site service rates, reseller charges and travel by region."
       }
     },
-    "noLogo": "No logo"
+    "noLogo": "No logo",
+    "toProposal": "Create a proposal",
+    "oneTimeShort": "one-time"
   },
   "partnerPortal": {
     "title": "Partner Portal",
@@ -6156,7 +6160,9 @@
       "remove": "Remove",
       "errType": "Accepted formats: PNG, JPEG or WebP.",
       "errSize": "Image too heavy even after resizing. Try a simpler file."
-    }
+    },
+    "makeProposal": "Prepare a proposal",
+    "proposalSaveFirst": "Save the scenario first: the proposal uses its saved version."
   },
   "credits": {
     "clientCompletes": "Only the signer's email is required: the client checks and completes this information when signing, and can attach the supporting documents there.",

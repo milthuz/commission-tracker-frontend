@@ -3,6 +3,8 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { fmtMoney } from '../lib/format';
 import { dialog } from '../lib/dialog';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const authHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -99,6 +101,11 @@ const CatIcon: React.FC<{ id: string; className?: string }> = ({ id, className =
 
 const PricingGuide: React.FC = () => {
   const { t, i18n } = useTranslation();
+  // Guide → Propositions (refonte UI, P2) : la soumission du panier devient les pages finales d'une
+  // proposition. Réservé à qui peut envoyer des propositions.
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const canPropose = !!user && (!!user.isAdmin || (user.permissions || []).some((p: string) => p === '*' || p === 'proposals:send' || p === 'proposals:*'));
   const fr = i18n.language?.startsWith('fr');
   const pick = (en: string | null | undefined, frText: string | null | undefined) => (fr && frText ? frText : en) || '';
 
@@ -241,15 +248,20 @@ const PricingGuide: React.FC = () => {
   };
   const setQty = (key: string, qty: number) => setQuote((q0) => ({ ...q0, [key]: Math.max(1, qty) }));
 
+  const quoteItems = () => quoteIds.map((key) => ({
+    id: key.slice(key.indexOf(':') + 1), qty: quote[key],
+    type: key.startsWith('hw:') ? 'hardware' : 'package',
+  }));
+  const toProposal = () => {
+    navigate('/proposals', { state: { pricingQuote: { items: quoteItems(), billing, clientName: clientName.trim() } } });
+  };
+
   const buildQuote = async () => {
     if (!clientName.trim()) { dialog.alert(t('pricingGuide.clientNameRequired') as string); return; }
     setBuilding(true);
     try {
       const r = await axios.post(`${API_URL}/api/pricing/quote/pdf`, {
-        items: quoteIds.map((key) => ({
-          id: key.slice(key.indexOf(':') + 1), qty: quote[key],
-          type: key.startsWith('hw:') ? 'hardware' : 'package',
-        })),
+        items: quoteItems(),
         clientName: clientName.trim(), billing, lang: fr ? 'fr' : 'en',
       }, { headers: authHeaders() });
       const blob = new Blob([b64ToBytes(r.data.pdfBase64) as BlobPart], { type: 'application/pdf' });
@@ -581,15 +593,16 @@ const PricingGuide: React.FC = () => {
 
       {/* Quote tray */}
       {quoteIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-stroke bg-white/95 backdrop-blur dark:border-strokedark dark:bg-boxdark/95 md:left-[290px]">
+        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-stroke bg-white/95 backdrop-blur dark:border-strokedark dark:bg-boxdark/95 lg:left-64">
           <div className="flex flex-wrap items-center gap-3.5 px-6 py-3.5">
             <span className="text-primary">📄</span>
             <span className="text-[13px] font-bold text-black dark:text-white">{t('pricingGuide.quoteBuilder')}</span>
             <span className="text-xs text-gray-400">{quoteIds.length} {t('pricingGuide.items')}</span>
             <div className="flex-1" />
             <div className="mr-1.5 text-right">
-              <div className="text-[11px] text-gray-400">{t(billing === 'yearly' ? 'pricingGuide.estTotalYearly' : 'pricingGuide.estTotal')}</div>
-              <div className="text-lg font-black tracking-tight text-black dark:text-white">{money(rec) || fmtMoney(0, { decimals: 0 })}</div>
+              <div className="text-[11px] text-gray-400">{rec > 0 || oneTime === 0 ? t(billing === 'yearly' ? 'pricingGuide.estTotalYearly' : 'pricingGuide.estTotal') : t('pricingGuide.oneTime')}</div>
+              <div className="text-lg font-black tracking-tight text-black dark:text-white">{(rec > 0 || oneTime === 0 ? money(rec) : money(oneTime)) || fmtMoney(0, { decimals: 0 })}</div>
+              {rec > 0 && oneTime > 0 && <div className="text-[11px] text-gray-400">+ {money(oneTime)} {t('pricingGuide.oneTimeShort')}</div>}
             </div>
             <button onClick={() => { setQuote({}); setQuoteOpen(false); }} className="rounded-full border border-stroke px-3.5 py-2 text-[13px] text-gray-500 hover:border-danger hover:text-danger dark:border-strokedark">{t('pricingGuide.clear')}</button>
             <button onClick={() => setQuoteOpen((v) => !v)} className="rounded-full bg-primary px-4 py-2 text-[13px] font-semibold text-white hover:bg-opacity-90">{quoteOpen ? t('pricingGuide.close') : t('pricingGuide.open')}</button>
@@ -603,6 +616,12 @@ const PricingGuide: React.FC = () => {
               {building ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" /> : <span>👁</span>}
               {t('pricingGuide.buildQuote')}
             </button>
+            {canPropose && (
+              <button onClick={toProposal}
+                className="inline-flex items-center gap-2 rounded-lg border border-primary px-4 py-2 text-sm font-semibold text-accent-ink hover:bg-primary/10 dark:text-accent-ink-dark">
+                {t('pricingGuide.toProposal')}
+              </button>
+            )}
           </div>
           {quoteOpen && (
             <div className="max-h-[230px] overflow-y-auto border-t border-stroke px-6 pb-4 dark:border-strokedark">

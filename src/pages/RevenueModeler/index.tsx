@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { dialog } from '../../lib/dialog';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import ReactApexChart from 'react-apexcharts';
 import type { ApexOptions } from 'apexcharts';
 import {
-  AlertTriangle, ChevronDown, Download, Link2, Presentation, Printer, RotateCcw, Save, Settings2, Trash2,
+  AlertTriangle, ChevronDown, Download, FileText, Link2, Presentation, Printer, RotateCcw, Save, Settings2, Trash2,
 } from 'lucide-react';
 import Select from '../../components/Select';
 import { ContentLoader } from '../../common/Loader';
@@ -171,6 +172,11 @@ export default function RevenueModeler() {
 
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [active, setActive] = useState<Scenario | null>(null);
+  // Modélisateur → Propositions (refonte UI, P2) : un scénario ENREGISTRÉ devient une proposition
+  // de chaîne. Mêmes droits que « Proposition de chaîne » dans Propositions.
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const canChainProposal = !!user && (!!user.isAdmin || (user.permissions || []).some((p: string) => p === '*' || p === 'proposals:chain' || p === 'proposals:*'));
   const [saveName, setSaveName] = useState('');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
@@ -494,6 +500,13 @@ export default function RevenueModeler() {
           </button>
         )}
         <div className="ml-auto flex flex-wrap gap-2">
+          {active && canChainProposal && (
+            <button type="button" onClick={() => navigate(`/proposals?chaine=${active.id}`)} disabled={dirty}
+              title={dirty ? (t('revenueModeler.proposalSaveFirst') as string) : undefined}
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-[#F58345] px-3 py-2 text-sm font-medium text-[#B5521F] hover:bg-[#F58345]/10 disabled:cursor-not-allowed disabled:opacity-50 dark:text-[#F79C6A]">
+              <FileText className="h-4 w-4" />{t('revenueModeler.makeProposal')}
+            </button>
+          )}
           <button type="button" onClick={() => setShowBoard(true)}
             className="inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-stroke px-3 py-2 text-sm text-black hover:bg-gray-2 dark:border-strokedark dark:text-white dark:hover:bg-meta-4">
             <Presentation className="h-4 w-4" />{t('revenueModeler.board.open')}

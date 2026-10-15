@@ -584,7 +584,9 @@
     "replaceEditedEmailNo": "Garder ma version",
     "downloadFailed": "Impossible de télécharger le PDF.",
     "previewFailed": "Impossible de générer l'aperçu.",
-    "estimatePreview": "Aperçu de l'estimation"
+    "estimatePreview": "Aperçu de l'estimation",
+    "fromGuide_one": "Depuis le guide de prix · {{count}} ligne",
+    "fromGuide_other": "Depuis le guide de prix · {{count}} lignes"
   },
   "hardware": {
     "eyebrow": "Matériel",
@@ -734,7 +736,9 @@
         "desc": "Tarifs de service sur place, charges revendeur et déplacements par région."
       }
     },
-    "noLogo": "Aucun logo"
+    "noLogo": "Aucun logo",
+    "toProposal": "Créer une proposition",
+    "oneTimeShort": "une fois"
   },
   "partnerPortal": {
     "title": "Portail partenaire",
@@ -6156,7 +6160,9 @@
       "remove": "Retirer",
       "errType": "Format accepté : PNG, JPEG ou WebP.",
       "errSize": "Image trop lourde, même réduite. Essayez un fichier plus simple."
-    }
+    },
+    "makeProposal": "Préparer une proposition",
+    "proposalSaveFirst": "Enregistrez d'abord le scénario : la proposition utilise sa version enregistrée."
   },
   "credits": {
     "clientCompletes": "Seul le courriel du signataire est obligatoire : le client vérifie et complète ces informations lui-même en signant, et peut y joindre ses pièces justificatives.",

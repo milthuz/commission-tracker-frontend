@@ -6,6 +6,7 @@ import { formatDateOnly } from '../utils/date';
 import PdfThumbPreview from './PdfThumbPreview';
 import ActivityTimeline from '../components/ActivityTimeline';
 import Select from '../components/Select';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const b64ToBytes = (b64: string) => {
   const bin = atob(b64); const arr = new Uint8Array(bin.length);
@@ -22,6 +23,8 @@ interface Estimate {
 }
 // Proposition de CHAÎNE : la tarification vient d'un scénario du modélisateur (prix client seulement).
 interface ChainScenario { id: string; name: string; merchantName: string; numLocs: number; hasLogo?: boolean }
+// Soumission venue du guide de prix (refonte UI, P2) : le serveur relit les prix en base.
+interface PricingQuote { items: { id: string; qty: number; type: 'package' | 'hardware' }[]; billing: 'monthly' | 'yearly'; clientName?: string }
 
 // Le logo du scénario passe en PNG avant d'aller sur la couverture : le rendu de secours (pdf-lib,
 // si le service Chromium est indisponible) ne lit que PNG et JPEG, et un WebP y casserait la
@@ -90,6 +93,7 @@ const Proposals: React.FC = () => {
   const [chainMode, setChainMode] = useState(false);
   const [chainScenarios, setChainScenarios] = useState<ChainScenario[]>([]);
   const [chain, setChain] = useState<ChainScenario | null>(null);
+  const [quoteSource, setQuoteSource] = useState<PricingQuote | null>(null);
   const clientName = () => (sel ? sel.customerName : blankClientName.trim());
 
   const fetchEstimates = async () => {
@@ -137,18 +141,21 @@ const Proposals: React.FC = () => {
     setPrepared(null); setTo(''); setCc(''); setSubject(''); setBody('');
     generatedEmail.current = { to: '', subject: '', body: '' };
     setOrder([]); setExcludedPages([]); setBranding('name');
-    setChainMode(false); setChain(null);
+    setChainMode(false); setChain(null); setQuoteSource(null);
   };
-  const openChainBuilder = async () => {
+  const openChainBuilder = async (preselectId?: string) => {
     openBuilder(null);
     setChainMode(true);
     try {
       const r = await axios.get(`${API_URL}/api/proposals/chain-scenarios`, { headers: authHeaders() });
-      setChainScenarios(r.data.scenarios || []);
+      const list: ChainScenario[] = r.data.scenarios || [];
+      setChainScenarios(list);
+      // Venu du modélisateur (« Préparer une proposition ») : le scénario est déjà choisi.
+      if (preselectId) await pickChainScenario(list.find((x) => x.id === preselectId) || null);
     } catch (e: any) { dialog.alert(e?.response?.data?.error || t('proposals.chain.loadError')); }
   };
-  const pickChain = async (id: string) => {
-    const c = chainScenarios.find((x) => x.id === id) || null;
+  const pickChain = (id: string) => pickChainScenario(chainScenarios.find((x) => x.id === id) || null);
+  const pickChainScenario = async (c: ChainScenario | null) => {
     setChain(c); setPrepared(null);
     if (!c) return;
     // Le nom du marchand du scénario pré-remplit le nom du client (modifiable).
@@ -163,7 +170,32 @@ const Proposals: React.FC = () => {
       setLogo(null); setBranding('name');
     }
   };
-  const closeBuilder = () => { setBuilderOpen(false); setSel(null); setPrepared(null); setChainMode(false); setChain(null); };
+  const closeBuilder = () => { setBuilderOpen(false); setSel(null); setPrepared(null); setChainMode(false); setChain(null); setQuoteSource(null); };
+
+  // Arrivées directes depuis les autres outils de vente (refonte UI, P2) :
+  //   /proposals?chaine=<id>  ← Modélisateur de revenus (scénario enregistré)
+  //   state.pricingQuote      ← Guide matériel et prix (le panier devient les pages de soumission)
+  const location = useLocation() as { state?: { pricingQuote?: PricingQuote }; search: string; pathname: string };
+  const navigate = useNavigate();
+  const handledEntry = useRef(false);
+  useEffect(() => {
+    if (handledEntry.current) return;
+    const pq = location.state?.pricingQuote;
+    const chaine = new URLSearchParams(location.search).get('chaine');
+    if (pq && pq.items?.length) {
+      handledEntry.current = true;
+      openBuilder(null);
+      setQuoteSource({ items: pq.items, billing: pq.billing });
+      if (pq.clientName) setBlankClientName(pq.clientName);
+      navigate(location.pathname, { replace: true, state: null }); // un rafraîchissement ne rouvre pas
+    } else if (chaine && canChain) {
+      handledEntry.current = true;
+      openChainBuilder(chaine);
+      navigate(location.pathname, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canChain]);
+
   // Only close on a genuine backdrop click — one that BOTH starts and ends on the overlay.
   // Without this, selecting text inside the modal and releasing the mouse outside the window
   // fires a click whose target is the overlay, closing the popup mid-selection.
@@ -182,7 +214,7 @@ const Proposals: React.FC = () => {
       // Always render the FULL document so every page shows as a thumbnail; the rep then drags to
       // reorder / toggles which pages to actually send (applied at send/download time).
       const r = await axios.post(`${API_URL}/api/proposals/prepare`,
-        { estimateId: sel?.estimateId, scenarioId: chain?.id, lang, title: title.trim(), clientName: clientName(), logoBase64: branding === 'logo' ? (logo || undefined) : undefined },
+        { estimateId: sel?.estimateId, scenarioId: chain?.id, pricingQuote: !sel && !chain ? quoteSource || undefined : undefined, lang, title: title.trim(), clientName: clientName(), logoBase64: branding === 'logo' ? (logo || undefined) : undefined },
         { headers: authHeaders() });
       const p: Prepared = r.data;
       setPrepared(p);
@@ -214,7 +246,7 @@ const Proposals: React.FC = () => {
     setSending(true);
     try {
       const resp = await axios.post(`${API_URL}/api/proposals/send`,
-        { estimateId: sel?.estimateId, scenarioId: chain?.id, lang, title: title.trim(), clientName: clientName(), logoBase64: branding === 'logo' ? (logo || undefined) : undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body,
+        { estimateId: sel?.estimateId, scenarioId: chain?.id, pricingQuote: !sel && !chain ? quoteSource || undefined : undefined, lang, title: title.trim(), clientName: clientName(), logoBase64: branding === 'logo' ? (logo || undefined) : undefined, to: to.trim(), cc: cc.trim() || undefined, subject: subject.trim(), body,
           pageOrder: order.filter((n) => !excludedPages.includes(n)) },
         { headers: authHeaders() });
       const note = !chain && resp.data && resp.data.acceptLinkIncluded === false ? '\n\n' + t('proposals.noAcceptLink') : '';
@@ -234,7 +266,7 @@ const Proposals: React.FC = () => {
     setDownloading(true);
     try {
       const r = await axios.post(`${API_URL}/api/proposals/prepare`,
-        { estimateId: sel?.estimateId, scenarioId: chain?.id, lang, clientName: clientName(),
+        { estimateId: sel?.estimateId, scenarioId: chain?.id, pricingQuote: !sel && !chain ? quoteSource || undefined : undefined, lang, clientName: clientName(),
           logoBase64: branding === 'logo' ? (logo || undefined) : undefined,
           pageOrder: order.filter((n) => !excludedPages.includes(n)) },
         { headers: authHeaders() });
@@ -289,7 +321,7 @@ const Proposals: React.FC = () => {
         </div>
         <div className="flex flex-wrap gap-2">
         {canChain && (
-          <button onClick={openChainBuilder} className="inline-flex items-center gap-1.5 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
+          <button onClick={() => openChainBuilder()} className="inline-flex items-center gap-1.5 rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-body hover:border-primary hover:text-primary dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 21V9l8-5 8 5v12M9 21v-6h6v6" /></svg>
             {t('proposals.chain.new')}
           </button>
@@ -539,7 +571,7 @@ const Proposals: React.FC = () => {
             <div className="flex items-center justify-between border-b border-stroke px-6 py-4 dark:border-strokedark">
               <div>
                 <h3 className="text-lg font-semibold text-black dark:text-white">{t('proposals.builderTitle')}</h3>
-                <p className="text-xs text-gray-400">{sel ? `${sel.number} · ${sel.customerName}` : chainMode ? (chain ? `${t('proposals.chain.new')} · ${chain.name}` : t('proposals.chain.new')) : t('proposals.blankNew')}</p>
+                <p className="text-xs text-gray-400">{sel ? `${sel.number} · ${sel.customerName}` : chainMode ? (chain ? `${t('proposals.chain.new')} · ${chain.name}` : t('proposals.chain.new')) : quoteSource ? t('proposals.fromGuide', { count: quoteSource.items.length }) : t('proposals.blankNew')}</p>
               </div>
               <button onClick={closeBuilder} className="rounded-lg p-1.5 text-body hover:bg-gray-1 dark:hover:bg-meta-4"><svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
