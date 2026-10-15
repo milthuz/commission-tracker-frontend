@@ -12,6 +12,10 @@ import InvoicePreviewHost from '../components/InvoicePreviewHost';
 import { ContentLoader } from '../common/Loader';
 import { useAuth } from '../context/AuthContext';
 import { prefetchRoutes } from '../lib/routePrefetch';
+import { canOpenPath } from '../config/navigation';
+import { useNavCtx } from '../components/Sidebar/useNavCtx';
+import { StateCard } from '../components/ui';
+import { useTranslation } from 'react-i18next';
 import NoRoleNotice from '../components/NoRoleNotice';
 import MobileTabBar, { TABBAR_SPACE } from '../components/MobileTabBar';
 
@@ -26,7 +30,12 @@ const DefaultLayout: React.FC = () => {
   // Usager SANS rôle (aucune permission, pas admin) : l'écran « pas encore de rôle » remplace les
   // pages, sauf le profil. Seulement quand les permissions sont CONNUES (tableau reçu de
   // /api/auth/verify) — jamais pendant le chargement.
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  const { t } = useTranslation();
+  const navCtx = useNavCtx();
+  // Only once permissions are KNOWN (array from /api/auth/verify) — never while loading.
+  const permsKnown = !!user && Array.isArray(user.permissions);
+  const denied = permsKnown && !canOpenPath(pathname, search, navCtx);
   const noRole = !!user && Array.isArray(user.permissions) && user.permissions.length === 0 && !user.isAdmin
     && !pathname.startsWith('/profile');
 
@@ -64,7 +73,9 @@ const DefaultLayout: React.FC = () => {
                   changement de section, et l'impression d'un rechargement complet.
                   Ici, la coquille reste montée et seul le contenu se renouvelle. */}
               <Suspense fallback={<ContentLoader />}>
-                {noRole ? <NoRoleNotice name={user?.name} /> : <Outlet />}
+                {noRole ? <NoRoleNotice name={user?.name} />
+                  : denied ? <StateCard kind="empty" label={t('access.label')} title={t('access.deniedTitle')} body={t('access.deniedBody')} />
+                  : <Outlet />}
               </Suspense>
             </div>
           </main>

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 import PassLibraryAdmin from './PassLibraryAdmin';
 import PassConfigAdmin from './PassConfigAdmin';
-import { getToken } from '../lib/auth';
+import { authHeaders } from '../lib/auth';
 
 // Suivi interne des recommandations de La Passe (écran 06 du deck), permission
 // `pass:referrals`. Écran du PRODUIT INTERNE, pas de la marque La Passe : barre latérale,
@@ -63,7 +63,7 @@ const PassOps = () => {
   const date = (iso?: string | null) =>
     iso ? new Date(iso).toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
-  const auth = () => ({ Authorization: `Bearer ${getToken()}` });
+  const auth = () => authHeaders();
 
   const load = async () => {
     try {

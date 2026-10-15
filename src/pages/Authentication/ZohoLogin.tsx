@@ -31,6 +31,13 @@ const ZohoLogin = () => {
   const [busy, setBusy] = useState(false);
   const [rememberDevice, setRememberDevice] = useState(true);
 
+  // Refusals coming back from the Zoho callback (?error=…) — e.g. an address Sales Hub doesn't know.
+  useEffect(() => {
+    const e = new URLSearchParams(location.search).get('error');
+    if (e === 'not_authorized') setError(t('auth.zohoNotAuthorized') as string);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     if (isAuthenticated) {
       const from = location.state?.from?.pathname || '/';

@@ -68,7 +68,8 @@
       "submit": "Réinitialiser le mot de passe",
       "doneTitle": "Mot de passe mis à jour",
       "doneSubtitle": "Vous pouvez maintenant vous connecter avec votre nouveau mot de passe."
-    }
+    },
+    "zohoNotAuthorized": "Ce compte Zoho n'a pas accès à Sales Hub. Demande à ton administrateur d'ajouter ton adresse."
   },
   "assistant": {
     "title": "Sofia",
@@ -8173,5 +8174,10 @@
     "logout": "Se déconnecter",
     "toFix_one": "{{count}} à corriger",
     "toFix_other": "{{count}} à corriger"
+  },
+  "access": {
+    "deniedTitle": "Pas d'accès à cet écran",
+    "deniedBody": "Ton rôle ne comprend pas cette section. Si tu en as besoin, demande-le à ton administrateur.",
+    "label": "Accès restreint"
   }
 }

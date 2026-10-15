@@ -163,6 +163,29 @@ export const isItemActive = (item: NavItem, pathname: string, search: string): b
   return pathname === path || (path !== '/' && pathname.startsWith(`${path}/`));
 };
 
+/**
+ * Is this address a screen the user may open? (audit sécurité 2026-10-14 — « aucun usager ne voit un
+ * écran auquel il n'a pas droit »). Routes only checked the session; typing an address opened the
+ * page shell (tabs, buttons) even without the permission — the API refused the data, the screen
+ * still showed. Same predicate as the menu: an address that belongs to a menu entry opens only if
+ * that entry is visible. Addresses no entry claims (profile, /plus, sub-pages) are left to their page.
+ */
+export function canOpenPath(pathname: string, search: string, c: NavCtx): boolean {
+  const leaves: NavItem[] = [];
+  const walk = (items: NavItem[]) => items.forEach((it) => {
+    if (it.children) { walk(it.children); if (it.to) leaves.push({ ...it, children: undefined, active: (p: string) => p === it.to }); } // the hub claims ITS address only, never its sub-screens
+    else if (it.to) leaves.push(it);
+  });
+  NAV.forEach((s) => walk(s.items));
+  const owners = leaves.filter((it) => isItemActive(it, pathname, search));
+  if (!owners.length) return true;
+  return owners.some((it) => {
+    // A hub entry (Administration) is visible when any of its screens is.
+    const full = NAV.flatMap((s) => s.items).find((x) => x.id === it.id);
+    return isItemVisible(full || it, c);
+  });
+}
+
 /** Every reachable screen, flattened, with its section and parent labels (for ⌘K). */
 export function flattenNav(c: NavCtx): { item: NavItem; trail: string[] }[] {
   const out: { item: NavItem; trail: string[] }[] = [];

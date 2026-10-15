@@ -136,8 +136,13 @@ const Resources: React.FC = () => {
   const openResource = async (r: Resource) => {
     try {
       const res = await axios.get(`${API_URL}/api/resources/${r.id}/download`, { headers: authHeaders(), responseType: 'blob' });
-      const url = URL.createObjectURL(res.data);
-      window.open(url, '_blank');
+      // A blob: URL runs in Sales Hub's origin — only inert types may be opened in a tab, the rest
+      // is downloaded (audit sécurité 2026-10-14; the server also serves active types as bytes).
+      const blob: Blob = res.data;
+      const inert = /^(application\/pdf|image\/(png|jpe?g|gif|webp)|video\/mp4|text\/plain)\b/i.test(blob.type || '');
+      const url = URL.createObjectURL(blob);
+      if (inert) window.open(url, '_blank');
+      else { const a = document.createElement('a'); a.href = url; a.download = r.file_name || 'file'; a.click(); }
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch { dialog.alert(t('resources.openError')); }
   };

@@ -19,14 +19,16 @@ export interface Column<T> {
 
 export type SortDir = 'asc' | 'desc';
 
-export function StateCard({ kind, title, body, onRetry }: {
+export function StateCard({ kind, title, body, onRetry, label }: {
   kind: 'empty' | 'loading' | 'error';
+  /** Overrides the small uppercase label (default: the kind). */
+  label?: React.ReactNode;
   title?: React.ReactNode;
   body?: React.ReactNode;
   onRetry?: () => void;
 }) {
   const { t } = useTranslation();
-  const eyebrow = <p className="m-0 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t(`ui.state.${kind}`)}</p>;
+  const eyebrow = <p className="m-0 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{label ?? t(`ui.state.${kind}`)}</p>;
   if (kind === 'loading') {
     return (
       <div className="flex min-h-[170px] flex-col gap-3 p-5" aria-busy="true">

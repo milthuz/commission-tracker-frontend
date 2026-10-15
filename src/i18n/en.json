@@ -68,7 +68,8 @@
       "submit": "Reset password",
       "doneTitle": "Password updated",
       "doneSubtitle": "You can now log in with your new password."
-    }
+    },
+    "zohoNotAuthorized": "This Zoho account does not have access to Sales Hub. Ask your administrator to add your address."
   },
   "assistant": {
     "title": "Sofia",
@@ -8173,5 +8174,10 @@
     "logout": "Sign out",
     "toFix_one": "{{count}} to fix",
     "toFix_other": "{{count}} to fix"
+  },
+  "access": {
+    "deniedTitle": "No access to this screen",
+    "deniedBody": "Your role does not include this section. If you need it, ask your administrator.",
+    "label": "Restricted access"
   }
 }

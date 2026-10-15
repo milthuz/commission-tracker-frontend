@@ -498,7 +498,9 @@ const LeadDetail = ({ leadId, reps, onClose, onChanged, onOpenLead }: {
                   <Row label={t('leads.field.language')}>{lead.language === 'en' ? 'English' : 'Français'}</Row>
                   <Row label={t('leads.field.location')}>{[lead.city, lead.province, lead.postalCode].filter(Boolean).join(', ')}</Row>
                   <Row label={t('leads.field.website')}>
-                    {lead.website ? <a className="text-primary hover:underline" href={lead.website} target="_blank" rel="noreferrer">{lead.website}</a> : null}
+                    {lead.website ? (/^https?:\/\//i.test(lead.website)
+                      ? <a className="text-primary hover:underline" href={lead.website} target="_blank" rel="noreferrer">{lead.website}</a>
+                      : <span>{lead.website}</span>) /* never a javascript:/data: link (audit sécurité 2026-10-14) */ : null}
                   </Row>
                 </div>
                 <div>

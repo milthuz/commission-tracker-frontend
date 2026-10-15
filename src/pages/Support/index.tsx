@@ -125,9 +125,10 @@ export default function Support() {
   useEffect(() => {
     axios.get(`${API_URL}/api/auth/verify`, jeton())
       .then((r) => {
-        setEstAdmin(r.data?.isAdmin === true);
-        const perms: string[] = r.data?.permissions || [];
-        setPeutGererExclus(r.data?.isAdmin === true || perms.includes('*')
+        const u = r.data?.user || {}; // verify returns { user: {...} } — read top-level, nothing ever showed
+        setEstAdmin(u.isAdmin === true);
+        const perms: string[] = u.permissions || [];
+        setPeutGererExclus(u.isAdmin === true || perms.includes('*')
           || perms.includes('support:manage_exclusions') || perms.includes('support:*'));
       })
       .catch(() => { setEstAdmin(false); setPeutGererExclus(false); });
