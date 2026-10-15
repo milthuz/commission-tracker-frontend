@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export type SelectOption = { value: string; label: string; disabled?: boolean };
 
@@ -73,7 +74,8 @@ const Select: React.FC<{
    * resterait ouvert et vide après un abandon.
    */
   onClose?: () => void;
-  /** Opens the list ABOVE the button — for a select pinned at the bottom of a panel. */
+  /** Opens the list ABOVE the button — for a select pinned at the bottom of a panel. Without it,
+   *  the list still flips above on its own when there is not enough room below. */
   openUp?: boolean;
   id?: string;
   'aria-label'?: string;
@@ -92,7 +94,9 @@ const Select: React.FC<{
   useEffect(() => {
     if (!open) return;
     const away = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) { setOpen(false); onClose?.(); }
+      const t = e.target as Node;
+      if (boxRef.current?.contains(t) || listRef.current?.contains(t)) return;
+      setOpen(false); onClose?.();
     };
     document.addEventListener('mousedown', away);
     return () => document.removeEventListener('mousedown', away);
@@ -108,6 +112,32 @@ const Select: React.FC<{
 
   const btnRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (autoOpen) btnRef.current?.focus(); }, [autoOpen]);
+
+  // La liste est rendue dans <body>, en position FIXE calée sur le bouton. Rendue sous le
+  // bouton (en `absolute`), elle était coupée par tout parent qui défile : le pied du
+  // panneau d'une piste (overflow-y-auto) cachait la liste des reps derrière l'historique.
+  const [pos, setPos] = useState<React.CSSProperties | null>(null);
+  useLayoutEffect(() => {
+    if (!open) { setPos(null); return; }
+    const place = () => {
+      const r = btnRef.current?.getBoundingClientRect();
+      if (!r) return;
+      const below = window.innerHeight - r.bottom;
+      const up = openUp || (below < 260 && r.top > below);
+      setPos({
+        position: 'fixed',
+        left: r.left,
+        minWidth: r.width,
+        ...(up ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }),
+        maxHeight: Math.max(120, Math.min(240, (up ? r.top : below) - 12)),
+      });
+    };
+    place();
+    // Un parent qui défile ou une fenêtre redimensionnée déplacent le bouton : la liste suit.
+    window.addEventListener('scroll', place, true);
+    window.addEventListener('resize', place);
+    return () => { window.removeEventListener('scroll', place, true); window.removeEventListener('resize', place); };
+  }, [open, openUp]);
 
   const openAt = () => {
     const i = options.findIndex((o) => o.value === value);
@@ -220,15 +250,16 @@ const Select: React.FC<{
         </svg>
       </button>
 
-      {open && (
+      {open && pos && createPortal(
         <ul
           ref={listRef}
           role="listbox"
           tabIndex={-1}
-          // `w-full` collait la liste a la largeur du bouton : des libelles plus longs que lui
-          // s'y retrouvaient comprimes. `min-w-full w-max` la laisse s'elargir au contenu,
-          // avec un plafond pour qu'un libelle aberrant ne traverse pas la page.
-          className={`absolute z-[9999] ${openUp ? 'bottom-full mb-1' : 'mt-1'} max-h-60 min-w-full w-max max-w-[min(24rem,80vw)] overflow-y-auto thin-scrollbar rounded border border-stroke bg-white py-1 shadow-default dark:border-strokedark dark:bg-boxdark`}
+          style={pos}
+          // `w-max` laisse la liste s'elargir au contenu (au moins la largeur du bouton, via
+          // minWidth), avec un plafond pour qu'un libelle aberrant ne traverse pas la page.
+          // z au-dessus du Modal (99999) : un menu dans une fenetre doit passer devant elle.
+          className="z-[100000] w-max max-w-[min(24rem,80vw)] overflow-y-auto thin-scrollbar rounded border border-stroke bg-white py-1 shadow-default dark:border-strokedark dark:bg-boxdark"
         >
           {options.map((o, i) => (
             <li
@@ -241,14 +272,15 @@ const Select: React.FC<{
                 o.disabled
                   ? 'cursor-not-allowed text-gray-400'
                   : i === active
-                    ? 'bg-primary text-white'
+                    ? 'bg-primary text-[#141414]'
                     : 'text-black dark:text-white'
               }`}
             >
               {o.label}
             </li>
           ))}
-        </ul>
+        </ul>,
+        document.body,
       )}
     </div>
   );
