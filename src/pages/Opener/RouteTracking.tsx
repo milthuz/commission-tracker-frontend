@@ -53,7 +53,7 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
   const [day, setDay] = useState('');
   const [routes, setRoutes] = useState<OverviewRoute[] | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
-  const [stopSel, setStopSel] = useState<number | null>(null);
+  const [stopSel, setStopSel] = useState<number | string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const mapRef = useRef<{ g: any; map: any } | null>(null);
   const [mapReady, setMapReady] = useState(false);
@@ -69,8 +69,19 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
     if (!day) return;
     setRefreshing(true);
     try {
-      const r = await api<{ routes: OverviewRoute[] }>(`/api/opener/routes-overview?from=${day}&to=${day}`);
-      setRoutes(r.routes);
+      const r = await api<{ routes: OverviewRoute[]; free?: { userEmail: string; userName: string | null; stops: OverviewStop[] }[] }>(`/api/opener/routes-overview?from=${day}&to=${day}`);
+      // Check-ins LIBRES (hors route, 2026-10-16) : une carte par employé, comme une route sans
+      // tracé prévu. Identifiants négatifs : jamais confondus avec une vraie route.
+      const free: OverviewRoute[] = (r.free || []).map((f, i) => {
+        const last = f.stops[f.stops.length - 1];
+        return {
+          id: -(i + 1), name: t('opener.track.freeName'), date: day, status: 'published', openerEmail: f.userEmail, openerName: f.userName,
+          zone: null, total: f.stops.length, done: f.stops.length, skipped: 0, stops: f.stops, verdicts: {},
+          visitMinutes: f.stops.reduce((a, s) => a + (s.checkin?.durationMin && s.checkin.durationMin > 0 ? s.checkin.durationMin : 0), 0),
+          lastCheckin: last?.checkin ? { at: last.checkin.at, lat: last.lat, lng: last.lng, stopName: last.name, distanceM: last.checkin.distanceM } : null,
+        };
+      });
+      setRoutes([...r.routes, ...free]);
     } catch { setRoutes([]); } finally { setRefreshing(false); }
   }, [day]);
   useEffect(() => { setRoutes(null); setSelected(null); setStopSel(null); load(); }, [load]);
@@ -82,7 +93,7 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
   }, [day, today, load]);
 
   const sel = routes?.find((r) => r.id === selected) || null;
-  const stopOf = (id: number | null) => (id == null ? null : routes?.flatMap((r) => r.stops.map((s) => ({ s, r }))).find((x) => x.s.id === id) || null);
+  const stopOf = (id: number | string | null) => (id == null ? null : routes?.flatMap((r) => r.stops.map((s) => ({ s, r }))).find((x) => x.s.id === id) || null);
   const picked = stopOf(stopSel);
   const counts = (rs: OverviewRoute[]) => {
     const c: Record<ResultKind, number> = { lead: 0, hot: 0, warm: 0, cold: 0, client: 0, skipped: 0, todo: 0 };
@@ -223,7 +234,7 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
                   <div className="mb-1 flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold text-black dark:text-white">{r.openerName || '—'}</p>
-                      <p className="truncate text-xs text-body dark:text-bodydark">{r.name} · {t(`opener.routeStatus.${r.status}`)}</p>
+                      <p className="truncate text-xs text-body dark:text-bodydark">{r.id < 0 ? r.name : `${r.name} · ${t(`opener.routeStatus.${r.status}`)}`}</p>
                     </div>
                     <span className="shrink-0 text-sm font-bold text-black dark:text-white">{r.done}<span className="text-xs font-medium text-body">/{r.total}</span></span>
                   </div>
@@ -255,9 +266,11 @@ export default function RouteTracking({ onOpen }: { onOpen: (routeId: number) =>
                 <p className="truncate text-base font-bold text-black dark:text-white">{sel.openerName || '—'}</p>
                 <p className="truncate text-xs text-body dark:text-bodydark">{sel.name}</p>
               </div>
-              <button onClick={() => onOpen(sel.id)} className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-primary hover:underline">
-                <ExternalLink className="h-3.5 w-3.5" />{t('opener.track.openRoute')}
-              </button>
+              {sel.id > 0 && (
+                <button onClick={() => onOpen(sel.id)} className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-primary hover:underline">
+                  <ExternalLink className="h-3.5 w-3.5" />{t('opener.track.openRoute')}
+                </button>
+              )}
             </div>
             <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
               {summary(sel)}

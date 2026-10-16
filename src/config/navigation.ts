@@ -87,7 +87,7 @@ export const NAV: NavSection[] = [
         id: 'opener', label: 'sidebar.opener', icon: 'route',
         children: [
           { id: 'openerRoutes', label: 'sidebar.openerRoutes', to: '/opener-routes', visible: (c) => any(c, 'opener:routes'), keywords: 'campagne porte-à-porte' },
-          { id: 'openerField', label: 'sidebar.openerField', to: '/opener', active: (p) => p === '/opener' || p.startsWith('/opener/'), visible: (c) => any(c, 'opener:field') },
+          { id: 'openerField', label: 'sidebar.openerField', to: '/opener', active: (p) => p === '/opener' || p.startsWith('/opener/'), visible: (c) => any(c, 'opener:field', 'opener:checkin') },
           { id: 'openerMatch', label: 'sidebar.openerMatch', to: '/admin/opener', visible: (c) => any(c, 'opener:match') },
         ],
       },

@@ -7610,7 +7610,24 @@
       "leadQueuedTitle": "Lead saved on the phone",
       "leadQueuedBody": "No network right now: {{name}} will be sent automatically as soon as the connection is back. Nothing to redo.",
       "leadRefused_one": "Lead “{{name}}” not sent: {{error}}",
-      "leadRefused_other": "{{count}} leads not sent (“{{name}}”: {{error}})"
+      "leadRefused_other": "{{count}} leads not sent (“{{name}}”: {{error}})",
+      "here": {
+        "tab": "Check-in",
+        "eyebrow": "Free check-in",
+        "title": "Where are you?",
+        "freeCheckin": "Free check-in",
+        "help": "Restaurants around you. Tap the one you’re at to check in, even without a route.",
+        "searchPh": "Search a restaurant by name…",
+        "search": "Search",
+        "around": "Around you",
+        "results": "{{n}} result(s)",
+        "looking": "Looking for restaurants around you…",
+        "noPosition": "Location unknown: search the restaurant by name.",
+        "none": "No restaurant found. Try by name.",
+        "offline": "No network: search isn’t possible.",
+        "budget": "Monthly Google search limit reached: search by name later, or tell your manager.",
+        "cta": "Check in here"
+      }
     },
     "kind": {
       "restaurant": "Restaurants",
@@ -7681,7 +7698,8 @@
         "decision": "Decision maker",
         "services": "Interested in",
         "pastVisits": "{{n}} visit(s) in total at this place."
-      }
+      },
+      "freeName": "Free check-ins (off route)"
     },
     "campaign": {
       "mappingTitle": "Territory mapping",

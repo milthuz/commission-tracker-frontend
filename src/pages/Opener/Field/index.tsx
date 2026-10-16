@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Routes, Route as R, NavLink, useLocation, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, List, Users, CalendarDays, WifiOff, FlaskConical, X } from 'lucide-react';
+import { MapPin, List, Users, CalendarDays, WifiOff, FlaskConical, X, Plus } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import useColorMode from '../../../hooks/useColorMode';
 import './field.css';
@@ -14,6 +14,7 @@ import CheckIn from './CheckIn';
 import LeadForm from './LeadForm';
 import MyLeads from './MyLeads';
 import Day from './Day';
+import Here from './Here';
 
 // Application de terrain de l'opener (écrans 1a à 1f du brief) — /opener/*.
 // Plein écran, sans la barre latérale de Sales Hub, pensée pour un téléphone de 390 à 430 px.
@@ -74,7 +75,8 @@ export default function FieldApp() {
   const [refused, setRefused] = useState(blocked());
   const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
 
-  const allowed = !!user && (user.isAdmin || user.permissions?.includes('*') || user.permissions?.includes('opener:field') || user.permissions?.includes('opener:*'));
+  // opener:field = les routes ; opener:checkin = le check-in libre seulement (tous les employés).
+  const allowed = !!user && (user.isAdmin || user.permissions?.includes('*') || user.permissions?.includes('opener:field') || user.permissions?.includes('opener:checkin') || user.permissions?.includes('opener:*'));
   // La démo lit une route de la campagne : réservée à qui peut voir la campagne (opener:routes).
   const canDemo = !!user && !!(user.isAdmin || user.permissions?.includes('*') || user.permissions?.includes('opener:routes') || user.permissions?.includes('opener:*'));
   const [demo, setDemo] = useState(false);
@@ -219,6 +221,9 @@ export default function FieldApp() {
             <R path="stop/:stopId/checkin" element={<CheckIn />} />
             <R path="stop/:stopId/lead" element={<LeadForm />} />
             <R path="checkin/:checkinId/edit" element={<CheckIn />} />
+            <R path="here" element={<Here />} />
+            <R path="here/:placeId/checkin" element={<CheckIn />} />
+            <R path="here/:placeId/lead" element={<LeadForm />} />
             <R path="leads/:leadId/edit" element={<LeadForm />} />
             <R path="leads" element={<MyLeads />} />
             <R path="day" element={<Day />} />
@@ -240,15 +245,25 @@ export function TabBar() {
     { to: '/opener/leads', icon: Users, label: t('opener.field.tabs.leads'), active: pathname.startsWith('/opener/leads') },
     { to: '/opener/day', icon: CalendarDays, label: t('opener.field.tabs.day'), active: pathname.startsWith('/opener/day') },
   ];
+  // Au centre : « Check-in » — un check-in libre, n'importe où, à n'importe quel moment (2026-10-16).
+  const here = pathname.startsWith('/opener/here');
+  const link = ({ to, icon: Icon, label, active }: typeof tabs[number]) => (
+    <NavLink key={to} to={to} end className={`flex flex-col items-center justify-center gap-1 pt-1.5 text-[11px] font-semibold ${active ? 'text-primary' : 'text-[var(--of-faint)]'}`}>
+      <Icon className="h-[22px] w-[22px]" strokeWidth={2} />
+      {label}
+    </NavLink>
+  );
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto grid max-w-[480px] grid-cols-4 border-t border-[var(--of-stroke)] bg-[var(--of-page)]"
+    <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto grid max-w-[480px] grid-cols-5 border-t border-[var(--of-stroke)] bg-[var(--of-page)]"
       style={{ height: 'calc(50px + env(safe-area-inset-bottom, 0px) + 8px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      {tabs.map(({ to, icon: Icon, label, active }) => (
-        <NavLink key={to} to={to} end className={`flex flex-col items-center justify-center gap-1 pt-1.5 text-[11px] font-semibold ${active ? 'text-primary' : 'text-[var(--of-faint)]'}`}>
-          <Icon className="h-[22px] w-[22px]" strokeWidth={2} />
-          {label}
-        </NavLink>
-      ))}
+      {tabs.slice(0, 2).map(link)}
+      <NavLink to="/opener/here" className="flex flex-col items-center justify-start gap-0.5 text-[11px] font-bold text-primary" aria-label={t('opener.field.here.tab') as string}>
+        <span className={`-mt-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-[#141414] shadow-[0_6px_16px_rgba(245,131,70,.45)] ${here ? 'ring-4 ring-[rgba(245,131,70,.3)]' : ''}`}>
+          <Plus className="h-6 w-6" strokeWidth={2.6} />
+        </span>
+        {t('opener.field.here.tab')}
+      </NavLink>
+      {tabs.slice(2).map(link)}
     </nav>
   );
 }

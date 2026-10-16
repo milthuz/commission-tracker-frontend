@@ -113,7 +113,8 @@ export interface DaySummary {
 // Vue de suivi (GET /api/opener/routes-overview).
 // Un arrêt vu par le gestionnaire (Suivi des visites) : où, quand, le contrôle GPS, et le RÉSULTAT.
 export interface OverviewStop {
-  id: number; placeId: string; name: string; address: string | null; lat: number | null; lng: number | null;
+  // Un check-in libre (hors route) porte un identifiant « free-… ».
+  id: number | string; placeId: string; name: string; address: string | null; lat: number | null; lng: number | null;
   outcome: Stop['outcome']; skipReason: SkipReason | null; doneAt: string | null;
   checkin: { at: string; lat: number | null; lng: number | null; distanceM: number | null; accuracyM: number | null; verdict: Verdict;
     startedAt: string | null; durationMin: number | null; endDistanceM: number | null } | null;
@@ -169,6 +170,9 @@ export interface CheckinInput {
   currentPos: string; serviceType: ServiceType; terminals: number; onlineDelivery: boolean;
   decisionMaker: 'yes' | 'no' | 'later' | null; interest: number | null; services: Service[]; notes: string;
   satisfaction?: number | null; paymentsBy?: PaymentsBy | null;
+  // Check-in libre (sans arrêt) : le nom du restaurant, gardé avec la visite.
+  placeName?: string | null;
+  placeLat?: number | null; placeLng?: number | null;
 }
 
 export class ApiError extends Error {

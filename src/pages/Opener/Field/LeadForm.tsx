@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Plus, CheckCircle2, Loader2, Save } from 'lucide-react';
 import { useField } from './index';
+import { loadFreePlace } from './freePlace';
 import { Chips, Eyebrow, ScreenHeader, Segmented, StickyCta, btnPrimary, inputCls, labelCls } from './ui';
 import { api, ApiError, uuid, type CheckinInput, type PlaceCard, type Service } from '../api';
 import { enqueueLead, flush, type LeadInput } from './outbox';
@@ -25,7 +26,12 @@ export default function LeadForm() {
   const location = useLocation() as { state?: { checkin?: CheckinInput } };
   const checkin = location.state?.checkin || null;
   const { lng, route, online, markStop, demo } = useField();
-  const stop = route?.stops.find((s) => String(s.id) === stopId) || null;
+  const stopOnRoute = route?.stops.find((s) => String(s.id) === stopId) || null;
+  // Check-in libre (/opener/here/:placeId/lead) : le resto choisi autour, sans arrêt de route.
+  const { placeId: freeId } = useParams();
+  const freePlace = !stopId ? loadFreePlace(freeId) : null;
+  const stop = stopOnRoute || (freePlace ? { id: null as number | null, placeId: freePlace.placeId, name: freePlace.name, address: freePlace.address } : null);
+  const mark = (patch: Parameters<typeof markStop>[1]) => { if (stopOnRoute) markStop(stopOnRoute.id, patch); };
   const clientRef = useRef(uuid());
   const [card, setCard] = useState<PlaceCard | null>(null);
   const [f, setF] = useState({
@@ -78,7 +84,7 @@ export default function LeadForm() {
 
   if (leadId && editError) return <div className="p-8 text-center text-sm text-[var(--of-bad)]"><ScreenHeader title="—" back="/opener/leads" />{editError}</div>;
   if (leadId && !edit) return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
-  if (!leadId && (!route || !stop)) return <div className="p-8 text-center text-sm text-[var(--of-muted)]">{t('opener.field.stopNotFound')}</div>;
+  if (!leadId && !stop) return <div className="p-8 text-center text-sm text-[var(--of-muted)]">{t('opener.field.stopNotFound')}</div>;
 
   const saveEdit = async () => {
     if (!edit) return;
@@ -103,7 +109,7 @@ export default function LeadForm() {
     if (!stop) return;
     if (!f.businessName.trim()) { dialog.alert(t('opener.field.nameRequired')); return; }
     // Démo : aucun lead créé dans Zoho ni dans la file ; un faux numéro montre l'écran de fin.
-    if (demo) { markStop(stop.id, { outcome: 'done' }); setDone({ refCode: 'DEMO-0000' }); return; }
+    if (demo) { mark({ outcome: 'done' }); setDone({ refCode: 'DEMO-0000' }); return; }
     const timeline = t(`opener.field.timeline.${f.timeline}`);
     const body: LeadInput = {
       clientRef: clientRef.current, placeId: stop.placeId, stopId: stop.id, checkinId: checkin?.id || null,
@@ -119,7 +125,7 @@ export default function LeadForm() {
     const keepOnPhone = () => {
       enqueueLead(body);
       flush().catch(() => {});
-      markStop(stop.id, { outcome: 'done' });
+      mark({ outcome: 'done' });
       setDone({ refCode: null });
     };
     if (!online) { keepOnPhone(); return; }
@@ -128,7 +134,7 @@ export default function LeadForm() {
       // Une visite faite hors ligne a peut-être encore son check-in dans la file : il part d'abord.
       await flush().catch(() => {});
       const r = await api<{ refCode: string }>('/api/opener/leads', { method: 'POST', body });
-      markStop(stop.id, { outcome: 'done' });
+      mark({ outcome: 'done' });
       setDone({ refCode: r.refCode });
     } catch (e: any) {
       // Réseau perdu en route : on garde la piste. Refus du serveur : on le dit, rien n'est perdu.

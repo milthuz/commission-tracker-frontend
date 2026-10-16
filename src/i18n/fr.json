@@ -7610,7 +7610,24 @@
       "leadQueuedTitle": "Piste gardée sur le téléphone",
       "leadQueuedBody": "Pas de réseau pour l'instant : {{name}} partira tout seul dès que la connexion revient. Rien à refaire.",
       "leadRefused_one": "Piste « {{name}} » non envoyée : {{error}}",
-      "leadRefused_other": "{{count}} pistes non envoyées (« {{name}} » : {{error}})"
+      "leadRefused_other": "{{count}} pistes non envoyées (« {{name}} » : {{error}})",
+      "here": {
+        "tab": "Check-in",
+        "eyebrow": "Check-in libre",
+        "title": "Où êtes-vous ?",
+        "freeCheckin": "Check-in libre",
+        "help": "Les restaurants autour de vous. Touchez celui où vous êtes pour faire un check-in, même sans route.",
+        "searchPh": "Chercher un restaurant par nom…",
+        "search": "Chercher",
+        "around": "Autour de vous",
+        "results": "{{n}} résultat(s)",
+        "looking": "Recherche des restaurants autour de vous…",
+        "noPosition": "Position inconnue : cherchez le restaurant par son nom.",
+        "none": "Aucun restaurant trouvé. Essayez par le nom.",
+        "offline": "Sans réseau, la recherche est impossible.",
+        "budget": "Limite mensuelle de recherches Google atteinte : cherchez par nom plus tard, ou prévenez votre gestionnaire.",
+        "cta": "Faire un check-in ici"
+      }
     },
     "kind": {
       "restaurant": "Restaurants",
@@ -7681,7 +7698,8 @@
         "decision": "Décideur",
         "services": "Intéressé par",
         "pastVisits": "{{n}} visite(s) au total à ce restaurant."
-      }
+      },
+      "freeName": "Check-ins libres (hors route)"
     },
     "campaign": {
       "mappingTitle": "Cartographie du territoire",

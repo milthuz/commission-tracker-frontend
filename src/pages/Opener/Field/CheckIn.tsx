@@ -8,6 +8,7 @@ import { enqueueCheckin, flush, loadDraft, saveDraft, clearDraft } from './outbo
 import { api, haversine, fmtDistance, uuid, type Service, type ServiceType, type CheckinInput, type PaymentsBy, type Version } from '../api';
 import { dialog } from '../../../lib/dialog';
 import { NoVisitPicker, applyNoVisit, confirmNoVisit, skipReasonOf, type NoVisitReason } from './NoVisit';
+import { loadFreePlace } from './freePlace';
 
 // Écran 1d — check-in.
 // Obligatoires : POS actuel, type de service, niveau d'intérêt. Le reste est facultatif.
@@ -76,13 +77,16 @@ export default function CheckIn() {
 function NewCheckIn() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { stopId } = useParams();
+  // Un arrêt de la route du jour (/opener/stop/:stopId/checkin) OU un resto choisi autour de soi,
+  // sans route (/opener/here/:placeId/checkin — check-in libre, 2026-10-16).
+  const { stopId, placeId } = useParams();
   const { lng, route, position, accuracy, markStop, demo, reload, gps, retryGps } = useField();
-  const stop = route?.stops.find((s) => String(s.id) === stopId) || null;
-  const draftKey = `stop_${stopId}`;
+  const stop = stopId ? route?.stops.find((s) => String(s.id) === stopId) || null : null;
+  const free = !stopId ? loadFreePlace(placeId) : null;
+  const draftKey = stopId ? `stop_${stopId}` : `free_${placeId}`;
   const [form, setForm] = useState<Form>(() => {
     const d: Form = loadDraft<Form>(draftKey) || {
-      id: uuid(), currentPos: stop?.status === 'client' ? 'Cluster' : null, serviceType: null, terminals: 1, onlineDelivery: false,
+      id: uuid(), currentPos: (stop?.status || free?.status) === 'client' ? 'Cluster' : null, serviceType: null, terminals: 1, onlineDelivery: false,
       decisionMaker: null, interest: 0, services: [], notes: '', createLead: false, satisfaction: 0, paymentsBy: null,
     };
     if (!d.startedAt || Date.now() - new Date(d.startedAt).getTime() > STALE_MS) {
@@ -113,10 +117,11 @@ function NewCheckIn() {
 
   useEffect(() => { saveDraft(draftKey, form); }, [form, draftKey]);
 
-  if (!route || !stop) return <div className="p-8 text-center text-sm text-[var(--of-muted)]">{t('opener.field.stopNotFound')}</div>;
+  if (!stop && !free) return <div className="p-8 text-center text-sm text-[var(--of-muted)]">{t('opener.field.stopNotFound')}</div>;
 
-  // Pas de visite possible : un appui, rien à remplir. Le brouillon est jeté.
+  // Pas de visite possible : un appui, rien à remplir. Le brouillon est jeté. (Arrêt de route seulement.)
   const noVisit = async (kind: NoVisitReason) => {
+    if (!stop) return;
     if (!(await confirmNoVisit(kind, t))) return;
     setBusy(kind);
     try {
@@ -128,21 +133,24 @@ function NewCheckIn() {
     } catch (e: any) { dialog.alert(e.message); } finally { setBusy(null); }
   };
 
-  const subject: Subject = { name: stop.name, placeId: stop.placeId, stopId: stop.id, isClient: stop.status === 'client', version: stop.version, lat: stop.lat, lng: stop.lng };
+  const subject: Subject = stop
+    ? { name: stop.name, placeId: stop.placeId, stopId: stop.id, isClient: stop.status === 'client', version: stop.version, lat: stop.lat, lng: stop.lng }
+    : { name: free!.name, placeId: free!.placeId, stopId: null, isClient: free!.status === 'client', version: free!.version, lat: free!.lat, lng: free!.lng };
 
   const submit = async (f: Form, posValue: string, wantLead: boolean, setSending: (v: boolean) => void) => {
     setSending(true);
     const fresh = await freshPosition();
     const here: [number, number] | null = fresh ? [fresh.coords.latitude, fresh.coords.longitude] : position;
     const hereAcc = fresh ? fresh.coords.accuracy : accuracy;
-    const d = here && stop.lat != null ? haversine(here, [stop.lat, stop.lng!]) : null;
+    const d = here && subject.lat != null ? haversine(here, [subject.lat, subject.lng!]) : null;
     if (d != null && d > FAR_M) {
       const ok = await dialog.confirm(t('opener.field.farConfirm', { dist: fmtDistance(d, lng) }), { confirmText: t('opener.field.saveAnyway') });
       if (!ok) { setSending(false); return; }
     }
     const isClient = subject.isClient;
     const payload: CheckinInput = {
-      id: f.id, placeId: stop.placeId, stopId: stop.id, at: new Date().toISOString(),
+      id: f.id, placeId: subject.placeId, stopId: stop?.id ?? null, placeName: stop ? null : subject.name,
+      placeLat: stop ? null : subject.lat ?? null, placeLng: stop ? null : subject.lng ?? null, at: new Date().toISOString(),
       startedAt: f.startedAt, startLat: f.startLat ?? null, startLng: f.startLng ?? null, startAccuracy: f.startAccuracy ?? null,
       lat: here?.[0] ?? null, lng: here?.[1] ?? null, accuracy: hereAcc ?? null,
       currentPos: posValue, serviceType: f.serviceType!, terminals: f.terminals, onlineDelivery: f.onlineDelivery,
@@ -155,20 +163,20 @@ function NewCheckIn() {
       await flush().catch(() => {});
     }
     clearDraft(draftKey);
-    markStop(stop.id, { outcome: 'done', doneAt: payload.at, checkin: { id: f.id, at: payload.at, interest: f.interest || null, leadId: null, decisionMaker: f.decisionMaker, currentPos: posValue } });
+    if (stop) markStop(stop.id, { outcome: 'done', doneAt: payload.at, checkin: { id: f.id, at: payload.at, interest: f.interest || null, leadId: null, decisionMaker: f.decisionMaker, currentPos: posValue } });
     setSending(false);
-    if (wantLead) navigate(`/opener/stop/${stop.id}/lead`, { replace: true, state: { checkin: payload } });
-    else navigate('/opener', { replace: true });
+    if (wantLead) navigate(stop ? `/opener/stop/${stop.id}/lead` : `/opener/here/${encodeURIComponent(subject.placeId)}/lead`, { replace: true, state: { checkin: payload } });
+    else navigate(stop ? '/opener' : '/opener/day', { replace: true });
   };
 
   return (
     <QuestionForm
       subject={subject} form={form} setForm={setForm} onSubmit={submit} mode="new"
-      header={<ScreenHeader eyebrow={t('opener.field.checkin')} title={stop.name}
+      header={<ScreenHeader eyebrow={stop ? t('opener.field.checkin') : t('opener.field.here.freeCheckin')} title={subject.name}
         right={<span className="inline-flex items-center gap-1 rounded-full bg-[rgba(245,131,70,.12)] px-2.5 py-1 text-xs font-bold tabular-nums text-primary" aria-label={t('opener.field.visitTimer') as string}>
           <Clock className="h-3.5 w-3.5" />{fmtElapsed(tick - new Date(form.startedAt || tick).getTime())}</span>} />}
       top={<>
-        <NoVisitPicker title={t('opener.field.quick.title')} busy={busy} onPick={noVisit} />
+        {stop && <NoVisitPicker title={t('opener.field.quick.title')} busy={busy} onPick={noVisit} />}
         {/* Le bandeau suit l'état réel ; « pas de position à l'arrivée » le montre même si le navigateur n'a rien signalé. */}
         <GpsBanner gps={gps === 'ok' && gpsMissing ? 'unavailable' : gps} onRetry={() => { retryGps(); restart(); }} />
         <p className="flex flex-wrap items-center gap-x-2 text-xs text-[var(--of-faint)]">

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Navigation, Check, ChevronRight, RefreshCw, Loader2, FlaskConical } from 'lucide-react';
+import { Navigation, Check, ChevronRight, RefreshCw, Loader2, FlaskConical, MapPin } from 'lucide-react';
 import { useField, TabBar } from './index';
 import { Eyebrow, StatusBadge, GpsBanner, btnPrimary, btnSecondary } from './ui';
 import { GoogleMapView, pinIcon } from '../GoogleMap';
@@ -95,6 +95,7 @@ export default function Home({ view }: { view: 'map' | 'list' }) {
         <Navigation className="h-10 w-10 text-primary" />
         <p className="text-lg font-bold text-[var(--of-title)]">{t('opener.field.noRoute')}</p>
         <p className="text-sm text-[var(--of-faint)]">{error ? t('opener.field.loadError') : t('opener.field.noRouteHelp', { date: dayLabel })}</p>
+        <button onClick={() => navigate('/opener/here')} className={`${btnPrimary} w-full`}><MapPin className="h-4 w-4" />{t('opener.field.here.cta')}</button>
         <button onClick={refresh} className={btnSecondary}>{refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}{t('opener.field.refresh')}</button>
         {canDemo && (
           <div className="mt-4 w-full rounded-[14px] border border-dashed border-[#8B5CF6]/60 p-4">
