@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { fmtNumber } from '../../lib/format';
 import ReactApexChart from 'react-apexcharts';
@@ -100,7 +100,10 @@ export default function Support() {
   // Par défaut : le mois en cours (demande de David, 2026-10-16) — le serveur lit « 1 » comme
   // « du 1er du mois à aujourd'hui ».
   const [mois, setMois] = useState('1');
-  const [dept, setDept] = useState('all');
+  // Par défaut : le soutien technique de Cluster (demande de David, 2026-10-16). « default » est
+  // résolu par le serveur, qui renvoie l'identifiant trouvé dans periode.departement.
+  const [dept, setDept] = useState('default');
+  const sautRef = useRef(false);   // ne pas recharger quand « default » devient l'identifiant résolu
   const [onglet, setOnglet] = useState<Onglet>('apercu');
   const [data, setData] = useState<Rapport | null>(null);
   const [chargement, setChargement] = useState(true);
@@ -117,12 +120,16 @@ export default function Support() {
     try {
       const r = await axios.get(`${API_URL}/api/support/overview?months=${mois}&department=${dept}`, jeton());
       setData(r.data);
+      if (dept === 'default') { sautRef.current = true; setDept(r.data?.periode?.departement || 'all'); }
     } catch (e: any) {
       setErreur(e?.response?.data?.error || t('errors.loadFailed'));
     } finally { setChargement(false); }
   };
 
-  useEffect(() => { charger(); }, [mois, dept]);
+  useEffect(() => {
+    if (sautRef.current) { sautRef.current = false; return; }
+    charger();
+  }, [mois, dept]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // L'état de la synchro n'est visible que des admins — l'endpoint le refuse aux autres, donc
   // un échec ici n'est pas une erreur, juste « pas admin ».
