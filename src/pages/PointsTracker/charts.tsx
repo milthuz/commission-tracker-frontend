@@ -97,7 +97,9 @@ export function RepChart({ cum, total, quota, proj, today, ariaLabel, quotaLabel
           <circle cx={X(k)} cy={Y(pts)} r={4} fill="#F58345" className="stroke-white dark:stroke-[#141414]" strokeWidth={2} />
         </>
       )}
-      <text x={312} y={Y(quota) - 6} textAnchor="end" fontSize={11} className="fill-[#575A61] dark:fill-[#999AA7]">{quotaLabel}</text>
+      {/* halo de la couleur de la carte : les traits pointillés passent derrière l'étiquette sans la barrer */}
+      <text x={312} y={Y(quota) - 6} textAnchor="end" fontSize={11} paintOrder="stroke" strokeWidth={4} strokeLinejoin="round"
+        className="fill-[#575A61] stroke-white dark:fill-[#999AA7] dark:stroke-boxdark">{quotaLabel}</text>
     </svg>
   );
 }

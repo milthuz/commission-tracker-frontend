@@ -2144,9 +2144,12 @@
       "churnedN_other": "{{count}} this month",
       "churnTarget": "target: under 1.5%",
       "ltv": "Customer lifetime value (LTV)",
-      "historyBuilding": "Monthly MRR history starts in October 2026: the curve will appear next month, with the change from the previous month.",
+      "historyBuilding": "The 12-month MRR curve will appear in November: monthly history is recorded since October 2026.",
       "chartAria_one": "Monthly recurring revenue over {{count}} month, from {{from}} to {{to}}",
-      "chartAria_other": "Monthly recurring revenue over {{count}} months, from {{from}} to {{to}}"
+      "chartAria_other": "Monthly recurring revenue over {{count}} months, from {{from}} to {{to}}",
+      "byOrgChart": "Split by organization",
+      "subsN_one": "{{count}} subscription",
+      "subsN_other": "{{count}} subscriptions"
     },
     "orgs": {
       "title": "Recurring revenue by organization",
@@ -2176,7 +2179,28 @@
       "onTrack": "On track",
       "atRisk": "At risk or behind",
       "missed": "Missed quota",
-      "link": "Open the points tracker"
+      "link": "Open the points tracker",
+      "targetN": "Target {{n}}"
+    },
+    "rev": {
+      "title": "Revenue collected · {{year}}",
+      "sub": "{{comm}} in commissions ({{pct}} of collections)",
+      "overdue": "{{amount}} overdue",
+      "aria": "Revenue collected per month in {{year}}, total {{total}}",
+      "paid": "Collected",
+      "commission": "Commissions",
+      "overdueShort": "Overdue",
+      "note": "Paid Zoho Books invoices, by payment month. The current month, still in progress, is dimmed."
+    },
+    "reps": {
+      "title": "Commissions by rep · {{year}}",
+      "link": "Commission report",
+      "sales": "on {{amount}} in sales"
+    },
+    "customers": {
+      "title": "Top customers · {{year}}",
+      "invoices_one": "{{count}} invoice",
+      "invoices_other": "{{count}} invoices"
     }
   },
   "commissionTracker": {

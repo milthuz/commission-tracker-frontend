@@ -6,8 +6,10 @@ import Select from '../../components/Select';
 import { Modal, StatusPill } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import { authHeaders } from '../../lib/auth';
-import { appLocale, fmtDateOnly, fmtMoney, fmtMonth, fmtNumber } from '../../lib/format';
-import { type PointsData, UNASSIGNED, isRisky, monthClock, project, repStatus, todayYmd } from '../PointsTracker/points';
+import { appLocale, fmtDateOnly, fmtMoney, fmtMonth, fmtNumber, monthNames } from '../../lib/format';
+import { type PointsData, UNASSIGNED, cumulative, isRisky, monthClock, project, repStatus, todayYmd } from '../PointsTracker/points';
+import { RepChart } from '../PointsTracker/charts';
+import { BarList, MonthlyColumns } from './cockpitCharts';
 
 // Tableau de bord de direction — proposition A « Cockpit » du canevas « Sales Hub — refonte UI »
 // (planche « Tableau de bord gestionnaire · A — Cockpit (direction) »). Ce qu'il faut faire en
@@ -25,6 +27,10 @@ interface Billing {
 interface PayrollPreview { dueBy: string | null; reps: { rep: string; total: number; sentAt?: string | null }[] }
 interface AllStatus { books: { lastSyncAt: string | null }; crm: { lastSyncAt: string | null }; zentact: { lastSyncAt: string | null } }
 interface DashboardData {
+  cards?: { paidRevenue: number; totalCommission: number; overdueAmount: number; paidCount: number };
+  monthlyTrend?: { month: string; revenue: number; overdue: number; commission: number }[];
+  commissionsByRep?: { name: string; invoices: number; sales: number; commission: number }[];
+  topCustomers?: { name: string; invoices: number; total: number }[];
   avgProcessing: { clients: number; monthly: number } | null;
   avgRevenuePerMerchant: { merchants: number; activeMerchants?: number; monthly: number } | null;
 }
@@ -36,6 +42,10 @@ const hoursSince = (iso: string | null) => (iso ? (Date.now() - new Date(iso).ge
 /** « 432,5 k$ » — compact, dans la langue choisie. */
 const compactMoney = (v: number) => new Intl.NumberFormat(appLocale(), {
   style: 'currency', currency: 'CAD', currencyDisplay: 'narrowSymbol', notation: 'compact', minimumFractionDigits: 1, maximumFractionDigits: 1,
+}).format(v);
+/** Axe des graphiques : « 100 k$ », sans décimale. */
+const axisMoney = (v: number) => new Intl.NumberFormat(appLocale(), {
+  style: 'currency', currency: 'CAD', currencyDisplay: 'narrowSymbol', notation: 'compact', maximumFractionDigits: 0,
 }).format(v);
 const pct = (v: number, digits = 1) => new Intl.NumberFormat(appLocale(), { style: 'percent', minimumFractionDigits: digits, maximumFractionDigits: digits }).format(v);
 
@@ -197,8 +207,15 @@ const AdminDashboard = () => {
     const proj = project(pts, clock);
     const pace = Math.round(target * (clock.elapsed / Math.max(clock.total, 1)));
     const st = reps.map((r) => repStatus(r.totalPoints, r.quota || 15, project(r.totalPoints, clock), clock));
+    // Courbe cumulée : somme des courbes des représentants. Sans le détail d'un seul d'entre eux,
+    // pas de courbe (jamais une courbe inventée) : on garde la barre.
+    const curves = reps.map((r) => cumulative(r, clock));
+    let cum: number[] | null = null;
+    if (curves.length && curves.every(Boolean) && clock.elapsed > 0) {
+      cum = Array.from({ length: clock.elapsed }, (_, d) => curves.reduce((acc, c) => acc + (c![d] || 0), 0));
+    }
     return {
-      clock, pts, target, proj, diff: pts - pace, n: reps.length,
+      clock, pts, target, proj, diff: pts - pace, n: reps.length, cum,
       met: st.filter((s) => s === 'met' || s === 'tier').length,
       onTrack: st.filter((s) => s === 'onTrack').length,
       risk: st.filter(isRisky).length,
@@ -277,7 +294,13 @@ const AdminDashboard = () => {
               {chart.labels.map((l, i) => <text key={i} x={l.x} y={164} textAnchor="middle" fontSize={11} className="fill-[#575A61] dark:fill-[#999AA7]">{l.label}</text>)}
             </svg>
           ) : billing ? (
-            <p className="m-0 rounded-xl bg-[#F7F7F8] px-3 py-2.5 text-[13px] text-body dark:bg-[#1B1B1B] dark:text-bodydark2">{t('cockpit.mrr.historyBuilding')}</p>
+            // Tant que l'historique n'a qu'un mois : la répartition du MRR par organisation, réelle dès aujourd'hui.
+            <div className="flex flex-col gap-3 pt-1">
+              <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t('cockpit.mrr.byOrgChart')}</span>
+              <BarList ariaLabel={t('cockpit.mrr.byOrgChart') as string} fmt={(v) => `${compactMoney(v)} · ${pct(v / Math.max(billing.mrr, 1), 0)}`}
+                items={[...billing.perOrg].sort((a, b) => b.mrr - a.mrr).map((o) => ({ key: o.orgId, label: o.name, value: o.mrr, sub: t('cockpit.mrr.subsN', { count: o.activeSubs }) as string }))} />
+              <span className="text-xs text-body dark:text-bodydark2">{t('cockpit.mrr.historyBuilding')}</span>
+            </div>
           ) : null}
         </div>
         <div className="flex flex-[2_1_280px] flex-col">
@@ -296,6 +319,60 @@ const AdminDashboard = () => {
           ))}
         </div>
       </section>
+
+      {/* Revenus encaissés par mois (Zoho Books, année en cours) */}
+      {dash?.monthlyTrend && (() => {
+        const names = monthNames('short');
+        const shown = dash.monthlyTrend!.slice(0, curMonth);   // jusqu'au mois en cours
+        const totalPaid = shown.reduce((acc, m) => acc + m.revenue, 0);
+        const totalComm = shown.reduce((acc, m) => acc + m.commission, 0);
+        return (
+          <section aria-labelledby="ck-rev-h" className={`${card} flex flex-col gap-3 p-5 sm:p-[22px]`}>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <h2 id="ck-rev-h" className="m-0 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t('cockpit.rev.title', { year: curYear })}</h2>
+                <span className="text-[32px] font-bold leading-none tracking-[-0.02em] text-black dark:text-white">{compactMoney(totalPaid)}</span>
+                <span className="text-sm text-[#424242] dark:text-bodydark">{t('cockpit.rev.sub', { comm: compactMoney(totalComm), pct: pct(totalComm / Math.max(totalPaid, 1), 1) })}</span>
+              </div>
+              {(dash.cards?.overdueAmount || 0) > 0 && (
+                <StatusPill family="wait">{t('cockpit.rev.overdue', { amount: compactMoney(dash.cards!.overdueAmount) })}</StatusPill>
+              )}
+            </div>
+            <MonthlyColumns months={shown.map((_, i) => names[i])} values={shown.map((m) => m.revenue)} highlight={curMonth - 1}
+              fmt={(v) => fmtMoney(v, { decimals: 0 })} fmtAxis={axisMoney}
+              ariaLabel={t('cockpit.rev.aria', { year: curYear, total: compactMoney(totalPaid) }) as string}
+              tooltip={(i) => [
+                { label: t('cockpit.rev.paid') as string, value: fmtMoney(shown[i].revenue, { decimals: 0 }) },
+                { label: t('cockpit.rev.commission') as string, value: fmtMoney(shown[i].commission, { decimals: 0 }) },
+                ...(shown[i].overdue > 0 ? [{ label: t('cockpit.rev.overdueShort') as string, value: fmtMoney(shown[i].overdue, { decimals: 0 }) }] : []),
+              ]} />
+            <span className="text-xs text-body dark:text-bodydark2">{t('cockpit.rev.note')}</span>
+          </section>
+        );
+      })()}
+
+      {(dash?.commissionsByRep?.length || dash?.topCustomers?.length) ? (
+        <div className="flex flex-wrap gap-5">
+          {!!dash?.commissionsByRep?.length && (
+            <section aria-labelledby="ck-reps-h" className={`${card} flex min-w-0 flex-[1_1_340px] flex-col gap-4 p-5`}>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <h2 id="ck-reps-h" className="m-0 text-base font-bold text-black dark:text-white">{t('cockpit.reps.title', { year: curYear })}</h2>
+                <Link to="/commission-report" className={`${linkCls} whitespace-nowrap`}>{t('cockpit.reps.link')}</Link>
+              </div>
+              <BarList ariaLabel={t('cockpit.reps.title', { year: curYear }) as string} fmt={(v) => fmtMoney(v, { decimals: 0 })}
+                items={[...dash.commissionsByRep!].sort((a, b) => b.commission - a.commission).slice(0, 8)
+                  .map((r) => ({ key: r.name, label: r.name, value: r.commission, sub: t('cockpit.reps.sales', { amount: compactMoney(r.sales) }) as string }))} />
+            </section>
+          )}
+          {!!dash?.topCustomers?.length && (
+            <section aria-labelledby="ck-cust-h" className={`${card} flex min-w-0 flex-[1_1_340px] flex-col gap-4 p-5`}>
+              <h2 id="ck-cust-h" className="m-0 text-base font-bold text-black dark:text-white">{t('cockpit.customers.title', { year: curYear })}</h2>
+              <BarList ariaLabel={t('cockpit.customers.title', { year: curYear }) as string} fmt={(v) => fmtMoney(v, { decimals: 0 })}
+                items={dash.topCustomers!.slice(0, 8).map((c) => ({ key: c.name, label: c.name, value: c.total, sub: t('cockpit.customers.invoices', { count: c.invoices }) as string }))} />
+            </section>
+          )}
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-5">
         {/* Paiements */}
@@ -335,11 +412,17 @@ const AdminDashboard = () => {
                   / {sales.target} pts{sales.clock.current ? ` · ${t('cockpit.sales.projection', { n: sales.proj })}` : ''}
                 </span>
               </div>
+              {sales.cum ? (
+                <RepChart cum={sales.cum} total={sales.clock.total} quota={sales.target} proj={sales.proj} today={sales.clock.current}
+                  quotaLabel={t('cockpit.sales.targetN', { n: sales.target }) as string}
+                  ariaLabel={t('cockpit.sales.aria', { pts: sales.pts, target: sales.target, proj: sales.proj }) as string} />
+              ) : (
               <div role="img" aria-label={t('cockpit.sales.aria', { pts: sales.pts, target: sales.target, proj: sales.proj })}
                 className="relative h-3 rounded-full bg-[#ECECEE] dark:bg-[#232323]">
                 {sales.clock.current && <div className="absolute inset-y-0 left-0 rounded-full bg-[rgba(245,131,69,0.32)] dark:bg-[rgba(245,131,69,0.30)]" style={{ width: `${Math.min(100, (sales.proj / Math.max(sales.target, 1)) * 100)}%` }} />}
                 <div className="absolute inset-y-0 left-0 rounded-full bg-primary" style={{ width: `${Math.min(100, (sales.pts / Math.max(sales.target, 1)) * 100)}%` }} />
               </div>
+              )}
               <dl className="m-0 flex flex-col gap-1.5 text-sm">
                 <div className="flex justify-between"><dt className="text-body dark:text-bodydark2">{t('cockpit.sales.atQuota')}</dt><dd className="m-0 font-bold text-black dark:text-white">{t('cockpit.sales.ofN', { n: sales.met, total: sales.n })}</dd></div>
                 {sales.clock.current && <div className="flex justify-between"><dt className="text-body dark:text-bodydark2">{t('cockpit.sales.onTrack')}</dt><dd className="m-0 font-bold text-black dark:text-white">{sales.onTrack}</dd></div>}

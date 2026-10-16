@@ -2144,9 +2144,12 @@
       "churnedN_other": "{{count}} ce mois-ci",
       "churnTarget": "cible : moins de 1,5 %",
       "ltv": "Valeur à vie d'un client (LTV)",
-      "historyBuilding": "L'historique mensuel du MRR se construit depuis octobre 2026 : la courbe apparaîtra dès le mois prochain, avec l'écart par rapport au mois précédent.",
+      "historyBuilding": "La courbe du MRR sur 12 mois apparaîtra dès novembre : l'historique mensuel s'enregistre depuis octobre 2026.",
       "chartAria_one": "Revenu récurrent mensuel sur {{count}} mois, de {{from}} à {{to}}",
-      "chartAria_other": "Revenu récurrent mensuel sur {{count}} mois, de {{from}} à {{to}}"
+      "chartAria_other": "Revenu récurrent mensuel sur {{count}} mois, de {{from}} à {{to}}",
+      "byOrgChart": "Répartition par organisation",
+      "subsN_one": "{{count}} abonnement",
+      "subsN_other": "{{count}} abonnements"
     },
     "orgs": {
       "title": "Revenu récurrent par organisation",
@@ -2176,7 +2179,28 @@
       "onTrack": "Sur la bonne voie",
       "atRisk": "À risque ou en retard",
       "missed": "Quota manqué",
-      "link": "Ouvrir le Suivi des points"
+      "link": "Ouvrir le Suivi des points",
+      "targetN": "Objectif {{n}}"
+    },
+    "rev": {
+      "title": "Revenus encaissés · {{year}}",
+      "sub": "{{comm}} de commissions ({{pct}} des encaissements)",
+      "overdue": "{{amount}} en retard",
+      "aria": "Revenus encaissés par mois en {{year}}, total {{total}}",
+      "paid": "Encaissé",
+      "commission": "Commissions",
+      "overdueShort": "En retard",
+      "note": "Factures Zoho Books payées, par mois de paiement. Le mois en cours, pas encore terminé, est atténué."
+    },
+    "reps": {
+      "title": "Commissions par représentant · {{year}}",
+      "link": "Rapport de commissions",
+      "sales": "sur {{amount}} de ventes"
+    },
+    "customers": {
+      "title": "Meilleurs clients · {{year}}",
+      "invoices_one": "{{count}} facture",
+      "invoices_other": "{{count}} factures"
     }
   },
   "commissionTracker": {
