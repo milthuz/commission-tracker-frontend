@@ -6138,6 +6138,7 @@
     "synchroEnCoursCourt": "Synchronisation…",
     "billetsCopies": "billets copiés",
     "periodes": {
+      "m1": "Mois en cours",
       "m3": "3 derniers mois",
       "m6": "6 derniers mois",
       "m12": "12 derniers mois",

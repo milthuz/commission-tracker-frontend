@@ -97,7 +97,9 @@ function Classement({ lignes, cle, valeur, couleur = SERIE_CREES, vide }:
 // ---------------------------------------------------------------------------
 export default function Support() {
   const { t, i18n } = useTranslation();
-  const [mois, setMois] = useState('12');
+  // Par défaut : le mois en cours (demande de David, 2026-10-16) — le serveur lit « 1 » comme
+  // « du 1er du mois à aujourd'hui ».
+  const [mois, setMois] = useState('1');
   const [dept, setDept] = useState('all');
   const [onglet, setOnglet] = useState<Onglet>('apercu');
   const [data, setData] = useState<Rapport | null>(null);
@@ -196,6 +198,7 @@ export default function Support() {
         <div className="flex flex-wrap items-center gap-3">
           <div className="w-48">
             <Select value={mois} onChange={setMois} options={[
+              { value: '1', label: t('support.periodes.m1') as string },
               { value: '3', label: t('support.periodes.m3') as string },
               { value: '6', label: t('support.periodes.m6') as string },
               { value: '12', label: t('support.periodes.m12') as string },
