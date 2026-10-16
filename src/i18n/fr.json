@@ -603,7 +603,23 @@
     "previewFailed": "Impossible de générer l'aperçu.",
     "estimatePreview": "Aperçu de l'estimation",
     "fromGuide_one": "Depuis le guide de prix · {{count}} ligne",
-    "fromGuide_other": "Depuis le guide de prix · {{count}} lignes"
+    "fromGuide_other": "Depuis le guide de prix · {{count}} lignes",
+    "sentView": {
+      "title": "Ce qui a été envoyé",
+      "open": "Voir l'envoi",
+      "from": "De",
+      "to": "À",
+      "cc": "Cc",
+      "sentAt": "Envoyé le",
+      "subject": "Objet",
+      "attachment": "Pièce jointe",
+      "tabEmail": "Courriel",
+      "tabPdf": "Pièce jointe (PDF)",
+      "download": "Télécharger le PDF",
+      "notStoredTitle": "Contenu non conservé",
+      "notStoredBody": "Cette proposition a été envoyée à {{to}} le {{date}}, avant que Sales Hub garde une copie des envois. Le courriel et la pièce jointe ne peuvent pas être revus ici.",
+      "notStoredShort": "Envoyée avant le 16 octobre 2026 : contenu non conservé"
+    }
   },
   "hardware": {
     "eyebrow": "Matériel",

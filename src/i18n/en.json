@@ -603,7 +603,23 @@
     "previewFailed": "Could not generate the preview.",
     "estimatePreview": "Estimate preview",
     "fromGuide_one": "From the pricing guide · {{count}} line",
-    "fromGuide_other": "From the pricing guide · {{count}} lines"
+    "fromGuide_other": "From the pricing guide · {{count}} lines",
+    "sentView": {
+      "title": "What was sent",
+      "open": "View what was sent",
+      "from": "From",
+      "to": "To",
+      "cc": "Cc",
+      "sentAt": "Sent",
+      "subject": "Subject",
+      "attachment": "Attachment",
+      "tabEmail": "Email",
+      "tabPdf": "Attachment (PDF)",
+      "download": "Download the PDF",
+      "notStoredTitle": "Content not kept",
+      "notStoredBody": "This proposal was sent to {{to}} on {{date}}, before Sales Hub kept a copy of what is sent. The email and attachment can't be viewed here.",
+      "notStoredShort": "Sent before October 16, 2026: content not kept"
+    }
   },
   "hardware": {
     "eyebrow": "Hardware",

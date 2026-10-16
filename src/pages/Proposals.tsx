@@ -5,6 +5,7 @@ import { dialog } from '../lib/dialog';
 import { formatDateOnly } from '../utils/date';
 import PdfThumbPreview from './PdfThumbPreview';
 import ActivityTimeline from '../components/ActivityTimeline';
+import SentProposalView from './SentProposalView';
 import Select from '../components/Select';
 import { Button, DataTable, FilterBar, Modal, PageHeader, StatusPill, Tabs, CARD_TITLE, CARD_SUB, LABEL, SEG, segBtn } from '../components/ui';
 import type { StatusFamily } from '../components/ui';
@@ -47,6 +48,7 @@ interface SentRow {
   sentAt: string; status: string; viewed: boolean; viewedTime: string; acceptedDate: string; declinedDate: string;
   emailOpened: boolean; emailOpenedAt: string; emailOpenCount: number;
   linkClickCount: number; linkFirstClickAt: string; linkLastClickAt: string;
+  hasContent?: boolean;   // false = envoi d'avant le 2026-10-16 : rien de conservé
 }
 
 const Proposals: React.FC = () => {
@@ -60,6 +62,7 @@ const Proposals: React.FC = () => {
   const [sentLoading, setSentLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activityFor, setActivityFor] = useState<{ estimateId: string; number: string } | null>(null);
+  const [sentViewId, setSentViewId] = useState<number | null>(null);
   const [estPreview, setEstPreview] = useState<{ estimateId: string; number: string; loading: boolean } | null>(null);
 
   // Builder state. sel = the picked Zoho estimate, or null for a presentation-only proposal
@@ -422,6 +425,11 @@ const Proposals: React.FC = () => {
               { key: 'act', header: '', align: 'right',
                 render: (r) => (
                   <div className="flex items-center justify-end gap-1">
+                    {/* Ce qui est parti chez le client : courriel et pièce jointe. */}
+                    <Button size="sm" variant={r.hasContent ? 'secondary' : 'ghost'} onClick={() => setSentViewId(r.id)}
+                      title={r.hasContent ? undefined : t('proposals.sentView.notStoredShort') as string}>
+                      {t('proposals.sentView.open')}
+                    </Button>
                     <button onClick={() => setActivityFor({ estimateId: r.estimateId || `blank-${r.id}`, number: r.number })} title={t('activity.title') as string} aria-label={t('activity.title') as string} className="rounded-lg p-1.5 text-body hover:text-black dark:hover:text-white">
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </button>
@@ -436,6 +444,8 @@ const Proposals: React.FC = () => {
           />
         </div>
       )}
+
+      <SentProposalView id={sentViewId} onClose={() => setSentViewId(null)} />
 
       {/* Activity modal */}
       <Modal open={!!activityFor} onClose={() => setActivityFor(null)} size="md" title={t('activity.title')}
