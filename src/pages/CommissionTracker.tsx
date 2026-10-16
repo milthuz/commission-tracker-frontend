@@ -181,7 +181,7 @@ const CommissionTracker = () => {
                 monthLabel={monthLabel} lastDayLabel={fmtDateOnly(lastDay, { day: 'numeric', month: 'long' })}
                 isAdmin={isAdmin} leadSourceGroups={data?.leadSourceGroups || []}
                 unassigned={unassigned} activeReps={activeReps}
-                onOverrideSource={overrideSource} onAssign={assignMerchant} />
+                onOverrideSource={overrideSource} onAssign={assignMerchant} selfName={user?.name} />
             )
       ) : yearError ? (
         <StateCard kind="error" title={t('errors.loadFailed')} body={yearError} onRetry={() => { setYearMonths(null); loadYear(); }} />

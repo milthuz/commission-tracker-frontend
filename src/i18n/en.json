@@ -2368,7 +2368,8 @@
       "watchNone": "Nobody",
       "watchSub_one": "{{count}} month in a row under quota",
       "watchSub_other": "{{count}} months in a row under quota"
-    }
+    },
+    "yourMonth": "Your month · {{month}}"
   },
   "commissionReport": {
     "missing": {

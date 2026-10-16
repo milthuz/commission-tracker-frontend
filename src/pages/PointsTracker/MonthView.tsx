@@ -30,7 +30,7 @@ export function buildRows(reps: RepData[], clock: MonthClock): MonthRow[] {
   });
 }
 
-export default function MonthView({ rows, clock, target, teamPoints, monthLabel, lastDayLabel, isAdmin, leadSourceGroups, unassigned, activeReps, onOverrideSource, onAssign }: {
+export default function MonthView({ rows, clock, target, teamPoints, monthLabel, lastDayLabel, isAdmin, leadSourceGroups, unassigned, activeReps, onOverrideSource, onAssign, selfName }: {
   rows: MonthRow[];
   clock: MonthClock;
   target: number;
@@ -43,13 +43,24 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
   activeReps: string[];
   onOverrideSource: (dealId: string, source: string) => void;
   onAssign: (merchantId: string, repName: string) => void;
+  /** Nom de la personne connectée : sa ligne, s'il en a une. */
+  selfName?: string;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [selName, setSelName] = useState<string | null>(null);
   const [editingDeal, setEditingDeal] = useState<string | null>(null);
 
-  const sel = rows.find((r) => r.rep.repName === selName) || rows[0] || null;
+  // La ligne de la personne connectée : par son nom, sinon la seule ligne détaillée parmi des
+  // coéquipiers « restreints » (le serveur ne laisse à un représentant que son propre détail).
+  const norm = (x?: string) => (x || '').trim().toLowerCase();
+  const detailed = rows.filter((r) => !r.rep.restricted);
+  const selfRow = rows.find((r) => selfName && norm(r.rep.repName) === norm(selfName))
+    || (detailed.length === 1 && rows.some((r) => r.rep.restricted) ? detailed[0] : null);
+  // Un représentant (il ne voit pas le détail des autres) : SON mois passe en grande carte en haut,
+  // au lieu d'un panneau à droite — les reps trouvaient leurs propres points relégués sur le côté.
+  const repMode = !!selfRow && rows.some((r) => r.rep.restricted);
+  const sel = (repMode ? selfRow : rows.find((r) => r.rep.repName === selName) || selfRow || rows[0]) || null;
 
   // Courbe d'équipe = somme des courbes des représentants affichés. Sans le détail de chacun
   // (représentant qui voit ses coéquipiers), on ne dessine pas de courbe inventée.
@@ -79,7 +90,7 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
   const statusLabel = (s: Status) => t(`pointsTracker.status.${s}`);
 
   // ───────── panneau de détail ─────────
-  const panel = sel && (() => {
+  const renderPanel = (sel: MonthRow, wide: boolean) => {
     const r = sel.rep;
     const quota = r.quota || 15;
     const miss = Math.max(0, quota - r.totalPoints);
@@ -104,8 +115,8 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
       })),
     ].sort((a, b) => (a.date < b.date ? 1 : -1));
 
-    return (
-      <aside aria-labelledby="pt-rep-h" className={`${card} flex flex-col gap-4 p-5 xl:sticky xl:top-4`}>
+    const parts = {
+      head: (<>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <span className="text-xs text-body dark:text-bodydark2">{r.team?.name || t('pointsTracker.noTeam')}</span>
@@ -113,11 +124,15 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
           </div>
           <StatusPill family={STATUS_FAMILY[sel.status]}>{statusLabel(sel.status)}</StatusPill>
         </div>
+      </>),
+      big: (<>
         <div className="flex items-baseline gap-2">
           <span className="text-[40px] font-bold leading-none text-black dark:text-white">{r.totalPoints}</span>
           <span className="text-[15px] text-body dark:text-bodydark2">/ {quota} pts</span>
           {clock.current && <span className="ml-auto text-[13px] text-body dark:text-bodydark2">{t('pointsTracker.projection')} <b className="text-black dark:text-white">{sel.proj}</b></span>}
         </div>
+      </>),
+      chart: (<>
         {sel.cum ? (
           <RepChart cum={sel.cum} total={clock.total} quota={quota} proj={sel.proj} today={clock.current}
             quotaLabel={t('pointsTracker.quotaN', { n: quota })}
@@ -125,7 +140,11 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
         ) : (
           <p className="m-0 rounded-xl bg-[#F7F7F8] px-3 py-2.5 text-[13px] text-body dark:bg-[#1B1B1B] dark:text-bodydark2">{t('pointsTracker.restricted')}</p>
         )}
+      </>),
+      advice: (<>
         <p className="m-0 rounded-xl bg-[rgba(245,131,69,0.14)] px-3 py-2.5 text-[13px] font-medium leading-relaxed text-accent-ink dark:bg-[rgba(245,131,69,0.16)] dark:text-[#F79C6A]">{advice}</p>
+      </>),
+      dl: (<>
         <dl className="m-0 flex flex-col gap-2 text-sm">
           <div className="flex justify-between gap-3">
             <dt className="text-body dark:text-bodydark2">{t('pointsTracker.crmPoints')}</dt>
@@ -148,6 +167,8 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
             </div>
           )}
         </dl>
+      </>),
+      sales: (<>
         {!r.restricted && (
           <div className="flex flex-col">
             <span className="mb-1 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t('pointsTracker.recentSales')}</span>
@@ -181,6 +202,8 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
             </ul>
           </div>
         )}
+      </>),
+      link: (<>
         {!r.restricted && (
           <button type="button" className="self-start text-sm font-bold text-accent-ink hover:underline dark:text-[#F79C6A]"
             onClick={() => {
@@ -191,13 +214,44 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
             {t('pointsTracker.openReport')}
           </button>
         )}
+      </>),
+    };
+    if (wide) {
+      // Carte « Ton mois », pleine largeur : chiffres | courbe et conseil | dernières ventes.
+      return (
+        <section aria-labelledby="pt-rep-h" className={`${card} grid grid-cols-1 gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)] sm:p-6`}>
+          <div className="flex min-w-0 flex-col gap-4">
+            <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-accent-ink dark:text-[#F79C6A]">{t('pointsTracker.yourMonth', { month: monthLabel })}</span>
+            {parts.head}
+            {parts.big}
+            {parts.dl}
+            {parts.link}
+          </div>
+          <div className="flex min-w-0 flex-col gap-4">
+            {parts.chart}
+            {parts.advice}
+          </div>
+          <div className="min-w-0">{parts.sales}</div>
+        </section>
+      );
+    }
+    return (
+      <aside aria-labelledby="pt-rep-h" className={`${card} flex flex-col gap-4 p-5 xl:sticky xl:top-4`}>
+        {parts.head}
+        {parts.big}
+        {parts.chart}
+        {parts.advice}
+        {parts.dl}
+        {parts.sales}
+        {parts.link}
       </aside>
     );
-  })();
+  };
 
   return (
-    <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+    <div className={`grid grid-cols-1 items-start gap-5 ${repMode ? '' : 'xl:grid-cols-[minmax(0,1fr)_360px]'}`}>
       <div className="flex min-w-0 flex-col gap-5">
+        {repMode && sel && renderPanel(sel, true)}
         {/* Rythme de l'équipe */}
         <section aria-labelledby="pt-pace-h" className={`${card} flex flex-wrap gap-5 p-5`}>
           <div className="flex min-w-0 flex-[3_1_420px] flex-col gap-2">
@@ -255,8 +309,9 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
             const quota = r.quota || 15;
             const pick = () => setSelName(r.repName);
             return (
-              <div key={r.repName} onClick={pick} {...pressable(pick)} aria-current={on ? 'true' : undefined}
-                className={`-mx-2 grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2 rounded-xl px-2 py-2.5 md:grid-cols-[160px_1fr_96px_150px] ${on ? 'bg-[rgba(245,131,69,0.08)]' : 'hover:bg-[#F7F7F8] dark:hover:bg-[#1B1B1B]'}`}>
+              // Représentant : les lignes ne s'ouvrent pas (le détail d'un coéquipier est privé) ; la sienne reste surlignée.
+              <div key={r.repName} {...(repMode ? {} : { onClick: pick, ...pressable(pick) })} aria-current={on ? 'true' : undefined}
+                className={`-mx-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2 rounded-xl px-2 py-2.5 md:grid-cols-[160px_1fr_96px_150px] ${on ? 'bg-[rgba(245,131,69,0.08)]' : repMode ? '' : 'hover:bg-[#F7F7F8] dark:hover:bg-[#1B1B1B]'} ${repMode ? '' : 'cursor-pointer'}`}>
                 <span className="flex min-w-0 flex-col gap-0.5">
                   <span className="truncate text-sm font-bold text-black dark:text-white">{r.repName}</span>
                   <span className="truncate text-xs text-body dark:text-bodydark2">{[r.team?.name, r.probation?.inProbation ? t('pointsTracker.probation') : null].filter(Boolean).join(' · ') || t('pointsTracker.noTeam')}</span>
@@ -297,7 +352,7 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
         )}
       </div>
 
-      {panel}
+      {!repMode && sel && renderPanel(sel, false)}
     </div>
   );
 }
