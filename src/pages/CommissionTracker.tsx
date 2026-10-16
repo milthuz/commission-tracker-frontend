@@ -1,652 +1,218 @@
-import React, { useEffect, useState, useRef } from 'react';
-import Select from '../components/Select';
+import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { fmtDateOnly, fmtMoney, fmtNumber, monthNames } from '../lib/format';
-import { dialog } from '../lib/dialog';
-import ProbationBadge from '../components/ProbationBadge';
+import Select from '../components/Select';
 import { ContentLoader } from '../common/Loader';
-import { Button, StateCard, StatusPill } from '../components/ui';
-import { getToken } from '../lib/auth';
-import { useDialog } from '../components/ui/useDialog';
+import { Button, Modal, PageHeader, StateCard, toast, useUrlTab } from '../components/ui';
+import { useAuth } from '../context/AuthContext';
+import { authHeaders } from '../lib/auth';
+import { dialog } from '../lib/dialog';
+import { fmtDateOnly, fmtMonth } from '../lib/format';
+import MonthView, { buildRows } from './PointsTracker/MonthView';
+import YearView, { type YearMonth } from './PointsTracker/YearView';
+import { type PointsData, UNASSIGNED, monthClock, planMonths, todayYmd } from './PointsTracker/points';
+
+// Suivi des points — refonte d'après le canevas « Sales Hub — refonte UI » : planche « écran
+// retenu (mois en cours) » et planche « onglet Année ». Même adresse, mêmes données
+// (/api/crm/points) et mêmes droits que l'ancien écran : le serveur décide qui voit quoi.
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const VIEWS = ['mois', 'annee'] as const;
+type View = (typeof VIEWS)[number];
 
-const QUOTA = 15;
-
-interface Deal {
-  crm_deal_id: string;
-  deal_name: string;
-  account_name: string;
-  lead_source_group: string;
-  source_overridden?: boolean;
-  synced_source?: string | null;
-  points: number;
-  close_date: string;
-}
-
-interface ZentactMerchant {
-  merchant_account_id: string;
-  business_name: string;
-  sales_rep_name: string;
-  opportunity_id: string | null;
-  points: number;
-  bonus_amount: number;
-  activated_at: string;
-}
-
-interface RepData {
-  repName: string;
-  probation?: { inProbation: boolean; endDate: string | null; daysLeft: number | null } | null;
-  totalPoints: number;
-  crmPoints: number;
-  zentactPoints: number;
-  zentactActivations: number;
-  zentactBonus: number;
-  quota: number;
-  quotaMet: boolean;
-  pointsToQuota: number;
-  monthlyBonus: number;
-  bonusTier: { points: number; bonus: number } | null;
-  nextBonusTier: { points: number; bonus: number } | null;
-  annualPoints: number;
-  annualBonus: number;
-  annualZentactActivations: number;
-  annualZentactBonus: number;
-  dealsCount: number;
-  deals: Deal[];
-  zentactMerchants: ZentactMerchant[];
-  restricted?: boolean;   // backend flag — true when current user can't see this rep's details
-  team?: { id: number; name: string } | null;
-  countsTowardQuota?: boolean;
-  includeDeals?: boolean;     // false → rep's team excludes CRM deals (shown but don't count)
-  includePayments?: boolean;  // false → rep's team excludes payment activations
-}
-
-interface TeamAgg {
-  teamId: number | null;
-  name: string;
-  countsTowardQuota: boolean;
-  includeDeals: boolean;
-  includePayments: boolean;
-  totalPoints: number;
-  memberCount: number;
-  membersMet: number;
-  quotaTarget: number;
-  quotaMet: boolean;
-}
-
-interface PointsData {
-  year: number;
-  month: number;
-  isAdmin?: boolean;
-  viewerName?: string;
-  quota: number;
-  totalDeals: number;
-  totalZentactActivations: number;
-  reps: RepData[];
-  teams?: TeamAgg[];
-  companyPoints?: number;
-  companyTarget?: number;
-  companyQuotaMet?: boolean;
-  leadSourceGroups?: string[];
-}
-
-const CommissionTracker: React.FC = () => {
+const CommissionTracker = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isAdmin = !!user?.isAdmin;   // identité EFFECTIVE (/api/auth/verify), jamais le JWT brut
+
+  const today = todayYmd();
+  const [curYear, curMonth] = [Number(today.slice(0, 4)), Number(today.slice(5, 7))];
+  const [view, setView] = useUrlTab<View>('mois', VIEWS, 'vue');
+  const [period, setPeriod] = useState(`${curYear}-${String(curMonth).padStart(2, '0')}`);
+  const year = Number(period.slice(0, 4)), month = Number(period.slice(5, 7));
+  const [teamKey, setTeamKey] = useState<string>('all');
+
   const [data, setData] = useState<PointsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [expandedRep, setExpandedRep] = useState<string | null>(null);
-  const [selectedTeamKey, setSelectedTeamKey] = useState<string | null>(null);
-  const [editingDealSource, setEditingDealSource] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [yearMonths, setYearMonths] = useState<YearMonth[] | null>(null);
+  const [yearError, setYearError] = useState('');
   const [activeReps, setActiveReps] = useState<string[]>([]);
-  // "Missing points" report — flagged by a rep, persisted + emailed to admins (see À corriger).
-  const [missingModal, setMissingModal] = useState({ open: false, reference: '', message: '', sending: false });
-  const missingRef = useRef<HTMLDivElement>(null);
-  useDialog(missingModal.open, () => { if (!missingModal.sending) setMissingModal(m => ({ ...m, open: false })); }, missingRef);
-  const submitMissingPoints = async () => {
-    if (!missingModal.message.trim()) return;
-    setMissingModal(m => ({ ...m, sending: true }));
-    try {
-      const token = getToken();
-      const period = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-      await axios.post(`${API_URL}/api/commissions/missing-points-report`,
-        { reference: missingModal.reference, period, message: missingModal.message },
-        { headers: { Authorization: `Bearer ${token}` } });
-      setMissingModal({ open: false, reference: '', message: '', sending: false });
-      dialog.alert(t('commissionTracker.missing.sent') as string);
-    } catch (e: any) {
-      setMissingModal(m => ({ ...m, sending: false }));
-      dialog.alert(e?.response?.data?.error || t('errors.sendFailed'));
-    }
+  const [missing, setMissing] = useState({ open: false, reference: '', message: '', sending: false });
+
+  const fetchMonth = (y: number, m: number) =>
+    axios.get(`${API_URL}/api/crm/points`, { headers: authHeaders(), params: { year: y, month: m } }).then((r) => r.data as PointsData);
+
+  const load = async () => {
+    setLoading(true); setError('');
+    try { setData(await fetchMonth(year, month)); }
+    catch (e: any) { setError(e?.response?.data?.error || (t('errors.loadFailed') as string)); }
+    finally { setLoading(false); }
   };
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [period]);
 
-  // Locale-aware month names (short), e.g. "Jan" / "Jan." / "janv."
-  const MONTH_NAMES = monthNames();
+  // Onglet Année : un appel par mois du plan, en parallèle, seulement quand on l'ouvre. Un mois
+  // en erreur laisse sa colonne en « — » au lieu de faire tomber toute la grille.
+  const loadYear = async () => {
+    setYearError('');
+    const months = planMonths(curYear, curMonth);
+    const res = await Promise.allSettled(months.map((mo) => fetchMonth(mo.year, mo.month)));
+    if (res.every((r) => r.status === 'rejected')) { setYearError(t('errors.loadFailed') as string); return; }
+    setYearMonths(months.map((mo, i) => ({ ...mo, data: res[i].status === 'fulfilled' ? (res[i] as PromiseFulfilledResult<PointsData>).value : null })));
+  };
+  useEffect(() => { if (view === 'annee' && !yearMonths) loadYear(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [view]);
 
-  // Admin status from the EFFECTIVE identity (/api/auth/verify), not the raw JWT —
-  // the JWT stays admin while impersonating, which would expose admin-only controls.
-  useEffect(() => {
-    const token = getToken();
-    if (!token) return;
-    axios
-      .get(`${API_URL}/api/auth/verify`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => setIsAdmin(!!res.data?.user?.isAdmin))
-      .catch(() => setIsAdmin(false));
-  }, []);
-
-  // Fetch active salespeople (for the Assign dropdown when isAdmin)
   useEffect(() => {
     if (!isAdmin) return;
-    const fetchReps = async () => {
-      try {
-        const token = getToken();
-        const res = await axios.get(`${API_URL}/api/salespeople`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setActiveReps(res.data.salespeople || []);
-      } catch (e) { console.error('Failed to fetch reps', e); }
-    };
-    fetchReps();
+    axios.get(`${API_URL}/api/salespeople`, { headers: authHeaders() }).then((r) => setActiveReps(r.data.salespeople || [])).catch(() => setActiveReps([]));
   }, [isAdmin]);
 
-  // Assign a merchant to a rep (admins only). After save, refetch the tracker.
+  const overrideSource = async (dealId: string, source: string) => {
+    try {
+      await axios.put(`${API_URL}/api/crm/deals/${encodeURIComponent(dealId)}/source`, { source }, { headers: authHeaders() });
+      toast.success(t('pointsTracker.sourceSaved') as string);
+      load();
+    } catch (e: any) { dialog.alert(e?.response?.data?.error || (t('commissionTracker.overrideSourceFailed') as string)); }
+  };
   const assignMerchant = async (merchantId: string, repName: string) => {
     if (!repName) return;
     try {
-      const token = getToken();
-      await axios.patch(
-        `${API_URL}/api/zentact/merchants/${encodeURIComponent(merchantId)}/rep`,
-        { repName },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchPoints(); // refresh totals
-    } catch (e) {
-      console.error('Failed to assign rep', e);
-      dialog.alert(t('commissionTracker.assignRepFailed') as string);
-    }
+      await axios.patch(`${API_URL}/api/zentact/merchants/${encodeURIComponent(merchantId)}/rep`, { repName }, { headers: authHeaders() });
+      toast.success(t('pointsTracker.unassigned.saved', { name: repName }) as string);
+      load();
+    } catch { dialog.alert(t('commissionTracker.assignRepFailed') as string); }
   };
-
-  useEffect(() => {
-    fetchPoints();
-  }, [selectedYear, selectedMonth]);
-
-  const fetchPoints = async () => {
+  const sendMissing = async () => {
+    if (!missing.message.trim()) return;
+    setMissing((m) => ({ ...m, sending: true }));
     try {
-      setLoading(true);
-      setError('');
-      const token = getToken();
-      const res = await axios.get(`${API_URL}/api/crm/points`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { year: selectedYear, month: selectedMonth },
-      });
-      setData(res.data);
-    } catch (err: any) {
-      setError(err.response?.data?.error || t('errors.loadFailed'));
-    } finally {
-      setLoading(false);
+      await axios.post(`${API_URL}/api/commissions/missing-points-report`, { reference: missing.reference, period, message: missing.message }, { headers: authHeaders() });
+      setMissing({ open: false, reference: '', message: '', sending: false });
+      toast.success(t('commissionTracker.missing.sent') as string);
+    } catch (e: any) {
+      setMissing((m) => ({ ...m, sending: false }));
+      dialog.alert(e?.response?.data?.error || (t('errors.sendFailed') as string));
     }
   };
 
-  // Admin: override a deal's lead source group (empty = revert to the CRM-synced value).
-  const overrideDealSource = async (dealId: string, source: string) => {
-    try {
-      const token = getToken();
-      await axios.put(
-        `${API_URL}/api/crm/deals/${encodeURIComponent(dealId)}/source`,
-        { source },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchPoints();
-    } catch (err: any) {
-      dialog.alert(err?.response?.data?.error || (t('commissionTracker.overrideSourceFailed') as string));
+  // Mois proposés : de janvier 2025 au mois en cours, le plus récent en premier.
+  const periodOptions = useMemo(() => {
+    const out: { value: string; label: string }[] = [];
+    for (let y = curYear, m = curMonth; y > 2025 || (y === 2025 && m >= 1);) {
+      const label = fmtMonth(y, m);
+      out.push({ value: `${y}-${String(m).padStart(2, '0')}`, label: label.charAt(0).toUpperCase() + label.slice(1) });
+      m--; if (m < 1) { m = 12; y--; }
     }
-  };
+    return out;
+  }, [curYear, curMonth]);
 
-  const getSourceBadgeColor = (sourceGroup: string) => {
-    const s = sourceGroup.toLowerCase();
-    if (s.includes('outbound')) return 'bg-[#7C3AED] text-white';
-    if (s.includes('partner')) return 'bg-[#F59E0B] text-white';
-    return 'bg-[#3B82F6] text-white';
-  };
+  // Équipes : « Toutes » + chaque équipe visible + « Sans équipe ». Un représentant sans
+  // gestion ne voit que son équipe : pas de sélecteur alors.
+  const reps = (data?.reps || []).filter((r) => r.repName !== UNASSIGNED);
+  const unassigned = (data?.reps || []).find((r) => r.repName === UNASSIGNED) || null;
+  const teams = (data?.teams || []).filter((tm) => reps.some((r) => r.team?.id === tm.teamId));
+  const noTeamCount = reps.filter((r) => !r.team).length;
+  const chips = [
+    { key: 'all', label: t('pointsTracker.allTeams'), count: reps.length },
+    ...teams.map((tm) => ({ key: `t-${tm.teamId}`, label: tm.name, count: reps.filter((r) => r.team?.id === tm.teamId).length })),
+    ...(noTeamCount ? [{ key: 'none', label: t('pointsTracker.noTeam'), count: noTeamCount }] : []),
+  ];
+  const activeTeam = chips.some((c) => c.key === teamKey) ? teamKey : 'all';
+  const inTeam = (teamId: number | null) =>
+    activeTeam === 'all' || (activeTeam === 'none' ? teamId == null : `t-${teamId}` === activeTeam);
 
+  const clock = monthClock(year, month, today);
+  const shownReps = reps.filter((r) => inTeam(r.team?.id ?? null));
+  const rows = useMemo(() => buildRows(shownReps, clock), [data, activeTeam, period]); // eslint-disable-line react-hooks/exhaustive-deps
+  const teamAgg = activeTeam.startsWith('t-') ? teams.find((tm) => `t-${tm.teamId}` === activeTeam) : null;
+  const teamPoints = teamAgg ? teamAgg.totalPoints : shownReps.reduce((s, r) => s + r.totalPoints, 0);
+  const target = teamAgg ? teamAgg.quotaTarget : shownReps.reduce((s, r) => s + (r.quota || 15), 0);
 
-  if (loading) return <ContentLoader label={t('commissionTracker.loadingPoints') as string} />;
+  const monthLabel = fmtMonth(year, month);
+  const lastDay = new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
 
-  if (error) return <StateCard kind="error" title={t('errors.loadFailed')} body={error} onRetry={fetchPoints} />;
-
-  if (!data) return null;
-
-  const currentMonthName = MONTH_NAMES[selectedMonth - 1];
-
-  // Group rep cards under their team (with a header per team), instead of one mixed list.
-  type RepGroup = { key: string; team?: TeamAgg; reps: RepData[] };
-  const repsByTeam: Record<string, RepData[]> = {};
-  const noTeamReps: RepData[] = [];
-  for (const r of data.reps) {
-    const tid = r.team?.id;
-    if (tid == null) noTeamReps.push(r);
-    else { (repsByTeam[String(tid)] = repsByTeam[String(tid)] || []).push(r); }
-  }
-  const orderedTeams = data.teams || [];
-  const groups: RepGroup[] = [];
-  for (const tm of orderedTeams) {
-    const rs = repsByTeam[String(tm.teamId)] || [];
-    if (rs.length === 0) continue;
-    groups.push({ key: `t-${tm.teamId}`, team: tm, reps: rs });
-  }
-  if (noTeamReps.length) groups.push({ key: 'none', reps: noTeamReps });
-  // Active team for the top selector (default = first group; falls back if the selected one vanished).
-  const activeKey = selectedTeamKey && groups.some(g => g.key === selectedTeamKey)
-    ? selectedTeamKey
-    : (groups[0]?.key ?? null);
-  // Subtitle count follows the SELECTED team.
-  const activeGroup = groups.find(g => g.key === activeKey);
-  const agDeals = activeGroup ? activeGroup.reps.reduce((s, r) => s + (r.dealsCount ?? r.deals.length), 0) : 0;
+  const viewSwitch = (
+    <div role="tablist" aria-label={t('pointsTracker.viewLabel') as string} className="flex gap-1 rounded-full border border-stroke bg-white p-1 dark:border-strokedark dark:bg-boxdark">
+      {VIEWS.map((v) => (
+        <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => setView(v)}
+          className={`h-8 rounded-full px-3.5 text-[13px] font-bold transition ${view === v ? 'bg-primary text-[#141414]' : 'text-[#424242] hover:text-black dark:text-bodydark dark:hover:text-white'}`}>
+          {t(v === 'mois' ? 'pointsTracker.tabMonth' : 'pointsTracker.tabYear')}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
     <>
-      {/* Header */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-black dark:text-white">
-            {t('commissionTracker.title')}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {t('commissionTracker.subtitle', {
-              month: currentMonthName,
-              year: selectedYear,
-              count: agDeals,
-            })}
-          </p>
-          {/* Missing points — discreet link (any rep viewing the tracker can flag a gap) */}
-          <button
-            onClick={() => setMissingModal({ open: true, reference: '', message: '', sending: false })}
-            className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-body transition hover:text-primary"
-          >
-            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86a2 2 0 001.74-3L13.74 4a2 2 0 00-3.48 0L3.33 16a2 2 0 001.74 3z" />
-            </svg>
-            {t('commissionTracker.missing.button')}
-          </button>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={String(selectedMonth)} onChange={(v) => setSelectedMonth(parseInt(v))} options={MONTH_NAMES.map((m, i) => ({ value: String(i + 1), label: m }))} buttonClassName={'rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white'} />
-          <Select value={String(selectedYear)} onChange={(v) => setSelectedYear(parseInt(v))} options={[...Array(new Date().getFullYear() - 2024)].map((_, i) => { const y = new Date().getFullYear() - i; return { value: String(y), label: String(y) }; })} buttonClassName={'rounded-lg border border-stroke bg-white px-3 py-2 text-sm font-medium text-black shadow-sm dark:border-strokedark dark:bg-boxdark dark:text-white'} />
-        </div>
-      </div>
+      <PageHeader
+        section={t('pointsTracker.section')}
+        title={view === 'mois' ? t('pointsTracker.titleMonth', { month: monthLabel }) : t('pointsTracker.titleYear')}
+        actions={<>
+          {viewSwitch}
+          <Button variant="secondary" onClick={() => setMissing({ open: true, reference: '', message: '', sending: false })}>
+            {t('pointsTracker.reportMissing')}
+          </Button>
+          {view === 'mois' && (
+            <Select value={period} onChange={setPeriod} options={periodOptions} aria-label={t('pointsTracker.monthLabel') as string}
+              buttonClassName="h-10 rounded-xl border border-stroke bg-white px-3 text-sm font-bold text-black dark:border-strokedark dark:bg-boxdark dark:text-white" />
+          )}
+        </>}
+      />
 
-      {/* Missing points modal */}
-      {missingModal.open && (
-        <div className="fixed inset-0 z-[9999] flex items-start overflow-y-auto justify-center bg-black bg-opacity-50 p-4" onClick={() => !missingModal.sending && setMissingModal(m => ({ ...m, open: false }))}>
-          <div ref={missingRef} role="dialog" aria-modal="true" className="my-auto w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-boxdark" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-1 text-lg font-semibold text-black dark:text-white">{t('commissionTracker.missing.title')}</h3>
-            <p className="mb-4 text-sm text-body">{t('commissionTracker.missing.subtitle')}</p>
-            <label className="mb-1 block text-xs font-medium text-body">{t('commissionTracker.missing.refLabel')}</label>
-            <input
-              type="text"
-              value={missingModal.reference}
-              onChange={(e) => setMissingModal(m => ({ ...m, reference: e.target.value }))}
-              placeholder={t('commissionTracker.missing.refPlaceholder') as string}
-              className="mb-3 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
-            />
-            <label className="mb-1 block text-xs font-medium text-body">{t('commissionTracker.missing.messageLabel')}</label>
-            <textarea
-              value={missingModal.message}
-              onChange={(e) => setMissingModal(m => ({ ...m, message: e.target.value }))}
-              rows={4}
-              placeholder={t('commissionTracker.missing.messagePlaceholder') as string}
-              className="mb-4 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
-            />
-            <div className="flex justify-end gap-2">
-              <button onClick={() => setMissingModal(m => ({ ...m, open: false }))} disabled={missingModal.sending}
-                className="rounded-md border border-stroke px-4 py-2 text-sm font-medium text-body hover:bg-gray-50 disabled:opacity-50 dark:border-strokedark">
-                {t('common.cancel')}
-              </button>
-              <button onClick={submitMissingPoints} disabled={missingModal.sending || !missingModal.message.trim()}
-                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50">
-                {missingModal.sending ? t('commissionTracker.missing.sending') : t('commissionTracker.missing.send')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Team selector */}
-      {groups.length > 1 && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {groups.map(g => {
-            const active = g.key === activeKey;
+      {chips.length > 2 && (
+        <div role="tablist" aria-label={t('pointsTracker.teamLabel') as string} className="mb-5 flex flex-wrap gap-1.5">
+          {chips.map((c) => {
+            const on = c.key === activeTeam;
             return (
-              <button
-                key={g.key}
-                onClick={() => setSelectedTeamKey(g.key)}
-                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition ${
-                  active
-                    ? 'bg-primary text-white shadow'
-                    : 'border border-stroke bg-white text-body hover:bg-gray-100 dark:border-strokedark dark:bg-boxdark dark:hover:bg-meta-4'
-                }`}
-              >
-                {g.team ? g.team.name : t('commissionTracker.noTeamGroup')}
-                {g.team && (
-                  <span className={`text-xs ${active ? 'text-white/80' : 'text-gray-400'}`}>
-                    {g.team.totalPoints}/{g.team.quotaTarget}
-                  </span>
-                )}
+              <button key={c.key} type="button" role="tab" aria-selected={on} onClick={() => setTeamKey(c.key)}
+                className={`h-9 rounded-full border px-3.5 text-[13px] font-bold transition ${on ? 'border-primary bg-primary text-[#141414]' : 'border-stroke text-[#424242] hover:border-[#C4C4CA] dark:border-strokedark dark:text-bodydark dark:hover:border-[#3A3B40]'}`}>
+                {c.label} · {c.count}
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Rep Cards */}
-      <div className="space-y-4">
-        {data.reps.length === 0 ? (
-          <div className="rounded-sm border border-stroke bg-white p-10 text-center shadow-default dark:border-strokedark dark:bg-boxdark">
-            <p className="text-gray-500">
-              {t('commissionTracker.noDealsFound', { month: currentMonthName, year: selectedYear })}
-            </p>
-          </div>
-        ) : groups.filter(g => g.key === activeKey).map(g => {
-          const tm = g.team;
-          const pct = tm && tm.quotaTarget > 0 ? Math.min(100, Math.round((tm.totalPoints / tm.quotaTarget) * 100)) : 0;
-          // Continuous color from red (0%) → amber → green (100%) as the team nears its goal.
-          const ringColor = `hsl(${Math.round(Math.max(0, Math.min(100, pct)) * 1.2)}, 72%, 45%)`;
-          const sources = tm ? [
-            tm.includeDeals && t('commissionTracker.srcDeals'),
-            tm.includePayments && t('commissionTracker.srcPayments'),
-          ].filter(Boolean).join(' + ') : '';
-          return (
-            <div key={g.key} className="overflow-hidden rounded-xl border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-              {tm ? (
-                <div className={`flex items-center justify-between gap-4 border-b border-stroke px-5 py-4 dark:border-strokedark ${tm.countsTowardQuota ? '' : 'bg-gray-50 dark:bg-meta-4/20'}`}>
-                  <div className="min-w-0">
-                    <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <span className="text-lg font-bold text-black dark:text-white">{tm.name}</span>
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-meta-4 dark:text-gray-300">
-                        {t('commissionTracker.teamMembers', { count: tm.memberCount })}
-                      </span>
-                      {tm.quotaMet && (
-                        <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success">✓ {t('commissionTracker.quotaMet')}</span>
-                      )}
-                      {!tm.countsTowardQuota && (
-                        <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-meta-4 dark:text-gray-300">{t('commissionTracker.notCounted')}</span>
-                      )}
-                    </div>
-                    <p>
-                      <span className={`text-xl font-bold ${tm.quotaMet ? 'text-success' : 'text-black dark:text-white'}`}>{tm.totalPoints}</span>
-                      <span className="text-sm font-medium text-gray-500"> / {tm.quotaTarget} pts</span>
-                    </p>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-4 text-xs text-gray-500">
-                      <span>{t('commissionTracker.teamRepsMet', { met: tm.membersMet, total: tm.memberCount })}</span>
-                      {sources && <span>· {t('commissionTracker.quotaSources')}: {sources}</span>}
-                    </div>
-                  </div>
-                  {/* Progress ring */}
-                  <div className="relative h-[78px] w-[78px] shrink-0">
-                    <svg className="h-full w-full -rotate-90" viewBox="0 0 72 72">
-                      <circle className="text-gray-200 dark:text-gray-700" cx="36" cy="36" r="32" fill="none" stroke="currentColor" strokeWidth="7" />
-                      <circle
-                        cx="36" cy="36" r="32" fill="none" stroke={ringColor} strokeWidth="7" strokeLinecap="round"
-                        strokeDasharray={2 * Math.PI * 32}
-                        strokeDashoffset={(2 * Math.PI * 32) * (1 - pct / 100)}
-                        style={{ transition: 'stroke-dashoffset 0.5s ease, stroke 0.5s ease' }}
-                      />
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-lg font-bold" style={{ color: ringColor }}>{pct}%</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="border-b border-stroke px-5 py-3 dark:border-strokedark">
-                  <span className="text-sm font-semibold uppercase tracking-wide text-gray-500">{t('commissionTracker.noTeamGroup')}</span>
-                </div>
-              )}
-              <div className="divide-y divide-stroke dark:divide-strokedark">
-                {g.reps.map(rep => {
-                  const quotaPct = Math.min(100, (rep.totalPoints / (rep.quota || QUOTA)) * 100);
-                  const repBarColor = `hsl(${Math.round(Math.max(0, Math.min(100, quotaPct)) * 1.2)}, 72%, 45%)`;
-                  const isExpanded = expandedRep === rep.repName;
-                  const canViewDetails = !rep.restricted; // backend flagged this row
+      {view === 'mois' ? (
+        loading ? <ContentLoader label={t('commissionTracker.loadingPoints') as string} />
+          : error ? <StateCard kind="error" title={t('errors.loadFailed')} body={error} onRetry={load} />
+            : (
+              <MonthView rows={rows} clock={clock} target={target} teamPoints={teamPoints}
+                monthLabel={monthLabel} lastDayLabel={fmtDateOnly(lastDay, { day: 'numeric', month: 'long' })}
+                isAdmin={isAdmin} leadSourceGroups={data?.leadSourceGroups || []}
+                unassigned={unassigned} activeReps={activeReps}
+                onOverrideSource={overrideSource} onAssign={assignMerchant} />
+            )
+      ) : yearError ? (
+        <StateCard kind="error" title={t('errors.loadFailed')} body={yearError} onRetry={() => { setYearMonths(null); loadYear(); }} />
+      ) : !yearMonths ? (
+        <ContentLoader label={t('pointsTracker.year.loading') as string} />
+      ) : (
+        <YearView months={yearMonths} currentKey={`${curYear}-${String(curMonth).padStart(2, '0')}`} teamFilter={inTeam} />
+      )}
 
-                  return (
-                    <div key={rep.repName} className="bg-white dark:bg-boxdark">
-              {/* Rep Header */}
-              <div
-                className={`flex items-center justify-between px-4 py-4 sm:px-6 sm:py-5 ${canViewDetails ? 'cursor-pointer hover:bg-gray-2/60 focus-visible:bg-gray-2/60 dark:hover:bg-meta-4/30 dark:focus-visible:bg-meta-4/30' : 'cursor-not-allowed'} outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary`}
-                role={canViewDetails ? 'button' : undefined}
-                tabIndex={canViewDetails ? 0 : undefined}
-                aria-expanded={canViewDetails ? isExpanded : undefined}
-                onClick={() => canViewDetails && setExpandedRep(isExpanded ? null : rep.repName)}
-                onKeyDown={(e) => {
-                  if (!canViewDetails || (e.key !== 'Enter' && e.key !== ' ')) return;
-                  e.preventDefault();
-                  setExpandedRep(isExpanded ? null : rep.repName);
-                }}
-                title={canViewDetails ? '' : t('commissionTracker.restrictedDetails')}
-              >
-                <div className="flex items-center gap-4 flex-1">
-                  {/* Avatar */}
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#7C3AED] text-sm font-bold text-white">
-                    {rep.repName.charAt(0)}
-                  </div>
-
-                  {/* Name + quota bar */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-3 mb-1.5">
-                      <p className="font-semibold text-black dark:text-white">{rep.repName}</p>
-                      <ProbationBadge probation={rep.probation} />
-                      {rep.quotaMet
-                        ? <StatusPill family="ok">{t('commissionTracker.quotaMet')}</StatusPill>
-                        : <StatusPill family="wait">{t('commissionTracker.ptsToQuota', { count: rep.pointsToQuota })}</StatusPill>}
-                    </div>
-                    {/* Progress bar */}
-                    <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-meta-4">
-                      <div
-                        className="h-2 rounded-full transition-all"
-                        style={{ width: `${quotaPct}%`, backgroundColor: repBarColor }}
-                      />
-                    </div>
-                    {/* Bonuses: plain text, not more badges (audit UX — up to 5 badges per row before). */}
-                    {(rep.bonusTier || rep.zentactActivations > 0) && (
-                      <p className="mt-1.5 text-xs text-body dark:text-bodydark">
-                        {[
-                          rep.bonusTier ? t('commissionTracker.monthlyBonus', { amount: fmtNumber(rep.monthlyBonus) }) : null,
-                          rep.zentactActivations > 0 ? t('commissionTracker.zentactBonusBadge', { count: rep.zentactActivations, amount: fmtNumber(rep.zentactBonus) }) : null,
-                        ].filter(Boolean).join(' · ')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Points + deals count */}
-                <div className="flex items-center gap-6 ml-4">
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-black dark:text-white">
-                      {rep.totalPoints}<span className="text-sm font-normal text-gray-500"> / {rep.quota || QUOTA} pts</span>
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {rep.dealsCount ?? rep.deals.length} {(rep.dealsCount ?? rep.deals.length) !== 1
-                        ? t('commissionTracker.deals')
-                        : t('commissionTracker.deal')}
-                    </p>
-                  </div>
-                  {canViewDetails ? (
-                    <svg className={`h-5 w-5 text-body transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  ) : (
-                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-
-              {/* Expanded deals table */}
-              {isExpanded && (
-                <div className="border-t border-stroke dark:border-strokedark">
-                  {/* CRM Deals */}
-                  {rep.deals.length > 0 && (
-                    <>
-                    {rep.includeDeals === false && (
-                      <div className="flex items-center gap-2 border-b border-stroke bg-warning/5 px-6 py-2 dark:border-strokedark">
-                        <svg className="h-4 w-4 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-xs font-medium text-body">{t('commissionTracker.dealsDoNotCount', { team: rep.team?.name || '' })}</span>
-                      </div>
-                    )}
-                    <div className="overflow-x-auto">
-                    <table className="w-full min-w-[480px] table-auto">
-                      <thead>
-                        <tr className="bg-gray-50 dark:bg-meta-4/50">
-                          <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.dealAccount')}</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.source')}</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.closeDate')}</th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-body">{t('commissionTracker.points')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rep.deals.map(deal => (
-                          <tr key={deal.crm_deal_id} className="border-t border-stroke/50 dark:border-strokedark/50 hover:bg-gray-50 dark:hover:bg-meta-4/20">
-                            <td className="px-6 py-3">
-                              <p className="text-sm font-medium text-black dark:text-white">{deal.deal_name}</p>
-                              <p className="text-xs text-gray-500">{deal.account_name}</p>
-                            </td>
-                            <td className="px-6 py-3">
-                              {isAdmin && editingDealSource === deal.crm_deal_id ? (
-                                <Select autoOpen onClose={() => setEditingDealSource(null)} value={deal.lead_source_group || ''} onChange={(v) => { overrideDealSource(deal.crm_deal_id, v); setEditingDealSource(null); }} options={[{ value: '', label: '—' }, ...(data.leadSourceGroups || []).map((g) => ({ value: g, label: g }))]} buttonClassName={'rounded border border-primary bg-transparent px-2 py-1 text-xs outline-none dark:bg-form-input text-black dark:text-white'} />
-                              ) : (
-                                <span className="inline-flex items-center gap-1.5">
-                                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${getSourceBadgeColor(deal.lead_source_group)}`}>
-                                    {deal.lead_source_group || '—'}
-                                  </span>
-                                  {deal.source_overridden && (
-                                    <span
-                                      title={t('commissionTracker.sourceOverridden', { source: deal.synced_source || '—' }) as string}
-                                      className="inline-flex items-center gap-0.5 rounded-full bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold text-warning"
-                                    >
-                                      <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                      </svg>
-                                      {t('commissionTracker.manual')}
-                                    </span>
-                                  )}
-                                  {isAdmin && (
-                                    <Button variant="link" size="sm" onClick={() => setEditingDealSource(deal.crm_deal_id)}
-                                      title={t('commissionTracker.overrideSourceHint') as string}>
-                                      {t('commissionTracker.changeSource')}
-                                    </Button>
-                                  )}
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-3 text-sm text-body">
-                              {fmtDateOnly(deal.close_date)}
-                            </td>
-                            <td className="px-6 py-3 text-right">
-                              <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${rep.includeDeals === false ? 'bg-gray-200 text-gray-400 line-through dark:bg-meta-4 dark:text-gray-500' : 'bg-[#7C3AED] text-white'}`}
-                                title={rep.includeDeals === false ? t('commissionTracker.dealsDoNotCount', { team: rep.team?.name || '' }) as string : undefined}>
-                                {deal.points}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                    </div>
-                    </>
-                  )}
-
-                  {/* Zentact Payment Activations */}
-                  {rep.zentactMerchants && rep.zentactMerchants.length > 0 && (
-                    <div className="border-t border-stroke dark:border-strokedark">
-                      <div className="flex items-center gap-2 px-6 py-2 bg-[#6366F1] bg-opacity-5">
-                        <svg className="h-4 w-4 text-[#6366F1] dark:text-[#a5b4fc]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                        <span className="text-xs font-semibold text-[#6366F1] dark:text-[#a5b4fc]">{t('commissionTracker.zentactSection')}</span>
-                      </div>
-                      <div className="overflow-x-auto">
-                      <table className="w-full min-w-[480px] table-auto">
-                        <thead>
-                          <tr className="bg-[#6366F1] bg-opacity-5">
-                            <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.merchant')}</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.activatedDate')}</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.activation$100')}</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-body">{t('commissionTracker.points')}</th>
-                            {isAdmin && rep.repName === 'Unassigned' && (
-                              <th className="px-6 py-3 text-left text-xs font-medium text-body">{t('commissionTracker.assignTo')}</th>
-                            )}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {rep.zentactMerchants.map(m => (
-                            <tr key={m.merchant_account_id} className="border-t border-stroke/50 dark:border-strokedark/50 hover:bg-[#6366F1]/5">
-                              <td className="px-6 py-3">
-                                <p className="text-sm font-medium text-black dark:text-white">{m.business_name}</p>
-                                {m.opportunity_id && (
-                                  <p className="text-xs text-gray-400">{t('commissionTracker.linkedDeal')}: {m.opportunity_id}</p>
-                                )}
-                              </td>
-                              <td className="px-6 py-3 text-sm text-body">
-                                {fmtDateOnly(m.activated_at)}
-                              </td>
-                              <td className="px-6 py-3">
-                                {m.bonus_amount > 0 ? (
-                                  <span className="inline-flex items-center rounded-full bg-[#6366F1] bg-opacity-10 px-2.5 py-0.5 text-xs font-semibold text-[#6366F1] dark:text-[#a5b4fc]">
-                                    {fmtMoney(m.bonus_amount, { decimals: Number.isInteger(m.bonus_amount) ? 0 : 2 })}
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-body">—</span>
-                                )}
-                              </td>
-                              <td className="px-6 py-3 text-right">
-                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#6366F1] text-xs font-bold text-white">
-                                  {m.points}
-                                </span>
-                              </td>
-                              {isAdmin && rep.repName === 'Unassigned' && (
-                                <td className="px-6 py-3">
-                                  <Select value="" onChange={(v) => assignMerchant(m.merchant_account_id, v)} options={activeReps.map((name) => ({ value: name, label: name }))} placeholder={t('commissionTracker.selectRep') as string} buttonClassName={'rounded border border-stroke bg-transparent px-2 py-1 text-xs outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white'} />
-                                </td>
-                              )}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Combined Total */}
-                  <div className="border-t border-stroke bg-gray-50 dark:border-strokedark dark:bg-meta-4/30 flex items-center justify-between px-6 py-3">
-                    <span className="text-sm font-semibold text-black dark:text-white">{t('commissionTracker.total')}</span>
-                    <div className="flex items-center gap-3">
-                      {rep.zentactBonus > 0 && (
-                        <span className="text-xs font-semibold text-[#6366F1] dark:text-[#a5b4fc]">
-                          +{fmtMoney(rep.zentactBonus, { decimals: Number.isInteger(rep.zentactBonus) ? 0 : 2 })} {t('commissionTracker.zentactBonusLabel')}
-                        </span>
-                      )}
-                      <span className="inline-flex h-7 w-auto min-w-7 items-center justify-center rounded-full bg-[#7C3AED] px-2 text-xs font-bold text-white">
-                        {rep.totalPoints} pts
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <Modal open={missing.open} onClose={() => !missing.sending && setMissing((m) => ({ ...m, open: false }))}
+        size="sm" title={t('commissionTracker.missing.title')} dirty={!!missing.message.trim() && !missing.sending}
+        footer={<>
+          <Button variant="secondary" onClick={() => setMissing((m) => ({ ...m, open: false }))} disabled={missing.sending}>{t('common.cancel')}</Button>
+          <Button variant="primary" onClick={sendMissing} disabled={missing.sending || !missing.message.trim()}>
+            {missing.sending ? t('commissionTracker.missing.sending') : t('commissionTracker.missing.send')}
+          </Button>
+        </>}>
+        <p className="m-0 text-sm text-body dark:text-bodydark2">{t('commissionTracker.missing.subtitle')}</p>
+        <label className="flex flex-col gap-1 text-xs font-medium text-body dark:text-bodydark2">
+          {t('commissionTracker.missing.refLabel')}
+          <input type="text" value={missing.reference} onChange={(e) => setMissing((m) => ({ ...m, reference: e.target.value }))}
+            placeholder={t('commissionTracker.missing.refPlaceholder') as string}
+            className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-medium text-body dark:text-bodydark2">
+          {t('commissionTracker.missing.messageLabel')}
+          <textarea rows={4} value={missing.message} onChange={(e) => setMissing((m) => ({ ...m, message: e.target.value }))}
+            placeholder={t('commissionTracker.missing.messagePlaceholder') as string}
+            className="w-full rounded-lg border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white" />
+        </label>
+      </Modal>
     </>
   );
 };
