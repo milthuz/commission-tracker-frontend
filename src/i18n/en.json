@@ -7429,7 +7429,9 @@
         "decision": "Decision maker present?",
         "interest": "Interest level",
         "services": "Services of interest",
-        "notes": "Notes"
+        "notes": "Notes",
+        "priorities": "What matters to them",
+        "prioritiesSub": "What would make them switch, or stay: pick several."
       },
       "yes": "Yes",
       "no": "No",
@@ -7627,6 +7629,22 @@
         "offline": "No network: search isn’t possible.",
         "budget": "Monthly Google search limit reached: search by name later, or tell your manager.",
         "cta": "Check in here"
+      },
+      "priority": {
+        "price": "Price",
+        "stability": "Stability / reliability",
+        "support": "Support / service",
+        "ease": "Ease of use",
+        "features": "Features",
+        "payment_fees": "Payment fees",
+        "integrations": "Integrations (delivery, accounting)"
+      },
+      "contact": {
+        "title": "Contact person",
+        "sub": "Optional — carried into the lead if you create one.",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone"
       }
     },
     "kind": {
@@ -7697,7 +7715,8 @@
         "interest": "Interest",
         "decision": "Decision maker",
         "services": "Interested in",
-        "pastVisits": "{{n}} visit(s) in total at this place."
+        "pastVisits": "{{n}} visit(s) in total at this place.",
+        "contact": "Contact"
       },
       "freeName": "Free check-ins (off route)"
     },

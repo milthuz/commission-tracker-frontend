@@ -7429,7 +7429,9 @@
         "decision": "Décideur présent ?",
         "interest": "Niveau d'intérêt",
         "services": "Services d'intérêt",
-        "notes": "Notes"
+        "notes": "Notes",
+        "priorities": "Ce qui compte pour eux",
+        "prioritiesSub": "Ce qui les ferait changer, ou rester : plusieurs choix."
       },
       "yes": "Oui",
       "no": "Non",
@@ -7627,6 +7629,22 @@
         "offline": "Sans réseau, la recherche est impossible.",
         "budget": "Limite mensuelle de recherches Google atteinte : cherchez par nom plus tard, ou prévenez votre gestionnaire.",
         "cta": "Faire un check-in ici"
+      },
+      "priority": {
+        "price": "Prix",
+        "stability": "Stabilité / fiabilité",
+        "support": "Soutien / service",
+        "ease": "Facilité d’utilisation",
+        "features": "Fonctionnalités",
+        "payment_fees": "Frais de paiement",
+        "integrations": "Intégrations (livraison, compta)"
+      },
+      "contact": {
+        "title": "Personne-ressource",
+        "sub": "Facultatif — repris dans le lead si vous en créez un.",
+        "name": "Nom",
+        "email": "Courriel",
+        "phone": "Téléphone"
       }
     },
     "kind": {
@@ -7697,7 +7715,8 @@
         "interest": "Intérêt",
         "decision": "Décideur",
         "services": "Intéressé par",
-        "pastVisits": "{{n}} visite(s) au total à ce restaurant."
+        "pastVisits": "{{n}} visite(s) au total à ce restaurant.",
+        "contact": "Contact"
       },
       "freeName": "Check-ins libres (hors route)"
     },

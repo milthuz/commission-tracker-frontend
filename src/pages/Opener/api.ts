@@ -12,6 +12,9 @@ export type SkipReason = 'closed' | 'no_time' | 'refused' | 'other' | 'postponed
 export type Verdict = 'onsite' | 'far' | 'imprecise' | 'nogps';
 // Visite d'un client Cluster : qui traite ses paiements.
 export type PaymentsBy = 'cluster' | 'other' | 'unknown';
+// Ce qui compte pour le restaurant (plusieurs choix).
+export type Priority = 'price' | 'stability' | 'support' | 'ease' | 'features' | 'payment_fees' | 'integrations';
+export const PRIORITIES: Priority[] = ['price', 'stability', 'support', 'ease', 'features', 'payment_fees', 'integrations'];
 
 export interface ClusterInfo {
   status: PlaceStatus;
@@ -123,6 +126,7 @@ export interface OverviewStop {
   result?: { checkinId: string; currentPos: string | null; serviceType: ServiceType | null; interest: number | null;
     decisionMaker: 'yes' | 'no' | 'later' | null; satisfaction: number | null; paymentsBy: PaymentsBy | null; services: Service[];
     notes: string | null; terminals: number | null; onlineDelivery: boolean | null;
+    priorities?: Priority[]; contact?: { name: string | null; email: string | null; phone: string | null } | null;
     lead: { id: number; refCode: string; status: string } | null } | null;
 }
 export interface OverviewRoute {
@@ -173,6 +177,8 @@ export interface CheckinInput {
   // Check-in libre (sans arrêt) : le nom du restaurant, gardé avec la visite.
   placeName?: string | null;
   placeLat?: number | null; placeLng?: number | null;
+  // Ce qui compte pour eux, et une personne-ressource (facultatif) — 2026-10-16.
+  priorities?: Priority[]; contactName?: string; contactEmail?: string; contactPhone?: string;
 }
 
 export class ApiError extends Error {

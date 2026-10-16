@@ -374,6 +374,8 @@ function StopCard({ s, r, onClose, fmtTime, loc, lng }: { s: OverviewStop; r: Ov
       {res && row(t('opener.track.card.interest'), res.interest ? `${res.interest}/5 · ${t(`opener.field.level.${res.interest}`)}` : st === 'client' && res.paymentsBy === 'cluster' ? t('opener.field.client.alreadyPays') : null)}
       {res && row(t('opener.track.card.decision'), res.decisionMaker ? t(`opener.field.${res.decisionMaker === 'later' ? 'later' : res.decisionMaker}`) : null)}
       {res && res.services.length > 0 && row(t('opener.track.card.services'), res.services.map((x) => t(`opener.serviceOf.${x}`)).join(', '))}
+      {res?.priorities && res.priorities.length > 0 && row(t('opener.field.q.priorities'), res.priorities.map((p) => t(`opener.field.priority.${p}`)).join(', '))}
+      {res?.contact && row(t('opener.track.card.contact'), [res.contact.name, res.contact.email, res.contact.phone].filter(Boolean).join(' · '))}
       {res?.lead && row(t('opener.field.lead'), (
         <a href={`/leads?ref=${encodeURIComponent(res.lead.refCode)}`} className="text-primary hover:underline">{res.lead.refCode} · {t(`leads.status.${res.lead.status}`, { defaultValue: res.lead.status })}</a>
       ))}

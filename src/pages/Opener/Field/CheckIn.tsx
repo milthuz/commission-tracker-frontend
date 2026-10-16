@@ -5,7 +5,7 @@ import { Clock, Check, HeartHandshake, Loader2 } from 'lucide-react';
 import { useField } from './index';
 import { Card, Chips, GpsBanner, ScreenHeader, Segmented, Stepper, StickyCta, Toggle, btnPrimary } from './ui';
 import { enqueueCheckin, flush, loadDraft, saveDraft, clearDraft } from './outbox';
-import { api, haversine, fmtDistance, uuid, type Service, type ServiceType, type CheckinInput, type PaymentsBy, type Version } from '../api';
+import { api, haversine, fmtDistance, uuid, PRIORITIES, type Priority, type Service, type ServiceType, type CheckinInput, type PaymentsBy, type Version } from '../api';
 import { dialog } from '../../../lib/dialog';
 import { NoVisitPicker, applyNoVisit, confirmNoVisit, skipReasonOf, type NoVisitReason } from './NoVisit';
 import { loadFreePlace } from './freePlace';
@@ -48,6 +48,8 @@ interface Form {
   id: string; currentPos: string | null; otherPos?: string; serviceType: ServiceType | null; terminals: number; onlineDelivery: boolean;
   decisionMaker: 'yes' | 'no' | 'later' | null; interest: number; services: Service[]; notes: string; createLead: boolean;
   satisfaction?: number; paymentsBy?: PaymentsBy | null;
+  // Ce qui compte pour eux, et la personne-ressource (facultatif) — 2026-10-16.
+  priorities?: Priority[]; contactName?: string; contactEmail?: string; contactPhone?: string;
   // Arrivée au restaurant : l'ouverture de cet écran (heure + position). Gardée dans le brouillon.
   startedAt?: string; startLat?: number | null; startLng?: number | null; startAccuracy?: number | null;
 }
@@ -56,6 +58,7 @@ interface Saved {
   id: string; placeId: string; stopId: number | null; name: string | null; at: string; currentPos: string; serviceType: ServiceType;
   terminals: number | null; onlineDelivery: boolean | null; decisionMaker: Form['decisionMaker']; interest: number; services: Service[];
   notes: string; satisfaction: number | null; paymentsBy: PaymentsBy | null; leadId: number | null; editable: boolean; isClient: boolean;
+  priorities: Priority[]; contactName: string; contactEmail: string; contactPhone: string;
 }
 // Ce qu'il faut savoir du restaurant, qu'on vienne de la route du jour ou d'un check-in relu.
 interface Subject { name: string; placeId: string; stopId: number | null; isClient: boolean; version?: Version | null; lat?: number | null; lng?: number | null }
@@ -155,6 +158,7 @@ function NewCheckIn() {
       lat: here?.[0] ?? null, lng: here?.[1] ?? null, accuracy: hereAcc ?? null,
       currentPos: posValue, serviceType: f.serviceType!, terminals: f.terminals, onlineDelivery: f.onlineDelivery,
       decisionMaker: f.decisionMaker, interest: f.interest || null, services: f.services, notes: f.notes.trim(),
+      priorities: f.priorities || [], contactName: (f.contactName || '').trim(), contactEmail: (f.contactEmail || '').trim(), contactPhone: (f.contactPhone || '').trim(),
       satisfaction: isClient ? f.satisfaction || null : null, paymentsBy: isClient ? f.paymentsBy || null : null,
     };
     // Démo : rien n'est envoyé, seul l'écran change.
@@ -208,6 +212,7 @@ function EditCheckIn({ checkinId }: { checkinId: string }) {
         id: c.id, currentPos: known ? c.currentPos : 'Autre', otherPos: known ? '' : c.currentPos, serviceType: c.serviceType,
         terminals: c.terminals ?? 1, onlineDelivery: !!c.onlineDelivery, decisionMaker: c.decisionMaker, interest: c.interest || 0,
         services: c.services || [], notes: c.notes || '', createLead: false, satisfaction: c.satisfaction || 0, paymentsBy: c.paymentsBy,
+        priorities: c.priorities || [], contactName: c.contactName || '', contactEmail: c.contactEmail || '', contactPhone: c.contactPhone || '',
       });
     }).catch((e) => setError(e.message));
   }, [checkinId]);
@@ -224,6 +229,7 @@ function EditCheckIn({ checkinId }: { checkinId: string }) {
       await api(`/api/opener/checkins/${saved.id}`, { method: 'PUT', body: {
         currentPos: posValue, serviceType: f.serviceType, terminals: f.terminals, onlineDelivery: f.onlineDelivery,
         decisionMaker: f.decisionMaker, interest: f.interest || null, services: f.services, notes: f.notes.trim(),
+        priorities: f.priorities || [], contactName: (f.contactName || '').trim(), contactEmail: (f.contactEmail || '').trim(), contactPhone: (f.contactPhone || '').trim(),
         satisfaction: saved.isClient ? f.satisfaction || null : null, paymentsBy: saved.isClient ? f.paymentsBy || null : null,
       } });
       if (saved.stopId) markStop(saved.stopId, { checkin: { id: saved.id, at: saved.at, interest: f.interest || null, leadId: saved.leadId, decisionMaker: f.decisionMaker, currentPos: posValue } });
@@ -378,6 +384,24 @@ function QuestionForm({ subject, form, setForm, onSubmit, mode, header, top, pos
         ))}
         {q(t('opener.field.q.services'), false, false,
           <Chips multi options={(['payments', 'pos', 'beverage_control'] as Service[]).map((s) => ({ value: s, label: t(`opener.serviceOf.${s}`) }))} value={form.services} onChange={set('services')} />)}
+        {q(t('opener.field.q.priorities'), false, false,
+          <Chips multi options={PRIORITIES.map((p) => ({ value: p, label: t(`opener.field.priority.${p}`) }))} value={form.priorities || []} onChange={set('priorities')} />,
+          t('opener.field.q.prioritiesSub') as string)}
+        {q(t('opener.field.contact.title'), false, false, (
+          <div className="grid grid-cols-1 gap-2">
+            <input value={form.contactName || ''} onChange={(e) => set('contactName')(e.target.value)} maxLength={160} autoComplete="off"
+              placeholder={t('opener.field.contact.name') as string} aria-label={t('opener.field.contact.name') as string}
+              className="h-11 w-full rounded-[10px] border border-[var(--of-input-stroke)] bg-[var(--of-input)] px-3 text-sm text-[var(--of-text)] outline-none focus:border-primary" />
+            <div className="grid grid-cols-2 gap-2">
+              <input value={form.contactEmail || ''} onChange={(e) => set('contactEmail')(e.target.value)} maxLength={255} type="email" inputMode="email" autoCapitalize="none" autoComplete="off"
+                placeholder={t('opener.field.contact.email') as string} aria-label={t('opener.field.contact.email') as string}
+                className="h-11 w-full min-w-0 rounded-[10px] border border-[var(--of-input-stroke)] bg-[var(--of-input)] px-3 text-sm text-[var(--of-text)] outline-none focus:border-primary" />
+              <input value={form.contactPhone || ''} onChange={(e) => set('contactPhone')(e.target.value)} maxLength={40} type="tel" inputMode="tel" autoComplete="off"
+                placeholder={t('opener.field.contact.phone') as string} aria-label={t('opener.field.contact.phone') as string}
+                className="h-11 w-full min-w-0 rounded-[10px] border border-[var(--of-input-stroke)] bg-[var(--of-input)] px-3 text-sm text-[var(--of-text)] outline-none focus:border-primary" />
+            </div>
+          </div>
+        ), t('opener.field.contact.sub') as string)}
         {q(t('opener.field.q.notes'), false, false,
           <textarea value={form.notes} onChange={(e) => set('notes')(e.target.value)} maxLength={2000}
             className="min-h-[88px] w-full rounded-[10px] border border-[var(--of-input-stroke)] bg-[var(--of-input)] p-3 text-sm text-[var(--of-text)] outline-none focus:border-primary" />)}

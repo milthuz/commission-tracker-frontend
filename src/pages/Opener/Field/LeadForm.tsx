@@ -35,10 +35,13 @@ export default function LeadForm() {
   const clientRef = useRef(uuid());
   const [card, setCard] = useState<PlaceCard | null>(null);
   const [f, setF] = useState({
-    businessName: stop?.name || '', businessType: 'restaurant', phone: '', address: stop?.address || '', city: '', province: 'QC', postalCode: '',
-    firstName: '', lastName: '', title: '', language: 'fr' as 'fr' | 'en', email: '',
+    businessName: stop?.name || '', businessType: 'restaurant', phone: checkin?.contactPhone || '', address: stop?.address || '', city: '', province: 'QC', postalCode: '',
+    // Personne-ressource notée au check-in : prénom = premier mot, nom = le reste.
+    firstName: (checkin?.contactName || '').trim().split(/\s+/)[0] || '', lastName: (checkin?.contactName || '').trim().split(/\s+/).slice(1).join(' '),
+    title: '', language: 'fr' as 'fr' | 'en', email: checkin?.contactEmail || '',
     interest: (checkin?.services || []) as Service[], currentPos: checkin?.currentPos && !['Aucun', 'Autre'].includes(checkin.currentPos) ? checkin.currentPos : '',
-    locationsCount: '', timeline: 'unknown' as (typeof TIMELINES)[number], notes: checkin?.notes || '',
+    locationsCount: '', timeline: 'unknown' as (typeof TIMELINES)[number],
+    notes: [checkin?.priorities?.length ? `${t('opener.field.q.priorities')} : ${checkin.priorities.map((p) => t(`opener.field.priority.${p}`)).join(', ')}` : null, checkin?.notes || null].filter(Boolean).join('\n'),
   });
   const [sending, setSending] = useState(false);
   // refCode null = piste gardée sur le téléphone (pas de réseau), envoyée au retour du réseau.
