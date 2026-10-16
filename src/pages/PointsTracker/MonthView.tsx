@@ -88,6 +88,13 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
     : t('pointsTracker.team.subClosed', { month: monthLabel });
 
   const statusLabel = (s: Status) => t(`pointsTracker.status.${s}`);
+  // Colonnes de « Où en est chacun ». Avec le panneau à droite (admins, gestionnaires), entre
+  // 1280 et 1535 px il ne restait ~75 px à la barre : les graduations 15-20-25-30+ se chevauchaient.
+  // Dans cette plage la petite courbe « Rythme » cède sa place à la barre (~185 px).
+  const raceCols = repMode
+    ? 'md:grid-cols-[160px_1fr_96px_150px]'
+    : 'md:grid-cols-[160px_1fr_96px_150px] xl:grid-cols-[160px_1fr_150px] 2xl:grid-cols-[160px_1fr_96px_150px]';
+  const paceCell = repMode ? 'hidden md:block' : 'hidden md:block xl:hidden 2xl:block';
 
   // ───────── panneau de détail ─────────
   const renderPanel = (sel: MonthRow, wide: boolean) => {
@@ -297,10 +304,10 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
               { swatch: <span className="h-3 w-0.5 bg-[#141414] dark:bg-white" />, label: t('pointsTracker.legend.quota') },
             ]} />
           </div>
-          <div aria-hidden="true" className="hidden grid-cols-[160px_1fr_96px_150px] gap-3.5 text-[11px] text-body dark:text-bodydark2 md:grid">
+          <div aria-hidden="true" className={`hidden gap-3.5 text-[11px] text-body dark:text-bodydark2 md:grid ${raceCols}`}>
             <span />
-            <span className="relative h-3.5"><span className="absolute left-0">0</span><span className="absolute left-1/2 -translate-x-1/2">15</span><span className="absolute left-[66.66%] -translate-x-1/2">20</span><span className="absolute left-[83.33%] -translate-x-1/2">25</span><span className="absolute right-0">30+</span></span>
-            <span className="text-center">{t('pointsTracker.race.pace')}</span><span />
+            <span className="relative block h-3.5"><span className="absolute left-0">0</span><span className="absolute left-1/2 -translate-x-1/2">15</span><span className="absolute left-[66.66%] -translate-x-1/2">20</span><span className="absolute left-[83.33%] -translate-x-1/2">25</span><span className="absolute right-0">30+</span></span>
+            <span className={`text-center ${paceCell}`}>{t('pointsTracker.race.pace')}</span><span />
           </div>
           {rows.length === 0 && <p className="m-0 py-6 text-center text-sm text-body dark:text-bodydark2">{t('pointsTracker.race.empty', { month: monthLabel })}</p>}
           {rows.map((row) => {
@@ -311,7 +318,7 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
             return (
               // Représentant : les lignes ne s'ouvrent pas (le détail d'un coéquipier est privé) ; la sienne reste surlignée.
               <div key={r.repName} {...(repMode ? {} : { onClick: pick, ...pressable(pick) })} aria-current={on ? 'true' : undefined}
-                className={`-mx-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2 rounded-xl px-2 py-2.5 md:grid-cols-[160px_1fr_96px_150px] ${on ? 'bg-[rgba(245,131,69,0.08)]' : repMode ? '' : 'hover:bg-[#F7F7F8] dark:hover:bg-[#1B1B1B]'} ${repMode ? '' : 'cursor-pointer'}`}>
+                className={`-mx-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-2 rounded-xl px-2 py-2.5 ${raceCols} ${on ? 'bg-[rgba(245,131,69,0.08)]' : repMode ? '' : 'hover:bg-[#F7F7F8] dark:hover:bg-[#1B1B1B]'} ${repMode ? '' : 'cursor-pointer'}`}>
                 <span className="flex min-w-0 flex-col gap-0.5">
                   <span className="truncate text-sm font-bold text-black dark:text-white">{r.repName}</span>
                   <span className="truncate text-xs text-body dark:text-bodydark2">{[r.team?.name, r.probation?.inProbation ? t('pointsTracker.probation') : null].filter(Boolean).join(' · ') || t('pointsTracker.noTeam')}</span>
@@ -320,7 +327,7 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
                   <RaceBar points={r.totalPoints} proj={clock.current ? row.proj : r.totalPoints} quota={quota}
                     ariaLabel={t('pointsTracker.race.aria', { pts: r.totalPoints, quota, proj: row.proj })} />
                 </span>
-                <span className="hidden md:block">{row.cum ? <Sparkline cum={row.cum} total={clock.total} quota={quota} proj={row.proj} /> : <span className="block text-center text-xs text-body dark:text-bodydark2">—</span>}</span>
+                <span className={paceCell}>{row.cum ? <Sparkline cum={row.cum} total={clock.total} quota={quota} proj={row.proj} /> : <span className="block text-center text-xs text-body dark:text-bodydark2">—</span>}</span>
                 <span className="flex items-center justify-end gap-2">
                   <span className="whitespace-nowrap text-[15px] font-bold text-black dark:text-white">{r.totalPoints}<span className="text-xs font-medium text-body dark:text-bodydark2"> / {quota}</span></span>
                   <StatusPill family={STATUS_FAMILY[row.status]}>{statusLabel(row.status)}</StatusPill>
