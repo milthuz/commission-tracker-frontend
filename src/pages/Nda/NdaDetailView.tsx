@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { dialog } from '../../lib/dialog';
 import SignaturePad, { type SignaturePadHandle } from '../../components/SignaturePad';
 import PdfViewerModal, { type PdfSource } from '../../components/PdfViewerModal';
-import { StatusPill } from '../../components/ui';
-import { API_URL, authHeaders, DELETABLE, statusFamily, type NdaDetail, type NdaMeta } from './types';
+import { Modal, StatusPill } from '../../components/ui';
+import { API_URL, authHeaders, DELETABLE, statusFamily, type EmailPreview, type NdaDetail, type NdaMeta } from './types';
 
 // Fiche d'un NDA. Un seul geste principal à la fois : « Envoyer », puis « Contresigner » (le
 // signataire de Cluster seulement), puis « NDA signé ».
@@ -33,6 +33,8 @@ const NdaDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, onO
   const pad = useRef<SignaturePadHandle>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const [viewer, setViewer] = useState<PdfSource | null>(null);
+  const [mail, setMail] = useState<EmailPreview | null>(null);
+  const [mailTab, setMailTab] = useState<'party' | 'cc'>('party');
 
   const d = detail;
   const n = d.nda;
@@ -115,11 +117,49 @@ const NdaDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, onO
     dialog.alert(t('nda.detail.completedOk', { company: d.company }) as string);
   };
 
+  // Aperçu du courriel : le serveur le construit avec le même code que l'envoi.
+  const previewMail = async () => {
+    setBusy('mail');
+    try {
+      const res = await fetch(`${API_URL}/api/nda/agreements/${d.id}/email-preview`, { headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || String(res.status));
+      setMailTab('party'); setMail(data);
+    } catch (e: any) { dialog.alert(`${t('nda.detail.actionFailed')} ${e?.message || ''}`); } finally { setBusy(null); }
+  };
+  const shown = mail && (mailTab === 'cc' && mail.ccNotice ? mail.ccNotice : mail);
+
   const ndaLabel = isUpload ? t('nda.detail.sigpage') : `${t('nda.detail.docNda')} (${n.lang.toUpperCase()})`;
 
   return (
     <div className="space-y-5">
       {viewer && <PdfViewerModal source={viewer} onClose={() => setViewer(null)} />}
+      <Modal open={!!mail} onClose={() => setMail(null)} size="lg" title={t('nda.detail.emailPreview')}
+        footer={<button type="button" className={BTN_GHOST} onClick={() => setMail(null)}>{t('common.close')}</button>}>
+        {mail && shown && (
+          <div className="space-y-3">
+            {mail.ccNotice && (
+              <div className="inline-flex rounded-xl bg-gray-2 p-1 dark:bg-meta-4/60">
+                {(['party', 'cc'] as const).map((k) => (
+                  <button key={k} type="button" onClick={() => setMailTab(k)}
+                    className={`rounded-lg px-3 py-1.5 text-sm font-bold transition-colors ${mailTab === k ? 'bg-white text-black shadow-sm dark:bg-boxdark dark:text-white' : 'text-body dark:text-bodydark2'}`}>
+                    {t(k === 'party' ? 'nda.detail.mailToParty' : 'nda.detail.mailToCc')}
+                  </button>
+                ))}
+              </div>
+            )}
+            <dl className="grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-sm">
+              {mail.from && (<><dt className="text-bodydark2">{t('nda.detail.mailFrom')}</dt><dd className="break-all text-black dark:text-white">{mail.from}</dd></>)}
+              <dt className="text-bodydark2">{t('nda.detail.mailTo')}</dt>
+              <dd className="break-all text-black dark:text-white">{mailTab === 'cc' ? mail.cc.join(', ') : mail.to}</dd>
+              <dt className="text-bodydark2">{t('nda.detail.mailSubject')}</dt>
+              <dd className="break-words font-medium text-black dark:text-white">{shown.subject}</dd>
+            </dl>
+            <iframe title={shown.subject} srcDoc={shown.html} sandbox="" className="h-[60vh] w-full rounded-lg border border-stroke bg-white dark:border-strokedark" />
+            {mailTab === 'party' && <p className="text-xs text-bodydark2">{t('nda.detail.mailLinkNote')}</p>}
+          </div>
+        )}
+      </Modal>
       <button type="button" onClick={onBack} className="text-sm font-medium text-primary hover:underline">← {t('nda.detail.back')}</button>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -208,6 +248,12 @@ const NdaDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, onO
                   </button>
                 </li>
               )}
+              <li className="flex flex-wrap items-center justify-between gap-2 py-3">
+                <span className="min-w-0 break-all text-sm text-black dark:text-white">✉️ {t('nda.detail.emailToParty', { email: d.email })}</span>
+                <button type="button" className="text-sm font-medium text-primary hover:underline" disabled={busy === 'mail'} onClick={previewMail}>
+                  {t('nda.detail.preview')}
+                </button>
+              </li>
             </ul>
             {isDraft && canSend && isUpload && (
               <div className="mt-3">
@@ -229,6 +275,7 @@ const NdaDetailView = ({ meta, detail, onBack, onEdit, onChanged, onDeleted, onO
                 [t('nda.form.address'), [n.company.address, n.company.city, n.company.province, n.company.postalCode, n.company.country].filter(Boolean).join(', ') || '—'],
                 [t('nda.form.signer'), `${d.signerName}${n.signer.title ? ` (${n.signer.title})` : ''}`],
                 [t('nda.form.email'), n.signer.email],
+                [t('nda.form.cc'), (n.cc || []).join(', ') || '—'],
                 [t('nda.detail.clusterSigner'), `${clusterName}${d.clusterSigner?.title ? ` (${d.clusterSigner.title})` : ''}`],
                 [t('nda.form.lang'), n.lang === 'fr' ? 'Français' : 'English'],
                 ...(!isUpload ? [

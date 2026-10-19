@@ -3560,7 +3560,8 @@
         "nda_sign_request": "NDA — Envoyé à l’autre partie pour signature",
         "nda_countersign": "NDA — Contresignature requise (signataire de Cluster)",
         "nda_completed": "NDA — Copie signée à l’autre partie",
-        "nda_declined": "NDA — Refusé par l’autre partie"
+        "nda_declined": "NDA — Refusé par l’autre partie",
+        "nda_cc_notice": "NDA — Avis aux personnes en copie"
       }
     },
     "recalculate": {
@@ -8648,7 +8649,10 @@
       "save": "Enregistrer",
       "saving": "Enregistrement…",
       "fixFields": "Remplissez les champs obligatoires.",
-      "saveFailed": "Impossible d’enregistrer."
+      "saveFailed": "Impossible d’enregistrer.",
+      "cc": "En copie",
+      "ccPh": "ex. jen@clustersystems.com, juridique@partenaire.com",
+      "ccHint": "Séparez les adresses par des virgules. Elles reçoivent un avis d’envoi du NDA (sans le lien de signature, qui est personnel) et la copie signée."
     },
     "detail": {
       "back": "Retour aux NDA",
@@ -8693,7 +8697,15 @@
       "cancel": "Annuler le NDA",
       "confirmCancel": "Annuler le NDA avec {{company}} ? Le lien de signature cessera de fonctionner.",
       "confirmDelete": "Supprimer le NDA avec {{company}} ?",
-      "actionFailed": "L’action a échoué."
+      "actionFailed": "L’action a échoué.",
+      "emailPreview": "Aperçu du courriel",
+      "emailToParty": "Courriel à {{email}}",
+      "mailToParty": "Autre partie",
+      "mailToCc": "Personnes en copie",
+      "mailFrom": "De",
+      "mailTo": "À",
+      "mailSubject": "Objet",
+      "mailLinkNote": "Le bouton de cet aperçu ouvre un lien d’exemple ; le vrai lien personnel est créé à l’envoi."
     },
     "signer": {
       "current": "Signe pour Cluster : {{name}}, {{title}} ({{email}})",

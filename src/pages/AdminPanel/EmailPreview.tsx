@@ -24,7 +24,7 @@ const TEMPLATE_TYPES = [
   // RH. `hr_sign_request` et `hr_completed` partent au CANDIDAT, marque Cluster, unilingues.
   'hr_sign_request', 'hr_countersign', 'hr_completed', 'hr_declined',
   // NDA. `nda_sign_request` et `nda_completed` partent à l'AUTRE PARTIE, marque Cluster, bilingues.
-  'nda_sign_request', 'nda_countersign', 'nda_completed', 'nda_declined',
+  'nda_sign_request', 'nda_cc_notice', 'nda_countersign', 'nda_completed', 'nda_declined',
   // Opener : la route publiée, à l'opener. Interne, bilingue.
   'opener_route_published', 'opener_week_published',
   // Demande de rôle d'un usager qui n'en a pas (écran NoRoleNotice). Interne, bilingue.

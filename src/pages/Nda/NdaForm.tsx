@@ -33,6 +33,8 @@ const NdaForm = ({ meta, initial, onCancel, onSaved }: {
 }) => {
   const { t, i18n } = useTranslation();
   const [form, setForm] = useState<NdaData>(initial ? initial.nda : { ...EMPTY, lang: i18n.language?.startsWith('fr') ? 'fr' : 'en' });
+  // Saisie libre (virgules, espaces ou retours à la ligne) ; le serveur découpe et valide.
+  const [ccText, setCcText] = useState((initial?.nda.cc || []).join(', '));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bad, setBad] = useState<string[]>([]);
@@ -53,7 +55,7 @@ const NdaForm = ({ meta, initial, onCancel, onSaved }: {
     setSaving(true); setError(null); setBad([]);
     try {
       const url = initial ? `${API_URL}/api/nda/agreements/${initial.id}` : `${API_URL}/api/nda/agreements`;
-      const res = await fetch(url, { method: initial ? 'PUT' : 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const res = await fetch(url, { method: initial ? 'PUT' : 'POST', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, cc: ccText }) });
       const data = await res.json();
       if (!res.ok) {
         if (data?.fields) { setBad(data.fields); throw new Error(t('nda.form.fixFields') as string); }
@@ -144,6 +146,12 @@ const NdaForm = ({ meta, initial, onCancel, onSaved }: {
           </div>
         </div>
       )}
+
+      <div className={CARD}>
+        <label className={LABEL}>{t('nda.form.cc')}</label>
+        <input className={INPUT + ring('cc')} value={ccText} onChange={(e) => setCcText(e.target.value)} placeholder={t('nda.form.ccPh') as string} />
+        <p className="mt-1 text-xs text-bodydark2">{t('nda.form.ccHint')}</p>
+      </div>
 
       <div className={CARD}>
         <label className={LABEL}>{t('nda.form.notes')}</label>

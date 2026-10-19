@@ -3560,7 +3560,8 @@
         "nda_sign_request": "NDA — Sent to the other party for signature",
         "nda_countersign": "NDA — Countersignature needed (Cluster signatory)",
         "nda_completed": "NDA — Signed copy to the other party",
-        "nda_declined": "NDA — Declined by the other party"
+        "nda_declined": "NDA — Declined by the other party",
+        "nda_cc_notice": "NDA — Notice to people in copy"
       }
     },
     "recalculate": {
@@ -8648,7 +8649,10 @@
       "save": "Save",
       "saving": "Saving…",
       "fixFields": "Fill in the required fields.",
-      "saveFailed": "Could not save."
+      "saveFailed": "Could not save.",
+      "cc": "In copy",
+      "ccPh": "e.g. jen@clustersystems.com, legal@partner.com",
+      "ccHint": "Separate addresses with commas. They get a notice that the NDA was sent (without the signing link, which is personal) and the signed copy."
     },
     "detail": {
       "back": "Back to NDAs",
@@ -8693,7 +8697,15 @@
       "cancel": "Cancel NDA",
       "confirmCancel": "Cancel the NDA with {{company}}? The signing link stops working.",
       "confirmDelete": "Delete the NDA with {{company}}?",
-      "actionFailed": "Action failed."
+      "actionFailed": "Action failed.",
+      "emailPreview": "Email preview",
+      "emailToParty": "Email to {{email}}",
+      "mailToParty": "Other party",
+      "mailToCc": "People in copy",
+      "mailFrom": "From",
+      "mailTo": "To",
+      "mailSubject": "Subject",
+      "mailLinkNote": "The button in this preview opens an example link; the real personal link is created when you send."
     },
     "signer": {
       "current": "Signs for Cluster: {{name}}, {{title}} ({{email}})",

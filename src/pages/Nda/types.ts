@@ -13,6 +13,8 @@ export interface NdaData {
   effectiveDate: string;
   team: string;
   notes: string;
+  // En copie : avis d'envoi (sans le lien de signature) + copie signée.
+  cc?: string[];
 }
 
 export interface NdaListItem {
@@ -50,6 +52,15 @@ export interface NdaDetail extends NdaListItem {
   events: NdaEvent[];
   emailed?: boolean;
   link?: string | null;
+}
+
+export interface EmailPreview {
+  from: string | null;
+  to: string;
+  subject: string;
+  html: string;
+  cc: string[];
+  ccNotice: { subject: string; html: string } | null;
 }
 
 export interface Signer { name: string; titleEn: string; titleFr: string; email: string }
