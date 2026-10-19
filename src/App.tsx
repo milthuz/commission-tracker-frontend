@@ -80,7 +80,9 @@ const Reseller = lazyRoute(() => import('./pages/Reseller'), true);
 const Support = lazyRoute(() => import('./pages/Support'), true);
 const Leads = lazyRoute(() => import('./pages/Leads'), true);
 const HR = lazyRoute(() => import('./pages/HR'), true);
+const Nda = lazyRoute(() => import('./pages/Nda'), true);
 const SignOffer = lazyRoute(() => import('./pages/Sign'));
+const NdaSign = lazyRoute(() => import('./pages/NdaSign'));
 // Signature PUBLIQUE d'une entente de crédit de compensation (lien reçu par courriel, sans session).
 const CreditSign = lazyRoute(() => import('./pages/CreditSign'));
 const Credits = lazyRoute(() => import('./pages/Credits'), true);
@@ -204,6 +206,8 @@ function AppContent() {
       {/* Signature d'une offre d'emploi par le candidat — PUBLIQUE, marque Cluster (voir pages/Sign). */}
       <Route path="/sign" element={<SignOffer />} />
       <Route path="/credit-sign" element={<CreditSign />} />
+      {/* Signature d'un NDA par l'autre partie — PUBLIQUE, marque Cluster (voir pages/NdaSign). */}
+      <Route path="/nda-sign" element={<NdaSign />} />
       {/* Rendez-vous du marchand avec son représentant — PUBLIQUE, marque Cluster (voir pages/Booking). */}
       <Route path="/rdv" element={<Booking />} />
       <Route
@@ -475,6 +479,15 @@ function AppContent() {
               <>
                 <PageTitle titleKey="sidebar.hr" />
                 <HR />
+              </>
+            }
+          />
+          <Route
+            path="/nda"
+            element={
+              <>
+                <PageTitle titleKey="sidebar.nda" />
+                <Nda />
               </>
             }
           />

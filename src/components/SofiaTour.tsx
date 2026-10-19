@@ -21,6 +21,7 @@ const NAV_DESC: Record<string, string> = {
   '/resources': 'tour.resourcesBody',
   '/leads': 'tour.leadsBody',
   '/hr': 'tour.hrBody',
+  '/nda': 'tour.ndaBody',
   '/support': 'tour.supportBody',
   '/pass-referrals': 'tour.passBody',
   '/credits': 'tour.creditsBody',

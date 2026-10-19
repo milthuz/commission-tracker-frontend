@@ -23,6 +23,8 @@ const TEMPLATE_TYPES = [
   'lead_review', 'lead_assigned', 'lead_welcome', 'lead_booking_client', 'lead_booking_cancelled', 'lead_booking_rep', 'lead_event_thanks', 'lead_import_rep', 'partner_lead_assigned',
   // RH. `hr_sign_request` et `hr_completed` partent au CANDIDAT, marque Cluster, unilingues.
   'hr_sign_request', 'hr_countersign', 'hr_completed', 'hr_declined',
+  // NDA. `nda_sign_request` et `nda_completed` partent à l'AUTRE PARTIE, marque Cluster, bilingues.
+  'nda_sign_request', 'nda_countersign', 'nda_completed', 'nda_declined',
   // Opener : la route publiée, à l'opener. Interne, bilingue.
   'opener_route_published', 'opener_week_published',
   // Demande de rôle d'un usager qui n'en a pas (écran NoRoleNotice). Interne, bilingue.

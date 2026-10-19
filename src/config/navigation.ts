@@ -91,6 +91,7 @@ export const NAV: NavSection[] = [
           { id: 'openerMatch', label: 'sidebar.openerMatch', to: '/admin/opener', visible: (c) => any(c, 'opener:match') },
         ],
       },
+      { id: 'nda', label: 'sidebar.nda', icon: 'fileText', to: '/nda', visible: (c) => any(c, 'nda:send', 'nda:view_all', 'nda:countersign'), keywords: 'nda confidentialité non-divulgation entente signature' },
       {
         id: 'saas', label: 'sidebar.saasGroup', icon: 'trend',
         children: [
