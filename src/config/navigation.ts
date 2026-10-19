@@ -122,6 +122,24 @@ export const NAV: NavSection[] = [
     ],
   },
   {
+    // Module Finance (CFO), phase 1 : le budget consolidé FY2027 et ses pages de calcul. Les chiffres
+    // et les salaires viennent de l'API ; la paie nominative a sa propre permission.
+    id: 'finance',
+    label: 'sidebar.sections.finance',
+    items: [
+      { id: 'financeMaster', label: 'sidebar.financeMaster', icon: 'chart', to: '/finance', active: (p) => p === '/finance',
+        visible: (c) => any(c, 'finance:view'), keywords: 'budget maître p&l bénéfice ebitda baiia cfo' },
+      { id: 'financeRevenue', label: 'sidebar.financeRevenue', icon: 'trend', to: '/finance/revenue-drivers',
+        visible: (c) => any(c, 'finance:view'), keywords: 'drivers revenus rooftops arpu mrr adyen' },
+      { id: 'financeCogs', label: 'sidebar.financeCogs', icon: 'card', to: '/finance/cogs-drivers',
+        visible: (c) => any(c, 'finance:view'), keywords: 'coût des ventes cogs marge' },
+      { id: 'financePayroll', label: 'sidebar.financePayroll', icon: 'users', to: '/finance/payroll',
+        visible: (c) => any(c, 'finance:view') && any(c, 'finance:payroll'), keywords: 'salaires paie contractuels effectif payroll' },
+      { id: 'financeOpex', label: 'sidebar.financeOpex', icon: 'dollar', to: '/finance/opex',
+        visible: (c) => any(c, 'finance:view'), keywords: 'dépenses exploitation opex voyages' },
+    ],
+  },
+  {
     id: 'footer',
     footer: true,
     items: [

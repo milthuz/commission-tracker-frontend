@@ -1,0 +1,254 @@
+// Module Finance — briques communes : en-tête des pages, tuiles, cellule modifiable, tableau
+// « état financier » (sections, sous-totaux, totaux soulignés deux fois, négatifs entre
+// parenthèses, colonne Total ombrée).
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button, PageHeader, StatusPill, dialog, toast } from '../../components/ui';
+import { CARD, CARD_HEAD, CARD_SUB, CARD_TITLE, TABLE_WRAP } from '../../components/ui/surface';
+import { useFinance } from './FinanceContext';
+import type { Fmt } from './format';
+
+// Cellules modifiables (jaune-orangé du design) et ligne surlignée par un lien d'une autre page.
+export const EDIT_CELL = 'border-[#F58345] bg-[#FDE6DA] text-[#9A3F12] dark:border-[#D16630] dark:bg-[#2A2015] dark:text-[#FFBE9B]';
+const HL_ROW = 'bg-[rgba(253,176,34,0.16)] dark:bg-[rgba(253,176,34,0.12)]';
+
+// ---------------------------------------------------------------------------- en-tête
+export function FinanceHeader({ title, subtitle, actions }: { title: React.ReactNode; subtitle?: React.ReactNode; actions?: React.ReactNode }) {
+  const { t } = useTranslation();
+  const { payload, locked, saveStatus, saveError, notice, approve, unlock, fmt } = useFinance();
+  const b = payload.budget;
+  const onApprove = async () => {
+    const yes = await dialog.confirm(t('finance.approve.confirm', { fy: b.fiscalYear }), { details: [t('finance.approve.confirmDetail')] });
+    if (!yes) return;
+    await approve();
+    toast.success(t('finance.approve.done'));
+  };
+  const onUnlock = async () => {
+    const yes = await dialog.confirm(t('finance.approve.unlockConfirm', { fy: b.fiscalYear }));
+    if (!yes) return;
+    await unlock();
+    toast.success(t('finance.approve.unlocked'));
+  };
+  return (
+    <>
+      <PageHeader
+        section={`${t('sidebar.sections.finance')} · FY${b.fiscalYear} · ${t('finance.consolidated')}`}
+        title={title}
+        subtitle={subtitle}
+        actions={
+          <>
+            <SaveBadge status={saveStatus} error={saveError} />
+            <StatusPill family={locked ? 'ok' : 'neutral'}>{locked ? t('finance.status.approved') : t('finance.status.draft')}</StatusPill>
+            {payload.caps.canApprove && (locked
+              ? <Button size="sm" onClick={onUnlock}>{t('finance.approve.unlock')}</Button>
+              : <Button size="sm" variant="primary" onClick={onApprove}>{t('finance.approve.approve')}</Button>)}
+          </>
+        }
+      />
+      {/* Commandes de la page : barre en carte pleine largeur sous le titre (convention des barres d'outils). */}
+      {actions && <div className={`${CARD} mb-4 flex flex-wrap items-center gap-2 px-3 py-2.5`}>{actions}</div>}
+      {locked && (
+        <div role="status" className="mb-4 rounded-xl border border-[rgba(23,178,106,0.35)] bg-[rgba(23,178,106,0.08)] px-4 py-3 text-[13px] text-[#067647] dark:text-[#57D193]">
+          {t('finance.locked', { who: b.approvedBy || '—', when: b.approvedAt ? new Date(b.approvedAt).toLocaleDateString(fmt.loc, { day: 'numeric', month: 'long', year: 'numeric' }) : '—' })}
+        </div>
+      )}
+      {notice && <div role="status" className="mb-4 rounded-xl border border-stroke bg-gray-2 px-4 py-3 text-[13px] text-black dark:border-strokedark dark:bg-meta-4 dark:text-white">{notice}</div>}
+    </>
+  );
+}
+
+function SaveBadge({ status, error }: { status: string; error: string | null }) {
+  const { t } = useTranslation();
+  if (status === 'idle') return null;
+  const txt = status === 'error' ? t('finance.save.error', { code: error }) : t(`finance.save.${status}`);
+  return <span aria-live="polite" className={`text-[12px] ${status === 'error' ? 'font-bold text-[#B42318] dark:text-[#F46060]' : 'text-body dark:text-bodydark2'}`}>{txt}</span>;
+}
+
+// ---------------------------------------------------------------------------- tuiles
+export function Kpi({ label, value, detail, sub, tone, onClick }: { label: string; value: React.ReactNode; detail?: React.ReactNode; sub?: React.ReactNode; tone?: 'up' | 'dn'; onClick?: () => void }) {
+  const body = (
+    <>
+      <div className="text-[12px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{label}</div>
+      <div className={`mt-1.5 text-[26px] font-medium tabular-nums leading-tight ${tone === 'dn' ? 'text-[#B42318] dark:text-[#F46060]' : 'text-black dark:text-white'}`}>{value}</div>
+      {detail && <div className="mt-1 text-[12.5px] text-body dark:text-bodydark2">{detail}</div>}
+      {sub && <div className="mt-0.5 text-[12px] tabular-nums text-body dark:text-bodydark2">{sub}</div>}
+    </>
+  );
+  const cls = `${CARD} p-4 text-left`;
+  return onClick
+    ? <button type="button" onClick={onClick} className={`${cls} transition hover:border-primary`}>{body}</button>
+    : <div className={cls}>{body}</div>;
+}
+
+export const KpiRow = ({ children }: { children: React.ReactNode }) => <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">{children}</div>;
+
+export function Card({ title, sub, actions, children }: { title: React.ReactNode; sub?: React.ReactNode; actions?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className={`${CARD} mb-5`}>
+      <div className={`${CARD_HEAD} flex flex-wrap items-center justify-between gap-2`}>
+        <div className="min-w-0"><h2 className={CARD_TITLE}>{title}</h2>{sub && <p className={CARD_SUB}>{sub}</p>}</div>
+        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      </div>
+      <div className="p-3 sm:p-4">{children}</div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------- cellule modifiable
+// Garde le texte tapé pendant la saisie (« 1, » n'est pas encore un nombre) et ne remonte qu'une
+// valeur lisible ; à la sortie du champ, réaffiche la valeur retenue.
+export function NumCell({ value, onChange, disabled, label, width = 'w-[84px]', decimals = 2 }: { value: number; onChange: (v: number) => void; disabled?: boolean; label: string; width?: string; decimals?: number }) {
+  const { fmt } = useFinance();
+  const rounded = Number.isFinite(value) ? Math.round(value * 10 ** decimals) / 10 ** decimals : null;
+  const plain = rounded == null ? '' : (fmt.fr ? String(rounded).replace('.', ',') : String(rounded));
+  // Hors saisie : milliers séparés, comme les cellules calculées ; en saisie : le nombre brut.
+  const pretty = rounded == null ? '' : new Intl.NumberFormat(fmt.loc, { maximumFractionDigits: decimals }).format(rounded);
+  const [raw, setRaw] = useState<string | null>(null);
+  const [focused, setFocused] = useState(false);
+  useEffect(() => { if (!focused) setRaw(null); }, [value, focused]);
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      aria-label={label}
+      disabled={disabled}
+      value={raw ?? (focused ? plain : pretty)}
+      onChange={(e) => { setRaw(e.target.value); const v = fmt.parse(e.target.value); if (v != null) onChange(v); }}
+      onBlur={() => { setFocused(false); setRaw(null); }}
+      onFocus={(e) => { setFocused(true); const el = e.target; requestAnimationFrame(() => el.select()); }}
+      className={`${width} h-7 rounded-md border px-1.5 text-right text-[12.5px] tabular-nums outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-70 ${EDIT_CELL}`}
+    />
+  );
+}
+
+// ---------------------------------------------------------------------------- tableau
+export type RowKind = 'sec' | 'line' | 'sub' | 'grand' | 'pct' | 'gl';
+export interface FRow {
+  id: string;
+  label: React.ReactNode;
+  kind: RowKind;
+  fmt?: Fmt;
+  vals?: (number | null)[];
+  total?: number | null;
+  fy26?: number | null;
+  vs?: number | null;
+  edit?: { values: number[]; onChange: (i: number, v: number) => void; onFill?: () => void; decimals?: number };
+  onClick?: () => void;
+  linkCells?: boolean;
+  expand?: { open: boolean; toggle: () => void };
+  extra?: React.ReactNode;
+  focus?: string;
+  /** Override the per-cell format (e.g. $ on the first line of a block only). */
+  cellFmt?: Fmt;
+}
+
+const ROW_CLS: Record<RowKind, string> = {
+  sec: 'text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2',
+  line: 'text-black dark:text-white',
+  sub: 'font-bold text-black dark:text-white [&>td]:border-t [&>td]:border-t-[#9a9aa3] dark:[&>td]:border-t-[#575A61] [&>td]:bg-[#F5F5F5] dark:[&>td]:bg-[#161718]',
+  grand: 'font-bold text-black dark:text-white [&>td]:border-t [&>td]:border-t-[#141414] dark:[&>td]:border-t-white [&>td]:border-b-[3px] [&>td]:border-b-[#141414] dark:[&>td]:border-b-white [&>td]:[border-bottom-style:double]',
+  pct: 'italic text-body dark:text-bodydark2',
+  gl: 'text-[#424242] dark:text-bodydark [&>td]:bg-[#FAFAFA] dark:[&>td]:bg-[#121214]',
+};
+
+export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label, vsLabel, labelHead, editable, focus }: {
+  rows: FRow[];
+  months: string[];
+  showFy26?: boolean;
+  showVs?: boolean;
+  totalLabel: string;
+  fy26Label?: string;
+  vsLabel?: string;
+  labelHead: string;
+  editable: boolean;
+  focus?: string | null;
+}) {
+  const { t } = useTranslation();
+  const { fmt } = useFinance();
+  // Alignement à part : deux classes text-left / text-right concurrentes se règlent par l'ordre de la
+  // feuille de style, pas par l'ordre écrit.
+  const thBase = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2';
+  const tdBase = 'border-b border-stroke/60 px-2.5 py-1.5 tabular-nums dark:border-strokedark/60';
+  const th = ` text-right`;
+  const td = ` whitespace-nowrap text-right`;
+  const totalCls = 'bg-[#F3F3F3] dark:bg-[#19191B] border-l border-l-stroke dark:border-l-strokedark';
+  return (
+    <div className={TABLE_WRAP}>
+      <table className="w-full border-collapse text-[12.5px]">
+        <thead>
+          <tr>
+            <th className={`${thBase} sticky left-0 z-10 min-w-[300px] bg-white text-left dark:bg-boxdark`}>{labelHead}</th>
+            {showFy26 && <th className={`${th} ${totalCls}`}>{fy26Label}</th>}
+            {months.map((m) => <th key={m} className={th}>{m}</th>)}
+            <th className={`${th} ${totalCls}`}>{totalLabel}</th>
+            {showVs && <th className={th}>{vsLabel}</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => {
+            const span = months.length + 2 + (showFy26 ? 1 : 0) + (showVs ? 1 : 0);
+            if (r.kind === 'sec') {
+              return (
+                <tr key={r.id} className={ROW_CLS.sec} data-focus={r.focus}>
+                  <td colSpan={span} className="border-b border-stroke px-2.5 pb-1.5 pt-4 dark:border-strokedark">{r.label}</td>
+                </tr>
+              );
+            }
+            const f = r.cellFmt || r.fmt || 's';
+            const hl = focus && r.focus === focus;
+            const labelInner = (
+              <span className={`flex items-center gap-1.5 ${r.kind === 'gl' ? 'pl-5' : ''}`}>
+                {r.expand && <span aria-hidden className="inline-block w-3 text-[10px] text-body">{r.expand.open ? '▾' : '▸'}</span>}
+                <span className="min-w-0 whitespace-normal">{r.label}</span>
+                {r.extra}
+              </span>
+            );
+            const label = r.expand
+              ? <button type="button" aria-expanded={r.expand.open} onClick={r.expand.toggle} className="w-full text-left hover:text-accent-ink dark:hover:text-accent-ink-dark">{labelInner}</button>
+              : r.onClick
+                ? <button type="button" onClick={r.onClick} className="w-full text-left underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark">{labelInner}</button>
+                : labelInner;
+            const cellText = (v: number | null | undefined) => (v == null ? '' : fmt.fmt(v, f));
+            return (
+              <tr key={r.id} data-focus={r.focus} className={`${ROW_CLS[r.kind]} ${hl ? HL_ROW : ''}`}>
+                <td className={`${tdBase} sticky left-0 z-[1] min-w-[300px] max-w-[380px] text-left ${hl ? 'bg-[#FFF4DB] dark:bg-[#2A2410]' : 'bg-white dark:bg-boxdark'} ${r.kind === 'sub' ? '!bg-[#F5F5F5] dark:!bg-[#161718]' : ''} ${r.kind === 'gl' ? '!bg-[#FAFAFA] dark:!bg-[#121214]' : ''}`}>{label}</td>
+                {showFy26 && <td className={`${td} ${totalCls}`}>{r.fy26 == null ? '' : fmt.fmt(r.fy26, f)}</td>}
+                {months.map((_, i) => (
+                  <td key={i} className={td}>
+                    {r.edit
+                      ? <NumCell value={r.edit.values[i]} decimals={r.edit.decimals} disabled={!editable} label={`${typeof r.label === 'string' ? r.label : r.id} — ${months[i]}`} onChange={(v) => r.edit!.onChange(i, v)} />
+                      : r.linkCells && r.onClick
+                        ? <button type="button" onClick={r.onClick} className="tabular-nums underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark">{cellText(r.vals?.[i])}</button>
+                        : cellText(r.vals?.[i])}
+                  </td>
+                ))}
+                <td className={`${td} ${totalCls} font-bold`}>
+                  <span className="inline-flex items-center gap-1.5">
+                    {r.edit?.onFill && editable && (
+                      <button type="button" onClick={r.edit.onFill} title={t('finance.fillRight')} aria-label={t('finance.fillRight')} className="rounded px-1 text-[13px] text-accent-ink hover:bg-[#FDE6DA] dark:text-accent-ink-dark dark:hover:bg-[#2A2015]">⇥</button>
+                    )}
+                    {r.total == null ? '' : fmt.fmt(r.total, f)}
+                  </span>
+                </td>
+                {showVs && (
+                  <td className={`${td} ${r.vs == null ? '' : r.vs >= 0 ? 'text-[#067647] dark:text-[#57D193]' : 'text-[#B42318] dark:text-[#F46060]'}`}>{r.vs == null ? '' : fmt.pct(r.vs, true)}</td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// Légende des cellules modifiables, sous un tableau.
+export const EditLegend = () => {
+  const { t } = useTranslation();
+  return (
+    <p className="mt-2 flex items-center gap-2 text-[12px] text-body dark:text-bodydark2">
+      <span aria-hidden className={`inline-block h-3 w-5 rounded border ${EDIT_CELL}`} />
+      {t('finance.legendEditable')}
+    </p>
+  );
+};

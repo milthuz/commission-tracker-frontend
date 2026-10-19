@@ -29,6 +29,7 @@ const NAV_DESC: Record<string, string> = {
   '/proposals': 'tour.proposalsBody',
   '/rate-calculator': 'tour.rateCalculatorBody',
   '/revenue-modeler': 'tour.revenueModelerBody',
+  '/finance': 'tour.financeBody',
   '/admin/icplus-rates': 'tour.icplusRatesBody',
   '/admin/opener': 'tour.openerMatchBody',
   '/opener-routes': 'tour.openerRoutesBody',

@@ -99,6 +99,7 @@ const RateCalculator = lazyRoute(() => import('./pages/RateCalculator'), true);
 const OpenerField = lazyRoute(() => import('./pages/Opener/Field'));
 const OpenerRoutes = lazyRoute(() => import('./pages/Opener/RouteDesigner'), true);
 const RevenueModeler = lazyRoute(() => import('./pages/RevenueModeler'), true);
+const Finance = lazyRoute(() => import('./pages/Finance'), true);
 const PartnerPortal = lazyRoute(() => import('./pages/PartnerPortal'));
 const PartnerProfile = lazyRoute(() => import('./pages/PartnerPortal/Profile'));
 const PartnerTeam = lazyRoute(() => import('./pages/PartnerPortal/Team'));
@@ -595,6 +596,8 @@ function AppContent() {
               </>
             }
           />
+          {/* Module Finance : un seul chargement du budget pour ses cinq pages (sous-routes dans la page). */}
+          <Route path="/finance/*" element={<Finance />} />
           <Route
             path="/saas-increase"
             element={

@@ -8,7 +8,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "check:tour": "node scripts/check-tour-coverage.js",
-    "test:opener": "node scripts/test-opener-geo.cjs"
+    "test:opener": "node scripts/test-opener-geo.cjs",
+    "test:finance": "node scripts/test-finance-model.cjs"
   },
   "author": {
     "name": "TailAdmin",
