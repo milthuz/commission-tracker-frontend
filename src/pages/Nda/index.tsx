@@ -159,7 +159,7 @@ const Nda = () => {
 
       {meta && view.kind === 'list' && (
         <>
-          <PageHeader section={t('sidebar.sections.ops')} title={t('nda.title')} subtitle={t('nda.subtitle', { name: meta.signer.name })}
+          <PageHeader section={t('sidebar.sections.direction')} title={t('nda.title')} subtitle={t('nda.subtitle', { name: meta.signer.name })}
             actions={meta.can.send ? (
               <Button size="md" variant="primary" onClick={() => setView({ kind: 'new' })}
                 icon={<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>}>

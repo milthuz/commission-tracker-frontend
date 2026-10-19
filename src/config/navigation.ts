@@ -91,7 +91,6 @@ export const NAV: NavSection[] = [
           { id: 'openerMatch', label: 'sidebar.openerMatch', to: '/admin/opener', visible: (c) => any(c, 'opener:match') },
         ],
       },
-      { id: 'nda', label: 'sidebar.nda', icon: 'fileText', to: '/nda', visible: (c) => any(c, 'nda:send', 'nda:view_all', 'nda:countersign'), keywords: 'nda confidentialité non-divulgation entente signature' },
       {
         id: 'saas', label: 'sidebar.saasGroup', icon: 'trend',
         children: [
@@ -119,6 +118,7 @@ export const NAV: NavSection[] = [
       { id: 'revenue', label: 'sidebar.revenue', icon: 'dollar', to: '/revenue', visible: (c) => c.can('revenue:view'), keywords: 'zentact profit traitement' },
       { id: 'support', label: 'sidebar.support', icon: 'message', to: '/support', visible: (c) => any(c, 'support:view_reports'), keywords: 'desk billets tickets' },
       { id: 'hr', label: 'sidebar.hr', icon: 'userPlus', to: '/hr', visible: (c) => any(c, 'hr:view'), keywords: 'rh embauche contrat offre' },
+      { id: 'nda', label: 'sidebar.nda', icon: 'fileText', to: '/nda', visible: (c) => any(c, 'nda:send', 'nda:view_all', 'nda:countersign'), keywords: 'nda confidentialité non-divulgation entente signature' },
     ],
   },
   {
