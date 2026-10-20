@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Search, Settings2, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, Plus, Search, Settings2, Trash2 } from 'lucide-react';
 import { ContentLoader } from '../../common/Loader';
 import Select from '../../components/Select';
 import TelephoneCopiable from '../../components/TelephoneCopiable';
@@ -17,6 +17,7 @@ import type { StatusFamily } from '../../components/ui';
 const API_URL = import.meta.env.VITE_API_URL || '';
 const jsonHeaders = () => ({ ...authHeaders(), 'Content-Type': 'application/json' });
 
+type SortKey = 'name' | 'contact' | 'platform' | 'status' | 'assigned' | 'next';
 type Status = 'to_call' | 'no_answer' | 'callback' | 'meeting' | 'interested' | 'not_interested' | 'wrong_number';
 const STATUSES: Status[] = ['to_call', 'no_answer', 'callback', 'meeting', 'interested', 'not_interested', 'wrong_number'];
 const FAMILY: Record<Status, StatusFamily> = {
@@ -30,6 +31,7 @@ interface Club {
   callback_at: string | null; meeting_at: string | null; answers: Record<string, string>; notes: string | null; last_call_at: string | null;
 }
 interface Question { id: string; type: 'choice' | 'text' | 'yesno'; label: { en: string; fr: string }; options?: string[] }
+interface Person { email: string; name: string | null }
 interface Call { id: string; by_email: string; outcome: Status; note: string | null; created_at: string }
 
 const CARD = 'rounded-2xl border border-stroke bg-white dark:border-strokedark dark:bg-boxdark';
@@ -63,18 +65,30 @@ export default function GolfCampaign() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [editQ, setEditQ] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [assignF, setAssignF] = useState('all');
+  // Tri par défaut : les clients Cluster d'abord, puis le répertoire GGGolf, puis les autres.
+  const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' }>({ key: 'platform', dir: 'asc' });
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [bulkTo, setBulkTo] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkErr, setBulkErr] = useState('');
+  const me = (user?.email || '').toLowerCase();
+  const canManage = can('golfcampaign:manage');
 
   const load = useCallback(async () => {
     try {
-      const [a, b, c] = await Promise.all([
+      const [a, b, c, d] = await Promise.all([
         fetch(`${API_URL}/api/golf-campaign/clubs`, { headers: authHeaders() }),
         fetch(`${API_URL}/api/golf-campaign/questionnaire`, { headers: authHeaders() }),
         fetch(`${API_URL}/api/golf-campaign/script`, { headers: authHeaders() }),
+        fetch(`${API_URL}/api/golf-campaign/assignees`, { headers: authHeaders() }),
       ]);
       if (!a.ok) throw new Error((await a.json().catch(() => ({}))).error || String(a.status));
       setClubs((await a.json()).clubs);
       if (b.ok) setQuestions((await b.json()).questions);
       if (c.ok) setScript((await c.json()).script);
+      if (d.ok) setPeople((await d.json()).people);
       setError('');
     } catch (e) { setError((e as Error).message); }
   }, []);
@@ -83,16 +97,60 @@ export default function GolfCampaign() {
   const replace = (c: Club) => setClubs((cur) => (cur || []).map((x) => (x.id === c.id ? c : x)));
   const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
+  const nameOf = (email: string | null) => {
+    if (!email) return '';
+    const p = people.find((x) => x.email === email.toLowerCase());
+    return p?.name || email.split('@')[0];
+  };
+
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return (clubs || []).filter((c) => {
+    const rows = (clubs || []).filter((c) => {
       if (statusF !== 'all' && c.status !== statusF) return false;
       if (segF === 'gg' && !c.gg_directory_name) return false;
       if (segF === 'client' && !c.is_cluster_client) return false;
       if (segF === 'other' && (c.gg_directory_name || c.is_cluster_client)) return false;
+      if (assignF === 'mine' && (c.assigned_to || '').toLowerCase() !== me) return false;
+      if (assignF === 'none' && c.assigned_to) return false;
+      if (assignF.includes('@') && (c.assigned_to || '').toLowerCase() !== assignF) return false;
       return !needle || [c.name, c.contact_name, c.email, c.phone, c.address].some((v) => (v || '').toLowerCase().includes(needle));
     });
-  }, [clubs, q, statusF, segF]);
+    const rank = (c: Club) => (c.is_cluster_client ? 0 : c.gg_directory_name ? 1 : 2);
+    const next = (c: Club) => { const v = c.status === 'meeting' ? c.meeting_at : c.status === 'callback' ? c.callback_at : null; return v ? new Date(v).getTime() : null; };
+    const cmpText = (a: string, b: string) => a.localeCompare(b, locale, { sensitivity: 'base' });
+    const mul = sort.dir === 'asc' ? 1 : -1;
+    return [...rows].sort((a, b) => {
+      let r = 0;
+      if (sort.key === 'name') r = cmpText(a.name, b.name);
+      else if (sort.key === 'contact') r = cmpText(a.contact_name || '', b.contact_name || '');
+      else if (sort.key === 'platform') r = rank(a) - rank(b);
+      else if (sort.key === 'status') r = STATUSES.indexOf(a.status) - STATUSES.indexOf(b.status);
+      else if (sort.key === 'assigned') r = cmpText(nameOf(a.assigned_to), nameOf(b.assigned_to));
+      else if (sort.key === 'next') {
+        const x = next(a); const y = next(b);
+        if (x === null || y === null) return x === y ? cmpText(a.name, b.name) : x === null ? 1 : -1; // sans date : toujours en bas
+        r = x - y;
+      }
+      return r * mul || cmpText(a.name, b.name);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clubs, q, statusF, segF, assignF, sort, locale, me, people]);
+
+  const toggleSort = (key: SortKey) => setSort((cur) => (cur.key === key ? { key, dir: cur.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
+  const allPicked = visible.length > 0 && visible.every((c) => picked.has(c.id));
+  const togglePick = (id: string) => setPicked((cur) => { const n = new Set(cur); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+
+  const assignPicked = async (to: string | null) => {
+    setBulkBusy(true); setBulkErr('');
+    try {
+      const r = await fetch(`${API_URL}/api/golf-campaign/assign`, { method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ ids: [...picked], assigned_to: to }) });
+      if (!r.ok) { setBulkErr((await r.json().catch(() => ({}))).error || t('golf.saveFailed')); return; }
+      const upd: Club[] = (await r.json()).clubs;
+      setClubs((cur) => (cur || []).map((x) => upd.find((u) => u.id === x.id) || x));
+      setPicked(new Set()); setBulkTo('');
+      toast.success(t('golf.assigned', { count: upd.length }));
+    } finally { setBulkBusy(false); }
+  };
 
   if (!clubs && !error) return <ContentLoader />;
   if (!clubs) return <StateCard kind="error" body={t('golf.loadFailed', { error })} onRetry={load} />;
@@ -138,20 +196,55 @@ export default function GolfCampaign() {
             { value: 'client', label: t('golf.seg.client') }, { value: 'other', label: t('golf.seg.other') },
           ]} />
         </div>
+        <div className="w-56">
+          <Select value={assignF} onChange={setAssignF} options={[
+            { value: 'all', label: t('golf.assignF.all') }, { value: 'mine', label: t('golf.assignF.mine') }, { value: 'none', label: t('golf.assignF.none') },
+            ...people.filter((p) => p.email !== me).map((p) => ({ value: p.email, label: p.name || p.email })),
+          ]} />
+        </div>
       </div>
 
+      {picked.size > 0 && (
+        <div className={`${CARD} mb-4 flex flex-wrap items-center gap-3 p-3`}>
+          <span className="text-sm font-bold text-black dark:text-white">{t('golf.selected', { count: picked.size })}</span>
+          {canManage && (
+            <div className="w-56">
+              <Select value={bulkTo} onChange={setBulkTo} placeholder={t('golf.assignPick')}
+                options={people.map((p) => ({ value: p.email, label: p.name || p.email }))} />
+            </div>
+          )}
+          {canManage && <button className={BTN_PRIMARY} disabled={bulkBusy || !bulkTo} onClick={() => assignPicked(bulkTo)}>{t('golf.assign')}</button>}
+          <button className={BTN} disabled={bulkBusy} onClick={() => assignPicked(me)}>{t('golf.assignToMe')}</button>
+          <button className={BTN} disabled={bulkBusy} onClick={() => assignPicked(null)}>{t('golf.unassign')}</button>
+          <button className={BTN} onClick={() => setPicked(new Set())}>{t('golf.clearSelection')}</button>
+          {bulkErr && <span role="alert" className="text-sm font-bold text-[#B42318] dark:text-[#F46060]">{bulkErr}</span>}
+        </div>
+      )}
+
       <div className={`${CARD} overflow-x-auto`}>
-        <table className="w-full min-w-[900px] text-left text-sm">
+        <table className="w-full min-w-[1000px] text-left text-sm">
           <thead>
             <tr className="border-b border-stroke text-xs uppercase text-body dark:border-strokedark dark:text-bodydark2">
-              <th className="px-4 py-3">{t('golf.col.club')}</th><th className="px-4 py-3">{t('golf.col.contact')}</th>
-              <th className="px-4 py-3">{t('golf.col.platform')}</th><th className="px-4 py-3">{t('golf.col.status')}</th>
-              <th className="px-4 py-3">{t('golf.col.next')}</th>
+              <th className="w-10 px-4 py-3">
+                <input type="checkbox" aria-label={t('golf.selectAll')} checked={allPicked}
+                  onChange={() => setPicked(allPicked ? new Set() : new Set(visible.map((c) => c.id)))} />
+              </th>
+              {([['name', 'club'], ['contact', 'contact'], ['platform', 'platform'], ['status', 'status'], ['assigned', 'assigned'], ['next', 'next']] as [SortKey, string][]).map(([key, label]) => (
+                <th key={key} className="px-4 py-3" aria-sort={sort.key === key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+                  <button type="button" onClick={() => toggleSort(key)} className="inline-flex items-center gap-1 font-[inherit] uppercase hover:text-primary">
+                    {t(`golf.col.${label}`)}
+                    {sort.key === key ? (sort.dir === 'asc' ? <ArrowUp size={13} /> : <ArrowDown size={13} />) : <ArrowUpDown size={13} className="opacity-40" />}
+                  </button>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {visible.map((c) => (
               <tr key={c.id} onClick={() => setOpenId(c.id)} className="cursor-pointer border-b border-stroke last:border-0 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4">
+                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                  <input type="checkbox" aria-label={c.name} checked={picked.has(c.id)} onChange={() => togglePick(c.id)} />
+                </td>
                 <td className="px-4 py-3 font-bold text-black dark:text-white">{c.name}</td>
                 <td className="px-4 py-3">{c.contact_name || '—'}<div className="text-xs text-body dark:text-bodydark2">{c.email}</div></td>
                 <td className="px-4 py-3">
@@ -160,23 +253,24 @@ export default function GolfCampaign() {
                   {!c.is_cluster_client && !c.gg_directory_name && '—'}
                 </td>
                 <td className="px-4 py-3"><StatusPill family={FAMILY[c.status]}>{t(`golf.status.${c.status}`)}</StatusPill></td>
+                <td className="px-4 py-3 text-xs">{c.assigned_to ? nameOf(c.assigned_to) : '—'}</td>
                 <td className="px-4 py-3 text-xs">{c.status === 'meeting' ? fmt(c.meeting_at) : c.status === 'callback' ? fmt(c.callback_at) : '—'}</td>
               </tr>
             ))}
-            {!visible.length && <tr><td colSpan={5} className="px-4 py-8 text-center text-body">{t('golf.empty')}</td></tr>}
+            {!visible.length && <tr><td colSpan={7} className="px-4 py-8 text-center text-body">{t('golf.empty')}</td></tr>}
           </tbody>
         </table>
       </div>
 
-      {open && <ClubModal key={open.id} club={open} questions={questions} script={script[lang]} lang={lang} fmt={fmt} onClose={() => setOpenId(null)} onSaved={replace} />}
+      {open && <ClubModal key={open.id} club={open} people={people} canManage={canManage} me={me} questions={questions} script={script[lang]} lang={lang} fmt={fmt} onClose={() => setOpenId(null)} onSaved={replace} />}
       {adding && <AddModal onClose={() => setAdding(false)} onAdded={(c) => { setClubs((cur) => [...(cur || []), c]); setAdding(false); setOpenId(c.id); }} />}
       {editQ && <QuestionnaireModal questions={questions} script={script} onClose={() => setEditQ(false)} onSaved={(qs, sc) => { setQuestions(qs); setScript(sc); setEditQ(false); }} />}
     </>
   );
 }
 
-function ClubModal({ club, questions, script, lang, fmt, onClose, onSaved }: {
-  club: Club; questions: Question[]; script: string; lang: 'en' | 'fr'; fmt: (iso: string | null) => string; onClose: () => void; onSaved: (c: Club) => void;
+function ClubModal({ club, people, canManage, me, questions, script, lang, fmt, onClose, onSaved }: {
+  club: Club; people: Person[]; canManage: boolean; me: string; questions: Question[]; script: string; lang: 'en' | 'fr'; fmt: (iso: string | null) => string; onClose: () => void; onSaved: (c: Club) => void;
 }) {
   const { t } = useTranslation();
   const [answers, setAnswers] = useState<Record<string, string>>(club.answers || {});
@@ -190,6 +284,8 @@ function ClubModal({ club, questions, script, lang, fmt, onClose, onSaved }: {
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [err, setErr] = useState('');
+  const [assigned, setAssigned] = useState((club.assigned_to || '').toLowerCase());
+  const assignPatch = assigned !== (club.assigned_to || '').toLowerCase() ? { assigned_to: assigned || null } : {};
 
   useEffect(() => {
     fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/calls`, { headers: authHeaders() })
@@ -201,7 +297,7 @@ function ClubModal({ club, questions, script, lang, fmt, onClose, onSaved }: {
   const saveDetails = async () => {
     setErr(''); setBusy(true);
     try {
-      const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}`, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify({ answers, notes, ...contact }) });
+      const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}`, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify({ answers, notes, ...contact, ...assignPatch }) });
       if (!r.ok) return fail(r);
       onSaved(await r.json()); setDirty(false); toast.success(t('golf.saved'));
     } finally { setBusy(false); }
@@ -213,7 +309,7 @@ function ClubModal({ club, questions, script, lang, fmt, onClose, onSaved }: {
     setBusy(true);
     try {
       // Les réponses au questionnaire partent d'abord : un appel journalisé ne doit pas perdre la saisie.
-      const s = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}`, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify({ answers, notes, ...contact }) });
+      const s = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}`, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify({ answers, notes, ...contact, ...assignPatch }) });
       if (!s.ok) return fail(s);
       const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/calls`, {
         method: 'POST', headers: jsonHeaders(),
@@ -247,6 +343,11 @@ function ClubModal({ club, questions, script, lang, fmt, onClose, onSaved }: {
             {club.gg_directory_name && <StatusPill family="new">GGGolf · {club.gg_directory_name}</StatusPill>}
           </div>
           {club.address && <div className="text-xs text-body dark:text-bodydark2">{club.address}</div>}
+          <label className="block text-xs">{t('golf.assignedTo')}
+            <Select value={assigned} onChange={(v) => { setAssigned(v); setDirty(true); }}
+              options={[{ value: '', label: t('golf.unassigned') },
+                ...people.filter((p) => canManage || p.email === me || p.email === assigned).map((p) => ({ value: p.email, label: p.name || p.email }))]} />
+          </label>
           <input className={INPUT} placeholder={t('golf.f.contactName')} value={contact.contact_name} onChange={(e) => { setContact({ ...contact, contact_name: e.target.value }); setDirty(true); }} />
           <input className={INPUT} placeholder={t('golf.f.email')} value={contact.email} onChange={(e) => { setContact({ ...contact, email: e.target.value }); setDirty(true); }} />
           <div className="flex items-center gap-3">
