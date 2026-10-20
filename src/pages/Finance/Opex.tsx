@@ -10,6 +10,7 @@ import PageTitle from '../../components/PageTitle';
 import { Card, EDIT_CELL, EditLegend, FinanceHeader, FinTable, Kpi, KpiRow, NumCell, type FRow } from './components';
 import { useFinance, useFocusRow } from './FinanceContext';
 import { PAGES } from './DriverPages';
+import { OpexImportActions } from './ConsolidatedImport';
 import { downloadCsv } from './format';
 import { sum, tripTotal, type Trip } from './model';
 
@@ -73,6 +74,7 @@ export default function Opex() {
               ))}
             </div>
             <Button size="sm" onClick={exportCsv}>{t('finance.export')}</Button>
+            {canEdit && opexYear === 1 && <OpexImportActions />}
             {canEdit && <Button size="sm" variant="ghost" disabled={!count && !trips} onClick={onReset}>{t('finance.drivers.reset', { n: count })}</Button>}
           </>
         }

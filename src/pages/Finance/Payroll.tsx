@@ -12,6 +12,7 @@ import Select from '../../components/Select';
 import PageTitle from '../../components/PageTitle';
 import { Card, EDIT_CELL, FinanceHeader, Kpi, KpiRow, NumCell } from './components';
 import { useFinance } from './FinanceContext';
+import { RosterImportActions } from './ConsolidatedImport';
 import { downloadCsv } from './format';
 import { MAPS, masterCount, payCodesOf, sum, type Contractor, type Employee, type PnlMap, type Series } from './model';
 
@@ -118,6 +119,7 @@ export default function Payroll() {
         actions={
           <>
             <Button size="sm" onClick={exportCsv}>{t('finance.export')}</Button>
+            {can && <RosterImportActions />}
             {can && <Button size="sm" variant="ghost" onClick={onReset}>{t('finance.payroll.reset')}</Button>}
           </>
         }
