@@ -22,6 +22,7 @@ const NAV_DESC: Record<string, string> = {
   '/leads': 'tour.leadsBody',
   '/hr': 'tour.hrBody',
   '/nda': 'tour.ndaBody',
+  '/golf-campaign': 'tour.golfBody',
   '/support': 'tour.supportBody',
   '/pass-referrals': 'tour.passBody',
   '/credits': 'tour.creditsBody',

@@ -469,6 +469,7 @@
     "partnersUsers": "Utilisateurs partenaires",
     "partnersPayouts": "Paiements partenaires",
     "nda": "NDA",
+    "golfCampaign": "Campagne golf",
     "financeMaster": "Budget maître",
     "financeRevenue": "Drivers de revenus",
     "financeCogs": "Drivers de COGS",
@@ -536,6 +537,7 @@
     "openerFieldBody": "L'application de l'opener, à ouvrir sur son téléphone : la route du jour sur une carte, la fiche de chaque restaurant, le check-in, la création de lead et le résumé de la journée.",
     "moreBody": "Tous les autres écrans auxquels tu as accès : outils de vente, rémunération, opérations, administration — plus ton profil, le thème, la langue et la déconnexion. La recherche en haut mène directement à n'importe quel écran.",
     "ndaBody": "Envoyez une entente de confidentialité à une autre entreprise : le NDA mutuel de Cluster (FR ou EN) ou leur propre PDF. Elle signe à l’écran, puis le signataire de Cluster contresigne.",
+    "golfBody": "Appelez les clubs de golf au sujet d’une alternative à Lightspeed (ex-GGGolf) : liste de contacts, questionnaire d’appel, rappels et rendez-vous.",
     "financeBody": "Finance : le budget FY2027 de la CFO. Le Budget maître est l’état des résultats ; dépliez une ligne pour voir ses comptes et cliquez-en un pour ouvrir la page qui le calcule. Les cellules jaunes des drivers, de la paie et de l’OPEX sont modifiables et s’enregistrent seules ; l’approbation verrouille le budget."
   },
   "proposals": {
@@ -8584,6 +8586,84 @@
     "deniedTitle": "Pas d'accès à cet écran",
     "deniedBody": "Ton rôle ne comprend pas cette section. Si tu en as besoin, demande-le à ton administrateur.",
     "label": "Accès restreint"
+  },
+  "golf": {
+    "script": "Accroche d’ouverture",
+    "scriptNoContact": "bonjour",
+    "scriptHelp": "À lire au début de l’appel. {{club}} et {{contact}} sont remplacés par le club et le prénom du contact.",
+    "scriptInvalid": "L’accroche demande un texte en français et un en anglais.",
+    "title": "Campagne golf",
+    "subtitle": "Appelez les clubs de golf (liste AGQ + répertoire GGGolf) pour voir qui veut une alternative à Lightspeed.",
+    "loadFailed": "Impossible de charger la campagne golf : {{error}}",
+    "editQuestionnaire": "Modifier le questionnaire",
+    "addClub": "Ajouter un club",
+    "add": "Ajouter",
+    "search": "Chercher un club, contact, courriel, téléphone…",
+    "allStatuses": "Tous les statuts",
+    "empty": "Aucun club ne correspond à ces filtres.",
+    "exists": "Un club porte déjà ce nom.",
+    "saveFailed": "Enregistrement impossible.",
+    "saved": "Enregistré",
+    "callLogged": "Appel journalisé",
+    "needMeetingDate": "Choisissez la date et l’heure du rendez-vous.",
+    "needCallbackDate": "Choisissez quand rappeler.",
+    "saveDetails": "Enregistrer la fiche",
+    "logCall": "Journaliser l’appel",
+    "contactTitle": "Club et contact",
+    "callTitle": "Résultat de cet appel",
+    "callbackAt": "Rappeler le",
+    "meetingAt": "Rendez-vous le",
+    "callNote": "Note d’appel (facultatif)",
+    "history": "Historique des appels",
+    "questionnaire": "Questionnaire",
+    "notes": "Notes sur ce club",
+    "save": "Enregistrer",
+    "addQuestion": "Ajouter une question",
+    "removeQuestion": "Retirer cette question",
+    "qOptions": "Choix, séparés par des virgules",
+    "questionnaireInvalid": "Chaque question demande un libellé en anglais et en français, et des choix s’il s’agit d’une question à choix.",
+    "kpi": {
+      "called": "Clubs appelés",
+      "callbacks": "Rappels prévus",
+      "meetings": "Rendez-vous pris",
+      "interested": "Intéressés"
+    },
+    "col": {
+      "club": "Club",
+      "contact": "Contact",
+      "platform": "Plateforme",
+      "status": "Statut",
+      "next": "Prochaine étape"
+    },
+    "seg": {
+      "all": "Tous les clubs",
+      "gg": "Au répertoire GGGolf",
+      "client": "Clients Cluster",
+      "other": "Autres clubs"
+    },
+    "badge": {
+      "client": "Client Cluster"
+    },
+    "f": {
+      "clubName": "Nom du club",
+      "contactName": "Nom du contact",
+      "email": "Courriel",
+      "phone": "Téléphone"
+    },
+    "qType": {
+      "text": "Texte libre",
+      "choice": "Choix",
+      "yesno": "Oui / Non"
+    },
+    "status": {
+      "to_call": "À appeler",
+      "no_answer": "Sans réponse",
+      "callback": "À rappeler",
+      "meeting": "Rendez-vous pris",
+      "interested": "Intéressé",
+      "not_interested": "Pas intéressé",
+      "wrong_number": "Mauvais numéro"
+    }
   },
   "nda": {
     "title": "Ententes de confidentialité",

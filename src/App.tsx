@@ -81,6 +81,7 @@ const Support = lazyRoute(() => import('./pages/Support'), true);
 const Leads = lazyRoute(() => import('./pages/Leads'), true);
 const HR = lazyRoute(() => import('./pages/HR'), true);
 const Nda = lazyRoute(() => import('./pages/Nda'), true);
+const GolfCampaign = lazyRoute(() => import('./pages/GolfCampaign'), true);
 const SignOffer = lazyRoute(() => import('./pages/Sign'));
 const NdaSign = lazyRoute(() => import('./pages/NdaSign'));
 // Signature PUBLIQUE d'une entente de crédit de compensation (lien reçu par courriel, sans session).
@@ -480,6 +481,15 @@ function AppContent() {
               <>
                 <PageTitle titleKey="sidebar.hr" />
                 <HR />
+              </>
+            }
+          />
+          <Route
+            path="/golf-campaign"
+            element={
+              <>
+                <PageTitle titleKey="sidebar.golfCampaign" />
+                <GolfCampaign />
               </>
             }
           />

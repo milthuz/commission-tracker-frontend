@@ -469,6 +469,7 @@
     "partnersUsers": "Partner users",
     "partnersPayouts": "Partner payouts",
     "nda": "NDA",
+    "golfCampaign": "Golf campaign",
     "financeMaster": "Master Budget",
     "financeRevenue": "Revenue Drivers",
     "financeCogs": "COGS Drivers",
@@ -536,6 +537,7 @@
     "openerFieldBody": "The opener's app, to open on their phone: the day's route on a map, each restaurant's card, check-in, lead creation and the day summary.",
     "moreBody": "Every other screen you have access to: sales tools, compensation, operations, administration — plus your profile, theme, language and sign-out. The search at the top jumps straight to any screen.",
     "ndaBody": "Send a non-disclosure agreement to another company: Cluster’s mutual NDA (EN or FR) or their own PDF. They sign on screen, then Cluster’s signatory countersigns.",
+    "golfBody": "Call golf clubs about an alternative to Lightspeed (formerly GGGolf): contact list, call questionnaire, callbacks and meetings.",
     "financeBody": "Finance: the CFO’s FY2027 budget. The Master Budget is the income statement; open a line to see its accounts and click one to reach the page that calculates it. Yellow cells on the driver, payroll and OPEX pages are editable and save automatically; approving locks the budget."
   },
   "proposals": {
@@ -8584,6 +8586,84 @@
     "deniedTitle": "No access to this screen",
     "deniedBody": "Your role does not include this section. If you need it, ask your administrator.",
     "label": "Restricted access"
+  },
+  "golf": {
+    "script": "Opening script",
+    "scriptNoContact": "there",
+    "scriptHelp": "Read at the start of the call. {{club}} and {{contact}} are replaced with the club and the contact’s first name.",
+    "scriptInvalid": "The opening script needs a French and an English text.",
+    "title": "Golf campaign",
+    "subtitle": "Call golf clubs (AGQ list + GGGolf directory) to see who wants an alternative to Lightspeed.",
+    "loadFailed": "Could not load the golf campaign: {{error}}",
+    "editQuestionnaire": "Edit questionnaire",
+    "addClub": "Add a club",
+    "add": "Add",
+    "search": "Search club, contact, email, phone…",
+    "allStatuses": "All statuses",
+    "empty": "No club matches these filters.",
+    "exists": "A club with this name already exists.",
+    "saveFailed": "Could not save.",
+    "saved": "Saved",
+    "callLogged": "Call logged",
+    "needMeetingDate": "Pick the meeting date and time.",
+    "needCallbackDate": "Pick when to call back.",
+    "saveDetails": "Save details",
+    "logCall": "Log call",
+    "contactTitle": "Club and contact",
+    "callTitle": "Result of this call",
+    "callbackAt": "Call back on",
+    "meetingAt": "Meeting on",
+    "callNote": "Call note (optional)",
+    "history": "Call history",
+    "questionnaire": "Questionnaire",
+    "notes": "Notes on this club",
+    "save": "Save",
+    "addQuestion": "Add a question",
+    "removeQuestion": "Remove this question",
+    "qOptions": "Choices, separated by commas",
+    "questionnaireInvalid": "Each question needs an English and a French label, and choices when it is a choice question.",
+    "kpi": {
+      "called": "Clubs called",
+      "callbacks": "Callbacks planned",
+      "meetings": "Meetings booked",
+      "interested": "Interested"
+    },
+    "col": {
+      "club": "Club",
+      "contact": "Contact",
+      "platform": "Platform",
+      "status": "Status",
+      "next": "Next step"
+    },
+    "seg": {
+      "all": "All clubs",
+      "gg": "On GGGolf directory",
+      "client": "Cluster customers",
+      "other": "Other clubs"
+    },
+    "badge": {
+      "client": "Cluster customer"
+    },
+    "f": {
+      "clubName": "Club name",
+      "contactName": "Contact name",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "qType": {
+      "text": "Free text",
+      "choice": "Choice",
+      "yesno": "Yes / No"
+    },
+    "status": {
+      "to_call": "To call",
+      "no_answer": "No answer",
+      "callback": "Call back",
+      "meeting": "Meeting booked",
+      "interested": "Interested",
+      "not_interested": "Not interested",
+      "wrong_number": "Wrong number"
+    }
   },
   "nda": {
     "title": "Non-disclosure agreements",

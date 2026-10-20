@@ -53,6 +53,7 @@ export const NAV: NavSection[] = [
       { id: 'dashboard', label: 'sidebar.dashboard', icon: 'home', to: '/', active: (p) => p === '/' },
       { id: 'leads', label: 'sidebar.leads', icon: 'inbox', to: '/leads', badge: 'leads',
         visible: (c) => ['leads:view_own', 'leads:view_all', 'leads:review', 'leads:intake'].some(c.can), keywords: 'pistes leads prospects' },
+      { id: 'golfCampaign', label: 'sidebar.golfCampaign', icon: 'phone', to: '/golf-campaign', visible: (c) => any(c, 'golfcampaign:use', 'golfcampaign:manage'), keywords: 'golf lightspeed gggolf appels clubs campagne' },
       { id: 'proposals', label: 'sidebar.proposals', icon: 'fileText', to: '/proposals', visible: (c) => any(c, 'proposals:send'), keywords: 'soumission quote' },
       {
         id: 'salesTools', label: 'sidebar.salesTools', icon: 'wrench',
