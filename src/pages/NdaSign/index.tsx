@@ -73,7 +73,7 @@ const NdaSign = () => {
   }, [token]);
 
   // « Inc. » en fin de phrase : on retire le point du nom, la phrase fournit le sien.
-  const coEnd = (info?.company || '').replace(/.$/, '');
+  const coEnd = (info?.company || '').replace(/\.$/, '');
   const docUrl = (key: string) => `${API_URL}/api/public/nda-sign/${encodeURIComponent(token)}/doc/${key}`;
   const docTitle = (d: Info['documents'][number]) => (d.kind === 'attachment' ? d.title || '' : t(d.kind === 'sigpage' ? 'ndaSign.sigpage' : 'ndaSign.docNda') as string);
   const allOpened = !!info && info.documents.every((d) => opened[d.key]);
