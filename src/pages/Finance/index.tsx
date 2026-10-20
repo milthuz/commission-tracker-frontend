@@ -17,6 +17,8 @@ import { ClusterBudget, XperioBudget, DepartmentalBudgets } from './EntityBudget
 import KpiPage from './Kpi';
 import { FORECAST_ROUTES } from './Forecasts';
 import { DeferredRevenue, TerminalAmortization, BooksAccounts } from './Managers';
+import { ProgressPage } from './Progress';
+import { GuidePage } from './Guide';
 
 export default function Finance() {
   const { t } = useTranslation();
@@ -59,6 +61,8 @@ export default function Finance() {
           <Route path="deferred-revenue" element={<DeferredRevenue />} />
           <Route path="terminal-amortization" element={<TerminalAmortization />} />
           <Route path="books-accounts" element={<BooksAccounts />} />
+          <Route path="progress" element={<ProgressPage />} />
+          <Route path="guide" element={<GuidePage />} />
           <Route path="*" element={<MasterBudget />} />
         </Routes>
       </div>

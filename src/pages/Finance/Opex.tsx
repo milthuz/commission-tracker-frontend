@@ -8,9 +8,10 @@ import { SEG, segBtn } from '../../components/ui/surface';
 import Select from '../../components/Select';
 import PageTitle from '../../components/PageTitle';
 import { Card, EDIT_CELL, EditLegend, FinanceHeader, FinTable, Kpi, KpiRow, NumCell, type FRow } from './components';
-import { useFinance, useFocusRow } from './FinanceContext';
+import { useFinance, useFocusMonth, useFocusRow } from './FinanceContext';
 import { PAGES } from './DriverPages';
 import { OpexImportActions } from './ConsolidatedImport';
+import { ApprovePageButton, DriverStatusCell } from './Progress';
 import { downloadCsv } from './format';
 import { sum, tripTotal, type Trip } from './model';
 
@@ -22,6 +23,7 @@ export default function Opex() {
   const F = useFinance();
   const { result, opex, trips, opexYear, setOpexYear, canEdit, fmt, goTo, payload } = F;
   const focus = useFocusRow();
+  const focusMonth = useFocusMonth();
   const yy = 26 + opexYear;
   const months = fmt.months(yy);
   const ox = result.opexShown;
@@ -44,6 +46,7 @@ export default function Opex() {
       extra: (
         <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-[11px] text-body dark:text-bodydark2" title={t('finance.opex.growthTip')}>
           +<NumCell value={g || 0} width="w-[46px]" decimals={2} disabled={!canEdit} label={t('finance.opex.growthLabel', { line: name })} onChange={(v) => F.setOpexGrowth(r.key, v)} />%/{t('finance.opex.mo')}
+          <DriverStatusCell driverKey={`opx:${r.key}`} />
         </span>
       ),
     };
@@ -75,6 +78,7 @@ export default function Opex() {
             </div>
             <Button size="sm" onClick={exportCsv}>{t('finance.export')}</Button>
             {canEdit && opexYear === 1 && <OpexImportActions />}
+            {opexYear === 1 && <ApprovePageButton group="opex" />}
             {canEdit && <Button size="sm" variant="ghost" disabled={!count && !trips} onClick={onReset}>{t('finance.drivers.reset', { n: count })}</Button>}
           </>
         }
@@ -86,7 +90,7 @@ export default function Opex() {
         <Kpi label={t('finance.master.opex.ga')} value={fmt.fmt(tot('gaTot'), '$')} detail={t('finance.opex.shareOfOpex', { s: share('gaTot') })} />
       </KpiRow>
       <Card title={t('finance.opex.details')} sub={opexYear === 1 ? t('finance.opex.hint27') : t('finance.opex.hintRO')}>
-        <FinTable rows={rows} months={months} labelHead="CAD" totalLabel={t('finance.col.totalYear', { y: 2000 + yy })} editable={canEdit && opexYear === 1} focus={focus} />
+        <FinTable rows={rows} months={months} labelHead="CAD" totalLabel={t('finance.col.totalYear', { y: 2000 + yy })} editable={canEdit && opexYear === 1} focus={focus} focusMonth={focusMonth} />
         {opexYear === 1 && <EditLegend />}
       </Card>
       {opexYear === 1 && <TravelBudget focus={focus} />}

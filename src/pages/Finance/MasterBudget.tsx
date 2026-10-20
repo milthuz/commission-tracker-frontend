@@ -30,14 +30,16 @@ export default function MasterBudget() {
     const isOpen = (id: string) => all || !!open[id];
     const toggle = (id: string) => () => { setAll(false); setOpen((o) => ({ ...o, [id]: !isOpen(id) })); };
     const sec = (id: string) => out.push({ id: `sec:${id}`, kind: 'sec', label: t(`finance.master.sec.${id}`) });
-    const money = (id: string, label: string, vals: Series, kind: FRow['kind'], dollar: boolean) =>
-      out.push({ id, kind, label, vals, total: sum(vals), cellFmt: (dollar ? '$' : 's') as Fmt });
+    // `link` : chaque chiffre de la ligne mène à la ligne qui le calcule, dans le mois cliqué.
+    const money = (id: string, label: string, vals: Series, kind: FRow['kind'], dollar: boolean, link?: (m: number | null) => void) =>
+      out.push({ id, kind, label, vals, total: sum(vals), cellFmt: (dollar ? '$' : 's') as Fmt, ...(link ? { onCellClick: link } : {}) });
+    const toPage = (page: string, focus: string, year1 = false) => (m: number | null) => { if (year1) setOpexYear(1); goTo(page, focus, m); };
     const pct = (id: string, label: string, num: Series, den: Series) => {
       const r = ratio(num, den);
       out.push({ id, kind: 'pct', label, vals: r.months, total: r.total, cellFmt: 'ratio' });
     };
-    const line = (id: string, label: string, vals: Series, dollar: boolean, gl: FRow[]) => {
-      out.push({ id, kind: 'line', label, vals, total: sum(vals), cellFmt: dollar ? '$' : 's', expand: { open: isOpen(id), toggle: toggle(id) } });
+    const line = (id: string, label: string, vals: Series, dollar: boolean, gl: FRow[], link?: (m: number | null) => void) => {
+      out.push({ id, kind: 'line', label, vals, total: sum(vals), cellFmt: dollar ? '$' : 's', expand: { open: isOpen(id), toggle: toggle(id) }, ...(link ? { onCellClick: link } : {}) });
       gl.forEach((g) => out.push({ ...g, parent: id }));
     };
     const glDriver = (k: string): FRow => {
@@ -46,16 +48,21 @@ export default function MasterBudget() {
         return { id: `gl:${k}`, kind: 'gl', label: `${t(`finance.gl.${k}`)} (${t('sidebar.financePayroll')})`, vals, total: sum(vals), cellFmt: 's',
           ...(payload.caps.canPayroll ? { onClick: () => goTo(PAGES.payroll), linkCells: true } : {}) };
       }
+      const page = COGS_KEYS.has(k) ? PAGES.cogs : PAGES.drivers;
       return { id: `gl:${k}`, kind: 'gl', label: t(`finance.gl.${k}`), vals, total: sum(vals), cellFmt: 's',
-        onClick: () => goTo(COGS_KEYS.has(k) ? PAGES.cogs : PAGES.drivers, k), linkCells: true };
+        onClick: () => goTo(page, k), onCellClick: toPage(page, k) };
     };
+    // Ligne de synthèse de la page des drivers (haut de page) qui calcule chaque catégorie.
+    const REV_SRC: Record<RevCat, string> = { recurring: 'top:recurring', hardware: 'top:totalHW', service: 'top:totalSvc', licence: 'top:lic' };
+    const COGS_SRC: Record<RevCat, string> = { recurring: 'top:recCogs', hardware: 'top:hwCogs', service: 'top:svcCogs', licence: 'top:licCogs' };
+    const OPEX_SRC: Record<(typeof OPEX_SECTIONS)[number], string> = { 'Sales & Marketing': 'smTot', 'Research & Development': 'rdTot', 'General & Administrative': 'gaTot' };
 
     sec('revenue');
-    REV_CATS.forEach((c, i) => line(`rev:${c}`, t(`finance.master.rev.${c}`), M.rev[c], i === 0, REV_GL[c].map(glDriver)));
-    money('tRev', t('finance.master.totalRevenue'), M.tRev, 'grand', true);
+    REV_CATS.forEach((c, i) => line(`rev:${c}`, t(`finance.master.rev.${c}`), M.rev[c], i === 0, REV_GL[c].map(glDriver), toPage(PAGES.drivers, REV_SRC[c])));
+    money('tRev', t('finance.master.totalRevenue'), M.tRev, 'grand', true, toPage(PAGES.drivers, 'top:total'));
     sec('cogs');
-    REV_CATS.forEach((c, i) => line(`cogs:${c}`, t(`finance.master.cogs.${c}`), M.cogs[c], i === 0, COGS_GL[c].map(glDriver)));
-    money('tCogs', t('finance.master.totalCogs'), M.tCogs, 'sub', true);
+    REV_CATS.forEach((c, i) => line(`cogs:${c}`, t(`finance.master.cogs.${c}`), M.cogs[c], i === 0, COGS_GL[c].map(glDriver), toPage(PAGES.cogs, COGS_SRC[c])));
+    money('tCogs', t('finance.master.totalCogs'), M.tCogs, 'sub', true, toPage(PAGES.cogs, 'top:totCogs'));
     money('gp', t('finance.master.grossProfit'), M.gp, 'grand', true);
     pct('gm', t('finance.master.grossMargin'), M.gp, M.tRev);
     sec('gmByCat');
@@ -68,11 +75,11 @@ export default function MasterBudget() {
       const id = OPEX_SEC_ID[s];
       line(`opex:${id}`, t(`finance.master.opex.${id}`), M.opex[s], i === 0, ox[s].map((l) => ({
         id: `gl:opex:${l.key}`, kind: 'gl', label: t(`finance.opexLines.${l.key}`, { defaultValue: l.name }), vals: l.vals, total: sum(l.vals), cellFmt: 's',
-        onClick: () => { setOpexYear(1); goTo(PAGES.opex, l.key); }, linkCells: true,
-      } as FRow)));
+        onClick: () => { setOpexYear(1); goTo(PAGES.opex, l.key); }, onCellClick: toPage(PAGES.opex, l.key, true),
+      } as FRow)), toPage(PAGES.opex, OPEX_SRC[s], true));
       pct(`opexPct:${id}`, t('finance.master.pctOfRevenue', { line: t(`finance.master.opex.${id}`) }), M.opex[s], M.tRev);
     });
-    money('tOpex', t('finance.master.totalOpex'), M.tOpex, 'sub', true);
+    money('tOpex', t('finance.master.totalOpex'), M.tOpex, 'sub', true, toPage(PAGES.opex, 'opTot', true));
     pct('tOpexPct', t('finance.master.totalOpexPct'), M.tOpex, M.tRev);
     money('ebitda', t('finance.master.ebitda'), M.ebitda, 'grand', true);
     pct('ebitdaPct', t('finance.master.ebitdaMargin'), M.ebitda, M.tRev);

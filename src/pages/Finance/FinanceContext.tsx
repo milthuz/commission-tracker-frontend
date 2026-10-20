@@ -39,6 +39,8 @@ interface Ctx {
   // drivers
   setDriver: (key: string, month: number, value: number) => void;
   fillDriver: (key: string) => void;
+  /** Remplace d'un coup les 12 mois d'un driver (suggestion ou brouillon IA acceptés). */
+  applyDriverValues: (key: string, values: number[]) => void;
   resetDrivers: () => void;
   // opex
   setOpexCell: (key: string, month: number, value: number) => void;
@@ -57,7 +59,8 @@ interface Ctx {
   unlock: () => Promise<void>;
   reload: () => Promise<void>;
   // navigation entre pages avec surlignage de la ligne source
-  goTo: (path: string, focus?: string | null) => void;
+  /** Navigue vers une page ; `focus` = ligne à surligner, `month` (0..11) = colonne à surligner. */
+  goTo: (path: string, focus?: string | null, month?: number | null) => void;
   fmt: ReturnType<typeof makeFormat>;
 }
 
@@ -189,6 +192,15 @@ export function FinanceProvider({ payload: initial, onReload, children }: { payl
       return next;
     });
   }, [canEdit, defaults, queue]);
+  // Applique d'un coup les 12 valeurs mensuelles d'un driver (suggestion ou brouillon IA acceptés).
+  const applyDriverValues = useCallback((key: string, values: number[]) => {
+    if (!canEdit || values.length !== 12 || !values.every((v) => Number.isFinite(v))) return;
+    setDrivers((d) => {
+      const next = { drv: { ...d.drv, [key]: [...values] } };
+      queue('drivers', next);
+      return next;
+    });
+  }, [canEdit, queue]);
   const resetDrivers = useCallback(() => { if (!canEdit) return; const next = { drv: {} }; setDrivers(next); queue('drivers', next); }, [canEdit, queue]);
 
   // ---------------------------------------------------------------- opex
@@ -305,14 +317,14 @@ export function FinanceProvider({ payload: initial, onReload, children }: { payl
     payroll: payrollCalc || payload.payroll,
   }, opexYear), [payload.reference, payload.payroll, drivers, opex, trips, payrollCalc, opexYear]);
 
-  const goTo = useCallback((path: string, focus?: string | null) => {
-    navigate(path, { state: { focus: focus || null, at: Date.now() } });
+  const goTo = useCallback((path: string, focus?: string | null, month?: number | null) => {
+    navigate(path, { state: { focus: focus || null, month: month ?? null, at: Date.now() } });
   }, [navigate]);
 
   const value: Ctx = {
     payload, drivers, opex, trips, globals, roster, opexYear, setOpexYear, result, payrollCalc,
     locked, canEdit, canEditPayroll, saveStatus, saveError, notice,
-    setDriver, fillDriver, resetDrivers, setOpexCell, fillOpex, setOpexGrowth, resetOpex, setTrips,
+    setDriver, fillDriver, applyDriverValues, resetDrivers, setOpexCell, fillOpex, setOpexGrowth, resetOpex, setTrips,
     setGlobals, patchPerson, addPerson, removePerson, resetPayroll, approve, unlock, reload, goTo, fmt,
   };
   return <FinanceCtx.Provider value={value}>{children}</FinanceCtx.Provider>;
@@ -321,8 +333,9 @@ export function FinanceProvider({ payload: initial, onReload, children }: { payl
 // Ligne à surligner et faire défiler, transmise par un lien d'une autre page (goTo).
 export function useFocusRow() {
   const location = useLocation();
-  const st = (location.state || {}) as { focus?: string | null; at?: number };
+  const st = (location.state || {}) as { focus?: string | null; month?: number | null; at?: number };
   const focus = st.focus || null;
+  const month = typeof st.month === 'number' ? st.month : null;
   useEffect(() => {
     if (!focus) return;
     const h = window.setTimeout(() => {
@@ -332,8 +345,16 @@ export function useFocusRow() {
       window.scrollTo({ top: y, behavior: 'smooth' });
       // La page défile dans le conteneur du gabarit, pas toujours dans la fenêtre.
       el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      // Le tableau défile aussi de côté : amener la colonne du mois cliqué dans la vue.
+      if (month != null) el.querySelector(`[data-month="${month}"]`)?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     }, 60);
     return () => window.clearTimeout(h);
-  }, [focus, st.at]);
+  }, [focus, month, st.at]);
   return focus;
+}
+
+/** Mois (0..11) à surligner dans la ligne ciblée, transmis par le même lien que `useFocusRow`. */
+export function useFocusMonth(): number | null {
+  const st = (useLocation().state || {}) as { month?: number | null };
+  return typeof st.month === 'number' ? st.month : null;
 }

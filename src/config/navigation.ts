@@ -127,6 +127,8 @@ export const NAV: NavSection[] = [
     id: 'finance',
     label: 'sidebar.sections.finance',
     items: [
+      { id: 'financeProgress', label: 'sidebar.financeProgress', icon: 'target', to: '/finance/progress',
+        visible: (c) => any(c, 'finance:view') && any(c, 'finance:progress'), keywords: 'progression avancement budget liste de contrôle approbation responsables drivers à approuver' },
       {
         id: 'financeBudgets', label: 'sidebar.financeBudgets', icon: 'chart',
         children: [
@@ -170,6 +172,8 @@ export const NAV: NavSection[] = [
             visible: (c) => any(c, 'finance:view') && any(c, 'finance:investment'), keywords: 'investissement ressources paiements conversion' },
         ],
       },
+      { id: 'financeGuide', label: 'sidebar.financeGuide', icon: 'message', to: '/finance/guide',
+        visible: (c) => any(c, 'finance:view') && any(c, 'finance:guide'), keywords: 'guide questions gestionnaires économies règle des 40 repères saas pos prompts' },
       {
         id: 'financeManagers', label: 'sidebar.financeManagers', icon: 'wrench',
         children: [

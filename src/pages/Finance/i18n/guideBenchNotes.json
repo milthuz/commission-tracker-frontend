@@ -1,0 +1,64 @@
+{
+  "en": {
+    "finance": {
+      "guide": {
+        "bench": {
+          "shippedNote": {
+            "rule_of_40_aleph2026_median": "342 companies, 110 reporting the metric; revenue growth plus profit margin, EBITDA margin most common.",
+            "rule_of_40_aleph2026_top_quartile": "Aspirational level, shown but not used to flag areas to improve.",
+            "gross_margin_aleph2026_blended": "Blended margin including services and other revenue. A POS company selling hardware and payments is structurally lower: read as a distance to pure SaaS, not as a target.",
+            "gross_margin_aleph2026_software": "Software revenue only; our model margin covers all revenue, so this one is informational.",
+            "gross_margin_toast_fy2024": "Derived by Sales Hub from the filing: revenue 4,960 M USD less total costs of revenue 3,770 M USD, rounded. Payments revenue is reported gross, so it is not comparable with a net-revenue presentation.",
+            "arr_per_location_toast_fy2024": "Derived by Sales Hub: ARR 1,626 M USD divided by about 134,000 locations. Toast ARR includes a payments component; our figure is in CAD.",
+            "nrr_aleph2026_median": "230 companies reporting. The model has no net retention figure (no expansion data): shown for reference.",
+            "grr_aleph2026_median": "226 companies reporting; down from 88 in 2024. Our annual logo churn is the closest model figure (1 minus churn).",
+            "cac_payback_months_aleph2026_median": "198 companies reporting. S&M expense divided by (new ARR times gross margin), times 12.",
+            "ltv_cac_aleph2026_median": "146 companies reporting. CLTV = annual revenue per customer times gross margin divided by annual churn; CAC = total S&M divided by new customers.",
+            "rd_pct_aleph2026_median": "192 companies reporting; quartiles 10 % to 40 %. Spending above a benchmark is a question to ask, not necessarily a problem.",
+            "sm_pct_aleph2026_median": "Quoted on the R&D page of the report; the page does not label it explicitly as a median.",
+            "ga_pct_aleph2026": "Quoted on the R&D page of the report; the page does not label it explicitly as a median.",
+            "rd_pct_saascap2026_median": "Percent of ARR, not of revenue; over 1,000 respondents. Informational.",
+            "sm_pct_saascap2026": "Sum of two separate medians (sales 15 %, marketing 8 %); medians do not strictly add. Percent of ARR. Informational.",
+            "ga_pct_saascap2026_median": "Percent of ARR, not of revenue. Informational.",
+            "revenue_growth_to_validate": "No citable source found. To be validated by the CFO.",
+            "ebitda_margin_to_validate": "No citable source found. To be validated by the CFO.",
+            "recurring_share_to_validate": "No citable source found. To be validated by the CFO.",
+            "churn_annual_to_validate": "No citable source found for restaurant POS. To be validated by the CFO.",
+            "arpu_monthly_to_validate": "No citable source found. To be validated by the CFO."
+          }
+        }
+      }
+    }
+  },
+  "fr": {
+    "finance": {
+      "guide": {
+        "bench": {
+          "shippedNote": {
+            "rule_of_40_aleph2026_median": "342 entreprises, dont 110 déclarent cet indicateur ; croissance des revenus plus marge de profit, la marge du BAIIA étant la plus courante.",
+            "rule_of_40_aleph2026_top_quartile": "Niveau visé : affiché, mais non utilisé pour signaler des zones à améliorer.",
+            "gross_margin_aleph2026_blended": "Marge globale incluant les services et les autres revenus. Une entreprise de caisses qui vend du matériel et des paiements est structurellement plus basse : à lire comme un écart avec le SaaS pur, pas comme une cible.",
+            "gross_margin_aleph2026_software": "Marge sur les revenus de logiciel seulement ; la marge de notre modèle couvre tous les revenus : repère donné à titre informatif.",
+            "gross_margin_toast_fy2024": "Calculé par Sales Hub à partir du dépôt : revenus de 4 960 M USD moins coûts des revenus de 3 770 M USD, arrondi. Les revenus de paiement sont déclarés bruts : non comparables à une présentation en revenus nets.",
+            "arr_per_location_toast_fy2024": "Calculé par Sales Hub : ARR de 1 626 M USD divisé par environ 134 000 emplacements. L'ARR de Toast inclut une composante de paiements ; notre chiffre est en CAD.",
+            "nrr_aleph2026_median": "230 entreprises déclarantes. Le modèle n'a pas de rétention nette (pas de données d'expansion) : repère donné pour référence.",
+            "grr_aleph2026_median": "226 entreprises déclarantes ; en baisse par rapport à 88 en 2024. Notre attrition annuelle des clients est le chiffre du modèle le plus proche (1 moins l'attrition).",
+            "cac_payback_months_aleph2026_median": "198 entreprises déclarantes. Dépenses de ventes et marketing divisées par (nouvel ARR multiplié par la marge brute), fois 12.",
+            "ltv_cac_aleph2026_median": "146 entreprises déclarantes. Valeur à vie = revenu annuel par client × marge brute ÷ attrition annuelle ; coût d'acquisition = total des ventes et marketing ÷ nouveaux clients.",
+            "rd_pct_aleph2026_median": "192 entreprises déclarantes ; quartiles de 10 % à 40 %. Une dépense supérieure à un repère est une question à poser, pas forcément un problème.",
+            "sm_pct_aleph2026_median": "Cité sur la page R&D du rapport ; la page ne l'étiquette pas explicitement comme une médiane.",
+            "ga_pct_aleph2026": "Cité sur la page R&D du rapport ; la page ne l'étiquette pas explicitement comme une médiane.",
+            "rd_pct_saascap2026_median": "En % de l'ARR, et non des revenus ; plus de 1 000 répondants. À titre informatif.",
+            "sm_pct_saascap2026": "Somme de deux médianes distinctes (ventes 15 %, marketing 8 %) ; des médianes ne s'additionnent pas strictement. En % de l'ARR. À titre informatif.",
+            "ga_pct_saascap2026_median": "En % de l'ARR, et non des revenus. À titre informatif.",
+            "revenue_growth_to_validate": "Aucune source citable trouvée. À valider par la CFO.",
+            "ebitda_margin_to_validate": "Aucune source citable trouvée. À valider par la CFO.",
+            "recurring_share_to_validate": "Aucune source citable trouvée. À valider par la CFO.",
+            "churn_annual_to_validate": "Aucune source citable trouvée pour la caisse de restaurant. À valider par la CFO.",
+            "arpu_monthly_to_validate": "Aucune source citable trouvée. À valider par la CFO."
+          }
+        }
+      }
+    }
+  }
+}

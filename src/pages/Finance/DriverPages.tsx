@@ -2,13 +2,16 @@
 // sommaire qui alimente le Budget maître (chaque ligne mène à son calcul) ; en bas, les drivers,
 // cellules jaunes modifiables et formules verrouillées.
 import { useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, dialog } from '../../components/ui';
 import PageTitle from '../../components/PageTitle';
 import { Card, EditLegend, FinanceHeader, FinTable, type FRow } from './components';
-import { useFinance, useFocusRow } from './FinanceContext';
+import { useFinance, useFocusMonth, useFocusRow } from './FinanceContext';
 import { downloadCsv } from './format';
 import { sum, type FinanceResult, type Reference } from './model';
+import { SuggestionChip, SuggestionsToolbar } from './Suggestions';
+import { ApprovePageButton, DriverStatusCell } from './Progress';
 import { COGS_BOT, COGS_TOP, DRV_BOT, DRV_TOP, JUMP, isSec, type RowDef, type RowSpec } from './rows';
 
 export const PAGES = {
@@ -22,19 +25,21 @@ export const PAGES = {
 function useRows(spec: RowSpec[], top: boolean): FRow[] {
   const { t } = useTranslation();
   const { result, payload, setDriver, fillDriver, goTo } = useFinance();
+  // L'adresse du ROUTEUR (pas window.location : elle diffère quand l'appli n'est pas montée à la racine).
+  const here = useLocation().pathname;
   const ref = payload.reference;
   return useMemo(() => spec.map((r, idx) => {
     if (isSec(r)) return { id: `sec:${r.sec}:${idx}`, kind: 'sec', label: t(`finance.sections.${r.sec}`) } as FRow;
     return buildRow(r, idx, top, result, ref, t, {
       setDriver, fillDriver,
-      jump: (k) => goTo(window.location.pathname, k),
+      jump: (k, m) => goTo(here, k, m),
       toPayroll: payload.caps.canPayroll ? () => goTo(PAGES.payroll) : undefined,
     });
-  }), [spec, top, result, ref, t, setDriver, fillDriver, goTo, payload.caps.canPayroll]);
+  }), [spec, top, result, ref, t, setDriver, fillDriver, goTo, here, payload.caps.canPayroll]);
 }
 
 function buildRow(r: RowDef, idx: number, top: boolean, R: FinanceResult, ref: Reference, t: (k: string, o?: any) => string,
-  h: { setDriver: (k: string, i: number, v: number) => void; fillDriver: (k: string) => void; jump: (k: string) => void; toPayroll?: () => void }): FRow {
+  h: { setDriver: (k: string, i: number, v: number) => void; fillDriver: (k: string) => void; jump: (k: string, month?: number | null) => void; toPayroll?: () => void }): FRow {
   const vals = r.inp ? R.I[r.key] : (R.Rm[r.key] || R.I[r.key]);
   const noTotal = r.fmt === '%' || r.fmt === '$2';
   const total = r.fy27 === 'first' ? vals[0]
@@ -51,10 +56,23 @@ function buildRow(r: RowDef, idx: number, top: boolean, R: FinanceResult, ref: R
     row.label = label;
     if (h.toPayroll) { row.onClick = h.toPayroll; row.linkCells = true; }
   }
-  if (top) row.onClick = row.onClick || (() => h.jump(JUMP[r.key] || r.key));
-  else row.focus = r.key;
+  if (top) {
+    // Haut de page : le libellé ET chaque chiffre mènent à la ligne qui le calcule, dans le mois cliqué.
+    const target = JUMP[r.key] || r.key;
+    row.onClick = row.onClick || (() => h.jump(target));
+    row.onCellClick = (m) => h.jump(target, m);
+    // Cible des liens du Budget maître vers cette ligne de synthèse.
+    row.focus = `top:${r.key}`;
+  } else row.focus = r.key;
   if (r.inp && !r.payroll) {
     row.edit = { values: vals, onChange: (i, v) => h.setDriver(r.key, i, v), onFill: () => h.fillDriver(r.key), decimals: r.fmt === '%' ? 3 : 2 };
+    // Suggestion selon l'historique (appliquer ou garder la mienne) et état d'approbation du driver.
+    row.extra = (
+      <span className="ml-auto inline-flex shrink-0 items-center gap-1">
+        <SuggestionChip driverKey={r.key} />
+        <DriverStatusCell driverKey={`drv:${r.key}`} />
+      </span>
+    );
   }
   return row;
 }
@@ -71,6 +89,7 @@ function DriverPage({ kind }: { kind: 'drivers' | 'cogs' }) {
   const { t } = useTranslation();
   const { drivers, resetDrivers, canEdit, fmt, goTo } = useFinance();
   const focus = useFocusRow();
+  const focusMonth = useFocusMonth();
   const topRows = useRows(kind === 'drivers' ? DRV_TOP : COGS_TOP, true);
   const botRows = useRows(kind === 'drivers' ? DRV_BOT : COGS_BOT, false);
   const months = fmt.months(27);
@@ -83,7 +102,7 @@ function DriverPage({ kind }: { kind: 'drivers' | 'cogs' }) {
     resetDrivers();
   };
   const table = (rows: FRow[]) => (
-    <FinTable rows={rows} months={months} showFy26 showVs labelHead="CAD" totalLabel={heads.fy27} fy26Label={heads.fy26} vsLabel={heads.vs} editable={canEdit} focus={focus} />
+    <FinTable rows={rows} months={months} showFy26 showVs labelHead="CAD" totalLabel={heads.fy27} fy26Label={heads.fy26} vsLabel={heads.vs} editable={canEdit} focus={focus} focusMonth={focusMonth} />
   );
   return (
     <>
@@ -95,6 +114,8 @@ function DriverPage({ kind }: { kind: 'drivers' | 'cogs' }) {
           <>
             <Button size="sm" onClick={() => goTo(PAGES.master)}>{t('finance.backMaster')}</Button>
             <Button size="sm" onClick={() => exportRows(`${kind === 'drivers' ? 'revenue-drivers' : 'cogs-drivers'}-FY2027.csv`, [...topRows, ...botRows], months, heads, fmt.fr)}>{t('finance.export')}</Button>
+            <SuggestionsToolbar />
+            <ApprovePageButton group={kind === 'drivers' ? 'revenue' : 'cogs'} />
             {canEdit && <Button size="sm" variant="ghost" disabled={!count} onClick={onReset}>{t('finance.drivers.reset', { n: count })}</Button>}
           </>
         }

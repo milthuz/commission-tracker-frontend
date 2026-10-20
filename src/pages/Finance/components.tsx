@@ -6,11 +6,17 @@ import { useTranslation } from 'react-i18next';
 import { Button, PageHeader, StatusPill, dialog, toast } from '../../components/ui';
 import { CARD, CARD_HEAD, CARD_SUB, CARD_TITLE, TABLE_WRAP } from '../../components/ui/surface';
 import { useFinance } from './FinanceContext';
+// Fichiers du lot Progress importés directement (pas son index) : l'index charge ProgressPage, qui
+// importe ce fichier-ci — un cycle d'imports à éviter.
+import BudgetProgress from './Progress/BudgetProgress';
+import { progressApi } from './Progress/api';
 import type { Fmt } from './format';
 
 // Cellules modifiables (jaune-orangé du design) et ligne surlignée par un lien d'une autre page.
 export const EDIT_CELL = 'border-[#F58345] bg-[#FDE6DA] text-[#9A3F12] dark:border-[#D16630] dark:bg-[#2A2015] dark:text-[#FFBE9B]';
 const HL_ROW = 'bg-[rgba(253,176,34,0.16)] dark:bg-[rgba(253,176,34,0.12)]';
+// Le mois du chiffre cliqué, dans la ligne source : plus marqué que le reste de la ligne.
+const HL_CELL = 'outline outline-2 -outline-offset-2 outline-[#FDB022] bg-[rgba(253,176,34,0.30)] dark:bg-[rgba(253,176,34,0.26)]';
 
 // ---------------------------------------------------------------------------- en-tête
 export function FinanceHeader({ title, subtitle, actions }: { title: React.ReactNode; subtitle?: React.ReactNode; actions?: React.ReactNode }) {
@@ -18,7 +24,13 @@ export function FinanceHeader({ title, subtitle, actions }: { title: React.React
   const { payload, locked, saveStatus, saveError, notice, approve, unlock, fmt } = useFinance();
   const b = payload.budget;
   const onApprove = async () => {
-    const yes = await dialog.confirm(t('finance.approve.confirm', { fy: b.fiscalYear }), { details: [t('finance.approve.confirmDetail')] });
+    // Avant de verrouiller : dire combien de drivers ne sont pas approuvés (avertissement, pas un blocage).
+    let pendingNote: string[] = [];
+    try {
+      const p = await progressApi.progress();
+      if (!p.empty && !p.ready) pendingNote = [t('finance.approve.notReady', { pct: Math.round(p.percent) })];
+    } catch { /* pas de droit de voir l'avancement ou serveur indisponible : on approuve comme avant */ }
+    const yes = await dialog.confirm(t('finance.approve.confirm', { fy: b.fiscalYear }), { details: [t('finance.approve.confirmDetail'), ...pendingNote] });
     if (!yes) return;
     await approve();
     toast.success(t('finance.approve.done'));
@@ -47,6 +59,8 @@ export function FinanceHeader({ title, subtitle, actions }: { title: React.React
       />
       {/* Commandes de la page : barre en carte pleine largeur sous le titre (convention des barres d'outils). */}
       {actions && <div className={`${CARD} mb-4 flex flex-wrap items-center gap-2 px-3 py-2.5`}>{actions}</div>}
+      {/* Avancement du budget : drivers approuvés, ce qu'il reste à alimenter (rien sans finance:progress). */}
+      <BudgetProgress />
       {locked && (
         <div role="status" className="mb-4 rounded-xl border border-[rgba(23,178,106,0.35)] bg-[rgba(23,178,106,0.08)] px-4 py-3 text-[13px] text-[#067647] dark:text-[#57D193]">
           {t('finance.locked', { who: b.approvedBy || '—', when: b.approvedAt ? new Date(b.approvedAt).toLocaleDateString(fmt.loc, { day: 'numeric', month: 'long', year: 'numeric' }) : '—' })}
@@ -135,6 +149,8 @@ export interface FRow {
   edit?: { values: number[]; onChange: (i: number, v: number) => void; onFill?: () => void; decimals?: number };
   onClick?: () => void;
   linkCells?: boolean;
+  /** Cliquer un NOMBRE mène à sa source ; reçoit le mois (0..11) ou null pour la colonne Total. */
+  onCellClick?: (month: number | null) => void;
   expand?: { open: boolean; toggle: () => void };
   extra?: React.ReactNode;
   focus?: string;
@@ -151,7 +167,7 @@ const ROW_CLS: Record<RowKind, string> = {
   gl: 'text-[#424242] dark:text-bodydark [&>td]:bg-[#FAFAFA] dark:[&>td]:bg-[#121214]',
 };
 
-export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label, vsLabel, labelHead, editable, focus }: {
+export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label, vsLabel, labelHead, editable, focus, focusMonth }: {
   rows: FRow[];
   months: string[];
   showFy26?: boolean;
@@ -162,6 +178,8 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
   labelHead: string;
   editable: boolean;
   focus?: string | null;
+  /** Mois à surligner dans la ligne ciblée (lien venu d'un chiffre d'une autre page). */
+  focusMonth?: number | null;
 }) {
   const { t } = useTranslation();
   const { fmt } = useFinance();
@@ -169,8 +187,8 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
   // feuille de style, pas par l'ordre écrit.
   const thBase = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2';
   const tdBase = 'border-b border-stroke/60 px-2.5 py-1.5 tabular-nums dark:border-strokedark/60';
-  const th = ` text-right`;
-  const td = ` whitespace-nowrap text-right`;
+  const th = `${thBase} text-right`;
+  const td = `${tdBase} whitespace-nowrap text-right`;
   const totalCls = 'bg-[#F3F3F3] dark:bg-[#19191B] border-l border-l-stroke dark:border-l-strokedark';
   return (
     <div className={TABLE_WRAP}>
@@ -213,21 +231,30 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
               <tr key={r.id} data-focus={r.focus} className={`${ROW_CLS[r.kind]} ${hl ? HL_ROW : ''}`}>
                 <td className={`${tdBase} sticky left-0 z-[1] min-w-[300px] max-w-[380px] text-left ${hl ? 'bg-[#FFF4DB] dark:bg-[#2A2410]' : 'bg-white dark:bg-boxdark'} ${r.kind === 'sub' ? '!bg-[#F5F5F5] dark:!bg-[#161718]' : ''} ${r.kind === 'gl' ? '!bg-[#FAFAFA] dark:!bg-[#121214]' : ''}`}>{label}</td>
                 {showFy26 && <td className={`${td} ${totalCls}`}>{r.fy26 == null ? '' : fmt.fmt(r.fy26, f)}</td>}
-                {months.map((_, i) => (
-                  <td key={i} className={td}>
-                    {r.edit
-                      ? <NumCell value={r.edit.values[i]} decimals={r.edit.decimals} disabled={!editable} label={`${typeof r.label === 'string' ? r.label : r.id} — ${months[i]}`} onChange={(v) => r.edit!.onChange(i, v)} />
-                      : r.linkCells && r.onClick
-                        ? <button type="button" onClick={r.onClick} className="tabular-nums underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark">{cellText(r.vals?.[i])}</button>
-                        : cellText(r.vals?.[i])}
-                  </td>
-                ))}
+                {months.map((_, i) => {
+                  const hlCell = hl && focusMonth === i;
+                  const linkCls = 'tabular-nums underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark';
+                  const txt = cellText(r.vals?.[i]);
+                  return (
+                    <td key={i} className={`${td} ${hlCell ? HL_CELL : ''}`} data-month={i}>
+                      {r.edit
+                        ? <NumCell value={r.edit.values[i]} decimals={r.edit.decimals} disabled={!editable} label={`${typeof r.label === 'string' ? r.label : r.id} — ${months[i]}`} onChange={(v) => r.edit!.onChange(i, v)} />
+                        : r.onCellClick && txt
+                          ? <button type="button" onClick={() => r.onCellClick!(i)} aria-label={`${typeof r.label === 'string' ? r.label : r.id} — ${months[i]} : ${t('finance.goToSource')}`} className={linkCls}>{txt}</button>
+                          : r.linkCells && r.onClick
+                            ? <button type="button" onClick={r.onClick} className={linkCls}>{txt}</button>
+                            : txt}
+                    </td>
+                  );
+                })}
                 <td className={`${td} ${totalCls} font-bold`}>
                   <span className="inline-flex items-center gap-1.5">
                     {r.edit?.onFill && editable && (
                       <button type="button" onClick={r.edit.onFill} title={t('finance.fillRight')} aria-label={t('finance.fillRight')} className="rounded px-1 text-[13px] text-accent-ink hover:bg-[#FDE6DA] dark:text-accent-ink-dark dark:hover:bg-[#2A2015]">⇥</button>
                     )}
-                    {r.total == null ? '' : fmt.fmt(r.total, f)}
+                    {r.total == null ? '' : r.onCellClick && !r.edit
+                      ? <button type="button" onClick={() => r.onCellClick!(null)} aria-label={`${typeof r.label === 'string' ? r.label : r.id} — ${totalLabel} : ${t('finance.goToSource')}`} className="tabular-nums underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark">{fmt.fmt(r.total, f)}</button>
+                      : fmt.fmt(r.total, f)}
                   </span>
                 </td>
                 {showVs && (
