@@ -122,21 +122,65 @@ export const NAV: NavSection[] = [
     ],
   },
   {
-    // Module Finance (CFO), phase 1 : le budget consolidé FY2027 et ses pages de calcul. Les chiffres
-    // et les salaires viennent de l'API ; la paie nominative a sa propre permission.
+    // Module Finance (CFO) : budgets, prévisions, investissement, gestionnaires, KPI. Les chiffres et
+    // les salaires viennent de l'API ; chaque écran a sa permission (en plus de finance:view).
     id: 'finance',
     label: 'sidebar.sections.finance',
     items: [
-      { id: 'financeMaster', label: 'sidebar.financeMaster', icon: 'chart', to: '/finance', active: (p) => p === '/finance',
-        visible: (c) => any(c, 'finance:view'), keywords: 'budget maître p&l bénéfice ebitda baiia cfo' },
-      { id: 'financeRevenue', label: 'sidebar.financeRevenue', icon: 'trend', to: '/finance/revenue-drivers',
-        visible: (c) => any(c, 'finance:view'), keywords: 'drivers revenus rooftops arpu mrr adyen' },
-      { id: 'financeCogs', label: 'sidebar.financeCogs', icon: 'card', to: '/finance/cogs-drivers',
-        visible: (c) => any(c, 'finance:view'), keywords: 'coût des ventes cogs marge' },
-      { id: 'financePayroll', label: 'sidebar.financePayroll', icon: 'users', to: '/finance/payroll',
-        visible: (c) => any(c, 'finance:view') && any(c, 'finance:payroll'), keywords: 'salaires paie contractuels effectif payroll' },
-      { id: 'financeOpex', label: 'sidebar.financeOpex', icon: 'dollar', to: '/finance/opex',
-        visible: (c) => any(c, 'finance:view'), keywords: 'dépenses exploitation opex voyages' },
+      {
+        id: 'financeBudgets', label: 'sidebar.financeBudgets', icon: 'chart',
+        children: [
+          { id: 'financeMaster', label: 'sidebar.financeMaster', to: '/finance', active: (p) => p === '/finance',
+            visible: (c) => any(c, 'finance:view'), keywords: 'budget maître p&l bénéfice ebitda baiia cfo' },
+          { id: 'financeRevenue', label: 'sidebar.financeRevenue', to: '/finance/revenue-drivers',
+            visible: (c) => any(c, 'finance:view'), keywords: 'drivers revenus rooftops arpu mrr adyen' },
+          { id: 'financeCogs', label: 'sidebar.financeCogs', to: '/finance/cogs-drivers',
+            visible: (c) => any(c, 'finance:view'), keywords: 'coût des ventes cogs marge' },
+          { id: 'financePayroll', label: 'sidebar.financePayroll', to: '/finance/payroll',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:payroll'), keywords: 'salaires paie contractuels effectif payroll' },
+          { id: 'financeOpex', label: 'sidebar.financeOpex', to: '/finance/opex',
+            visible: (c) => any(c, 'finance:view'), keywords: 'dépenses exploitation opex voyages' },
+          { id: 'financeCluster', label: 'sidebar.financeCluster', to: '/finance/cluster-budget',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:entity_budgets'), keywords: 'budget cluster entité p&l' },
+          { id: 'financeXperio', label: 'sidebar.financeXperio', to: '/finance/xperio-budget',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:entity_budgets'), keywords: 'budget xperio entité p&l' },
+          { id: 'financeDept', label: 'sidebar.financeDept', to: '/finance/departmental-budgets',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:dept_budgets'), keywords: 'budgets départementaux ventes r&d livraison comptabilité' },
+        ],
+      },
+      { id: 'financeKpi', label: 'sidebar.financeKpi', icon: 'target', to: '/finance/kpi',
+        visible: (c) => any(c, 'finance:view') && any(c, 'finance:kpi'), keywords: 'kpi mrr arpu rooftops churn budget réel bva mensuel investisseurs' },
+      {
+        id: 'financeForecasts', label: 'sidebar.financeForecasts', icon: 'trend',
+        children: [
+          { id: 'financeSalesForecast', label: 'sidebar.financeSalesForecast', to: '/finance/sales-forecast',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:forecasts'), keywords: 'prévision ventes bva mrr marchands installations' },
+          { id: 'financePaymentsForecast', label: 'sidebar.financePaymentsForecast', to: '/finance/payments-forecast',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:forecasts'), keywords: 'prévision paiements résiduels marchands' },
+          { id: 'financeCash', label: 'sidebar.financeCash', to: '/finance/holdco-cash',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:cash'), keywords: 'trésorerie holdco 13 semaines cash liquidités' },
+        ],
+      },
+      {
+        id: 'financeInvestment', label: 'sidebar.financeInvestment', icon: 'route',
+        children: [
+          { id: 'financeInvestV2', label: 'sidebar.financeInvestV2', to: '/finance/investment/v2',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:investment'), keywords: 'investissement ressources v2 initiatives' },
+          { id: 'financeInvestPayments', label: 'sidebar.financeInvestPayments', to: '/finance/investment/payments',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:investment'), keywords: 'investissement ressources paiements conversion' },
+        ],
+      },
+      {
+        id: 'financeManagers', label: 'sidebar.financeManagers', icon: 'wrench',
+        children: [
+          { id: 'financeDeferred', label: 'sidebar.financeDeferred', to: '/finance/deferred-revenue',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:deferred'), keywords: 'revenus reportés écriture journal contrats' },
+          { id: 'financeAmort', label: 'sidebar.financeAmort', to: '/finance/terminal-amortization',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:amortization'), keywords: 'amortissement terminaux lots valeur comptable nette' },
+          { id: 'financeBooksAccounts', label: 'sidebar.financeBooksAccounts', to: '/finance/books-accounts',
+            visible: (c) => any(c, 'finance:view') && any(c, 'finance:post_je'), keywords: 'zoho books comptes écritures journal correspondance' },
+        ],
+      },
     ],
   },
   {

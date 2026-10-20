@@ -1,5 +1,7 @@
-// Module Finance (CFO) — point d'entrée de /finance/* : charge le budget UNE fois pour les cinq
-// pages, puis les sous-routes. Phase 1 : budget consolidé FY2027.
+// Module Finance (CFO) — point d'entrée de /finance/* : charge le budget consolidé UNE fois pour les
+// pages de la phase 1, puis les sous-routes. Les écrans des phases suivantes (budgets d'entité,
+// KPI, prévisions, gestionnaires) chargent chacun leurs propres données via leur API ; le serveur
+// décide de ce que l'usager peut voir et modifier.
 import { useCallback, useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +13,10 @@ import MasterBudget from './MasterBudget';
 import { CogsDrivers, RevenueDrivers } from './DriverPages';
 import Payroll from './Payroll';
 import Opex from './Opex';
+import { ClusterBudget, XperioBudget, DepartmentalBudgets } from './EntityBudgets';
+import KpiPage from './Kpi';
+import { FORECAST_ROUTES } from './Forecasts';
+import { DeferredRevenue, TerminalAmortization, BooksAccounts } from './Managers';
 
 export default function Finance() {
   const { t } = useTranslation();
@@ -45,6 +51,14 @@ export default function Finance() {
           <Route path="cogs-drivers" element={<CogsDrivers />} />
           <Route path="payroll" element={<PayrollGate />} />
           <Route path="opex" element={<Opex />} />
+          <Route path="cluster-budget" element={<ClusterBudget />} />
+          <Route path="xperio-budget" element={<XperioBudget />} />
+          <Route path="departmental-budgets" element={<DepartmentalBudgets />} />
+          <Route path="kpi" element={<KpiPage />} />
+          {FORECAST_ROUTES.map((r) => <Route key={r.path} path={r.path} element={r.element} />)}
+          <Route path="deferred-revenue" element={<DeferredRevenue />} />
+          <Route path="terminal-amortization" element={<TerminalAmortization />} />
+          <Route path="books-accounts" element={<BooksAccounts />} />
           <Route path="*" element={<MasterBudget />} />
         </Routes>
       </div>

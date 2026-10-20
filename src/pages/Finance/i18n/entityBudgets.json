@@ -1,0 +1,468 @@
+{
+  "en": {
+    "finance": {
+      "entityBudgets": {
+        "nav": {
+          "cluster": "Cluster Budget",
+          "xperio": "Xperio Budget",
+          "dept": "Departmental Budgets"
+        },
+        "loading": "Loading the budget…",
+        "retry": "Retry",
+        "errors": {
+          "forbidden": "You don't have access to this budget.",
+          "demo": "Budgets are not available in demo mode (real company figures).",
+          "load": "The budget could not be loaded.",
+          "generic": "Something went wrong ({{code}})."
+        },
+        "empty": {
+          "title": "No budget imported yet",
+          "body": "The CFO's workbook has not been imported for this budget yet.",
+          "bodyImport": "Import the workbook (Cluster_Budget_Sep2026_Dec2027.xlsx layout) to create this budget. Download the template to see the expected sheets.",
+          "deptBodyImport": "Import the workbook with the four \"Dept - …\" sheets and the \"FY2026 Summary\" sheet to create the departmental budgets."
+        },
+        "entity": {
+          "title": "{{ent}} | Standalone Budget P&L",
+          "subtitle": "CAD · Jan–Aug 2026 actuals for reference · budget Sep 2026 → Dec 2027",
+          "tableTitle": "{{ent}} Budget P&L",
+          "tableHint": "Click a line to see its GL drivers · yellow cells are editable assumptions"
+        },
+        "status": { "approved": "Approved", "draft": "Draft" },
+        "approve": {
+          "approve": "Approve",
+          "unlock": "Unlock",
+          "confirm": "Approve the {{ent}} budget?",
+          "detail": "Once approved, the budget is locked: no driver change or import until it is unlocked.",
+          "unlockConfirm": "Unlock the {{ent}} budget? It becomes editable again.",
+          "done": "{{ent}} budget approved and locked",
+          "unlocked": "{{ent}} budget unlocked"
+        },
+        "locked": "The {{ent}} budget is approved and locked (by {{who}}, {{when}}). Unlock it to change drivers or import a new workbook.",
+        "notice": {
+          "lockedMeanwhile": "This budget was approved in the meantime: it is now locked. The page has been reloaded.",
+          "conflict": "Someone else saved changes to these drivers in the meantime. The page has been reloaded with their version."
+        },
+        "save": {
+          "pending": "Unsaved changes…",
+          "saving": "Saving…",
+          "saved": "Saved",
+          "error": "Not saved ({{code}})"
+        },
+        "cols": {
+          "label": "Columns",
+          "summary": "Summary",
+          "months": "18 months",
+          "janAug": "Jan–Aug 2026 Actual",
+          "aug": "Aug 2026 Actual",
+          "sd": "Sep–Dec 2026",
+          "fy": "FY2027",
+          "m16": "16-Month Budget"
+        },
+        "sec": {
+          "revenue": "Revenue",
+          "cogs": "Cost of Goods Sold",
+          "opex": "Operating expenses"
+        },
+        "pl": {
+          "recurringRevenue": "Recurring Revenue",
+          "hardwareRevenue": "Hardware Revenue",
+          "serviceRevenue": "Service Revenue",
+          "licenceRevenue": "Licence & Other Revenue",
+          "totalRevenue": "Total Revenue",
+          "recurringCogs": "Recurring COGS",
+          "hardwareCogs": "Hardware COGS",
+          "serviceCogs": "Service COGS",
+          "licenceCogs": "Licence COGS",
+          "totalCogs": "Total COGS",
+          "grossProfit": "GROSS PROFIT",
+          "grossMargin": "Gross Margin",
+          "salesMarketing": "Sales & Marketing",
+          "researchDevelopment": "Research & Development",
+          "generalAdmin": "General & Administrative",
+          "totalOpex": "Total OPEX",
+          "ebitda": "EBITDA",
+          "nonOpIncome": "Non-operating Income",
+          "nonOpExpense": "Non-operating Expense",
+          "netIncome": "NET INCOME / (LOSS)"
+        },
+        "types": {
+          "runRate": "Run-rate",
+          "monthlyGrowth": "Monthly growth",
+          "payrollAllocation": "Payroll allocation",
+          "contractorSchedule": "Contractor schedule",
+          "revenueLinked": "Revenue-linked",
+          "oneTime": "One-time / zero",
+          "manualEvent": "Manual / event"
+        },
+        "tiles": {
+          "revenue": "Total Revenue",
+          "grossProfit": "Gross Profit",
+          "ebitda": "EBITDA",
+          "netIncome": "Net Income / (Loss)",
+          "detail": "Sep–Dec 2026 {{sd}} · FY2027 {{fy}}"
+        },
+        "glDrivers_one": "{{count}} GL driver",
+        "glDrivers_other": "{{count}} GL drivers",
+        "hint": {
+          "input": "input",
+          "perMonth": "/mo",
+          "esc": "Jan-27 esc. {{pct}}%"
+        },
+        "inputLabel": "{{gl}} — driver input (%)",
+        "schedule": {
+          "pill": "Excel schedule",
+          "hint": "This driver carries a schedule from the workbook that the formula does not model (the subscription price increase from October 2026). Your input changes the organic growth only; the schedule stays on top.",
+          "legend": "\"Excel schedule\": the workbook adds a schedule to this driver (subscription price increase). An input changes the organic growth and is applied on top of the schedule; the default input gives back the workbook figures."
+        },
+        "legend": {
+          "editable": "Yellow cells are editable assumptions (% uplift for run-rate drivers, % per month for growth drivers). Clear a cell to return to the workbook value."
+        },
+        "gaps": "Lines whose GL drivers do not add up exactly to the workbook line (the line is the official figure; the gap is left as is): {{list}}",
+        "source": {
+          "handoff": "Source: CFO workbook data from the design handoff ({{file}}), imported {{when}} by {{who}}.",
+          "xlsx": "Source: workbook {{file}}, imported {{when}} by {{who}}."
+        },
+        "expandAll": "Expand all",
+        "collapseAll": "Collapse all",
+        "export": "Export (CSV)",
+        "reset": {
+          "button": "Reset drivers",
+          "confirm": "Reset all driver changes on the {{ent}} budget?",
+          "detail": "Every driver goes back to the workbook value. This is logged."
+        },
+        "import": {
+          "button": "Import (Excel)",
+          "template": "Download template",
+          "templateFailed": "The template could not be downloaded.",
+          "title": "Import the {{ent}} budget",
+          "intro": "Choose the budget workbook (Cluster_Budget_Sep2026_Dec2027.xlsx layout: \"{{ent}} P&L\" and \"Drivers →\" sheets). Nothing is saved until you confirm the preview.",
+          "file": "Workbook",
+          "reading": "Reading and checking the workbook…",
+          "cancel": "Cancel",
+          "confirm": "Confirm import",
+          "willReplace": "The {{ent}} budget will be replaced by {{file}}.",
+          "willCreate": "The {{ent}} budget will be created from {{file}}.",
+          "metric": "FY2027",
+          "fyBefore": "Before",
+          "fyAfter": "After",
+          "delta": "Change",
+          "metrics": {
+            "revenue": "Total Revenue",
+            "cogs": "Total COGS",
+            "grossProfit": "Gross Profit",
+            "opex": "Total OPEX",
+            "ebitda": "EBITDA",
+            "netIncome": "Net Income / (Loss)"
+          },
+          "lineChanged": "P&L line changed (FY2027)",
+          "noLineChange": "No P&L line changes.",
+          "driverCount_one": "{{count}} GL driver · {{changed}} changed · {{added}} added · {{removed}} removed",
+          "driverCount_other": "{{count}} GL drivers · {{changed}} changed · {{added}} added · {{removed}} removed",
+          "added": "Added: {{list}}",
+          "removed": "Removed: {{list}}",
+          "overridesKept_one": "{{count}} driver change is kept.",
+          "overridesKept_other": "{{count}} driver changes are kept.",
+          "overridesDropped": "Driver changes that will be dropped (driver no longer in the workbook, or no longer editable): {{list}}",
+          "checks_one": "\"Checks\" sheet: {{count}} check read, {{failing}} not passing.",
+          "checks_other": "\"Checks\" sheet: {{count}} checks read, {{failing}} not passing.",
+          "gaps": "Lines that differ from the sum of their drivers (line kept as official): {{list}}",
+          "done": "Workbook imported",
+          "doneDropped_one": "Workbook imported · {{count}} driver change dropped",
+          "doneDropped_other": "Workbook imported · {{count}} driver changes dropped",
+          "deptTitle": "Import the departmental budgets",
+          "deptIntro": "Choose the budget workbook with the \"Dept - Sales\", \"Dept - R&D\", \"Dept - Delivery Ops\", \"Dept - Accounting\" and \"FY2026 Summary\" sheets. Nothing is saved until you confirm the preview.",
+          "deptWillReplace": "The departmental budgets will be replaced by {{file}}.",
+          "deptWillCreate": "The departmental budgets will be created from {{file}}.",
+          "rowsChanged": "Rows changed",
+          "rowsChangedValue": "{{changed}} of {{rows}} · {{removed}} removed",
+          "error": {
+            "generic": "The import failed ({{code}}).",
+            "invalid_workbook": "The workbook can't be imported as is:",
+            "unreadable": "This file can't be read as a workbook.",
+            "no_file": "Choose a file.",
+            "file_too_large": "The file is too large (10 MB max).",
+            "bad_upload": "The file could not be sent.",
+            "locked": "This budget is approved and locked. Unlock it first.",
+            "token_mismatch": "The file changed since the preview. Choose it again.",
+            "conflict": "The budget was imported by someone else in the meantime. Close and start again.",
+            "network": "Network error. Try again."
+          }
+        },
+        "msg": {
+          "missing_sheet": "Sheet \"{{sheet}}\" is missing.",
+          "missing_header": "Sheet \"{{sheet}}\": header row \"{{expected}}\" not found.",
+          "missing_row": "Sheet \"{{sheet}}\": row \"{{row}}\" is missing.",
+          "bad_number": "Sheet \"{{sheet}}\", row {{line}} ({{row}}), column {{column}}: not a number.",
+          "driver_no_gl": "Sheet \"{{sheet}}\", row {{line}}: no GL account.",
+          "bad_driver_type": "Sheet \"{{sheet}}\", row {{line}} ({{gl}}): unknown driver type \"{{type}}\".",
+          "bad_driver_section": "Sheet \"{{sheet}}\", row {{line}} ({{gl}}): unknown P&L section \"{{section}}\".",
+          "unknown_category": "Sheet \"{{sheet}}\", row {{line}} ({{gl}}): category \"{{category}}\" maps to no P&L line.",
+          "bad_driver_number": "Sheet \"{{sheet}}\", row {{line}} ({{gl}}): invalid value for {{field}}.",
+          "no_drivers": "Sheet \"{{sheet}}\": no {{entity}} drivers found.",
+          "no_rows": "Sheet \"{{sheet}}\": no rows found.",
+          "tie_out": "Sheet \"{{sheet}}\", {{row}}, column {{column}}: {{actual}} in the sheet, the lines add up to {{expected}}.",
+          "total_col": "Sheet \"{{sheet}}\", {{row}}, column {{column}}: total {{actual}}, the months add up to {{expected}}.",
+          "check_failed": "\"Checks\" sheet: \"{{check}}\" is {{status}}.",
+          "leader_tie_out": "Leader view, {{leader}}, column {{column}}: {{actual}}, the department sheet says {{expected}}."
+        },
+        "dept": {
+          "title": "Departmental Budgets",
+          "subtitle": "Sales · R&D · Delivery/Support/IT/Ops · Accounting — leader-ready layout",
+          "overview": "Overview",
+          "tabs": {
+            "sales": "Sales",
+            "rd": "R&D",
+            "ops": "Delivery & Ops",
+            "acct": "Accounting"
+          },
+          "names": {
+            "sales": "Sales Department Budget",
+            "rd": "R&D Department Budget",
+            "ops": "Delivery, Support, IT, Control Plus & Operations Budget",
+            "acct": "Accounting Department Budget"
+          },
+          "leaderView": "Department / Leader View",
+          "leaderHint": "Total budget per leader (attributed revenue + expenses)",
+          "department": "Department",
+          "contribution": "Contribution",
+          "contributionNote": "The Sales figure is a net contribution (all revenue − sales & marketing spend), not a spending budget. The other three are spend.",
+          "detailHint": "Payroll GLs consolidated into one wages & salaries line per department",
+          "expenseLine": "Expense Line"
+        }
+      }
+    }
+  },
+  "fr": {
+    "finance": {
+      "entityBudgets": {
+        "nav": {
+          "cluster": "Budget Cluster",
+          "xperio": "Budget Xperio",
+          "dept": "Budgets départementaux"
+        },
+        "loading": "Chargement du budget…",
+        "retry": "Réessayer",
+        "errors": {
+          "forbidden": "Vous n'avez pas accès à ce budget.",
+          "demo": "Les budgets ne sont pas offerts en mode démo (vrais chiffres de l'entreprise).",
+          "load": "Le budget n'a pas pu être chargé.",
+          "generic": "Un problème est survenu ({{code}})."
+        },
+        "empty": {
+          "title": "Aucun budget importé",
+          "body": "Le classeur de la CFO n'a pas encore été importé pour ce budget.",
+          "bodyImport": "Importez le classeur (disposition de Cluster_Budget_Sep2026_Dec2027.xlsx) pour créer ce budget. Téléchargez le modèle pour voir les feuilles attendues.",
+          "deptBodyImport": "Importez le classeur avec les quatre feuilles « Dept - … » et la feuille « FY2026 Summary » pour créer les budgets départementaux."
+        },
+        "entity": {
+          "title": "{{ent}} | Budget P&L autonome",
+          "subtitle": "CAD · réels jan–août 2026 en référence · budget sep 2026 → déc 2027",
+          "tableTitle": "Budget P&L {{ent}}",
+          "tableHint": "Cliquer une ligne pour voir les drivers GL · cellules jaunes = hypothèses modifiables"
+        },
+        "status": { "approved": "Approuvé", "draft": "Brouillon" },
+        "approve": {
+          "approve": "Approuver",
+          "unlock": "Déverrouiller",
+          "confirm": "Approuver le budget {{ent}} ?",
+          "detail": "Une fois approuvé, le budget est verrouillé : aucun changement de driver ni import tant qu'il n'est pas déverrouillé.",
+          "unlockConfirm": "Déverrouiller le budget {{ent}} ? Il redevient modifiable.",
+          "done": "Budget {{ent}} approuvé et verrouillé",
+          "unlocked": "Budget {{ent}} déverrouillé"
+        },
+        "locked": "Le budget {{ent}} est approuvé et verrouillé (par {{who}}, le {{when}}). Le déverrouiller pour modifier les drivers ou importer un nouveau classeur.",
+        "notice": {
+          "lockedMeanwhile": "Ce budget a été approuvé entre-temps : il est maintenant verrouillé. La page a été rechargée.",
+          "conflict": "Quelqu'un d'autre a enregistré des changements à ces drivers entre-temps. La page a été rechargée avec sa version."
+        },
+        "save": {
+          "pending": "Changements non enregistrés…",
+          "saving": "Enregistrement…",
+          "saved": "Enregistré",
+          "error": "Non enregistré ({{code}})"
+        },
+        "cols": {
+          "label": "Colonnes",
+          "summary": "Sommaire",
+          "months": "18 mois",
+          "janAug": "Jan–Août 2026 réel",
+          "aug": "Août 2026 réel",
+          "sd": "Sep–Déc 2026",
+          "fy": "Exercice 2027",
+          "m16": "Budget 16 mois"
+        },
+        "sec": {
+          "revenue": "Revenus",
+          "cogs": "Coût des ventes",
+          "opex": "Dépenses d'exploitation"
+        },
+        "pl": {
+          "recurringRevenue": "Revenus récurrents",
+          "hardwareRevenue": "Revenus de matériel",
+          "serviceRevenue": "Revenus de services",
+          "licenceRevenue": "Licences et autres revenus",
+          "totalRevenue": "Total des revenus",
+          "recurringCogs": "Coût des ventes récurrent",
+          "hardwareCogs": "Coût du matériel",
+          "serviceCogs": "Coût des services",
+          "licenceCogs": "Coût des licences",
+          "totalCogs": "Total du coût des ventes",
+          "grossProfit": "MARGE BRUTE",
+          "grossMargin": "Marge brute (%)",
+          "salesMarketing": "Ventes et marketing",
+          "researchDevelopment": "Recherche et développement",
+          "generalAdmin": "Frais généraux et administratifs",
+          "totalOpex": "Total des dépenses d'exploitation",
+          "ebitda": "BAIIA",
+          "nonOpIncome": "Produits hors exploitation",
+          "nonOpExpense": "Charges hors exploitation",
+          "netIncome": "BÉNÉFICE NET / (PERTE)"
+        },
+        "types": {
+          "runRate": "Rythme courant",
+          "monthlyGrowth": "Croissance mensuelle",
+          "payrollAllocation": "Répartition de la paie",
+          "contractorSchedule": "Calendrier des contractuels",
+          "revenueLinked": "Lié aux revenus",
+          "oneTime": "Ponctuel / zéro",
+          "manualEvent": "Manuel / événement"
+        },
+        "tiles": {
+          "revenue": "Total des revenus",
+          "grossProfit": "Marge brute",
+          "ebitda": "BAIIA",
+          "netIncome": "Résultat net",
+          "detail": "Sep–Déc 2026 {{sd}} · Exercice 2027 {{fy}}"
+        },
+        "glDrivers_one": "{{count}} driver GL",
+        "glDrivers_other": "{{count}} drivers GL",
+        "hint": {
+          "input": "entrée",
+          "perMonth": "/mois",
+          "esc": "esc. jan-27 {{pct}} %"
+        },
+        "inputLabel": "{{gl}} — entrée du driver (%)",
+        "schedule": {
+          "pill": "Calendrier Excel",
+          "hint": "Ce driver porte un calendrier du classeur que la formule ne modélise pas (la hausse de prix des abonnements à partir d'octobre 2026). Votre entrée ne change que la croissance organique ; le calendrier reste par-dessus.",
+          "legend": "« Calendrier Excel » : le classeur ajoute un calendrier à ce driver (hausse de prix des abonnements). Une entrée change la croissance organique et s'applique par-dessus le calendrier ; l'entrée par défaut redonne les chiffres du classeur."
+        },
+        "legend": {
+          "editable": "Les cellules jaunes sont des hypothèses modifiables (% de hausse pour les drivers à rythme courant, % par mois pour les drivers de croissance). Vider une cellule rétablit la valeur du classeur."
+        },
+        "gaps": "Lignes dont les drivers GL ne s'additionnent pas exactement à la ligne du classeur (la ligne fait foi ; l'écart est laissé tel quel) : {{list}}",
+        "source": {
+          "handoff": "Source : données du classeur de la CFO tirées du paquet de passation ({{file}}), importées le {{when}} par {{who}}.",
+          "xlsx": "Source : classeur {{file}}, importé le {{when}} par {{who}}."
+        },
+        "expandAll": "Tout déplier",
+        "collapseAll": "Tout replier",
+        "export": "Exporter (CSV)",
+        "reset": {
+          "button": "Réinitialiser les drivers",
+          "confirm": "Réinitialiser tous les changements de drivers du budget {{ent}} ?",
+          "detail": "Chaque driver reprend la valeur du classeur. C'est consigné au journal."
+        },
+        "import": {
+          "button": "Importer (Excel)",
+          "template": "Télécharger le modèle",
+          "templateFailed": "Le modèle n'a pas pu être téléchargé.",
+          "title": "Importer le budget {{ent}}",
+          "intro": "Choisissez le classeur du budget (disposition de Cluster_Budget_Sep2026_Dec2027.xlsx : feuilles « {{ent}} P&L » et « Drivers → »). Rien n'est enregistré avant que vous confirmiez l'aperçu.",
+          "file": "Classeur",
+          "reading": "Lecture et vérification du classeur…",
+          "cancel": "Annuler",
+          "confirm": "Confirmer l'import",
+          "willReplace": "Le budget {{ent}} sera remplacé par {{file}}.",
+          "willCreate": "Le budget {{ent}} sera créé à partir de {{file}}.",
+          "metric": "Exercice 2027",
+          "fyBefore": "Avant",
+          "fyAfter": "Après",
+          "delta": "Écart",
+          "metrics": {
+            "revenue": "Total des revenus",
+            "cogs": "Total du coût des ventes",
+            "grossProfit": "Marge brute",
+            "opex": "Total des dépenses d'exploitation",
+            "ebitda": "BAIIA",
+            "netIncome": "Résultat net"
+          },
+          "lineChanged": "Ligne du P&L modifiée (exercice 2027)",
+          "noLineChange": "Aucune ligne du P&L ne change.",
+          "driverCount_one": "{{count}} driver GL · {{changed}} modifiés · {{added}} ajoutés · {{removed}} retirés",
+          "driverCount_other": "{{count}} drivers GL · {{changed}} modifiés · {{added}} ajoutés · {{removed}} retirés",
+          "added": "Ajoutés : {{list}}",
+          "removed": "Retirés : {{list}}",
+          "overridesKept_one": "{{count}} changement de driver est conservé.",
+          "overridesKept_other": "{{count}} changements de drivers sont conservés.",
+          "overridesDropped": "Changements de drivers qui seront retirés (driver absent du classeur ou plus modifiable) : {{list}}",
+          "checks_one": "Feuille « Checks » : {{count}} contrôle lu, {{failing}} en échec.",
+          "checks_other": "Feuille « Checks » : {{count}} contrôles lus, {{failing}} en échec.",
+          "gaps": "Lignes qui diffèrent de la somme de leurs drivers (la ligne fait foi) : {{list}}",
+          "done": "Classeur importé",
+          "doneDropped_one": "Classeur importé · {{count}} changement de driver retiré",
+          "doneDropped_other": "Classeur importé · {{count}} changements de drivers retirés",
+          "deptTitle": "Importer les budgets départementaux",
+          "deptIntro": "Choisissez le classeur du budget avec les feuilles « Dept - Sales », « Dept - R&D », « Dept - Delivery Ops », « Dept - Accounting » et « FY2026 Summary ». Rien n'est enregistré avant que vous confirmiez l'aperçu.",
+          "deptWillReplace": "Les budgets départementaux seront remplacés par {{file}}.",
+          "deptWillCreate": "Les budgets départementaux seront créés à partir de {{file}}.",
+          "rowsChanged": "Lignes modifiées",
+          "rowsChangedValue": "{{changed}} sur {{rows}} · {{removed}} retirées",
+          "error": {
+            "generic": "L'import a échoué ({{code}}).",
+            "invalid_workbook": "Le classeur ne peut pas être importé tel quel :",
+            "unreadable": "Ce fichier ne peut pas être lu comme un classeur.",
+            "no_file": "Choisissez un fichier.",
+            "file_too_large": "Le fichier est trop volumineux (10 Mo au plus).",
+            "bad_upload": "Le fichier n'a pas pu être envoyé.",
+            "locked": "Ce budget est approuvé et verrouillé. Le déverrouiller d'abord.",
+            "token_mismatch": "Le fichier a changé depuis l'aperçu. Choisissez-le de nouveau.",
+            "conflict": "Le budget a été importé par quelqu'un d'autre entre-temps. Fermez et recommencez.",
+            "network": "Erreur réseau. Réessayez."
+          }
+        },
+        "msg": {
+          "missing_sheet": "La feuille « {{sheet}} » est absente.",
+          "missing_header": "Feuille « {{sheet}} » : ligne d'en-tête « {{expected}} » introuvable.",
+          "missing_row": "Feuille « {{sheet}} » : la ligne « {{row}} » est absente.",
+          "bad_number": "Feuille « {{sheet}} », ligne {{line}} ({{row}}), colonne {{column}} : ce n'est pas un nombre.",
+          "driver_no_gl": "Feuille « {{sheet}} », ligne {{line}} : aucun compte GL.",
+          "bad_driver_type": "Feuille « {{sheet}} », ligne {{line}} ({{gl}}) : type de driver inconnu « {{type}} ».",
+          "bad_driver_section": "Feuille « {{sheet}} », ligne {{line}} ({{gl}}) : section du P&L inconnue « {{section}} ».",
+          "unknown_category": "Feuille « {{sheet}} », ligne {{line}} ({{gl}}) : la catégorie « {{category}} » ne correspond à aucune ligne du P&L.",
+          "bad_driver_number": "Feuille « {{sheet}} », ligne {{line}} ({{gl}}) : valeur invalide pour {{field}}.",
+          "no_drivers": "Feuille « {{sheet}} » : aucun driver {{entity}} trouvé.",
+          "no_rows": "Feuille « {{sheet}} » : aucune ligne trouvée.",
+          "tie_out": "Feuille « {{sheet}} », {{row}}, colonne {{column}} : {{actual}} dans la feuille, les lignes donnent {{expected}}.",
+          "total_col": "Feuille « {{sheet}} », {{row}}, colonne {{column}} : total {{actual}}, les mois donnent {{expected}}.",
+          "check_failed": "Feuille « Checks » : « {{check}} » est {{status}}.",
+          "leader_tie_out": "Vue leader, {{leader}}, colonne {{column}} : {{actual}}, la feuille du département indique {{expected}}."
+        },
+        "dept": {
+          "title": "Budgets départementaux",
+          "subtitle": "Ventes · R&D · Livraison/Support/TI/Opérations · Comptabilité — présentation leader",
+          "overview": "Aperçu",
+          "tabs": {
+            "sales": "Ventes",
+            "rd": "R&D",
+            "ops": "Livraison & Opérations",
+            "acct": "Comptabilité"
+          },
+          "names": {
+            "sales": "Budget du département des ventes",
+            "rd": "Budget du département R&D",
+            "ops": "Budget Livraison, Support, TI, Control Plus et Opérations",
+            "acct": "Budget du département de la comptabilité"
+          },
+          "leaderView": "Vue Département / Leader",
+          "leaderHint": "Budget total par leader (revenus + dépenses attribués)",
+          "department": "Département",
+          "contribution": "Contribution",
+          "contributionNote": "Le chiffre des Ventes est une contribution nette (tous les revenus − dépenses de ventes et marketing), pas un budget de dépenses. Les trois autres sont des dépenses.",
+          "detailHint": "GL de paie consolidés en une ligne salaires par département",
+          "expenseLine": "Ligne de dépense"
+        }
+      }
+    }
+  }
+}
