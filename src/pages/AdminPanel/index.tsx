@@ -246,6 +246,9 @@ const AdminPanel = () => {
   const [permCatalog, setPermCatalog] = useState<PermDef[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [permSearch, setPermSearch] = useState('');
+  // La recherche repart à zéro à chaque ouverture / fermeture de la fenêtre d'un rôle.
+  useEffect(() => { setPermSearch(''); }, [editingRole === null]);
   const [showNewRole, setShowNewRole] = useState(false);
   const [savingRole, setSavingRole] = useState(false);
 
@@ -3661,6 +3664,16 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   />
 
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">{t('admin.roles.permissionsField')}</label>
+                  <div className="sticky top-0 z-10 -mx-1 mb-3 bg-white px-1 pb-2 pt-1 dark:bg-boxdark">
+                    <input
+                      type="search"
+                      value={permSearch}
+                      onChange={(e) => setPermSearch(e.target.value)}
+                      placeholder={t('admin.roles.permSearch')}
+                      aria-label={t('admin.roles.permSearch')}
+                      className="w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input text-black dark:text-white"
+                    />
+                  </div>
                   {/* Wildcard toggle for super admin */}
                   <label className="flex items-center gap-2 mb-3 p-2 rounded border border-success bg-success bg-opacity-5">
                     <input
@@ -3677,11 +3690,22 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   </label>
 
                   {!editingRole.permissions.includes('*') && (() => {
+                    // Recherche sans accents ni casse, sur le libellé, la clé et la catégorie ;
+                    // plusieurs mots = tous doivent correspondre (ex. « golf use »).
+                    const norm = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+                    const words = norm(permSearch).split(/\s+/).filter(Boolean);
+                    const matches = (p: PermDef) => {
+                      const hay = norm(`${p.label} ${p.key} ${p.category}`);
+                      return words.every((w) => hay.includes(w));
+                    };
                     const byCategory: Record<string, PermDef[]> = {};
-                    permCatalog.forEach(p => {
+                    permCatalog.filter(matches).forEach(p => {
                       if (!byCategory[p.category]) byCategory[p.category] = [];
                       byCategory[p.category].push(p);
                     });
+                    if (!Object.keys(byCategory).length) {
+                      return <p className="py-4 text-center text-sm text-body">{t('admin.roles.permNoMatch')}</p>;
+                    }
                     return Object.entries(byCategory).map(([category, perms]) => (
                       <div key={category} className="mb-4">
                         <p className="text-xs font-bold uppercase text-body mb-2">{category}</p>
