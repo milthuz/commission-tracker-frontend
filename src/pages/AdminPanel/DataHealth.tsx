@@ -95,6 +95,44 @@ const DataHealth: React.FC = () => {
   const suggestedNote = (rep: UserReport): string =>
     rep.verdict ? (repliesFor(rep.report_type, rep.verdict)[0] || '') : '';
 
+  // Feature requests are decided, not "resolved": approving creates the JIRA ticket at that
+  // moment (nothing exists in JIRA before), declining never does. One modal serves both.
+  const [featureModal, setFeatureModal] = useState<{
+    id: number; who: string; mode: 'approve' | 'decline'; title: string; note: string; jiraKey: string;
+  } | null>(null);
+  const [deciding, setDeciding] = useState(false);
+
+  const decideFeature = async () => {
+    if (!featureModal) return;
+    setDeciding(true);
+    try {
+      const approve = featureModal.mode === 'approve';
+      const r = await fetch(`${API_URL}/api/admin/feature-requests/${featureModal.id}/${approve ? 'approve' : 'decline'}`, {
+        method: 'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(approve
+          ? { title: featureModal.title.trim(), note: featureModal.note.trim(), jiraKey: featureModal.jiraKey.trim() }
+          : { note: featureModal.note.trim() }),
+      });
+      const out = await r.json().catch(() => ({}));
+      if (r.status === 409) { setFeatureModal(null); dialog.alert(t('dataHealth.reports.feature.alreadyDecided') as string); await load(true); return; }
+      if (!r.ok) {
+        // A failed JIRA call leaves the request pending (the server releases its claim) — say so.
+        dialog.alert(t('dataHealth.reports.feature.failed', { reason: out.error || r.status }) as string);
+        return;
+      }
+      setFeatureModal(null);
+      if (approve) {
+        dialog.alert(t(featureModal.jiraKey.trim() ? 'dataHealth.reports.feature.linked' : 'dataHealth.reports.feature.created', { key: out.jiraKey }) as string
+          + (out.notified === false ? `\n${t('dataHealth.reports.notifyFailed', { reason: out.reason || '—' })}` : ''));
+      } else if (out.notified === false) {
+        dialog.alert(t('dataHealth.reports.notifyFailed', { reason: out.reason || '—' }) as string);
+      }
+      await load(true);
+    } catch { setError(t('dataHealth.error') as string); }
+    finally { setDeciding(false); }
+  };
+
   const [investigating, setInvestigating] = useState<number | null>(null);
   const reinvestigate = async (id: number) => {
     setInvestigating(id);
@@ -391,6 +429,22 @@ const DataHealth: React.FC = () => {
                         </button>
                       </div>
                     </div>
+                    {rep.report_type === 'feature_request' ? (
+                      <div className="flex shrink-0 flex-wrap gap-2 self-start">
+                        <button
+                          onClick={() => setFeatureModal({ id: rep.id, who: rep.reporter_name || rep.reporter_email || '—', mode: 'approve', title: rep.message.split('\n')[0].slice(0, 120), note: '', jiraKey: '' })}
+                          className="whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-[#141414] hover:bg-[#F79C6A]"
+                        >
+                          {t('dataHealth.reports.feature.approve')}
+                        </button>
+                        <button
+                          onClick={() => setFeatureModal({ id: rep.id, who: rep.reporter_name || rep.reporter_email || '—', mode: 'decline', title: '', note: '', jiraKey: '' })}
+                          className="whitespace-nowrap rounded-md border border-stroke px-3 py-1.5 text-xs font-medium text-body hover:bg-gray-1 dark:border-strokedark dark:hover:bg-meta-4"
+                        >
+                          {t('dataHealth.reports.feature.decline')}
+                        </button>
+                      </div>
+                    ) : (
                     <button
                       onClick={() => setResolveModal({ id: rep.id, who: rep.reporter_name || rep.reporter_email || '—', note: suggestedNote(rep), type: rep.report_type, verdict: rep.verdict })}
                       disabled={resolving === rep.id}
@@ -399,6 +453,7 @@ const DataHealth: React.FC = () => {
                       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                       {resolving === rep.id ? t('dataHealth.reports.resolving') : t('dataHealth.reports.resolve')}
                     </button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -408,6 +463,62 @@ const DataHealth: React.FC = () => {
       )}
 
       {data && <p className="mt-4 text-xs text-gray-400">{t('dataHealth.lastChecked', { time: new Date(data.generatedAt).toLocaleTimeString(appLocale()) })}</p>}
+
+      {featureModal && (
+        <Modal
+          open
+          onClose={() => !deciding && setFeatureModal(null)}
+          size="md"
+          title={t(featureModal.mode === 'approve' ? 'dataHealth.reports.feature.approveTitle' : 'dataHealth.reports.feature.declineTitle')}
+          footer={
+            <>
+              <button
+                onClick={() => setFeatureModal(null)}
+                disabled={deciding}
+                className="rounded border border-stroke px-4 py-2 text-sm text-body hover:bg-gray-1 disabled:opacity-50 dark:border-strokedark dark:hover:bg-meta-4"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={decideFeature}
+                disabled={deciding || (featureModal.mode === 'approve' && !featureModal.title.trim() && !featureModal.jiraKey.trim())}
+                className="rounded bg-primary px-4 py-2 text-sm font-medium text-[#141414] hover:bg-[#F79C6A] disabled:opacity-50"
+              >
+                {deciding ? t('dataHealth.reports.resolving') : t(featureModal.mode === 'approve' ? 'dataHealth.reports.feature.approveConfirm' : 'dataHealth.reports.feature.declineConfirm')}
+              </button>
+            </>
+          }
+        >
+          <p className="mb-4 text-sm text-body">
+            {t(featureModal.mode === 'approve' ? 'dataHealth.reports.feature.approveSubtitle' : 'dataHealth.reports.feature.declineSubtitle', { who: featureModal.who })}
+          </p>
+          {featureModal.mode === 'approve' && (
+            <>
+              <label className="mb-1 block text-xs font-medium text-body">{t('dataHealth.reports.feature.titleLabel')}</label>
+              <input
+                value={featureModal.title}
+                maxLength={200}
+                onChange={(e) => setFeatureModal(m => (m ? { ...m, title: e.target.value } : m))}
+                className="mb-3 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              />
+              <label className="mb-1 block text-xs font-medium text-body">{t('dataHealth.reports.feature.existingLabel')}</label>
+              <input
+                value={featureModal.jiraKey}
+                placeholder="SH-43"
+                onChange={(e) => setFeatureModal(m => (m ? { ...m, jiraKey: e.target.value } : m))}
+                className="mb-3 w-full rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
+              />
+            </>
+          )}
+          <label className="mb-1 block text-xs font-medium text-body">{t('dataHealth.reports.feature.noteLabel')}</label>
+          <textarea
+            rows={3}
+            value={featureModal.note}
+            onChange={(e) => setFeatureModal(m => (m ? { ...m, note: e.target.value } : m))}
+            className="w-full resize-y rounded border border-stroke bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-primary dark:border-strokedark dark:text-white"
+          />
+        </Modal>
+      )}
 
       {resolveModal && (
         <Modal

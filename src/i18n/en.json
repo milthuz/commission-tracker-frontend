@@ -1353,6 +1353,23 @@
         "both_sides_present": [
           "I checked both sides: the POS deal and the payment account are both under your name and complete. Can you tell me which point you mean?"
         ]
+      },
+      "feature": {
+        "approve": "Approve → JIRA",
+        "decline": "Decline",
+        "approveTitle": "Approve this feature request",
+        "declineTitle": "Decline this feature request",
+        "approveSubtitle": "A JIRA ticket is created in the Sales Hub backlog, and {{who}} is emailed.",
+        "declineSubtitle": "{{who}} is emailed that it is not going forward. No JIRA ticket is created.",
+        "titleLabel": "JIRA ticket title",
+        "existingLabel": "Already has a JIRA ticket? Enter its key to link it instead (optional)",
+        "approveConfirm": "Approve and create ticket",
+        "declineConfirm": "Decline and notify",
+        "noteLabel": "Note to the requester (optional)",
+        "created": "Approved — JIRA ticket {{key}}.",
+        "linked": "Approved — linked to {{key}}.",
+        "failed": "Could not create the JIRA ticket ({{reason}}). The request is still pending.",
+        "alreadyDecided": "Someone already decided this request."
       }
     },
     "invoiceList": {
@@ -8604,7 +8621,11 @@
     "clearSelection": "Clear",
     "selectAll": "Select all",
     "assigned": "{{count}} club(s) updated",
-    "assignF": {"all": "Everyone’s clubs", "mine": "My clubs", "none": "Unassigned"},
+    "assignF": {
+      "all": "Everyone’s clubs",
+      "mine": "My clubs",
+      "none": "Unassigned"
+    },
     "title": "Golf campaign",
     "subtitle": "Call golf clubs (AGQ list + GGGolf directory) to see who wants an alternative to Lightspeed.",
     "loadFailed": "Could not load the golf campaign: {{error}}",
