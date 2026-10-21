@@ -10,7 +10,7 @@ import { useDialog } from './useDialog';
 //   · une saisie non enregistrée (`dirty`) demande confirmation avant de fermer.
 //
 // Mise en page (voir la mémoire « modale qui défile ») : c'est le CONTENEUR qui défile, pas la
-// boîte — sinon les menus `Select` (absolus) sont coupés. Le pied est `sticky bottom-0` : sur une
+// boîte — sinon les menus `Select` (absolus) sont coupés. Le pied est `sticky -bottom-4` (le voile a `p-4` : sans ce décalage, le texte défile visible sous le pied) : sur une
 // fenêtre plus haute que l'écran, il reste collé en bas de l'écran pendant le défilement.
 //
 // Pour une simple question ou une suppression, utiliser `dialog.confirm()` (lib/dialog), pas
@@ -91,7 +91,7 @@ const Modal = ({ open, onClose, title, children, footer, dirty = false, size = '
           {children}
         </div>
         {footer && (
-          <div className="sticky bottom-0 flex flex-wrap justify-end gap-2 rounded-b-[20px] border-t border-stroke bg-white px-5 py-3.5 dark:border-strokedark dark:bg-boxdark">
+          <div className="sticky -bottom-4 flex flex-wrap justify-end gap-2 rounded-b-[20px] border-t border-stroke bg-white px-5 py-3.5 dark:border-strokedark dark:bg-boxdark">
             {footer}
           </div>
         )}

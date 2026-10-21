@@ -3664,7 +3664,7 @@ Joker Pub,Jay Daoust,2024-04-01`}
                   />
 
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">{t('admin.roles.permissionsField')}</label>
-                  <div className="sticky top-0 z-10 -mx-1 mb-3 bg-white px-1 pb-2 pt-1 dark:bg-boxdark">
+                  <div className="sticky -top-4 z-10 -mx-5 mb-3 bg-white px-5 pb-2 pt-5 dark:bg-boxdark">
                     <input
                       type="search"
                       value={permSearch}
