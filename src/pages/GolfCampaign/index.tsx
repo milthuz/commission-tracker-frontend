@@ -396,6 +396,12 @@ function ClubModal({ club, people, canManage, me, questions, script, lang, fmt, 
 }
 
 interface SlotDay { date: string; slots: string[] }
+interface Preview {
+  client: { to: string; from: string | null; replyTo: string | null; subject: string; html: string; attachment: string } | null;
+  visitor: { to: string; subject: string; html: string };
+  event: { summary: string; when: string; location: string | null; description: string; calendar: string; minutes: number };
+  moving: boolean; calendarConnected: boolean; noClubEmail: boolean;
+}
 interface BookResult { calendar: { ok?: boolean; skipped?: string; error?: string }; clientMail: { sent: boolean; reason?: string }; visitorMail: { sent: boolean } }
 
 // Rendez-vous en personne : les créneaux libres du visiteur (Google Agenda + visites déjà prises), un clic
@@ -414,6 +420,7 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [result, setResult] = useState<BookResult | null>(null);
+  const [preview, setPreview] = useState<Preview | null>(null);
 
   const loadSlots = useCallback(async () => {
     setErr('');
@@ -429,6 +436,24 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
   const dayLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
   const timeLabel = (iso: string) => new Date(iso).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', timeZone: 'America/Toronto' });
 
+  // 1) Aperçu : le serveur compose exactement ce qui partira ; rien n'est réservé ni envoyé.
+  const openPreview = async () => {
+    if (!pick) return setErr(t('golf.visit.pickFirst'));
+    setBusy(true); setErr(''); setResult(null);
+    try {
+      const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/meeting/preview`, {
+        method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ at: pick, lang: mailLang, notify: notify && !!club.email, note }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        if (j.error === 'slot_taken') { setPick(''); await loadSlots(); return setErr(t('golf.visit.slotTaken')); }
+        return setErr(j.error || t('golf.saveFailed'));
+      }
+      setPreview(j);
+    } finally { setBusy(false); }
+  };
+
+  // 2) Envoyer et réserver, après que l'aperçu a été lu.
   const book = async () => {
     if (!pick) return setErr(t('golf.visit.pickFirst'));
     setBusy(true); setErr(''); setResult(null);
@@ -438,10 +463,11 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
+        setPreview(null);
         if (j.error === 'slot_taken') { setPick(''); await loadSlots(); return setErr(t('golf.visit.slotTaken')); }
         return setErr(j.error || t('golf.saveFailed'));
       }
-      onSaved(j.club); setResult(j); setChoosing(false); setPick(''); setNote('');
+      onSaved(j.club); setResult(j); setChoosing(false); setPick(''); setNote(''); setPreview(null);
     } finally { setBusy(false); }
   };
 
@@ -499,12 +525,58 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
             <div className="w-44"><Select value={mailLang} onChange={(v) => setMailLang(v as 'fr' | 'en')} options={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} /></div>
           )}
           <div className="flex gap-2">
-            <button type="button" className={BTN_PRIMARY} disabled={busy || !pick} onClick={book}>{club.meeting_at ? t('golf.visit.confirmMove') : t('golf.visit.book')}</button>
+            <button type="button" className={BTN_PRIMARY} disabled={busy || !pick} onClick={openPreview}>{club.meeting_at ? t('golf.visit.confirmMove') : t('golf.visit.book')}</button>
             {club.meeting_at && <button type="button" className={BTN} disabled={busy} onClick={() => { setChoosing(false); setPick(''); }}>{t('golf.visit.keep')}</button>}
           </div>
         </>
       )}
 
+      {preview && (
+        <Modal open onClose={() => setPreview(null)} size="lg" title={t('golf.visit.previewTitle')}
+          footer={<>
+            <button type="button" className={BTN} disabled={busy} onClick={() => setPreview(null)}>{t('golf.visit.previewBack')}</button>
+            <button type="button" className={BTN_PRIMARY} disabled={busy} onClick={book}>{preview.client ? t('golf.visit.previewSend') : t('golf.visit.previewBookOnly')}</button>
+          </>}>
+          <p className="m-0 text-sm text-body dark:text-bodydark2">{t('golf.visit.previewIntro')}</p>
+
+          <section className="space-y-2">
+            <h3 className="m-0 text-sm font-bold text-black dark:text-white">{t('golf.visit.previewClubMail')}</h3>
+            {preview.client ? (
+              <>
+                <dl className="m-0 grid grid-cols-[72px_1fr] gap-x-3 gap-y-1 text-xs">
+                  <dt className="text-body dark:text-bodydark2">{t('golf.visit.pTo')}</dt><dd className="m-0 break-all font-bold text-black dark:text-white">{preview.client.to}</dd>
+                  <dt className="text-body dark:text-bodydark2">{t('golf.visit.pFrom')}</dt><dd className="m-0 break-all text-black dark:text-white">{preview.client.from || t('golf.visit.pFromDefault')}</dd>
+                  <dt className="text-body dark:text-bodydark2">{t('golf.visit.pSubject')}</dt><dd className="m-0 font-bold text-black dark:text-white">{preview.client.subject}</dd>
+                  <dt className="text-body dark:text-bodydark2">{t('golf.visit.pAttach')}</dt><dd className="m-0 text-black dark:text-white">{preview.client.attachment}</dd>
+                </dl>
+                {/* sandbox sans aucune permission : le courriel s'affiche, aucun script ni lien ne s'y exécute. */}
+                <iframe title={t('golf.visit.previewClubMail')} sandbox="" srcDoc={preview.client.html}
+                  className="h-[340px] w-full rounded-xl border border-stroke bg-white dark:border-strokedark" />
+              </>
+            ) : (
+              <p className="m-0 rounded-[10px] bg-[rgba(253,176,34,0.14)] px-3 py-2 text-sm text-[#B54708] dark:text-[#FDB022]">
+                {preview.noClubEmail ? t('golf.visit.mailNoEmail') : t('golf.visit.mailOff')}
+              </p>
+            )}
+          </section>
+
+          <section className="space-y-1">
+            <h3 className="m-0 text-sm font-bold text-black dark:text-white">{t('golf.visit.previewEvent', { who: preview.event.calendar })}</h3>
+            <div className="rounded-xl border border-stroke p-3 text-sm dark:border-strokedark">
+              <div className="font-bold text-black dark:text-white">{preview.event.summary}</div>
+              <div className="text-body dark:text-bodydark2">{preview.event.when} · {preview.event.minutes} min</div>
+              {preview.event.location && <div className="text-body dark:text-bodydark2">{preview.event.location}</div>}
+              <pre className="m-0 mt-2 whitespace-pre-wrap font-sans text-xs text-body dark:text-bodydark2">{preview.event.description}</pre>
+            </div>
+            {!preview.calendarConnected && <p className="m-0 text-xs text-[#B54708] dark:text-[#FDB022]">{t('golf.visit.calSkipped')}</p>}
+          </section>
+
+          <section className="space-y-1">
+            <h3 className="m-0 text-sm font-bold text-black dark:text-white">{t('golf.visit.previewVisitorMail')}</h3>
+            <p className="m-0 text-xs text-body dark:text-bodydark2">{preview.moving ? t('golf.visit.previewVisitorMoved') : <>{preview.visitor.to} · <b className="text-black dark:text-white">{preview.visitor.subject}</b></>}</p>
+          </section>
+        </Modal>
+      )}
       {err && <p role="alert" className="m-0 text-sm font-bold text-[#B42318] dark:text-[#F46060]">{err}</p>}
       {result && (
         <ul className="m-0 list-none space-y-0.5 p-0 text-xs text-body dark:text-bodydark2">
