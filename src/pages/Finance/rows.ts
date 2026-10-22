@@ -124,11 +124,10 @@ export const COGS_TOP: RowSpec[] = [
   { key: 'payout', l: 'payout', fmt: 's' },
   { key: 'hwCogs', l: 'hwCogs', fmt: '$', kind: 'sub' },
   { key: 'svcCogs', l: 'svcCogs', fmt: '$', kind: 'sub' },
-  { key: 'nnWages', l: 'nnWages', fmt: 's', payroll: true },
-  { key: 'exWages', l: 'exWages', fmt: 's', payroll: true },
-  { key: 'svcContr', l: 'svcContr', fmt: 's' },
+  // SH-49 : deux blocs (Net New Delivery / Existing Service), puis les déplacements.
+  { key: 'nnSvc', l: 'nnSvc', fmt: 's' },
+  { key: 'exSvc', l: 'exSvc', fmt: 's' },
   { key: 'travel', l: 'svcTravel', fmt: 's' },
-  { key: 'svcSw', l: 'svcSw', fmt: 's' },
   { key: 'licCogs', l: 'licCogs', fmt: '$', kind: 'sub' },
   { key: 'totCogs', l: 'totCogs', fmt: '$', kind: 'grand' },
 ];
@@ -155,18 +154,37 @@ export const COGS_BOT: RowSpec[] = [
   { key: 'xpHwCogs', l: 'xpHwCogs', fmt: '$' },
   { key: 'hwCogs', l: 'totalHwCogs', fmt: '$', kind: 'sub' },
   { key: 'hwCogsPct', l: 'hwCogsPct', fmt: '%', kind: 'pct', fy27: 'hwPct' },
+  // SH-49 : COGS de service en deux blocs, dans l'ordre de la CFO, puis les réglages qui les
+  // répartissent (chaque ancienne ligne est répartie, rien n'est compté deux fois).
+  { sec: 'nnDeliveryCogs' },
+  { key: 'nnDelWages', l: 'nnDelWages', fmt: 's', payroll: true },
+  { key: 'nnImplWages', l: 'nnImplWages', fmt: 's', payroll: true },
+  { key: 'nnSw', l: 'nnSw', fmt: 's' },
+  { key: 'nnImplSw', l: 'nnImplSw', fmt: 's', inp: true },
+  { key: 'nnAuto', l: 'nnAuto', fmt: 's', inp: true },
+  { key: 'nnContr', l: 'nnContr', fmt: 's' },
+  { key: 'nnSvc', l: 'nnSvc', fmt: '$', kind: 'sub' },
+  { sec: 'exServiceCogs' },
+  { key: 'exSvcWages', l: 'exSvcWages', fmt: 's', payroll: true },
+  { key: 'exImplWages', l: 'exImplWages', fmt: 's', payroll: true },
+  { key: 'exSw', l: 'exSw', fmt: 's' },
+  { key: 'exImplSw', l: 'exImplSw', fmt: 's', inp: true },
+  { key: 'exAuto', l: 'exAuto', fmt: 's', inp: true },
+  { key: 'exContr', l: 'exContr', fmt: 's' },
+  { key: 'exSvc', l: 'exSvc', fmt: '$', kind: 'sub' },
   { sec: 'serviceCogsDrivers' },
-  { key: 'nnWages', l: 'nnWages', fmt: 's', payroll: true },
-  { key: 'exWages', l: 'exWages', fmt: 's', payroll: true },
+  { key: 'implNnPct', l: 'implNnPct', fmt: '%', inp: true },
+  { key: 'svcSw', l: 'svcSwTotal', fmt: 's', inp: true },
+  { key: 'svcSwNnPct', l: 'svcSwNnPct', fmt: '%', inp: true },
   { key: 'halukPct', l: 'halukPct', fmt: '%', inp: true },
   { key: 'halukJobs', l: 'halukJobs', fmt: 'n' },
   { key: 'onsites', l: 'onsites', fmt: 'n', inp: true },
   { key: 'jobCost', l: 'jobCost', fmt: 'n', inp: true },
   { key: 'jobsCost', l: 'jobsCost', fmt: '$' },
   { key: 'buffer', l: 'buffer', fmt: '$', inp: true },
+  { key: 'bufferNnPct', l: 'bufferNnPct', fmt: '%', inp: true },
   { key: 'svcContr', l: 'svcContr', fmt: '$', kind: 'sub' },
   { key: 'travel', l: 'svcTravel', fmt: 's', inp: true },
-  { key: 'svcSw', l: 'svcSw', fmt: 's', inp: true },
   { sec: 'licenceCogsDrivers' },
   { key: 'lic2', l: 'licRevenue', fmt: '$' },
   { key: 'licPct', l: 'licPct', fmt: '%', inp: true },
@@ -174,5 +192,5 @@ export const COGS_BOT: RowSpec[] = [
 ];
 
 // Lien du haut de page → ligne de calcul (prototype : JUMP).
-export const JUMP: Record<string, string> = { recurring: 'totalSub', transaction: 'totalHW', total: 'canBeg', recCogs: 'supportWages', svcCogs: 'svcContr', totCogs: 'supportWages' };
+export const JUMP: Record<string, string> = { recurring: 'totalSub', transaction: 'totalHW', total: 'canBeg', recCogs: 'supportWages', svcCogs: 'nnDelWages', totCogs: 'supportWages' };
 export const COGS_KEYS = new Set([...COGS_TOP, ...COGS_BOT].filter((r) => !isSec(r)).map((r) => (r as RowDef).key));

@@ -159,7 +159,14 @@
           "buffer": "Service contractor buffer",
           "travel": "Service travel, meals and auto",
           "svcSw": "Service software, phone, hardware and other",
-          "licPct": "Licence COGS %"
+          "licPct": "Licence COGS %",
+          "implNnPct": "Implementation payroll charged to Net New (%)",
+          "svcSwNnPct": "Service software charged to Net New (%)",
+          "bufferNnPct": "Contractor buffer kept for Net New (%)",
+          "nnImplSw": "Net New implementation software costs",
+          "exImplSw": "Existing implementation software costs",
+          "nnAuto": "Net New Delivery automobile",
+          "exAuto": "Existing Service automobile"
         }
       },
       "aiBudget": {
@@ -391,7 +398,14 @@
           "buffer": "Réserve pour contractuels de service",
           "travel": "Déplacements, repas et auto (service)",
           "svcSw": "Logiciels, téléphonie, matériel et autres (service)",
-          "licPct": "Coût des licences (%)"
+          "licPct": "Coût des licences (%)",
+          "implNnPct": "Paie d'implémentation imputée aux nouveaux clients (%)",
+          "svcSwNnPct": "Logiciels du service imputés aux nouveaux clients (%)",
+          "bufferNnPct": "Coussin des sous-traitants gardé pour les nouveaux clients (%)",
+          "nnImplSw": "Logiciels d'implémentation — nouveaux clients",
+          "exImplSw": "Logiciels d'implémentation — clients existants",
+          "nnAuto": "Automobile — livraison nouveaux clients",
+          "exAuto": "Automobile — service clients existants"
         }
       },
       "aiBudget": {

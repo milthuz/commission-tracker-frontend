@@ -190,6 +190,36 @@ function compare(label, P, R, opexYear) {
   nearS(empty.payTot, none.payTot, 'deptRaise vide = comportement d\'avant');
 }
 
+// ---------------------------------------------------------------- 7. COGS de service en deux blocs (SH-49)
+{
+  const S = require(path.join(__dirname, '..', '..', 'commission-tracker', 'services', 'finance', 'payroll.js'));
+  const ros = baseRoster();
+  const pay = F.computePayroll(ros, { burden: 17.5, raise: 0, raiseMo: 0 }, F.payCodesOf(ref));
+  const srv = S.payrollAggregate(ros.employees, ros.contractors, { burden: 17.5, raise: 0, raiseMo: 0 }, F.payCodesOf(ref));
+  nearS(pay.payImpl, srv.payImpl, 'IMPLEMENTATION : navigateur = serveur');
+  assert(s12(pay.payImpl) > 0, 'IMPLEMENTATION : le département existe dans l\'effectif'); n++;
+  const run = (drv) => F.computeAll({ ref, drivers: { drv }, opex: { opx: {}, opxG: {} }, trips: null, payroll: pay }, 1);
+  const base = run({});
+  const R = base.Rm;
+  const sumOf = (ks) => R.nnSvc.map((_, i) => ks.reduce((a, k) => a + (R[k] || base.I[k])[i], 0));
+  nearS(sumOf(['nnSvc', 'exSvc', 'travel']), R.svcCogs, 'blocs + déplacements = COGS de service');
+  nearS(sumOf(['nnDelWages', 'nnImplWages', 'exSvcWages', 'exImplWages']), sumOf(['nnWages', 'exWages']), 'salaires : répartis, rien de perdu');
+  nearS(sumOf(['nnContr', 'exContr']), R.svcContr, 'sous-traitants : jobs + coussin répartis');
+  nearS(sumOf(['nnSw', 'exSw']), base.I.svcSw, 'logiciels : 50/50');
+  near(s12(R.nnImplWages), s12(pay.payImpl) / 2, 'IMPLEMENTATION : 50 % vers Net New par défaut');
+  // Déplacer le % ne change PAS le total ; ajouter de l'automobile l'augmente d'autant.
+  const moved = run({ implNnPct: Array(12).fill(80), svcSwNnPct: Array(12).fill(20), bufferNnPct: Array(12).fill(100) });
+  nearS(moved.Rm.svcCogs, R.svcCogs, 'déplacer les % ne change pas le total');
+  near(s12(moved.Rm.nnImplWages), s12(pay.payImpl) * 0.8, 'IMPLEMENTATION 80 % vers Net New');
+  assert(s12(moved.Rm.nnSvc) !== s12(R.nnSvc), 'le bloc Net New suit les %'); n++;
+  const auto = run({ nnAuto: Array(12).fill(1000), exImplSw: Array(12).fill(250) });
+  near(s12(auto.Rm.svcCogs) - s12(R.svcCogs), 15000, 'automobile + logiciel d\'implémentation : +15 000 $');
+  near(s12(auto.Rm.totCogs) - s12(R.totCogs), 15000, '… et autant dans le total des COGS');
+  near(s12(auto.master.ebitda) - s12(base.master.ebitda), -15000, '… et autant en moins sur le BAIIA');
+  const old = F.computeAll({ ref, drivers: { drv: {} }, opex: { opx: {}, opxG: {} }, trips: null, payroll: { ...pay, payImpl: undefined } }, 1);
+  nearS(old.Rm.svcCogs, R.svcCogs, 'serveur plus ancien (sans payImpl) : même total');
+}
+
 // ---------------------------------------------------------------- 6. détail OPEX du Budget maître (SH-48)
 // Les sous-totaux masqués ne changent rien : la somme des LIGNES affichées = le total de section.
 {
