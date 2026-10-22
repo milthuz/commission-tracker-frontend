@@ -2371,6 +2371,7 @@
       "quota": "Quota"
     },
     "race": {
+      "teamSummary": "{{count}} reps · {{pts}} pts",
       "title": "Où en est chacun",
       "pace": "Rythme",
       "empty": "Aucun représentant pour {{month}}.",

@@ -78,6 +78,20 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
     };
   }, [rows, clock, target, teamPoints]);
 
+  // Regroupement par équipe (ordre alphabétique, « sans équipe » à la fin) : un compte paiement ne se
+  // confond plus avec un autre type d'équipe. Un seul groupe visible = pas d'en-tête.
+  const teamGroups = useMemo(() => {
+    const none = t('pointsTracker.noTeam');
+    const map = new Map<string, { name: string; rows: MonthRow[]; pts: number }>();
+    rows.forEach((row) => {
+      const name = row.rep.team?.name || none;
+      const g = map.get(name) || { name, rows: [], pts: 0 };
+      g.rows.push(row); g.pts += row.rep.totalPoints;
+      map.set(name, g);
+    });
+    return [...map.values()].sort((a, b) => (a.name === none ? 1 : b.name === none ? -1 : a.name.localeCompare(b.name)));
+  }, [rows, t]);
+
   const diff = teamPoints - team.pace;
   const headline = !clock.current
     ? (teamPoints >= target ? t('pointsTracker.team.closedMet', { pts: teamPoints, target }) : t('pointsTracker.team.closedMissed', { pts: teamPoints, target }))
@@ -88,16 +102,13 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
     : t('pointsTracker.team.subClosed', { month: monthLabel });
 
   const statusLabel = (s: Status) => t(`pointsTracker.status.${s}`);
-  // Colonnes de « Où en est chacun ». Avec le panneau à droite (admins, gestionnaires), entre
-  // 1280 et 1535 px il ne restait ~75 px à la barre : les graduations 15-20-25-30+ se chevauchaient.
-  // Dans cette plage la petite courbe « Rythme » cède sa place à la barre (~185 px).
-  const raceCols = repMode
-    ? 'md:grid-cols-[160px_1fr_96px_150px]'
-    : 'md:grid-cols-[160px_1fr_96px_150px] xl:grid-cols-[160px_1fr_150px] 2xl:grid-cols-[160px_1fr_96px_150px]';
-  const paceCell = repMode ? 'hidden md:block' : 'hidden md:block xl:hidden 2xl:block';
+  // Colonnes de « Où en est chacun ». Le détail s'affiche sous la liste (plus de panneau à droite) :
+  // la liste garde toute la largeur et les graduations 15-20-25-30+ ne se chevauchent plus.
+  const raceCols = 'md:grid-cols-[160px_1fr_96px_150px]';
+  const paceCell = 'hidden md:block';
 
   // ───────── panneau de détail ─────────
-  const renderPanel = (sel: MonthRow, wide: boolean) => {
+  const renderPanel = (sel: MonthRow) => {
     const r = sel.rep;
     const quota = r.quota || 15;
     const miss = Math.max(0, quota - r.totalPoints);
@@ -223,12 +234,13 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
         )}
       </>),
     };
-    if (wide) {
-      // Carte « Ton mois », pleine largeur : chiffres | courbe et conseil | dernières ventes.
+    // Carte pleine largeur : chiffres | courbe et conseil | dernières ventes. Pour un représentant c'est
+    // « Ton mois » ; pour un gestionnaire, le détail du représentant choisi, sous la liste.
+    {
       return (
-        <section aria-labelledby="pt-rep-h" className={`${card} grid grid-cols-1 gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)] sm:p-6`}>
+        <section id="pt-detail" aria-labelledby="pt-rep-h" className={`${card} grid grid-cols-1 gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)] sm:p-6`}>
           <div className="flex min-w-0 flex-col gap-4">
-            <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-accent-ink dark:text-[#F79C6A]">{t('pointsTracker.yourMonth', { month: monthLabel })}</span>
+            {repMode && <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-accent-ink dark:text-[#F79C6A]">{t('pointsTracker.yourMonth', { month: monthLabel })}</span>}
             {parts.head}
             {parts.big}
             {parts.dl}
@@ -242,23 +254,12 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
         </section>
       );
     }
-    return (
-      <aside aria-labelledby="pt-rep-h" className={`${card} flex flex-col gap-4 p-5 xl:sticky xl:top-4`}>
-        {parts.head}
-        {parts.big}
-        {parts.chart}
-        {parts.advice}
-        {parts.dl}
-        {parts.sales}
-        {parts.link}
-      </aside>
-    );
   };
 
   return (
-    <div className={`grid grid-cols-1 items-start gap-5 ${repMode ? '' : 'xl:grid-cols-[minmax(0,1fr)_360px]'}`}>
+    <div className="grid grid-cols-1 items-start gap-5">
       <div className="flex min-w-0 flex-col gap-5">
-        {repMode && sel && renderPanel(sel, true)}
+        {repMode && sel && renderPanel(sel)}
         {/* Rythme de l'équipe */}
         <section aria-labelledby="pt-pace-h" className={`${card} flex flex-wrap gap-5 p-5`}>
           <div className="flex min-w-0 flex-[3_1_420px] flex-col gap-2">
@@ -310,11 +311,19 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
             <span className={`text-center ${paceCell}`}>{t('pointsTracker.race.pace')}</span><span />
           </div>
           {rows.length === 0 && <p className="m-0 py-6 text-center text-sm text-body dark:text-bodydark2">{t('pointsTracker.race.empty', { month: monthLabel })}</p>}
-          {rows.map((row) => {
+          {teamGroups.map((g) => (
+            <div key={g.name} className="flex flex-col">
+              {teamGroups.length > 1 && (
+                <div className="flex flex-wrap items-baseline justify-between gap-2 px-0 pb-1 pt-4 text-[11px] font-bold uppercase tracking-[0.06em] text-body first:pt-1 dark:text-bodydark2">
+                  <span>{g.name}</span>
+                  <span className="font-medium normal-case tracking-normal">{t('pointsTracker.race.teamSummary', { count: g.rows.length, pts: g.pts })}</span>
+                </div>
+              )}
+          {g.rows.map((row) => {
             const r = row.rep;
             const on = sel?.rep.repName === r.repName;
             const quota = r.quota || 15;
-            const pick = () => setSelName(r.repName);
+            const pick = () => { setSelName(r.repName); requestAnimationFrame(() => document.getElementById('pt-detail')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })); };
             return (
               // Représentant : les lignes ne s'ouvrent pas (le détail d'un coéquipier est privé) ; la sienne reste surlignée.
               <div key={r.repName} {...(repMode ? {} : { onClick: pick, ...pressable(pick) })} aria-current={on ? 'true' : undefined}
@@ -335,7 +344,11 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
               </div>
             );
           })}
+            </div>
+          ))}
         </section>
+
+        {!repMode && sel && renderPanel(sel)}
 
         {/* Activations sans représentant (administrateurs) */}
         {isAdmin && unassigned && unassigned.zentactMerchants.length > 0 && (
@@ -359,7 +372,6 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
         )}
       </div>
 
-      {!repMode && sel && renderPanel(sel, false)}
     </div>
   );
 }
