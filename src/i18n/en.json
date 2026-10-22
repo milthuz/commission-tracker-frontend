@@ -2396,6 +2396,8 @@
       "closedMissed_other": "Month over, quota missed by {{count}} points."
     },
     "sale": {
+      "typeCrm": "CRM sale",
+      "bonus": "bonus",
       "noSource": "Missing source",
       "activation": "Payment activation",
       "manualSource": "source corrected by hand",

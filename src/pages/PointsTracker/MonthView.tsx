@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { Briefcase, CreditCard } from 'lucide-react';
 import Select from '../../components/Select';
 import ProbationBadge from '../../components/ProbationBadge';
 import { Button, StatusPill } from '../../components/ui';
@@ -119,16 +120,16 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
         ? t('pointsTracker.advice.missing', { count: miss, date: lastDayLabel, outbound: Math.ceil(miss / 2), other: miss })
         : nextTier ? t('pointsTracker.advice.toTier', { count: nextTier - r.totalPoints, tier: nextTier }) : t('pointsTracker.advice.top');
     const week = weekPoints(r);
-    type Sale = { key: string; date: string; name: string; meta: string; pts: number; counts: boolean; deal?: (typeof r.deals)[number] };
+    type Sale = { key: string; kind: 'crm' | 'pay'; date: string; name: string; meta: string; pts: number; counts: boolean; deal?: (typeof r.deals)[number] };
     const sales: Sale[] = [
       ...(r.deals || []).map((d) => ({
-        key: `d-${d.crm_deal_id}`, date: String(d.close_date).slice(0, 10), name: d.deal_name || d.account_name,
+        key: `d-${d.crm_deal_id}`, kind: 'crm' as const, date: String(d.close_date).slice(0, 10), name: d.deal_name || d.account_name,
         meta: `${d.lead_source_group || t('pointsTracker.sale.noSource')} · ${fmtDateOnly(d.close_date, { day: 'numeric', month: 'short' })}`,
         pts: Number(d.points) || 0, counts: r.includeDeals !== false, deal: d,
       })),
       ...(r.zentactMerchants || []).map((m) => ({
-        key: `z-${m.merchant_account_id}`, date: String(m.activated_at).slice(0, 10), name: m.business_name,
-        meta: `${t('pointsTracker.sale.activation')}${m.bonus_amount > 0 ? ` (${fmtMoney(m.bonus_amount, { decimals: 0 })})` : ''} · ${fmtDateOnly(m.activated_at, { day: 'numeric', month: 'short' })}`,
+        key: `z-${m.merchant_account_id}`, kind: 'pay' as const, date: String(m.activated_at).slice(0, 10), name: m.business_name,
+        meta: `${m.bonus_amount > 0 ? `${fmtMoney(m.bonus_amount, { decimals: 0 })} ${t('pointsTracker.sale.bonus')} · ` : ''}${fmtDateOnly(m.activated_at, { day: 'numeric', month: 'short' })}`,
         pts: Number(m.points) || 0, counts: r.includePayments !== false,
       })),
     ].sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -195,8 +196,12 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
               {sales.map((s) => {
                 const check = s.counts && (s.pts === 0 || (s.deal && !s.deal.lead_source_group));
                 return (
-                  <li key={s.key} className="flex items-center justify-between gap-2.5 border-b border-stroke py-2.5 last:border-0 dark:border-strokedark">
-                    <span className="flex min-w-0 flex-col gap-0.5">
+                  <li key={s.key} className="flex items-center gap-3 border-b border-stroke py-2.5 last:border-0 dark:border-strokedark">
+                    {/* Le type de vente se lit d'un coup d'œil : carte verte = activation de paiement, dossier orange = vente Zoho CRM. */}
+                    <span aria-hidden="true" className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] ${s.kind === 'pay' ? 'bg-[rgba(23,178,106,0.14)] text-[#067647] dark:text-[#57D193]' : 'bg-[rgba(245,131,69,0.14)] text-accent-ink dark:text-[#F79C6A]'}`}>
+                      {s.kind === 'pay' ? <CreditCard size={16} /> : <Briefcase size={16} />}
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="truncate text-sm font-medium text-black dark:text-white">{s.name}</span>
                       <span className="text-xs text-body dark:text-bodydark2">
                         {s.meta}
@@ -211,8 +216,11 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
                         <span><Button variant="link" size="sm" onClick={() => setEditingDeal(s.deal!.crm_deal_id)}>{t('pointsTracker.sale.changeSource')}</Button></span>
                       ))}
                     </span>
-                    <span className={`shrink-0 text-[13px] font-bold ${!s.counts ? 'text-body line-through dark:text-bodydark2' : check ? 'text-[#B42318] dark:text-[#F46060]' : 'text-[#067647] dark:text-[#57D193]'}`}>
-                      {check ? t('pointsTracker.sale.toCheck') : `+${s.pts} ${s.pts > 1 ? 'pts' : 'pt'}`}
+                    <span className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
+                      <StatusPill family={s.kind === 'pay' ? 'ok' : 'new'}>{s.kind === 'pay' ? t('pointsTracker.sale.activation') : t('pointsTracker.sale.typeCrm')}</StatusPill>
+                      <span className={`min-w-[52px] text-right text-[13px] font-bold ${!s.counts ? 'text-body line-through dark:text-bodydark2' : check ? 'text-[#B42318] dark:text-[#F46060]' : 'text-[#067647] dark:text-[#57D193]'}`}>
+                        {check ? t('pointsTracker.sale.toCheck') : `+${s.pts} ${s.pts > 1 ? 'pts' : 'pt'}`}
+                      </span>
                     </span>
                   </li>
                 );

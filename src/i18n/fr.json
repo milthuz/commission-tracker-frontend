@@ -2396,8 +2396,10 @@
       "closedMissed_other": "Mois terminé, quota manqué de {{count}} points."
     },
     "sale": {
+      "typeCrm": "Vente CRM",
+      "bonus": "de bonus",
       "noSource": "Source manquante",
-      "activation": "Activation de paiements",
+      "activation": "Activation paiement",
       "manualSource": "source corrigée à la main",
       "changeSource": "Changer la source",
       "toCheck": "À vérifier"
