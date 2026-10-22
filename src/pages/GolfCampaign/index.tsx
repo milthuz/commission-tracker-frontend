@@ -6,7 +6,7 @@ import Select from '../../components/Select';
 import TelephoneCopiable from '../../components/TelephoneCopiable';
 import { useAuth } from '../../context/AuthContext';
 import { authHeaders } from '../../lib/auth';
-import { Modal, PageHeader, StateCard, StatusPill, toast } from '../../components/ui';
+import { Modal, PageHeader, StateCard, StatusPill, dialog, toast } from '../../components/ui';
 import type { StatusFamily } from '../../components/ui';
 
 // Campagne golf (/golf-campaign) : appels aux clubs de golf (liste AGQ + répertoire GGGolf) pour
@@ -28,9 +28,10 @@ interface Club {
   id: string; name: string; contact_name: string | null; email: string | null; phone: string | null; address: string | null;
   source: string | null; gg_directory_name: string | null; is_cluster_client: boolean; zoho_client_name: string | null;
   zoho_status: string | null; mrr: string | null; status: Status; assigned_to: string | null;
-  callback_at: string | null; meeting_at: string | null; answers: Record<string, string>; notes: string | null; last_call_at: string | null;
+  callback_at: string | null; meeting_at: string | null; meeting_with: string | null; answers: Record<string, string>; notes: string | null; last_call_at: string | null;
 }
 interface Question { id: string; type: 'choice' | 'text' | 'yesno'; label: { en: string; fr: string }; options?: string[] }
+interface Visitor { email: string; name: string; slotMinutes: number }
 interface Person { email: string; name: string | null }
 interface Call { id: string; by_email: string; outcome: Status; note: string | null; created_at: string }
 
@@ -278,7 +279,6 @@ function ClubModal({ club, people, canManage, me, questions, script, lang, fmt, 
   const [contact, setContact] = useState({ contact_name: club.contact_name || '', email: club.email || '', phone: club.phone || '' });
   const [outcome, setOutcome] = useState<Status>(club.status === 'to_call' ? 'no_answer' : club.status);
   const [callbackAt, setCallbackAt] = useState(toLocalInput(club.callback_at));
-  const [meetingAt, setMeetingAt] = useState(toLocalInput(club.meeting_at));
   const [callNote, setCallNote] = useState('');
   const [calls, setCalls] = useState<Call[]>([]);
   const [busy, setBusy] = useState(false);
@@ -304,7 +304,7 @@ function ClubModal({ club, people, canManage, me, questions, script, lang, fmt, 
   };
   const logCall = async () => {
     setErr('');
-    if (outcome === 'meeting' && !meetingAt) return setErr(t('golf.needMeetingDate'));
+    if (outcome === 'meeting' && !club.meeting_at) return setErr(t('golf.visit.needBooking'));
     if (outcome === 'callback' && !callbackAt) return setErr(t('golf.needCallbackDate'));
     setBusy(true);
     try {
@@ -313,7 +313,7 @@ function ClubModal({ club, people, canManage, me, questions, script, lang, fmt, 
       if (!s.ok) return fail(s);
       const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/calls`, {
         method: 'POST', headers: jsonHeaders(),
-        body: JSON.stringify({ outcome, note: callNote, callback_at: fromLocalInput(callbackAt), meeting_at: fromLocalInput(meetingAt) }),
+        body: JSON.stringify({ outcome, note: callNote, callback_at: fromLocalInput(callbackAt), meeting_at: club.meeting_at }),
       });
       if (!r.ok) return fail(r);
       onSaved(await r.json()); setDirty(false); toast.success(t('golf.callLogged')); onClose();
@@ -358,7 +358,7 @@ function ClubModal({ club, people, canManage, me, questions, script, lang, fmt, 
           <h3 className="m-0 pt-2 text-sm font-bold text-black dark:text-white">{t('golf.callTitle')}</h3>
           <Select value={outcome} onChange={(v) => setOutcome(v as Status)} options={STATUSES.filter((s) => s !== 'to_call').map((s) => ({ value: s, label: t(`golf.status.${s}`) }))} />
           {outcome === 'callback' && <label className="block text-xs">{t('golf.callbackAt')}<input type="datetime-local" className={INPUT} value={callbackAt} onChange={(e) => setCallbackAt(e.target.value)} /></label>}
-          {outcome === 'meeting' && <label className="block text-xs">{t('golf.meetingAt')}<input type="datetime-local" className={INPUT} value={meetingAt} onChange={(e) => setMeetingAt(e.target.value)} /></label>}
+          {outcome === 'meeting' && <BookingPanel club={club} lang={lang} fmt={fmt} onSaved={onSaved} />}
           <textarea className={INPUT} rows={2} placeholder={t('golf.callNote')} value={callNote} onChange={(e) => setCallNote(e.target.value)} />
 
           {!!calls.length && (
@@ -395,6 +395,126 @@ function ClubModal({ club, people, canManage, me, questions, script, lang, fmt, 
   );
 }
 
+interface SlotDay { date: string; slots: string[] }
+interface BookResult { calendar: { ok?: boolean; skipped?: string; error?: string }; clientMail: { sent: boolean; reason?: string }; visitorMail: { sent: boolean } }
+
+// Rendez-vous en personne : les créneaux libres du visiteur (Google Agenda + visites déjà prises), un clic
+// pour réserver. L'événement part dans son agenda ; le club reçoit un courriel avec un fichier .ics.
+function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | 'fr'; fmt: (iso: string | null) => string; onSaved: (c: Club) => void }) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language?.startsWith('en') ? 'en-CA' : 'fr-CA';
+  const [days, setDays] = useState<SlotDay[] | null>(null);
+  const [visitor, setVisitor] = useState<Visitor | null>(null);
+  const [source, setSource] = useState('');
+  const [pick, setPick] = useState('');
+  const [choosing, setChoosing] = useState(!club.meeting_at);
+  const [notify, setNotify] = useState(!!club.email);
+  const [mailLang, setMailLang] = useState<'fr' | 'en'>(lang);
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [result, setResult] = useState<BookResult | null>(null);
+
+  const loadSlots = useCallback(async () => {
+    setErr('');
+    try {
+      const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/slots`, { headers: authHeaders() });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || String(r.status));
+      const j = await r.json();
+      setDays(j.days); setVisitor(j.visitor); setSource(j.source);
+    } catch (e) { setErr((e as Error).message); }
+  }, [club.id]);
+  useEffect(() => { loadSlots(); }, [loadSlots]);
+
+  const dayLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
+  const timeLabel = (iso: string) => new Date(iso).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', timeZone: 'America/Toronto' });
+
+  const book = async () => {
+    if (!pick) return setErr(t('golf.visit.pickFirst'));
+    setBusy(true); setErr(''); setResult(null);
+    try {
+      const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/meeting`, {
+        method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ at: pick, lang: mailLang, notify: notify && !!club.email, note }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        if (j.error === 'slot_taken') { setPick(''); await loadSlots(); return setErr(t('golf.visit.slotTaken')); }
+        return setErr(j.error || t('golf.saveFailed'));
+      }
+      onSaved(j.club); setResult(j); setChoosing(false); setPick(''); setNote('');
+    } finally { setBusy(false); }
+  };
+
+  const cancel = async () => {
+    if (!(await dialog.confirm(t('golf.visit.cancelBody'), { title: t('golf.visit.cancelTitle'), danger: true, confirmText: t('golf.visit.cancelYes'), cancelText: t('golf.visit.keep') }))) return;
+    setBusy(true); setErr('');
+    try {
+      const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/meeting?lang=${mailLang}&notify=${notify && club.email ? 1 : 0}`, { method: 'DELETE', headers: authHeaders() });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return setErr(j.error || t('golf.saveFailed'));
+      onSaved(j.club); setResult(null); setChoosing(true); await loadSlots();
+    } finally { setBusy(false); }
+  };
+
+  const calMsg = result && (result.calendar.ok ? t('golf.visit.calOk') : result.calendar.skipped ? t('golf.visit.calSkipped') : t('golf.visit.calError', { error: result.calendar.error || '' }));
+  const mailMsg = result && (result.clientMail.sent ? t('golf.visit.mailSent', { email: club.email }) : result.clientMail.reason === 'not_requested' ? t('golf.visit.mailOff') : result.clientMail.reason === 'no_club_email' ? t('golf.visit.mailNoEmail') : t('golf.visit.mailFailed'));
+
+  return (
+    <div className="space-y-3 rounded-xl border border-stroke p-3 dark:border-strokedark">
+      <div className="text-xs font-bold uppercase text-body dark:text-bodydark2">{t('golf.visit.title')}{visitor ? ` · ${t('golf.visit.with', { name: visitor.name })}` : ''}</div>
+
+      {club.meeting_at && !choosing && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-[10px] bg-[rgba(23,178,106,0.10)] px-3 py-2 text-sm">
+          <span className="font-bold text-[#067647] dark:text-[#57D193]">{t('golf.visit.booked', { when: fmt(club.meeting_at) })}</span>
+          <span className="flex gap-2">
+            <button type="button" className={BTN} disabled={busy} onClick={() => setChoosing(true)}>{t('golf.visit.move')}</button>
+            <button type="button" className={BTN} disabled={busy} onClick={cancel}>{t('golf.visit.cancel')}</button>
+          </span>
+        </div>
+      )}
+
+      {choosing && (
+        <>
+          {days === null && !err && <p className="m-0 text-sm text-body dark:text-bodydark2">{t('golf.visit.loading')}</p>}
+          {days && !days.some((d) => d.slots.length) && <p className="m-0 text-sm text-body dark:text-bodydark2">{t('golf.visit.noSlots')}</p>}
+          {days && days.map((d) => d.slots.length > 0 && (
+            <div key={d.date} className="flex flex-wrap items-center gap-1.5">
+              <span className="w-20 shrink-0 text-xs font-bold capitalize text-black dark:text-white">{dayLabel(d.date)}</span>
+              {d.slots.map((iso) => (
+                <button key={iso} type="button" aria-pressed={pick === iso} onClick={() => setPick(iso)}
+                  className={`rounded-full border px-2.5 py-1 text-xs font-bold ${pick === iso ? 'border-primary bg-primary text-[#141414]' : 'border-stroke text-black hover:border-primary dark:border-strokedark dark:text-white'}`}>
+                  {timeLabel(iso)}
+                </button>
+              ))}
+            </div>
+          ))}
+          {source === 'saleshub' && <p className="m-0 text-xs text-body dark:text-bodydark2">{t('golf.visit.sourceSalesHub')}</p>}
+
+          <input className={INPUT} placeholder={t('golf.visit.note')} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} />
+          <label className="flex items-center gap-2 text-xs">
+            <input type="checkbox" checked={notify && !!club.email} disabled={!club.email} onChange={(e) => setNotify(e.target.checked)} />
+            {club.email ? t('golf.visit.notify', { email: club.email }) : t('golf.visit.notifyNoEmail')}
+          </label>
+          {club.email && notify && (
+            <div className="w-44"><Select value={mailLang} onChange={(v) => setMailLang(v as 'fr' | 'en')} options={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} /></div>
+          )}
+          <div className="flex gap-2">
+            <button type="button" className={BTN_PRIMARY} disabled={busy || !pick} onClick={book}>{club.meeting_at ? t('golf.visit.confirmMove') : t('golf.visit.book')}</button>
+            {club.meeting_at && <button type="button" className={BTN} disabled={busy} onClick={() => { setChoosing(false); setPick(''); }}>{t('golf.visit.keep')}</button>}
+          </div>
+        </>
+      )}
+
+      {err && <p role="alert" className="m-0 text-sm font-bold text-[#B42318] dark:text-[#F46060]">{err}</p>}
+      {result && (
+        <ul className="m-0 list-none space-y-0.5 p-0 text-xs text-body dark:text-bodydark2">
+          <li>{calMsg}</li><li>{mailMsg}</li>
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function AddModal({ onClose, onAdded }: { onClose: () => void; onAdded: (c: Club) => void }) {
   const { t } = useTranslation();
   const [f, setF] = useState({ name: '', contact_name: '', email: '', phone: '' });
@@ -426,6 +546,10 @@ function QuestionnaireModal({ questions, script, onClose, onSaved }: { questions
   const { t } = useTranslation();
   const [list, setList] = useState<Question[]>(questions);
   const [sc, setSc] = useState(script);
+  const [visitor, setVisitor] = useState<Visitor | null>(null);
+  useEffect(() => {
+    fetch(`${API_URL}/api/golf-campaign/visitor`, { headers: authHeaders() }).then((r) => (r.ok ? r.json() : null)).then((j) => j && setVisitor(j.visitor)).catch(() => {});
+  }, []);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const upd = (i: number, patch: Partial<Question>) => setList(list.map((x, k) => (k === i ? { ...x, ...patch } : x)));
@@ -436,6 +560,10 @@ function QuestionnaireModal({ questions, script, onClose, onSaved }: { questions
       if (!r.ok) return setErr(t('golf.questionnaireInvalid'));
       const r2 = await fetch(`${API_URL}/api/golf-campaign/script`, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify({ script: sc }) });
       if (!r2.ok) return setErr(t('golf.scriptInvalid'));
+      if (visitor) {
+        const r3 = await fetch(`${API_URL}/api/golf-campaign/visitor`, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify(visitor) });
+        if (!r3.ok) return setErr(t('golf.visit.visitorInvalid'));
+      }
       onSaved((await r.json()).questions, (await r2.json()).script);
     } finally { setBusy(false); }
   };
@@ -455,6 +583,19 @@ function QuestionnaireModal({ questions, script, onClose, onSaved }: { questions
             <textarea className={INPUT} rows={5} placeholder="English" value={sc.en} onChange={(e) => setSc({ ...sc, en: e.target.value })} />
           </div>
         </div>
+        {visitor && (
+          <div className="rounded-xl border border-stroke p-3 dark:border-strokedark">
+            <div className="mb-1 text-sm font-bold text-black dark:text-white">{t('golf.visit.visitorTitle')}</div>
+            <p className="m-0 mb-2 text-xs text-body dark:text-bodydark2">{t('golf.visit.visitorHelp')}</p>
+            <div className="grid gap-2 md:grid-cols-3">
+              <input className={INPUT} placeholder={t('golf.f.contactName')} value={visitor.name} onChange={(e) => setVisitor({ ...visitor, name: e.target.value })} />
+              <input className={INPUT} placeholder={t('golf.f.email')} value={visitor.email} onChange={(e) => setVisitor({ ...visitor, email: e.target.value })} />
+              <label className="flex items-center gap-2 text-xs">{t('golf.visit.minutes')}
+                <input type="number" min={15} max={240} step={15} className={INPUT} value={visitor.slotMinutes} onChange={(e) => setVisitor({ ...visitor, slotMinutes: Number(e.target.value) })} />
+              </label>
+            </div>
+          </div>
+        )}
         {list.map((qn, i) => (
           <div key={qn.id} className="rounded-xl border border-stroke p-3 dark:border-strokedark">
             <div className="grid gap-2 md:grid-cols-2">
