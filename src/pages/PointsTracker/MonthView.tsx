@@ -191,7 +191,7 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
           <div className="flex flex-col">
             <span className="mb-1 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t('pointsTracker.recentSales')}</span>
             {sales.length === 0 && <p className="m-0 py-2 text-sm text-body dark:text-bodydark2">{t('pointsTracker.noSales')}</p>}
-            <ul className="m-0 max-h-[340px] list-none overflow-y-auto p-0">
+            <ul className={`m-0 list-none p-0 ${repMode ? 'max-h-[340px] overflow-y-auto' : ''}`}>
               {sales.map((s) => {
                 const check = s.counts && (s.pts === 0 || (s.deal && !s.deal.lead_source_group));
                 return (
@@ -238,7 +238,7 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
     // « Ton mois » ; pour un gestionnaire, le détail du représentant choisi, sous la liste.
     {
       return (
-        <section id="pt-detail" aria-labelledby="pt-rep-h" className={`${card} grid grid-cols-1 gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)] sm:p-6`}>
+        <section id="pt-detail" aria-labelledby="pt-rep-h" className={`${card} grid grid-cols-1 gap-5 p-5 sm:p-6 ${repMode ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)]' : 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]'}`}>
           <div className="flex min-w-0 flex-col gap-4">
             {repMode && <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-accent-ink dark:text-[#F79C6A]">{t('pointsTracker.yourMonth', { month: monthLabel })}</span>}
             {parts.head}
@@ -250,7 +250,8 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
             {parts.chart}
             {parts.advice}
           </div>
-          <div className="min-w-0">{parts.sales}</div>
+          {/* Gestionnaire : les dernières ventes du représentant passent sous les chiffres et la courbe, pleine largeur. */}
+          <div className={repMode ? 'min-w-0' : 'min-w-0 border-t border-stroke pt-4 dark:border-strokedark lg:col-span-2'}>{parts.sales}</div>
         </section>
       );
     }
