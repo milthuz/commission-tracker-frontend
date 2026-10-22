@@ -54,6 +54,8 @@ export interface PayrollAgg {
   conByMap: Record<PnlMap, Series>;
   payNN: Series;
   payEX: Series;
+  /** SH-49 : part IMPLEMENTATION de payNN (absente d'un serveur plus ancien → zéros). */
+  payImpl?: Series;
   lines: Record<string, Series>;
   headcount: number;
   contractorCount: number;
@@ -93,11 +95,13 @@ export function computePayroll(roster: Roster, g: PayrollGlobals, payCodes: stri
   const conByMap = Object.fromEntries(MAPS.map((mp) => [mp, sumM(con.filter((c) => c.map === mp))])) as Record<PnlMap, Series>;
   const payNN = sumM(emp.filter((e) => e.map === 'Service COGS' && NET_NEW_RE.test(e.dept)));
   const payEX = sumM(emp.filter((e) => e.map === 'Service COGS' && !NET_NEW_RE.test(e.dept)));
+  // SH-49 : la part IMPLEMENTATION de payNN (scindée Net New / Existing par le driver implNnPct).
+  const payImpl = sumM(emp.filter((e) => e.map === 'Service COGS' && /IMPLEMENTATION/.test(e.dept) && !/NET NEW/.test(e.dept)));
   const deptPay = (d: string) => sumM(emp.filter((e) => (d === 'R&D' ? e.map === 'R&D' : e.dept === d || (d === 'OPERATIONS' && e.dept === 'CONTROL PLUS'))));
   const lines: Record<string, Series> = {};
   for (const code of payCodes) lines[code] = code.startsWith('con:') ? conByMap[code.slice(4) as PnlMap] || z12() : deptPay(code);
   return {
-    emp, con, payByMap, conByMap, payNN, payEX, lines,
+    emp, con, payByMap, conByMap, payNN, payEX, payImpl, lines,
     headcount: emp.length, contractorCount: con.length, payTot: sumM(emp), conTot: sumM(con),
   };
 }
@@ -119,11 +123,20 @@ export function masterCount(payCodes: string[], p: { map: PnlMap; dept: string }
 
 // ---------------------------------------------------------------------------- drivers 2027
 // Inputs du mois i : l'ajustement de la CFO s'il existe, sinon la valeur par défaut.
+// SH-49 — COGS de service en deux blocs (Net New Delivery / Existing Service), réponses de la CFO
+// du 2026-10-22. GARDER IDENTIQUE à SERVICE_COGS_DRIVERS de services/finance/handoff.js (le serveur
+// les ajoute à la référence ; ces défauts servent si une référence plus ancienne ne les a pas).
+// Les défauts laissent le total des COGS de service identique au prototype.
+export const SERVICE_COGS_DRIVERS: Record<string, number> = {
+  implNnPct: 50, svcSwNnPct: 50, bufferNnPct: 50, nnImplSw: 0, exImplSw: 0, nnAuto: 0, exAuto: 0,
+};
+
 export function driverInputs(ref: Reference, st: DriverState): Record<string, Series> {
   const I: Record<string, Series> = {};
-  for (const k of Object.keys(ref.drvDefaults)) {
+  const defs = { ...SERVICE_COGS_DRIVERS, ...ref.drvDefaults };
+  for (const k of Object.keys(defs)) {
     const o = st.drv[k];
-    I[k] = z12().map((_, i) => { const v = o && o[i] != null ? o[i] : ref.drvDefaults[k]; return +v || 0; });
+    I[k] = z12().map((_, i) => { const v = o && o[i] != null ? o[i] : defs[k]; return +v || 0; });
   }
   return I;
 }
@@ -176,6 +189,29 @@ export function computeDrivers(ref: Reference, I: Record<string, Series>, pay: P
   // plus à rien — inputs morts du prototype, gardés pour l'égalité des chiffres).
   Rm.recCogs = Rm.recCogs.map((v, i) => v - I.supportWages[i] - I.supportContr[i] + pay.payByMap['Recurring COGS'][i] + pay.conByMap['Recurring COGS'][i]);
   Rm.svcCogs = Rm.svcCogs.map((v, i) => v - I.nnWages[i] - I.exWages[i] + pay.payNN[i] + pay.payEX[i] + pay.conByMap['Service COGS'][i]);
+  // SH-49 : les COGS de service en deux blocs. Chaque ancienne ligne est RÉPARTIE (rien n'est
+  // perdu ni compté deux fois) ; seules l'automobile et les logiciels d'implémentation sont des
+  // dépenses nouvelles (0 $ par défaut) — d'où un total identique au prototype par défaut.
+  {
+    const impl = pay.payImpl || z12();
+    const share = (k: string, i: number) => I[k][i] / 100;
+    Rm.nnDelWages = pay.payNN.map((v, i) => v - impl[i]);
+    Rm.nnImplWages = impl.map((v, i) => v * share('implNnPct', i));
+    Rm.exImplWages = impl.map((v, i) => v * (1 - share('implNnPct', i)));
+    Rm.exSvcWages = pay.payEX.map((v, i) => v + pay.conByMap['Service COGS'][i]);
+    Rm.nnSw = I.svcSw.map((v, i) => v * share('svcSwNnPct', i));
+    Rm.exSw = I.svcSw.map((v, i) => v * (1 - share('svcSwNnPct', i)));
+    Rm.nnImplSw = I.nnImplSw; Rm.exImplSw = I.exImplSw;
+    Rm.nnAuto = I.nnAuto; Rm.exAuto = I.exAuto;
+    // Sous-traitants : les jobs des nouveaux clients → Net New, les visites sur place → Existing,
+    // et le coussin réparti entre les deux.
+    Rm.nnContr = Rm.halukJobs.map((v, i) => v * I.jobCost[i] + I.buffer[i] * share('bufferNnPct', i));
+    Rm.exContr = I.onsites.map((v, i) => v * I.jobCost[i] + I.buffer[i] * (1 - share('bufferNnPct', i)));
+    const add = (...ks: string[]) => z12().map((_, i) => ks.reduce((a, k) => a + Rm[k][i], 0));
+    Rm.nnSvc = add('nnDelWages', 'nnImplWages', 'nnSw', 'nnImplSw', 'nnAuto', 'nnContr');
+    Rm.exSvc = add('exSvcWages', 'exImplWages', 'exSw', 'exImplSw', 'exAuto', 'exContr');
+    Rm.svcCogs = Rm.nnSvc.map((v, i) => v + Rm.exSvc[i] + I.travel[i]);
+  }
   Rm.totCogs = Rm.recCogs.map((v, i) => v + Rm.hwCogs[i] + Rm.svcCogs[i] + Rm.licCogs[i]);
   Rm.supportWages = pay.payByMap['Recurring COGS'];
   Rm.supportContr = pay.conByMap['Recurring COGS'];
@@ -313,10 +349,14 @@ export const COGS_GL: Record<RevCat, string[]> = {
   // Ordre de la CFO (SH-48) : hébergement avant les versements récurrents.
   recurring: ['supportWages', 'supportContr', 'supportSw', 'merchantFees', 'platformFees', 'hosting', 'payout'],
   hardware: ['clHwCogs', 'xpHwCogs'],
-  service: ['nnWages', 'exWages', 'svcContr', 'travel', 'svcSw'],
+  // SH-49 : deux blocs, chacun suivi de son sous-total (GL_SUB_KEYS), puis les déplacements.
+  service: ['nnDelWages', 'nnImplWages', 'nnSw', 'nnImplSw', 'nnAuto', 'nnContr', 'nnSvc',
+    'exSvcWages', 'exImplWages', 'exSw', 'exImplSw', 'exAuto', 'exContr', 'exSvc', 'travel'],
   licence: ['licCogs'],
 };
-export const PAYROLL_KEYS = new Set(['supportWages', 'supportContr', 'nnWages', 'exWages']);
+export const PAYROLL_KEYS = new Set(['supportWages', 'supportContr', 'nnWages', 'exWages', 'nnDelWages', 'nnImplWages', 'exSvcWages', 'exImplWages']);
+// Sous-totaux de bloc dans le détail des COGS du Budget maître (SH-49).
+export const GL_SUB_KEYS = new Set(['nnSvc', 'exSvc']);
 
 export function computeMaster(ref: Reference, Rm: Record<string, Series>, ox: ReturnType<typeof opexBySection>) {
   const rev: Record<RevCat, Series> = { recurring: Rm.recurring, hardware: Rm.totalHW, service: Rm.totalSvc, licence: Rm.lic };

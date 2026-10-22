@@ -111,15 +111,17 @@ ok(!rev.some((k) => cogs.includes(k)), 'aucun driver n\'est à la fois des reven
 
 // ============================================================================ calculs du serveur = le vrai modèle
 const M = build(path.join(SRC, 'model.ts'), 'finance-model-progress');
-const { extractHandoff } = require(path.join(BACK, 'handoff.js'));
-const { reference: ref } = extractHandoff(DIR);
+const { extractHandoff, applyCfoAdjustments } = require(path.join(BACK, 'handoff.js'));
+// La référence telle que l'import l'écrit (prototype + corrections de la CFO, dont les drivers SH-49).
+const ref = applyCfoAdjustments(extractHandoff(DIR).reference);
 const defKeys = Object.keys(ref.drvDefaults);
 ok([...rev, ...cogs].every((k) => defKeys.includes(k)), 'tous les drivers saisissables existent dans la référence de la CFO');
 const paidByPayroll = defKeys.filter((k) => ![...rev, ...cogs].includes(k));
 ok(paidByPayroll.length === 4 && ['supportWages', 'supportContr', 'nnWages', 'exWages'].every((k) => paidByPayroll.includes(k)), 'les seules lignes non suivies sont les 4 lignes alimentées par la paie');
 
 const lines = C.buildLines(ref);
-ok(lines.filter((l) => l.kind === 'driver').length === 45 && new Set(lines.map((l) => l.key)).size === lines.length, '45 drivers suivis, identifiants uniques');
+// 45 + 7 drivers des COGS de service en deux blocs (SH-49).
+ok(lines.filter((l) => l.kind === 'driver').length === 52 && new Set(lines.map((l) => l.key)).size === lines.length, '52 drivers suivis, identifiants uniques');
 const noPay = { lines: {} };
 const modelOpex = M.computeOpex(ref, { opx: {}, opxG: {} }, [], noPay, 1);
 const editableByModel = modelOpex.rows.filter((r) => r.kind === 'line' && r.editable).map((r) => r.key).sort();

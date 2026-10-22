@@ -198,7 +198,14 @@
           "buffer": "Buffer for outside service partners",
           "travel": "Service travel, meals, auto",
           "svcSw": "Service software, phone, hardware and other",
-          "licPct": "Licence COGS %"
+          "licPct": "Licence COGS %",
+          "implNnPct": "Implementation payroll charged to Net New (%)",
+          "svcSwNnPct": "Service software charged to Net New (%)",
+          "bufferNnPct": "Contractor buffer kept for Net New (%)",
+          "nnImplSw": "Net New implementation software costs",
+          "exImplSw": "Existing implementation software costs",
+          "nnAuto": "Net New Delivery automobile",
+          "exAuto": "Existing Service automobile"
         },
         "owners": {
           "title": "Owners",
@@ -475,7 +482,14 @@
           "buffer": "Marge pour les partenaires de service externes",
           "travel": "Déplacements, repas et auto — service",
           "svcSw": "Logiciels, téléphonie, matériel et autres — service",
-          "licPct": "COGS des licences %"
+          "licPct": "COGS des licences %",
+          "implNnPct": "Paie d'implémentation imputée aux nouveaux clients (%)",
+          "svcSwNnPct": "Logiciels du service imputés aux nouveaux clients (%)",
+          "bufferNnPct": "Coussin des sous-traitants gardé pour les nouveaux clients (%)",
+          "nnImplSw": "Logiciels d'implémentation — nouveaux clients",
+          "exImplSw": "Logiciels d'implémentation — clients existants",
+          "nnAuto": "Automobile — livraison nouveaux clients",
+          "exAuto": "Automobile — service clients existants"
         },
         "owners": {
           "title": "Responsables",

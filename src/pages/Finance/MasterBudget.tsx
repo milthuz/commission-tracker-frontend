@@ -9,7 +9,7 @@ import { Card, FinanceHeader, FinTable, Kpi, KpiRow, type FRow } from './compone
 import { useFinance } from './FinanceContext';
 import { PAGES } from './DriverPages';
 import { downloadCsv, type Fmt } from './format';
-import { COGS_GL, OPEX_SECTIONS, PAYROLL_KEYS, REV_CATS, REV_GL, opexDetailBySection, ratio, sum, type RevCat, type Series } from './model';
+import { COGS_GL, GL_SUB_KEYS, OPEX_SECTIONS, PAYROLL_KEYS, REV_CATS, REV_GL, opexDetailBySection, ratio, sum, type RevCat, type Series } from './model';
 import { COGS_KEYS } from './rows';
 
 const OPEX_SEC_ID: Record<(typeof OPEX_SECTIONS)[number], string> = {
@@ -50,7 +50,8 @@ export default function MasterBudget() {
           ...(payload.caps.canPayroll ? { onClick: () => goTo(PAGES.payroll), linkCells: true } : {}) };
       }
       const page = COGS_KEYS.has(k) ? PAGES.cogs : PAGES.drivers;
-      return { id: `gl:${k}`, kind: 'gl', label: t(`finance.gl.${k}`), vals, total: sum(vals), cellFmt: 's',
+      // Sous-total d'un bloc (SH-49 : Net New Delivery / Existing Service) : en gras dans le détail.
+      return { id: `gl:${k}`, kind: GL_SUB_KEYS.has(k) ? 'glsub' : 'gl', label: t(`finance.gl.${k}`), vals, total: sum(vals), cellFmt: 's',
         onClick: () => goTo(page, k), onCellClick: toPage(page, k) };
     };
     // Ligne de synthèse de la page des drivers (haut de page) qui calcule chaque catégorie.

@@ -9320,7 +9320,9 @@
       "recurringCogsDrivers": "Recurring COGS Drivers",
       "hardwareCogsDrivers": "Hardware COGS Drivers",
       "serviceCogsDrivers": "Service COGS Drivers",
-      "licenceCogsDrivers": "Licence COGS Drivers"
+      "licenceCogsDrivers": "Licence COGS Drivers",
+      "nnDeliveryCogs": "Net New Delivery",
+      "exServiceCogs": "Existing Service"
     },
     "rows": {
       "subscriptionRevenue": "Subscription Revenue",
@@ -9426,7 +9428,25 @@
       "buffer": "Buffer for MFS, F3, Washburn",
       "licRevenue": "Licence Revenue",
       "licPct": "Licence COGS %",
-      "totalLicCogs": "Total Licence COGS"
+      "totalLicCogs": "Total Licence COGS",
+      "nnSvc": "Net New Delivery",
+      "exSvc": "Existing Service",
+      "nnDelWages": "Net New Delivery Wages & Salaries",
+      "nnImplWages": "Net New Delivery Implementation Wages & Salaries",
+      "nnSw": "Net New Delivery Software Costs",
+      "nnImplSw": "Net New Implementation Software Costs",
+      "nnAuto": "Net New Delivery Automobile",
+      "nnContr": "Net New Third Party Contractors",
+      "exSvcWages": "Existing Service Wages & Salaries",
+      "exImplWages": "Existing Service Implementation Wages & Salaries",
+      "exSw": "Existing Service Software Costs",
+      "exImplSw": "Existing Implementation Software Costs",
+      "exAuto": "Existing Service Automobile",
+      "exContr": "Existing Service Third Party Contractors",
+      "implNnPct": "Implementation payroll charged to Net New (%)",
+      "svcSwTotal": "Service software costs (total, split below)",
+      "svcSwNnPct": "Service software charged to Net New (%)",
+      "bufferNnPct": "Contractor buffer kept for Net New (%)"
     },
     "gl": {
       "canSub": "CAN Subscription Revenue",
@@ -9459,7 +9479,21 @@
       "svcContr": "Service Contractors",
       "travel": "Service Travel, Meals, Auto",
       "svcSw": "Service Software, Phone, Hardware & Other",
-      "licCogs": "Licence COGS"
+      "licCogs": "Licence COGS",
+      "nnSvc": "Net New Delivery",
+      "exSvc": "Existing Service",
+      "nnDelWages": "Net New Delivery Wages & Salaries",
+      "nnImplWages": "Net New Delivery Implementation Wages & Salaries",
+      "nnSw": "Net New Delivery Software Costs",
+      "nnImplSw": "Net New Implementation Software Costs",
+      "nnAuto": "Net New Delivery Automobile",
+      "nnContr": "Net New Third Party Contractors",
+      "exSvcWages": "Existing Service Wages & Salaries",
+      "exImplWages": "Existing Service Implementation Wages & Salaries",
+      "exSw": "Existing Service Software Costs",
+      "exImplSw": "Existing Implementation Software Costs",
+      "exAuto": "Existing Service Automobile",
+      "exContr": "Existing Service Third Party Contractors"
     },
     "opexLines": {
       "smSalesWages": "Sales Wages & Salaries",

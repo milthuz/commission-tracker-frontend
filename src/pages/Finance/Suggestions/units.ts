@@ -15,4 +15,6 @@ export const CATALOG_UNITS: Record<string, Unit> = {
   supportSw: MONEY, merchantFees: MONEY, platformFees: MONEY, hostingG: GROWTH, resellerSaasG: GROWTH,
   revShare: SHARE, clusterHwPct: SHARE, xperioHwPct: SHARE, halukPct: SHARE, onsites: COUNT,
   jobCost: MONEY, buffer: MONEY, travel: MONEY, svcSw: MONEY, licPct: SHARE,
+  // SH-49 : COGS de service en deux blocs.
+  implNnPct: SHARE, svcSwNnPct: SHARE, bufferNnPct: SHARE, nnImplSw: MONEY, exImplSw: MONEY, nnAuto: MONEY, exAuto: MONEY,
 };

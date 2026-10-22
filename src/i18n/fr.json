@@ -9320,7 +9320,9 @@
       "recurringCogsDrivers": "Drivers des COGS récurrents",
       "hardwareCogsDrivers": "Drivers des COGS du matériel",
       "serviceCogsDrivers": "Drivers des COGS des services",
-      "licenceCogsDrivers": "Drivers des COGS des licences"
+      "licenceCogsDrivers": "Drivers des COGS des licences",
+      "nnDeliveryCogs": "Livraison — nouveaux clients",
+      "exServiceCogs": "Service — clients existants"
     },
     "rows": {
       "subscriptionRevenue": "Revenus d'abonnement",
@@ -9426,7 +9428,25 @@
       "buffer": "Marge pour MFS, F3, Washburn",
       "licRevenue": "Revenus de licences",
       "licPct": "COGS des licences %",
-      "totalLicCogs": "Total des COGS des licences"
+      "totalLicCogs": "Total des COGS des licences",
+      "nnSvc": "Livraison — nouveaux clients",
+      "exSvc": "Service — clients existants",
+      "nnDelWages": "Salaires — livraison nouveaux clients",
+      "nnImplWages": "Salaires — implémentation nouveaux clients",
+      "nnSw": "Logiciels — livraison nouveaux clients",
+      "nnImplSw": "Logiciels — implémentation nouveaux clients",
+      "nnAuto": "Automobile — livraison nouveaux clients",
+      "nnContr": "Sous-traitants — nouveaux clients",
+      "exSvcWages": "Salaires — service clients existants",
+      "exImplWages": "Salaires — implémentation clients existants",
+      "exSw": "Logiciels — service clients existants",
+      "exImplSw": "Logiciels — implémentation clients existants",
+      "exAuto": "Automobile — service clients existants",
+      "exContr": "Sous-traitants — clients existants",
+      "implNnPct": "Paie d'implémentation imputée aux nouveaux clients (%)",
+      "svcSwTotal": "Logiciels du service (total, réparti plus haut)",
+      "svcSwNnPct": "Logiciels du service imputés aux nouveaux clients (%)",
+      "bufferNnPct": "Coussin des sous-traitants gardé pour les nouveaux clients (%)"
     },
     "gl": {
       "canSub": "Revenus d'abonnement CAN",
@@ -9459,7 +9479,21 @@
       "svcContr": "Contractuels de service",
       "travel": "Déplacements, repas et auto — service",
       "svcSw": "Logiciels, téléphonie, matériel et autres — service",
-      "licCogs": "COGS des licences"
+      "licCogs": "COGS des licences",
+      "nnSvc": "Livraison — nouveaux clients",
+      "exSvc": "Service — clients existants",
+      "nnDelWages": "Salaires — livraison nouveaux clients",
+      "nnImplWages": "Salaires — implémentation nouveaux clients",
+      "nnSw": "Logiciels — livraison nouveaux clients",
+      "nnImplSw": "Logiciels — implémentation nouveaux clients",
+      "nnAuto": "Automobile — livraison nouveaux clients",
+      "nnContr": "Sous-traitants — nouveaux clients",
+      "exSvcWages": "Salaires — service clients existants",
+      "exImplWages": "Salaires — implémentation clients existants",
+      "exSw": "Logiciels — service clients existants",
+      "exImplSw": "Logiciels — implémentation clients existants",
+      "exAuto": "Automobile — service clients existants",
+      "exContr": "Sous-traitants — clients existants"
     },
     "opexLines": {
       "smSalesWages": "Salaires — ventes",

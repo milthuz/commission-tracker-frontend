@@ -136,7 +136,11 @@ export const COGS_GROUP: Record<string, GroupId> = {
   supportWages: 'support_ops', supportContr: 'support_ops', supportSw: 'support_ops', hosting: 'support_ops',
   merchantFees: 'accounting', platformFees: 'accounting', payout: 'sales',
   clHwCogs: 'support_ops', xpHwCogs: 'support_ops',
-  nnWages: 'support_ops', exWages: 'support_ops', svcContr: 'support_ops', travel: 'support_ops', svcSw: 'support_ops', licCogs: 'support_ops',
+  // SH-49 : COGS de service détaillés en deux blocs ; ils remplacent nnWages, exWages, svcContr et
+  // svcSw, qu'ils répartissent (garder les deux compterait ces montants deux fois).
+  nnDelWages: 'support_ops', nnImplWages: 'support_ops', nnSw: 'support_ops', nnImplSw: 'support_ops', nnAuto: 'support_ops', nnContr: 'support_ops',
+  exSvcWages: 'support_ops', exImplWages: 'support_ops', exSw: 'support_ops', exImplSw: 'support_ops', exAuto: 'support_ops', exContr: 'support_ops',
+  travel: 'support_ops', licCogs: 'support_ops',
 };
 const MAP_GROUP: Record<string, GroupId> = { 'S&M': 'sales', 'R&D': 'rnd', 'G&A': 'accounting', 'Recurring COGS': 'support_ops', 'Service COGS': 'support_ops' };
 const MAP_KEY: Record<string, string> = { 'S&M': 'sm', 'R&D': 'rd', 'G&A': 'ga', 'Recurring COGS': 'recurringCogs', 'Service COGS': 'serviceCogs' };
