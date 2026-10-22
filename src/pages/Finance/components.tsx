@@ -136,7 +136,8 @@ export function NumCell({ value, onChange, disabled, label, width = 'w-[84px]', 
 }
 
 // ---------------------------------------------------------------------------- tableau
-export type RowKind = 'sec' | 'line' | 'sub' | 'grand' | 'pct' | 'gl';
+// 'glsub' : sous-total à l'intérieur d'un détail déplié (OPEX du Budget maître, SH-48).
+export type RowKind = 'sec' | 'line' | 'sub' | 'grand' | 'pct' | 'gl' | 'glsub';
 export interface FRow {
   id: string;
   label: React.ReactNode;
@@ -165,6 +166,7 @@ const ROW_CLS: Record<RowKind, string> = {
   grand: 'font-bold text-black dark:text-white [&>td]:border-t [&>td]:border-t-[#141414] dark:[&>td]:border-t-white [&>td]:border-b-[3px] [&>td]:border-b-[#141414] dark:[&>td]:border-b-white [&>td]:[border-bottom-style:double]',
   pct: 'italic text-body dark:text-bodydark2',
   gl: 'text-[#424242] dark:text-bodydark [&>td]:bg-[#FAFAFA] dark:[&>td]:bg-[#121214]',
+  glsub: 'font-bold text-[#141414] dark:text-white [&>td]:bg-[#FAFAFA] dark:[&>td]:bg-[#121214] [&>td]:border-t [&>td]:border-t-[#C9C9C5] dark:[&>td]:border-t-[#3A3C42]',
 };
 
 export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label, vsLabel, labelHead, editable, focus, focusMonth }: {
@@ -217,7 +219,7 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
             const labelInner = (
               // flex-wrap + a label floor: a driver's chips (suggestion, status, Approve) are ~300 px and
               // never shrink, so without these the label was squeezed to one word per line under them.
-              <span className={`flex flex-wrap items-center gap-x-1.5 gap-y-1 ${r.kind === 'gl' ? 'pl-5' : ''}`}>
+              <span className={`flex flex-wrap items-center gap-x-1.5 gap-y-1 ${r.kind === 'gl' || r.kind === 'glsub' ? 'pl-5' : ''}`}>
                 {r.expand && <span aria-hidden className="inline-block w-3 text-[10px] text-body">{r.expand.open ? '▾' : '▸'}</span>}
                 <span className="min-w-[180px] flex-1 whitespace-normal">{r.label}</span>
                 {r.extra}
@@ -231,7 +233,7 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
             const cellText = (v: number | null | undefined) => (v == null ? '' : fmt.fmt(v, f));
             return (
               <tr key={r.id} data-focus={r.focus} className={`${ROW_CLS[r.kind]} ${hl ? HL_ROW : ''}`}>
-                <td className={`${tdBase} sticky left-0 z-[1] min-w-[300px] max-w-[380px] text-left ${hl ? 'bg-[#FFF4DB] dark:bg-[#2A2410]' : 'bg-white dark:bg-boxdark'} ${r.kind === 'sub' ? '!bg-[#F5F5F5] dark:!bg-[#161718]' : ''} ${r.kind === 'gl' ? '!bg-[#FAFAFA] dark:!bg-[#121214]' : ''}`}>{label}</td>
+                <td className={`${tdBase} sticky left-0 z-[1] min-w-[300px] max-w-[380px] text-left ${hl ? 'bg-[#FFF4DB] dark:bg-[#2A2410]' : 'bg-white dark:bg-boxdark'} ${r.kind === 'sub' ? '!bg-[#F5F5F5] dark:!bg-[#161718]' : ''} ${r.kind === 'gl' || r.kind === 'glsub' ? '!bg-[#FAFAFA] dark:!bg-[#121214]' : ''}`}>{label}</td>
                 {showFy26 && <td className={`${td} ${totalCls}`}>{r.fy26 == null ? '' : fmt.fmt(r.fy26, f)}</td>}
                 {months.map((_, i) => {
                   const hlCell = hl && focusMonth === i;

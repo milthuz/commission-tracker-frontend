@@ -35,7 +35,8 @@ export interface Reference {
 
 export interface DriverState { drv: Record<string, Series> }
 export interface OpexState { opx: Record<string, Record<string, number>>; opxG: Record<string, number> }
-export interface PayrollGlobals { burden: number; raise: number; raiseMo: number }
+// deptRaise (SH-48) : hausse par code de département ; absent = suit `raise`.
+export interface PayrollGlobals { burden: number; raise: number; raiseMo: number; deptRaise?: Record<string, number> }
 
 export interface Employee {
   id: number; ent: string; dept: string; name: string; salary: number; salaryBase: number | null; alloc: number; map: PnlMap;
@@ -76,8 +77,11 @@ const active = (p: { startMo: number | null; endMo: number | null }, k: number) 
   k >= (p.startMo == null ? 0 : p.startMo) && (p.endMo == null || k <= p.endMo);
 
 export function computePayroll(roster: Roster, g: PayrollGlobals, payCodes: string[]): PayrollCalc {
+  const deptRaise = g.deptRaise || {};
   const emp: EmployeeCalc[] = roster.employees.map((e) => {
-    const raise = e.raisePct == null ? g.raise : e.raisePct;
+    // Priorité (SH-48) : hausse de l'employé > hausse de son département > hausse globale.
+    const dRaise = deptRaise[e.dept] == null ? g.raise : deptRaise[e.dept];
+    const raise = e.raisePct == null ? dRaise : e.raisePct;
     const raiseMoV = e.raiseMo == null ? g.raiseMo : e.raiseMo;
     const burden = e.burdenPct == null ? g.burden : e.burdenPct;
     const incl = e.salary * e.alloc;
@@ -262,6 +266,38 @@ export function opexBySection(ref: Reference, opex27: ReturnType<typeof computeO
   return out;
 }
 
+// Sous-totaux de l'OPEX que la liste de la CFO n'a pas (SH-48) : masqués à l'AFFICHAGE seulement,
+// leurs lignes restent comptées dans le total de section. Un sous-total qui porte le même nom que
+// son unique ligne (« Meals & Entertainment ») la répète pour rien ; « Other G&A » n'est pas dans
+// sa liste.
+const HIDDEN_OPEX_SUBS = new Set(['gaOtherS']);
+export function hiddenOpexSubs(ref: Reference) {
+  const out = new Set(HIDDEN_OPEX_SUBS);
+  let lines: OpexItem[] = [];
+  for (const it of ref.opex) {
+    if (it.t === 'line') lines.push(it);
+    else if (it.t === 'sub') {
+      if (lines.length === 1 && lines[0].name.trim() === it.name.trim() && it.key) out.add(it.key);
+      lines = [];
+    } else lines = [];
+  }
+  return out;
+}
+
+// Détail OPEX d'une section du Budget maître, dans l'ordre de la référence, avec les sous-totaux.
+export function opexDetailBySection(ref: Reference, opex27: ReturnType<typeof computeOpex>) {
+  const hidden = hiddenOpexSubs(ref);
+  const out: Record<OpexSection, { key: string; name: string; vals: Series; sub: boolean }[]> = { 'Sales & Marketing': [], 'Research & Development': [], 'General & Administrative': [] };
+  let sec: OpexSection = 'General & Administrative';
+  for (const it of ref.opex) {
+    if (it.t === 'sec') { sec = it.name === 'Sales & Marketing' ? 'Sales & Marketing' : it.name === 'Research & Development' ? 'Research & Development' : 'General & Administrative'; continue; }
+    const key = it.key as string;
+    if (it.t === 'sub' && (/^Total /i.test(it.name) || key === 'opTot' || hidden.has(key))) continue;
+    out[sec].push({ key, name: it.name, vals: opex27.byKey[key] || z12(), sub: it.t === 'sub' });
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------- Budget maître
 export const REV_CATS = ['recurring', 'hardware', 'service', 'licence'] as const;
 export type RevCat = (typeof REV_CATS)[number];
@@ -274,7 +310,8 @@ export const REV_GL: Record<RevCat, string[]> = {
   licence: ['lic'],
 };
 export const COGS_GL: Record<RevCat, string[]> = {
-  recurring: ['supportWages', 'supportContr', 'supportSw', 'merchantFees', 'platformFees', 'payout', 'hosting'],
+  // Ordre de la CFO (SH-48) : hébergement avant les versements récurrents.
+  recurring: ['supportWages', 'supportContr', 'supportSw', 'merchantFees', 'platformFees', 'hosting', 'payout'],
   hardware: ['clHwCogs', 'xpHwCogs'],
   service: ['nnWages', 'exWages', 'svcContr', 'travel', 'svcSw'],
   licence: ['licCogs'],
