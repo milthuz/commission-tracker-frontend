@@ -395,13 +395,48 @@ function ClubModal({ club, people, canManage, me, questions, script, lang, fmt, 
   );
 }
 
+// Le courriel au club : l'objet et le texte se corrigent ici, l'aperçu rendu (cadre isolé, sans scripts) se
+// rafraîchit quand on quitte un champ. Le HTML est fabriqué par le serveur à partir du texte : jamais envoyé d'ici.
+function MailEditor({ mail, subject, message, onSubject, onMessage, onRefresh }: {
+  mail: ClubMail; subject: string; message: string; onSubject: (v: string) => void; onMessage: (v: string) => void; onRefresh: () => void;
+}) {
+  const { t } = useTranslation();
+  const edited = subject !== mail.defaultSubject || message !== mail.defaultText;
+  return (
+    <>
+      <dl className="m-0 grid grid-cols-[72px_1fr] gap-x-3 gap-y-1 text-xs">
+        <dt className="text-body dark:text-bodydark2">{t('golf.visit.pTo')}</dt><dd className="m-0 break-all font-bold text-black dark:text-white">{mail.to}</dd>
+        <dt className="text-body dark:text-bodydark2">{t('golf.visit.pFrom')}</dt><dd className="m-0 break-all text-black dark:text-white">{mail.from || t('golf.visit.pFromDefault')}</dd>
+        <dt className="text-body dark:text-bodydark2">{t('golf.visit.pAttach')}</dt><dd className="m-0 text-black dark:text-white">{mail.attachment}</dd>
+      </dl>
+      <label className="block text-xs font-bold text-black dark:text-white">{t('golf.visit.pSubject')}
+        <input className={`${INPUT} mt-1 font-normal`} value={subject} maxLength={200} onChange={(e) => onSubject(e.target.value)} onBlur={onRefresh} />
+      </label>
+      <label className="block text-xs font-bold text-black dark:text-white">{t('golf.visit.pMessage')}
+        <textarea className={`${INPUT} mt-1 font-normal`} rows={7} value={message} maxLength={2000} onChange={(e) => onMessage(e.target.value)} onBlur={onRefresh} />
+      </label>
+      {edited && (
+        <button type="button" className="self-start text-xs font-bold text-accent-ink hover:underline dark:text-[#F79C6A]"
+          onClick={() => { onSubject(mail.defaultSubject); onMessage(mail.defaultText); setTimeout(onRefresh, 0); }}>
+          {t('golf.visit.resetText')}
+        </button>
+      )}
+      {/* sandbox sans aucune permission : le courriel s'affiche, aucun script ni lien ne s'y exécute. */}
+      <iframe title={t('golf.visit.previewClubMail')} sandbox="" srcDoc={mail.html}
+        className="h-[300px] w-full rounded-xl border border-stroke bg-white dark:border-strokedark" />
+    </>
+  );
+}
+
 interface SlotDay { date: string; slots: string[] }
+interface ClubMail { to: string; from: string | null; replyTo: string | null; subject: string; text: string; defaultSubject: string; defaultText: string; html: string; attachment: string }
 interface Preview {
-  client: { to: string; from: string | null; replyTo: string | null; subject: string; html: string; attachment: string } | null;
+  client: ClubMail | null;
   visitor: { to: string; subject: string; html: string };
   event: { summary: string; when: string; location: string | null; description: string; calendar: string; minutes: number };
   moving: boolean; calendarConnected: boolean; noClubEmail: boolean;
 }
+interface CancelPreview { client: ClubMail | null; noClubEmail: boolean; when: string }
 interface BookResult { calendar: { ok?: boolean; skipped?: string; error?: string }; clientMail: { sent: boolean; reason?: string }; visitorMail: { sent: boolean } }
 
 // Rendez-vous en personne : les créneaux libres du visiteur (Google Agenda + visites déjà prises), un clic
@@ -421,6 +456,9 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
   const [err, setErr] = useState('');
   const [result, setResult] = useState<BookResult | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
+  const [edit, setEdit] = useState({ subject: '', message: '' });
+  const [cancelPrev, setCancelPrev] = useState<CancelPreview | null>(null);
+  const [cEdit, setCEdit] = useState({ subject: '', message: '' });
 
   const loadSlots = useCallback(async () => {
     setErr('');
@@ -436,21 +474,31 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
   const dayLabel = (date: string) => new Date(`${date}T12:00:00`).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
   const timeLabel = (iso: string) => new Date(iso).toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', timeZone: 'America/Toronto' });
 
+  // Seules les corrections réellement faites partent au serveur ; sinon il garde son texte par défaut.
+  const overrides = (mail: ClubMail | null, e: { subject: string; message: string }) => ({
+    subject: mail && e.subject && e.subject !== mail.defaultSubject ? e.subject : undefined,
+    message: mail && e.message && e.message !== mail.defaultText ? e.message : undefined,
+  });
+
   // 1) Aperçu : le serveur compose exactement ce qui partira ; rien n'est réservé ni envoyé.
-  const openPreview = async () => {
+  const openPreview = async (keep = false) => {
     if (!pick) return setErr(t('golf.visit.pickFirst'));
-    setBusy(true); setErr(''); setResult(null);
+    if (!keep) { setBusy(true); setResult(null); }
+    setErr('');
     try {
       const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/meeting/preview`, {
-        method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ at: pick, lang: mailLang, notify: notify && !!club.email, note }),
+        method: 'POST', headers: jsonHeaders(),
+        body: JSON.stringify({ at: pick, lang: mailLang, notify: notify && !!club.email, note, ...(keep ? overrides(preview?.client || null, edit) : {}) }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
+        setPreview(null);
         if (j.error === 'slot_taken') { setPick(''); await loadSlots(); return setErr(t('golf.visit.slotTaken')); }
         return setErr(j.error || t('golf.saveFailed'));
       }
       setPreview(j);
-    } finally { setBusy(false); }
+      if (!keep) setEdit({ subject: j.client?.subject || '', message: j.client?.text || '' });
+    } finally { if (!keep) setBusy(false); }
   };
 
   // 2) Envoyer et réserver, après que l'aperçu a été lu.
@@ -459,7 +507,7 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
     setBusy(true); setErr(''); setResult(null);
     try {
       const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/meeting`, {
-        method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ at: pick, lang: mailLang, notify: notify && !!club.email, note }),
+        method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ at: pick, lang: mailLang, notify: notify && !!club.email, note, ...overrides(preview?.client || null, edit) }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) {
@@ -471,14 +519,34 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
     } finally { setBusy(false); }
   };
 
-  const cancel = async () => {
-    if (!(await dialog.confirm(t('golf.visit.cancelBody'), { title: t('golf.visit.cancelTitle'), danger: true, confirmText: t('golf.visit.cancelYes'), cancelText: t('golf.visit.keep') }))) return;
-    setBusy(true); setErr('');
+  // Annuler : s'il y a un courriel au club, on montre d'abord ce qui partira (texte modifiable).
+  const startCancel = async () => {
+    setErr('');
+    if (!club.email) {
+      if (!(await dialog.confirm(t('golf.visit.cancelBody'), { title: t('golf.visit.cancelTitle'), danger: true, confirmText: t('golf.visit.cancelYes'), cancelText: t('golf.visit.keep') }))) return;
+      return doCancel(false);
+    }
+    setBusy(true);
     try {
-      const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/meeting?lang=${mailLang}&notify=${notify && club.email ? 1 : 0}`, { method: 'DELETE', headers: authHeaders() });
+      const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/meeting/cancel/preview`, { method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ lang: mailLang }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) return setErr(j.error || t('golf.saveFailed'));
-      onSaved(j.club); setResult(null); setChoosing(true); await loadSlots();
+      setCancelPrev(j); setCEdit({ subject: j.client?.subject || '', message: j.client?.text || '' });
+    } finally { setBusy(false); }
+  };
+  const refreshCancel = async () => {
+    const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/meeting/cancel/preview`, { method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ lang: mailLang, ...overrides(cancelPrev?.client || null, cEdit) }) });
+    if (r.ok) setCancelPrev(await r.json());
+  };
+  const doCancel = async (send: boolean) => {
+    setBusy(true); setErr('');
+    try {
+      const r = await fetch(`${API_URL}/api/golf-campaign/clubs/${club.id}/meeting/cancel`, {
+        method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ lang: mailLang, notify: send, ...(send ? overrides(cancelPrev?.client || null, cEdit) : {}) }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return setErr(j.error || t('golf.saveFailed'));
+      onSaved(j.club); setResult(null); setCancelPrev(null); setChoosing(true); await loadSlots();
     } finally { setBusy(false); }
   };
 
@@ -494,7 +562,7 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
           <span className="font-bold text-[#067647] dark:text-[#57D193]">{t('golf.visit.booked', { when: fmt(club.meeting_at) })}</span>
           <span className="flex gap-2">
             <button type="button" className={BTN} disabled={busy} onClick={() => setChoosing(true)}>{t('golf.visit.move')}</button>
-            <button type="button" className={BTN} disabled={busy} onClick={cancel}>{t('golf.visit.cancel')}</button>
+            <button type="button" className={BTN} disabled={busy} onClick={startCancel}>{t('golf.visit.cancel')}</button>
           </span>
         </div>
       )}
@@ -525,12 +593,30 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
             <div className="w-44"><Select value={mailLang} onChange={(v) => setMailLang(v as 'fr' | 'en')} options={[{ value: 'fr', label: 'Français' }, { value: 'en', label: 'English' }]} /></div>
           )}
           <div className="flex gap-2">
-            <button type="button" className={BTN_PRIMARY} disabled={busy || !pick} onClick={openPreview}>{club.meeting_at ? t('golf.visit.confirmMove') : t('golf.visit.book')}</button>
+            <button type="button" className={BTN_PRIMARY} disabled={busy || !pick} onClick={() => openPreview()}>{club.meeting_at ? t('golf.visit.confirmMove') : t('golf.visit.book')}</button>
             {club.meeting_at && <button type="button" className={BTN} disabled={busy} onClick={() => { setChoosing(false); setPick(''); }}>{t('golf.visit.keep')}</button>}
           </div>
         </>
       )}
 
+      {cancelPrev && (
+        <Modal open onClose={() => setCancelPrev(null)} size="lg" title={t('golf.visit.cancelPreviewTitle')}
+          footer={<>
+            <button type="button" className={BTN} disabled={busy} onClick={() => setCancelPrev(null)}>{t('golf.visit.previewBack')}</button>
+            <button type="button" className={BTN} disabled={busy} onClick={() => doCancel(false)}>{t('golf.visit.cancelNoMail')}</button>
+            {cancelPrev.client && <button type="button" className={BTN_PRIMARY} disabled={busy} onClick={() => doCancel(true)}>{t('golf.visit.cancelSend')}</button>}
+          </>}>
+          <p className="m-0 text-sm text-body dark:text-bodydark2">{t('golf.visit.cancelPreviewIntro', { when: cancelPrev.when })}</p>
+          <section className="space-y-2">
+            <h3 className="m-0 text-sm font-bold text-black dark:text-white">{t('golf.visit.previewClubMail')}</h3>
+            {cancelPrev.client && (
+              <MailEditor mail={cancelPrev.client} subject={cEdit.subject} message={cEdit.message}
+                onSubject={(v) => setCEdit((e) => ({ ...e, subject: v }))} onMessage={(v) => setCEdit((e) => ({ ...e, message: v }))} onRefresh={refreshCancel} />
+            )}
+          </section>
+          {err && <p role="alert" className="m-0 text-sm font-bold text-[#B42318] dark:text-[#F46060]">{err}</p>}
+        </Modal>
+      )}
       {preview && (
         <Modal open onClose={() => setPreview(null)} size="lg" title={t('golf.visit.previewTitle')}
           footer={<>
@@ -542,17 +628,8 @@ function BookingPanel({ club, lang, fmt, onSaved }: { club: Club; lang: 'en' | '
           <section className="space-y-2">
             <h3 className="m-0 text-sm font-bold text-black dark:text-white">{t('golf.visit.previewClubMail')}</h3>
             {preview.client ? (
-              <>
-                <dl className="m-0 grid grid-cols-[72px_1fr] gap-x-3 gap-y-1 text-xs">
-                  <dt className="text-body dark:text-bodydark2">{t('golf.visit.pTo')}</dt><dd className="m-0 break-all font-bold text-black dark:text-white">{preview.client.to}</dd>
-                  <dt className="text-body dark:text-bodydark2">{t('golf.visit.pFrom')}</dt><dd className="m-0 break-all text-black dark:text-white">{preview.client.from || t('golf.visit.pFromDefault')}</dd>
-                  <dt className="text-body dark:text-bodydark2">{t('golf.visit.pSubject')}</dt><dd className="m-0 font-bold text-black dark:text-white">{preview.client.subject}</dd>
-                  <dt className="text-body dark:text-bodydark2">{t('golf.visit.pAttach')}</dt><dd className="m-0 text-black dark:text-white">{preview.client.attachment}</dd>
-                </dl>
-                {/* sandbox sans aucune permission : le courriel s'affiche, aucun script ni lien ne s'y exécute. */}
-                <iframe title={t('golf.visit.previewClubMail')} sandbox="" srcDoc={preview.client.html}
-                  className="h-[340px] w-full rounded-xl border border-stroke bg-white dark:border-strokedark" />
-              </>
+              <MailEditor mail={preview.client} subject={edit.subject} message={edit.message}
+                onSubject={(v) => setEdit((e) => ({ ...e, subject: v }))} onMessage={(v) => setEdit((e) => ({ ...e, message: v }))} onRefresh={() => openPreview(true)} />
             ) : (
               <p className="m-0 rounded-[10px] bg-[rgba(253,176,34,0.14)] px-3 py-2 text-sm text-[#B54708] dark:text-[#FDB022]">
                 {preview.noClubEmail ? t('golf.visit.mailNoEmail') : t('golf.visit.mailOff')}

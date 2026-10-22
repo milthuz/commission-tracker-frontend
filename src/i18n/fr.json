@@ -8630,6 +8630,12 @@
       "none": "Non assignés"
     },
     "visit": {
+      "pMessage": "Message (tu peux le modifier)",
+      "resetText": "Rétablir le texte par défaut",
+      "cancelPreviewTitle": "Aperçu du courriel d’annulation",
+      "cancelPreviewIntro": "Annuler la visite du {{when}} la retire de l’agenda. Voici le courriel que le club recevrait. Rien n’est envoyé avant ta confirmation.",
+      "cancelNoMail": "Annuler sans courriel au club",
+      "cancelSend": "Annuler et envoyer le courriel",
       "previewTitle": "Aperçu avant l’envoi",
       "previewIntro": "Voici exactement ce qui sera envoyé et réservé. Rien ne part avant ta confirmation.",
       "previewClubMail": "Courriel au club",
