@@ -1353,6 +1353,23 @@
         "both_sides_present": [
           "J'ai vérifié les deux côtés : l'opportunité POS et le compte de paiement sont tous les deux à ton nom et complets. Peux-tu me préciser de quel point tu parles ?"
         ]
+      },
+      "feature": {
+        "approve": "Approuver → JIRA",
+        "decline": "Décliner",
+        "approveTitle": "Approuver cette demande de fonctionnalité",
+        "declineTitle": "Décliner cette demande de fonctionnalité",
+        "approveSubtitle": "Un ticket JIRA est créé dans le backlog Sales Hub, et {{who}} reçoit un courriel.",
+        "declineSubtitle": "{{who}} reçoit un courriel disant que ça ne va pas de l'avant. Aucun ticket JIRA n'est créé.",
+        "titleLabel": "Titre du ticket JIRA",
+        "existingLabel": "Un ticket JIRA existe déjà ? Entrez sa clé pour le lier au lieu d'en créer un (facultatif)",
+        "approveConfirm": "Approuver et créer le ticket",
+        "declineConfirm": "Décliner et aviser",
+        "noteLabel": "Note au demandeur (facultatif)",
+        "created": "Approuvée — ticket JIRA {{key}}.",
+        "linked": "Approuvée — liée à {{key}}.",
+        "failed": "Impossible de créer le ticket JIRA ({{reason}}). La demande reste en attente.",
+        "alreadyDecided": "Quelqu'un a déjà tranché cette demande."
       }
     },
     "invoiceList": {
@@ -8604,7 +8621,11 @@
     "clearSelection": "Effacer",
     "selectAll": "Tout sélectionner",
     "assigned": "{{count}} club(s) mis à jour",
-    "assignF": {"all": "Les clubs de tous", "mine": "Mes clubs", "none": "Non assignés"},
+    "assignF": {
+      "all": "Les clubs de tous",
+      "mine": "Mes clubs",
+      "none": "Non assignés"
+    },
     "title": "Campagne golf",
     "subtitle": "Appelez les clubs de golf (liste AGQ + répertoire GGGolf) pour voir qui veut une alternative à Lightspeed.",
     "loadFailed": "Impossible de charger la campagne golf : {{error}}",
