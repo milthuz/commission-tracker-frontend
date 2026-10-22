@@ -111,6 +111,28 @@ function compare(label, P, R, opexYear) {
   assert.strictEqual(Math.round(F.sum(R.master.ni) * 100) / 100, 64869.47); n++;
 }
 
+// ---------------------------------------------------------------- 2b. ajustement de la CFO : contractuels G&A
+// La référence importée en base = prototype + ligne « Contractors » G&A (34 500 $ = Sachin, 2 875 $/mois).
+// Tout le reste doit rester identique au prototype.
+{
+  const { applyCfoAdjustments } = require(HANDOFF);
+  const adj = applyCfoAdjustments(ref);
+  assert.strictEqual(adj.opex.length, ref.opex.length + 1); n++;
+  const ix = adj.opex.findIndex((i) => i.key === 'gaContr');
+  assert.strictEqual(adj.opex[ix + 1].key, 'gaSal'); assert.strictEqual(adj.opex[ix - 1].key, 'gaIT'); n += 2;
+  assert.strictEqual(applyCfoAdjustments(adj).opex.length, adj.opex.length); n++; // idempotent
+  const pay = F.computePayroll(baseRoster(), { burden: 17.5, raise: 0, raiseMo: 0 }, F.payCodesOf(adj));
+  const a = F.computeAll({ ref: adj, drivers: { drv: {} }, opex: { opx: {}, opxG: {} }, trips: null, payroll: pay }, 1);
+  const p0 = F.computePayroll(baseRoster(), { burden: 17.5, raise: 0, raiseMo: 0 }, F.payCodesOf(ref));
+  const b = F.computeAll({ ref, drivers: { drv: {} }, opex: { opx: {}, opxG: {} }, trips: null, payroll: p0 }, 1);
+  const r2 = (v) => Math.round(v * 100) / 100;
+  near(F.sum(a.master.tOpex) - F.sum(b.master.tOpex), 34500, 'OPEX : +34 500 $');
+  assert.strictEqual(r2(F.sum(a.master.ebitda)), 539491.65); n++;
+  assert.strictEqual(r2(F.sum(a.master.tRev)), r2(F.sum(b.master.tRev))); assert.strictEqual(r2(F.sum(a.master.tCogs)), r2(F.sum(b.master.tCogs))); n += 2;
+  near(F.sum(b.master.ni) - F.sum(a.master.ni), 34500, 'bénéfice net : −34 500 $');
+  console.log('   BAIIA ajusté', r2(F.sum(a.master.ebitda)), '· bénéfice net', r2(F.sum(a.master.ni)));
+}
+
 // ---------------------------------------------------------------- 3. tout bouge
 {
   const P = prototype();
