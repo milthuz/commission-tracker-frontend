@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Briefcase, CreditCard } from 'lucide-react';
 import Select from '../../components/Select';
 import ProbationBadge from '../../components/ProbationBadge';
-import { Button, StatusPill } from '../../components/ui';
+import { StatusPill } from '../../components/ui';
 import { fmtDateOnly, fmtMoney } from '../../lib/format';
 import { pressable } from '../../lib/pressable';
 import { Legend, RaceBar, RepChart, Sparkline, TeamPaceChart } from './charts';
@@ -192,7 +192,7 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
           <div className="flex flex-col">
             <span className="mb-1 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t('pointsTracker.recentSales')}</span>
             {sales.length === 0 && <p className="m-0 py-2 text-sm text-body dark:text-bodydark2">{t('pointsTracker.noSales')}</p>}
-            <ul className={`m-0 list-none p-0 ${repMode ? 'max-h-[340px] overflow-y-auto' : ''}`}>
+            <ul className="m-0 list-none p-0">
               {sales.map((s) => {
                 const check = s.counts && (s.pts === 0 || (s.deal && !s.deal.lead_source_group));
                 return (
@@ -206,15 +206,18 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
                       <span className="text-xs text-body dark:text-bodydark2">
                         {s.meta}
                         {s.deal?.source_overridden && <> · {t('pointsTracker.sale.manualSource')}</>}
+                        {/* « Changer la source » sur la même ligne que la source, sans marge : le lien flottait sur une 3ᵉ ligne, décalé. */}
+                        {isAdmin && s.deal && editingDeal !== s.deal.crm_deal_id && (
+                          <> · <button type="button" onClick={() => setEditingDeal(s.deal!.crm_deal_id)}
+                            className="p-0 text-xs font-bold text-accent-ink hover:underline dark:text-[#F79C6A]">{t('pointsTracker.sale.changeSource')}</button></>
+                        )}
                       </span>
-                      {isAdmin && s.deal && (editingDeal === s.deal.crm_deal_id ? (
+                      {isAdmin && s.deal && editingDeal === s.deal.crm_deal_id && (
                         <Select autoOpen onClose={() => setEditingDeal(null)} value={s.deal.lead_source_group || ''}
                           onChange={(v) => { onOverrideSource(s.deal!.crm_deal_id, v); setEditingDeal(null); }}
                           options={[{ value: '', label: '—' }, ...leadSourceGroups.map((g) => ({ value: g, label: g }))]}
                           buttonClassName="mt-1 rounded border border-primary bg-transparent px-2 py-1 text-xs text-black outline-none dark:bg-form-input dark:text-white" />
-                      ) : (
-                        <span><Button variant="link" size="sm" onClick={() => setEditingDeal(s.deal!.crm_deal_id)}>{t('pointsTracker.sale.changeSource')}</Button></span>
-                      ))}
+                      )}
                     </span>
                     <span className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
                       <StatusPill family={s.kind === 'pay' ? 'ok' : 'new'}>{s.kind === 'pay' ? t('pointsTracker.sale.activation') : t('pointsTracker.sale.typeCrm')}</StatusPill>
@@ -246,7 +249,7 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
     // « Ton mois » ; pour un gestionnaire, le détail du représentant choisi, sous la liste.
     {
       return (
-        <section id="pt-detail" aria-labelledby="pt-rep-h" className={`${card} grid grid-cols-1 gap-5 p-5 sm:p-6 ${repMode ? 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)]' : 'lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]'}`}>
+        <section id="pt-detail" aria-labelledby="pt-rep-h" className={`${card} grid grid-cols-1 gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]`}>
           <div className="flex min-w-0 flex-col gap-4">
             {repMode && <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-accent-ink dark:text-[#F79C6A]">{t('pointsTracker.yourMonth', { month: monthLabel })}</span>}
             {parts.head}
@@ -258,8 +261,8 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
             {parts.chart}
             {parts.advice}
           </div>
-          {/* Gestionnaire : les dernières ventes du représentant passent sous les chiffres et la courbe, pleine largeur. */}
-          <div className={repMode ? 'min-w-0' : 'min-w-0 border-t border-stroke pt-4 dark:border-strokedark lg:col-span-2'}>{parts.sales}</div>
+          {/* Les dernières ventes passent sous les chiffres et la courbe, pleine largeur (gestionnaire comme représentant). */}
+          <div className="min-w-0 border-t border-stroke pt-4 dark:border-strokedark lg:col-span-2">{parts.sales}</div>
         </section>
       );
     }
