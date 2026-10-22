@@ -119,8 +119,9 @@ export const COGS_TOP: RowSpec[] = [
   { key: 'supportSw', l: 'supportSw', fmt: 's' },
   { key: 'merchantFees', l: 'merchantFees', fmt: 's' },
   { key: 'platformFees', l: 'platformFees', fmt: 's' },
-  { key: 'payout', l: 'payout', fmt: 's' },
+  // Ordre de la CFO (SH-48) : l'hébergement avant les versements récurrents.
   { key: 'hosting', l: 'hosting', fmt: 's' },
+  { key: 'payout', l: 'payout', fmt: 's' },
   { key: 'hwCogs', l: 'hwCogs', fmt: '$', kind: 'sub' },
   { key: 'svcCogs', l: 'svcCogs', fmt: '$', kind: 'sub' },
   { key: 'nnWages', l: 'nnWages', fmt: 's', payroll: true },

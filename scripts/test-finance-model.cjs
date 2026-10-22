@@ -169,5 +169,43 @@ function compare(label, P, R, opexYear) {
   near(s12(part.emp[1].m), s12(full.emp[1].m.slice(0, 3)), 'départ fin mars : trois mois');
 }
 
+// ---------------------------------------------------------------- 5. hausse par département (SH-48)
+// Navigateur = serveur (services/finance/payroll.js), sur tout l'effectif, avec des hausses de
+// département, une hausse d'employé qui doit gagner et un département absent qui suit le global.
+{
+  const S = require(path.join(__dirname, '..', '..', 'commission-tracker', 'services', 'finance', 'payroll.js'));
+  const ros = baseRoster();
+  ros.employees[0].raisePct = 1.5;
+  const g = { burden: 17.5, raise: 3, raiseMo: 6, deptRaise: { SALES: 8, SUPPORT: 0, [ros.employees[0].dept]: 12 } };
+  const web = F.computePayroll(ros, g, F.payCodesOf(ref));
+  const srv = S.computePayroll(ros.employees, ros.contractors, g);
+  web.emp.forEach((e, i) => nearS(e.m, srv.emp[i].m, `paie navigateur = serveur, employé ${i}`));
+  near(web.emp[0].raise, 1.5, 'la hausse de l\'employé gagne sur celle du département');
+  const sales = web.emp.find((e) => e.dept === 'SALES' && e.raisePct == null);
+  if (sales) near(sales.raise, 8, 'un employé de SALES prend la hausse du département');
+  const other = web.emp.find((e) => e.raisePct == null && !(e.dept in g.deptRaise));
+  if (other) near(other.raise, 3, 'un département non réglé suit la hausse globale');
+  const none = F.computePayroll(ros, { burden: 17.5, raise: 3, raiseMo: 6 }, []);
+  const empty = F.computePayroll(ros, { burden: 17.5, raise: 3, raiseMo: 6, deptRaise: {} }, []);
+  nearS(empty.payTot, none.payTot, 'deptRaise vide = comportement d\'avant');
+}
+
+// ---------------------------------------------------------------- 6. détail OPEX du Budget maître (SH-48)
+// Les sous-totaux masqués ne changent rien : la somme des LIGNES affichées = le total de section.
+{
+  const pay = F.computePayroll(baseRoster(), { burden: 17.5, raise: 0, raiseMo: 0 }, F.payCodesOf(ref));
+  const R = F.computeAll({ ref, drivers: { drv: {} }, opex: { opx: {}, opxG: {} }, trips: null, payroll: pay }, 1);
+  const D = F.opexDetailBySection(ref, R.opex27);
+  for (const s of F.OPEX_SECTIONS) {
+    const lines = D[s].filter((l) => !l.sub);
+    nearS(lines.reduce((acc, l) => acc.map((v, i) => v + l.vals[i]), Array(12).fill(0)), R.master.opex[s], `détail OPEX ${s} : lignes = total`);
+    assert(lines.length === R.ox[s].length, `détail OPEX ${s} : toutes les lignes, aucune perdue`); n++;
+  }
+  const hidden = F.hiddenOpexSubs(ref);
+  assert(hidden.has('smMEs') && hidden.has('gaOtherS'), 'sous-totaux masqués : Meals & Entertainment en double, Other G&A'); n++;
+  assert(!D['Sales & Marketing'].some((l) => l.key === 'smMEs') && D['Sales & Marketing'].some((l) => l.key === 'smSal' && l.sub), 'Salaries & Commissions reste un sous-total'); n++;
+  assert(!Object.values(D).flat().some((l) => /^Total /i.test(l.name) || l.key === 'opTot'), 'aucun total de section dans le détail'); n++;
+}
+
 console.log(`✅ moteur Finance = prototype : ${n} vérifications`);
 fs.unlinkSync(out);

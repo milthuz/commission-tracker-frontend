@@ -4,7 +4,7 @@
 //
 // Ajout de la phase 1 (décision de David, 2026-10-19) : la CFO ajoute et retire des personnes,
 // avec un mois d'arrivée et de départ pour les embauches et les départs prévus.
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, dialog } from '../../components/ui';
 import { CARD, LABEL } from '../../components/ui/surface';
@@ -59,6 +59,9 @@ export default function Payroll() {
   const { payrollCalc: P, globals, canEditPayroll: can, fmt, roster, payload } = F;
   const months = fmt.months(27);
   const money = (v: number) => fmt.fmt(v, '$');
+  // Surlignage bref de la ligne atteinte par un lien (déclaré avant tout retour anticipé).
+  const [flash, setFlash] = useState<string | null>(null);
+  useEffect(() => { if (!flash) return; const h = setTimeout(() => setFlash(null), 1600); return () => clearTimeout(h); }, [flash]);
   if (!P || !roster) return <p className="text-body">{t('finance.payroll.noAccess')}</p>;
 
   const monthOpts = months.map((m, i) => ({ value: String(i), label: m }));
@@ -90,6 +93,32 @@ export default function Payroll() {
     const p = es.reduce((a, e) => a + sum(e.m), 0), c = cs.reduce((a, x) => a + sum(x.m), 0);
     return { ent, dept, hc: es.length, incl: es.reduce((a, e) => a + e.incl, 0), pay: p, con: c, tot: p + c };
   }).sort((a, b) => b.tot - a.tot);
+
+  // Liens entre le tableau par département et le détail des employés (SH-48) : chaque département
+  // mène à son groupe, chaque total de groupe ramène au tableau. Un bref surlignage montre où l'on
+  // arrive.
+  const slug = (k: string) => k.replace(/[^A-Za-z0-9]+/g, '-');
+  const jump = (id: string) => { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setFlash(id); };
+  const flashCls = (id: string) => (flash === id ? '[&>td]:!bg-[#FFF4DB] dark:[&>td]:!bg-[#2A2410]' : '');
+  const linkBtn = 'text-left underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark';
+
+  // Budget de hausse par code de département (comme `deptRaise`, sans distinction d'entité) :
+  // coût 2027 de la hausse = la part du mensuel due à la hausse, mois par mois.
+  const deptRaise = globals.deptRaise || {};
+  const raiseCostOf = (e: (typeof P.emp)[number]) => e.m.reduce((a, v, k) => (k >= e.raiseMoV && v && e.raise > -100 ? a + (v * e.raise) / (100 + e.raise) : a), 0);
+  const raiseRows = [...new Set(P.emp.map((e) => e.dept))].sort().map((dept) => {
+    const es = P.emp.filter((e) => e.dept === dept);
+    return { dept, hc: es.length, pay: es.reduce((a, e) => a + sum(e.m), 0), own: es.filter((e) => e.raisePct != null).length, cost: es.reduce((a, e) => a + raiseCostOf(e), 0) };
+  });
+  const raiseTotal = raiseRows.reduce((a, r) => a + r.cost, 0);
+  const setDeptRaise = (dept: string, v: number | null) => {
+    const next = { ...deptRaise };
+    if (v == null) delete next[dept]; else next[dept] = Math.max(-100, Math.min(100, v));
+    F.setGlobals({ deptRaise: next });
+  };
+
+  // Détail des employés groupé par entité | département, dans l'ordre du tableau par département.
+  const groups = depts.map((d) => ({ ...d, key: `${d.ent}|${d.dept}`, es: P.emp.filter((e) => e.ent === d.ent && e.dept === d.dept) }));
 
   const onReset = async () => {
     if (!(await dialog.confirm(t('finance.payroll.resetConfirm'), { danger: true }))) return;
@@ -173,9 +202,36 @@ export default function Payroll() {
             <thead><tr>{['entity', 'dept', 'headcount', 'inclAnnual', 'payroll27', 'contractors27', 'total27', 'share'].map((k, i) => <th key={k} className={i > 1 ? thR : th}>{t(`finance.payroll.${k}`)}</th>)}</tr></thead>
             <tbody>
               {depts.map((d) => (
-                <tr key={`${d.ent}|${d.dept}`}><td className={td}>{d.ent}</td><td className={td}>{d.dept}</td><td className={tdR}>{d.hc}</td><td className={tdR}>{money(d.incl)}</td><td className={tdR}>{money(d.pay)}</td><td className={tdR}>{d.con ? money(d.con) : '–'}</td><td className={`${tdR} font-bold`}>{money(d.tot)}</td><td className={tdR}>{grandAll ? fmt.pct((d.tot / grandAll) * 100) : '—'}</td></tr>
+                <tr key={`${d.ent}|${d.dept}`} id={`pay-sum-${slug(`${d.ent}|${d.dept}`)}`} className={flashCls(`pay-sum-${slug(`${d.ent}|${d.dept}`)}`)}><td className={td}>{d.ent}</td>
+                  <td className={td}><button type="button" onClick={() => jump(`pay-grp-${slug(`${d.ent}|${d.dept}`)}`)} title={t('finance.payroll.toDetail', { dept: d.dept })} className={linkBtn}>{d.dept}</button></td><td className={tdR}>{d.hc}</td><td className={tdR}>{money(d.incl)}</td><td className={tdR}>{money(d.pay)}</td><td className={tdR}>{d.con ? money(d.con) : '–'}</td><td className={`${tdR} font-bold`}>{money(d.tot)}</td><td className={tdR}>{grandAll ? fmt.pct((d.tot / grandAll) * 100) : '—'}</td></tr>
               ))}
               <tr className={GRAND}><td className={td}>{t('finance.col.total')}</td><td className={td} /><td className={tdR}>{P.emp.length}</td><td className={tdR}>{money(P.emp.reduce((a, e) => a + e.incl, 0))}</td><td className={tdR}>{money(sum(payTot))}</td><td className={tdR}>{money(sum(conTot))}</td><td className={tdR}>{money(grandAll)}</td><td className={tdR}>100 %</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Card title={t('finance.payroll.raiseBudget')} sub={t('finance.payroll.raiseBudgetHint')}>
+        <div className="overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
+          <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+            <thead><tr>
+              <th className={th}>{t('finance.payroll.dept')}</th><th className={thR}>{t('finance.payroll.headcount')}</th>
+              <th className={thR}>{t('finance.payroll.payroll27')}</th><th className={th}>{t('finance.payroll.raiseDeptPct')}</th>
+              <th className={th}>{t('finance.payroll.raiseMo')}</th><th className={thR}>{t('finance.payroll.raiseCost')}</th><th className={thR}>{t('finance.payroll.raiseShare')}</th>
+            </tr></thead>
+            <tbody>
+              {raiseRows.map((r) => (
+                <tr key={r.dept}>
+                  <td className={td}>{r.dept}{r.own > 0 && <span className="ml-2 text-[11.5px] text-body dark:text-bodydark2">{t('finance.payroll.ownRaise', { count: r.own })}</span>}</td>
+                  <td className={tdR}>{r.hc}</td>
+                  <td className={tdR}>{money(r.pay)}</td>
+                  <td className={td}><OptNumCell value={deptRaise[r.dept] ?? null} global={globals.raise} disabled={!can} label={`${r.dept} — ${t('finance.payroll.raiseDeptPct')}`} onChange={(v) => setDeptRaise(r.dept, v)} /></td>
+                  <td className={td}>{months[globals.raiseMo]}</td>
+                  <td className={`${tdR} font-bold`}>{money(r.cost)}</td>
+                  <td className={tdR}>{r.pay ? fmt.pct((r.cost / r.pay) * 100) : '—'}</td>
+                </tr>
+              ))}
+              <tr className={GRAND}><td className={td}>{t('finance.payroll.totalRaise')}</td><td className={tdR}>{P.emp.length}</td><td className={tdR}>{money(sum(payTot))}</td><td className={td}>{fmt.pct(globals.raise)}</td><td className={td}>{months[globals.raiseMo]}</td><td className={tdR}>{money(raiseTotal)}</td><td className={tdR}>{sum(payTot) ? fmt.pct((raiseTotal / sum(payTot)) * 100) : '—'}</td></tr>
             </tbody>
           </table>
         </div>
@@ -185,15 +241,26 @@ export default function Payroll() {
         <div className="overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
           <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
             <thead><tr>
+              {can && <th className={th}><span className="sr-only">{t('finance.remove')}</span></th>}
               {['entity', 'dept', 'name', 'annualSalary', 'alloc', 'map', 'inclAnnual', 'raise', 'raiseMoShort', 'burdenShort', 'startMo', 'endMo'].map((k) => <th key={k} className={th}>{t(`finance.payroll.${k}`)}</th>)}
               <th className={thR}>{months[0]}</th><th className={thR}>{months[11]}</th><th className={thR}>{t('finance.col.total27')}</th>
-              {can && <th className={th}><span className="sr-only">{t('finance.remove')}</span></th>}
             </tr></thead>
             <tbody>
-              {P.emp.map((e) => {
+              {groups.map((g) => {
+                const gid = `pay-grp-${slug(g.key)}`;
+                const cols = 15 + (can ? 1 : 0);
+                return (
+                  <Fragment key={g.key}>
+                    <tr id={gid} className={`${SEC} ${flashCls(gid)}`}>
+                      <td colSpan={cols} className="border-b border-stroke bg-[#F3F6FA] px-2 pb-1.5 pt-3 dark:border-strokedark dark:bg-[#161A20]">
+                        {g.dept} · {g.ent} · {t('finance.payroll.employees', { count: g.hc })}
+                      </td>
+                    </tr>
+              {g.es.map((e) => {
                 const patch = (p: Partial<Employee>) => F.patchPerson('employee', e.id, p);
                 return (
                   <tr key={e.id}>
+                    {can && <td className={td}><button type="button" onClick={() => remove('employee', e.id, e.name)} aria-label={t('finance.payroll.removeLabel', { name: e.name })} title={t('finance.payroll.removeLabel', { name: e.name })} className="rounded px-1.5 text-body hover:bg-gray-2 hover:text-[#B42318] dark:hover:bg-meta-4">✕</button></td>}
                     <td className={td}><Select value={e.ent} disabled={!can} onChange={(v) => patch({ ent: v })} options={ENTITIES.map((x) => ({ value: x, label: x }))} buttonClassName={`${SEL_BTN} min-w-[84px]`} /></td>
                     <td className={td}><Select value={e.dept} disabled={!can} onChange={(v) => patch({ dept: v })} options={deptOpts} buttonClassName={`${SEL_BTN} min-w-[150px]`} /></td>
                     <td className={td}><TextCell value={e.name} width="w-[170px]" disabled={!can} label={t('finance.payroll.name')} onChange={(v) => patch({ name: v.trim() })} /></td>
@@ -201,16 +268,36 @@ export default function Payroll() {
                     <td className={td}><NumCell value={Math.round(e.alloc * 1000) / 10} width="w-[56px]" decimals={1} disabled={!can} label={`${e.name} — ${t('finance.payroll.alloc')}`} onChange={(v) => patch({ alloc: Math.max(0, Math.min(100, v)) / 100 })} /></td>
                     <td className={td}><span className="inline-flex items-center"><Select value={e.map} disabled={!can} onChange={(v) => patch({ map: v as PnlMap })} options={mapOpts} buttonClassName={`${SEL_BTN} min-w-[120px]`} />{countFlag(masterCount(payCodes, e, false))}</span></td>
                     <td className={tdR}>{money(e.incl)}</td>
-                    <td className={td}><OptNumCell value={e.raisePct} global={globals.raise} disabled={!can} label={`${e.name} — ${t('finance.payroll.raise')}`} onChange={(v) => patch({ raisePct: v })} /></td>
+                    <td className={td}><OptNumCell value={e.raisePct} global={deptRaise[e.dept] ?? globals.raise} disabled={!can} label={`${e.name} — ${t('finance.payroll.raise')}`} onChange={(v) => patch({ raisePct: v })} /></td>
                     <td className={td}><Select value={e.raiseMo == null ? '' : String(e.raiseMo)} disabled={!can} onChange={(v) => patch({ raiseMo: v === '' ? null : Number(v) })} options={[{ value: '', label: t('finance.payroll.followGlobal') }, ...monthOpts]} buttonClassName={`${SEL_BTN} min-w-[96px]`} /></td>
                     <td className={td}><OptNumCell value={e.burdenPct} global={globals.burden} disabled={!can} label={`${e.name} — ${t('finance.payroll.burden')}`} onChange={(v) => patch({ burdenPct: v })} /></td>
                     <td className={td}><Select value={String(e.startMo)} disabled={!can} onChange={(v) => patch({ startMo: Number(v) })} options={monthOpts.filter((o) => e.endMo == null || Number(o.value) <= e.endMo)} buttonClassName={`${SEL_BTN} min-w-[84px]`} /></td>
                     <td className={td}><Select value={e.endMo == null ? '' : String(e.endMo)} disabled={!can} onChange={(v) => patch({ endMo: v === '' ? null : Number(v) })} options={[{ value: '', label: '—' }, ...monthOpts.filter((o) => Number(o.value) >= e.startMo)]} buttonClassName={`${SEL_BTN} min-w-[84px]`} /></td>
                     <td className={tdR}>{money(e.m[0])}</td><td className={tdR}>{money(e.m[11])}</td><td className={`${tdR} font-bold`}>{money(sum(e.m))}</td>
-                    {can && <td className={td}><button type="button" onClick={() => remove('employee', e.id, e.name)} aria-label={t('finance.payroll.removeLabel', { name: e.name })} className="rounded px-1.5 text-body hover:bg-gray-2 hover:text-[#B42318] dark:hover:bg-meta-4">✕</button></td>}
                   </tr>
                 );
               })}
+                    <tr className={SUB}>
+                      {can && <td className={td} />}
+                      <td className={td} colSpan={6}>
+                        <button type="button" onClick={() => jump(`pay-sum-${slug(g.key)}`)} title={t('finance.payroll.toSummary')} className={linkBtn}>{t('finance.payroll.deptTotal', { dept: g.dept })}</button>
+                      </td>
+                      <td className={tdR}>{money(g.incl)}</td>
+                      <td className={td} colSpan={5} />
+                      <td className={tdR}>{money(g.es.reduce((a, e) => a + e.m[0], 0))}</td>
+                      <td className={tdR}>{money(g.es.reduce((a, e) => a + e.m[11], 0))}</td>
+                      <td className={tdR}>{money(g.pay)}</td>
+                    </tr>
+                  </Fragment>
+                );
+              })}
+              <tr className={GRAND}>
+                {can && <td className={td} />}
+                <td className={td} colSpan={6}>{t('finance.payroll.totalPayroll')}</td>
+                <td className={tdR}>{money(P.emp.reduce((a, e) => a + e.incl, 0))}</td>
+                <td className={td} colSpan={5} />
+                <td className={tdR}>{money(payTot[0])}</td><td className={tdR}>{money(payTot[11])}</td><td className={tdR}>{money(sum(payTot))}</td>
+              </tr>
             </tbody>
           </table>
         </div>

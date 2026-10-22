@@ -9,7 +9,7 @@ import { Card, FinanceHeader, FinTable, Kpi, KpiRow, type FRow } from './compone
 import { useFinance } from './FinanceContext';
 import { PAGES } from './DriverPages';
 import { downloadCsv, type Fmt } from './format';
-import { COGS_GL, OPEX_SECTIONS, PAYROLL_KEYS, REV_CATS, REV_GL, ratio, sum, type RevCat, type Series } from './model';
+import { COGS_GL, OPEX_SECTIONS, PAYROLL_KEYS, REV_CATS, REV_GL, opexDetailBySection, ratio, sum, type RevCat, type Series } from './model';
 import { COGS_KEYS } from './rows';
 
 const OPEX_SEC_ID: Record<(typeof OPEX_SECTIONS)[number], string> = {
@@ -19,11 +19,12 @@ const OPEX_SEC_ID: Record<(typeof OPEX_SECTIONS)[number], string> = {
 export default function MasterBudget() {
   const { t } = useTranslation();
   const { result, payload, fmt, goTo, setOpexYear } = useFinance();
-  const { master: M, Rm, ox, kpis: K } = result;
+  const { master: M, Rm, kpis: K } = result;
   const ref = payload.reference;
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [all, setAll] = useState(false);
   const months = fmt.months(27);
+  const opexDetail = useMemo(() => opexDetailBySection(ref, result.opex27), [ref, result.opex27]);
 
   const rows = useMemo(() => {
     const out: (FRow & { parent?: string })[] = [];
@@ -73,8 +74,9 @@ export default function MasterBudget() {
     sec('opex');
     OPEX_SECTIONS.forEach((s, i) => {
       const id = OPEX_SEC_ID[s];
-      line(`opex:${id}`, t(`finance.master.opex.${id}`), M.opex[s], i === 0, ox[s].map((l) => ({
-        id: `gl:opex:${l.key}`, kind: 'gl', label: t(`finance.opexLines.${l.key}`, { defaultValue: l.name }), vals: l.vals, total: sum(l.vals), cellFmt: 's',
+      // Détail dans l'ordre de la CFO, avec les sous-totaux (SH-48).
+      line(`opex:${id}`, t(`finance.master.opex.${id}`), M.opex[s], i === 0, opexDetail[s].map((l) => ({
+        id: `gl:opex:${l.key}`, kind: l.sub ? 'glsub' : 'gl', label: t(`finance.opexLines.${l.key}`, { defaultValue: l.name }), vals: l.vals, total: sum(l.vals), cellFmt: 's',
         onClick: () => { setOpexYear(1); goTo(PAGES.opex, l.key); }, onCellClick: toPage(PAGES.opex, l.key, true),
       } as FRow)), toPage(PAGES.opex, OPEX_SRC[s], true));
       pct(`opexPct:${id}`, t('finance.master.pctOfRevenue', { line: t(`finance.master.opex.${id}`) }), M.opex[s], M.tRev);
@@ -90,7 +92,7 @@ export default function MasterBudget() {
     money('ni', t('finance.master.netIncome'), M.ni, 'grand', true);
     pct('niPct', t('finance.master.netMargin'), M.ni, M.tRev);
     return out;
-  }, [M, Rm, ox, ref, result.I, t, open, all, goTo, setOpexYear, payload.caps.canPayroll]);
+  }, [M, Rm, opexDetail, ref, result.I, t, open, all, goTo, setOpexYear, payload.caps.canPayroll]);
 
   const shown = rows.filter((r) => !r.parent || all || open[r.parent]);
   const money = (v: number) => fmt.fmt(v, '$');

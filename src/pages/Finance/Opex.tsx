@@ -13,7 +13,7 @@ import { PAGES } from './DriverPages';
 import { OpexImportActions } from './ConsolidatedImport';
 import { ApprovePageButton, DriverStatusCell } from './Progress';
 import { downloadCsv } from './format';
-import { sum, tripTotal, type Trip } from './model';
+import { hiddenOpexSubs, sum, tripTotal, type Trip } from './model';
 
 const DEPTS: Trip['dept'][] = ['S&M', 'R&D', 'G&A'];
 const SEC_ID: Record<string, string> = { 'Sales & Marketing': 'sm', 'Research & Development': 'rd', 'General & Administrative': 'ga' };
@@ -29,7 +29,9 @@ export default function Opex() {
   const ox = result.opexShown;
   const count = Object.keys(opex.opx).length + Object.values(opex.opxG).filter((g) => !!g).length;
 
-  const rows: FRow[] = useMemo(() => ox.rows.map((r) => {
+  // Sous-totaux absents de la liste de la CFO : masqués ici seulement, les totaux ne bougent pas (SH-48).
+  const hidden = useMemo(() => hiddenOpexSubs(payload.reference), [payload.reference]);
+  const rows: FRow[] = useMemo(() => ox.rows.filter((r) => !(r.kind === 'sub' && hidden.has(r.key))).map((r) => {
     const name = t(`finance.opexLines.${r.key}`, { defaultValue: r.item.name });
     if (r.kind === 'sec') return { id: r.key, kind: 'sec', label: (SEC_ID[r.item.name] ? t(`finance.master.opex.${SEC_ID[r.item.name]}`) : r.item.name) };
     const base: FRow = { id: r.key, focus: r.key, kind: r.kind, label: name, vals: r.vals, total: sum(r.vals), cellFmt: r.kind === 'line' ? 's' : '$' };
@@ -50,7 +52,7 @@ export default function Opex() {
         </span>
       ),
     };
-  }), [ox, opex, opexYear, t, canEdit, F, goTo, payload.caps.canPayroll]);
+  }), [ox, hidden, opex, opexYear, t, canEdit, F, goTo, payload.caps.canPayroll]);
 
   const tot = (k: string) => sum(ox.byKey[k] || []);
   const all = tot('opTot');
