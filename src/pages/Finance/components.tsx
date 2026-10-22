@@ -215,9 +215,11 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
             const f = r.cellFmt || r.fmt || 's';
             const hl = focus && r.focus === focus;
             const labelInner = (
-              <span className={`flex items-center gap-1.5 ${r.kind === 'gl' ? 'pl-5' : ''}`}>
+              // flex-wrap + a label floor: a driver's chips (suggestion, status, Approve) are ~300 px and
+              // never shrink, so without these the label was squeezed to one word per line under them.
+              <span className={`flex flex-wrap items-center gap-x-1.5 gap-y-1 ${r.kind === 'gl' ? 'pl-5' : ''}`}>
                 {r.expand && <span aria-hidden className="inline-block w-3 text-[10px] text-body">{r.expand.open ? '▾' : '▸'}</span>}
-                <span className="min-w-0 whitespace-normal">{r.label}</span>
+                <span className="min-w-[180px] flex-1 whitespace-normal">{r.label}</span>
                 {r.extra}
               </span>
             );
