@@ -207,17 +207,19 @@ export default function MonthView({ rows, clock, target, teamPoints, monthLabel,
                         {s.meta}
                         {s.deal?.source_overridden && <> · {t('pointsTracker.sale.manualSource')}</>}
                         {/* « Changer la source » sur la même ligne que la source, sans marge : le lien flottait sur une 3ᵉ ligne, décalé. */}
-                        {isAdmin && s.deal && editingDeal !== s.deal.crm_deal_id && (
+                        {isAdmin && s.deal && (editingDeal !== s.deal.crm_deal_id ? (
                           <> · <button type="button" onClick={() => setEditingDeal(s.deal!.crm_deal_id)}
                             className="p-0 text-xs font-bold text-accent-ink hover:underline dark:text-[#F79C6A]">{t('pointsTracker.sale.changeSource')}</button></>
-                        )}
+                        ) : (
+                          // Le choix remplace le lien, au même endroit, dans le style de pastille du reste de l'écran.
+                          <span className="ml-1 inline-block min-w-[150px] align-middle">
+                            <Select autoOpen onClose={() => setEditingDeal(null)} value={s.deal.lead_source_group || ''}
+                              onChange={(v) => { onOverrideSource(s.deal!.crm_deal_id, v); setEditingDeal(null); }}
+                              options={[{ value: '', label: '—' }, ...leadSourceGroups.map((g) => ({ value: g, label: g }))]}
+                              buttonClassName="flex w-full items-center justify-between gap-2 rounded-full border border-primary bg-[rgba(245,131,69,0.10)] px-3 py-1 text-xs font-bold text-accent-ink outline-none dark:text-[#F79C6A]" />
+                          </span>
+                        ))}
                       </span>
-                      {isAdmin && s.deal && editingDeal === s.deal.crm_deal_id && (
-                        <Select autoOpen onClose={() => setEditingDeal(null)} value={s.deal.lead_source_group || ''}
-                          onChange={(v) => { onOverrideSource(s.deal!.crm_deal_id, v); setEditingDeal(null); }}
-                          options={[{ value: '', label: '—' }, ...leadSourceGroups.map((g) => ({ value: g, label: g }))]}
-                          buttonClassName="mt-1 rounded border border-primary bg-transparent px-2 py-1 text-xs text-black outline-none dark:bg-form-input dark:text-white" />
-                      )}
                     </span>
                     <span className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
                       <StatusPill family={s.kind === 'pay' ? 'ok' : 'new'}>{s.kind === 'pay' ? t('pointsTracker.sale.activation') : t('pointsTracker.sale.typeCrm')}</StatusPill>
