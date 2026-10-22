@@ -97,7 +97,7 @@ export function BudgetGrid({ cols, rows, labelHead, monthMode }: { cols: Col[]; 
             const inner = (
               <span className={`flex flex-wrap items-center gap-1.5 ${INDENT[r.kind] || ''}`}>
                 {r.expand && <span aria-hidden className="inline-block w-3 text-[10px] text-body">{r.expand.open ? '▾' : '▸'}</span>}
-                <span className="min-w-0 whitespace-normal">{r.label}</span>
+                <span className="min-w-[180px] flex-1 whitespace-normal">{r.label}</span>
                 {r.extra}
               </span>
             );
