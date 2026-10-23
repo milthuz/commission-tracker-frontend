@@ -177,8 +177,8 @@ export default function HoldcoCash() {
             </div>
             <div className="border-t border-stroke pt-3 dark:border-strokedark">
               <Button size="sm" disabled={bankBusy} onClick={readBooks}>{t('finance.forecasts.cash.readBooks')}</Button>
-              {bank && bank.status === 'reconnect' && <p role="status" className="m-0 mt-2 text-[12.5px] text-[#B54708] dark:text-[#FDB022]">{t('finance.forecasts.cash.booksReconnect')}</p>}
-              {bank && (bank.status === 'error' || bank.status === 'unavailable') && <p role="status" className="m-0 mt-2 text-[12.5px] text-[#B42318] dark:text-[#F46060]">{t(`finance.forecasts.cash.books_${bank.status}`)}</p>}
+              {bank && bank.status === 'reconnect' && <p role="status" className="m-0 mt-2 text-[13.5px] text-[#B54708] dark:text-[#FDB022]">{t('finance.forecasts.cash.booksReconnect')}</p>}
+              {bank && (bank.status === 'error' || bank.status === 'unavailable') && <p role="status" className="m-0 mt-2 text-[13.5px] text-[#B42318] dark:text-[#F46060]">{t(`finance.forecasts.cash.books_${bank.status}`)}</p>}
               {bank && bank.status === 'ok' && <BooksAccounts bank={bank} selected={opening.mode === 'books' ? opening.accountIds || [] : []} canEdit={canEdit} onUse={applyAccounts} money={money} />}
             </div>
           </div>
@@ -251,7 +251,7 @@ function BooksAccounts({ bank, selected, canEdit, onUse, money }: { bank: BankAc
   const total = (bank.accounts || []).filter((a) => ids.includes(a.id)).reduce((s, a) => s + a.balance, 0);
   return (
     <div className="mt-2">
-      {!(bank.accounts || []).length && <p className="m-0 text-[12.5px] text-body dark:text-bodydark2">{t('finance.forecasts.cash.noAccounts')}</p>}
+      {!(bank.accounts || []).length && <p className="m-0 text-[13.5px] text-body dark:text-bodydark2">{t('finance.forecasts.cash.noAccounts')}</p>}
       {(bank.accounts || []).map((a) => (
         <label key={a.id} className="flex items-center justify-between gap-2 py-0.5 text-[13px] text-black dark:text-white">
           <span className="flex items-center gap-2"><input type="checkbox" checked={ids.includes(a.id)} onChange={(e) => setIds(e.target.checked ? [...ids, a.id] : ids.filter((x) => x !== a.id))} />{a.name}{a.currency && a.currency !== 'CAD' ? ` (${a.currency})` : ''}</span>

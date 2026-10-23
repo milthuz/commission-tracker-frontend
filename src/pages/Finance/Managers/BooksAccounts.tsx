@@ -70,7 +70,7 @@ function BooksAccountsPanel({ data, setData, onSaved, onDirty }: { data: Account
       </div>
       {err && <div className="mt-3"><InlineError title={t('finance.managers.accounts.error')} detail={err} /></div>}
       <div className={`${TABLE_WRAP} mt-3`}>
-        <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+        <table className="w-full border-collapse text-[14px] text-black dark:text-white">
           <thead><tr><th className={TH}>{t('finance.managers.accounts.code')}</th><th className={TH}>{t('finance.managers.accounts.usedFor')}</th><th className={TH}>{t('finance.managers.accounts.booksAccount')}</th><th className={TH}>{t('finance.managers.accounts.confirmed')}</th></tr></thead>
           <tbody>
             {data.needed.map((n) => {

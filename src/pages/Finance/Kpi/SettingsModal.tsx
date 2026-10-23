@@ -149,7 +149,7 @@ export function SettingsModal({ open, onClose, settings, orgs, months, canEdit, 
           <div className="mb-2 flex flex-wrap gap-1" role="tablist">
             {LINES.map((l) => (
               <button key={l} type="button" role="tab" aria-selected={line === l} onClick={() => setLine(l)}
-                className={`rounded-lg px-2.5 py-1 text-[12.5px] font-bold ${line === l ? 'bg-primary text-[#141414]' : 'bg-gray-2 text-body hover:text-black dark:bg-meta-4 dark:text-bodydark2 dark:hover:text-white'}`}>
+                className={`rounded-lg px-2.5 py-1 text-[13.5px] font-bold ${line === l ? 'bg-primary text-[#141414]' : 'bg-gray-2 text-body hover:text-black dark:bg-meta-4 dark:text-bodydark2 dark:hover:text-white'}`}>
                 {t(`finance.kpi.settings.lines.${l}`)} ({mapping[l].size})
               </button>
             ))}
@@ -159,7 +159,7 @@ export function SettingsModal({ open, onClose, settings, orgs, months, canEdit, 
             <ul className="max-h-[360px] overflow-y-auto rounded-xl border border-stroke dark:border-strokedark">
               {shown.map((a) => (
                 <li key={a.key} className="border-b border-stroke/60 px-3 py-1.5 last:border-b-0 dark:border-strokedark/60">
-                  <label className="flex items-start gap-2 text-[12.5px] text-black dark:text-white">
+                  <label className="flex items-start gap-2 text-[13.5px] text-black dark:text-white">
                     <input type="checkbox" className="mt-0.5" disabled={dis} checked={mapping[line].has(a.key)} onChange={() => toggle(a.key)} />
                     <span className="min-w-0 flex-1">
                       <span className={a.isGroup ? 'font-bold' : ''}>{a.name}</span>
@@ -175,7 +175,7 @@ export function SettingsModal({ open, onClose, settings, orgs, months, canEdit, 
           )}
         </section>
       </div>
-      {err && <p role="alert" className="mt-3 text-[12.5px] font-bold text-[#B42318] dark:text-[#F46060]">{err}</p>}
+      {err && <p role="alert" className="mt-3 text-[13.5px] font-bold text-[#B42318] dark:text-[#F46060]">{err}</p>}
     </Modal>
   );
 }

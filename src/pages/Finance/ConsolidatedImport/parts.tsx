@@ -6,7 +6,7 @@ import { TABLE_WRAP } from '../../../components/ui/surface';
 import type { Msg } from './api';
 import type { FlowError } from './useImportFlow';
 
-export const TH_S = 'whitespace-nowrap border-b border-stroke px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2';
+export const TH_S = 'whitespace-nowrap border-b border-stroke px-2.5 py-1.5 text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2';
 export const TD_S = 'border-b border-stroke/60 px-2.5 py-1 align-top tabular-nums dark:border-strokedark/60';
 
 // Un bloc de l'aperçu, avec son titre.
@@ -37,7 +37,7 @@ export function MessageList({ items, tone }: { items: Msg[]; tone: 'err' | 'warn
   const MAX = 40;
   return (
     <div>
-      <ul className={`m-0 list-disc space-y-0.5 rounded-lg border px-6 py-2 text-[12.5px] ${tone === 'err'
+      <ul className={`m-0 list-disc space-y-0.5 rounded-lg border px-6 py-2 text-[13.5px] ${tone === 'err'
         ? 'border-[rgba(240,68,56,0.35)] bg-[rgba(240,68,56,0.06)] text-[#B42318] dark:text-[#F46060]'
         : 'border-[rgba(247,144,9,0.35)] bg-[rgba(247,144,9,0.06)] text-[#93370D] dark:text-[#FDB022]'}`}>
         {items.slice(0, MAX).map((m, i) => (
@@ -90,7 +90,7 @@ export function FileStep({ intro, input, onPick, reading, error, onTemplate, tem
 
 export const SimpleTable = ({ head, children }: { head: React.ReactNode[]; children: React.ReactNode }) => (
   <div className={`${TABLE_WRAP} max-h-[300px] overflow-y-auto`}>
-    <table className="w-full border-collapse text-[12.5px]">
+    <table className="w-full border-collapse text-[14px]">
       <thead className="sticky top-0 bg-white dark:bg-boxdark">
         <tr>{head.map((h, i) => <th key={i} className={`${TH_S} ${i === 0 ? 'text-left' : 'text-right'}`}>{h}</th>)}</tr>
       </thead>

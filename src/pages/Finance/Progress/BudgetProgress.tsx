@@ -49,7 +49,7 @@ export function Checklist({ items, onGo, currentPath }: { items: ProgressItem[];
         if (!list.length) return null;
         return (
           <section key={g} aria-label={t(`finance.progress.groups.${g}`)}>
-            <h3 className="m-0 mb-1 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t(`finance.progress.groups.${g}`)}</h3>
+            <h3 className="m-0 mb-1 text-[13px] font-semibold text-body dark:text-bodydark2">{t(`finance.progress.groups.${g}`)}</h3>
             <ul className="m-0 list-none p-0">
               {list.map((it) => (
                 <li key={it.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-stroke/60 py-2 dark:border-strokedark/60">

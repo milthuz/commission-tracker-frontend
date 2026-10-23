@@ -11,6 +11,7 @@ import { PAGES } from './DriverPages';
 import { downloadCsv, type Fmt } from './format';
 import { COGS_GL, GL_SUB_KEYS, OPEX_SECTIONS, PAYROLL_KEYS, REV_CATS, REV_GL, opexDetailBySection, ratio, sum, type RevCat, type Series } from './model';
 import { COGS_KEYS } from './rows';
+import { DollarShare, RevenueSpendChart, Sparkline } from './charts';
 
 const OPEX_SEC_ID: Record<(typeof OPEX_SECTIONS)[number], string> = {
   'Sales & Marketing': 'sm', 'Research & Development': 'rd', 'General & Administrative': 'ga',
@@ -118,16 +119,16 @@ export default function MasterBudget() {
         }
       />
       <KpiRow>
-        <Kpi label={t('finance.kpi.revenue')} value={money(K.revenue.value)}
+        <Kpi label={t('finance.kpi.revenue')} value={money(K.revenue.value)} chart={<Sparkline vals={M.tRev} months={months} money={money} label={t('finance.charts.trend', { what: t('finance.kpi.revenue') })} />}
           detail={t('finance.kpi.revenueMix', { rec: K.revenue.recurringShare.toFixed(0), tx: K.revenue.transactionShare.toFixed(0) })}
           sub={vsLine(K.revenue.prev, K.revenue.vs)} />
-        <Kpi label={t('finance.kpi.grossProfit')} value={money(K.grossProfit.value)}
+        <Kpi label={t('finance.kpi.grossProfit')} value={money(K.grossProfit.value)} chart={<Sparkline vals={M.gp} months={months} money={money} label={t('finance.charts.trend', { what: t('finance.kpi.grossProfit') })} />}
           detail={t('finance.kpi.marginLine', { m: fmt.pct(K.grossProfit.margin), p: fmt.pct(K.grossProfit.prevMargin) })}
           sub={vsLine(K.grossProfit.prev, K.grossProfit.vs)} />
-        <Kpi label={t('finance.kpi.ebitda')} value={money(K.ebitda.value)} tone={K.ebitda.value < 0 ? 'dn' : 'up'}
+        <Kpi label={t('finance.kpi.ebitda')} value={money(K.ebitda.value)} tone={K.ebitda.value < 0 ? 'dn' : 'up'} chart={<Sparkline vals={M.ebitda} months={months} money={money} label={t('finance.charts.trend', { what: t('finance.kpi.ebitda') })} />}
           detail={t('finance.kpi.marginLine', { m: fmt.pct(K.ebitda.margin), p: fmt.pct(K.ebitda.prevMargin) })}
           sub={vsLine(K.ebitda.prev, K.ebitda.vs)} />
-        <Kpi label={t('finance.kpi.netIncome')} value={money(K.netIncome.value)} tone={K.netIncome.value < 0 ? 'dn' : 'up'}
+        <Kpi label={t('finance.kpi.netIncome')} value={money(K.netIncome.value)} tone={K.netIncome.value < 0 ? 'dn' : 'up'} chart={<Sparkline vals={M.ni} months={months} money={money} label={t('finance.charts.trend', { what: t('finance.kpi.netIncome') })} />}
           detail={t('finance.kpi.marginLine', { m: fmt.pct(K.netIncome.margin), p: fmt.pct(K.netIncome.prevMargin) })}
           sub={vsLine(K.netIncome.prev, K.netIncome.vs)} />
       </KpiRow>
@@ -145,6 +146,15 @@ export default function MasterBudget() {
           value={t('finance.kpi.adyenValue', { pts: `${K.adyen.pts >= 0 ? '+' : '−'}${Math.abs(K.adyen.pts).toFixed(1)}`, end: fmt.pct(K.adyen.end) })}
           detail={t('finance.kpi.adyenDetail', { start: fmt.pct(K.adyen.start) })} />
       </KpiRow>
+      {/* Graphiques de la direction B choisie par la CFO (SH-50) ; le relevé dessous sert de vue tableau. */}
+      <div className="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <RevenueSpendChart months={months} revenue={M.tRev} spending={M.tCogs.map((v, i) => v + M.tOpex[i])} money={money} fy={ref.fiscalYear} />
+        <DollarShare money={money} pct={(p) => fmt.pct(p)} fy={ref.fiscalYear} revenue={sum(M.tRev)} ebitda={sum(M.ebitda)}
+          items={[
+            ...REV_CATS.map((c) => ({ label: t(`finance.master.cogs.${c}`), value: sum(M.cogs[c]) })),
+            ...OPEX_SECTIONS.map((s) => ({ label: t(`finance.master.opex.${OPEX_SEC_ID[s]}`), value: sum(M.opex[s]) })),
+          ]} />
+      </div>
       <Card title={t('finance.master.statement')} sub={t('finance.master.statementHint')}>
         <FinTable rows={shown} months={months} labelHead="CAD" totalLabel={t('finance.col.total27')} editable={false} />
       </Card>

@@ -11769,6 +11769,22 @@
         "load_failed": "The drafts could not be loaded.",
         "unknown": "Unexpected error."
       }
+    },
+    "charts": {
+      "revenue": "Revenue",
+      "spending": "Spending",
+      "gap": "Difference",
+      "trend": "{{what}} by month",
+      "revSpend": {
+        "title": "Revenue and spending by month",
+        "sub": "FY {{fy}} · spending = cost of revenue + operating expenses",
+        "point": "{{m}}: revenue {{rev}}, spending {{sp}}"
+      },
+      "dollar": {
+        "title": "Where each dollar goes",
+        "sub": "Share of revenue, FY {{fy}}",
+        "left": "Left as EBITDA"
+      }
     }
   }
 }

@@ -123,7 +123,7 @@ export function CellModal({ open, onClose, month, def, cell, canEdit, fmt, srcTe
               : !filtered.length ? <p className={CARD_SUB}>{t('finance.kpi.cell.detailEmpty')}</p>
                 : (
                   <div className={`${TABLE_WRAP} max-h-[320px] overflow-y-auto`}>
-                    <table className="w-full border-collapse text-[12.5px]">
+                    <table className="w-full border-collapse text-[14px]">
                       <thead><tr className={THEAD_ROW}>
                         <th className={`${TH} text-left`}>{t('finance.kpi.cell.customer')}</th>
                         <th className={`${TH} text-left`}>{t('finance.kpi.cell.sub')}</th>
@@ -167,7 +167,7 @@ export function CellModal({ open, onClose, month, def, cell, canEdit, fmt, srcTe
               <input type="text" maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} className={`${INPUT} w-full`} />
             </label>
           </div>
-          {err && <p role="alert" className="mt-2 text-[12.5px] font-bold text-[#B42318] dark:text-[#F46060]">{err}</p>}
+          {err && <p role="alert" className="mt-2 text-[13.5px] font-bold text-[#B42318] dark:text-[#F46060]">{err}</p>}
         </div>
       )}
     </Modal>

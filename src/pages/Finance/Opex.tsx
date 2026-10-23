@@ -114,7 +114,7 @@ function TravelBudget({ focus }: { focus: string | null }) {
   const num = (i: number, k: keyof Trip, label: string) => (
     <NumCell value={list[i][k] as number} width="w-[70px]" decimals={2} disabled={!canEdit} label={`${list[i].name} — ${label}`} onChange={(v) => edit(i, { [k]: Math.max(0, v) } as Partial<Trip>)} />
   );
-  const th = 'whitespace-nowrap border-b border-stroke px-2 py-2 text-left text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2';
+  const th = 'whitespace-nowrap border-b border-stroke px-2 py-2 text-left text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2';
   const td = 'whitespace-nowrap border-b border-stroke/60 px-2 py-1.5 tabular-nums dark:border-strokedark/60';
   const cols = ['airfare', 'nights', 'hotel', 'days', 'perDiem', 'other'] as const;
   const travelRows: FRow[] = [
@@ -125,7 +125,7 @@ function TravelBudget({ focus }: { focus: string | null }) {
     <section data-focus="travel" className={`mb-5 ${focus === 'travel' ? 'rounded-2xl ring-2 ring-[#FDB022]' : ''}`}>
       <Card title={t('finance.opex.travel')} sub={t('finance.opex.travelHint')} actions={canEdit ? <Button size="sm" onClick={add}>{t('finance.opex.addTrip')}</Button> : undefined}>
         <div className="mb-4 overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
-          <table className="w-full border-collapse text-[12.5px]">
+          <table className="w-full border-collapse text-[14px]">
             <thead>
               <tr>
                 <th className={th}>{t('finance.opex.trip')}</th><th className={th}>{t('finance.opex.dept')}</th><th className={th}>{t('finance.opex.month')}</th>
@@ -139,13 +139,13 @@ function TravelBudget({ focus }: { focus: string | null }) {
               {list.map((tr, i) => (
                 <tr key={i} className="text-black dark:text-white">
                   <td className={td}>
-                    <input aria-label={t('finance.opex.trip')} disabled={!canEdit} value={tr.name} maxLength={120} onChange={(e) => edit(i, { name: e.target.value })} className={`h-7 w-[200px] rounded-md border px-1.5 text-[12.5px] ${EDIT_CELL}`} />
+                    <input aria-label={t('finance.opex.trip')} disabled={!canEdit} value={tr.name} maxLength={120} onChange={(e) => edit(i, { name: e.target.value })} className={`h-7 w-[200px] rounded-md border px-1.5 text-[13.5px] ${EDIT_CELL}`} />
                   </td>
                   <td className={td}>
-                    <Select disabled={!canEdit} value={tr.dept} onChange={(v) => edit(i, { dept: v as Trip['dept'] })} options={DEPTS.map((d) => ({ value: d, label: d }))} buttonClassName={`h-7 min-w-[72px] rounded-md border px-1.5 text-left text-[12.5px] ${EDIT_CELL}`} />
+                    <Select disabled={!canEdit} value={tr.dept} onChange={(v) => edit(i, { dept: v as Trip['dept'] })} options={DEPTS.map((d) => ({ value: d, label: d }))} buttonClassName={`h-7 min-w-[72px] rounded-md border px-1.5 text-left text-[13.5px] ${EDIT_CELL}`} />
                   </td>
                   <td className={td}>
-                    <Select disabled={!canEdit} value={String(tr.month)} onChange={(v) => edit(i, { month: Number(v) })} options={months.map((m, j) => ({ value: String(j), label: m }))} buttonClassName={`h-7 min-w-[80px] rounded-md border px-1.5 text-left text-[12.5px] ${EDIT_CELL}`} />
+                    <Select disabled={!canEdit} value={String(tr.month)} onChange={(v) => edit(i, { month: Number(v) })} options={months.map((m, j) => ({ value: String(j), label: m }))} buttonClassName={`h-7 min-w-[80px] rounded-md border px-1.5 text-left text-[13.5px] ${EDIT_CELL}`} />
                   </td>
                   <td className={td}>{num(i, 'people', t('finance.opex.people'))}</td>
                   {cols.map((c) => <td key={c} className={td}>{num(i, c, t(`finance.opex.${c}`))}</td>)}

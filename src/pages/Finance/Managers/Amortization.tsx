@@ -119,7 +119,7 @@ export default function Amortization() {
           <StateCard kind="empty" title={t('finance.managers.amort.emptyTitle')} body={caps.canEdit ? t('finance.managers.amort.emptyBody') : undefined} />
         ) : (
           <div className={TABLE_WRAP}>
-            <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+            <table className="w-full border-collapse text-[14px] text-black dark:text-white">
               <thead>
                 <tr>
                   <th className={TH}>{t('finance.managers.amort.col.ref')}</th>

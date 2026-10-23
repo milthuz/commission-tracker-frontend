@@ -29,7 +29,7 @@ export function ColSeg({ mode, onChange }: { mode: ColMode; onChange: (m: ColMod
     <div role="group" aria-label={t(`${NS}.cols.label`)} className="inline-flex rounded-lg border border-stroke p-0.5 dark:border-strokedark">
       {opts.map(([v, label]) => (
         <button key={v} type="button" aria-pressed={mode === v} onClick={() => onChange(v)}
-          className={`rounded-md px-3 py-1 text-[12.5px] font-bold transition ${mode === v ? 'bg-primary text-white' : 'text-body hover:text-black dark:text-bodydark2 dark:hover:text-white'}`}>
+          className={`rounded-md px-3 py-1 text-[13.5px] font-bold transition ${mode === v ? 'bg-primary text-white' : 'text-body hover:text-black dark:text-bodydark2 dark:hover:text-white'}`}>
           {label}
         </button>
       ))}
@@ -62,9 +62,9 @@ export interface GridRow {
 }
 
 const ROW: Record<GridKind, string> = {
-  sec: 'text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2',
+  sec: 'text-[13px] font-semibold text-body dark:text-bodydark2',
   line: 'text-black dark:text-white',
-  total: 'font-bold text-black dark:text-white [&>td]:border-t [&>td]:border-t-[#9a9aa3] dark:[&>td]:border-t-[#575A61] [&>td]:bg-[#F5F5F5] dark:[&>td]:bg-[#161718]',
+  total: 'font-bold text-black dark:text-white [&>td]:border-t [&>td]:border-t-[#C9C9C5] dark:[&>td]:border-t-[#3A3C42]',
   gm: 'italic text-body dark:text-bodydark2',
   grp: 'text-[11.5px] font-bold text-body dark:text-bodydark2 [&>td]:bg-[#FAFAFA] dark:[&>td]:bg-[#121214]',
   gl: 'text-[#424242] dark:text-bodydark [&>td]:bg-[#FAFAFA] dark:[&>td]:bg-[#121214]',
@@ -75,14 +75,14 @@ const INDENT: Partial<Record<GridKind, string>> = { grp: 'pl-5', gl: 'pl-5', gls
 const CHANGED = 'text-[#B54708] dark:text-[#FDB022]';
 
 export function BudgetGrid({ cols, rows, labelHead, monthMode }: { cols: Col[]; rows: GridRow[]; labelHead: string; monthMode: boolean }) {
-  const th = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-right text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2';
+  const th = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-right text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2';
   const td = 'whitespace-nowrap border-b border-stroke/60 px-2.5 py-1.5 text-right tabular-nums dark:border-strokedark/60';
   const colCls = (c: Col) => (c.cls === 'act'
     ? 'text-body dark:text-bodydark2 border-r border-r-stroke dark:border-r-strokedark'
     : c.cls === 'tot2' ? 'bg-[#F3F3F3] dark:bg-[#19191B] border-l border-l-stroke dark:border-l-strokedark' : '');
   return (
     <div className={TABLE_WRAP}>
-      <table className="w-full border-collapse text-[12.5px]">
+      <table className="w-full border-collapse text-[14px]">
         <thead>
           <tr>
             <th className={`${th} sticky left-0 z-10 min-w-[300px] bg-white !text-left dark:bg-boxdark`}>{labelHead}</th>
@@ -101,7 +101,7 @@ export function BudgetGrid({ cols, rows, labelHead, monthMode }: { cols: Col[]; 
                 {r.extra}
               </span>
             );
-            const stick = r.kind === 'total' ? '!bg-[#F5F5F5] dark:!bg-[#161718]' : r.kind === 'gl' || r.kind === 'glsub' || r.kind === 'grp' ? '!bg-[#FAFAFA] dark:!bg-[#121214]' : 'bg-white dark:bg-boxdark';
+            const stick = r.kind === 'total' ? 'bg-white dark:bg-boxdark' : r.kind === 'gl' || r.kind === 'glsub' || r.kind === 'grp' ? '!bg-[#FAFAFA] dark:!bg-[#121214]' : 'bg-white dark:bg-boxdark';
             return (
               <tr key={r.id} className={ROW[r.kind]} title={r.title || undefined}>
                 <td className={`${td} sticky left-0 z-[1] min-w-[300px] max-w-[460px] !text-left ${stick}`}>
@@ -136,7 +136,7 @@ export function MessageList({ items, tone }: { items: ImportMessage[]; tone: 'er
     return p;
   };
   return (
-    <ul className={`m-0 list-disc space-y-0.5 rounded-lg border px-6 py-2 text-[12.5px] ${tone === 'err'
+    <ul className={`m-0 list-disc space-y-0.5 rounded-lg border px-6 py-2 text-[13.5px] ${tone === 'err'
       ? 'border-[rgba(240,68,56,0.35)] bg-[rgba(240,68,56,0.06)] text-[#B42318] dark:text-[#F46060]'
       : 'border-[rgba(247,144,9,0.35)] bg-[rgba(247,144,9,0.06)] text-[#93370D] dark:text-[#FDB022]'}`}>
       {items.map((m, i) => <li key={i}>{t(`${NS}.msg.${m.code}`, { ...params(m), defaultValue: `${m.code} ${JSON.stringify(m)}` })}</li>)}
@@ -214,8 +214,8 @@ export function ImportModal<P extends { token: string }, R>({ open, onClose, tit
 export function DiffTable({ head, rows }: { head: string[]; rows: (React.ReactNode)[][] }) {
   return (
     <div className={TABLE_WRAP}>
-      <table className="w-full border-collapse text-[12.5px]">
-        <thead><tr>{head.map((h, i) => <th key={i} className={`whitespace-nowrap border-b border-stroke px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2 ${i ? 'text-right' : 'text-left'}`}>{h}</th>)}</tr></thead>
+      <table className="w-full border-collapse text-[14px]">
+        <thead><tr>{head.map((h, i) => <th key={i} className={`whitespace-nowrap border-b border-stroke px-2.5 py-1.5 text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2 ${i ? 'text-right' : 'text-left'}`}>{h}</th>)}</tr></thead>
         <tbody>{rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={`border-b border-stroke/60 px-2.5 py-1 tabular-nums dark:border-strokedark/60 ${j ? 'text-right' : 'text-left'}`}>{c}</td>)}</tr>)}</tbody>
       </table>
     </div>

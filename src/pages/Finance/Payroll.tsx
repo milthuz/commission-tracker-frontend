@@ -17,13 +17,14 @@ import { downloadCsv } from './format';
 import { MAPS, masterCount, payCodesOf, sum, type Contractor, type Employee, type PnlMap, type Series } from './model';
 
 const ENTITIES = ['Cluster', 'Xperio'];
-const th = 'whitespace-nowrap border-b border-stroke px-2 py-2 text-left text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2';
+const th = 'whitespace-nowrap border-b border-stroke px-2 py-2 text-left text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2';
 const thR = `${th} text-right`;
-const td = 'whitespace-nowrap border-b border-stroke/60 px-2 py-1.5 tabular-nums dark:border-strokedark/60';
+const td = 'whitespace-nowrap border-b border-[#F0F0ED] px-2 py-2 tabular-nums dark:border-[#232428]';
 const tdR = `${td} text-right`;
-const SUB = 'font-bold [&>td]:border-t [&>td]:border-t-[#9a9aa3] [&>td]:bg-[#F5F5F5] dark:[&>td]:border-t-[#575A61] dark:[&>td]:bg-[#161718]';
-const GRAND = 'font-bold [&>td]:border-t [&>td]:border-t-[#141414] dark:[&>td]:border-t-white [&>td]:border-b-[3px] [&>td]:[border-bottom-style:double] [&>td]:border-b-[#141414] dark:[&>td]:border-b-white';
-const SEC = 'text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2';
+// Style « relevé épuré » de la CFO (SH-50) : sous-total en simple filet, grand total en bande douce.
+const SUB = 'font-bold [&>td]:border-t [&>td]:border-t-[#C9C9C5] dark:[&>td]:border-t-[#3A3C42]';
+const GRAND = 'font-extrabold [&>td]:border-t-2 [&>td]:border-t-[#141414] dark:[&>td]:border-t-[#E4E4E7] [&>td]:bg-[#FFF7F1] dark:[&>td]:bg-[#2A2015]';
+const SEC = 'text-[14px] font-bold text-black dark:text-white';
 
 // Champ texte qui garde la frappe localement (la sauvegarde part après une pause).
 function TextCell({ value, onChange, disabled, label, width = 'w-[160px]', upper }: { value: string; onChange: (v: string) => void; disabled?: boolean; label: string; width?: string; upper?: boolean }) {
@@ -32,7 +33,7 @@ function TextCell({ value, onChange, disabled, label, width = 'w-[160px]', upper
   return (
     <input type="text" aria-label={label} disabled={disabled} value={raw} maxLength={120}
       onChange={(e) => { const v = upper ? e.target.value.toUpperCase() : e.target.value; setRaw(v); if (v.trim()) onChange(v); }}
-      className={`${width} h-7 rounded-md border px-1.5 text-[12.5px] outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-70 ${EDIT_CELL}`} />
+      className={`${width} h-7 rounded-md border px-1.5 text-[13.5px] outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-70 ${EDIT_CELL}`} />
   );
 }
 
@@ -47,11 +48,11 @@ function OptNumCell({ value, global, onChange, disabled, label }: { value: numbe
       value={raw ?? shown}
       onChange={(e) => { setRaw(e.target.value); if (!e.target.value.trim()) onChange(null); else { const v = fmt.parse(e.target.value); if (v != null) onChange(v); } }}
       onBlur={() => setRaw(null)}
-      className={`h-7 w-[56px] rounded-md border px-1.5 text-right text-[12.5px] tabular-nums outline-none placeholder:text-[#9A3F12]/50 focus:ring-2 focus:ring-primary/40 disabled:opacity-70 dark:placeholder:text-[#FFBE9B]/40 ${EDIT_CELL}`} />
+      className={`h-7 w-[56px] rounded-md border px-1.5 text-right text-[13.5px] tabular-nums outline-none placeholder:text-[#9A3F12]/50 focus:ring-2 focus:ring-primary/40 disabled:opacity-70 dark:placeholder:text-[#FFBE9B]/40 ${EDIT_CELL}`} />
   );
 }
 
-const SEL_BTN = `h-7 rounded-md border px-1.5 text-left text-[12.5px] ${EDIT_CELL}`;
+const SEL_BTN = `h-7 rounded-md border px-1.5 text-left text-[13.5px] ${EDIT_CELL}`;
 
 export default function Payroll() {
   const { t } = useTranslation();
@@ -100,7 +101,7 @@ export default function Payroll() {
   const slug = (k: string) => k.replace(/[^A-Za-z0-9]+/g, '-');
   const jump = (id: string) => { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); setFlash(id); };
   const flashCls = (id: string) => (flash === id ? '[&>td]:!bg-[#FFF4DB] dark:[&>td]:!bg-[#2A2410]' : '');
-  const linkBtn = 'text-left underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark';
+  const linkBtn = 'text-left decoration-primary underline-offset-[3px] hover:underline focus-visible:underline hover:text-accent-ink dark:hover:text-accent-ink-dark';
 
   // Budget de hausse par code de département (comme `deptRaise`, sans distinction d'entité) :
   // coût 2027 de la hausse = la part du mensuel due à la hausse, mois par mois.
@@ -177,7 +178,7 @@ export default function Payroll() {
 
       <Card title={t('finance.payroll.summary')} sub={t('finance.payroll.summaryHint')}>
         <div className="overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
-          <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+          <table className="w-full border-collapse text-[14px] text-black dark:text-white">
             <thead><tr><th className={th}>{t('finance.payroll.map')}</th><th className={thR}>{t('finance.payroll.baseAnnual')}</th><th className={thR}>{t('finance.payroll.inclAnnual')}</th>{months.map((m) => <th key={m} className={thR}>{m}</th>)}<th className={thR}>{t('finance.col.total27')}</th></tr></thead>
             <tbody>
               <tr className={SEC}><td colSpan={16} className={td}>{t('finance.payroll.payrollSec')}</td></tr>
@@ -198,7 +199,7 @@ export default function Payroll() {
 
       <Card title={t('finance.payroll.byDept')} sub={t('finance.payroll.byDeptHint')}>
         <div className="overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
-          <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+          <table className="w-full border-collapse text-[14px] text-black dark:text-white">
             <thead><tr>{['entity', 'dept', 'headcount', 'inclAnnual', 'payroll27', 'contractors27', 'total27', 'share'].map((k, i) => <th key={k} className={i > 1 ? thR : th}>{t(`finance.payroll.${k}`)}</th>)}</tr></thead>
             <tbody>
               {depts.map((d) => (
@@ -213,7 +214,7 @@ export default function Payroll() {
 
       <Card title={t('finance.payroll.raiseBudget')} sub={t('finance.payroll.raiseBudgetHint')}>
         <div className="overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
-          <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+          <table className="w-full border-collapse text-[14px] text-black dark:text-white">
             <thead><tr>
               <th className={th}>{t('finance.payroll.dept')}</th><th className={thR}>{t('finance.payroll.headcount')}</th>
               <th className={thR}>{t('finance.payroll.payroll27')}</th><th className={th}>{t('finance.payroll.raiseDeptPct')}</th>
@@ -239,7 +240,7 @@ export default function Payroll() {
 
       <Card title={t('finance.payroll.empDetail')} sub={t('finance.payroll.empHint')} actions={can ? <Button size="sm" onClick={addEmployee}>{t('finance.payroll.addEmployee')}</Button> : undefined}>
         <div className="overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
-          <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+          <table className="w-full border-collapse text-[14px] text-black dark:text-white">
             <thead><tr>
               {can && <th className={th}><span className="sr-only">{t('finance.remove')}</span></th>}
               {['entity', 'dept', 'name', 'annualSalary', 'alloc', 'map', 'inclAnnual', 'raise', 'raiseMoShort', 'burdenShort', 'startMo', 'endMo'].map((k) => <th key={k} className={th}>{t(`finance.payroll.${k}`)}</th>)}
@@ -305,7 +306,7 @@ export default function Payroll() {
 
       <Card title={t('finance.payroll.conDetail')} sub={t('finance.payroll.conHint')} actions={can ? <Button size="sm" onClick={addContractor}>{t('finance.payroll.addContractor')}</Button> : undefined}>
         <div className="overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
-          <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+          <table className="w-full border-collapse text-[14px] text-black dark:text-white">
             <thead><tr>
               {['company', 'name', 'service', 'dept'].map((k) => <th key={k} className={th}>{t(`finance.payroll.${k}`)}</th>)}
               <th className={thR}>{t('finance.payroll.rate')}</th><th className={thR}>{t('finance.payroll.hours')}</th>

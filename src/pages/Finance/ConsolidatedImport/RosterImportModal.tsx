@@ -79,7 +79,7 @@ export function RosterImportModal({ open, onClose }: { open: boolean; onClose: (
     return (
       <Block title={title}>
         {!side.compared ? (
-          <p className="m-0 text-[12.5px] text-body dark:text-bodydark2">{t('finance.consolidatedImport.roster.notCompared')}</p>
+          <p className="m-0 text-[13.5px] text-body dark:text-bodydark2">{t('finance.consolidatedImport.roster.notCompared')}</p>
         ) : (
           <>
             <div className="flex flex-wrap gap-1.5">
@@ -90,7 +90,7 @@ export function RosterImportModal({ open, onClose }: { open: boolean; onClose: (
             </div>
             {rows.length > 0 && (
               <div className={`${TABLE_WRAP} max-h-[260px] overflow-y-auto`}>
-                <table className="w-full border-collapse text-[12.5px]">
+                <table className="w-full border-collapse text-[14px]">
                   <thead className="sticky top-0 bg-white dark:bg-boxdark">
                     <tr>
                       <th className={`${TH_S} text-left`}>{t('finance.consolidatedImport.cols.kind')}</th>
@@ -179,7 +179,7 @@ export function RosterImportModal({ open, onClose }: { open: boolean; onClose: (
             {after && (
               <Block title={t('finance.consolidatedImport.roster.totalsTitle', { fy: payload.budget.fiscalYear })} hint={t('finance.consolidatedImport.roster.totalsHint')}>
                 <div className={TABLE_WRAP}>
-                  <table className="w-full border-collapse text-[12.5px]">
+                  <table className="w-full border-collapse text-[14px]">
                     <thead><tr>
                       <th className={`${TH_S} text-left`}>{t('finance.consolidatedImport.cols.measure')}</th>
                       <th className={`${TH_S} text-right`}>{t('finance.consolidatedImport.cols.before')}</th>

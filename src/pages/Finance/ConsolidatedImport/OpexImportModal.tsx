@@ -97,7 +97,7 @@ export function OpexImportModal({ open, onClose }: { open: boolean; onClose: () 
               </div>
               {pv.changed.length > 0 && (
                 <div className={`${TABLE_WRAP} max-h-[300px] overflow-y-auto`}>
-                  <table className="w-full border-collapse text-[12.5px]">
+                  <table className="w-full border-collapse text-[14px]">
                     <thead className="sticky top-0 bg-white dark:bg-boxdark">
                       <tr>
                         <th className={`${TH_S} text-left`}>{t('finance.consolidatedImport.opex.line')}</th>
@@ -125,7 +125,7 @@ export function OpexImportModal({ open, onClose }: { open: boolean; onClose: () 
             </Block>
             <Block title={t('finance.consolidatedImport.opex.totalsTitle')} hint={t('finance.consolidatedImport.opex.totalsHint')}>
               <div className={TABLE_WRAP}>
-                <table className="w-full border-collapse text-[12.5px]">
+                <table className="w-full border-collapse text-[14px]">
                   <thead><tr>
                     <th className={`${TH_S} text-left`}>{t('finance.consolidatedImport.cols.measure')}</th>
                     <th className={`${TH_S} text-right`}>{t('finance.consolidatedImport.cols.before')}</th>
@@ -154,7 +154,7 @@ export function OpexImportModal({ open, onClose }: { open: boolean; onClose: () 
             {pv.unmatched.length > 0 && (
               <Block title={t('finance.consolidatedImport.opex.unmatchedTitle', { n: pv.unmatched.length })} hint={t('finance.consolidatedImport.opex.unmatchedHint')}>
                 <div className={`${TABLE_WRAP} max-h-[200px] overflow-y-auto`}>
-                  <table className="w-full border-collapse text-[12.5px]">
+                  <table className="w-full border-collapse text-[14px]">
                     <thead><tr>
                       <th className={`${TH_S} text-left`}>{t('finance.consolidatedImport.opex.line')}</th>
                       <th className={`${TH_S} text-left`}>{t('finance.consolidatedImport.opex.section')}</th>
@@ -177,7 +177,7 @@ export function OpexImportModal({ open, onClose }: { open: boolean; onClose: () 
             )}
             {pv.notInFile.length > 0 && (
               <Block title={t('finance.consolidatedImport.opex.notInFileTitle', { n: pv.notInFile.length })} hint={t('finance.consolidatedImport.opex.notInFileHint')}>
-                <p className="m-0 text-[12.5px] text-body dark:text-bodydark2">{pv.notInFile.map((x) => x.name).join(' · ')}</p>
+                <p className="m-0 text-[13.5px] text-body dark:text-bodydark2">{pv.notInFile.map((x) => x.name).join(' · ')}</p>
               </Block>
             )}
           </>

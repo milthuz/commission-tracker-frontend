@@ -153,9 +153,9 @@ export function JournalCard({ journal, title, sub, canPost, post, onDone, onGoAc
         <p className="m-0 text-[13px] text-body dark:text-bodydark2">{emptyText}</p>
       ) : (
         <div className={TABLE_WRAP}>
-          <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+          <table className="w-full border-collapse text-[14px] text-black dark:text-white">
             <thead>
-              <tr className="text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">
+              <tr className="text-[13px] font-semibold text-body dark:text-bodydark2">
                 <th className="border-b border-stroke px-3 py-2 text-left dark:border-strokedark">{t('finance.managers.je.account')}</th>
                 <th className="border-b border-stroke px-3 py-2 text-left dark:border-strokedark">{t('finance.managers.je.booksAccount')}</th>
                 <th className="border-b border-stroke px-3 py-2 text-right dark:border-strokedark">{t('finance.managers.je.debit')}</th>
@@ -227,7 +227,7 @@ export function JournalCard({ journal, title, sub, canPost, post, onDone, onGoAc
       {!canPost && journal.lines.length > 0 && <p className="m-0 mt-3 text-[12px] text-body dark:text-bodydark2">{t('finance.managers.je.noPostPerm')}</p>}
 
       {journal.history.some((h) => h.status === 'voided') && (
-        <details className="mt-3 text-[12.5px] text-body dark:text-bodydark2">
+        <details className="mt-3 text-[13.5px] text-body dark:text-bodydark2">
           <summary className="cursor-pointer">{t('finance.managers.je.history')}</summary>
           <ul className="m-0 mt-1 list-none p-0">
             {journal.history.filter((h) => h.status === 'voided').map((h) => (
@@ -336,9 +336,9 @@ export function ImportModal({ open, onClose, title, preview, confirm, onTemplate
         <>
           <p className="m-0 text-[13px] text-black dark:text-white">{t('finance.managers.import.summary', { sheet: pv.sheet, valid: pv.valid, invalid: pv.invalid })}</p>
           <div className={`${TABLE_WRAP} max-h-[50vh] overflow-y-auto`}>
-            <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+            <table className="w-full border-collapse text-[14px] text-black dark:text-white">
               <thead className="sticky top-0 bg-white dark:bg-boxdark">
-                <tr className="text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">
+                <tr className="text-[13px] font-semibold text-body dark:text-bodydark2">
                   <th className="border-b border-stroke px-2 py-2 text-left dark:border-strokedark"><span className="sr-only">{t('finance.managers.import.keep')}</span></th>
                   <th className="border-b border-stroke px-2 py-2 text-left dark:border-strokedark">{t('finance.managers.import.line')}</th>
                   {columns.map((c) => <th key={c.key} className="border-b border-stroke px-2 py-2 text-left dark:border-strokedark">{c.label}</th>)}
@@ -370,7 +370,7 @@ export function ImportModal({ open, onClose, title, preview, confirm, onTemplate
 }
 
 // ---------------------------------------------------------------------------- tableau
-export const TH = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-left text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2';
+export const TH = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-left text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2';
 export const THR = `${TH} text-right`;
 export const TD = 'whitespace-nowrap border-b border-stroke/60 px-2.5 py-1.5 tabular-nums dark:border-strokedark/60';
 export const TDR = `${TD} text-right`;

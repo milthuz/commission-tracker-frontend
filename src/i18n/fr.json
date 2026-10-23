@@ -11769,6 +11769,22 @@
         "load_failed": "Les brouillons n'ont pas pu être chargés.",
         "unknown": "Erreur inattendue."
       }
+    },
+    "charts": {
+      "revenue": "Revenus",
+      "spending": "Dépenses",
+      "gap": "Écart",
+      "trend": "{{what}} par mois",
+      "revSpend": {
+        "title": "Revenus et dépenses par mois",
+        "sub": "Exercice {{fy}} · dépenses = coût des revenus + dépenses d'exploitation",
+        "point": "{{m}} : revenus {{rev}}, dépenses {{sp}}"
+      },
+      "dollar": {
+        "title": "Où va chaque dollar",
+        "sub": "Part des revenus, exercice {{fy}}",
+        "left": "Reste en BAIIA"
+      }
     }
   }
 }
