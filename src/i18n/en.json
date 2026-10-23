@@ -9403,7 +9403,7 @@
       "nnWages": "Net New Delivery Wages & Salaries",
       "exWages": "Existing Delivery Wages & Salaries",
       "svcContr": "Service Contractors",
-      "svcTravel": "Service Travel, Meals, Auto",
+      "svcTravel": "Service Travel & Meals",
       "svcSw": "Service Software, Phone, Hardware & Other",
       "licCogs": "Licence COGS",
       "totCogs": "TOTAL COGS",
@@ -9477,7 +9477,7 @@
       "nnWages": "Net New Delivery Wages & Salaries",
       "exWages": "Existing Delivery Wages & Salaries",
       "svcContr": "Service Contractors",
-      "travel": "Service Travel, Meals, Auto",
+      "travel": "Service Travel & Meals",
       "svcSw": "Service Software, Phone, Hardware & Other",
       "licCogs": "Licence COGS",
       "nnSvc": "Net New Delivery",
@@ -11464,7 +11464,7 @@
         "onsites": "Onsites",
         "jobCost": "Cost per job ($)",
         "buffer": "Buffer for outside service partners",
-        "travel": "Service travel, meals, auto",
+        "travel": "Service travel & meals",
         "svcSw": "Service software, phone, hardware and other",
         "licPct": "Licence COGS %"
       },
@@ -11698,7 +11698,7 @@
         "onsites": "On-site jobs",
         "jobCost": "Cost per job",
         "buffer": "Service contractor buffer",
-        "travel": "Service travel, meals and auto",
+        "travel": "Service travel and meals",
         "svcSw": "Service software, phone, hardware and other",
         "licPct": "Licence COGS %"
       }

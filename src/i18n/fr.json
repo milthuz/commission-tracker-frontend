@@ -9403,7 +9403,7 @@
       "nnWages": "Salaires — livraison nouveaux clients",
       "exWages": "Salaires — livraison clients existants",
       "svcContr": "Contractuels de service",
-      "svcTravel": "Déplacements, repas et auto — service",
+      "svcTravel": "Déplacements et repas — service",
       "svcSw": "Logiciels, téléphonie, matériel et autres — service",
       "licCogs": "COGS des licences",
       "totCogs": "TOTAL DES COGS",
@@ -9477,7 +9477,7 @@
       "nnWages": "Salaires — livraison nouveaux clients",
       "exWages": "Salaires — livraison clients existants",
       "svcContr": "Contractuels de service",
-      "travel": "Déplacements, repas et auto — service",
+      "travel": "Déplacements et repas — service",
       "svcSw": "Logiciels, téléphonie, matériel et autres — service",
       "licCogs": "COGS des licences",
       "nnSvc": "Livraison — nouveaux clients",
@@ -11464,7 +11464,7 @@
         "onsites": "Visites sur place",
         "jobCost": "Coût par mandat ($)",
         "buffer": "Marge pour les partenaires de service externes",
-        "travel": "Déplacements, repas et auto — service",
+        "travel": "Déplacements et repas — service",
         "svcSw": "Logiciels, téléphonie, matériel et autres — service",
         "licPct": "COGS des licences %"
       },
@@ -11698,7 +11698,7 @@
         "onsites": "Interventions sur place",
         "jobCost": "Coût par travail",
         "buffer": "Réserve pour contractuels de service",
-        "travel": "Déplacements, repas et auto (service)",
+        "travel": "Déplacements et repas (service)",
         "svcSw": "Logiciels, téléphonie, matériel et autres (service)",
         "licPct": "Coût des licences (%)"
       }
