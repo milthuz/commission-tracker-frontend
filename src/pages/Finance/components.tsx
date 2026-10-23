@@ -191,8 +191,14 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
   const { fmt } = useFinance();
   // Alignement à part : deux classes text-left / text-right concurrentes se règlent par l'ordre de la
   // feuille de style, pas par l'ordre écrit.
-  const thBase = 'whitespace-nowrap border-b border-stroke px-3 py-2.5 text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2';
-  const tdBase = 'border-b border-[#F0F0ED] px-3 py-2.5 tabular-nums dark:border-[#232428]';
+  const thBase = 'whitespace-nowrap border-b border-stroke px-2.5 py-2.5 text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2';
+  const tdBase = 'border-b border-[#F0F0ED] px-2.5 py-2.5 tabular-nums dark:border-[#232428]';
+  // Douze mois en montants complets ne tiennent pas sur un écran de portable : comme des volets
+  // figés d'Excel, le libellé reste à gauche et le total de l'année (et l'écart) à droite ; seuls
+  // les mois défilent entre les deux, et la coupe passe sous le total, avec une ombre (SH-50).
+  const VS_W = 'w-[88px] min-w-[88px]';
+  const stickyTotal = `sticky ${showVs ? 'right-[88px]' : 'right-0'} z-[1] shadow-[-8px_0_10px_-8px_rgba(0,0,0,0.22)] dark:shadow-[-8px_0_10px_-8px_rgba(0,0,0,0.7)]`;
+  const stickyVs = `sticky right-0 z-[1] ${VS_W} bg-white dark:bg-boxdark`;
   const th = `${thBase} text-right`;
   const td = `${tdBase} whitespace-nowrap text-right`;
   const totalCls = 'bg-[#FAFAF8] dark:bg-[#19191B] border-l border-l-stroke dark:border-l-strokedark';
@@ -204,11 +210,11 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
       <table className="w-full border-collapse text-[14px]">
         <thead>
           <tr>
-            <th className={`${thBase} sticky left-0 z-10 min-w-[300px] bg-white text-left dark:bg-boxdark`}>{labelHead}</th>
+            <th className={`${thBase} sticky left-0 z-10 min-w-[260px] bg-white text-left dark:bg-boxdark`}>{labelHead}</th>
             {showFy26 && <th className={`${th} ${totalCls}`}>{fy26Label}</th>}
             {months.map((m) => <th key={m} className={th}>{m}</th>)}
-            <th className={`${th} ${totalCls}`}>{totalLabel}</th>
-            {showVs && <th className={th}>{vsLabel}</th>}
+            <th className={`${th} ${totalCls} ${stickyTotal}`}>{totalLabel}</th>
+            {showVs && <th className={`${th} ${stickyVs}`}>{vsLabel}</th>}
           </tr>
         </thead>
         <tbody>
@@ -240,7 +246,7 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
             const cellText = (v: number | null | undefined) => (v == null ? '' : fmt.fmt(v, f));
             return (
               <tr key={r.id} data-focus={r.focus} className={`${ROW_CLS[r.kind]} ${hl ? HL_ROW : ''}`}>
-                <td className={`${tdBase} sticky left-0 z-[1] min-w-[300px] max-w-[380px] text-left ${hl ? 'bg-[#FFF4DB] dark:bg-[#2A2410]' : 'bg-white dark:bg-boxdark'} ${r.kind === 'gl' || r.kind === 'glsub' ? '!bg-[#FAFAFA] dark:!bg-[#121214]' : ''}`}>{label}</td>
+                <td className={`${tdBase} sticky left-0 z-[1] min-w-[260px] max-w-[380px] text-left ${hl ? 'bg-[#FFF4DB] dark:bg-[#2A2410]' : 'bg-white dark:bg-boxdark'} ${r.kind === 'gl' || r.kind === 'glsub' ? '!bg-[#FAFAFA] dark:!bg-[#121214]' : ''}`}>{label}</td>
                 {showFy26 && <td className={`${td} ${totalCls}`}>{r.fy26 == null ? '' : fmt.fmt(r.fy26, f)}</td>}
                 {months.map((_, i) => {
                   const hlCell = hl && focusMonth === i;
@@ -257,7 +263,7 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
                     </td>
                   );
                 })}
-                <td className={`${td} ${totalCls} font-bold`}>
+                <td className={`${td} ${totalCls} ${stickyTotal} font-bold`}>
                   <span className="inline-flex items-center gap-1.5">
                     {r.edit?.onFill && editable && (
                       <button type="button" onClick={r.edit.onFill} title={t('finance.fillRight')} aria-label={t('finance.fillRight')} className="rounded px-1 text-[13px] text-accent-ink hover:bg-[#FDE6DA] dark:text-accent-ink-dark dark:hover:bg-[#2A2015]">⇥</button>
@@ -268,7 +274,7 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
                   </span>
                 </td>
                 {showVs && (
-                  <td className={`${td} ${r.vs == null ? '' : r.vs >= 0 ? 'text-[#067647] dark:text-[#57D193]' : 'text-[#B42318] dark:text-[#F46060]'}`}>{r.vs == null ? '' : fmt.pct(r.vs, true)}</td>
+                  <td className={`${td} ${stickyVs} ${r.vs == null ? '' : r.vs >= 0 ? 'text-[#067647] dark:text-[#57D193]' : 'text-[#B42318] dark:text-[#F46060]'}`}>{r.vs == null ? '' : fmt.pct(r.vs, true)}</td>
                 )}
               </tr>
             );
