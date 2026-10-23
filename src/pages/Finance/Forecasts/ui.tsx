@@ -219,7 +219,7 @@ export function ImportErrors({ errors }: { errors: { row?: number; code: string;
 
 // ---------------------------------------------------------------------------- tableau
 export interface Col<T> { id: string; head: React.ReactNode; cell: (r: T) => React.ReactNode; left?: boolean; cls?: (r: T) => string; headCls?: string }
-const TH = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2';
+const TH = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2';
 const TD = 'whitespace-nowrap border-b border-stroke/60 px-2.5 py-1.5 tabular-nums dark:border-strokedark/60';
 export function Grid<T>({ cols, rows, rowKey, rowCls, foot, caption }: { cols: Col<T>[]; rows: T[]; rowKey: (r: T, i: number) => string; rowCls?: (r: T) => string; foot?: T; caption?: string }) {
   const cell = (c: Col<T>, r: T, first: boolean, tfoot: boolean) => (
@@ -227,7 +227,7 @@ export function Grid<T>({ cols, rows, rowKey, rowCls, foot, caption }: { cols: C
   );
   return (
     <div className={TABLE_WRAP}>
-      <table className="w-full border-collapse text-[12.5px]">
+      <table className="w-full border-collapse text-[14px]">
         {caption && <caption className="sr-only">{caption}</caption>}
         <thead><tr>{cols.map((c, j) => <th key={c.id} scope="col" className={`${TH} ${c.left || j === 0 ? 'text-left' : 'text-right'} ${j === 0 ? 'sticky left-0 z-10 bg-white dark:bg-boxdark' : ''} ${c.headCls || ''}`}>{c.head}</th>)}</tr></thead>
         <tbody>{rows.map((r, i) => <tr key={rowKey(r, i)} className={`text-black dark:text-white ${rowCls ? rowCls(r) : ''}`}>{cols.map((c, j) => cell(c, r, j === 0, false))}</tr>)}</tbody>

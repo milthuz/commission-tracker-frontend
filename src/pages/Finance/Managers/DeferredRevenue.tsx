@@ -146,7 +146,7 @@ export default function DeferredRevenue() {
           <StateCard kind="empty" title={t('finance.managers.deferred.emptyTitle')} body={caps.canEdit ? t('finance.managers.deferred.emptyBody') : undefined} />
         ) : (
           <div className={TABLE_WRAP}>
-            <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+            <table className="w-full border-collapse text-[14px] text-black dark:text-white">
               <thead>
                 <tr>
                   <th className={TH}>{t('finance.managers.deferred.col.ref')}</th>
@@ -380,7 +380,7 @@ function SettingsModal({ settings, canEdit, onClose, onDone }: { settings: Defer
         <input id="s-def" className={`${INPUT} w-[160px]`} value={d.deferredAccount} disabled={!canEdit} maxLength={20} onChange={(e) => setD((x) => ({ ...x, deferredAccount: e.target.value }))} />
       </Field>
       <div className={TABLE_WRAP}>
-        <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+        <table className="w-full border-collapse text-[14px] text-black dark:text-white">
           <thead><tr><th className={TH}>{t('finance.managers.deferred.typeKey')}</th><th className={TH}>{t('finance.managers.deferred.labelEn')}</th><th className={TH}>{t('finance.managers.deferred.labelFr')}</th><th className={TH}>{t('finance.managers.deferred.revenueAccount')}</th></tr></thead>
           <tbody>
             {d.types.map((ty, i) => {

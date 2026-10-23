@@ -60,7 +60,7 @@ export function ImportModal({ open, onClose, fmt, onDone }: { open: boolean; onC
       <input ref={input} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
       <Button variant="secondary" size="sm" onClick={() => input.current?.click()} disabled={reading}>{t('finance.kpi.import.choose')}</Button>
       {reading && <p className={`mt-3 ${CARD_SUB}`}>{t('finance.kpi.import.reading')}</p>}
-      {err && <p role="alert" className="mt-3 text-[12.5px] font-bold text-[#B42318] dark:text-[#F46060]">{err}</p>}
+      {err && <p role="alert" className="mt-3 text-[13.5px] font-bold text-[#B42318] dark:text-[#F46060]">{err}</p>}
       {preview && (
         <div className="mt-4">
           <p className="mb-2 text-[13px] text-black dark:text-white">
@@ -69,7 +69,7 @@ export function ImportModal({ open, onClose, fmt, onDone }: { open: boolean; onC
           </p>
           {preview.cells.length > 0 && (
             <div className={`${TABLE_WRAP} max-h-[320px] overflow-y-auto`}>
-              <table className="w-full border-collapse text-[12.5px]">
+              <table className="w-full border-collapse text-[14px]">
                 <thead><tr className={THEAD_ROW}>
                   <th className={`${TH} text-left`}>{t('finance.kpi.cols.kpi')}</th>
                   <th className={`${TH} text-left`}>{t('finance.kpi.import.month')}</th>
@@ -92,7 +92,7 @@ export function ImportModal({ open, onClose, fmt, onDone }: { open: boolean; onC
           {preview.errors.length > 0 && (
             <div className="mt-3">
               <h3 className="mb-1 text-[13px] font-bold text-black dark:text-white">{t('finance.kpi.import.errors')}</h3>
-              <ul className="list-disc pl-5 text-[12.5px] text-body dark:text-bodydark2">
+              <ul className="list-disc pl-5 text-[13.5px] text-body dark:text-bodydark2">
                 {preview.errors.slice(0, 50).map((e, i) => (
                   <li key={i}>{t('finance.kpi.import.row', { row: e.row })}{e.month ? ` · ${F.month(e.month)}` : ''} : {t(`finance.kpi.import.err.${e.error}`, { defaultValue: e.error })}{e.value ? ` (${e.value})` : ''}</li>
                 ))}

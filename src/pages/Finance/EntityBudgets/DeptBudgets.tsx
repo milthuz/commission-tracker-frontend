@@ -99,7 +99,7 @@ function DeptPage({ payload, onApplied }: { payload: DeptPayload; onApplied: (p:
           <Card title={t(`${NS}.dept.leaderView`)} sub={t(`${NS}.dept.leaderHint`)}>
             <DiffTable head={[t(`${NS}.dept.department`), t(`${NS}.cols.sd`), t(`${NS}.cols.fy`), t(`${NS}.cols.m16`)]}
               rows={ref.leaders.map((L) => [
-                <button key={L.key} type="button" onClick={() => setTab(L.key as Tab)} className="inline-flex flex-wrap items-center gap-2 text-left font-bold underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark">
+                <button key={L.key} type="button" onClick={() => setTab(L.key as Tab)} className="inline-flex flex-wrap items-center gap-2 text-left font-bold decoration-primary underline-offset-[3px] hover:underline focus-visible:underline hover:text-accent-ink dark:hover:text-accent-ink-dark">
                   {leaderLabel(L.key, L.name)}
                   {contrib(L.key) && <StatusPill family="new">{t(`${NS}.dept.contribution`)}</StatusPill>}
                 </button>,

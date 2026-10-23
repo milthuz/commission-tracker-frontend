@@ -17,7 +17,7 @@ import { Bar, Checklist, PROGRESS_PATH } from './BudgetProgress';
 import { GROUP_PAGE, OwnerModal, ReasonModal, StateBadge, effectiveState, useActions, useErrText, useLineLabel } from './shared';
 import { progressStore, statusStore, useStore } from './store';
 
-const TH = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-left text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2';
+const TH = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-left text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2';
 const TD = 'border-b border-stroke/60 px-2.5 py-1.5 align-middle dark:border-strokedark/60';
 const SEL = 'h-9 min-w-[150px] rounded-[10px] border border-stroke bg-transparent px-3 text-left text-[13px] text-black dark:border-strokedark dark:text-white';
 const STATES: LineState[] = ['default', 'proposed', 'submitted', 'approved', 'stale'];
@@ -174,7 +174,7 @@ export default function ProgressPage() {
         ) : <p className="m-0 text-[13px] text-body dark:text-bodydark2">{t('finance.progress.owners.noneMissing')}</p>}
 
         <div className="mt-4 border-t border-stroke pt-3 dark:border-strokedark">
-          <p className="m-0 mb-2 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{t('finance.progress.owners.directory')}</p>
+          <p className="m-0 mb-2 text-[13px] font-semibold text-body dark:text-bodydark2">{t('finance.progress.owners.directory')}</p>
           <ul className="m-0 flex list-none flex-wrap items-center gap-2 p-0">
             {data.directory.map((name) => (
               <li key={name} className="inline-flex items-center gap-1 rounded-full bg-gray-2 py-1 pl-3 pr-1.5 text-[13px] text-black dark:bg-meta-4/60 dark:text-white">
@@ -227,7 +227,7 @@ export default function ProgressPage() {
           <p className="m-0 text-[13px] text-body dark:text-bodydark2">{t('finance.progress.page.empty')}</p>
         ) : (
           <div className={TABLE_WRAP}>
-            <table className="w-full border-collapse text-[12.5px] text-black dark:text-white">
+            <table className="w-full border-collapse text-[14px] text-black dark:text-white">
               <thead>
                 <tr>
                   <th className={TH}><span className="sr-only">{t('finance.progress.page.select')}</span></th>

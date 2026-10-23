@@ -112,7 +112,7 @@ export function KpiTable({ table, view, canEdit, fmt, onActual, onBudget, srcTit
 
   return (
     <div className={TABLE_WRAP}>
-      <table className="w-full border-collapse text-[12.5px]">
+      <table className="w-full border-collapse text-[14px]">
         <thead>
           <tr>
             <th rowSpan={bva ? 2 : 1} className={`${th} ${label} z-10 !text-left`}>{t('finance.kpi.cols.kpi')}</th>
@@ -139,7 +139,7 @@ export function KpiTable({ table, view, canEdit, fmt, onActual, onBudget, srcTit
               lastSec = row.def.section;
               out.push(
                 <tr key={`sec:${row.def.section}`}>
-                  <td colSpan={span} className="border-b border-stroke px-2.5 pb-1.5 pt-4 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2">{t(`finance.kpi.sec.${row.def.section}`)}</td>
+                  <td colSpan={span} className="border-b border-stroke px-2.5 pb-1.5 pt-4 text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2">{t(`finance.kpi.sec.${row.def.section}`)}</td>
                 </tr>,
               );
             }

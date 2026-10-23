@@ -79,13 +79,15 @@ function SaveBadge({ status, error }: { status: string; error: string | null }) 
 }
 
 // ---------------------------------------------------------------------------- tuiles
-export function Kpi({ label, value, detail, sub, tone, onClick }: { label: string; value: React.ReactNode; detail?: React.ReactNode; sub?: React.ReactNode; tone?: 'up' | 'dn'; onClick?: () => void }) {
+// `chart` : tendance mensuelle sous le chiffre (SH-50, Budget maître).
+export function Kpi({ label, value, detail, sub, tone, onClick, chart }: { label: string; value: React.ReactNode; detail?: React.ReactNode; sub?: React.ReactNode; tone?: 'up' | 'dn'; onClick?: () => void; chart?: React.ReactNode }) {
   const body = (
     <>
-      <div className="text-[12px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2">{label}</div>
-      <div className={`mt-1.5 text-[26px] font-medium tabular-nums leading-tight ${tone === 'dn' ? 'text-[#B42318] dark:text-[#F46060]' : 'text-black dark:text-white'}`}>{value}</div>
-      {detail && <div className="mt-1 text-[12.5px] text-body dark:text-bodydark2">{detail}</div>}
-      {sub && <div className="mt-0.5 text-[12px] tabular-nums text-body dark:text-bodydark2">{sub}</div>}
+      <div className="text-[13px] font-semibold text-body dark:text-bodydark2">{label}</div>
+      <div className={`mt-1 text-[28px] font-bold tabular-nums leading-tight tracking-[-0.01em] ${tone === 'dn' ? 'text-[#B42318] dark:text-[#F46060]' : 'text-black dark:text-white'}`}>{value}</div>
+      {chart}
+      {detail && <div className="mt-1.5 text-[13.5px] text-body dark:text-bodydark2">{detail}</div>}
+      {sub && <div className="mt-0.5 text-[13px] tabular-nums text-body dark:text-bodydark2">{sub}</div>}
     </>
   );
   const cls = `${CARD} p-4 text-left`;
@@ -130,7 +132,7 @@ export function NumCell({ value, onChange, disabled, label, width = 'w-[84px]', 
       onChange={(e) => { setRaw(e.target.value); const v = fmt.parse(e.target.value); if (v != null) onChange(v); }}
       onBlur={() => { setFocused(false); setRaw(null); }}
       onFocus={(e) => { setFocused(true); const el = e.target; requestAnimationFrame(() => el.select()); }}
-      className={`${width} h-7 rounded-md border px-1.5 text-right text-[12.5px] tabular-nums outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-70 ${EDIT_CELL}`}
+      className={`${width} h-8 rounded-md border px-1.5 text-right text-[13.5px] tabular-nums outline-none focus:ring-2 focus:ring-primary/40 disabled:cursor-not-allowed disabled:opacity-70 ${EDIT_CELL}`}
     />
   );
 }
@@ -159,12 +161,14 @@ export interface FRow {
   cellFmt?: Fmt;
 }
 
+// Style « relevé épuré » choisi par la CFO (SH-50, direction A) : sections en titres, sous-totaux en
+// simple filet sans fond, BAIIA et bénéfice net en bande douce.
 const ROW_CLS: Record<RowKind, string> = {
-  sec: 'text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:text-bodydark2',
-  line: 'text-black dark:text-white',
-  sub: 'font-bold text-black dark:text-white [&>td]:border-t [&>td]:border-t-[#9a9aa3] dark:[&>td]:border-t-[#575A61] [&>td]:bg-[#F5F5F5] dark:[&>td]:bg-[#161718]',
-  grand: 'font-bold text-black dark:text-white [&>td]:border-t [&>td]:border-t-[#141414] dark:[&>td]:border-t-white [&>td]:border-b-[3px] [&>td]:border-b-[#141414] dark:[&>td]:border-b-white [&>td]:[border-bottom-style:double]',
-  pct: 'italic text-body dark:text-bodydark2',
+  sec: 'text-[15px] font-bold text-black dark:text-white',
+  line: 'text-[#2B2B2B] dark:text-[#E4E4E7]',
+  sub: 'font-bold text-black dark:text-white [&>td]:border-t [&>td]:border-t-[#C9C9C5] dark:[&>td]:border-t-[#3A3C42]',
+  grand: 'text-[15px] font-extrabold text-black dark:text-white [&>td]:border-t-2 [&>td]:border-t-[#141414] dark:[&>td]:border-t-[#E4E4E7] [&>td]:bg-[#FFF7F1] dark:[&>td]:bg-[#2A2015]',
+  pct: 'text-[13px] text-body dark:text-bodydark2',
   gl: 'text-[#424242] dark:text-bodydark [&>td]:bg-[#FAFAFA] dark:[&>td]:bg-[#121214]',
   glsub: 'font-bold text-[#141414] dark:text-white [&>td]:bg-[#FAFAFA] dark:[&>td]:bg-[#121214] [&>td]:border-t [&>td]:border-t-[#C9C9C5] dark:[&>td]:border-t-[#3A3C42]',
 };
@@ -187,14 +191,17 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
   const { fmt } = useFinance();
   // Alignement à part : deux classes text-left / text-right concurrentes se règlent par l'ordre de la
   // feuille de style, pas par l'ordre écrit.
-  const thBase = 'whitespace-nowrap border-b border-stroke px-2.5 py-2 text-[11px] font-bold uppercase tracking-[0.06em] text-body dark:border-strokedark dark:text-bodydark2';
-  const tdBase = 'border-b border-stroke/60 px-2.5 py-1.5 tabular-nums dark:border-strokedark/60';
+  const thBase = 'whitespace-nowrap border-b border-stroke px-3 py-2.5 text-[13px] font-semibold text-body dark:border-strokedark dark:text-bodydark2';
+  const tdBase = 'border-b border-[#F0F0ED] px-3 py-2.5 tabular-nums dark:border-[#232428]';
   const th = `${thBase} text-right`;
   const td = `${tdBase} whitespace-nowrap text-right`;
-  const totalCls = 'bg-[#F3F3F3] dark:bg-[#19191B] border-l border-l-stroke dark:border-l-strokedark';
+  const totalCls = 'bg-[#FAFAF8] dark:bg-[#19191B] border-l border-l-stroke dark:border-l-strokedark';
+  // Les chiffres restent cliquables (ils mènent à leur source) mais ne sont soulignés qu'au survol :
+  // un pointillé sous chaque nombre rendait les tableaux difficiles à lire (CFO, 2026-10-22).
+  const linkCls = 'tabular-nums decoration-primary underline-offset-[3px] hover:underline hover:text-accent-ink focus-visible:underline dark:hover:text-accent-ink-dark';
   return (
     <div className={TABLE_WRAP}>
-      <table className="w-full border-collapse text-[12.5px]">
+      <table className="w-full border-collapse text-[14px]">
         <thead>
           <tr>
             <th className={`${thBase} sticky left-0 z-10 min-w-[300px] bg-white text-left dark:bg-boxdark`}>{labelHead}</th>
@@ -210,7 +217,7 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
             if (r.kind === 'sec') {
               return (
                 <tr key={r.id} className={ROW_CLS.sec} data-focus={r.focus}>
-                  <td colSpan={span} className="border-b border-stroke px-2.5 pb-1.5 pt-4 dark:border-strokedark">{r.label}</td>
+                  <td colSpan={span} className="border-b border-stroke px-3 pb-2 pt-6 dark:border-strokedark">{r.label}</td>
                 </tr>
               );
             }
@@ -228,16 +235,15 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
             const label = r.expand
               ? <button type="button" aria-expanded={r.expand.open} onClick={r.expand.toggle} className="w-full text-left hover:text-accent-ink dark:hover:text-accent-ink-dark">{labelInner}</button>
               : r.onClick
-                ? <button type="button" onClick={r.onClick} className="w-full text-left underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark">{labelInner}</button>
+                ? <button type="button" onClick={r.onClick} className="w-full text-left decoration-primary underline-offset-[3px] hover:underline hover:text-accent-ink focus-visible:underline dark:hover:text-accent-ink-dark">{labelInner}</button>
                 : labelInner;
             const cellText = (v: number | null | undefined) => (v == null ? '' : fmt.fmt(v, f));
             return (
               <tr key={r.id} data-focus={r.focus} className={`${ROW_CLS[r.kind]} ${hl ? HL_ROW : ''}`}>
-                <td className={`${tdBase} sticky left-0 z-[1] min-w-[300px] max-w-[380px] text-left ${hl ? 'bg-[#FFF4DB] dark:bg-[#2A2410]' : 'bg-white dark:bg-boxdark'} ${r.kind === 'sub' ? '!bg-[#F5F5F5] dark:!bg-[#161718]' : ''} ${r.kind === 'gl' || r.kind === 'glsub' ? '!bg-[#FAFAFA] dark:!bg-[#121214]' : ''}`}>{label}</td>
+                <td className={`${tdBase} sticky left-0 z-[1] min-w-[300px] max-w-[380px] text-left ${hl ? 'bg-[#FFF4DB] dark:bg-[#2A2410]' : 'bg-white dark:bg-boxdark'} ${r.kind === 'gl' || r.kind === 'glsub' ? '!bg-[#FAFAFA] dark:!bg-[#121214]' : ''}`}>{label}</td>
                 {showFy26 && <td className={`${td} ${totalCls}`}>{r.fy26 == null ? '' : fmt.fmt(r.fy26, f)}</td>}
                 {months.map((_, i) => {
                   const hlCell = hl && focusMonth === i;
-                  const linkCls = 'tabular-nums underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark';
                   const txt = cellText(r.vals?.[i]);
                   return (
                     <td key={i} className={`${td} ${hlCell ? HL_CELL : ''}`} data-month={i}>
@@ -257,7 +263,7 @@ export function FinTable({ rows, months, showFy26, showVs, totalLabel, fy26Label
                       <button type="button" onClick={r.edit.onFill} title={t('finance.fillRight')} aria-label={t('finance.fillRight')} className="rounded px-1 text-[13px] text-accent-ink hover:bg-[#FDE6DA] dark:text-accent-ink-dark dark:hover:bg-[#2A2015]">⇥</button>
                     )}
                     {r.total == null ? '' : r.onCellClick && !r.edit
-                      ? <button type="button" onClick={() => r.onCellClick!(null)} aria-label={`${typeof r.label === 'string' ? r.label : r.id} — ${totalLabel} : ${t('finance.goToSource')}`} className="tabular-nums underline decoration-dotted decoration-primary underline-offset-[3px] hover:text-accent-ink dark:hover:text-accent-ink-dark">{fmt.fmt(r.total, f)}</button>
+                      ? <button type="button" onClick={() => r.onCellClick!(null)} aria-label={`${typeof r.label === 'string' ? r.label : r.id} — ${totalLabel} : ${t('finance.goToSource')}`} className={linkCls}>{fmt.fmt(r.total, f)}</button>
                       : fmt.fmt(r.total, f)}
                   </span>
                 </td>
