@@ -7,9 +7,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CARD, CARD_HEAD, CARD_SUB, CARD_TITLE } from '../../components/ui/surface';
 
-const REV_BG = 'bg-[#D16630] dark:bg-[#DE6C33]';
-const SPEND_BG = 'bg-[#2F6FDE] dark:bg-[#5B8DEF]';
-const REV_INK = 'text-[#D16630] dark:text-[#DE6C33]';
+// Teintes adoucies à la demande de la CFO (« less harsh », 2026-10-23) : saturation ramenée juste
+// au-dessus du plancher du validateur — le plus doux qui reste distinguable pour les daltoniens et
+// contrasté sur le fond, en clair comme en sombre (toutes les vérifications passent).
+const REV_BG = 'bg-[#B8693F] dark:bg-[#C47A52]';
+const SPEND_BG = 'bg-[#4A73BC] dark:bg-[#6C8ED2]';
+const REV_INK = 'text-[#B8693F] dark:text-[#C47A52]';
 
 type Money = (v: number) => string;
 
@@ -85,8 +88,8 @@ export function RevenueSpendChart({ months, revenue, spending, money, fy }: { mo
                   aria-label={t('finance.charts.revSpend.point', { m, rev: money(revenue[i]), sp: money(spending[i]) })}
                   onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onFocus={() => setHover(i)} onBlur={() => setHover(null)}
                   className={`relative flex h-full flex-1 items-end justify-center gap-[2px] rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${hover === i ? 'bg-[#F4F5F7] dark:bg-[#1F2023]' : ''}`}>
-                  <span className={`w-[38%] rounded-t-[4px] ${REV_BG}`} style={{ height: pct(revenue[i]) }} />
-                  <span className={`w-[38%] rounded-t-[4px] ${SPEND_BG}`} style={{ height: pct(spending[i]) }} />
+                  <span className={`w-[32%] max-w-[22px] rounded-t-[4px] ${REV_BG}`} style={{ height: pct(revenue[i]) }} />
+                  <span className={`w-[32%] max-w-[22px] rounded-t-[4px] ${SPEND_BG}`} style={{ height: pct(spending[i]) }} />
                 </button>
               ))}
             </div>
